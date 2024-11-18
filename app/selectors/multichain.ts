@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
+import { zeroAddress } from 'ethereumjs-util';
 import { RootState } from '../reducers';
 import I18n from '../../locales/i18n';
 import {
@@ -167,6 +168,7 @@ export const selectAccountTokensAcrossChains = createSelector(
           logo: token.image,
           isETH: false,
           isNative: false,
+          symbol: getTicker(ticker),
         };
       });
 
@@ -204,10 +206,14 @@ export const selectAccountTokensAcrossChains = createSelector(
             style: 'currency',
           }).format(tokenFiatAmount);
         }
-
         tokensByChain[chainId].push({
           ...nativeTokenInfo,
-          address: '',
+          // TODO: Check if this is correct for native tokens
+          // or do we need the wrapped native token address?
+          // for example the AVAX token has
+          // 0x0000000000000000000000000000000000000000 on its network
+          // but the wrapped version is 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7
+          address: zeroAddress() as Hex,
           balance: nativeBalanceFormatted,
           balanceFiat: nativeBalanceFiat,
           chainId,

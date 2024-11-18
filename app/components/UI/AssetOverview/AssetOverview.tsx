@@ -1,7 +1,7 @@
-import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -14,8 +14,12 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketData,
+} from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
@@ -53,6 +57,8 @@ import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 interface AssetOverviewProps {
   navigation: {
     navigate: (route: string, params: Record<string, unknown>) => void;
@@ -69,8 +75,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displaySwapsButton,
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
+  const conversionRateByTicker = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
@@ -81,12 +88,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const { trackEvent } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRateByChainId = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
-  const chainId = useSelector((state: RootState) => selectChainId(state));
-  const ticker = useSelector((state: RootState) => selectTicker(state));
+  const selectedChainId = useSelector((state: RootState) =>
+    selectChainId(state),
+  );
+  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
+
+  const chainId = isPortfolioViewEnabled
+    ? (asset.chainId as Hex)
+    : selectedChainId;
+  const ticker = isPortfolioViewEnabled ? asset.symbol : selectedTicker;
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    address: asset.isETH ? zeroAddress() : asset.address,
+    address: asset.address,
     chainId,
     timePeriod,
     vsCurrency: currentCurrency,
@@ -201,55 +216,84 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
 
   const itemAddress = safeToChecksumAddress(asset.address);
-  const exchangeRate = itemAddress
-    ? tokenExchangeRates?.[itemAddress]?.price
-    : undefined;
+
+  let exchangeRate;
+  if (!isPortfolioViewEnabled) {
+    exchangeRate = itemAddress
+      ? tokenExchangeRates?.[itemAddress]?.price
+      : undefined;
+  } else {
+    exchangeRate =
+      tokenExchangeRateByChainId?.[chainId]?.[itemAddress as Hex]?.price;
+  }
 
   let balance, balanceFiat;
-  if (asset.isETH) {
-    balance = renderFromWei(
-      //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-    );
-    balanceFiat = weiToFiat(
-      hexToBN(
+  if (!isPortfolioViewEnabled) {
+    if (asset.isETH) {
+      balance = renderFromWei(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
         accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      ),
-      conversionRate,
-      currentCurrency,
-    );
+      );
+      balanceFiat = weiToFiat(
+        hexToBN(
+          //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
+          accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+        ),
+        conversionRate,
+        currentCurrency,
+      );
+    } else {
+      balance =
+        itemAddress && tokenBalances?.[itemAddress]
+          ? renderFromTokenMinimalUnit(
+              tokenBalances[itemAddress],
+              asset.decimals,
+            )
+          : 0;
+      balanceFiat = balanceToFiat(
+        balance,
+        conversionRateByTicker[asset.symbol].conversionRate,
+        exchangeRate,
+        currentCurrency,
+      );
+    }
   } else {
-    balance =
-      itemAddress && tokenBalances?.[itemAddress]
-        ? renderFromTokenMinimalUnit(tokenBalances[itemAddress], asset.decimals)
-        : 0;
-    balanceFiat = balanceToFiat(
-      balance,
-      conversionRate,
-      exchangeRate,
-      currentCurrency,
-    );
+    balance = asset.balance;
+    balanceFiat = asset.balanceFiat;
   }
 
   let mainBalance, secondaryBalance;
-  if (primaryCurrency === 'ETH') {
-    mainBalance = `${balance} ${asset.symbol}`;
-    secondaryBalance = balanceFiat;
+  if (!isPortfolioViewEnabled) {
+    if (primaryCurrency === 'ETH') {
+      mainBalance = `${balance} ${asset.symbol}`;
+      secondaryBalance = balanceFiat;
+    } else {
+      mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
+      secondaryBalance = !balanceFiat
+        ? balanceFiat
+        : `${balance} ${asset.symbol}`;
+    }
   } else {
-    mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
-    secondaryBalance = !balanceFiat
-      ? balanceFiat
-      : `${balance} ${asset.symbol}`;
+    mainBalance = `${balance} ${asset.symbol}`;
+    secondaryBalance = asset.balanceFiat;
   }
 
   let currentPrice = 0;
   let priceDiff = 0;
 
-  if (asset.isETH) {
-    currentPrice = conversionRate || 0;
-  } else if (exchangeRate && conversionRate) {
-    currentPrice = exchangeRate * conversionRate;
+  if (!isPortfolioViewEnabled) {
+    if (asset.isETH) {
+      currentPrice = conversionRate || 0;
+    } else if (exchangeRate && conversionRate) {
+      currentPrice = exchangeRate * conversionRate;
+    }
+  } else {
+    const tickerConversionRate =
+      conversionRateByTicker[asset.symbol].conversionRate;
+    currentPrice =
+      exchangeRate && tickerConversionRate
+        ? exchangeRate * tickerConversionRate
+        : 0;
   }
 
   const comparePrice = prices[0]?.[1] || 0;

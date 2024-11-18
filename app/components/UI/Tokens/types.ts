@@ -23,6 +23,6 @@ export interface TokenI {
   hasBalanceError?: boolean;
   isStaked?: boolean | undefined;
   nativeAsset?: TokenI | undefined;
-  chainId?: string; // TODO: may need to remove optional
-  isNative?: boolean; // TODO: may need to remove optional
+  chainId?: string;
+  isNative?: boolean;
 }

@@ -175,12 +175,12 @@ export const TokenListItem = ({
       mainBalance = balanceValueFormatted;
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
     }
+
+    asset = { ...asset, balanceFiat };
   } else {
     mainBalance = asset.balance;
     secondaryBalance = asset.balanceFiat;
   }
-
-  asset = { ...asset, balanceFiat };
 
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
