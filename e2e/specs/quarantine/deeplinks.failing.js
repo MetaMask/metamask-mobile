@@ -118,7 +118,7 @@ describe(Regression('Deep linking Tests'), () => {
 
     await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
     await Assertions.checkIfElementToHaveText(
-      NetworkApprovalModal.displayName,
+      NetworkApprovalBottomSheet.displayName,
       PopularNetworksList.Polygon.providerConfig?.nickname,
     );
 
