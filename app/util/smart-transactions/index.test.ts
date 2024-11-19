@@ -381,6 +381,7 @@ describe('Smart Transactions utils', () => {
           }
         },
       );
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
