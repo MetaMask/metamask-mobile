@@ -729,7 +729,25 @@ export class Engine {
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
-      state: initialState.CurrencyRateController,
+      // normalize `null` currencyRate to `0`
+      // TODO: handle `null` currencyRate by hiding fiat values instead
+      state: {
+        ...initialState.CurrencyRateController,
+        currencyRates: Object.fromEntries(
+          Object.entries(
+            initialState.CurrencyRateController?.currencyRates ?? {
+              ETH: {
+                conversionRate: 0,
+                conversionDate: 0,
+                usdConversionRate: null,
+              },
+            },
+          ).map(([k, v]) => [
+            k,
+            { ...v, conversionRate: v.conversionRate ?? 0 },
+          ]),
+        ),
+      },
     });
     const currentNetworkConfig =
       networkController.getNetworkConfigurationByNetworkClientId(
@@ -2414,25 +2432,13 @@ export default {
       AccountsController,
     } = instance.datamodel.state;
 
-    // normalize `null` currencyRate to `0`
-    // TODO: handle `null` currencyRate by hiding fiat values instead
-    const modifiedCurrencyRateControllerState = {
-      ...CurrencyRateController,
-      currencyRates: Object.fromEntries(
-        Object.entries(CurrencyRateController.currencyRates).map(([k, v]) => [
-          k,
-          { ...v, conversionRate: v.conversionRate ?? 0 },
-        ]),
-      ),
-    };
-
     return {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
       NftController,
       TokenListController,
-      CurrencyRateController: modifiedCurrencyRateControllerState,
+      CurrencyRateController,
       KeyringController,
       NetworkController,
       PhishingController,
