@@ -118,6 +118,7 @@ import {
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import {
   PPOMController,
+  PPOMControllerActions,
   PPOMControllerEvents,
   PPOMState,
 } from '@metamask/ppom-validator';
@@ -173,6 +174,7 @@ import {
   weiToFiatNumber,
   toHexadecimal,
   addHexPrefix,
+  hexToBN,
 } from '../util/number';
 import NotificationManager from './NotificationManager';
 import Logger from '../util/Logger';
@@ -266,6 +268,7 @@ import { getSmartTransactionMetricsProperties } from '../util/smart-transactions
 import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -315,6 +318,7 @@ type GlobalActions =
   | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
+  | PPOMControllerActions
   | TokensControllerActions
   | TokenListControllerActions
   | SelectedNetworkControllerActions
@@ -547,6 +551,7 @@ export class Engine {
         useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        smartTransactionsOptInStatus: true,
         tokenSortConfig: {
           key: 'tokenFiatAmount',
           order: 'dsc',
@@ -704,9 +709,7 @@ export class Engine {
       }),
       state: initialState.CurrencyRateController,
     });
-    currencyRateController.startPolling({
-      networkClientId: networkController.state.selectedNetworkClientId,
-    });
+
     const gasFeeController = new GasFeeController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
@@ -951,6 +954,11 @@ export class Engine {
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
+      getStakedBalanceForChain:
+        assetsContractController.getStakedBalanceForChain.bind(
+          assetsContractController,
+        ),
+      includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
@@ -1661,11 +1669,10 @@ export class Engine {
         ).configuration.chainId,
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
-        // @ts-expect-error TODO: Resolve/patch mismatch between base-controller versions. Before: never, never. Now: string, string, which expects 3rd and 4th args to be informed for restrictedControllerMessengers
         messenger: this.controllerMessenger.getRestricted({
           name: 'PPOMController',
           allowedActions: ['NetworkController:getNetworkClientById'],
-          allowedEvents: [`${networkController.name}:stateChange`],
+          allowedEvents: [`${networkController.name}:networkDidChange`],
         }),
         onPreferencesChange: (listener) =>
           this.controllerMessenger.subscribe(
@@ -1985,10 +1992,15 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
+        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance);
+        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance || '0x00');
+        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
         ethFiat = weiToFiatNumber(
-          accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
-          ].balance,
+          totalAccountBalance,
           conversionRate,
           decimalsToShow,
         );
