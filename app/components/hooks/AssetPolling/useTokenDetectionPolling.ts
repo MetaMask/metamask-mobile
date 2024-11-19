@@ -3,7 +3,6 @@ import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { selectContractExchangeRates, selectTokenMarketData } from '../../../selectors/tokenRatesController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
