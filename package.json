@@ -161,7 +161,7 @@
     "@metamask/keyring-api": "^8.1.0",
     "@metamask/keyring-controller": "^17.2.1",
     "@metamask/logging-controller": "^6.0.1",
-    "@metamask/message-signing-snap": "^0.3.3",
+    "@metamask/message-signing-snap": "^0.4.0",
     "@metamask/network-controller": "^21.0.0",
     "@metamask/notification-services-controller": "^0.11.0",
     "@metamask/permission-controller": "^11.0.0",
