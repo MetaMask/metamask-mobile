@@ -38,7 +38,7 @@ import {
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
-import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
@@ -137,7 +137,7 @@ import {
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import { getSnapsWebViewPromise } from '../lib/snaps';
+import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -158,16 +158,16 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
   isTestNet,
   deprecatedGetNetworkId,
   getDecimalChainId,
-} from '../util/networks';
-import AppConstants from './AppConstants';
-import { store } from '../store';
+} from '../../util/networks';
+import AppConstants from '../AppConstants';
+import { store } from '../../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -175,11 +175,11 @@ import {
   toHexadecimal,
   addHexPrefix,
   hexToBN,
-} from '../util/number';
-import NotificationManager from './NotificationManager';
-import Logger from '../util/Logger';
-import { isZero } from '../util/lodash';
-import { MetaMetricsEvents, MetaMetrics } from './Analytics';
+} from '../../util/number';
+import NotificationManager from '../NotificationManager';
+import Logger from '../../util/Logger';
+import { isZero } from '../../util/lodash';
+import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
@@ -190,8 +190,8 @@ import {
   detectSnapLocation,
   fetchFunction,
   DetectSnapLocationOptions,
-} from './Snaps';
-import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+} from '../Snaps';
+import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
 import {
   AuthenticationController,
@@ -206,8 +206,8 @@ import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from './Permissions/specifications.js';
-import { backupVault } from './BackupVault';
+} from '../Permissions/specifications.js';
+import { backupVault } from '../BackupVault';
 import {
   SignatureController,
   SignatureControllerActions,
@@ -219,8 +219,8 @@ import { hasProperty, Hex, Json } from '@metamask/utils';
 import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
+import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import {
   AccountsController,
   AccountsControllerActions,
@@ -233,22 +233,22 @@ import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../core/redux/slices/inpageProvider';
+} from '../../core/redux/slices/inpageProvider';
 import SmartTransactionsController, {
   type SmartTransactionsControllerActions,
   type SmartTransactionsControllerEvents,
   type SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
-import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
+import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
+import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
+import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,
@@ -258,17 +258,17 @@ import {
   getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { snapKeyringBuilder } from './SnapKeyring';
-import { removeAccountsFromPermissions } from './Permissions';
-import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
-import { HandleSnapRequestArgs } from './Snaps/types';
-import { handleSnapRequest } from './Snaps/utils';
+import { snapKeyringBuilder } from '../SnapKeyring';
+import { removeAccountsFromPermissions } from '../Permissions';
+import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+import { HandleSnapRequestArgs } from '../Snaps/types';
+import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
-import { trace } from '../util/trace';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
-import { JsonMap } from './Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
+import { trace } from '../../util/trace';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { JsonMap } from '../Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1992,13 +1992,19 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
-        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance);
-        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+        const balanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].balance,
+        );
+        const stakedBalanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].stakedBalance || '0x00',
+        );
+        const totalAccountBalance = balanceBN
+          .add(stakedBalanceBN)
+          .toString('hex');
         ethFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,

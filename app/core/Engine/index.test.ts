@@ -2,20 +2,20 @@ import Engine, {
   Engine as EngineClass,
   EngineState,
   TransactionEventPayload,
-} from './Engine';
-import { backgroundState } from '../util/test/initial-root-state';
+} from '.';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
-import { createMockAccountsControllerState } from '../util/test/accountsControllerTestUtils';
-import { mockNetworkState } from '../util/test/network';
-import MetaMetrics from './Analytics/MetaMetrics';
-import { store } from '../store';
-import { MetaMetricsEvents } from './Analytics';
+import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
+import { mockNetworkState } from '../../util/test/network';
+import MetaMetrics from '../Analytics/MetaMetrics';
+import { store } from '../../store';
+import { MetaMetricsEvents } from '../Analytics';
 import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '../components/UI/Tokens';
+import { MarketDataDetails } from '../../components/UI/Tokens';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { RootState } from '../reducers';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import { RootState } from '../../reducers';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 
 jest.unmock('./Engine');
 jest.mock('../store', () => ({
@@ -276,11 +276,17 @@ describe('Engine', () => {
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+              [selectedAddress]: {
+                balance: (ethBalance * 1e18).toString(),
+                stakedBalance: (stakedEthBalance * 1e18).toString(),
+              },
             },
           },
           accounts: {
-            [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+            [selectedAddress]: {
+              balance: (ethBalance * 1e18).toString(),
+              stakedBalance: (stakedEthBalance * 1e18).toString(),
+            },
           },
         },
         TokensController: {
