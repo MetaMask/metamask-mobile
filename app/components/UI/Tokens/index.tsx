@@ -183,16 +183,17 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ...(isPortfolioViewEnabled
-          ? Object.values(networkConfigurationsByChainId).map((network) =>
-              TokenRatesController.updateExchangeRatesByChainId(
-                {
-                  chainId: network.chainId,
-                  nativeCurrency: network.nativeCurrency,
-                },
-            ),
-        ) : [TokenRatesController.updateExchangeRates()]
-      )
+        (isPortfolioViewEnabled
+          ? Object.values(networkConfigurationsByChainId)
+          : [networkConfigurationsByChainId[chainId]]
+        ).map((network) =>
+          TokenRatesController.updateExchangeRatesByChainId(
+            {
+              chainId: network.chainId,
+              nativeCurrency: network.nativeCurrency,
+            },
+          ),
+        )
       ];
       await Promise.all(actions).catch((error) => {
         Logger.error(error, 'Error while refreshing tokens');

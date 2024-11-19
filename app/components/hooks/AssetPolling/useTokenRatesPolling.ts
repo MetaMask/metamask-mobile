@@ -17,8 +17,8 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const tokenMarketData = useSelector(selectTokenMarketData);
 
   const chainIdsToPoll = isPortfolioViewEnabled
-    ? [currentChainId]
-    : (chainIds ?? Object.keys(networkConfigurations));
+    ? (chainIds ?? Object.keys(networkConfigurations))
+    : [currentChainId];
 
   const { TokenRatesController } = Engine.context;
 
