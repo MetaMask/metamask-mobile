@@ -30,7 +30,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
   });

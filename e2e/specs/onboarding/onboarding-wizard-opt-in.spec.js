@@ -28,7 +28,7 @@ describe(
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await device.launchApp();
+      await TestHelpers.launchApp();
     });
 
     it('should be able to opt-in of the onboarding-wizard', async () => {

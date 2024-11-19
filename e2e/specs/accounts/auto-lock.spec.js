@@ -29,7 +29,7 @@ describe(Regression('Auto-Lock'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -41,7 +41,7 @@ describe(Regression('Auto-Lock'), () => {
 
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await device.sendToHome();
-    await device.launchApp();
+    await TestHelpers.launchApp();
     await Assertions.checkIfVisible(WalletView.container);
   });
 
@@ -53,7 +53,7 @@ describe(Regression('Auto-Lock'), () => {
     await AutoLockModal.tapAutoLockImmediately();
     await TabBarComponent.tapWallet();
     await device.sendToHome();
-    await device.launchApp();
+    await TestHelpers.launchApp();
     await Assertions.checkIfNotVisible(WalletView.container);
     await Assertions.checkIfVisible(LoginView.container);
   });

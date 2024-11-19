@@ -1272,6 +1272,13 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
+"@config-plugins/detox@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@config-plugins/detox/-/detox-8.0.0.tgz#95bef213049917520d1ea54648f591060707128d"
+  integrity sha512-t6J1W2RH6UKc8vt87NHQf6JG3B/Lu6rvVF24n5cqw+jWy9TmcqWrgxkDttKrR3dW/a0cfo3xpwBWvakpPQXGjw==
+  dependencies:
+    expo-build-properties "~0.12.1"
+
 "@consensys/on-ramp-sdk@1.28.5":
   version "1.28.5"
   resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.28.5.tgz#b9ff6c2b0f46abef30bd32a720f34d963aa76491"
@@ -18015,6 +18022,14 @@ expo-asset@~8.10.1:
     md5-file "^3.2.3"
     path-browserify "^1.0.0"
     url-parse "^1.5.9"
+
+expo-build-properties@~0.12.1:
+  version "0.12.5"
+  resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-0.12.5.tgz#4d6232389f00c846ba37ca5df2c0b5527c2d94ca"
+  integrity sha512-donC1le0PYfLKCPKRMGQoixuWuwDWCngzXSoQXUPsgHTDHQUKr8aw+lcWkTwZcItgNovcnk784I0dyfYDcxybA==
+  dependencies:
+    ajv "^8.11.0"
+    semver "^7.6.0"
 
 expo-build-properties@~0.8.3:
   version "0.8.3"

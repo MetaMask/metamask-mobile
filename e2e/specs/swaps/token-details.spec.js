@@ -14,7 +14,7 @@ import CommonView from '../../pages/CommonView';
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp();
+    await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

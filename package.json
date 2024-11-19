@@ -132,6 +132,7 @@
     "**/secp256k1": "4.0.4"
   },
   "dependencies": {
+    "@config-plugins/detox": "^8.0.0",
     "@consensys/on-ramp-sdk": "1.28.5",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",

@@ -5,6 +5,7 @@ import {
   getLocalTestDappPort,
 } from './fixtures/utils';
 import Utilities from './utils/Utilities';
+const { resolveConfig } = require('detox/internals');
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -222,7 +223,7 @@ export default class TestHelpers {
   }
 
   static relaunchApp() {
-    return device.launchApp({
+    return this.launchApp({
       newInstance: true,
       launchArgs: {
         detoxURLBlacklistRegex: Utilities.BlacklistURLs,
@@ -278,4 +279,44 @@ export default class TestHelpers {
       await device.reverseTcpPort(getLocalTestDappPort());
     }
   }
+
+  static async launchApp(launchOptions) {
+    const config = await resolveConfig();
+    const platform = device.getPlatform();
+    if (config.configurationName.endsWith('debug')) {
+      return this.launchAppForDebugBuild(platform, launchOptions);
+    } else {
+      return device.launchApp(launchOptions);
+    }
+  };
+
+  static async launchAppForDebugBuild(platform, launchOptions) {
+    const deepLinkUrl = this.getDeepLinkUrl(this.getDevLauncherPackagerUrl(platform));
+
+    if (platform === 'ios') {
+      await device.launchApp(launchOptions);
+      return device.openURL({
+        url: deepLinkUrl,
+      });
+    } else {
+      return device.launchApp({
+        url: deepLinkUrl,
+        ...launchOptions
+      });
+    }
+  }
+
+  static getDeepLinkUrl(url) {
+    return `expo-metamask://expo-development-client/?url=${encodeURIComponent(url)}`;
+  }
+
+
+  static getDevLauncherPackagerUrl(platform) {
+    return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+  }
+
+  static getAppId() {
+    return appConfig?.expo?.extra?.eas?.projectId ?? '';
+  }
+
 }

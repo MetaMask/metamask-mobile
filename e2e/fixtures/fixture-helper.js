@@ -9,6 +9,7 @@ import createStaticServer from '../create-static-server';
 import { getFixturesServerPort, getLocalTestDappPort } from './utils';
 import Utilities from '../utils/Utilities';
 import { device } from 'detox';
+import TestHelpers from '../helpers';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
@@ -159,7 +160,7 @@ export async function withFixtures(options, testSuite) {
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({
+      await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
