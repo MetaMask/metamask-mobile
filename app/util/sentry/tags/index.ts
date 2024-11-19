@@ -13,6 +13,7 @@ export function getTraceTags(state: RootState) {
   if (!state?.engine?.backgroundState?.TokensController) return;
   if (!state?.engine?.backgroundState?.TransactionController) return;
   if (!state?.engine?.backgroundState?.NotificationServicesController) return;
+  if (!state?.engine?.backgroundState?.ApprovalController) return;
   if (!Object.keys(state?.engine?.backgroundState).length) return;
 
   const unlocked = state.user.userLoggedIn;
@@ -21,9 +22,10 @@ export function getTraceTags(state: RootState) {
   const notificationCount = getNotificationsList(state).length;
   const tokenCount = selectAllTokensFlat(state).length;
   const transactionCount = selectTransactions(state).length;
-  const pendingApprovals = Object.values(selectPendingApprovals(state));
+  const pendingApprovals = selectPendingApprovals(state);
+  const pendingApprovalsValues = Object.values(pendingApprovals ?? {});
 
-  const firstApprovalType = pendingApprovals?.[0]?.type;
+  const firstApprovalType = pendingApprovalsValues?.[0]?.type;
 
   return {
     'wallet.account_count': accountCount,
