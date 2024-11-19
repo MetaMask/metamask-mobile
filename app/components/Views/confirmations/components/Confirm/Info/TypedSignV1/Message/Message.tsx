@@ -4,9 +4,9 @@ import { Text, View } from 'react-native';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
+import CopyButton from '../../../../UI/CopyButton';
 import ExpandableSection from '../../../../UI/ExpandableSection';
 import styleSheet from './Message.styles';
-import CopyButton from '../../../../UI/CopyButton';
 
 const Message = () => {
   const { approvalRequest } = useApprovalRequest();
