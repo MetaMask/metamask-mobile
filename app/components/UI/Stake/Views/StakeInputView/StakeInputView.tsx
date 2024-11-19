@@ -56,15 +56,6 @@ const StakeInputView = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-      .addProperties({
-        selected_provider: 'consensys',
-        text: 'Tooltip Question Mark Trigger',
-        location: 'Stake Input View'
-      })
-      .build()
-    );
   };
 
   const handleStakePress = useCallback(() => {
