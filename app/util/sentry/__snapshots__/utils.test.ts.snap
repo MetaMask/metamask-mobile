@@ -44,7 +44,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "pendingApprovalCount": "number",
         "pendingApprovals": "object",
       },
-      "AssetsContractController": {},
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
@@ -87,7 +86,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "allNfts": "object",
         "ignoredNfts": "object",
       },
-      "NftDetectionController": "object",
       "PermissionController": {},
       "PreferencesController": {
         "displayNftMedia": true,
