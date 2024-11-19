@@ -11,9 +11,13 @@ export interface UseNFTNameResponse {
  *
  * @param value The value to get the display name for.
  */
-export function useNFTNames(
+export function useNftNames(
   requests: UseDisplayNameRequest[],
 ): UseNFTNameResponse[] {
+  if (requests.length === 0) {
+    return [];
+  }
+
   const nftCollections = useNftCollectionsMetadata(requests);
 
   return requests.map(({ value }) => {

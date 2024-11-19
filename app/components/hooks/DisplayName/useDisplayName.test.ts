@@ -3,7 +3,7 @@ import useDisplayName, { DisplayNameVariant } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
 import { useWatchedNFTNames } from './useWatchedNFTNames';
-import { useNFTNames } from './useNftName';
+import { useNftNames } from './useNftName';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
@@ -25,8 +25,8 @@ jest.mock('./useFirstPartyContractNames', () => ({
 jest.mock('./useERC20Tokens', () => ({
   useERC20Tokens: jest.fn(),
 }));
-jest.mock('./useNFTName', () => ({
-  useNFTNames: jest.fn(),
+jest.mock('./useNftName', () => ({
+  useNftNames: jest.fn(),
 }));
 
 describe('useDisplayName', () => {
@@ -35,7 +35,7 @@ describe('useDisplayName', () => {
     useFirstPartyContractNames,
   );
   const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
-  const mockUseNFTNames = jest.mocked(useNFTNames);
+  const mockUseNFTNames = jest.mocked(useNftNames);
 
   beforeEach(() => {
     jest.resetAllMocks();

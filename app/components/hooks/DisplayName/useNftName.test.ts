@@ -1,4 +1,4 @@
-import { useNFTNames } from './useNftName';
+import { useNftNames } from './useNftName';
 import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 import { NameType } from '../../UI/Name/Name.types';
 
@@ -18,7 +18,7 @@ jest.mock('./useNftCollectionsMetadata', () => ({
   useNftCollectionsMetadata: jest.fn(),
 }));
 
-describe('useNFTNames', () => {
+describe('useNftNames', () => {
   const useNftCollectionsMetadataMock = jest.mocked(useNftCollectionsMetadata);
 
   beforeAll(() => {
@@ -26,7 +26,7 @@ describe('useNFTNames', () => {
   });
 
   it('returns the correct NFT name and image when not spam', () => {
-    const responses = useNFTNames([
+    const responses = useNftNames([
       {
         value: KNOWN_NFT_VALUE,
         type: NameType.EthereumAddress,
@@ -45,7 +45,7 @@ describe('useNFTNames', () => {
         isSpam: true,
       },
     });
-    const responses = useNFTNames([
+    const responses = useNftNames([
       {
         value: KNOWN_NFT_VALUE,
         type: NameType.EthereumAddress,
@@ -58,7 +58,7 @@ describe('useNFTNames', () => {
 
   it('returns undefined for name and image if no NFT matched', () => {
     useNftCollectionsMetadataMock.mockReturnValue({});
-    const responses = useNFTNames([
+    const responses = useNftNames([
       {
         value: KNOWN_NFT_VALUE,
         type: NameType.EthereumAddress,
