@@ -3598,5 +3598,11 @@
     "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
     "proceed": "Proceed",
     "reject": "Reject the transaction"
+  },
+  "snap_account_custom_name_approval": {
+    "title": "Add account to MetaMask",
+    "input_title": "Account name",
+    "add_account_button": "Add account",
+    "name_taken_message": "This account name already exists"
   }
 }
