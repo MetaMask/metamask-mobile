@@ -183,7 +183,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        (isPortfolioViewEnabled
+        ...(isPortfolioViewEnabled
           ? Object.values(networkConfigurationsByChainId)
           : [networkConfigurationsByChainId[chainId]]
         ).map((network) =>
