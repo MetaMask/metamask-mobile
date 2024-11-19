@@ -62,7 +62,7 @@ async function fetchCollections(
 }
 
 export function useNftCollectionsMetadata(requests: UseDisplayNameRequest[]) {
-  const chainId = requests[0].variation;
+  const chainId = requests?.[0]?.variation;
 
   const memoisedContracts = useMemo(
     () =>
