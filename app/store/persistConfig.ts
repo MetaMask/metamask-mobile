@@ -80,7 +80,7 @@ const persistTransform = createTransform(
       topAssets,
       topAssetsLastFetched,
       ...persistedSwapsController
-    } = SwapsController;
+    } = SwapsController ?? {};
 
     // Reconstruct data to persist
     const newState = {

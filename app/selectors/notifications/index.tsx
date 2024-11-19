@@ -28,7 +28,7 @@ const selectNotificationServicesControllerState = (state: RootState) =>
 export const selectIsProfileSyncingEnabled = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingEnabled,
+    userStorageControllerState?.isProfileSyncingEnabled,
 );
 export const selectIsProfileSyncingUpdateLoading = createSelector(
   selectUserStorageControllerState,
