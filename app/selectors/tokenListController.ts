@@ -4,7 +4,7 @@ import { RootState } from '../reducers';
 import { tokenListToArray } from '../util/tokens';
 import { createDeepEqualSelector } from '../selectors/util';
 
-const selectTokenListConstrollerState = (state: RootState) =>
+const selectTokenListControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenListController;
 
 /**
@@ -12,7 +12,7 @@ const selectTokenListConstrollerState = (state: RootState) =>
  * Can pass directly into useSelector.
  */
 export const selectTokenList = createSelector(
-  selectTokenListConstrollerState,
+  selectTokenListControllerState,
   (tokenListControllerState: TokenListState) =>
     tokenListControllerState?.tokenList,
 );
@@ -27,11 +27,11 @@ export const selectTokenListArray = createDeepEqualSelector(
 );
 
 const selectERC20TokensByChainInternal = createDeepEqualSelector(
-  selectTokenListConstrollerState,
-  (tokenListControllerState) => tokenListControllerState?.tokensChainsCache,
+  selectTokenListControllerState,
+  (tokenListControllerState: TokenListState) => tokenListControllerState?.tokensChainsCache,
 );
 
 export const selectERC20TokensByChain = createDeepEqualSelector(
   selectERC20TokensByChainInternal,
-  (tokensChainsCache) => tokensChainsCache,
+  (tokensChainsCache: TokenListState['tokensChainsCache']) => tokensChainsCache,
 );

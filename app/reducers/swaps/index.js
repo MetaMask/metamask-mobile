@@ -41,7 +41,7 @@ function addMetadata(chainId, tokens) {
   }
   return tokens.map((token) => {
     const tokenMetadata =
-      Engine.context.TokenListController.state.tokenList[
+      Engine.context.TokenListController?.state?.tokenList[
         safeToChecksumAddress(token.address)
       ];
     if (tokenMetadata) {

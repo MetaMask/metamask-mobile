@@ -601,7 +601,7 @@ function decodeConfirmTx(args) {
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
 
-  const tokenList = Engine.context.TokenListController.state.tokenList;
+  const tokenList = Engine.context.TokenListController?.state?.tokenList;
   let symbol;
   if (renderTo in tokenList) {
     symbol = tokenList[renderTo].symbol;
