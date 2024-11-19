@@ -7,9 +7,6 @@ import {
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
-  GetTokenListState,
   NftController,
   NftDetectionController,
   NftControllerState,
@@ -17,24 +14,12 @@ import {
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenListStateChange,
   TokenRatesController,
   TokenRatesControllerState,
   TokensController,
   TokensControllerState,
   CodefiTokenPricesServiceV2,
-  TokensControllerActions,
-  TokensControllerEvents,
-  TokenListControllerActions,
-  TokenListControllerEvents,
   TokenBalancesControllerState,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -42,8 +27,6 @@ import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
-  AddressBookControllerActions,
-  AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';
@@ -51,86 +34,55 @@ import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  KeyringControllerActions,
-  KeyringControllerEvents,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
-  NetworkControllerActions,
-  NetworkControllerEvents,
   NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
 import {
   PhishingController,
-  PhishingControllerActions,
-  PhishingControllerEvents,
   PhishingControllerState,
 } from '@metamask/phishing-controller';
 import {
   PreferencesController,
-  PreferencesControllerActions,
-  PreferencesControllerEvents,
   PreferencesState,
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
-  TransactionControllerEvents,
   TransactionControllerState,
   TransactionMeta,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
-import {
-  GasFeeController,
-  GasFeeState,
-  GasFeeStateChange,
-  GetGasFeeState,
-} from '@metamask/gas-fee-controller';
+import { GasFeeController, GasFeeState } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
   ApprovalController,
-  ApprovalControllerActions,
-  ApprovalControllerEvents,
   ApprovalControllerState,
 } from '@metamask/approval-controller';
 import {
   SelectedNetworkController,
   SelectedNetworkControllerState,
-  SelectedNetworkControllerEvents,
-  SelectedNetworkControllerActions,
 } from '@metamask/selected-network-controller';
 import {
   PermissionController,
-  PermissionControllerActions,
-  PermissionControllerEvents,
   PermissionControllerState,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
-  SubjectMetadataControllerActions,
-  SubjectMetadataControllerEvents,
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
-import {
-  PPOMController,
-  PPOMControllerActions,
-  PPOMControllerEvents,
-  PPOMState,
-} from '@metamask/ppom-validator';
+import { PPOMController, PPOMState } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   JsonSnapsRegistry,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   SnapController,
   SnapsRegistryState,
-  SnapControllerEvents,
-  SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
@@ -150,8 +102,6 @@ import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airga
 import {
   LoggingController,
   LoggingControllerState,
-  LoggingControllerActions,
-  LoggingControllerEvents,
 } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
@@ -210,8 +160,6 @@ import {
 import { backupVault } from '../BackupVault';
 import {
   SignatureController,
-  SignatureControllerActions,
-  SignatureControllerEvents,
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
@@ -222,11 +170,9 @@ import { providerErrors } from '@metamask/rpc-errors';
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
 import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import {
-  AccountsController,
-  AccountsControllerActions,
-  AccountsControllerEvents,
-  AccountsControllerMessenger,
   AccountsControllerState,
+  AccountsController,
+  AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -235,8 +181,6 @@ import {
   networkIdWillUpdate,
 } from '../../core/redux/slices/inpageProvider';
 import SmartTransactionsController, {
-  type SmartTransactionsControllerActions,
-  type SmartTransactionsControllerEvents,
   type SmartTransactionsControllerState,
 } from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
@@ -269,6 +213,7 @@ import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
+import { ControllerMessenger } from './types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -278,82 +223,6 @@ const encryptor = new Encryptor({
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
-
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
-type SnapsGlobalActions =
-  | SnapControllerActions
-  | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
-
-type SnapsGlobalEvents =
-  | SnapControllerEvents
-  | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
-  | SnapsAllowedEvents;
-///: END:ONLY_INCLUDE_IF
-
-type GlobalActions =
-  | AddressBookControllerActions
-  | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
-  | KeyringControllerActions
-  | NetworkControllerActions
-  | PermissionControllerActions
-  | SignatureControllerActions
-  | LoggingControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
-  ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
-  | AccountsControllerActions
-  | PreferencesControllerActions
-  | PPOMControllerActions
-  | TokensControllerActions
-  | TokenListControllerActions
-  | SelectedNetworkControllerActions
-  | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
-
-type GlobalEvents =
-  | AddressBookControllerEvents
-  | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
-  | KeyringControllerEvents
-  | TokenListStateChange
-  | NetworkControllerEvents
-  | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  | SnapsGlobalEvents
-  ///: END:ONLY_INCLUDE_IF
-  | SignatureControllerEvents
-  | LoggingControllerEvents
-  | KeyringControllerEvents
-  | PPOMControllerEvents
-  | AccountsControllerEvents
-  | PreferencesControllerEvents
-  | TokensControllerEvents
-  | TokenListControllerEvents
-  | TransactionControllerEvents
-  | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -452,15 +321,6 @@ type OptionalControllers = Pick<Controllers, 'PPOMController'>;
  * Combines required and optional controllers for the Engine context type.
  */
 export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
-
-/**
- * Type definition for the controller messenger used in the Engine.
- * It extends the base ControllerMessenger with global actions and events.
- */
-export type ControllerMessenger = ExtendedControllerMessenger<
-  GlobalActions,
-  GlobalEvents
->;
 
 export interface TransactionEventPayload {
   transactionMeta: TransactionMeta;
