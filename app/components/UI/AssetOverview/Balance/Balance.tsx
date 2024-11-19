@@ -44,17 +44,46 @@ interface BalanceProps {
 
 const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
-export const NetworkBadgeSource = (chainId: string, ticker: string) => {
+export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
+  if (!isPortfolioViewEnabled) {
+    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+    if (isMainnet) return images.ETHEREUM;
 
+    if (isLineaMainnet) return images['LINEA-MAINNET'];
+
+    if (CustomNetworkImgMapping[chainId]) {
+      return CustomNetworkImgMapping[chainId];
+    }
+
+    return ticker ? images[ticker as keyof typeof images] : undefined;
+  }
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const defaultNetwork = getDefaultNetworkByChainId(chainId) as any;
 
-  if (isMainnet) return images.ETHEREUM;
+  if (defaultNetwork) {
+    return defaultNetwork.imageSource;
+  }
 
-  if (isLineaMainnet) return images['LINEA-MAINNET'];
+  const unpopularNetwork = UnpopularNetworkList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
 
-  return ticker ? images[ticker as keyof typeof images] : undefined;
+  const customNetworkImg = CustomNetworkImgMapping[chainId];
+
+  const popularNetwork = PopularList.find(
+    (networkConfig) => networkConfig.chainId === chainId,
+  );
+
+  const network = unpopularNetwork || popularNetwork;
+  if (network) {
+    return network.rpcPrefs.imageSource;
+  }
+  if (customNetworkImg) {
+    return customNetworkImg;
+  }
 };
 
 const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
@@ -105,50 +134,6 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     styles.ethLogo,
   ]);
 
-  const networkBadgeSource = useCallback(
-    (currentChainId: Hex) => {
-      if (!isPortfolioViewEnabled) {
-        if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-        if (isMainnet) return images.ETHEREUM;
-
-        if (isLineaMainnet) return images['LINEA-MAINNET'];
-
-        if (CustomNetworkImgMapping[chainId]) {
-          return CustomNetworkImgMapping[chainId];
-        }
-
-        return ticker ? images[ticker as keyof typeof images] : undefined;
-      }
-      if (isTestNet(currentChainId))
-        return getTestNetImageByChainId(currentChainId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
-
-      if (defaultNetwork) {
-        return defaultNetwork.imageSource;
-      }
-
-      const unpopularNetwork = UnpopularNetworkList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
-
-      const customNetworkImg = CustomNetworkImgMapping[currentChainId];
-
-      const popularNetwork = PopularList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
-
-      const network = unpopularNetwork || popularNetwork;
-      if (network) {
-        return network.rpcPrefs.imageSource;
-      }
-      if (customNetworkImg) {
-        return customNetworkImg;
-      }
-    },
-    [chainId, isLineaMainnet, isMainnet, ticker],
-  );
-
   return (
     <View style={styles.wrapper}>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
@@ -165,7 +150,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource(chainId)}
+              imageSource={NetworkBadgeSource(chainId, ticker)}
               name={networkName}
             />
           }

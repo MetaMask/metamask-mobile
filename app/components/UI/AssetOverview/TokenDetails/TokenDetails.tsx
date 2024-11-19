@@ -1,4 +1,6 @@
 import { zeroAddress } from 'ethereumjs-util';
+import { Hex } from '@metamask/utils';
+import { RootState } from '../../../../reducers';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -7,9 +9,9 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
+import { selectTokenMarketDataByChainId } from '../../../../selectors/tokenRatesController';
 import {
-  selectConversionRate,
+  selectConversionRateByTicker,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import {
@@ -46,20 +48,24 @@ interface TokenDetailsProps {
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tokenList = useSelector(selectTokenList);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const conversionRate = useSelector(selectConversionRate);
+  const tokenExchangeRates = useSelector((state: RootState) =>
+    selectTokenMarketDataByChainId(state, asset.chainId as Hex),
+  );
+  const conversionRate = useSelector((state: RootState) =>
+    selectConversionRateByTicker(state, asset.symbol),
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
+  const tokenList = useSelector(selectTokenList);
 
   let tokenMetadata;
   let marketData;
 
   if (asset.isETH) {
-    marketData = tokenExchangeRates?.[zeroAddress() as `0x${string}`];
+    marketData = tokenExchangeRates?.[zeroAddress() as Hex];
   } else if (!asset.isETH && tokenContractAddress) {
     tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates?.[tokenContractAddress];
+    marketData = tokenExchangeRates?.[tokenContractAddress as Hex];
   } else {
     Logger.log('cannot find contract address');
     return null;

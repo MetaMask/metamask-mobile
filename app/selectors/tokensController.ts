@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
@@ -50,21 +51,21 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectSelectedInternalAccountAddress,
   (
     tokensControllerState: TokensControllerState,
-    selectedAddress: string | null,
+    selectedAddress: Hex | null,
   ) => {
     // Updated return type to specify the structure more clearly
     if (!selectedAddress) {
-      return {} as { [chainId: string]: Token[] }; // Specify return type
+      return {} as { [chainId: Hex]: Token[] }; // Specify return type
     }
 
     return Object.entries(
       tokensControllerState?.allDetectedTokens || {},
     ).reduce<{
-      [chainId: string]: Token[];
+      [chainId: Hex]: Token[];
     }>((acc, [chainId, chainTokens]) => {
       const tokensForAddress = chainTokens[selectedAddress] || [];
       if (tokensForAddress.length > 0) {
-        acc[chainId] = tokensForAddress.map((token: Token) => ({
+        acc[chainId as Hex] = tokensForAddress.map((token: Token) => ({
           ...token,
           chainId,
         }));
@@ -86,8 +87,13 @@ export const selectAllDetectedTokensFlat = createSelector(
     }
 
     return Object.entries(detectedTokensByChain).reduce<Token[]>(
-      (acc, [_, addressTokens]) => {
-        const tokensForChain = Object.values(addressTokens).flat();
+      (acc, [chainId, addressTokens]) => {
+        const tokensForChain = Object.values(addressTokens)
+          .flat()
+          .map((token) => ({
+            ...token,
+            chainId,
+          }));
         return acc.concat(tokensForChain);
       },
       [],

@@ -14,7 +14,7 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectCurrencyRates,
+  selectConversionRateFoAllChains,
 } from '../../../selectors/currencyRateController';
 import {
   selectContractExchangeRates,
@@ -76,7 +76,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 }: AssetOverviewProps) => {
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const conversionRate = useSelector(selectConversionRate);
-  const conversionRateByTicker = useSelector(selectCurrencyRates);
+  const conversionRateByTicker = useSelector(selectConversionRateFoAllChains);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(

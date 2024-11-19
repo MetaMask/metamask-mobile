@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -155,4 +156,9 @@ export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
+);
+
+export const selectNetworkConfigurationByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
 );

@@ -10,7 +10,10 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
@@ -31,6 +34,7 @@ import Badge, {
 import { NetworkBadgeSource } from '../../../UI/AssetOverview/Balance/Balance';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 
 // Replace this interface by importing from TokenRatesController when it exports it
 interface MarketDataDetails {
@@ -143,6 +147,13 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
       ?.conversionRate;
 
   const currentCurrency = useSelector(selectCurrentCurrency);
+  // TODO: Can probably create "isAllNetworks" selector for these
+  // since they are re-used in multiple places
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter); // X
+  const allNetworks = useSelector(selectNetworkConfigurations); // X
+  const isAllNetworks =
+    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length; // X
+
   const tokenMarketData =
     (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
     null;
@@ -188,14 +199,14 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 
   return (
     <View style={styles.tokenContainer}>
-      {process.env.PORTFOLIO_VIEW === 'true' ? (
+      {process.env.PORTFOLIO_VIEW === 'true' && isAllNetworks ? (
         <BadgeWrapper
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
               imageSource={NetworkBadgeSource(
-                token.chainId,
-                CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId],
+                token.chainId as Hex,
+                token.symbol,
               )}
             />
           }

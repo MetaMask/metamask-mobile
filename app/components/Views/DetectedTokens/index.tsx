@@ -31,7 +31,6 @@ import {
 } from '../../../selectors/tokensController';
 import {
   selectChainId,
-  selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import BottomSheet, {
@@ -94,9 +93,8 @@ const DetectedTokens = () => {
   const detectedTokens = useSelector(selectDetectedTokens);
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
-  ) as (TokenI & { chainId: Hex })[];
+  ) as TokenI[];
   const chainId = useSelector(selectChainId);
-  const networkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -274,7 +272,7 @@ const DetectedTokens = () => {
 
     return (
       <Token
-        token={item}
+        token={item as TokenI & { chainId: Hex }}
         selected={isChecked}
         toggleSelected={(selected) => {
           const newIgnoredTokens = { ...ignoredTokens };

@@ -180,8 +180,14 @@ class Asset extends PureComponent {
   );
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcUrl, networkConfigurations } =
-      this.props;
+    const {
+      route: { params },
+      navigation,
+      route,
+      chainId,
+      rpcUrl,
+      networkConfigurations,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
@@ -192,7 +198,9 @@ class Asset extends PureComponent {
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
-
+    const asset = navigation && params;
+    const currentNetworkName =
+      this.props.networkConfigurations[asset.chainId]?.name;
     navigation.setOptions(
       getNetworkNavbarOptions(
         route.params?.symbol ?? '',
@@ -211,6 +219,7 @@ class Asset extends PureComponent {
           : undefined,
         true,
         contentOffset,
+        currentNetworkName,
       ),
     );
   };

@@ -10,7 +10,10 @@ import {
 import { selectAllTokens } from './tokensController';
 import { selectTokensBalances } from './tokenBalancesController';
 import { selectAccountsByChainId } from './accountTrackerController';
-import { selectNetworkConfigurations } from './networkController';
+import {
+  selectNetworkConfigurations,
+  selectNetworkConfigurationByChainId,
+} from './networkController';
 import { selectTokenMarketData as selectMarketData } from './tokenRatesController';
 import {
   selectCurrentCurrency,
@@ -42,8 +45,7 @@ interface AccountsByChainId {
 }
 
 export function getNativeTokenInfo(state: RootState, chainId: Hex) {
-  const networkConfigurationsByChainId = selectNetworkConfigurations(state);
-  const networkConfig = networkConfigurationsByChainId?.[chainId];
+  const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
 
   if (networkConfig) {
     const symbol = networkConfig.nativeCurrency || AssetType.Native;
@@ -117,6 +119,10 @@ export const selectAccountTokensAcrossChains = createSelector(
       const currentChainId = chainId as Hex;
       tokensByChain[currentChainId] = [];
 
+      if (!tokensByChain[currentChainId]) {
+        tokensByChain[currentChainId] = [];
+      }
+
       // Add non-native tokens
       const userTokens = (allTokens[currentChainId]?.[selectedAddress] ||
         []) as TokenI[];
@@ -129,49 +135,50 @@ export const selectAccountTokensAcrossChains = createSelector(
         tokenBalances[selectedAddress as Hex]?.[currentChainId] || {};
       const tokenExchangeRateByChainId = tokenExchangeRates[chainId as Hex];
 
-      // Add non-native tokens if they exist for this chain
-      tokensByChain[currentChainId] = userTokens.map((token) => {
-        const tokenAddress = token.address as Hex;
-        const tokenExchangeRatePriceByTokenAddress =
-          // TODO: Some exchange rates for some tokens don't exist? Is this expected?
-          tokenExchangeRateByChainId[tokenAddress]?.price || 0;
+      if (allTokens[currentChainId]?.[selectedAddress]) {
+        // Add non-native tokens if they exist for this chain
+        tokensByChain[currentChainId] = userTokens.map((token) => {
+          const tokenAddress = token.address as Hex;
+          const tokenExchangeRatePriceByTokenAddress =
+            // TODO: Some exchange rates for some tokens don't exist? Is this expected?
+            tokenExchangeRateByChainId[tokenAddress]?.price || 0;
 
-        // Calculate token balance
-        const tokenBalance = renderFromTokenMinimalUnit(
-          chainBalances[token.address as Hex] || '0x0',
-          token.decimals || 18,
-        );
+          // Calculate token balance
+          const tokenBalance = renderFromTokenMinimalUnit(
+            chainBalances[token.address as Hex] || '0x0',
+            token.decimals || 18,
+          );
 
-        // Remove any non-numeric characters except decimal point e.g. < 0.00001
-        const cleanTokenBalance = tokenBalance.replace(/[^0-9.]/g, '');
-        const floatTokenBalance = parseFloat(cleanTokenBalance);
+          // Remove any non-numeric characters except decimal point e.g. < 0.00001
+          const cleanTokenBalance = tokenBalance.replace(/[^0-9.]/g, '');
+          const floatTokenBalance = parseFloat(cleanTokenBalance);
 
-        const adjustedTokenBalance = tokenBalance.startsWith('<')
-          ? 0.00001
-          : floatTokenBalance;
+          const adjustedTokenBalance = tokenBalance.startsWith('<')
+            ? 0.00001
+            : floatTokenBalance;
 
-        // Format token balance in fiat
-        const tokenFiatAmount =
-          tokenExchangeRatePriceByTokenAddress *
-          conversionRateByTicker *
-          adjustedTokenBalance;
-        const balanceFiat = new Intl.NumberFormat(I18n.locale, {
-          currency: currentCurrency.toUpperCase(),
-          style: 'currency',
-        }).format(tokenFiatAmount);
+          // Format token balance in fiat
+          const tokenFiatAmount =
+            tokenExchangeRatePriceByTokenAddress *
+            conversionRateByTicker *
+            adjustedTokenBalance;
+          const balanceFiat = new Intl.NumberFormat(I18n.locale, {
+            currency: currentCurrency.toUpperCase(),
+            style: 'currency',
+          }).format(tokenFiatAmount);
 
-        return {
-          ...token,
-          balance: tokenBalance,
-          chainId,
-          balanceFiat,
-          logo: token.image,
-          isETH: false,
-          isNative: false,
-          symbol: getTicker(ticker),
-        };
-      });
-
+          return {
+            ...token,
+            balance: tokenBalance,
+            chainId,
+            balanceFiat,
+            logo: token.image,
+            isETH: false,
+            isNative: false,
+            symbol: getTicker(ticker),
+          };
+        });
+      }
       // Add native token if it exists for this chain
       const nativeBalance = nativeTokenBalancesByChainId[chainId];
       if (nativeBalance && nativeBalance !== toHex(0)) {
@@ -206,6 +213,7 @@ export const selectAccountTokensAcrossChains = createSelector(
             style: 'currency',
           }).format(tokenFiatAmount);
         }
+
         tokensByChain[chainId].push({
           ...nativeTokenInfo,
           // TODO: Check if this is correct for native tokens
