@@ -82,7 +82,6 @@ class FixtureBuilder {
             AddressBookController: {
               addressBook: {},
             },
-            AssetsContractController: {},
             NftController: {
               allNftContracts: {},
               allNfts: {},
@@ -411,8 +410,6 @@ class FixtureBuilder {
               gasFeeEstimatesByChainId: {},
               nonRPCGasFeeApisDisabled: false,
             },
-            TokenDetectionController: {},
-            NftDetectionController: {},
             PermissionController: {
               subjects: {},
             },
