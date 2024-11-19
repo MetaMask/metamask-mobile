@@ -343,91 +343,94 @@ describe('TypedSign', () => {
     });
   });
 
-  // describe('trackEvent', () => {
-  //   it('tracks event for rejected requests', async () => {
-  //     mockReject.mockClear();
+  // FIXME: This test suite is failing because the event test is going far beyond its scope
+  //   this should be refactored to test only the event tracking on the TypedSign component
+  //   and not the whole event tracking system (including events from app/util/confirmation/signatureUtils.js)
+  // eslint-disable-next-line jest/no-disabled-tests
+  describe.skip('trackEvent', () => {
+    it('tracks event for rejected requests', async () => {
+      mockReject.mockClear();
 
-  //     const container = renderWithProvider(
-  //       <TypedSign
-  //         currentPageInformation={{
-  //           title: 'title',
-  //           url: 'http://localhost:8545',
-  //         }}
-  //         messageParams={{ ...messageParamsMock }}
-  //         onConfirm={mockConfirm}
-  //         onReject={mockReject}
-  //       />,
-  //       { state: initialState },
-  //     );
+      const container = renderWithProvider(
+        <TypedSign
+          currentPageInformation={{
+            title: 'title',
+            url: 'http://localhost:8545',
+          }}
+          messageParams={{ ...messageParamsMock }}
+          onConfirm={mockConfirm}
+          onReject={mockReject}
+        />,
+        { state: initialState },
+      );
 
-  //     const rejectButton = await container.findByTestId(
-  //       SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
-  //     );
-  //     fireEvent.press(rejectButton);
+      const rejectButton = await container.findByTestId(
+        SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
+      );
+      fireEvent.press(rejectButton);
 
-  //     expect(mockReject).toHaveBeenCalledTimes(1);
+      expect(mockReject).toHaveBeenCalledTimes(1);
 
-  //     const rejectedMocks = mockMetrics.trackEvent.mock.calls.filter(
-  //       (call) => call[0].category === 'Signature Rejected',
-  //     );
+      const rejectedMocks = mockMetrics.trackEvent.mock.calls.filter(
+        (call) => call[0].category === 'Signature Rejected',
+      );
 
-  //     const mockCallsLength = rejectedMocks.length;
+      const mockCallsLength = rejectedMocks.length;
 
-  //     const lastMockCall = rejectedMocks[mockCallsLength - 1];
+      const lastMockCall = rejectedMocks[mockCallsLength - 1];
 
-  //     expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
-  //     expect(lastMockCall[1]).toEqual({
-  //       account_type: 'Metamask',
-  //       dapp_host_name: 'N/A',
-  //       chain_id: '1',
-  //       signature_type: undefined,
-  //       version: 'N/A',
-  //       security_alert_response: 'Benign',
-  //       security_alert_source: undefined,
-  //       security_alert_reason: '',
-  //       ppom_eth_chainId_count: 1,
-  //     });
-  //   });
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Rejected' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: 'N/A',
+        chain_id: '1',
+        signature_type: undefined,
+        version: 'N/A',
+        security_alert_response: 'Benign',
+        security_alert_source: undefined,
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+      });
+    });
 
-  //   it('tracks event for approved requests', async () => {
-  //     const container = renderWithProvider(
-  //       <TypedSign
-  //         currentPageInformation={{
-  //           title: 'title',
-  //           url: 'http://localhost:8545',
-  //         }}
-  //         messageParams={{ ...messageParamsMock }}
-  //         onConfirm={mockConfirm}
-  //         onReject={mockReject}
-  //       />,
-  //       { state: initialState },
-  //     );
+    it('tracks event for approved requests', async () => {
+      const container = renderWithProvider(
+        <TypedSign
+          currentPageInformation={{
+            title: 'title',
+            url: 'http://localhost:8545',
+          }}
+          messageParams={{ ...messageParamsMock }}
+          onConfirm={mockConfirm}
+          onReject={mockReject}
+        />,
+        { state: initialState },
+      );
 
-  //     const signButton = await container.findByTestId(
-  //       SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
-  //     );
-  //     fireEvent.press(signButton);
-  //     console.log(mockMetrics.trackEvent.mock.calls.map((call) => call[0]));
-  //     const signedMocks = mockMetrics.trackEvent.mock.calls.filter(
-  //       (call) => call[0].category === 'Signature Approved',
-  //     );
+      const signButton = await container.findByTestId(
+        SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
+      );
+      fireEvent.press(signButton);
+      const signedMocks = mockMetrics.trackEvent.mock.calls.filter(
+        (call) => call[0].category === 'Signature Approved',
+      );
 
-  //     const mockCallsLength = signedMocks.length;
+      const mockCallsLength = signedMocks.length;
 
-  //     const lastMockCall = signedMocks[mockCallsLength - 1];
+      const lastMockCall = signedMocks[mockCallsLength - 1];
 
-  //     expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
-  //     expect(lastMockCall[1]).toEqual({
-  //       account_type: 'Metamask',
-  //       dapp_host_name: 'N/A',
-  //       chain_id: '1',
-  //       version: 'N/A',
-  //       signature_type: undefined,
-  //       security_alert_response: 'Benign',
-  //       security_alert_source: undefined,
-  //       security_alert_reason: '',
-  //       ppom_eth_chainId_count: 1,
-  //     });
-  //   });
-  // });
+      expect(lastMockCall[0]).toEqual({ category: 'Signature Approved' });
+      expect(lastMockCall[1]).toEqual({
+        account_type: 'Metamask',
+        dapp_host_name: 'N/A',
+        chain_id: '1',
+        version: 'N/A',
+        signature_type: undefined,
+        security_alert_response: 'Benign',
+        security_alert_source: undefined,
+        security_alert_reason: '',
+        ppom_eth_chainId_count: 1,
+      });
+    });
+  });
 });
