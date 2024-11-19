@@ -482,7 +482,7 @@
     "simple-git": "^3.25.0",
     "typescript": "~5.4.5",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
-    "webpack": "^5.88.2",
+    "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
