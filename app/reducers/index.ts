@@ -32,6 +32,7 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import stakingReducer from '../components/UI/Stake/slices/PooledStaking';
 /**
  * Infer state from a reducer
  *
@@ -123,6 +124,7 @@ export interface RootState {
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
+  staking: StateFromReducer<typeof stakingReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -162,6 +164,7 @@ const rootReducer = combineReducers<RootState, any>({
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
+  staking: stakingReducer,
 });
 
 export default rootReducer;
