@@ -384,6 +384,7 @@ class Approval extends PureComponent {
         Engine.context;
 
       const transactionMeta = TransactionController.getTransactions({
+        chainId,
         searchCriteria: { id: transaction.id },
       })?.[0];
 

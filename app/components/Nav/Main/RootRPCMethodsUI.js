@@ -412,6 +412,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            networkClientId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -424,6 +425,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            networkClientId,
             ...transactionMeta.txParams,
           });
         }
