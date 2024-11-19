@@ -12,7 +12,8 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../../utils/metaMetrics/withMetaMetrics';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -20,7 +21,6 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { navigate } = useNavigation();
 
@@ -28,15 +28,6 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-        .addProperties({
-          selected_provider: 'consensys',
-          text: 'Learn More',
-          location: 'Token Details',
-        })
-        .build(),
-    );
   };
 
   return (
@@ -55,7 +46,14 @@ const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
         <Button
           label={strings('stake.stake_your_eth_cta.learn_more_with_period')}
           variant={ButtonVariants.Link}
-          onPress={navigateToLearnMoreModal}
+          onPress={withMetaMetrics(navigateToLearnMoreModal, {
+            event: MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
+            properties: {
+              selected_provider: 'consensys',
+              text: 'Learn More',
+              location: 'Token Details',
+            },
+          })}
         />
       </View>
     </View>

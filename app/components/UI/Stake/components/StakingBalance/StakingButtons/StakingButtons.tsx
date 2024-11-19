@@ -11,6 +11,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../../selectors/networkController';
+import { withMetaMetrics } from '../../../utils/metaMetrics/withMetaMetrics';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   hasStakedPositions: boolean;
@@ -27,33 +28,22 @@ const StakingButtons = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
 
-  const onUnstakePress = () => {
+  const onUnstakePress = () =>
     navigate('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Unstake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
-    );
-  };
 
   const onStakePress = () => {
     navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Stake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
+        .addProperties({
+          location: 'Token Details',
+          text: 'Stake',
+          token_symbol: 'ETH',
+          chain_id: chainId,
+        })
+        .build(),
     );
   };
 
@@ -64,7 +54,15 @@ const StakingButtons = ({
           style={styles.balanceActionButton}
           variant={ButtonVariants.Secondary}
           label={strings('stake.unstake')}
-          onPress={onUnstakePress}
+          onPress={withMetaMetrics(onUnstakePress, {
+            event: MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED,
+            properties: {
+              location: 'Token Details',
+              text: 'Unstake',
+              token_symbol: 'ETH',
+              chain_id: chainId,
+            },
+          })}
         />
       )}
       <Button

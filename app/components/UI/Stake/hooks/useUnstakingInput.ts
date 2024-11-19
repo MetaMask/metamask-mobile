@@ -20,7 +20,7 @@ const useUnstakingInputHandlers = () => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
   } = useInputHandler({ balance: new BN(stakedBalanceWei) });
 
@@ -39,7 +39,7 @@ const useUnstakingInputHandlers = () => {
     handleCurrencySwitch,
     currencyToggleValue,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     handleKeypadChange,
     stakedBalanceValue,
   };
