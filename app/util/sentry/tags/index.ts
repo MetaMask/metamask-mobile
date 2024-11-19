@@ -13,6 +13,7 @@ export function getTraceTags(state: RootState) {
   if (!state?.engine?.backgroundState?.TokensController) return;
   if (!state?.engine?.backgroundState?.TransactionController) return;
   if (!state?.engine?.backgroundState?.NotificationServicesController) return;
+  if (!state?.engine?.backgroundState?.ApprovalController) return;
   if (!Object.keys(state?.engine?.backgroundState).length) return;
 
   const unlocked = state.user.userLoggedIn;
