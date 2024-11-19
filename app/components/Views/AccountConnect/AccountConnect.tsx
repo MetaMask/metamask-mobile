@@ -13,7 +13,6 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -33,7 +32,6 @@ import {
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import getAccountNameWithENS from '../../../util/accounts';
 import {
   getAddressAccountType,
   safeToChecksumAddress,
@@ -99,7 +97,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -133,11 +131,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   >([]);
 
   const { toastRef } = useContext(ToastContext);
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   // origin is set to the last active tab url in the browser which can conflict with sdk
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
@@ -373,12 +366,16 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        number_of_accounts: accountsLength,
-        source: SourceType.PERMISSION_SYSTEM,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            source: SourceType.PERMISSION_SYSTEM,
+          })
+          .build(),
+      );
     },
-    [accountsLength, channelIdOrHostname, trackEvent],
+    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -439,11 +436,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
-    const activeAccountName = getAccountNameWithENS({
-      accountAddress: activeAddress,
-      accounts,
-      ensByAccountAddress,
-    });
 
     try {
       setIsLoading(true);
@@ -456,33 +448,26 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: connectedAccountLength,
-        account_type: getAddressAccountType(activeAddress),
-        source: eventSource,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: connectedAccountLength,
+            account_type: getAddressAccountType(activeAddress),
+            source: eventSource,
+          })
+          .build(),
+      );
       let labelOptions: ToastOptions['labelOptions'] = [];
-      if (connectedAccountLength > 1) {
-        labelOptions = [
-          { label: `${connectedAccountLength} `, isBold: true },
-          {
-            label: `${strings('toast.accounts_connected')}`,
-          },
-          { label: `\n${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        ];
-      } else {
-        labelOptions = [
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.connected_and_active') },
-        ];
+
+      if (connectedAccountLength >= 1) {
+        labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
       }
+
       toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
+        variant: ToastVariants.Network,
         labelOptions,
-        accountAddress: activeAddress,
-        accountAvatarType,
+        networkImageSource: faviconSource,
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -496,14 +481,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     eventSource,
     selectedAddresses,
     hostInfo,
-    accounts,
-    ensByAccountAddress,
-    accountAvatarType,
     toastRef,
     accountsLength,
     channelIdOrHostname,
     triggerDappViewedEvent,
     trackEvent,
+    faviconSource,
+    createEventBuilder,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -516,7 +500,11 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
       } catch (e) {
         if (e instanceof Error) {
           Logger.error(e, 'error while trying to add a new account');
@@ -525,7 +513,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setIsLoading(false);
       }
     },
-    [trackEvent],
+    [trackEvent, createEventBuilder],
   );
 
   const handleNetworksSelected = useCallback(
@@ -587,13 +575,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -613,6 +609,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleConnect,
     trackEvent,
     handleUpdateNetworkPermissions,
+    createEventBuilder,
   ]);
 
   const handleSheetDismiss = () => {
@@ -740,6 +737,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             ? setScreen(AccountConnectScreens.SingleConnect)
             : undefined;
         }}
+        screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
     [

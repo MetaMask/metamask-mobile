@@ -35,6 +35,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -66,7 +67,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -94,6 +94,7 @@ import {
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
@@ -168,7 +169,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
 
@@ -229,6 +230,14 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(() => {
     if (
@@ -324,9 +333,13 @@ const Wallet = ({
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
   }, [navigate, providerConfig.chainId, trackEvent]);
 
   /**
@@ -438,6 +451,10 @@ const Wallet = ({
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -451,6 +468,9 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
@@ -484,9 +504,11 @@ const Wallet = ({
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
-        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+        );
         // Call detect nfts
         const { NftDetectionController } = Engine.context;
         try {
@@ -514,34 +536,55 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let stakedBalance: any = 0;
+
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
+      const nativeAsset = {
+        // TODO: Add name property to Token interface in controllers.
+        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+        symbol: getTicker(ticker),
+        isETH: true,
+        balance,
+        balanceFiat: weiToFiat(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hexToBN(accountBalanceByChainId.balance) as any,
+          conversionRate,
+          currentCurrency,
+        ),
+        logo: '../images/eth-logo-new.png',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      assets.push(nativeAsset);
 
-      assets = [
-        {
-          // TODO: Add name property to Token interface in controllers.
-          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-          symbol: getTicker(ticker),
-          isETH: true,
-          balance,
+      let stakedAsset;
+      if (accountBalanceByChainId.stakedBalance) {
+        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
+        stakedAsset = {
+          ...nativeAsset,
+          nativeAsset,
+          name: 'Staked Ethereum',
+          isStaked: true,
+          balance: stakedBalance,
           balanceFiat: weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.stakedBalance) as any,
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        ...(tokens || []),
-      ];
-    } else {
-      assets = tokens;
+        } as any;
+        assets.push(stakedAsset);
+      }
     }
+
     return (
       <View
         style={styles.wrapper}
@@ -559,9 +602,6 @@ const Wallet = ({
               }
             />
           </View>
-        ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
@@ -595,10 +635,8 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,

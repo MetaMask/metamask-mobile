@@ -20,7 +20,7 @@ const GeneralSettings = () => {
   useOnboardingHeader(strings('default_settings.drawer_general_title'));
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -30,13 +30,17 @@ const GeneralSettings = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
-    trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-      settings_group: 'onboarding_advanced_configuration',
-      settings_type: 'basic_functionality',
-      old_value: isBasicFunctionalityEnabled,
-      new_value: !isBasicFunctionalityEnabled,
-      was_profile_syncing_on: isProfileSyncingEnabled,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+        .addProperties({
+          settings_group: 'onboarding_advanced_configuration',
+          settings_type: 'basic_functionality',
+          old_value: isBasicFunctionalityEnabled,
+          new_value: !isBasicFunctionalityEnabled,
+          was_profile_syncing_on: isProfileSyncingEnabled,
+        })
+        .build(),
+    );
   };
 
   const toggleProfileSyncing = async () => {
@@ -47,12 +51,16 @@ const GeneralSettings = () => {
     } else {
       await enableProfileSyncing();
     }
-    trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-      settings_group: 'onboarding_advanced_configuration',
-      settings_type: 'profile_syncing',
-      old_value: isProfileSyncingEnabled,
-      new_value: !isProfileSyncingEnabled,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+        .addProperties({
+          settings_group: 'onboarding_advanced_configuration',
+          settings_type: 'profile_syncing',
+          old_value: isProfileSyncingEnabled,
+          new_value: !isProfileSyncingEnabled,
+        })
+        .build(),
+    );
   };
 
   return (

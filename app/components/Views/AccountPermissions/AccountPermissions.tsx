@@ -68,7 +68,7 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
       metadata: { origin: hostname },
@@ -196,8 +196,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     if (
       previousPermittedAccounts.current === undefined &&
-      permittedAccountsByHostname.length === 0 &&
-      isRenderedAsBottomSheet
+      permittedAccountsByHostname.length === 0
     ) {
       // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
@@ -280,11 +279,19 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
-        trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-          source: metricsSource,
-          number_of_accounts: accounts?.length,
-        });
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+            .addProperties({
+              source: metricsSource,
+              number_of_accounts: accounts?.length,
+            })
+            .build(),
+        );
       } catch (e) {
         Logger.error(e as Error, 'Error while trying to add a new account.');
       } finally {
@@ -384,11 +391,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         hasNoTimeout: false,
       });
       const totalAccounts = accountsLength;
-      trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
-        number_of_accounts: totalAccounts,
-        number_of_accounts_connected: connectedAccountLength,
-        number_of_networks: nonTestnetNetworks,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS)
+          .addProperties({
+            number_of_accounts: totalAccounts,
+            number_of_accounts_connected: connectedAccountLength,
+            number_of_networks: nonTestnetNetworks,
+          })
+          .build(),
+      );
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
@@ -406,6 +417,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accountsLength,
     nonTestnetNetworks,
     trackEvent,
+    createEventBuilder,
   ]);
 
   useEffect(() => {
@@ -437,10 +449,14 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Confirm: {
           handleConnect();
           hideSheet(() => {
-            trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-              source: metricsSource,
-              number_of_accounts: accounts?.length,
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+                .addProperties({
+                  source: metricsSource,
+                  number_of_accounts: accounts?.length,
+                })
+                .build(),
+            );
           });
           break;
         }
@@ -461,14 +477,22 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
 
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -487,6 +511,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     handleConnect,
     accounts?.length,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const renderConnectedScreen = useCallback(

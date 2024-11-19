@@ -16,6 +16,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { AccountSelectorListProps } from './AccountSelectorList.types';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -32,6 +33,15 @@ jest.mock('../../../util/address', () => {
     getLabelTextByAddress: jest.fn(),
   };
 });
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
 
 const initialState = {
   engine: {
@@ -73,8 +83,9 @@ const initialState = {
 
 const onSelectAccount = jest.fn();
 const onRemoveImportedAccount = jest.fn();
-
-const AccountSelectorListUseAccounts = () => {
+const AccountSelectorListUseAccounts: React.FC<AccountSelectorListProps> = ({
+  privacyMode = false,
+}) => {
   const { accounts, ensByAccountAddress } = useAccounts();
   return (
     <AccountSelectorList
@@ -83,6 +94,7 @@ const AccountSelectorListUseAccounts = () => {
       accounts={accounts}
       ensByAccountAddress={ensByAccountAddress}
       isRemoveAccountEnabled
+      privacyMode={privacyMode}
     />
   );
 };
@@ -109,7 +121,7 @@ const renderComponent = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: any = {},
   AccountSelectorListTest = AccountSelectorListUseAccounts,
-) => renderWithProvider(<AccountSelectorListTest />, { state });
+) => renderWithProvider(<AccountSelectorListTest {...state} />, { state });
 
 describe('AccountSelectorList', () => {
   beforeEach(() => {
@@ -205,11 +217,11 @@ describe('AccountSelectorList', () => {
       expect(within(accountNameItems[1]).getByText('Account 2')).toBeDefined();
     });
   });
-  it('renders "Snaps (beta)" tag for Snap accounts', async () => {
-    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap([
-      MOCK_ADDRESS_1,
-      MOCK_ADDRESS_2,
-    ]);
+  it('renders the snap name tag for Snap accounts', async () => {
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap(
+      [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+      'MetaMask Simple Snap Keyring',
+    );
 
     const stateWithSnapAccount = {
       ...initialState,
@@ -225,8 +237,50 @@ describe('AccountSelectorList', () => {
     const { queryByText } = renderComponent(stateWithSnapAccount);
 
     await waitFor(async () => {
-      const snapTag = await queryByText('Snaps (beta)');
+      const snapTag = await queryByText('MetaMask Simple Snap Keyring');
       expect(snapTag).toBeDefined();
+    });
+  });
+  it('Text is not hidden when privacy mode is off', async () => {
+    const state = {
+      ...initialState,
+      privacyMode: false,
+    };
+
+    const { queryByTestId } = renderComponent(state);
+
+    await waitFor(() => {
+      const businessAccountItem = queryByTestId(
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
+
+      expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
+      expect(
+        within(businessAccountItem).getByText(regex.usd(3200)),
+      ).toBeDefined();
+
+      expect(within(businessAccountItem).queryByText('••••••')).toBeNull();
+    });
+  });
+  it('Text is hidden when privacy mode is on', async () => {
+    const state = {
+      ...initialState,
+      privacyMode: true,
+    };
+
+    const { queryByTestId } = renderComponent(state);
+
+    await waitFor(() => {
+      const businessAccountItem = queryByTestId(
+        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+      );
+
+      expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();
+      expect(
+        within(businessAccountItem).queryByText(regex.usd(3200)),
+      ).toBeNull();
+
+      expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
     });
   });
 });

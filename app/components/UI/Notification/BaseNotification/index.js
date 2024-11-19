@@ -72,6 +72,7 @@ export const getIcon = (status, colors, styles) => {
     case 'success':
     case 'received':
     case 'received_payment':
+    case 'eth_received':
       return (
         <IonicIcon
           color={colors.success.default}
@@ -147,12 +148,14 @@ const getTitle = (status, { nonce, amount, assetType }) => {
       return strings('notifications.cancelled_title');
     case 'error':
       return strings('notifications.error_title');
+    case 'eth_received':
+      return strings('notifications.eth_received_title');
   }
 };
 
-const getDescription = (status, { amount = null }) => {
-  if (amount) {
-    return strings(`notifications.${status}_message`, { amount });
+export const getDescription = (status, { amount = null, type = null }) => {
+  if (amount && typeof amount !== 'object') {
+    return strings(`notifications.${type}_${status}_message`, { amount });
   }
   return strings(`notifications.${status}_message`);
 };
