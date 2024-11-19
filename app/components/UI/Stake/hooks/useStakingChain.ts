@@ -13,4 +13,15 @@ const useStakingChain = () => {
   };
 };
 
+export const useStakingChainByChainId = (chainId: Hex) => {
+  // Updated to accept chainId as a parameter
+  // const chainId = useSelector(selectChainId); // Removed the useSelector hook
+
+  const isStakingSupportedChain = isSupportedChain(getDecimalChainId(chainId));
+
+  return {
+    isStakingSupportedChain,
+  };
+};
+
 export default useStakingChain;

@@ -52,7 +52,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import useStakingChain from '../../../Stake/hooks/useStakingChain';
+import useStakingChain, {
+  useStakingChainByChainId,
+} from '../../../Stake/hooks/useStakingChain';
 import {
   PopularList,
   UnpopularNetworkList,
@@ -185,7 +187,7 @@ export const TokenListItem = ({
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-  const { isStakingSupportedChain } = useStakingChain();
+  const { isStakingSupportedChain } = useStakingChainByChainId(asset.chainId);
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
@@ -277,6 +279,13 @@ export const TokenListItem = ({
     styles.ethLogo,
   ]);
 
+  console.log(
+    'token items ..........',
+    asset.symbol,
+    asset.isETH,
+    isStakingSupportedChain,
+    !asset.isStaked,
+  );
   return (
     <AssetElement
       // assign staked asset a unique key
