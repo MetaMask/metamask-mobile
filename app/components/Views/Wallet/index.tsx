@@ -481,10 +481,12 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
-      let stakedAsset;
-      if (accountBalanceByChainId.stakedBalance) {
+      if (
+        accountBalanceByChainId.stakedBalance &&
+        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
+      ) {
         stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        stakedAsset = {
+        const stakedAsset = {
           ...nativeAsset,
           nativeAsset,
           name: 'Staked Ethereum',
