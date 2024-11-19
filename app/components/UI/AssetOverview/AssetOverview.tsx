@@ -137,19 +137,28 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
-    if (asset.chainId !== selectedChainId) {
-      const { NetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
-        );
+    if (process.env.PORTFOLIO_VIEW) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
 
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
+      if (asset.chainId !== selectedChainId) {
+        const { NetworkController } = Engine.context;
+        const networkConfiguration =
+          NetworkController.getNetworkConfigurationByChainId(
+            asset.chainId as Hex,
+          );
 
-      await NetworkController.setActiveNetwork(networkClientId as string);
+        const networkClientId =
+          networkConfiguration?.rpcEndpoints?.[
+            networkConfiguration.defaultRpcEndpointIndex
+          ]?.networkClientId;
+
+        await NetworkController.setActiveNetwork(networkClientId as string);
+      }
     }
     if (asset.isETH && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
@@ -159,35 +168,69 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('SendFlowView', {});
   };
 
-  const goToSwaps = async () => {
-    if (asset.chainId !== selectedChainId) {
-      const { NetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
+  const goToSwaps = useCallback(() => {
+    if (process.env.PORTFOLIO_VIEW) {
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+      if (asset.chainId !== selectedChainId) {
+        const { NetworkController } = Engine.context;
+        const networkConfiguration =
+          NetworkController.getNetworkConfigurationByChainId(
+            asset.chainId as Hex,
+          );
+
+        const networkClientId =
+          networkConfiguration?.rpcEndpoints?.[
+            networkConfiguration.defaultRpcEndpointIndex
+          ]?.networkClientId;
+
+        NetworkController.setActiveNetwork(networkClientId as string).then(
+          () => {
+            setTimeout(() => {
+              navigation.navigate('Swaps', {
+                screen: 'SwapsAmountView',
+                params: {
+                  sourceToken:
+                    asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+                  sourcePage: 'MainView',
+                  chainId: asset.chainId,
+                },
+              });
+            }, 500);
+          },
         );
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      await NetworkController.setActiveNetwork(networkClientId as string);
+      } else {
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+            sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+            sourcePage: 'MainView',
+            chainId: asset.chainId,
+          },
+        });
+      }
+    } else {
+      navigation.navigate('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+          sourcePage: 'MainView',
+          chainId: asset.chainId,
+        },
+      });
+      trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
+        text: 'Swap',
+        tokenSymbol: '',
+        location: 'TokenDetails',
+        chain_id: getDecimalChainId(asset.chainId),
+      });
     }
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        sourcePage: 'MainView',
-      },
-    });
-    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-      text: 'Swap',
-      tokenSymbol: '',
-      location: 'TokenDetails',
-      chain_id: getDecimalChainId(chainId),
-    });
-  };
+  }, [navigation, asset.chainId, selectedChainId, trackEvent, asset.address]);
+
   const onBuy = () => {
     const [route, params] = createBuyNavigationDetails();
     navigation.navigate(route, params || {});

@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import Icon from 'react-native-vector-icons/Feather';
@@ -19,6 +19,8 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
+import { selectChainId } from '../../../../selectors/networkController';
+import { useSelector } from 'react-redux';
 
 interface PriceProps {
   asset: TokenI;

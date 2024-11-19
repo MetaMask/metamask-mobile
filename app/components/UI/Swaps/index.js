@@ -200,6 +200,8 @@ function SwapsAmountView({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
+  console.log('chainId +++++..........', chainId);
+
   const previousSelectedAddress = useRef();
 
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
@@ -224,6 +226,7 @@ function SwapsAmountView({
       toLowerCaseEquals(token.address, initialSource),
     ),
   );
+
   const [destinationToken, setDestinationToken] = useState(
     swapsTokens?.find((token) =>
       toLowerCaseEquals(token.address, initialDestination),
