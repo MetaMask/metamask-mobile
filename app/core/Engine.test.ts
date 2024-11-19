@@ -70,14 +70,7 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-
-    // AssetsContractController is stateless in v37 resulting in an undefined state
-    const newBackgroundState = {
-      ...backgroundState,
-      AssetsContractController: undefined,
-    };
-
-    expect(initialBackgroundState).toStrictEqual(newBackgroundState);
+    expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
