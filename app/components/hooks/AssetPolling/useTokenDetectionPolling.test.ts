@@ -22,9 +22,6 @@ describe('useTokenDetectionPolling', () => {
   const state = {
     engine: {
       backgroundState: {
-        // TokenRatesController: {
-        //   marketData: {},
-        // },
         AccountsController: {
           internalAccounts: {
             selectedAccount: '1',
