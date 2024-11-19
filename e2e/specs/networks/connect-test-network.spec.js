@@ -45,12 +45,12 @@ describe(Regression('Connect to a Test Network'), () => {
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
@@ -92,13 +92,13 @@ describe(Regression('Connect to a Test Network'), () => {
     await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
     await Assertions.checkIfTextIsDisplayed(
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.tapTestNetworkSwitch();
     await Assertions.checkIfToggleIsOff(NetworkListModal.testNetToggle);
     await Assertions.checkIfTextIsNotDisplayed(
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
   });
 });

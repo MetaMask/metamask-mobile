@@ -23,7 +23,7 @@ describe(Regression('Networks Search'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it(`Remove ${PopularNetworksList.Avalanche.providerConfig.nickname} network from the list, ensuring its absent in search results`, async () => {
+  it(`Remove ${PopularNetworksList.Avalanche.providerConfig?.nickname} network from the list, ensuring its absent in search results`, async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),

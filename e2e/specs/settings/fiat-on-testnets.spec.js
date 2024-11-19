@@ -14,7 +14,7 @@ import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestn
 import Assertions from '../../utils/Assertions.js';
 import TestHelpers from '../../helpers.js';
 
-const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
+const SEPOLIA = CustomNetworks.Sepolia.providerConfig?.nickname;
 
 describe(SmokeAssets('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {

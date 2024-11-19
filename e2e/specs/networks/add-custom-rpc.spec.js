@@ -49,7 +49,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.tapAddNetworkFormButton();
 
     await NetworkView.typeInNetworkName(
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
 
     await NetworkView.tapRpcDropDownButton();
@@ -59,12 +59,12 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
-    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig.rpcUrl);
+    await NetworkView.typeInRpcUrl(CustomNetworks.Gnosis.providerConfig?.rpcUrl);
 
     await NetworkView.tapAddRpcButton();
 
     await NetworkView.typeInNetworkSymbol(
-      `${CustomNetworks.Gnosis.providerConfig.ticker}\n`,
+      `${CustomNetworks.Gnosis.providerConfig?.ticker}\n`,
     );
 
     await NetworkView.typeInChainId(
@@ -97,7 +97,7 @@ describe(Regression('Custom RPC Tests'), () => {
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      CustomNetworks.Gnosis.providerConfig.nickname,
+      CustomNetworks.Gnosis.providerConfig?.nickname,
     );
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
@@ -125,10 +125,9 @@ describe(Regression('Custom RPC Tests'), () => {
     await NetworkListModal.scrollToBottomOfNetworkList();
     await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
     await NetworkListModal.changeNetworkTo(
-      CustomNetworks.Sepolia.providerConfig.nickname,
+      CustomNetworks.Sepolia.providerConfig?.nickname,
     );
     await Assertions.checkIfVisible(NetworkEducationModal.container);
-
     await NetworkEducationModal.tapGotItButton();
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
