@@ -89,6 +89,30 @@ describe('Engine', () => {
     );
   });
 
+  it('normalizes CurrencyController state property conversionRate from null to 0', () => {
+    const ticker = 'ETH';
+    const state = {
+      CurrencyRateController: {
+        currentCurrency: 'usd' as const,
+        currencyRates: {
+          [ticker]: {
+            conversionRate: null,
+            conversionDate: 0,
+            usdConversionRate: null,
+          },
+        },
+      },
+    };
+    const engine = Engine.init(state);
+    expect(
+      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
+    ).toStrictEqual({
+      conversionRate: 0,
+      conversionDate: 0,
+      usdConversionRate: null,
+    });
+  });
+
   describe('getTotalFiatAccountBalance', () => {
     let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
@@ -276,11 +300,17 @@ describe('Engine', () => {
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+              [selectedAddress]: {
+                balance: (ethBalance * 1e18).toString(),
+                stakedBalance: (stakedEthBalance * 1e18).toString(),
+              },
             },
           },
           accounts: {
-            [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+            [selectedAddress]: {
+              balance: (ethBalance * 1e18).toString(),
+              stakedBalance: (stakedEthBalance * 1e18).toString(),
+            },
           },
         },
         TokensController: {
