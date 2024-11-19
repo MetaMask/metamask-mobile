@@ -14,7 +14,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
@@ -151,6 +151,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           acc: { nativeTokens: TokenI[]; nonNativeTokens: TokenI[] },
           currToken: unknown,
         ) => {
+          if (isTestNet((currToken as TokenI & { chainId: string }).chainId)) {
+            return acc;
+          }
           if ((currToken as TokenI).isNative) {
             acc.nativeTokens.push(currToken as TokenI);
           } else {

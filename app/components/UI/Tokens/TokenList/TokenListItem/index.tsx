@@ -279,13 +279,6 @@ export const TokenListItem = ({
     styles.ethLogo,
   ]);
 
-  console.log(
-    'token items ..........',
-    asset.symbol,
-    asset.isETH,
-    isStakingSupportedChain,
-    !asset.isStaked,
-  );
   return (
     <AssetElement
       // assign staked asset a unique key
