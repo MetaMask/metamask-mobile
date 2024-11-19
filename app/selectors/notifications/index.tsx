@@ -91,14 +91,14 @@ export const getmetamaskNotificationsReadList = createSelector(
 export const getNotificationsList = createDeepEqualSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
-    notificationServicesControllerState.metamaskNotificationsList,
+    notificationServicesControllerState?.metamaskNotificationsList,
 );
 
 export const getMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      notificationServicesControllerState?.metamaskNotificationsList ?? []
     ).filter((notification: Notification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
@@ -112,7 +112,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
-      notificationServicesControllerState.metamaskNotificationsList ?? []
+      notificationServicesControllerState?.metamaskNotificationsList ?? []
     ).filter(
       (notification: Notification) =>
         !notification.isRead &&
