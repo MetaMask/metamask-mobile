@@ -159,7 +159,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('SendFlowView', {});
   };
 
-  const goToSwaps = () => {
+  const goToSwaps = async () => {
+    if (asset.chainId !== selectedChainId) {
+      const { NetworkController } = Engine.context;
+      const networkConfiguration =
+        NetworkController.getNetworkConfigurationByChainId(
+          asset.chainId as Hex,
+        );
+
+      const networkClientId =
+        networkConfiguration?.rpcEndpoints?.[
+          networkConfiguration.defaultRpcEndpointIndex
+        ]?.networkClientId;
+
+      await NetworkController.setActiveNetwork(networkClientId as string);
+    }
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {

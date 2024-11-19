@@ -8,11 +8,20 @@ const useTokenBalancesPolling = () => {
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  const filteredNetworkConfigurations = Object.values(
+    networkConfigurations,
+  ).filter(
+    (networkConfiguration) =>
+      !['0x5', '0xe704'].includes(networkConfiguration.chainId),
+  );
+
   const tokensBalances = useSelector(selectTokensBalances);
 
-  const input = Object.values(networkConfigurations).map(({ chainId }) => ({
-    chainId,
-  }));
+  const input = Object.values(filteredNetworkConfigurations).map(
+    ({ chainId }) => ({
+      chainId,
+    }),
+  );
 
   const { TokenBalancesController } = Engine.context;
 

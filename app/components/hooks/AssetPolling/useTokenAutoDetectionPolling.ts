@@ -7,17 +7,26 @@ import Engine from '../../../core/Engine';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { Hex } from '@metamask/utils';
 
-type TokenDetectionPollingInput = {
+interface TokenDetectionPollingInput {
   chainIds: Hex[];
   address: string;
-};
+}
 
 const useTokenDetectionPolling = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
+  const filteredNetworkConfigurations = Object.values(
+    networkConfigurations,
+  ).filter(
+    (networkConfiguration) =>
+      !['0x5', '0xe704'].includes(networkConfiguration.chainId),
+  );
+
   const useTokenDetection = useSelector(selectUseTokenDetection);
-  const chainIds = Object.keys(networkConfigurations);
+  const chainIds = Object.values(filteredNetworkConfigurations).map(
+    (networkConfiguration) => networkConfiguration.chainId,
+  );
 
   const detectedTokens = useSelector(selectAllDetectedTokensForSelectedAddress);
 

@@ -12,13 +12,20 @@ const useCurrencyRatePolling = () => {
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
+  const filteredNetworkConfigurations = Object.values(
+    networkConfigurations,
+  ).filter(
+    (networkConfiguration) =>
+      !['0x5', '0xe704'].includes(networkConfiguration.chainId),
+  );
+
   // Selectors returning state updated by the polling
   const conversionRate = useSelector(selectConversionRate);
   const currencyRates = useSelector(selectConversionRateFoAllChains);
 
   const nativeCurrencies = [
     ...new Set(
-      Object.values(networkConfigurations).map((n) => n.nativeCurrency),
+      Object.values(filteredNetworkConfigurations).map((n) => n.nativeCurrency),
     ),
   ];
 
