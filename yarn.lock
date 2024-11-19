@@ -4401,14 +4401,14 @@
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.2", "@metamask/approval-controller@^7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.0.tgz#34b07bc4eaf6938b15f9d915c6885d4a5c0a5205"
-  integrity sha512-dhqUeX8wMzW88U+Vgr7oKf0Vouol10ncB3lxmvWyC1VZJhSOdO3VUkn0tH1lzt3ybxYVMOkPaB3gfdksfnNRyA==
+"@metamask/approval-controller@^7.0.0", "@metamask/approval-controller@^7.0.2", "@metamask/approval-controller@^7.1.1":
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.1.tgz#184a280647922c0bdc6644e10292c6db903a7062"
+  integrity sha512-sMIoO7UQ8M9Ry7qWzcqPR4leJ/P3iq4xbdqzLLLzi8Wm1l3419hSOpk04QEa2HBWJZUiGcRCkc74s/iw4OLzhg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
 "@metamask/assets-controllers@^41.0.0":
