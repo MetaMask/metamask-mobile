@@ -17,8 +17,8 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const tokenListByChain = useSelector(selectERC20TokensByChain);
 
   const chainIdsToPoll = isPortfolioViewEnabled
-    ? [currentChainId]
-    : (chainIds ?? Object.keys(networkConfigurations));
+    ? (chainIds ?? Object.keys(networkConfigurations))
+    : [currentChainId];
 
   const { TokenListController } = Engine.context;
 

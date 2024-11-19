@@ -16,8 +16,8 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const useTokenDetection = useSelector(selectUseTokenDetection);
 
   const chainIdsToPoll = isPortfolioViewEnabled
-    ? [currentChainId]
-    : (chainIds ?? Object.keys(networkConfigurations));
+    ? (chainIds ?? Object.keys(networkConfigurations))
+    : [currentChainId];
 
   const { TokenDetectionController } = Engine.context;
 
