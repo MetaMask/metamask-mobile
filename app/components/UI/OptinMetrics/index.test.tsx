@@ -3,6 +3,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -60,12 +61,15 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           1,
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-          {
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          },
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
+              is_metrics_opted_in: true,
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            })
+            .build(),
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
@@ -86,13 +90,16 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
           1,
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-          {
-            has_marketing_consent: true,
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          },
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+          )
+            .addProperties({
+              has_marketing_consent: true,
+              is_metrics_opted_in: true,
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            })
+            .build(),
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
