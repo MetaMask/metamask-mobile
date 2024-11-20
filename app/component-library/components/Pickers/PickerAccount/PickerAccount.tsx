@@ -37,7 +37,6 @@ const PickerAccount: React.ForwardRefRenderFunction<
     cellAccountContainerStyle,
   });
   const shortenedAddress = formatAddress(accountAddress, 'short');
-  console.log('Bitcoin/ shortenedAddress', shortenedAddress);
 
   const renderCellAccount = () => (
     <View style={styles.cellAccount}>
