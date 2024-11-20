@@ -225,5 +225,40 @@ describe('Tags Utils', () => {
 
       expect(tags?.['wallet.transaction_count']).toStrictEqual(3);
     });
+
+    it('returns undefined if ApprovalController is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('handles undefined pendingApprovals in ApprovalController', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: {
+              ...backgroundState.ApprovalController,
+              pendingApprovals: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags?.['wallet.pending_approval']).toBeUndefined();
+    });
   });
 });
