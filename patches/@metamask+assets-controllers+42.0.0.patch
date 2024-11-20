@@ -610,7 +610,7 @@ index 15a0e56..deeb1eb 100644
  _AssetsContractController_provider = new WeakMap(), _AssetsContractController_ipfsGateway = new WeakMap(), _AssetsContractController_chainId = new WeakMap(), _AssetsContractController_instances = new WeakSet(), _AssetsContractController_registerActionHandlers = function _AssetsContractController_registerActionHandlers() {
      const methodsExcludedFromMessenger = [
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 82613cf..f7fd41e 100644
+index 6ccbe9c..49270d6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -657,27 +657,7 @@ index 82613cf..f7fd41e 100644
          __classPrivateFieldSet(this, _NftController_useIpfsSubdomains, useIpfsSubdomains, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
          __classPrivateFieldSet(this, _NftController_onNftAdded, onNftAdded, "f");
-@@ -97,6 +97,19 @@ class NftController extends base_controller_1.BaseController {
-         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-         __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_onSelectedAccountChange).bind(this));
-     }
-+
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+     */
-+    reset() {
-+        this.update((state) => {
-+        state.allNftContracts = {};
-+        state.allNfts = {};
-+        state.ignoredNfts = [];
-+        });
-+    }
-+
-     getNftApi() {
-         // TODO: Either fix this lint violation or explain why it's necessary to ignore.
-         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-@@ -581,7 +594,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -589,7 +589,7 @@ class NftController extends base_controller_1.BaseController {
      }
  }
  exports.NftController = NftController;
@@ -686,7 +666,7 @@ index 82613cf..f7fd41e 100644
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
  }, _NftController_onPreferencesControllerStateChange = 
-@@ -589,16 +602,16 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
+@@ -597,16 +597,16 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
   * @param preferencesState.ipfsGateway - The configured IPFS gateway.
@@ -707,7 +687,7 @@ index 82613cf..f7fd41e 100644
      if (needsUpdateNftMetadata && selectedAccount) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
      }
-@@ -611,7 +624,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
+@@ -619,7 +619,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
      const oldSelectedAccountId = __classPrivateFieldGet(this, _NftController_selectedAccountId, "f");
      __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
      const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
@@ -716,7 +696,7 @@ index 82613cf..f7fd41e 100644
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -686,6 +699,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
+@@ -694,6 +694,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
              description: null,
              image: null,
              standard: null,
@@ -724,7 +704,7 @@ index 82613cf..f7fd41e 100644
          };
      }
      // if we've reached this point, we have successfully fetched some data for nftInformation
-@@ -730,7 +744,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -738,7 +739,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              tokenURI: tokenURI ?? null,
          };
      }
@@ -733,7 +713,7 @@ index 82613cf..f7fd41e 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -739,6 +753,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -747,6 +748,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -741,7 +721,7 @@ index 82613cf..f7fd41e 100644
          };
      }
      if (hasIpfsTokenURI) {
-@@ -777,6 +792,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -785,6 +787,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -749,7 +729,7 @@ index 82613cf..f7fd41e 100644
          };
      }
  }, _NftController_getNftURIAndStandard = 
-@@ -832,10 +848,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+@@ -840,10 +843,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
@@ -772,7 +752,7 @@ index 82613cf..f7fd41e 100644
      return {
          ...nftApiMetadata,
          name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
-@@ -977,6 +1004,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
+@@ -985,6 +999,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
                  tokenId: tokenId.toString(),
                  standard: nftMetadata.standard,
                  source,
@@ -781,7 +761,7 @@ index 82613cf..f7fd41e 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index 6306bb6..7e9bfec 100644
+index a34725f..21e9d20 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -108,6 +108,7 @@ export type NftMetadata = {
@@ -792,21 +772,8 @@ index 6306bb6..7e9bfec 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
-@@ -419,6 +420,11 @@ export declare class NftController extends BaseController<typeof controllerName,
-         collections: Collection[];
-     }>;
-     _requestApproval(suggestedNftMeta: SuggestedNftMeta): Promise<unknown>;
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+    */
-+    reset(): void;
- }
- export default NftController;
- //# sourceMappingURL=NftController.d.cts.map
-\ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
-index f7b75d7..bae1292 100644
+index 6f48d64..f9dc513 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
 @@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -830,26 +797,7 @@ index f7b75d7..bae1292 100644
          this.messagingSystem.subscribe('TokensController:stateChange', ({ tokens: newTokens, detectedTokens }) => {
              __classPrivateFieldSet(this, _TokenBalancesController_tokens, [...newTokens, ...detectedTokens], "f");
              // TODO: Either fix this lint violation or explain why it's necessary to ignore.
-@@ -73,6 +75,18 @@ class TokenBalancesController extends base_controller_1.BaseController {
-         // eslint-disable-next-line @typescript-eslint/no-floating-promises
-         this.poll();
-     }
-+
-+
-+   /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+     */
-+    reset() {
-+        this.update((state) => {
-+        state.contractBalances = {};
-+        });
-+    }
-+
-     /**
-      * Allows controller to update tracked tokens contract balances.
-      */
-@@ -113,24 +127,31 @@ class TokenBalancesController extends base_controller_1.BaseController {
+@@ -113,21 +115,28 @@ class TokenBalancesController extends base_controller_1.BaseController {
          }
          const selectedInternalAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
          const newContractBalances = {};
@@ -885,108 +833,16 @@ index f7b75d7..bae1292 100644
          });
 +        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, updateInProgress, "f");
      }
+     /**
+      * Reset the controller state to the default state.
+@@ -139,6 +148,6 @@ class TokenBalancesController extends base_controller_1.BaseController {
+     }
  }
  exports.TokenBalancesController = TokenBalancesController;
 -_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap();
 +_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap(), _TokenBalancesController_updateInProgress = new WeakMap();
  exports.default = TokenBalancesController;
  //# sourceMappingURL=TokenBalancesController.cjs.map
-\ No newline at end of file
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.cts
-index d252cab..ccc3d82 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.cts
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.d.cts
-@@ -77,6 +77,11 @@ export declare class TokenBalancesController extends BaseController<typeof contr
-      * Updates balances for all tokens.
-      */
-     updateBalances(): Promise<void>;
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+    */
-+    reset(): void;
- }
- export default TokenBalancesController;
- //# sourceMappingURL=TokenBalancesController.d.cts.map
-\ No newline at end of file
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-index beb4f95..6aab19a 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-@@ -117,6 +117,16 @@ class TokenRatesController extends (0, polling_controller_1.StaticIntervalPollin
-         __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_subscribeToTokensStateChange).call(this);
-         __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_subscribeToNetworkStateChange).call(this);
-     }
-+
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+     */
-+    reset() {
-+        this.update((state) => {
-+            state.marketData = {};
-+        });
-+    }
-     /**
-      * Allows controller to make active and passive polling requests
-      */
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.cts
-index a5d6404..0d3d017 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.cts
-+++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.d.cts
-@@ -183,6 +183,11 @@ export declare class TokenRatesController extends TokenRatesController_base<type
-      * @param input.networkClientId - The network client ID used to get a ticker value.
-      */
-     _executePoll({ networkClientId, }: TokenRatesPollingInput): Promise<void>;
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+    */
-+    reset(): void;
- }
- export default TokenRatesController;
- //# sourceMappingURL=TokenRatesController.d.cts.map
-\ No newline at end of file
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.cjs b/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
-index 742de5b..651d1dd 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
-+++ b/node_modules/@metamask/assets-controllers/dist/TokensController.cjs
-@@ -109,6 +109,19 @@ class TokensController extends base_controller_1.BaseController {
-             }
-         });
-     }
-+
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+     */
-+    reset() {
-+        this.update((state) => {
-+        state.allTokens = {};
-+        state.allIgnoredTokens = {};
-+        state.ignoredTokens = [];
-+        state.tokens = [];
-+        });
-+    }
-     /**
-      * Adds a token to the stored token list.
-      *
-diff --git a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-index 3fbbc66..4f99591 100644
---- a/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-+++ b/node_modules/@metamask/assets-controllers/dist/TokensController.d.cts
-@@ -160,6 +160,11 @@ export declare class TokensController extends BaseController<typeof controllerNa
-      * Removes all tokens from the ignored list.
-      */
-     clearIgnoredTokens(): void;
-+    /**
-+     * THIS FUNCTIONS IS CURRENTLY PATCHED AND STILL NEEDS TO BE IMPLEMENTED ON THE CORE REPO
-+     * Resets to the default state
-+    */
-+    reset(): void;
- }
- export default TokensController;
- //# sourceMappingURL=TokensController.d.cts.map
 \ No newline at end of file
 diff --git a/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs b/node_modules/@metamask/assets-controllers/dist/assetsUtil.cjs
 index e90a1b6..c2e83cf 100644
