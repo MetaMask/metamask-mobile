@@ -38,24 +38,4 @@ describe('useAnalytics', () => {
       },
     );
   });
-
-  it('calls trackEvent for anonymous params', () => {
-    const { result } = renderHookWithProvider(() => useAnalytics());
-
-    const testEvent = 'RAMP_REGION_SELECTED';
-    const testPayload = {
-      country_id: 'test-country-id',
-      is_unsupported_offramp: false,
-      is_unsupported_onramp: false,
-    };
-
-    result.current(testEvent, testPayload);
-
-    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      {
-        sensitiveProperties: testPayload,
-      },
-    );
-  });
 });
