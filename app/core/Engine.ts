@@ -1479,7 +1479,6 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
