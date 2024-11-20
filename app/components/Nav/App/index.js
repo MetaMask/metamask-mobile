@@ -1,4 +1,5 @@
 import React, {
+  memo,
   useCallback,
   useContext,
   useEffect,
@@ -581,6 +582,135 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const AppNavigationContainer = memo(
+  ({ setNavigatorRef, colors, userLoggedIn, triggerSetCurrentRoute }) => (
+    <NavigationContainer
+      theme={{
+        colors: {
+          background: colors.background.default,
+        },
+      }}
+      ref={setNavigatorRef}
+      onStateChange={(state) => {
+        const currentRoute = findRouteNameFromNavigatorState(state.routes);
+        triggerSetCurrentRoute(currentRoute);
+      }}
+    >
+      <Stack.Navigator
+        initialRouteName={Routes.FOX_LOADER}
+        mode={'modal'}
+        screenOptions={{
+          headerShown: false,
+          cardStyle: { backgroundColor: importedColors.transparent },
+          animationEnabled: false,
+        }}
+      >
+        <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
+        {!userLoggedIn && (
+          <>
+            <Stack.Screen
+              name={Routes.ONBOARDING.LOGIN}
+              component={Login}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="OnboardingRootNav"
+              component={OnboardingRootNav}
+              options={{ headerShown: false }}
+            />
+          </>
+        )}
+        <Stack.Screen
+          name={Routes.ONBOARDING.SUCCESS_FLOW}
+          component={OnboardingSuccessFlow}
+          options={{ headerShown: false }}
+        />
+        {userLoggedIn && (
+          <Stack.Screen
+            name={Routes.ONBOARDING.HOME_NAV}
+            component={Main}
+            options={{ headerShown: false }}
+          />
+        )}
+        <Stack.Screen
+          name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+          component={VaultRecoveryFlow}
+        />
+        <Stack.Screen
+          name={Routes.MODAL.ROOT_MODAL_FLOW}
+          component={RootModalFlow}
+        />
+        <Stack.Screen
+          name="ImportPrivateKeyView"
+          component={ImportPrivateKeyView}
+          options={{ animationEnabled: true }}
+        />
+        <Stack.Screen
+          name="ConnectQRHardwareFlow"
+          component={ConnectQRHardwareFlow}
+          options={{ animationEnabled: true }}
+        />
+        <Stack.Screen
+          name={Routes.HW.CONNECT_LEDGER}
+          component={LedgerConnectFlow}
+        />
+        <Stack.Screen
+          name={Routes.HW.CONNECT}
+          component={ConnectHardwareWalletFlow}
+        />
+        <Stack.Screen
+          options={{
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
+          name={Routes.LEDGER_TRANSACTION_MODAL}
+          component={LedgerTransactionModal}
+        />
+        <Stack.Screen
+          options={{
+            cardStyle: { backgroundColor: importedColors.transparent },
+            cardStyleInterpolator: () => ({
+              overlayStyle: {
+                opacity: 0,
+              },
+            }),
+          }}
+          name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+          component={LedgerMessageSignModal}
+        />
+        <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
+        <Stack.Screen
+          name="EditAccountName"
+          component={EditAccountName}
+          options={{ animationEnabled: true }}
+        />
+        <Stack.Screen
+          name={Routes.ADD_NETWORK}
+          component={AddNetworkFlow}
+          options={{ animationEnabled: true }}
+        />
+        {isNetworkUiRedesignEnabled() ? (
+          <Stack.Screen
+            name={Routes.EDIT_NETWORK}
+            component={AddNetworkFlow}
+            options={{ animationEnabled: true }}
+          />
+        ) : null}
+
+        <Stack.Screen
+          name={Routes.LOCK_SCREEN}
+          component={LockScreen}
+          options={{ gestureEnabled: false }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  ),
+);
+
 const App = (props) => {
   const { userLoggedIn } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
@@ -891,130 +1021,12 @@ const App = (props) => {
         ///: END:ONLY_INCLUDE_IF
       }
       <PPOMView />
-      <NavigationContainer
-        // Prevents artifacts when navigating between screens
-        theme={{
-          colors: {
-            background: colors.background.default,
-          },
-        }}
-        ref={setNavigatorRef}
-        onStateChange={(state) => {
-          // Updates redux with latest route. Used by DrawerView component.
-          const currentRoute = findRouteNameFromNavigatorState(state.routes);
-          triggerSetCurrentRoute(currentRoute);
-        }}
-      >
-        <Stack.Navigator
-          initialRouteName={Routes.FOX_LOADER}
-          mode={'modal'}
-          screenOptions={{
-            headerShown: false,
-            cardStyle: { backgroundColor: importedColors.transparent },
-            animationEnabled: false,
-          }}
-        >
-          <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
-          <Stack.Screen
-            name={Routes.ONBOARDING.LOGIN}
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="OnboardingRootNav"
-            component={OnboardingRootNav}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.ONBOARDING.SUCCESS_FLOW}
-            component={OnboardingSuccessFlow}
-            options={{ headerShown: false }}
-          />
-          {userLoggedIn && (
-            <Stack.Screen
-              name={Routes.ONBOARDING.HOME_NAV}
-              component={Main}
-              options={{ headerShown: false }}
-            />
-          )}
-          <Stack.Screen
-            name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-            component={VaultRecoveryFlow}
-          />
-          <Stack.Screen
-            name={Routes.MODAL.ROOT_MODAL_FLOW}
-            component={RootModalFlow}
-          />
-          <Stack.Screen
-            name="ImportPrivateKeyView"
-            component={ImportPrivateKeyView}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name="ConnectQRHardwareFlow"
-            component={ConnectQRHardwareFlow}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name={Routes.HW.CONNECT_LEDGER}
-            component={LedgerConnectFlow}
-          />
-          <Stack.Screen
-            name={Routes.HW.CONNECT}
-            component={ConnectHardwareWalletFlow}
-          />
-          <Stack.Screen
-            options={{
-              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-              cardStyle: { backgroundColor: importedColors.transparent },
-              cardStyleInterpolator: () => ({
-                overlayStyle: {
-                  opacity: 0,
-                },
-              }),
-            }}
-            name={Routes.LEDGER_TRANSACTION_MODAL}
-            component={LedgerTransactionModal}
-          />
-          <Stack.Screen
-            options={{
-              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-              cardStyle: { backgroundColor: importedColors.transparent },
-              cardStyleInterpolator: () => ({
-                overlayStyle: {
-                  opacity: 0,
-                },
-              }),
-            }}
-            name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-            component={LedgerMessageSignModal}
-          />
-          <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
-          <Stack.Screen
-            name="EditAccountName"
-            component={EditAccountName}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name={Routes.ADD_NETWORK}
-            component={AddNetworkFlow}
-            options={{ animationEnabled: true }}
-          />
-          {isNetworkUiRedesignEnabled() ? (
-            <Stack.Screen
-              name={Routes.EDIT_NETWORK}
-              component={AddNetworkFlow}
-              options={{ animationEnabled: true }}
-            />
-          ) : null}
-
-          <Stack.Screen
-            name={Routes.LOCK_SCREEN}
-            component={LockScreen}
-            options={{ gestureEnabled: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppNavigationContainer
+        setNavigatorRef={setNavigatorRef}
+        colors={colors}
+        userLoggedIn={userLoggedIn}
+        triggerSetCurrentRoute={triggerSetCurrentRoute}
+      />
       <Toast ref={toastRef} />
     </>
   );
