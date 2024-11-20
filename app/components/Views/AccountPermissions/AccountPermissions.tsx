@@ -803,6 +803,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           currentlyPermittedChains,
         );
 
+        const networkToastProps: ToastOptions = {
+          variant: ToastVariants.Network,
+          labelOptions: [
+            {
+              label: strings('toast.network_permissions_updated'),
+            },
+          ],
+          hasNoTimeout: false,
+          networkImageSource: faviconSource,
+        };
+        toastRef?.current?.showToast(networkToastProps);
+
         hideSheet();
       },
       onBack: () =>
