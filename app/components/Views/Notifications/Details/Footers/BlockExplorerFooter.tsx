@@ -7,9 +7,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  getBlockExplorerByChainId,
-} from '../../../../../util/notifications';
+import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -44,14 +42,18 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   const onPress = () => {
     Linking.openURL(txHashUrl);
-    trackEvent(createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED).addProperties({
-      notification_id: notification.id,
-      notification_type: notification.type,
-      ...('chain_id' in notification && {
-        chain_id: notification.chain_id,
-      }),
-      clicked_item: 'block_explorer',
-    }).build());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+        .addProperties({
+          notification_id: notification.id,
+          notification_type: notification.type,
+          ...('chain_id' in notification && {
+            chain_id: notification.chain_id,
+          }),
+          clicked_item: 'block_explorer',
+        })
+        .build(),
+    );
   };
 
   return (
