@@ -300,17 +300,11 @@ describe('Engine', () => {
         AccountTrackerController: {
           accountsByChainId: {
             [chainId]: {
-              [selectedAddress]: {
-                balance: (ethBalance * 1e18).toString(),
-                stakedBalance: (stakedEthBalance * 1e18).toString(),
-              },
+              [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
             },
           },
           accounts: {
-            [selectedAddress]: {
-              balance: (ethBalance * 1e18).toString(),
-              stakedBalance: (stakedEthBalance * 1e18).toString(),
-            },
+            [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
           },
         },
         TokensController: {
