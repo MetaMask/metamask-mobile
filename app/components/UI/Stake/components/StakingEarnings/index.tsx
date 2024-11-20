@@ -19,7 +19,6 @@ import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
 import useStakingChain from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import useStakingEarnings from '../../hooks/useStakingEarnings';
-import usePooledStakes from '../../hooks/usePooledStakes';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
@@ -30,8 +29,6 @@ const StakingEarningsContent = () => {
 
   const { openTooltipModal } = useTooltipModal();
 
-  const { hasStakedPositions } = usePooledStakes();
-
   const {
     annualRewardRate,
     lifetimeRewardsETH,
@@ -39,6 +36,7 @@ const StakingEarningsContent = () => {
     estimatedAnnualEarningsETH,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
+    hasStakedPositions,
   } = useStakingEarnings();
 
   const onDisplayAnnualRateTooltip = () =>
