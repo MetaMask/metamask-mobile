@@ -38,4 +38,26 @@ describe('useAnalytics', () => {
         .build(),
     );
   });
+
+  it('calls trackEvent for anonymous params', () => {
+    jest.mock('../constants', () => ({
+      AnonymousEvents: ['BUY_BUTTON_CLICKED'],
+    }));
+
+    const { result } = renderHookWithProvider(() => useAnalytics());
+
+    const testEvent = 'BUY_BUTTON_CLICKED';
+    const testEventParams = {
+      location: 'Amount to Buy Screen',
+      text: 'Buy',
+    } as const;
+
+    result.current(testEvent, testEventParams);
+
+    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+        .addSensitiveProperties(testEventParams)
+        .build(),
+    );
+  });
 });

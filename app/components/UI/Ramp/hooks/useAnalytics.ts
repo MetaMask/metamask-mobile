@@ -1,10 +1,9 @@
 import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import { AnalyticsEvents } from '../types';
+import { AnonymousEvents } from '../constants';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-
-const AnonymousEvents: (keyof AnalyticsEvents)[] = [];
 
 export function trackEvent<T extends keyof AnalyticsEvents>(
   eventType: T,
