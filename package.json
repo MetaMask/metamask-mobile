@@ -219,7 +219,7 @@
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.17.2",
     "@walletconnect/jsonrpc-types": "^1.0.4",
-    "@walletconnect/react-native-compat": "^2.17.2",
+    "@walletconnect/react-native-compat": "2.15.0",
     "@walletconnect/se-sdk": "1.11.0",
     "@walletconnect/utils": "^2.17.2",
     "@xmldom/xmldom": "^0.8.10",
