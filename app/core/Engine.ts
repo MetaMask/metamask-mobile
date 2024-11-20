@@ -115,7 +115,10 @@ import {
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController, {
+  swapsUtils,
+  SwapsControllerState,
+} from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerActions,
@@ -215,8 +218,6 @@ import {
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
-// TODO: Export this type from the package directly
-import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
@@ -373,7 +374,7 @@ export interface EngineState {
   TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsState;
+  SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   TokenDetectionController: BaseState;
@@ -1609,33 +1610,43 @@ export class Engine {
       }),
       this.transactionController,
       this.smartTransactionsController,
-      new SwapsController(
-        {
-          fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
-          fetchEstimatedMultiLayerL1Fee,
-        },
-        {
-          clientId: AppConstants.SWAPS.CLIENT_ID,
-          fetchAggregatorMetadataThreshold:
-            AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-          fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-          fetchTopAssetsThreshold:
-            AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-          supportedChainIds: [
-            swapsUtils.ETH_CHAIN_ID,
-            swapsUtils.BSC_CHAIN_ID,
-            swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-            swapsUtils.POLYGON_CHAIN_ID,
-            swapsUtils.AVALANCHE_CHAIN_ID,
-            swapsUtils.ARBITRUM_CHAIN_ID,
-            swapsUtils.OPTIMISM_CHAIN_ID,
-            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-            swapsUtils.LINEA_CHAIN_ID,
-            swapsUtils.BASE_CHAIN_ID,
+      new SwapsController({
+        clientId: AppConstants.SWAPS.CLIENT_ID,
+        fetchAggregatorMetadataThreshold:
+          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+        supportedChainIds: [
+          swapsUtils.ETH_CHAIN_ID,
+          swapsUtils.BSC_CHAIN_ID,
+          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+          swapsUtils.POLYGON_CHAIN_ID,
+          swapsUtils.AVALANCHE_CHAIN_ID,
+          swapsUtils.ARBITRUM_CHAIN_ID,
+          swapsUtils.OPTIMISM_CHAIN_ID,
+          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+          swapsUtils.LINEA_CHAIN_ID,
+          swapsUtils.BASE_CHAIN_ID,
+        ],
+        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'SwapsController',
+          // TODO: allow these internal calls once GasFeeController
+          // export these action types and register its action handlers
+          // allowedActions: [
+          //   'GasFeeController:getEIP1559GasFeeEstimates',
+          // ],
+          allowedActions: [
+            'NetworkController:findNetworkClientIdByChainId',
+            'NetworkController:getNetworkClientById',
           ],
-        },
-      ),
+          allowedEvents: [],
+        }),
+        // TODO: Remove once GasFeeController exports this action type
+        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
+        fetchEstimatedMultiLayerL1Fee,
+      }),
       gasFeeController,
       approvalController,
       permissionController,
@@ -1927,8 +1938,8 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    SwapsController.configure({
-      provider,
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
