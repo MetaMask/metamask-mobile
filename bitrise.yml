@@ -252,6 +252,10 @@ workflows:
           title: Yarn Setup
   prep_environment:
     steps:
+      - restore-cache@2:
+          title: Restore Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
           title: node, yarn, corepack installation
           inputs:
@@ -302,6 +306,13 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
+      - save-cache@1:
+          title: Save Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - paths: |-
+                ../.nvm/
+                ../../../root/.nvm/
   install_applesimutils:
     steps:
       - script@1:
@@ -1565,16 +1576,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.34.0
+      VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1475
+      VERSION_NUMBER: 1497
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.34.0
+      FLASK_VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1475
+      FLASK_VERSION_NUMBER: 1497
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

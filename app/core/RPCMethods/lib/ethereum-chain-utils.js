@@ -207,7 +207,6 @@ export async function switchToNetwork({
   isAddNetworkFlow = false,
 }) {
   const {
-    CurrencyRateController,
     NetworkController,
     PermissionController,
     SelectedNetworkController,
@@ -300,7 +299,6 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    CurrencyRateController.updateExchangeRate(requestData.ticker);
     NetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
