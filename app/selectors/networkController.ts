@@ -162,3 +162,9 @@ export const selectNetworkConfigurationByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
   (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
 );
+
+export const selectNativeCurrencyByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
+);

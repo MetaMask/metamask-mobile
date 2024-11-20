@@ -11,9 +11,10 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectTokenMarketDataByChainId } from '../../../../selectors/tokenRatesController';
 import {
-  selectConversionRateByTicker,
+  selectConversionRateBySymbol,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   convertDecimalToPercentage,
   localizeLargeNumber,
@@ -51,8 +52,11 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const tokenExchangeRates = useSelector((state: RootState) =>
     selectTokenMarketDataByChainId(state, asset.chainId as Hex),
   );
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, asset.chainId as Hex),
+  );
   const conversionRate = useSelector((state: RootState) =>
-    selectConversionRateByTicker(state, asset.symbol),
+    selectConversionRateBySymbol(state, nativeCurrency),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
@@ -63,7 +67,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   if (asset.isETH) {
     marketData = tokenExchangeRates?.[zeroAddress() as Hex];
-  } else if (!asset.isETH && tokenContractAddress) {
+  } else if (tokenContractAddress) {
     tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
     marketData = tokenExchangeRates?.[tokenContractAddress as Hex];
   } else {

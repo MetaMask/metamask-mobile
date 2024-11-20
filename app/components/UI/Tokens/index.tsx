@@ -131,7 +131,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       // First filter zero balance tokens if setting is enabled
       const tokensWithBalance = hideZeroBalanceTokens
-        ? allTokens.filter((token) => !isZero(token.balance) || token.isNative)
+        ? allTokens.filter(
+            (token) =>
+              !isZero(token.balance) || token.isNative || token.isStaked,
+          )
         : allTokens;
 
       // Then apply network filters
@@ -163,8 +166,20 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         },
         { nativeTokens: [], nonNativeTokens: [] },
       );
+
       const assets = [...nativeTokens, ...nonNativeTokens];
-      return sortAssets(assets, tokenSortConfig);
+
+      const tokensWithBalances = assets.map((token) => {
+        const tokenFloatBalance = parseFloat(
+          token.balanceFiat.replace(/[^0-9.]/g, ''),
+        );
+        return {
+          ...token,
+          tokenFiatAmount: tokenFloatBalance,
+        };
+      });
+
+      return sortAssets(tokensWithBalances, tokenSortConfig);
     }
 
     // Previous implementation

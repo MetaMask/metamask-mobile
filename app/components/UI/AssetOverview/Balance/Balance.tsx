@@ -96,8 +96,6 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
     ? (asset.chainId as Hex)
     : selectedChainId;
 
-  const isMainnet = isMainnetByChainId(chainId);
-  const isLineaMainnet = isLineaMainnetByChainId(chainId);
   const ticker = asset.symbol;
 
   const renderNetworkAvatar = useCallback(() => {

@@ -10,6 +10,7 @@ import Engine from '../../../core/Engine';
 import {
   selectChainId,
   selectTicker,
+  selectNativeCurrencyByChainId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -88,17 +89,21 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const { trackEvent } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenExchangeRateByChainId = useSelector(selectTokenMarketData);
+  const allTokenMarketData = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
   const selectedChainId = useSelector((state: RootState) =>
     selectChainId(state),
+  );
+
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
   const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
   const chainId = isPortfolioViewEnabled
     ? (asset.chainId as Hex)
     : selectedChainId;
-  const ticker = isPortfolioViewEnabled ? asset.symbol : selectedTicker;
+  const ticker = isPortfolioViewEnabled ? nativeCurrency : selectedTicker;
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.address,
@@ -285,17 +290,35 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       )),
     [handleSelectTimePeriod, timePeriod],
   );
-
   const itemAddress = safeToChecksumAddress(asset.address);
 
   let exchangeRate;
   if (!isPortfolioViewEnabled) {
     exchangeRate = itemAddress
-      ? tokenExchangeRates?.[itemAddress]?.price
+      ? tokenExchangeRates?.[itemAddress as Hex]?.price
       : undefined;
   } else {
-    exchangeRate =
-      tokenExchangeRateByChainId?.[chainId]?.[itemAddress as Hex]?.price;
+    // TODO: Our token rates controller does not have any data for Holesky
+    // we will use the price of the same token
+    // on Ethereum. I do not like this solution so much, but
+    // it is a quick fix
+    const relatedEthChainIds: Hex[] = [
+      '0x1',
+      '0x2105',
+      '0x38',
+      '0x4268',
+      '0x5',
+      '0x89',
+    ];
+    const currentChainId = chainId as Hex;
+    if (!relatedEthChainIds.includes(currentChainId) && !asset.isETH) {
+      exchangeRate =
+        allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
+    } else {
+      exchangeRate =
+        allTokenMarketData?.[relatedEthChainIds[0]]?.[itemAddress as Hex]
+          ?.price;
+    }
   }
 
   let balance, balanceFiat;
@@ -323,7 +346,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           : 0;
       balanceFiat = balanceToFiat(
         balance,
-        conversionRateByTicker[asset.symbol].conversionRate,
+        conversionRateByTicker[nativeCurrency].conversionRate,
         exchangeRate,
         currentCurrency,
       );
@@ -336,16 +359,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   let mainBalance, secondaryBalance;
   if (!isPortfolioViewEnabled) {
     if (primaryCurrency === 'ETH') {
-      mainBalance = `${balance} ${asset.symbol}`;
+      mainBalance = `${balance} ${nativeCurrency}`;
       secondaryBalance = balanceFiat;
     } else {
-      mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
+      mainBalance = !balanceFiat ? `${balance} ${nativeCurrency}` : balanceFiat;
       secondaryBalance = !balanceFiat
         ? balanceFiat
-        : `${balance} ${asset.symbol}`;
+        : `${balance} ${nativeCurrency}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.symbol}`;
+    mainBalance = `${balance} ${nativeCurrency}`;
     secondaryBalance = asset.balanceFiat;
   }
 
@@ -360,7 +383,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
   } else {
     const tickerConversionRate =
-      conversionRateByTicker[asset.symbol].conversionRate;
+      conversionRateByTicker[nativeCurrency].conversionRate;
     currentPrice =
       exchangeRate && tickerConversionRate
         ? exchangeRate * tickerConversionRate

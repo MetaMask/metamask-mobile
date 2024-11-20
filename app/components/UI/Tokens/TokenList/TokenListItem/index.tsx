@@ -52,9 +52,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import useStakingChain, {
-  useStakingChainByChainId,
-} from '../../../Stake/hooks/useStakingChain';
+import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
 import {
   PopularList,
   UnpopularNetworkList,

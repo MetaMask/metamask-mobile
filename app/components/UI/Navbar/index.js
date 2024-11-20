@@ -1145,7 +1145,6 @@ export function getImportTokenNavbarOptions(
         disableNetwork={disableNetwork}
         showSelectedNetwork={false}
         translate={translate}
-        networkName={networkName}
       >
         {title}
       </NavbarTitle>
@@ -1305,7 +1304,7 @@ export function getNetworkNavbarOptions(
   onRightPress = undefined,
   disableNetwork = false,
   contentOffset = 0,
-  networkName,
+  networkName = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {

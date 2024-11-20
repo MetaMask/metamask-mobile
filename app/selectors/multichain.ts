@@ -17,7 +17,7 @@ import {
 import { selectTokenMarketData as selectMarketData } from './tokenRatesController';
 import {
   selectCurrentCurrency,
-  selectConversionRateByTicker,
+  selectConversionRateBySymbol,
 } from './currencyRateController';
 
 import { AssetType } from '../components/UI/SimulationDetails/types';
@@ -31,18 +31,6 @@ import {
   hexToBN,
 } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
-
-interface AccountInfo {
-  balance: string;
-}
-
-interface ChainAccounts {
-  [address: string]: AccountInfo;
-}
-
-interface AccountsByChainId {
-  [chainId: string]: ChainAccounts;
-}
 
 export function getNativeTokenInfo(state: RootState, chainId: Hex) {
   const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
@@ -60,28 +48,41 @@ export function getNativeTokenInfo(state: RootState, chainId: Hex) {
   }
 }
 
+interface NativeTokenBalance {
+  balance: string;
+  stakedBalance: string;
+  isStaked: boolean;
+  name: string;
+}
+
+type ChainBalances = Record<string, NativeTokenBalance>;
+
 export function getSelectedAccountNativeTokenCachedBalanceByChainId(
   state: RootState,
-) {
+): ChainBalances {
   const selectedAddress =
     selectSelectedInternalAccountChecksummedAddress(state);
   const accountsByChainId = selectAccountsByChainId(state);
 
-  const balancesByChainId: { [chainId: string]: string } = {};
-
-  if (!selectedAddress) {
-    return balancesByChainId;
+  if (!selectedAddress || !accountsByChainId) {
+    return {};
   }
 
-  for (const [chainId, accounts] of Object.entries(
-    accountsByChainId || ({} as AccountsByChainId),
-  )) {
-    if (accounts[selectedAddress]) {
-      balancesByChainId[chainId] = accounts[selectedAddress].balance;
-    }
-  }
-
-  return balancesByChainId;
+  return Object.entries(accountsByChainId).reduce<ChainBalances>(
+    (acc, [chainId, accounts]) => {
+      const account = accounts[selectedAddress];
+      if (account) {
+        acc[chainId] = {
+          balance: account.balance,
+          stakedBalance: account.stakedBalance ?? '0x0',
+          isStaked: account.stakedBalance !== '0x0',
+          name: 'Staked Ethereum',
+        };
+      }
+      return acc;
+    },
+    {},
+  );
 }
 
 export const selectAccountTokensAcrossChains = createSelector(
@@ -126,10 +127,11 @@ export const selectAccountTokensAcrossChains = createSelector(
       // Add non-native tokens
       const userTokens = (allTokens[currentChainId]?.[selectedAddress] ||
         []) as TokenI[];
-      const ticker = networkConfigurations?.[chainId as Hex].nativeCurrency;
-      const conversionRateByTicker = selectConversionRateByTicker(
+      const nativeCurrency =
+        networkConfigurations?.[chainId as Hex].nativeCurrency;
+      const conversionRateByNativeCurrency = selectConversionRateBySymbol(
         state,
-        ticker,
+        nativeCurrency,
       );
       const chainBalances =
         tokenBalances[selectedAddress as Hex]?.[currentChainId] || {};
@@ -160,7 +162,7 @@ export const selectAccountTokensAcrossChains = createSelector(
           // Format token balance in fiat
           const tokenFiatAmount =
             tokenExchangeRatePriceByTokenAddress *
-            conversionRateByTicker *
+            conversionRateByNativeCurrency *
             adjustedTokenBalance;
           const balanceFiat = new Intl.NumberFormat(I18n.locale, {
             currency: currentCurrency.toUpperCase(),
@@ -175,17 +177,23 @@ export const selectAccountTokensAcrossChains = createSelector(
             logo: token.image,
             isETH: false,
             isNative: false,
-            symbol: getTicker(ticker),
+            symbol: getTicker(token.symbol),
           };
         });
       }
+
       // Add native token if it exists for this chain
-      const nativeBalance = nativeTokenBalancesByChainId[chainId];
-      if (nativeBalance && nativeBalance !== toHex(0)) {
+      const nativeTokenInfoByChainId = nativeTokenBalancesByChainId[chainId];
+      if (
+        nativeTokenInfoByChainId &&
+        nativeTokenInfoByChainId.balance !== toHex(0)
+      ) {
         const nativeTokenInfo = getNativeTokenInfo(state, chainId as Hex);
 
         // Calculate native token balance
-        const nativeBalanceFormatted = renderFromWei(nativeBalance);
+        const nativeBalanceFormatted = renderFromWei(
+          nativeTokenInfoByChainId.balance,
+        );
         const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
           nativeTokenInfo?.symbol || '',
         );
@@ -202,38 +210,78 @@ export const selectAccountTokensAcrossChains = createSelector(
         // calculate balance in fiat depending on the token
         if (isETH) {
           nativeBalanceFiat = weiToFiat(
-            hexToBN(nativeBalance),
-            conversionRateByTicker,
+            hexToBN(nativeTokenInfoByChainId.balance),
+            conversionRateByNativeCurrency,
             currentCurrency,
           );
         } else {
-          const tokenFiatAmount = floatNativeBalance * conversionRateByTicker;
+          const tokenFiatAmount =
+            floatNativeBalance * conversionRateByNativeCurrency;
           nativeBalanceFiat = new Intl.NumberFormat(I18n.locale, {
             currency: currentCurrency.toUpperCase(),
             style: 'currency',
           }).format(tokenFiatAmount);
         }
-
-        tokensByChain[chainId].push({
+        const name = isETH ? `Ethereum` : nativeCurrency;
+        // TODO: Check if this is correct for native tokens
+        // or do we need the wrapped native token address?
+        // for example the AVAX token has
+        // 0x0000000000000000000000000000000000000000 on its network
+        // but the wrapped version is 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7
+        const address = zeroAddress() as Hex;
+        const logo = isETH ? '../images/eth-logo-new.png' : '';
+        const decimals = nativeTokenInfo?.decimals || 18;
+        const symbol = getTicker(nativeTokenInfo?.symbol);
+        const aggregators: string[] = [];
+        const nativeAsset = {
           ...nativeTokenInfo,
-          // TODO: Check if this is correct for native tokens
-          // or do we need the wrapped native token address?
-          // for example the AVAX token has
-          // 0x0000000000000000000000000000000000000000 on its network
-          // but the wrapped version is 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7
-          address: zeroAddress() as Hex,
+          address,
           balance: nativeBalanceFormatted,
           balanceFiat: nativeBalanceFiat,
           chainId,
           isNative: true,
-          aggregators: [],
+          aggregators,
           image: '',
-          logo: isETH ? '../images/eth-logo-new.png' : '',
+          logo,
           isETH,
-          decimals: nativeTokenInfo?.decimals || 18,
-          name: isETH ? `Ethereum` : ticker,
-          symbol: getTicker(nativeTokenInfo?.symbol),
-        });
+          decimals,
+          name,
+          symbol,
+        };
+        tokensByChain[chainId].push(nativeAsset);
+
+        if (
+          nativeTokenInfoByChainId.isStaked &&
+          nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
+          nativeTokenInfoByChainId.stakedBalance !== toHex(0)
+        ) {
+          const stakedBalance = renderFromWei(
+            nativeTokenInfoByChainId.stakedBalance,
+          );
+          const stakedBalanceFiat = weiToFiat(
+            hexToBN(nativeTokenInfoByChainId.stakedBalance),
+            conversionRateByNativeCurrency,
+            currentCurrency,
+          );
+
+          tokensByChain[chainId].push({
+            ...nativeTokenInfo,
+            nativeAsset,
+            address,
+            balance: stakedBalance,
+            balanceFiat: stakedBalanceFiat,
+            chainId,
+            isNative: true,
+            aggregators,
+            image: '',
+            logo,
+            isETH,
+            decimals,
+            name: nativeTokenInfoByChainId.name,
+            symbol,
+            isStaked: nativeTokenInfoByChainId.isStaked,
+          });
+        }
       }
     });
 

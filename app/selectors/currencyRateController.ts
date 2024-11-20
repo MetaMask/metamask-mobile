@@ -41,12 +41,12 @@ export const selectCurrentCurrency = createSelector(
     currencyRateControllerState?.currentCurrency,
 );
 
-export const selectConversionRateByTicker = createSelector(
+export const selectConversionRateBySymbol = createSelector(
   selectCurrencyRateControllerState,
-  (_: RootState, ticker: string) => ticker,
-  (currencyRateControllerState: CurrencyRateState, ticker: string) =>
-    ticker
-      ? currencyRateControllerState?.currencyRates?.[ticker]?.conversionRate ||
+  (_: RootState, symbol: string) => symbol,
+  (currencyRateControllerState: CurrencyRateState, symbol: string) =>
+    symbol
+      ? currencyRateControllerState?.currencyRates?.[symbol]?.conversionRate ||
         0
       : 0,
 );
