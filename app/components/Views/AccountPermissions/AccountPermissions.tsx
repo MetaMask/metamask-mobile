@@ -849,6 +849,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     chainId,
     hideSheet,
     hostname,
+    toastRef,
   ]);
 
   const renderPermissionsScreens = useCallback(() => {
