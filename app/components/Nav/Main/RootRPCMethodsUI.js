@@ -75,6 +75,9 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
 import SnapDialogApproval from '../../Approvals/Snaps/SnapDialogApproval';
 ///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
+///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
 
@@ -494,6 +497,13 @@ const RootRPCMethodsUI = (props) => {
       }
       <InstallSnapApproval />
       <SnapDialogApproval />
+      {
+        ///: END:ONLY_INCLUDE_IF
+      }
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      }
+      <SnapAccountCustomNameApproval />
       {
         ///: END:ONLY_INCLUDE_IF
       }

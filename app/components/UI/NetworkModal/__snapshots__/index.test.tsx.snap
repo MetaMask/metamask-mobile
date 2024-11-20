@@ -230,34 +230,40 @@ exports[`NetworkDetails renders correctly 1`] = `
                   }
                 >
                   <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
-                        "borderRadius": 8,
-                        "borderWidth": 1,
-                        "height": 16,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "width": 16,
-                      }
-                    }
+                    style={null}
                   >
-                    <Text
-                      accessibilityRole="text"
+                    <View
+                      accessibilityLabel="Test Network"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 10,
-                          "fontWeight": "400",
-                          "letterSpacing": 0,
-                          "lineHeight": undefined,
+                          "alignItems": "center",
+                          "backgroundColor": "#f2f4f6",
+                          "borderRadius": 8,
+                          "borderWidth": 1,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
                         }
                       }
+                      testID="network-avatar-picker"
                     >
-                      T
-                    </Text>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 10,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": undefined,
+                          }
+                        }
+                      >
+                        T
+                      </Text>
+                    </View>
                   </View>
                   <Text
                     accessibilityRole="text"

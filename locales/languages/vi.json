@@ -375,6 +375,10 @@
     "accept": "Tôi đồng ý",
     "cancel": "Không, cảm ơn"
   },
+  "multi_rpc_migration_modal": {
+    "description": "Chúng tôi hiện hỗ trợ nhiều RPC cho một mạng duy nhất. RPC gần đây nhất của bạn đã được chọn làm RPC mặc định để giải quyết thông tin xung đột",
+    "accept": "Chấp nhận"
+  },
   "nft_details": {
     "bought_for": "Đã mua với giá",
     "highest_floor_price": "Giá sàn cao nhất",
@@ -433,7 +437,16 @@
       "cancel_cta": "Hủy",
       "confirm_cta": "Xác nhận"
     },
+    "import": "Nhập",
+    "sort_by": "Sắp xếp theo",
+    "filter_by": "Filter by",
+    "current_network": "Current Network",
+    "all_networks": "All Networks",
+    "declining_balance": "Số dư giảm dần ({{currency}} từ cao đến thấp)",
+    "alphabetically": "Thứ tự bảng chữ cái (A – Z)",
     "add_to_get_started": "Thêm tiền mã hóa để bắt đầu",
+    "token_is_needed_to_continue": "Cần {{tokenSymbol}} để tiếp tục",
+    "next": "Tiếp theo",
     "buy_asset": "Mua {{asset}}",
     "no_tokens": "Bạn không có token nào!",
     "no_nfts_yet": "Chưa có NFT",
@@ -497,7 +510,7 @@
     "address": "Địa chỉ hợp đồng của token",
     "decimal": "Số thập phân của token",
     "network": "Mạng",
-    "network_fee": "Network fee",
+    "network_fee": "Phí mạng",
     "lists": "Danh sách token",
     "hide_cta": "Ẩn token",
     "options": {
@@ -650,6 +663,7 @@
     "receive": "NHẬN"
   },
   "accounts": {
+    "snap_account_tag": "Snap (Beta)",
     "create_new_account": "Tạo tài khoản mới",
     "import_account": "Nhập tài khoản",
     "connect_hardware": "Kết nối với ví cứng",
@@ -661,6 +675,8 @@
     "yes_remove_it": "Có, hãy gỡ bỏ nó",
     "remove_hardware_account": "Xóa tài khoản ví cứng",
     "remove_hw_account_alert_description": "Bạn có chắc chắn muốn xóa tài khoản ví cứng này không? Bạn sẽ phải đồng bộ lại ví cứng của mình nếu muốn sử dụng lại tài khoản này với MetaMask Di động.",
+    "remove_snap_account": "Xóa tài khoản Snap",
+    "remove_snap_account_alert_description": "Tài khoản này sẽ bị xóa khỏi ví của bạn. Hãy chắc chắn rằng bạn có Cụm từ khôi phục bí mật hoặc khóa riêng tư gốc cho tài khoản đã nhập này trước khi tiếp tục. Bạn có thể nhập hoặc tạo lại tài khoản từ trình đơn thả xuống tài khoản.",
     "remove_account_alert_remove_btn": "Xóa",
     "remove_account_alert_cancel_btn": "Bỏ qua",
     "accounts_title": "Tài khoản",
@@ -684,9 +700,13 @@
     "site_permission_to": "Trang web này có quyền:",
     "address_balance_activity_permission": "Xem địa chỉ, số dư tài khoản và hoạt động",
     "suggest_transactions": "Đề xuất các giao dịch cần chấp thuận",
+    "accounts_connected": "tài khoản đã kết nối",
+    "account_connected": "tài khoản đã kết nối",
+    "accounts_disconnected": "tài khoản đã ngắt kết nối.",
+    "account_disconnected": "tài khoản đã ngắt kết nối.",
     "disconnect": "Ngắt kết nối",
     "disconnect_all": "Ngắt kết nối tất cả",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "Nếu bạn ngắt kết nối khỏi {{dappUrl}}, bạn sẽ cần kết nối lại tài khoản và mạng của bạn để sử dụng lại trang web này.",
     "disconnect_all_accounts": "Ngắt kết nối tất cả các tài khoản",
     "deceptive_site_ahead": "Phía trước là trang web lừa đảo",
     "deceptive_site_desc": "Trang web mà bạn đang cố gắng truy cập không an toàn. Những kẻ tấn công có thể lừa bạn thực hiện một hành động nguy hiểm.",
@@ -700,12 +720,20 @@
   "toast": {
     "connected_and_active": "đã được kết nối và đang hoạt động.",
     "now_active": "đang hoạt động.",
+    "network_added": "đã được thêm thành công",
+    "network_deleted": "đã xóa thành công",
+    "network_permissions_updated": "Network permissions updated",
     "revoked": "đã bị thu hồi.",
     "revoked_all": "Tất cả tài khoản đã bị thu hồi.",
     "accounts_connected": "tài khoản đã được kết nối.",
+    "account_connected": "tài khoản đã kết nối.",
+    "accounts_permissions_updated": "Accounts permissions updated",
+    "accounts_disconnected": "tài khoản đã ngắt kết nối.",
+    "account_disconnected": "tài khoản đã ngắt kết nối.",
     "disconnected": "đã ngắt kết nối.",
     "disconnected_all": "Đã ngắt kết nối tất cả các tài khoản.",
     "disconnected_from": "Ngắt kết nối khỏi {{dappHostName}}",
+    "permissions_updated": "Permissions updated",
     "nft_detection_enabled": "Tính năng tự động phát hiện NFT đã được bật"
   },
   "connect_qr_hardware": {
@@ -740,6 +768,10 @@
   "app_settings": {
     "enabling_notifications": "Đang bật thông báo...",
     "disabling_notifications": "Đang tắt thông báo...",
+    "reset_notifications_title": "Đặt lại thông báo",
+    "reset_notifications_description": "Đặt lại thông báo có nghĩa là bạn đang xóa các khóa lưu trữ thông báo và đặt lại toàn bộ lịch sử thông báo. Bạn có chắc chắn muốn thực hiện điều này không?",
+    "reset_notifications": "Đặt lại thông báo",
+    "reset_notifications_success": "Khóa lưu trữ thông báo đã bị xóa/được tạo lại và lịch sử thông báo đã được đặt lại.",
     "enabling_profile_sync": "Đang bật đồng bộ hồ sơ...",
     "disabling_profile_sync": "Đang tắt đồng bộ hồ sơ...",
     "notifications_dismiss_modal": "Đóng",
@@ -780,6 +812,7 @@
     "save_rpc_url": "LƯU",
     "invalid_rpc_prefix": "URI yêu cầu tiền tố HTTPS thích hợp",
     "invalid_rpc_url": "URL của RPC không hợp lệ",
+    "invalid_block_explorer_url": "URL trình khám phá khối không hợp lệ",
     "sync": "ĐỒNG BỘ",
     "clear_approved_dapps": "XÓA CÁC DAPP ĐÃ ĐƯỢC PHÊ DUYỆT",
     "clear_browser_history": "XÓA LỊCH SỬ TRÌNH DUYỆT",
@@ -855,10 +888,13 @@
     "networks_default_title": "Mạng mặc định",
     "network_delete": "Nếu xóa mạng này, bạn sẽ cần thêm lại mạng này để xem các tài sản của mình trong mạng này",
     "networks_default_cta": "Sử dụng mạng này",
+    "add_rpc_url": "Thêm URL RPC",
+    "add_block_explorer_url": "Thêm URL trình khám phá khối",
     "networks_desc": "Thêm và sửa mạng RPC tùy chỉnh",
     "network_name_label": "Tên mạng",
     "network_name_placeholder": "Tên mạng (không bắt buộc)",
     "network_rpc_url_label": "URL của RPC",
+    "network_rpc_name_label": "Tên RPC",
     "network_rpc_placeholder": "Mạng RPC mới",
     "network_chain_id_label": "ID chuỗi",
     "network_chain_id_placeholder": "ID chuỗi",
@@ -900,7 +936,7 @@
     "data_collection_title": "Thu thập dữ liệu cho mục đích tiếp thị",
     "data_collection_description": "Chúng tôi sẽ sử dụng MetaMetrics để tìm hiểu cách bạn tương tác với các thông tin tiếp thị. Chúng tôi có thể chia sẻ tin tức liên quan (chẳng hạn như tính năng sản phẩm và các tài liệu khác).",
     "batch_balance_requests_title": "Xử lý hàng loạt yêu cầu số dư tài khoản",
-    "batch_balance_requests_description": "Chúng tôi xử lý hàng loạt tài khoản và truy vấn Infura để hiển thị các số dư của bạn một cách nhanh chóng. Nếu bạn tắt tính năng này, chỉ những tài khoản đang hoạt động mới được truy vấn. Một số dApp sẽ không hoạt động trừ khi bạn kết nối với ví của mình.",
+    "batch_balance_requests_description": "Nhận cập nhật số dư cho tất cả tài khoản cùng lúc. Tắt tính năng này sẽ giúp giảm khả năng người khác liên kết một tài khoản với tài khoản khác.",
     "third_party_title": "Nhận các giao dịch chuyển đến",
     "third_party_description": "API của bên thứ ba (Etherscan) được sử dụng để hiển thị các giao dịch chuyển đến của bạn trong phần lịch sử. Hãy tắt nếu bạn không muốn chúng tôi lấy dữ liệu từ các dịch vụ đó.",
     "metametrics_opt_out": "Chọn không tham gia MetaMetrics",
@@ -924,7 +960,7 @@
     "invalid_number_range": "Số không hợp lệ. Hãy nhập một số từ 1 đến %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Ẩn token không có số dư",
     "hide_zero_balance_tokens_desc": "Không hiển thị các token không có số dư trong danh sách token của bạn.",
-    "token_detection_title": "Phát hiện token nâng cao",
+    "token_detection_title": "Tự động phát hiện token",
     "token_detection_description": "Chúng tôi sử dụng các API của bên thứ ba để phát hiện và hiển thị các token mới được gửi đến ví của bạn. Hãy tắt nếu bạn không muốn ứng dụng lấy dữ liệu từ các dịch vụ đó.",
     "theme_button_text": "Thay đổi chủ đề",
     "theme_title": "Chủ đề ({{theme}})",
@@ -1008,13 +1044,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Xóa Snap",
         "remove_snap_section_description": "Hành động này sẽ xóa Snap, cũng như dữ liệu và các quyền đã cấp của Snap đó.",
-        "remove_button_label": "Xóa {{snapName}}"
+        "remove_button_label": "Xóa {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Xóa Snap",
+          "description": "Thao tác xóa Snap này sẽ xóa các tài khoản này khỏi MetaMask:",
+          "remove_account_snap_alert_description_1": "Nhập",
+          "remove_account_snap_alert_description_2": "để xác nhận bạn muốn xóa Snap này:",
+          "banner_title": "Đảm bảo bạn có thể truy cập mọi tài khoản do Snap này tạo trước khi xóa",
+          "cancel_button": "Hủy",
+          "continue_button": "Tiếp tục",
+          "remove_snap_button": "Xóa Snap",
+          "remove_snap_error": "Không thể xóa {{snapName}}",
+          "remove_snap_success": "Đã xóa {{snapName}}"
+        }
       },
       "snap_details": {
         "install_date": "Đã cài đặt vào {{date}}",
         "install_origin": "Nguồn cài đặt",
         "enabled": "Đã bật",
         "version": "Phiên bản"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Tên tài khoản",
+        "public_address": "Địa chỉ công khai"
       },
       "snap_permissions": {
         "approved_date": "Đã duyệt vào {{date}}",
@@ -1036,7 +1088,7 @@
           "snap_getBip32PublicKey": "Xem khóa công khai của bạn cho {{protocol}}",
           "snap_getBip44Entropy": "Kiểm soát các tài khoản và tài sản {{protocol}} của bạn",
           "snap_getEntropy": "Lấy các khóa tùy ý duy nhất cho Snap này",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Cho phép các yêu cầu thêm và kiểm soát tài khoản Ethereum",
           "wallet_snap": "Kết nối với {{otherSnapName}}",
           "endowment:webassembly": "Hỗ trợ dành cho WebAssembly",
           "endowment:ethereum-provider": "Truy cập nhà cung cấp Ethereum",
@@ -1044,7 +1096,8 @@
           "snap_getLocale": "Xem ngôn ngữ ưa thích của bạn",
           "endowment:caveat:transaction-origin": "Xem nguồn gốc của các trang web đề xuất giao dịch",
           "endowment:extend-runtime": "Kéo dài thời gian thực hiện",
-          "snap_dialog": "Hiển thị hộp thoại tùy chỉnh"
+          "snap_dialog": "Hiển thị hộp thoại tùy chỉnh",
+          "snap_manageAccounts": "Thêm và kiểm soát các tài khoản Ethereum"
         }
       }
     },
@@ -1067,9 +1120,9 @@
     "aes_crypto_test_form_title": "Tiền mã hóa AES - Mẫu thử nghiệm",
     "aes_crypto_test_form_description": "Phần được phát triển dành riêng cho thử nghiệm E2E. Nếu bạn thấy phần này trong ứng dụng, vui lòng báo cáo với bộ phận hỗ trợ của MetaMask.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "Tùy chọn Nhà phát triển",
+      "generate_trace_test": "Tạo Trace Test",
+      "generate_trace_test_desc": "Tạo Developer Test Sentry Trace."
     }
   },
   "aes_crypto_test_form": {
@@ -1206,6 +1259,7 @@
   "asset_overview": {
     "send_button": "Gửi",
     "buy_button": "Mua",
+    "token_marketplace": "Thị trường token",
     "sell_button": "Bán",
     "receive_button": "Nhận",
     "portfolio_button": "Danh mục đầu tư",
@@ -1213,6 +1267,14 @@
     "info": "Thông tin",
     "swap": "Hoán đổi",
     "bridge": "Cầu nối",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "description": "Mô tả",
     "totalSupply": "Tổng cung",
     "address": "Địa chỉ",
@@ -1327,7 +1389,7 @@
     "transaction_id": "ID giao dịch",
     "alert": "CẢNH BÁO",
     "amount": "Số tiền",
-    "details": "Details",
+    "details": "Chi tiết",
     "next": "Tiếp",
     "back": "Quay lại",
     "confirm": "Xác nhận",
@@ -1361,6 +1423,10 @@
     "insufficient_amount": "Bạn cần thêm {{amount}} {{tokenSymbol}} để hoàn tất giao dịch này.",
     "buy_more_eth": "Mua thêm ETH",
     "buy_more": "Mua thêm",
+    "more_to_continue": "Cần thêm {{ticker}} để tiếp tục",
+    "you_can_also_send_funds": "Bạn cũng có thể gửi tiền từ tài khoản khác.",
+    "token_marketplace": "Thị trường token",
+    "token_Marketplace": "Thị trường token",
     "go_to_faucet": "Đến vòi",
     "get_ether": "Nhận Ether cho mạng {{networkName}}.",
     "insufficient_tokens": "Không đủ {{token}}",
@@ -1408,7 +1474,7 @@
     "asset": "Tài sản",
     "balance": "Số dư",
     "token_id": "ID của token",
-    "not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản để trả phí giao dịch. Mua {{ticker}} hoặc nạp từ tài khoản khác.",
+    "not_enough_for_gas": "Bạn có 0 {{ticker}} trong tài khoản để trả phí giao dịch.",
     "send": "Gửi",
     "confirm_with_qr_hardware": "Xác nhận bằng ví cứng",
     "confirm_with_ledger_hardware": "Xác nhận bằng Ledger",
@@ -1449,7 +1515,7 @@
     "invalid_recipient": "Người nhận không hợp lệ",
     "invalid_recipient_description": "Kiểm tra địa chỉ và đảm bảo địa chỉ hợp lệ",
     "swap_tokens": "Hoán đổi token",
-    "fromWithColon": "From:"
+    "fromWithColon": "Từ:"
   },
   "custom_gas": {
     "total": "Tổng",
@@ -1520,6 +1586,7 @@
     "share": "Chia sẻ",
     "bookmark": "Dấu trang",
     "add_to_favorites": "Thêm vào mục Ưa thích",
+    "go_to_favorites": "Go to Favorites",
     "error": "Lỗi",
     "cancel": "Hủy",
     "go_back": "Lùi",
@@ -1589,6 +1656,9 @@
     "tx_review_approve": "Chấp thuận",
     "tx_review_increase_allowance": "Tăng hạn mức",
     "tx_review_set_approval_for_all": "Thiết lập phê duyệt tất cả",
+    "tx_review_staking_claim": "Staking Claim",
+    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_staking_unstake": "Unstake",
     "sent_ether": "Đã gửi Ether",
     "self_sent_ether": "Đã gửi Ether cho chính bạn",
     "received_ether": "Đã nhận Ether",
@@ -1736,7 +1806,7 @@
     "continue": "Tiếp tục",
     "cancel": "Hủy",
     "approve": "Chấp thuận",
-    "update": "Update",
+    "update": "Cập nhật",
     "edit_network_details": "Chỉnh sửa thông tin mạng",
     "malicious_network_warning": "Một nhà cung cấp mạng độc hại có thể nói dối về trạng thái của chuỗi khối và ghi lại hoạt động của bạn trên mạng. Chỉ thêm các mạng tùy chỉnh mà bạn tin tưởng.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1814,12 @@
     "additional_network_information_title": "Thông tin mạng bổ sung",
     "network_warning_desc": "Kết nối mạng này dựa vào các bên thứ ba. Kết nối này có thể kém tin cậy hơn hoặc cho phép các bên thứ ba theo dõi hoạt động.",
     "additonial_network_information_desc": "Một vài mạng trong số này phụ thuộc vào bên thứ ba. Kết nối có thể kém tin cậy hơn hoặc cho phép bên thứ ba theo dõi hoạt động.",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "Kết nối thêm mạng",
     "learn_more": "Tìm hiểu thêm",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Chuyển sang mạng",
     "switch": "Chuyển",
-    "select_all": "Select all",
+    "select_all": "Chọn tất cả",
     "new_network": "Đã thêm mạng mới",
     "network_name": "Mạng {{networkName}}",
     "network_added": " hiện có sẵn trong trình chọn mạng.",
@@ -1767,18 +1837,27 @@
     "deprecated_goerli": "Do những thay đổi trong giao thức của Ethereum: Mạng thử nghiệm Goerli có thể không hoạt động đáng tin cậy và sẽ sớm bị ngừng sử dụng.",
     "network_deprecated_title": "Mạng này đã ngừng sử dụng",
     "network_deprecated_description": "Mạng bạn đang cố gắng kết nối không còn được hỗ trợ trên MetaMask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Chỉnh sửa mạng"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "Trang web này muốn:",
+    "title_dapp_url_wants_to": "{{dappUrl}} muốn:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} đã chấp thuận:",
+    "use_enabled_networks": "Sử dụng mạng đã kích hoạt của bạn",
+    "wants_to_see_your_accounts": "Xem tài khoản của bạn và đề xuất giao dịch",
+    "requesting_for": "Yêu cầu cho ",
+    "requesting_for_accounts": "Đang yêu cầu cho {{numberOfAccounts}} tài khoản",
+    "requesting_for_networks": "Requesting for {{numberOfNetworks}} networks",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
+    "network_connected": "network connected ",
+    "see_your_accounts": "Xem tài khoản của bạn và đề xuất giao dịch",
+    "connected_to": "Đã kết nối với ",
+    "manage_permissions": "Quản lý quyền",
+    "edit": "Chỉnh sửa",
+    "cancel": "Hủy",
+    "got_it": "Got it",
+    "connection_details_title": "Connection Details",
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
   },
   "select": {
     "cancel": "Hủy",
@@ -2042,8 +2121,9 @@
     "back_to_safety": "Quay lại mục an toàn"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "Hết thời gian",
+    "no_date": "Không xác định",
+    "yesterday": "Hôm qua",
     "staked": "Đã ký gửi",
     "received": "Đã nhận",
     "unstaked": "Đã hủy ký gửi",
@@ -2102,7 +2182,7 @@
       "label_swapped": "Đã hoán đổi",
       "label_to": "Đến"
     },
-    "received_from": "Đã nhận được từ {{address}}",
+    "received_from": "Received {{amount}} {{ticker}} from {{address}}",
     "nft_sent": "Đã gửi NFT đến {{address}}",
     "erc721_sent": "Đã gửi NFT đến {{address}}",
     "erc1155_sent": "Đã gửi NFT đến {{address}}",
@@ -2119,8 +2199,23 @@
     "success_withdrawal_title": "Rút tiền hoàn tất!",
     "error_title": "Rất tiếc, đã xảy ra lỗi :/",
     "received_title": "Bạn đã nhận {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "metamask_swap_completed_title": "Swap completed",
+    "erc20_sent_title": "Funds sent",
+    "erc20_received_title": "Funds received",
+    "eth_sent_title": "Funds sent",
+    "eth_received_title": "Funds received",
+    "rocketpool_stake_completed_title": "Stake complete",
+    "rocketpool_unstake_completed_title": "Unstake complete",
+    "lido_stake_completed_title": "Stake complete",
+    "lido_withdrawal_requested_title": "Withdrawal requested",
+    "lido_withdrawal_completed_title": "Withdrawal completed",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+    "erc721_sent_title": "NFT sent",
+    "erc721_received_title": "NFT received",
+    "erc1155_sent_title": "NFT sent",
+    "erc1155_received_title": "NFT received",
+    "default_message_title": "MetaMask",
+    "default_message_description": "Tap to view",
     "received_payment_title": "Đã nhận tiền thanh toán ngay",
     "pending_message": "Đang đợi xác nhận",
     "pending_deposit_message": "Đang đợi hoàn tất quá trình nạp tiền",
@@ -2136,12 +2231,55 @@
     "cancelled_message": "Chạm để xem giao dịch này",
     "received_message": "Chạm để xem giao dịch này",
     "received_payment_message": "Bạn đã nhận {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "eth_received_message": "You received some ETH",
+    "metamask_swap_completed_message": "Swapped {{symbolIn}} for {{symbolOut}}",
+    "erc20_sent_message": "Sent to {{address}}",
+    "erc20_received_message": "Received from {{address}}",
+    "eth_sent_message": "Sent to {{address}}",
+    "rocketpool_stake_completed_message": "Staked",
+    "rocketpool_unstake_completed_message": "Unstaking complete",
+    "lido_stake_completed_message": "Staked",
+    "lido_withdrawal_requested_message": "Unstaking requested",
+    "lido_withdrawal_completed_message": "Unstaking complete",
+    "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
+    "push_notification_content": {
+      "metamask_swap_completed_title": "Hoán đổi hoàn tất",
+      "metamask_swap_completed_description": "Quá trình Hoán đổi MetaMask của bạn đã thành công",
+      "erc20_sent_title": "Đã gửi tiền",
+      "erc20_sent_description": "Bạn đã gửi thành công {{amount}} {{token}}",
+      "erc20_received_title": "Đã nhận tiền",
+      "erc20_received_description": "Bạn đã nhận {{amount}} {{token}}",
+      "eth_sent_title": "Đã gửi tiền",
+      "eth_sent_description": "Bạn đã gửi thành công {{amount}} ETH",
+      "eth_received_title": "Đã nhận tiền",
+      "eth_received_description": "Bạn đã nhận {{amount}} {{token}}",
+      "rocketpool_stake_completed_title": "Hoàn tất ký gửi",
+      "rocketpool_stake_completed_description": "Quá trình Ký gửi RocketPool của bạn đã thành công",
+      "rocketpool_unstake_completed_title": "Hoàn tất hủy ký gửi",
+      "rocketpool_unstake_completed_description": "Quá trình Hủy ký gửi RocketPool của bạn đã thành công",
+      "lido_stake_completed_title": "Hoàn tất ký gửi",
+      "lido_stake_completed_description": "Quá trình Ký gửi Lido của bạn đã thành công",
+      "lido_withdrawal_requested_title": "Đã yêu cầu rút tiền",
+      "lido_withdrawal_requested_description": "Yêu cầu rút Lido của bạn đã được gửi",
+      "lido_withdrawal_completed_title": "Đã hoàn tất rút tiền",
+      "lido_withdrawal_completed_description": "Quá trình Rút Lido của bạn đã thành công",
+      "lido_stake_ready_to_be_withdrawn_title": "Tài sản ký gửi đã sẵn sàng để rút ",
+      "lido_stake_ready_to_be_withdrawn_description": "Tài sản ký gửi Lido của bạn hiện đã sẵn sàng để rút",
+      "erc721_sent_title": "Đã gửi NFT",
+      "erc721_sent_description": "Bạn đã gửi thành công một NFT",
+      "erc721_received_title": "Đã nhận NFT",
+      "erc721_received_description": "Bạn đã nhận một NFT mới",
+      "erc1155_sent_title": "Đã gửi NFT",
+      "erc1155_sent_description": "Bạn đã gửi thành công một NFT",
+      "erc1155_received_title": "Đã nhận NFT",
+      "erc1155_received_description": "Bạn đã nhận một NFT mới"
+    },
+    "prompt_title": "Nhận thông báo đẩy",
     "notifications_enabled_error_title": "Đã xảy ra sự cố",
     "notifications_enabled_error_desc": "Chúng tôi không thể bật thông báo. Vui lòng thử lại sau.",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "Bật thông báo từ phần Cài đặt để nhận các cảnh báo quan trọng về hoạt động ví và nhiều thông tin khác.",
+    "prompt_ok": "Bật",
+    "prompt_cancel": "Để sau",
     "wc_connected_title": "Đã kết nối với {{title}}",
     "wc_signed_title": "Đã ký",
     "wc_sent_tx_title": "Giao dịch đã gửi",
@@ -2154,6 +2292,7 @@
     "wallet": "Ví",
     "web3": "Web3",
     "staking_provider": "Nhà cung cấp dịch vụ ký gửi",
+    "network_fee_not_available": "Phí mạng không khả dụng",
     "empty": {
       "title": "Không có gì ở đây",
       "message": "Đây là nơi bạn có thể tìm thấy thông báo khi có hoạt động trong ví của bạn. "
@@ -2373,6 +2512,7 @@
     "All": "Tất cả",
     "Buy": "Mua",
     "Sell": "Bán",
+    "token_marketplace": "Thị trường token",
     "Purchased": "Đã mua",
     "Sold": "Đã bán",
     "empty_buy_orders_list": "Bạn không có bất kỳ lệnh mua nào",
@@ -2639,8 +2779,7 @@
     "you_need": "Bạn cần thêm",
     "more_to_complete": "để hoàn thành giao dịch hoán đổi này.",
     "more_gas_to_complete": "phí gas để hoàn thành giao dịch hoán đổi này.",
-    "buy_more_eth": "Mua thêm ETH.",
-    "buy_more": "Mua thêm {{ticker}}.",
+    "token_marketplace": "Thị trường token",
     "market_price_unavailable_title": "Kiểm tra tỷ giá trước khi tiếp tục",
     "market_price_unavailable": "Giá thị trường không có sẵn và do đó không thể xác định mức tác động giá. Vui lòng xác minh rằng bạn cảm thấy thoải mái với số lượng token bạn sẽ nhận được trước khi hoán đổi.",
     "price_difference": "Mức chênh lệch giá là {{amount}}",
@@ -2665,7 +2804,7 @@
     "tap_to_swap": "Chạm để hoán đổi",
     "swipe_to_swap": "Vuốt để hoán đổi",
     "swipe_to": "Vuốt để",
-    "swap": "hoán đổi",
+    "swap": "Hoán đổi",
     "completed_swap": "Vuốt!",
     "metamask_swap_fee": "Phí Hoán đổi của MetaMask",
     "fee_text": {
@@ -2771,13 +2910,21 @@
     "bug_report_prompt_title": "Ghi rõ vấn đề gì đã xảy ra",
     "bug_report_prompt_description": "Thêm thông tin để chúng tôi biết vấn đề gì đã xảy ra.",
     "bug_report_thanks": "Xin cảm ơn! Chúng tôi sẽ sớm xem xét.",
-    "save_seedphrase_1": "Nếu lỗi này vẫn tiếp diễn,",
+    "save_seedphrase_1": "If you keep getting this error,",
     "save_seedphrase_2": "hãy lưu Cụm từ khôi phục bí mật của bạn",
-    "save_seedphrase_3": "& cài đặt lại ứng dụng. Lưu ý: bạn KHÔNG thể khôi phục ví nếu không có Cụm từ khôi phục bí mật.",
+    "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Đã sao chép vào bộ nhớ đệm",
     "ok": "OK",
     "cancel": "Hủy",
-    "send": "Gửi"
+    "send": "Gửi",
+    "submit": "Submit",
+    "modal_title": "Describe what happened",
+    "modal_placeholder": "Sharing details like how we can reproduce the bug will help us fix the problem.",
+    "error_message": "Error message:",
+    "copy": "Copy",
+    "describe": "Describe what happened",
+    "try_again": "Try again",
+    "contact_support": "Contact support"
   },
   "whats_new": {
     "title": "Xem tính năng mới",
@@ -2792,20 +2939,6 @@
       "title": "Rút tiền dễ dàng",
       "description": "Bán tiền mã hóa trực tiếp trong MetaMask! Chúng tôi sẽ giúp bạn tìm báo giá từ các nhà cung cấp đáng tin cậy, qua đó bạn có thể bán tiền mã hóa mọi lúc một cách dễ dàng, nhanh chóng và an toàn.",
       "action_text": "Thử ngay"
-    },
-    "stx": {
-      "header": "Tăng cường bảo vệ giao dịch",
-      "description_1": "Đạt tỷ lệ thành công cao hơn, bảo vệ chống hành vi lợi dụng thông tin biết trước và khả năng hiển thị tốt hơn với Giao dịch thông minh.",
-      "description_2": "Chỉ có sẵn trên Ethereum. Có thể bật/tắt bất cứ lúc nào trong phần Cài đặt.",
-      "no_thanks": "Không, cảm ơn",
-      "primary_button": "Bật",
-      "learn_more": "Tìm hiểu thêm.",
-      "benefit_1_1": "Tỷ lệ thành công",
-      "benefit_1_2": "99,5%",
-      "benefit_2_1": "Tiết kiệm tiền",
-      "benefit_2_2": "của bạn",
-      "benefit_3_1": "Cập nhật",
-      "benefit_3_2": "theo thời gian thực"
     },
     "transaction_simulation": {
       "title": "Thay đổi số dư ước tính",
@@ -2915,7 +3048,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Phí gas ước tính",
-    "network_fee": "Network fee",
+    "network_fee": "Phí mạng",
     "max_fee": "Phí tối đa",
     "total": "Tổng",
     "max_amount": "Số tiền tối đa",
@@ -3155,7 +3288,7 @@
     "ledger_reminder_message_step_four": "4. Vị trí đã được bật cùng với sử dụng vị trí chính xác",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Thiết bị lân cận đã được bật",
     "ledger_reminder_message_step_five": "5. Phải tắt chế độ Không làm phiền",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Bật \"ký mù\" trên thiết bị Ledger của bạn.",
     "available_devices": "Thiết bị có sẵn",
     "retry": "Thử lại",
     "continue": "Tiếp tục",
@@ -3186,15 +3319,17 @@
     "how_to_install_eth_webview_title": "Cách cài đặt Ứng dụng Ethereum",
     "nonce_too_low": "Số nonce quá thấp",
     "nonce_too_low_error": "Số nonce đã đặt quá thấp",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "Chọn tài khoản",
+    "select_hd_path": "Chọn đường dẫn HD",
+    "select_hd_path_description": "Nếu bạn không thấy các tài khoản như mong đợi, hãy chuyển đổi đường dẫn HD hoặc mạng đã chọn hiện tại.",
     "ledger_live_path": "Ledger Live",
-    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "ledger_legacy_path": "Cũ (MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44 (ví dụ: MetaMask, Trezor)",
+    "ledger_legacy_label": " (cũ)",
+    "blind_sign_error": "Lỗi ký mù",
+    "blind_sign_error_message": "Ký mù chưa được bật trên thiết bị Ledger của bạn. Vui lòng bật trong phần cài đặt.",
+    "user_reject_transaction": "Người dùng đã từ chối giao dịch",
+    "user_reject_transaction_message": "Người dùng đã từ chối giao dịch trên thiết bị Ledger."
   },
   "account_actions": {
     "edit_name": "Chỉnh sửa tên tài khoản",
@@ -3249,20 +3384,92 @@
   },
   "stake": {
     "stake": "Ký gửi",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "earn": "Kiếm tiền",
+    "stake_eth": "Ký gửi ETH",
+    "unstake_eth": "Hủy ký gửi ETH",
+    "staked_balance": "Số dư đã ký gửi",
+    "staked_ethereum": "Ethereum đã ký gửi",
+    "unstake": "Hủy ký gửi",
+    "stake_more": "Ký gửi thêm",
+    "claim": "Nhận",
+    "your_earnings": "Thu nhập của bạn",
+    "annual_rate": "Tỷ suất hằng năm",
+    "lifetime_rewards": "Phần thưởng trọn đời",
+    "estimated_annual_earnings": "Ước tính thu nhập hằng năm",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Chú giải tỷ suất hằng năm"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_rewards": "Ước tính phần thưởng hằng năm",
     "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "enter_amount": "Nhập số tiền",
+    "review": "Xem lại",
+    "not_enough_eth": "Không đủ ETH",
+    "balance": "Số dư",
+    "stake_eth_and_earn": "Ký gửi ETH và kiếm tiền",
+    "stake_any_amount_of_eth": "Ký gửi bất kỳ số lượng ETH nào",
+    "no_minimum_required": "Không yêu cầu mức tối thiểu.",
+    "earn_eth_rewards": "Kiếm phần thưởng ETH",
+    "earn_eth_rewards_description": "Bắt đầu kiếm tiền ngay khi bạn ký gửi. Phần thưởng sẽ tự động cộng dồn.",
+    "flexible_unstaking": "Hủy ký gửi linh hoạt",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "disclaimer": "Việc ký gửi không đảm bảo bạn sẽ nhận được phần thưởng và đi kèm với nhiều rủi ro, bao gồm cả mất tiền.",
+    "learn_more": "Tìm hiểu thêm",
+    "got_it": "Đã hiểu",
+    "your_balance": "Số dư của bạn",
+    "stake_your_eth_cta": {
+      "base": "Ký gửi ETH của bạn với MetaMask Pool và kiếm",
+      "annually": "hằng năm.",
+      "learn_more_with_period": "Tìm hiểu thêm."
+    },
+    "day": {
+      "zero": "",
+      "one": "ngày",
+      "other": "ngày"
+    },
+    "hour": {
+      "zero": "",
+      "one": "giờ",
+      "other": "giờ"
+    },
+    "minute": {
+      "zero": "",
+      "one": "phút",
+      "other": "phút"
+    },
+    "banner_text": {
+      "has_claimable_eth": "Bạn có thể nhận {{amountEth}} ETH. Sau khi nhận, ETH sẽ được chuyển trở lại vào ví của bạn.",
+      "unstaking_in_progress": {
+        "base": "Đang tiến hành hủy ký gửi {{amountEth}} ETH. Hãy quay lại sau",
+        "and": "và",
+        "to_claim_it": "để nhận.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
+      },
+      "geo_blocked": "Bạn đang ở trong khu vực không được phép ký gửi hoặc hủy ký gửi.",
+      "approximately": "khoảng"
+    },
+    "unstake_input_banner_description": "Trung bình, mất chưa đến 3 ngày để bạn có thể nhận ETH đã hủy ký gửi, nhưng có thể mất đến 11 ngày.",
+    "max": "Tối đa",
+    "staking_from": "Đang ký gửi từ",
+    "interacting_with": "Đang tương tác với",
+    "12_hours": "12 giờ",
+    "terms_of_service": "Điều khoản dịch vụ",
+    "risk_disclosure": "Thông báo về tính rủi ro",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "continue": "Tiếp tục",
+    "estimated_changes": "Thay đổi ước tính",
+    "you_receive": "Bạn nhận",
+    "up_to_n": "Tối đa {{count}}",
+    "unstaking_to": "Hủy ký gửi",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Ví của bạn đã sẵn sàng",
@@ -3272,7 +3479,7 @@
     "default_settings": "Cài đặt mặc định",
     "done": "Hoàn tất",
     "basic_functionality": "Chức năng cơ bản",
-    "manage_networks": "Quản lý mạng",
+    "manage_networks": "Chọn mạng của bạn",
     "manage_networks_body": "Chúng tôi sử dụng Infura làm nhà cung cấp dịch vụ gọi hàm từ xa (RPC) để cung cấp quyền truy cập riêng tư và đáng tin cậy nhất có thể vào dữ liệu Ethereum. Bạn có thể chọn RPC của riêng mình, nhưng hãy nhớ rằng bất kỳ RPC nào cũng sẽ thu thập địa chỉ IP và ví Ethereum của bạn để thực hiện giao dịch. Đọc ",
     "manage_networks_body2": " để tìm hiểu thêm về cách Infura xử lý dữ liệu.",
     "functionality_body": "MetaMask cung cấp các tính năng cơ bản như chi tiết token và cài đặt gas thông qua các dịch vụ Internet. Khi bạn sử dụng các dịch vụ Internet, địa chỉ IP của bạn sẽ được chia sẻ, trong trường hợp này là với MetaMask. Điều này giống như khi bạn truy cập bất kỳ trang web nào. MetaMask sử dụng dữ liệu này tạm thời và không bao giờ bán dữ liệu của bạn. Bạn có thể sử dụng VPN hoặc tắt các dịch vụ này, nhưng nó có thể ảnh hưởng đến trải nghiệm sử dụng MetaMask của bạn. Đọc ",
@@ -3286,9 +3493,17 @@
       "buttons": {
         "cancel": "Hủy",
         "turn_on": "Bật",
-        "turn_off": "Tắt"
+        "turn_off": "Tắt",
+        "reset": "Đặt lại"
       }
-    }
+    },
+    "drawer_general_title": "Chung",
+    "drawer_general_title_desc": "Đồng bộ chế độ cài đặt trên các thiết bị, chọn mạng ưa thích và theo dõi dữ liệu token",
+    "drawer_assets_title": "Tài sản",
+    "drawer_assets_desc": "Tự động phát hiện token trong ví của bạn, hiển thị NFT và nhận hàng loạt thông tin cập nhật về số dư tài khoản",
+    "drawer_security_title": "Bảo mật",
+    "drawer_security_desc": "Giảm khả năng tham gia các mạng không an toàn và bảo vệ tài khoản của bạn",
+    "network_details_check_desc": "MetaMask sử dụng dịch vụ của bên thứ ba có tên chainid.network để hiển thị thông tin mạng chính xác và được tiêu chuẩn hóa. Điều này giúp hạn chế khả năng bạn kết nối với mạng độc hại hoặc mạng không chính xác. Khi sử dụng tính năng này, địa chỉ IP của bạn sẽ được hiển thị với chainid.network."
   },
   "simulation_details": {
     "failed": "Đã xảy ra lỗi khi tải kết quả ước tính.",
@@ -3312,13 +3527,53 @@
   },
   "common": {
     "please_wait": "Vui lòng chờ",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "Hành động này sẽ ngắt kết nối bạn khỏi {{dappUrl}}",
+    "disconnect": "Ngắt kết nối"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "Tỷ suất phần thưởng",
+      "tooltip": "Mức tăng dự kiến hằng năm theo giá trị ký gửi của bạn, dựa trên tỷ suất phần thưởng của tuần trước."
+    },
+    "estimated_gas_fee": {
+      "title": "Phí gas ước tính",
+      "gas_recipient": "Phí gas được trả cho thợ đào tiền mã hóa, họ là những người xử lý các giao dịch trên mạng Ethereum. MetaMask không thu lợi nhuận từ phí gas.",
+      "gas_fluctuation": "Phí gas được ước tính và sẽ dao động dựa trên lưu lượng mạng và độ phức tạp của giao dịch.",
+      "gas_learn_more": "Tìm hiểu thêm về phí gas"
+    },
+    "reward_frequency": {
+      "title": "Tần suất phần thưởng",
+      "tooltip": "Số dư đã ký gửi của bạn sẽ được cập nhật 12 giờ một lần để tính toán phần thưởng mới."
+    },
+    "unstaking_time": {
+      "title": "Thời gian hủy ký gửi",
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
+  },
+  "confirm": {
+    "reject": "Từ chối",
+    "confirm": "Xác nhận",
+    "title": {
+      "signature": "Yêu cầu chữ ký"
+    },
+    "request_from": "Yêu cầu từ",
+    "message": "Thông báo",
+    "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
+    "details": "Chi tiết",
+    "account": "Tài khoản",
+    "balance": "Số dư",
+    "network": "Mạng",
+    "rpc_url": "URL RPC",
+    "simulation": {
+      "title": "Thay đổi ước tính",
+      "personal_sign_info": "Bạn đang đăng nhập vào một trang web và dự kiến không có thay đổi nào đối với tài khoản của bạn.",
+      "tooltip": "Thay đổi ước tính là những gì có thể xảy ra nếu bạn thực hiện giao dịch này. Đây chỉ là dự đoán, không phải là đảm bảo."
+    }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }

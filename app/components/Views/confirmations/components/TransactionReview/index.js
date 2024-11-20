@@ -1,5 +1,5 @@
+import Eth from '@metamask/ethjs-query';
 import { withNavigation } from '@react-navigation/compat';
-import Eth from 'ethjs-query';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -275,6 +275,10 @@ class TransactionReview extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Object containing the current transaction metadata
+     */
+    transactionMetadata: PropTypes.object,
   };
 
   state = {
@@ -316,6 +320,7 @@ class TransactionReview extends PureComponent {
     const {
       transaction,
       transaction: { data, to, value },
+      transactionMetadata,
       tokens,
       chainId,
       tokenList,
@@ -327,7 +332,13 @@ class TransactionReview extends PureComponent {
     showHexData = showHexData || data;
     const approveTransaction =
       isApprovalTransaction(data) && (!value || isZeroValue(value));
-    const actionKey = await getTransactionReviewActionKey(transaction, chainId);
+
+    const actionKey = await getTransactionReviewActionKey({
+      ...transactionMetadata,
+      transaction,
+      txParams: undefined
+    }, chainId);
+
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
@@ -593,7 +604,7 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {useTransactionSimulations && (
+                    {useTransactionSimulations && transactionSimulationData && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
                           simulationData={transactionSimulationData}
@@ -701,6 +712,7 @@ const mapStateToProps = (state) => ({
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  transactionMetadata: selectCurrentTransactionMetadata(state),
 });
 
 TransactionReview.contextType = ThemeContext;

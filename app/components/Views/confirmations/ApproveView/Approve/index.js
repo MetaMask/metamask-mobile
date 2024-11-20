@@ -67,7 +67,10 @@ import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { updateTransaction } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import {
+  selectGasFeeEstimates,
+  selectCurrentTransactionMetadata,
+} from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
@@ -78,6 +81,7 @@ import {
 } from '../../../../../selectors/settings';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -180,6 +184,10 @@ class Approve extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Object containing simulation data
+     */
+    simulationData: PropTypes.object,
   };
 
   state = {
@@ -203,6 +211,7 @@ class Approve extends PureComponent {
     address: '',
     tokenAllowanceState: undefined,
     isGasEstimateStatusIn: false,
+    isChangeInSimulationModalOpen: false,
   };
 
   computeGasEstimates = (overrideGasLimit, gasEstimateTypeChanged) => {
@@ -501,12 +510,33 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
+      simulationData: { isUpdatedAfterSecurityCheck },
+      navigation,
     } = this.props;
     const {
       legacyGasTransaction,
       transactionConfirmed,
       eip1559GasTransaction,
     } = this.state;
+
+    if (isUpdatedAfterSecurityCheck) {
+      this.setState({ isChangeInSimulationModalOpen: true });
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.setState({ transactionConfirmed: false });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.onCancel();
+          },
+        },
+      });
+      return;
+    }
 
     if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
       if (this.validateGas(eip1559GasTransaction.totalMaxHex)) return;
@@ -721,6 +751,7 @@ class Approve extends PureComponent {
       tokenAllowanceState,
       isGasEstimateStatusIn,
       legacyGasTransaction,
+      isChangeInSimulationModalOpen,
     } = this.state;
 
     const {
@@ -776,7 +807,7 @@ class Approve extends PureComponent {
 
     return (
       <Modal
-        isVisible={this.props.modalVisible}
+        isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={
@@ -923,6 +954,7 @@ const mapStateToProps = (state) => ({
   providerRpcTarget: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
 });
 
 const mapDispatchToProps = (dispatch) => ({

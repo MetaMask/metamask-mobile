@@ -80,6 +80,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
+  OPEN_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
   OPEN_IN_BROWSER_OPTION,
@@ -108,12 +109,11 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { useIsFocused } from '@react-navigation/native';
-import handleWebViewFocus from '../../../util/browser/webViewFocus';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 
-const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
+  AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -276,11 +276,9 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
-  const previousChainIdRef = useRef('0x1');
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
-  const isFocused = useIsFocused();
 
   const url = useRef('');
   const title = useRef('');
@@ -301,7 +299,8 @@ export const BrowserTab = (props) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
+  const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
+    useMetrics();
   /**
    * Is the current tab the active tab
    */
@@ -363,7 +362,9 @@ export const BrowserTab = (props) => {
     const currentPage = checkUrl || url.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
-    return currentHost === HOMEPAGE_HOST;
+    return (
+      currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
+    );
   }, []);
 
   const notifyAllConnections = useCallback((payload, restricted = true) => {
@@ -717,16 +718,6 @@ export const BrowserTab = (props) => {
     };
   }, [goBack, isTabActive, props.navigation]);
 
-  useEffect(() => {
-    handleWebViewFocus({
-      webviewRef,
-      isFocused,
-      chainId: props.chainId,
-      previousChainId: previousChainIdRef.current,
-    });
-    previousChainIdRef.current = props.chainId;
-  }, [webviewRef, isFocused, props.chainId]);
-
   /**
    * Inject home page scripts to get the favourites and set analytics key
    */
@@ -987,6 +978,18 @@ export const BrowserTab = (props) => {
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
     trackEvent(MetaMetricsEvents.DAPP_HOME);
+  };
+
+  /**
+   * Go to favorites page
+   */
+  const goToFavorites = async () => {
+    toggleOptionsIfNeeded();
+    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    await go(OLD_HOMEPAGE_URL_HOST);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
+    );
   };
 
   /**
@@ -1300,10 +1303,28 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Renders Go to Favorites option
+   */
+  const renderGoToFavorites = () => (
+    <Button onPress={goToFavorites} style={styles.option}>
+      <View style={styles.optionIconWrapper}>
+        <Icon name="star" size={16} style={styles.optionIcon} />
+      </View>
+      <Text
+        style={styles.optionText}
+        numberOfLines={2}
+        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
+      >
+        {strings('browser.go_to_favorites')}
+      </Text>
+    </Button>
+  );
+
+  /**
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
+    if (isHomepage()) return renderGoToFavorites();
 
     return (
       <React.Fragment>
@@ -1322,7 +1343,7 @@ export const BrowserTab = (props) => {
         {!isBookmark() && (
           <Button onPress={addBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
-              <Icon name="star" size={16} style={styles.optionIcon} />
+              <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
             <Text
               style={styles.optionText}
@@ -1333,6 +1354,7 @@ export const BrowserTab = (props) => {
             </Text>
           </Button>
         )}
+        {renderGoToFavorites()}
         <Button onPress={share} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />

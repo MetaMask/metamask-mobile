@@ -375,6 +375,10 @@
     "accept": "Saya setuju",
     "cancel": "Tidak, terima kasih"
   },
+  "multi_rpc_migration_modal": {
+    "description": "Saat ini kami mendukung berbagai RPC untuk satu jaringan. RPC terbaru Anda telah dipilih sebagai RPC default untuk mengatasi informasi yang saling bertentangan",
+    "accept": "Terima"
+  },
   "nft_details": {
     "bought_for": "Dibeli senilai",
     "highest_floor_price": "Harga dasar tertinggi",
@@ -433,7 +437,16 @@
       "cancel_cta": "Batal",
       "confirm_cta": "Konfirmasikan"
     },
+    "import": "Impor",
+    "sort_by": "Urutkan sesuai",
+    "filter_by": "Filter by",
+    "current_network": "Current Network",
+    "all_networks": "All Networks",
+    "declining_balance": "Saldo menurun ({{currency}} tinggi-rendah)",
+    "alphabetically": "Sesuai abjad (A-Z)",
     "add_to_get_started": "Tambahkan kripto untuk memulai",
+    "token_is_needed_to_continue": "{{tokenSymbol}} diperlukan untuk melanjutkan",
+    "next": "Berikutnya",
     "buy_asset": "Beli {{asset}}",
     "no_tokens": "Anda tidak memiliki token!",
     "no_nfts_yet": "Belum ada NFT",
@@ -497,7 +510,7 @@
     "address": "Alamat kontrak token",
     "decimal": "Desimal token",
     "network": "Jaringan",
-    "network_fee": "Network fee",
+    "network_fee": "Biaya jaringan",
     "lists": "Daftar Token",
     "hide_cta": "Sembunyikan token",
     "options": {
@@ -650,6 +663,7 @@
     "receive": "TERIMA"
   },
   "accounts": {
+    "snap_account_tag": "Snap (Beta)",
     "create_new_account": "Buat akun baru",
     "import_account": "Impor akun",
     "connect_hardware": "Hubungkan dompet perangkat keras",
@@ -661,6 +675,8 @@
     "yes_remove_it": "Ya, hapus",
     "remove_hardware_account": "Hapus akun perangkat keras",
     "remove_hw_account_alert_description": "Yakin ingin menghapus akun dompet perangkat keras ini? Anda harus menyinkronkan ulang dompet perangkat keras jika ingin menggunakan akun ini lagi dengan MetaMask Mobile.",
+    "remove_snap_account": "Hapus akun snap",
+    "remove_snap_account_alert_description": "Akun ini akan dihapus dari dompet Anda. Pastikan Anda memiliki Frasa Pemulihan Rahasia atau kunci pribadi asli untuk akun yang diimpor ini sebelum melanjutkan. Anda dapat mengimpor atau membuat akun lagi dari menu tarik-turun akun.",
     "remove_account_alert_remove_btn": "Hapus",
     "remove_account_alert_cancel_btn": "Abaikan",
     "accounts_title": "Akun",
@@ -684,9 +700,13 @@
     "site_permission_to": "Situs ini memiliki izin untuk:",
     "address_balance_activity_permission": "Melihat alamat, saldo akun, dan aktivitas",
     "suggest_transactions": "Merekomendasikan transaksi untuk disetujui",
+    "accounts_connected": "akun terhubung",
+    "account_connected": "akun terhubung",
+    "accounts_disconnected": "akun terputus koneksinya.",
+    "account_disconnected": "akun terputus koneksinya.",
     "disconnect": "Memutus koneksi",
     "disconnect_all": "Putuskan semua koneksi",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "Jika Anda memutus koneksi dari {{dappUrl}}, Anda harus menghubungkan kembali akun dan jaringan agar dapat menggunakan situs ini lagi.",
     "disconnect_all_accounts": "Memutus koneksi semua akun",
     "deceptive_site_ahead": "Situs yang menipu terdeteksi",
     "deceptive_site_desc": "Situs yang akan Anda kunjungi tidak aman. Penyerang dapat mengelabui Anda untuk melakukan sesuatu yang berbahaya.",
@@ -700,12 +720,20 @@
   "toast": {
     "connected_and_active": "terhubung dan aktif.",
     "now_active": "sekarang aktif.",
+    "network_added": "berhasil ditambahkan",
+    "network_deleted": "berhasil dihapus",
+    "network_permissions_updated": "Network permissions updated",
     "revoked": "dicabut.",
     "revoked_all": "Semua akun dicabut.",
     "accounts_connected": "akun terhubung.",
+    "account_connected": "akun terhubung.",
+    "accounts_permissions_updated": "Accounts permissions updated",
+    "accounts_disconnected": "akun terputus koneksinya.",
+    "account_disconnected": "akun terputus koneksinya.",
     "disconnected": "koneksi terputus.",
     "disconnected_all": "Semua akun terputus koneksinya.",
     "disconnected_from": "Koneksi dari {{dappHostName}} terputus",
+    "permissions_updated": "Permissions updated",
     "nft_detection_enabled": "Autodeteksi NFT diaktifkan"
   },
   "connect_qr_hardware": {
@@ -740,6 +768,10 @@
   "app_settings": {
     "enabling_notifications": "Mengaktifkan notifikasi...",
     "disabling_notifications": "Menonaktifkan notifikasi...",
+    "reset_notifications_title": "Reset notifikasi",
+    "reset_notifications_description": "Mereset notifikasi berarti Anda menghapus kunci penyimpanan notifikasi dan mereset semua riwayat notifikasi. Yakin ingin melakukan ini?",
+    "reset_notifications": "Reset notifikasi",
+    "reset_notifications_success": "Kunci penyimpanan notifikasi dihapus/dibuat ulang dan riwayat notifikasi direset.",
     "enabling_profile_sync": "Mengaktifkan sinkronisasi profil...",
     "disabling_profile_sync": "Menonaktifkan sinkronisasi profil...",
     "notifications_dismiss_modal": "Lewatkan",
@@ -780,6 +812,7 @@
     "save_rpc_url": "SIMPAN",
     "invalid_rpc_prefix": "URL memerlukan awalan HTTPS yang sesuai",
     "invalid_rpc_url": "URL RPC tidak valid",
+    "invalid_block_explorer_url": "URL Block Explorer Tidak Valid",
     "sync": "SINKRONKAN",
     "clear_approved_dapps": "HAPUS APLIKASI YANG DISETUJUI",
     "clear_browser_history": "HAPUS RIWAYAT BROWSER",
@@ -855,10 +888,13 @@
     "networks_default_title": "Jaringan Default",
     "network_delete": "Jika menghapus jaringan ini, Anda harus menambahkannya lagi untuk melihat aset di jaringan ini",
     "networks_default_cta": "Gunakan jaringan ini",
+    "add_rpc_url": "Tambahkan URL RPC",
+    "add_block_explorer_url": "Tambahkan URL Block Explorer",
     "networks_desc": "Tambahkan dan edit jaringan RPC khusus",
     "network_name_label": "Nama Jaringan",
     "network_name_placeholder": "Nama Jaringan (opsional)",
     "network_rpc_url_label": "URL RPC",
+    "network_rpc_name_label": "Nama RPC",
     "network_rpc_placeholder": "Jaringan RPC Baru",
     "network_chain_id_label": "ID Chain",
     "network_chain_id_placeholder": "ID Chain",
@@ -900,7 +936,7 @@
     "data_collection_title": "Pengumpulan data untuk pemasaran",
     "data_collection_description": "Kami akan menggunakan MetaMetrics untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita yang relevan (seperti fitur produk dan materi lainnya).",
     "batch_balance_requests_title": "Kelompokkan permintaan saldo akun",
-    "batch_balance_requests_description": "Kami mengelompokkan akun dan meminta Infura untuk menunjukkan saldo Anda secara responsif. Jika Anda menonaktifkannya, hanya akun aktif yang akan diminta. Beberapa aplikasi terdesentralisasi (dApp) tidak akan berfungsi kecuali dompet Anda terhubung.",
+    "batch_balance_requests_description": "Dapatkan informasi saldo terbaru untuk seluruh akun Anda sekaligus. Menonaktifkan fitur ini berarti yang lainnya cenderung tidak menghubungkan satu akun dengan akun lainnya.",
     "third_party_title": "Dapatkan transaksi masuk",
     "third_party_description": "API pihak ketiga (Etherscan) digunakan untuk menampilkan transaksi masuk dalam riwayat. Nonaktifkan jika Anda tidak ingin kami mengambil data dari layanan tersebut.",
     "metametrics_opt_out": "Pilih keluar dari MetaMetrics",
@@ -924,7 +960,7 @@
     "invalid_number_range": "Nomor tidak valid. Masukkan angka antara 1 dan %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Sembunyikan Token Tanpa Saldo",
     "hide_zero_balance_tokens_desc": "Mencegah token tanpa saldo ditampilkan di daftar token Anda.",
-    "token_detection_title": "Deteksi Token yang Ditingkatkan",
+    "token_detection_title": "Autodeteksi token",
     "token_detection_description": "Kami menggunakan API pihak ketiga untuk mendeteksi dan menampilkan token baru yang dikirim ke dompet Anda. Nonaktifkan jika Anda tidak ingin aplikasi menarik data dari layanan tersebut.",
     "theme_button_text": "Ubah Tema",
     "theme_title": "Tema ({{theme}})",
@@ -1008,13 +1044,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Hapus Snap",
         "remove_snap_section_description": "Tindakan ini akan menghapus Snap, datanya, serta izin yang diberikan.",
-        "remove_button_label": "Hapus {{snapName}}"
+        "remove_button_label": "Hapus {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Hapus Snap",
+          "description": "Menghapus Snap ini akan menghapus akun-akun berikut dari MetaMask:",
+          "remove_account_snap_alert_description_1": "Jenis",
+          "remove_account_snap_alert_description_2": "untuk mengonfirmasikan bahwa Anda ingin menghapus snap ini:",
+          "banner_title": "Pastikan Anda dapat mengakses setiap akun yang dibuat oleh Snap ini sendiri sebelum menghapusnya",
+          "cancel_button": "Batal",
+          "continue_button": "Lanjutkan",
+          "remove_snap_button": "Hapus Snap",
+          "remove_snap_error": "Gagal menghapus {{snapName}}",
+          "remove_snap_success": "{{snapName}} dihapus"
+        }
       },
       "snap_details": {
         "install_date": "Diinstal pada {{date}}",
         "install_origin": "Instal Asal",
         "enabled": "Diaktifkan",
         "version": "Versi"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Nama akun",
+        "public_address": "Alamat Publik"
       },
       "snap_permissions": {
         "approved_date": "Disetujui pada {{date}}",
@@ -1036,7 +1088,7 @@
           "snap_getBip32PublicKey": "Lihat kunci publik untuk {{protocol}}",
           "snap_getBip44Entropy": "Kontrol akun dan aset {{protocol}}",
           "snap_getEntropy": "Dapatkan kunci arbitrer unik untuk Snap ini",
-          "endowment:keyring": "endowment:keyring",
+          "endowment:keyring": "Izinkan permintaan untuk menambah dan mengontrol akun Ethereum",
           "wallet_snap": "Hubungkan ke {{otherSnapName}}",
           "endowment:webassembly": "Mendukung WebAssembly",
           "endowment:ethereum-provider": "Akses penyedia Ethereum",
@@ -1044,7 +1096,8 @@
           "snap_getLocale": "Lihat bahasa pilihan",
           "endowment:caveat:transaction-origin": "Lihat asal situs web yang mengirimkan transaksi",
           "endowment:extend-runtime": "Perpanjang waktu pengoperasian",
-          "snap_dialog": "Tampilkan dialog khusus"
+          "snap_dialog": "Tampilkan dialog khusus",
+          "snap_manageAccounts": "Tambah dan kontrol akun Ethereum"
         }
       }
     },
@@ -1067,9 +1120,9 @@
     "aes_crypto_test_form_title": "Kripto AES - Formulir Uji",
     "aes_crypto_test_form_description": "Bagian khusus dikembangkan untuk pengujian E2E. Apabila terlihat di aplikasi, laporkan ke dukungan MetaMask.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "Opsi Pengembang",
+      "generate_trace_test": "Buat Uji Jejak",
+      "generate_trace_test_desc": "Buat Uji jejak Sentry dari Pengembang."
     }
   },
   "aes_crypto_test_form": {
@@ -1206,6 +1259,7 @@
   "asset_overview": {
     "send_button": "Kirim",
     "buy_button": "Beli",
+    "token_marketplace": "Token marketplace",
     "sell_button": "Jual",
     "receive_button": "Terima",
     "portfolio_button": "Portofolio",
@@ -1213,6 +1267,14 @@
     "info": "Informasi",
     "swap": "Tukar",
     "bridge": "Bridge",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "description": "Deskripsi",
     "totalSupply": "Jumlah Pasokan",
     "address": "Alamat",
@@ -1327,7 +1389,7 @@
     "transaction_id": "ID Transaksi",
     "alert": "PERINGATAN",
     "amount": "Jumlah",
-    "details": "Details",
+    "details": "Detail",
     "next": "Selanjutnya",
     "back": "Kembali",
     "confirm": "Konfirmasikan",
@@ -1361,6 +1423,10 @@
     "insufficient_amount": "Anda memerlukan {{amount}} {{tokenSymbol}} lagi untuk menyelesaikan transaksi ini.",
     "buy_more_eth": "Beli lebih banyak ETH",
     "buy_more": "Beli lebih banyak",
+    "more_to_continue": "Diperlukan lebih banyak {{ticker}} untuk melanjutkan",
+    "you_can_also_send_funds": "Anda juga dapat mengirim dana dari akun lain.",
+    "token_marketplace": "Token marketplace",
+    "token_Marketplace": "Token Marketplace",
     "go_to_faucet": "Kunjungi faucet",
     "get_ether": "Dapatkan Ether untuk jaringan {{networkName}}.",
     "insufficient_tokens": "{{token}} tidak cukup",
@@ -1408,7 +1474,7 @@
     "asset": "Aset",
     "balance": "Saldo",
     "token_id": "ID Token",
-    "not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi. Beli {{ticker}} atau setor dari rekening lain.",
+    "not_enough_for_gas": "Anda memiliki 0 {{ticker}} di akun Anda untuk membayar biaya transaksi.",
     "send": "Kirim",
     "confirm_with_qr_hardware": "Konfirmasikan dengan dompet perangkat keras",
     "confirm_with_ledger_hardware": "Konfirmasikan dengan Ledger",
@@ -1449,7 +1515,7 @@
     "invalid_recipient": "Penerima tidak valid",
     "invalid_recipient_description": "Periksa alamatnya dan pastikan sudah valid",
     "swap_tokens": "Tukar token",
-    "fromWithColon": "From:"
+    "fromWithColon": "Dari:"
   },
   "custom_gas": {
     "total": "Total",
@@ -1520,6 +1586,7 @@
     "share": "Bagikan",
     "bookmark": "Bookmark",
     "add_to_favorites": "Tambahkan ke Favorit",
+    "go_to_favorites": "Go to Favorites",
     "error": "Kesalahan",
     "cancel": "Batal",
     "go_back": "Kembali",
@@ -1589,6 +1656,9 @@
     "tx_review_approve": "Setujui",
     "tx_review_increase_allowance": "Tingkatkan Persetujuan",
     "tx_review_set_approval_for_all": "Atur Persetujuan Untuk Semua",
+    "tx_review_staking_claim": "Staking Claim",
+    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_staking_unstake": "Unstake",
     "sent_ether": "Mengirim Ether",
     "self_sent_ether": "Mengirim Ether ke Diri Sendiri",
     "received_ether": "Menerima Ether",
@@ -1736,7 +1806,7 @@
     "continue": "Lanjutkan",
     "cancel": "Batal",
     "approve": "Setujui",
-    "update": "Update",
+    "update": "Perbarui",
     "edit_network_details": "Edit detail jaringan",
     "malicious_network_warning": "Penyedia jaringan jahat dapat berbohong tentang status blockchain dan merekam aktivitas jaringan Anda. Hanya tambahkan jaringan kustom yang Anda percayai.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1814,12 @@
     "additional_network_information_title": "Informasi Jaringan Tambahan",
     "network_warning_desc": "Koneksi jaringan ini mengandalkan pihak ketiga. Koneksi ini mungkin kurang bisa diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
     "additonial_network_information_desc": "Beberapa jaringan ini mengandalkan pihak ketiga. Koneksi ini kurang dapat diandalkan atau memungkinkan pihak ketiga melacak aktivitas.",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "Hubungkan jaringan lainnya",
     "learn_more": "Pelajari selengkapnya",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Beralih ke jaringan",
     "switch": "Alihkan",
-    "select_all": "Select all",
+    "select_all": "Pilih semua",
     "new_network": "Jaringan baru ditambahkan",
     "network_name": "Jaringan {{networkName}}",
     "network_added": " kini tersedia di pemilih jaringan.",
@@ -1767,18 +1837,27 @@
     "deprecated_goerli": "Sehubungan dengan perubahan protokol Ethereum: Jaringan uji Goerli mungkin tidak dapat beroperasi dengan baik dan akan segera dihentikan.",
     "network_deprecated_title": "Jaringan ini tidak digunakan lagi",
     "network_deprecated_description": "Jaringan yang Anda coba hubungkan tidak lagi didukung di Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Edit jaringan"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
+    "title_this_site_wants_to": "Situs ini ingin:",
+    "title_dapp_url_wants_to": "{{dappUrl}} ingin:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} memiliki persetujuan untuk:",
+    "use_enabled_networks": "Menggunakan jaringan aktif",
+    "wants_to_see_your_accounts": "Melihat akun Anda dan menyarankan transaksi",
+    "requesting_for": "Meminta untuk ",
+    "requesting_for_accounts": "Meminta {{numberOfAccounts}} akun",
+    "requesting_for_networks": "Requesting for {{numberOfNetworks}} networks",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
+    "network_connected": "network connected ",
+    "see_your_accounts": "Melihat akun Anda dan menyarankan transaksi",
+    "connected_to": "Terhubung dengan ",
+    "manage_permissions": "Kelola Izin",
     "edit": "Edit",
-    "cancel": "Cancel"
+    "cancel": "Batal",
+    "got_it": "Got it",
+    "connection_details_title": "Connection Details",
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
   },
   "select": {
     "cancel": "Batal",
@@ -2042,8 +2121,9 @@
     "back_to_safety": "Kembali ke keamanan"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "Waktu habis",
+    "no_date": "Tidak dikenal",
+    "yesterday": "Kemarin",
     "staked": "Di-stake",
     "received": "Diterima",
     "unstaked": "Stake dibatalkan",
@@ -2102,7 +2182,7 @@
       "label_swapped": "Ditukar",
       "label_to": "Ke"
     },
-    "received_from": "Diterima dari {{address}}",
+    "received_from": "Received {{amount}} {{ticker}} from {{address}}",
     "nft_sent": "Mengirim NFT ke {{address}}",
     "erc721_sent": "Mengirim NFT ke {{address}}",
     "erc1155_sent": "Mengirim NFT ke {{address}}",
@@ -2119,8 +2199,23 @@
     "success_withdrawal_title": "Penarikan Selesai!",
     "error_title": "Ups! Terjadi kesalahan :/",
     "received_title": "Anda menerima {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "metamask_swap_completed_title": "Swap completed",
+    "erc20_sent_title": "Funds sent",
+    "erc20_received_title": "Funds received",
+    "eth_sent_title": "Funds sent",
+    "eth_received_title": "Funds received",
+    "rocketpool_stake_completed_title": "Stake complete",
+    "rocketpool_unstake_completed_title": "Unstake complete",
+    "lido_stake_completed_title": "Stake complete",
+    "lido_withdrawal_requested_title": "Withdrawal requested",
+    "lido_withdrawal_completed_title": "Withdrawal completed",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+    "erc721_sent_title": "NFT sent",
+    "erc721_received_title": "NFT received",
+    "erc1155_sent_title": "NFT sent",
+    "erc1155_received_title": "NFT received",
+    "default_message_title": "MetaMask",
+    "default_message_description": "Tap to view",
     "received_payment_title": "Pembayaran instan diterima",
     "pending_message": "Menunggu konfirmasi",
     "pending_deposit_message": "Menunggu deposit selesai",
@@ -2136,12 +2231,55 @@
     "cancelled_message": "Ketuk untuk melihat transaksi ini",
     "received_message": "Ketuk untuk melihat transaksi ini",
     "received_payment_message": "Anda menerima {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "eth_received_message": "You received some ETH",
+    "metamask_swap_completed_message": "Swapped {{symbolIn}} for {{symbolOut}}",
+    "erc20_sent_message": "Sent to {{address}}",
+    "erc20_received_message": "Received from {{address}}",
+    "eth_sent_message": "Sent to {{address}}",
+    "rocketpool_stake_completed_message": "Staked",
+    "rocketpool_unstake_completed_message": "Unstaking complete",
+    "lido_stake_completed_message": "Staked",
+    "lido_withdrawal_requested_message": "Unstaking requested",
+    "lido_withdrawal_completed_message": "Unstaking complete",
+    "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
+    "push_notification_content": {
+      "metamask_swap_completed_title": "Swap selesai",
+      "metamask_swap_completed_description": "Swap MetaMask berhasil",
+      "erc20_sent_title": "Dana terkirim",
+      "erc20_sent_description": "Anda berhasil mengirim {{amount}} {{token}}",
+      "erc20_received_title": "Dana diterima",
+      "erc20_received_description": "Anda menerima {{amount}} {{token}}",
+      "eth_sent_title": "Dana terkirim",
+      "eth_sent_description": "Anda berhasil mengirim {{amount}} ETH",
+      "eth_received_title": "Dana diterima",
+      "eth_received_description": "Anda menerima {{amount}} {{token}}",
+      "rocketpool_stake_completed_title": "Stake selesai",
+      "rocketpool_stake_completed_description": "Stake RocketPool berhasil",
+      "rocketpool_unstake_completed_title": "Pembatalan stake selesai",
+      "rocketpool_unstake_completed_description": "Pembatalan stake RocketPool berhasil",
+      "lido_stake_completed_title": "Stake selesai",
+      "lido_stake_completed_description": "Stake Lido berhasil",
+      "lido_withdrawal_requested_title": "Penarikan diminta",
+      "lido_withdrawal_requested_description": "Permintaan penarikan Lido telah dikirimkan",
+      "lido_withdrawal_completed_title": "Penarikan selesai",
+      "lido_withdrawal_completed_description": "Penarikan Lido berhasil",
+      "lido_stake_ready_to_be_withdrawn_title": "Stake siap untuk ditarik ",
+      "lido_stake_ready_to_be_withdrawn_description": "Stake Lido kini siap untuk ditarik",
+      "erc721_sent_title": "NFT terkirim",
+      "erc721_sent_description": "Anda telah berhasil mengirim NFT",
+      "erc721_received_title": "NFT diterima",
+      "erc721_received_description": "Anda menerima NFT baru",
+      "erc1155_sent_title": "NFT terkirim",
+      "erc1155_sent_description": "Anda telah berhasil mengirim NFT",
+      "erc1155_received_title": "NFT diterima",
+      "erc1155_received_description": "Anda menerima NFT baru"
+    },
+    "prompt_title": "Terima Notifikasi Push",
     "notifications_enabled_error_title": "Terjadi kesalahan",
     "notifications_enabled_error_desc": "Kami tidak dapat mengaktifkan notifikasi. Coba lagi nanti.",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "Aktifkan notifikasi dari Pengaturan untuk mendapatkan peringatan penting tentang aktivitas dompet dan banyak lagi.",
+    "prompt_ok": "Aktifkan",
+    "prompt_cancel": "Nanti saja",
     "wc_connected_title": "Terhubung dengan {{title}}",
     "wc_signed_title": "Ditandatangani",
     "wc_sent_tx_title": "Mengirim transaksi",
@@ -2154,6 +2292,7 @@
     "wallet": "Dompet",
     "web3": "Web3",
     "staking_provider": "Penyedia Stake",
+    "network_fee_not_available": "Biaya Jaringan tidak tersedia",
     "empty": {
       "title": "Tak ada apa pun di sini",
       "message": "Di sinilah Anda dapat menemukan notifikasi saat terjadi aktivitas di dompet. "
@@ -2373,6 +2512,7 @@
     "All": "Semua",
     "Buy": "Beli",
     "Sell": "Jual",
+    "token_marketplace": "Token marketplace",
     "Purchased": "Dibeli",
     "Sold": "Terjual",
     "empty_buy_orders_list": "Anda tidak memiliki pesanan pembelian",
@@ -2639,8 +2779,7 @@
     "you_need": "Anda memerlukan",
     "more_to_complete": "lebih banyak untuk menyelesaikan pertukaran ini.",
     "more_gas_to_complete": "lebih banyak gas untuk menyelesaikan pertukaran ini.",
-    "buy_more_eth": "Beli lebih banyak ETH.",
-    "buy_more": "Beli lebih banyak {{ticker}}.",
+    "token_marketplace": "Token marketplace",
     "market_price_unavailable_title": "Periksa tarif Anda sebelum melanjutkan",
     "market_price_unavailable": "Harga pasar tidak tersedia sehingga dampak harga tidak diketahui. Harap verifikasikan bahwa Anda merasa nyaman dengan jumlah token yang akan Anda terima sebelum menukar.",
     "price_difference": "Selisih harga {{amount}}",
@@ -2665,7 +2804,7 @@
     "tap_to_swap": "Ketuk untuk Menukar",
     "swipe_to_swap": "Usap untuk menukar",
     "swipe_to": "Usap untuk",
-    "swap": "tukar",
+    "swap": "Swap",
     "completed_swap": "Tukar!",
     "metamask_swap_fee": "Biaya MetaMask Swap",
     "fee_text": {
@@ -2771,13 +2910,21 @@
     "bug_report_prompt_title": "Beri tahu kami hal yang terjadi",
     "bug_report_prompt_description": "Tambahkan detail sehingga kami dapat mengetahui apa yang salah.",
     "bug_report_thanks": "Terima kasih! Kami akan segera memeriksanya.",
-    "save_seedphrase_1": "Jika kesalahan masih berlanjut,",
+    "save_seedphrase_1": "If you keep getting this error,",
     "save_seedphrase_2": "simpan Frasa Pemulihan Rahasia",
-    "save_seedphrase_3": "dan instal ulang aplikasi. Catatan: Anda TIDAK dapat memulihkan dompet Anda tanpa Frasa Pemulihan Rahasia.",
+    "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Disalin ke papan klip",
     "ok": "Oke",
     "cancel": "Batalkan",
-    "send": "Kirim"
+    "send": "Kirim",
+    "submit": "Submit",
+    "modal_title": "Describe what happened",
+    "modal_placeholder": "Sharing details like how we can reproduce the bug will help us fix the problem.",
+    "error_message": "Error message:",
+    "copy": "Copy",
+    "describe": "Describe what happened",
+    "try_again": "Try again",
+    "contact_support": "Contact support"
   },
   "whats_new": {
     "title": "Yang baru",
@@ -2792,20 +2939,6 @@
       "title": "Pencairan uang tunai semakin mudah",
       "description": "Jual kripto langsung di MetaMask! Kami akan membantu menemukan penawaran harga dari penyedia tepercaya, sehingga Anda dapat menjual kripto dengan cara yang mudah diakses, cepat, dan aman, setiap saat.",
       "action_text": "Cobalah"
-    },
-    "stx": {
-      "header": "Peningkatan Perlindungan Transaksi",
-      "description_1": "Raih tingkat keberhasilan yang lebih tinggi, perlindungan frontrunning, dan visibilitas yang lebih baik dengan Transaksi Pintar.",
-      "description_2": "Hanya tersedia di Ethereum. Aktifkan atau nonaktifkan setiap saat di pengaturan.",
-      "no_thanks": "Tidak, terima kasih",
-      "primary_button": "Aktifkan",
-      "learn_more": "Selengkapnya.",
-      "benefit_1_1": "Keberhasilan 99,5%",
-      "benefit_1_2": "tingkat",
-      "benefit_2_1": "Menghemat",
-      "benefit_2_2": "uang",
-      "benefit_3_1": "Waktu nyata",
-      "benefit_3_2": "pembaruan"
     },
     "transaction_simulation": {
       "title": "Estimasi perubahan saldo",
@@ -2915,7 +3048,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Estimasi biaya gas",
-    "network_fee": "Network fee",
+    "network_fee": "Biaya jaringan",
     "max_fee": "Biaya maks",
     "total": "Total",
     "max_amount": "Jumlah maks",
@@ -3155,7 +3288,7 @@
     "ledger_reminder_message_step_four": "4. Lokasi diaktifkan dengan menggunakan lokasi yang tepat",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Perangkat terdekat diaktifkan",
     "ledger_reminder_message_step_five": "5. Jangan ganggu harus dinonaktifkan",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Aktifkan \"penandatanganan buta\" pada perangkat Ledger Anda.",
     "available_devices": "Perangkat yang tersedia",
     "retry": "Coba lagi",
     "continue": "Lanjutkan",
@@ -3186,15 +3319,17 @@
     "how_to_install_eth_webview_title": "Cara menginstal Aplikasi Ethereum",
     "nonce_too_low": "Nonce terlalu rendah",
     "nonce_too_low_error": "Nonce yang ditetapkan terlalu rendah",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "Pilih akun",
+    "select_hd_path": "Pilih Jalur HD",
+    "select_hd_path_description": "Jika Anda tidak menemukan akun yang diharapkan, coba alihkan jalur HD atau jaringan yang dipilih saat ini.",
     "ledger_live_path": "Ledger Live",
     "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
+    "ledger_bip44_path": "BIP44(mis. MetaMask, Trezor)",
     "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "blind_sign_error": "Kesalahan penandatanganan buta",
+    "blind_sign_error_message": "Penandatanganan buta tidak diaktifkan pada perangkat Ledger Anda. Aktifkan di pengaturan.",
+    "user_reject_transaction": "Pengguna menolak transaksi",
+    "user_reject_transaction_message": "Pengguna telah menolak transaksi pada perangkat Ledger."
   },
   "account_actions": {
     "edit_name": "Edit nama akun",
@@ -3249,20 +3384,92 @@
   },
   "stake": {
     "stake": "Stake",
+    "earn": "Hasilkan",
     "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "unstake_eth": "Batalkan stake ETH",
+    "staked_balance": "Saldo yang di-stake",
+    "staked_ethereum": "Ethereum yang di-stake",
+    "unstake": "Batalkan stake",
+    "stake_more": "Stake lebih banyak",
+    "claim": "Klaim",
+    "your_earnings": "Pendapatan Anda",
+    "annual_rate": "Nilai tahunan",
+    "lifetime_rewards": "Reward seumur hidup",
+    "estimated_annual_earnings": "Estimasi pendapatan tahunan",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Tooltip nilai tahunan"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
+    "estimated_annual_rewards": "Estimasi reward tahunan",
     "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "enter_amount": "Masukkan jumlah",
+    "review": "Tinjau",
+    "not_enough_eth": "ETH tidak cukup",
+    "balance": "Saldo",
+    "stake_eth_and_earn": "Stake ETH dan dapatkan",
+    "stake_any_amount_of_eth": "Stake sejumlah ETH",
+    "no_minimum_required": "Tidak ada jumlah minimum.",
+    "earn_eth_rewards": "Dapatkan reward ETH",
+    "earn_eth_rewards_description": "Mulailah menghasilkan segera setelah Anda melakukan stake. Reward akan terkumpul secara otomatis.",
+    "flexible_unstaking": "Pembatalan stake yang fleksibel",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "disclaimer": "Stake tidak menjamin reward, dan melibatkan risiko termasuk hilangnya dana.",
+    "learn_more": "Selengkapnya",
+    "got_it": "Mengerti",
+    "your_balance": "Saldo Anda",
+    "stake_your_eth_cta": {
+      "base": "Stake ETH dengan MetaMask Pool dan dapatkan",
+      "annually": "setiap tahun.",
+      "learn_more_with_period": "Selengkapnya."
+    },
+    "day": {
+      "zero": "",
+      "one": "hari",
+      "other": "hari"
+    },
+    "hour": {
+      "zero": "",
+      "one": "jam",
+      "other": "jam"
+    },
+    "minute": {
+      "zero": "",
+      "one": "menit",
+      "other": "menit"
+    },
+    "banner_text": {
+      "has_claimable_eth": "Anda dapat mengeklaim {{amountEth}} ETH. Setelah diklaim, ETH akan kembali ke dompet Anda.",
+      "unstaking_in_progress": {
+        "base": "Pembatalan stake {{amountEth}} ETH sedang berlangsung. Kembali lagi dalam",
+        "and": "dan",
+        "to_claim_it": "untuk mengeklaimnya.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
+      },
+      "geo_blocked": "Anda berada di wilayah tempat pembatalan stake maupun stake tidak diizinkan.",
+      "approximately": "sekitar"
+    },
+    "unstake_input_banner_description": "Rata-rata, diperlukan waktu kurang dari 3 hari agar ETH yang batal di-stake dapat diklaim, tetapi tindakan ini dapat memakan waktu hingga 11 hari.",
+    "max": "Maks",
+    "staking_from": "Stake dari",
+    "interacting_with": "Berinteraksi dengan",
+    "12_hours": "12 jam",
+    "terms_of_service": "Ketentuan layanan",
+    "risk_disclosure": "Pengungkapan risiko",
+    "cancel": "Batal",
+    "confirm": "Konfirmasikan",
+    "continue": "Lanjutkan",
+    "estimated_changes": "Estimasi perubahan",
+    "you_receive": "Anda menerima",
+    "up_to_n": "Hingga {{count}}",
+    "unstaking_to": "Batalkan stake ke",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Dompet Anda sudah siap",
@@ -3272,7 +3479,7 @@
     "default_settings": "Pengaturan Default",
     "done": "Selesai",
     "basic_functionality": "Fungsionalitas dasar",
-    "manage_networks": "Kelola jaringan",
+    "manage_networks": "Pilih jaringan Anda",
     "manage_networks_body": "Kami menggunakan Infura sebagai penyedia panggilan prosedur jarak jauh (RPC) untuk menawarkan akses paling andal dan pribadi ke data Ethereum sebisa mungkin. Anda dapat memilih RPC sendiri, akan tetapi ingatlah bahwa RPC apa pun akan menerima alamat IP dan dompet Ethereum Anda untuk melakukan transaksi. Baca ",
     "manage_networks_body2": " untuk selengkapnya seputar cara Infura menangani data.",
     "functionality_body": "MetaMask menawarkan fitur dasar seperti detail token dan pengaturan gas melalui layanan internet. Alamat IP dibagikan saat menggunakan layanan internet, dalam hal ini kepada MetaMask. Ini sama seperti saat Anda mengunjungi situs web mana pun. MetaMask menggunakan data ini untuk sementara dan tidak akan pernah menjual data Anda. Anda dapat menggunakan VPN atau menonaktifkan layanan ini, akan tetapi hal ini dapat memengaruhi pengalaman dalam menggunakan MetaMask. Baca ",
@@ -3286,9 +3493,17 @@
       "buttons": {
         "cancel": "Batal",
         "turn_on": "Aktifkan",
-        "turn_off": "Nonaktifkan"
+        "turn_off": "Nonaktifkan",
+        "reset": "Reset"
       }
-    }
+    },
+    "drawer_general_title": "Umum",
+    "drawer_general_title_desc": "Sinkronkan pengaturan di seluruh perangkat, pilih preferensi jaringan, dan lacak data token",
+    "drawer_assets_title": "Aset",
+    "drawer_assets_desc": "Autodeteksi token di dompet Anda, tampilkan NFT, dan dapatkan pembaruan saldo akun secara batch",
+    "drawer_security_title": "Keamanan",
+    "drawer_security_desc": "Kurangi kemungkinan Anda bergabung dengan jaringan yang tidak aman dan lindungi akun Anda",
+    "network_details_check_desc": "MetaMask menggunakan layanan pihak ketiga yang disebut chainid.network untuk menampilkan detail jaringan yang akurat dan terstandardisasi. Hal ini dapat mengurangi kemungkinan Anda untuk terhubung ke jaringan berbahaya atau salah. Saat menggunakan fitur ini, alamat IP akan diketahui oleh chainid.network."
   },
   "simulation_details": {
     "failed": "Terjadi kesalahan saat memuat estimasi Anda.",
@@ -3312,13 +3527,53 @@
   },
   "common": {
     "please_wait": "Mohon tunggu",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "Ini akan memutus koneksi dari {{dappUrl}}",
+    "disconnect": "Putuskan koneksi"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "Nilai reward",
+      "tooltip": "Peningkatan nilai stake tahunan yang diharapkan, berdasarkan pada nilai reward selama seminggu terakhir."
+    },
+    "estimated_gas_fee": {
+      "title": "Estimasi biaya gas",
+      "gas_recipient": "Biaya gas dibayarkan kepada penambang kripto yang memproses transaksi di jaringan Ethereum. MetaMask tidak mengambil keuntungan dari biaya gas.",
+      "gas_fluctuation": "Biaya gas diperkirakan dan akan berfluktuasi berdasarkan lalu lintas jaringan dan kompleksitas transaksi.",
+      "gas_learn_more": "Pelajari selengkapnya seputar biaya gas"
+    },
+    "reward_frequency": {
+      "title": "Frekuensi reward",
+      "tooltip": "Saldo yang di-stake diperbarui setiap 12 jam untuk memperhitungkan reward baru."
+    },
+    "unstaking_time": {
+      "title": "Waktu pembatalan stake",
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
+  },
+  "confirm": {
+    "reject": "Tolak",
+    "confirm": "Konfirmasikan",
+    "title": {
+      "signature": "Permintaan tanda tangan"
+    },
+    "request_from": "Permintaan dari",
+    "message": "Pesan",
+    "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
+    "details": "Detail",
+    "account": "Akun",
+    "balance": "Saldo",
+    "network": "Jaringan",
+    "rpc_url": "URL RPC",
+    "simulation": {
+      "title": "Estimasi perubahan",
+      "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perkiraan perubahan pada akun Anda.",
+      "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan."
+    }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }

@@ -39,12 +39,23 @@ import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
 import Routes from '../../constants/navigation/Routes';
+import { endTrace, trace, TraceName } from '../../util/trace';
+import {
+  MessageParamsTyped,
+  SignatureController,
+} from '@metamask/signature-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
+  showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
+};
+///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -233,7 +244,10 @@ const generateRawSignature = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkTabActive: any;
 }) => {
-  const { SignatureController } = Engine.context;
+  endTrace({ name: TraceName.Middleware, id: req.id });
+
+  const signatureController = Engine.context
+    .SignatureController as SignatureController;
 
   const pageMeta = {
     meta: {
@@ -257,21 +271,25 @@ const generateRawSignature = async ({
     isWalletConnect,
   });
 
-  const rawSig = await SignatureController.newUnsignedTypedMessage(
+  const rawSig = await signatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
       from: req.params[0],
+      requestId: req.id,
       ...pageMeta,
       channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
-    },
+    } as MessageParamsTyped,
     req,
     version,
     {
       parseJsonData: false,
     },
+    { traceContext: req.traceContext },
   );
+
+  endTrace({ name: TraceName.Signature, id: req.id });
 
   return rawSig;
 };
@@ -533,12 +551,12 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
-        const { SignatureController } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
           data: firstParam,
           from: secondParam,
+          requestId: req.id,
         };
 
         if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
@@ -559,6 +577,9 @@ export const getRpcMethodMiddleware = ({
           },
         };
 
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
+
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
@@ -568,13 +589,23 @@ export const getRpcMethodMiddleware = ({
         });
 
         DevLogger.log(`personal_sign`, params, pageMeta, hostname);
-        PPOMUtil.validateRequest(req);
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
-          ...params,
-          ...pageMeta,
-          origin: hostname,
-        });
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
+        const rawSig = await signatureController.newUnsignedPersonalMessage(
+          {
+            ...params,
+            ...pageMeta,
+            origin: hostname,
+          },
+          req,
+          { traceContext: req.traceContext },
+        );
+
+        endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;
       },
@@ -595,7 +626,8 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
-        const { SignatureController } = Engine.context;
+        endTrace({ name: TraceName.Middleware, id: req.id });
+
         const pageMeta = {
           meta: {
             url: url.current,
@@ -609,6 +641,9 @@ export const getRpcMethodMiddleware = ({
           },
         };
 
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
+
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
@@ -617,18 +652,26 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect,
         });
 
-        PPOMUtil.validateRequest(req);
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await signatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
+            requestId: req.id,
             ...pageMeta,
             origin: hostname,
           },
           req,
           'V1',
+          { parseJsonData: false },
+          { traceContext: req.traceContext },
         );
+
+        endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;
       },
@@ -639,7 +682,12 @@ export const getRpcMethodMiddleware = ({
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
-        PPOMUtil.validateRequest(req);
+
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
         res.result = await generateRawSignature({
           version: 'V3',
           req,
@@ -660,7 +708,12 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v4: async () => {
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-        PPOMUtil.validateRequest(req);
+
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
         res.result = await generateRawSignature({
           version: 'V4',
           req,

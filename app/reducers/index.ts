@@ -21,7 +21,7 @@ import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
 import navigationReducer from './navigation';
 import networkOnboardReducer from './networkSelector';
-import securityReducer from './security';
+import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
 import experimentalSettingsReducer from './experimentalSettings';
 import { EngineState } from '../core/Engine';
@@ -29,11 +29,9 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
-
 /**
  * Infer state from a reducer
  *
@@ -81,7 +79,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any;
-  smartTransactions: StateFromReducer<typeof smartTransactionsReducer>;
   user: IUserReducer;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +104,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   networkOnboarded: any;
-  security: StateFromReducer<typeof securityReducer>;
+  security: SecurityState;
   sdk: StateFromReducer<typeof sdkReducer>;
   // The experimentalSettings reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
@@ -146,7 +143,6 @@ const rootReducer = combineReducers<RootState, any>({
   settings: settingsReducer,
   alert: alertReducer,
   transaction: transactionReducer,
-  smartTransactions: smartTransactionsReducer,
   user: userReducer,
   wizard: wizardReducer,
   onboarding: onboardingReducer,

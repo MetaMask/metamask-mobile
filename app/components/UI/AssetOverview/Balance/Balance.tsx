@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Title from '../../../Base/Title';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
@@ -35,7 +34,7 @@ interface BalanceProps {
   secondaryBalance?: string;
 }
 
-const NetworkBadgeSource = (chainId: string, ticker: string) => {
+export const NetworkBadgeSource = (chainId: string, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
@@ -56,9 +55,9 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   return (
     <View style={styles.wrapper}>
-      <Title style={styles.title}>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('asset_overview.your_balance')}
-      </Title>
+      </Text>
       <AssetElement
         asset={asset}
         mainBalance={mainBalance}
@@ -89,7 +88,9 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
-      {isPooledStakingFeatureEnabled() && asset?.isETH && <StakingBalance />}
+      {isPooledStakingFeatureEnabled() && asset?.isETH && (
+        <StakingBalance asset={asset} />
+      )}
     </View>
   );
 };

@@ -1,11 +1,11 @@
 import { zeroAddress } from 'ethereumjs-util';
-import React, { useState } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
-import { formatAddress, safeToChecksumAddress } from '../../../../util/address';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
@@ -21,8 +21,8 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../StakingEarnings';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import StakingEarnings from '../../Stake/components/StakingEarnings';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -52,17 +52,14 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
 
-  // TEMP: Remove once component has been implemented.
-  const [hasStakingPositions] = useState(true);
-
   let tokenMetadata;
   let marketData;
 
   if (asset.isETH) {
-    marketData = tokenExchangeRates[zeroAddress() as `0x${string}`];
+    marketData = tokenExchangeRates?.[zeroAddress() as `0x${string}`];
   } else if (!asset.isETH && tokenContractAddress) {
-    tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates[tokenContractAddress];
+    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
+    marketData = tokenExchangeRates?.[tokenContractAddress];
   } else {
     Logger.log('cannot find contract address');
     return null;
@@ -75,13 +72,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const tokenDetails: TokenDetails = asset.isETH
     ? {
-        contractAddress: formatAddress(zeroAddress(), 'short'),
+        contractAddress: zeroAddress(),
         tokenDecimal: 18,
         tokenList: '',
       }
     : {
-        contractAddress:
-          formatAddress(tokenContractAddress as string, 'short') || null,
+        contractAddress: tokenContractAddress || null,
         tokenDecimal: tokenMetadata?.decimals || null,
         tokenList: tokenMetadata?.aggregators.join(', ') || null,
       };
@@ -127,9 +123,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH &&
-        hasStakingPositions &&
-        isPooledStakingFeatureEnabled() && <StakingEarnings />}
+      {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

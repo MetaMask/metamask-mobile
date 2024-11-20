@@ -16,7 +16,6 @@ import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
-import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
@@ -26,9 +25,10 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
+const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
+const { providerAsMiddleware } = require('@metamask/eth-json-rpc-middleware');
+import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
@@ -39,6 +39,7 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { NETWORK_ID_LOADING } from '../redux/slices/inpageProvider';
 import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMethodMiddleware';
 import createLegacyMethodMiddleware from '../RPCMethods/createLegacyMethodMiddleware';
+import createTracingMiddleware from '../createTracingMiddleware';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -272,7 +273,7 @@ export class BackgroundBridge extends EventEmitter {
     try {
       let approvedAccounts = [];
       DevLogger.log(
-        `notifySelectedAddressChanged: ${selectedAddress} wc=${this.isWalletConnect} url=${this.url}`,
+        `notifySelectedAddressChanged: ${selectedAddress} channelId=${this.channelId} wc=${this.isWalletConnect} url=${this.url}`,
       );
       if (this.isWalletConnect) {
         approvedAccounts = await getPermittedAccounts(this.url);
@@ -294,15 +295,21 @@ export class BackgroundBridge extends EventEmitter {
             (addr) => addr.toLowerCase() !== selectedAddress.toLowerCase(),
           ),
         ];
+
+        DevLogger.log(
+          `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
+          approvedAccounts,
+        );
+        this.sendNotification({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: approvedAccounts,
+        });
+      } else {
+        DevLogger.log(
+          `notifySelectedAddressChanged: selectedAddress ${selectedAddress} not found in approvedAccounts`,
+          approvedAccounts,
+        );
       }
-      DevLogger.log(
-        `notifySelectedAddressChanged url: ${this.url} hostname: ${this.hostname}: ${selectedAddress}`,
-        approvedAccounts,
-      );
-      this.sendNotification({
-        method: NOTIFICATION_NAMES.accountsChanged,
-        params: approvedAccounts,
-      });
     } catch (err) {
       console.error(`notifySelectedAddressChanged: ${err}`);
     }
@@ -435,6 +442,9 @@ export class BackgroundBridge extends EventEmitter {
           await getPermittedAccounts(this.isMMSDK ? this.channelId : origin),
       }),
     );
+
+    // Sentry tracing middleware
+    engine.push(createTracingMiddleware());
 
     // Append PermissionController middleware
     engine.push(

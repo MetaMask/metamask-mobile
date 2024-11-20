@@ -9,20 +9,30 @@ import {
   MOCK_ADDRESS_1,
 } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { mockNetworkState } from '../../../util/test/network';
 
-jest.mock('../../../core/Engine', () => ({
-  resetState: jest.fn(),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    resetState: jest.fn(),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+        createNewVaultAndKeychain: () => jest.fn(),
+        setLocked: () => jest.fn(),
+        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
       },
-      createNewVaultAndKeychain: () => jest.fn(),
-      setLocked: () => jest.fn(),
-      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
@@ -48,20 +58,13 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        selectedNetworkClientId: 'sepolia',
-        networksMetadata: {},
-        networkConfigurations: {
-          sepolia: {
-            id: 'sepolia',
-            rpcUrl: 'http://localhost/v3/',
-            chainId: '0xaa36a7',
-            ticker: 'ETH',
-            nickname: 'sepolia',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
-          },
-        },
+        ...mockNetworkState({
+          chainId: '0xaa36a7',
+          id: 'mainnet',
+          nickname: 'Sepolia',
+          ticker: 'SepoliaETH',
+          type: RpcEndpointType.Infura,
+        }),
       },
       TokenBalancesController: {
         contractBalances: {},

@@ -135,18 +135,20 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_assets_ios: {}
+      # - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_build_regression_tests: {}
-      - android_build_regression_tests: {}
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -159,6 +161,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
       - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -248,7 +252,12 @@ workflows:
           title: Yarn Setup
   prep_environment:
     steps:
+      - restore-cache@2:
+          title: Restore Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
+          title: node, yarn, corepack installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -258,7 +267,7 @@ workflows:
 
                 set -e
 
-                # Install and enable NVM
+                # Add and enable NVM
                 wget -O install-nvm.sh "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh"
                 echo "${NVM_SHA256SUM} install-nvm.sh" > install-nvm.sh.SHA256SUM
                 sha256sum -c install-nvm.sh.SHA256SUM
@@ -266,8 +275,29 @@ workflows:
                 source "${HOME}/.nvm/nvm.sh"
                 echo 'source "${HOME}/.nvm/nvm.sh"' | tee -a ${HOME}/.{bashrc,profile}
 
-                nvm install ${NODE_VERSION}
+                 # Retry logic for Node installation
+                MAX_ATTEMPTS=3
+                ATTEMPT=1
+                until [ $ATTEMPT -gt $MAX_ATTEMPTS ]
+                do
+                  echo "Attempt $ATTEMPT to install Node.js"
+                  nvm install ${NODE_VERSION}
+                  INSTALL_STATUS=$? # Capture the exit status of the nvm install command
+                  if [ $INSTALL_STATUS -eq 0 ]; then
+                      echo "Node.js installation successful!"
+                      break
+                  else
+                      echo "Node.js installation failed with exit code $INSTALL_STATUS"
+                      ATTEMPT=$((ATTEMPT+1))
+                      echo "Node.js installation failed, retrying in 5 seconds..."
+                      sleep 5
+                  fi
+                done
 
+                if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
+                  echo "Node.js installation failed after $MAX_ATTEMPTS attempts."
+                  exit 1
+                fi
                 envman add --key PATH --value $PATH
 
                 node --version
@@ -276,15 +306,23 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
-          title: Install node, yarn and corepack
-  install_detox:
+      - save-cache@1:
+          title: Save Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - paths: |-
+                ../.nvm/
+                ../../../root/.nvm/
+  install_applesimutils:
     steps:
       - script@1:
+          title: applesimutils installation
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                scripts/detox-setup.sh
-          title: Install Detox Dependencies
+                echo "Now installing applesimutils..."
+                brew tap wix/brew
+                brew install applesimutils
 
   # Notifications utility workflows
   # Provides values for commit or branch message and path depending on commit env setup initialised or not
@@ -499,6 +537,22 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_notifications_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_notifications_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_assets_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
@@ -569,7 +623,6 @@ workflows:
   android_e2e_build:
     before_run:
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -585,6 +638,10 @@ workflows:
           inputs:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -619,7 +676,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -645,7 +702,6 @@ workflows:
     before_run:
       - setup
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -700,7 +756,7 @@ workflows:
                 fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:android:bitrise:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -721,7 +777,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy test screenshots
           is_always_run: true
@@ -729,7 +785,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: E2E_Android_Failure_Screenshots
+            - zip_name: E2E_Android_Failure_Artifacts
     meta:
       bitrise.io:
         machine_type_id: elite-xl
@@ -737,8 +793,8 @@ workflows:
   ios_api_specs:
     before_run:
       - setup
+      - install_applesimutils
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -786,7 +842,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                yarn test:api-specs
+                yarn test:api-specs --retries 1
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -802,9 +858,11 @@ workflows:
             - deploy_path: $BITRISE_HTML_REPORT_DIR
           title: Deploy test report files
   ios_e2e_build:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
+      - install_applesimutils
       - code_setup
-      - install_detox
       - set_commit_hash
     after_run:
       - notify_failure
@@ -867,7 +925,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:build
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -888,10 +946,12 @@ workflows:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
   ios_e2e_test:
+    envs:
+      - NO_FLIPPER: '1'
     before_run:
       - setup
+      - install_applesimutils
       - prep_environment
-      - install_detox
     after_run:
       - notify_failure
     steps:
@@ -923,7 +983,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
       - script:
           inputs:
             - content: |-
@@ -954,7 +1014,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" FORCE_BUNDLING=true yarn test:e2e:ios:debug:run "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -975,7 +1035,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts/screenshots"  "$BITRISE_DEPLOY_DIR"
+                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           is_always_run: true
           run_if: .IsBuildFailed
@@ -983,7 +1043,7 @@ workflows:
           inputs:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Screenshots'
+            - zip_name: 'E2E_IOS_Failure_Artifacts'
   start_e2e_tests:
     steps:
       - build-router-start@0:
@@ -1065,6 +1125,11 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_android_release
   build_android_qa:
     before_run:
       - code_setup
@@ -1274,6 +1339,11 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
+  build_ios_release_and_upload_sourcemaps:
+    envs:
+      - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
+    after_run:
+      - build_ios_release
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
@@ -1461,10 +1531,19 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      PORTFOLIO_VIEW: false
+    - opts:
+        is_expand: false
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: false
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_POOLED_STAKING_UI_ENABLED: true
+    - opts:
+        is_expand: false
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1497,16 +1576,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.31.0
+      VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1432
+      VERSION_NUMBER: 1497
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.31.0
+      FLASK_VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1432
+      FLASK_VERSION_NUMBER: 1497
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1524,7 +1603,7 @@ app:
       NVM_SHA256SUM: '8e45fa547f428e9196a5613efad3bfa4d4608b74ca870f930090598f5af5f643'
     - opts:
         is_expand: false
-      NODE_VERSION: 20.12.2
+      NODE_VERSION: 20.17.0
     - opts:
         is_expand: false
       YARN_VERSION: 1.22.22
@@ -1534,7 +1613,7 @@ app:
 meta:
   bitrise.io:
     stack: osx-xcode-15.0.x
-    machine_type_id: g2-m1-max.5core
+    machine_type_id: g2.mac.large
 trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline

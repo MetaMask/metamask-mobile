@@ -1,28 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 import Login from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-import { backgroundState } from '../../../util/test/initial-root-state';
-
-const mockStore = configureMockStore();
-const initialState = {
-  engine: {
-    backgroundState,
-  },
-  user: {
-    passwordSet: true,
-  },
-};
-const store = mockStore(initialState);
+import renderWithProvider from '../../../util/test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as traceObj from '../../../util/trace';
 
 describe('Login', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Login />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const spyFetch = jest
+      .spyOn(traceObj, 'trace')
+      .mockImplementation(() => undefined);
+    const { toJSON } = renderWithProvider(<Login />);
+    expect(toJSON()).toMatchSnapshot();
+    expect(spyFetch).toHaveBeenCalledTimes(2);
   });
 });
