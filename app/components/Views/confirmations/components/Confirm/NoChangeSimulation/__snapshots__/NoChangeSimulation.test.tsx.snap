@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Simulation should match snapshot 1`] = `
+exports[`NoChangeSimulation should match snapshot 1`] = `
 <View
   style={
     {
@@ -128,4 +128,4 @@ exports[`Simulation should match snapshot 1`] = `
 </View>
 `;
 
-exports[`Simulation should return null if preference useTransactionSimulations is not enabled 1`] = `null`;
+exports[`NoChangeSimulation should return null if preference useTransactionSimulations is not enabled 1`] = `null`;

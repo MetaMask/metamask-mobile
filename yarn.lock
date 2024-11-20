@@ -4411,10 +4411,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^41.0.0":
-  version "41.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-41.0.0.tgz#b6d5b0064015bbd45bf9a85370c5c4ffd486de1d"
-  integrity sha512-FwnkCxV8IZPN8aCb2xWj4lB2hwVwW4UKkU+0XnD236EAUcWsWYUMf9Z1NNBE2t/NlOKs9xXjfdJRNG3dPJ71dg==
+"@metamask/assets-controllers@^42.0.0":
+  version "42.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-42.0.0.tgz#276f856c9a9381b18d2c86102cfa69918dc2628e"
+  integrity sha512-M3MHtrZFTd8hacHemNirCOmO/wwRX8xTii3n8SDJ5bL5e5BsI8F5HzmOPgBVZ4kj7RDHtKX0s8Z0Yty/5aDVeQ==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/address" "^5.7.0"
@@ -4508,9 +4508,9 @@
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
 "@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.2":
-  version "11.4.2"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.2.tgz#0186c62c841ec94f60a67d0764dc7ab59c176c51"
-  integrity sha512-4zGfTTpjDgvRxo/tb3v1NBu0V/b2bqaDpSQC0noi5A4sm1yiZhyzqBY9+Zg11s8G/imp7+jvYRP1QM6OjFgIjQ==
+  version "11.4.3"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.3.tgz#5763f0bbee2f3770c1ba42dd4869786afef849bd"
+  integrity sha512-shrVCHFwIbt8qVcKbxe/mp5tOxjz6905/7ZIAnwUJKHYv7iEqfjyO1ibPoOknrZCF2vbXtP21b435g3v9DBNTQ==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-query" "^4.0.0"
