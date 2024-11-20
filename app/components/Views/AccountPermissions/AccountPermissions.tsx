@@ -122,7 +122,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(
-      isNonDappNetworkSwitch
+      isNonDappNetworkSwitch && isMultichainVersion1Enabled
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
@@ -885,9 +885,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     renderNetworkPermissionSummaryScreen,
   ]);
 
-  // console.log('>>> isRenderedAsBottomSheet', isRenderedAsBottomSheet);
   return isRenderedAsBottomSheet ? (
-    <BottomSheet ref={sheetRef} isInteractable={!isNonDappNetworkSwitch}>
+    <BottomSheet
+      ref={sheetRef}
+      isInteractable={!isNonDappNetworkSwitch && isMultichainVersion1Enabled}
+    >
       {renderPermissionsScreens()}
     </BottomSheet>
   ) : (
