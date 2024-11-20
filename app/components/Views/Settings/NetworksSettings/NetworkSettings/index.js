@@ -447,6 +447,7 @@ export class NetworkSettings extends PureComponent {
     blockExplorerUrls: [],
     selectedRpcEndpointIndex: 0,
     blockExplorerUrl: undefined,
+    blockExplorerUrlForm: undefined,
     nickname: undefined,
     chainId: undefined,
     ticker: undefined,
@@ -714,7 +715,11 @@ export class NetworkSettings extends PureComponent {
       // in an error message in the form.
       if (!formChainId.startsWith('0x')) {
         try {
-          endpointChainId = new BigNumber(endpointChainId, 16).toString(10);
+          const endpointChainIdNumber = new BigNumber(endpointChainId, 16);
+          if (endpointChainIdNumber.isNaN()) {
+            throw new Error('Invalid endpointChainId');
+          }
+          endpointChainId = endpointChainIdNumber.toString(10);
         } catch (err) {
           Logger.error(err, {
             endpointChainId,
@@ -817,14 +822,13 @@ export class NetworkSettings extends PureComponent {
     shouldNetworkSwitchPopToWallet,
     navigation,
   }) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
     const url = new URL(rpcUrl);
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
     }
 
-    CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
     const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
@@ -1288,10 +1292,21 @@ export class NetworkSettings extends PureComponent {
   };
 
   onBlockExplorerItemAdd = async (url) => {
+    // If URL is empty or undefined, return early
     if (!url) {
       return;
     }
 
+    // Check if the URL already exists in blockExplorerUrls
+    const { blockExplorerUrls } = this.state;
+    const urlExists = blockExplorerUrls.includes(url);
+
+    if (urlExists) {
+      // If the URL already exists, return early
+      return;
+    }
+
+    // If the URL doesn't exist, proceed with adding it
     await this.setState((prevState) => ({
       blockExplorerUrls: [...prevState.blockExplorerUrls, url],
     }));
@@ -1351,6 +1366,7 @@ export class NetworkSettings extends PureComponent {
   onBlockExplorerUrlChange = async (url) => {
     const { addMode } = this.state;
     await this.setState({
+      blockExplorerUrlForm: url,
       blockExplorerUrl: url,
     });
 
@@ -1486,7 +1502,10 @@ export class NetworkSettings extends PureComponent {
   };
 
   closeAddBlockExplorerRpcForm = () => {
-    this.setState({ showAddBlockExplorerForm: { isVisible: false } });
+    this.setState({
+      showAddBlockExplorerForm: { isVisible: false },
+      blockExplorerUrlForm: undefined,
+    });
   };
 
   closeRpcModal = () => {
@@ -1510,7 +1529,7 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
@@ -1518,7 +1537,6 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
@@ -1603,6 +1621,7 @@ export class NetworkSettings extends PureComponent {
       rpcUrlForm,
       rpcNameForm,
       rpcName,
+      blockExplorerUrlForm,
     } = this.state;
     const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
@@ -2044,6 +2063,7 @@ export class NetworkSettings extends PureComponent {
               <View style={styles.dropDownInput}>
                 <Cell
                   key={rpcUrl}
+                  testID={NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER}
                   variant={CellVariant.SelectWithMenu}
                   title={blockExplorerUrl}
                   isSelected={false}
@@ -2204,6 +2224,7 @@ export class NetworkSettings extends PureComponent {
                   ref={this.inputBlockExplorerURL}
                   style={inputStyle}
                   autoCapitalize={'none'}
+                  value={blockExplorerUrlForm}
                   autoCorrect={false}
                   onChangeText={this.onBlockExplorerUrlChange}
                   placeholder={strings(
@@ -2211,26 +2232,34 @@ export class NetworkSettings extends PureComponent {
                   )}
                   testID={NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT}
                   placeholderTextColor={colors.text.muted}
-                  onSubmitEditing={this.toggleNetworkDetailsModal}
+                  onSubmitEditing={() => {
+                    this.onBlockExplorerItemAdd(blockExplorerUrlForm);
+                  }}
                   keyboardAppearance={themeAppearance}
                 />
-                {blockExplorerUrl && !isUrl(blockExplorerUrl) && (
-                  <View>
+                {blockExplorerUrl &&
+                  (!isUrl(blockExplorerUrl) ||
+                    blockExplorerUrls.includes(blockExplorerUrlForm)) && (
                     <Text style={styles.warningText}>
                       {strings('app_settings.invalid_block_explorer_url')}
                     </Text>
-                  </View>
-                )}
+                  )}
+
                 <View style={styles.addRpcNameButton}>
                   <ButtonPrimary
                     label={strings('app_settings.add_block_explorer_url')}
+                    testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     size={ButtonSize.Lg}
                     onPress={() => {
-                      this.onBlockExplorerItemAdd(blockExplorerUrl);
+                      this.onBlockExplorerItemAdd(blockExplorerUrlForm);
                     }}
                     width={ButtonWidthTypes.Full}
                     labelTextVariant={TextVariant.DisplayMD}
-                    isDisabled={!blockExplorerUrl || !isUrl(blockExplorerUrl)}
+                    isDisabled={
+                      !blockExplorerUrl ||
+                      !blockExplorerUrlForm ||
+                      !isUrl(blockExplorerUrl)
+                    }
                   />
                 </View>
               </SafeAreaView>
@@ -2297,6 +2326,7 @@ export class NetworkSettings extends PureComponent {
                       this.openAddBlockExplorerForm();
                       this.closeBlockExplorerModal();
                     }}
+                    testID={NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER}
                     width={ButtonWidthTypes.Auto}
                     labelTextVariant={TextVariant.DisplayMD}
                   />

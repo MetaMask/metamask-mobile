@@ -23,7 +23,7 @@ import {
 
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { NetworkApprovalModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkApprovalModal.selectors';
+import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
@@ -150,7 +150,7 @@ const NetworkModals = (props: NetworkProps) => {
     label: strings('accountApproval.cancel'),
     size: ButtonSize.Lg,
     onPress: showCheckNetworkModal,
-    testID: NetworkApprovalModalSelectorsIDs.CANCEL_BUTTON,
+    testID: NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
   };
 
   const confirmButtonProps: ButtonProps = {
@@ -161,7 +161,7 @@ const NetworkModals = (props: NetworkProps) => {
       toggleUseSafeChainsListValidation(true);
       showCheckNetworkModal();
     },
-    testID: NetworkApprovalModalSelectorsIDs.CONFIRM_NETWORK_CHECK,
+    testID: NetworkApprovalBottomSheetSelectorsIDs.CONFIRM_NETWORK_CHECK,
   };
 
   const useSafeChainsListValidation = useSelector(
@@ -317,11 +317,9 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
-
-    CurrencyRateController.updateExchangeRate(ticker);
 
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');

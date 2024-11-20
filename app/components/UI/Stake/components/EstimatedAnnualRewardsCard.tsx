@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
+  IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
@@ -66,7 +67,11 @@ const EstimatedAnnualRewardsCard = ({
             onPress={onIconPress}
             accessibilityLabel="Learn More"
           >
-            <Icon name={IconName.Question} color={IconColor.Alternative} />
+            <Icon
+              name={IconName.Question}
+              color={IconColor.Muted}
+              size={IconSize.Sm}
+            />
           </TouchableOpacity>
         </View>
         <View style={styles.rewardRateContainer}>

@@ -5,6 +5,9 @@ import useBluetoothDevices from '../../hooks/Ledger/useBluetoothDevices';
 import useBluetoothPermissions from '../../hooks/useBluetoothPermissions';
 import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import { BluetoothPermissionErrors } from '../../../core/Ledger/ledgerErrors';
+import { fireEvent } from '@testing-library/react-native';
+import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
+import { NavigationProp, ParamListBase,   useNavigation } from '@react-navigation/native';
 
 jest.mock('../../hooks/Ledger/useBluetooth');
 jest.mock('../../hooks/Ledger/useBluetoothDevices');
@@ -12,6 +15,11 @@ jest.mock('../../hooks/useBluetoothPermissions');
 
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -175,4 +183,41 @@ describe('Scan', () => {
 
     expect(onScanningErrorStateChanged).toHaveBeenCalled();
   });
+
+  it('calls onValueChange when select different device', () => {
+    const device1 = {
+      id: 'device1',
+      name: 'Device 1',
+    };
+    const device2 = {
+      id: 'device2',
+      name: 'Device 2',
+    };
+
+    const onDeviceSelected = jest.fn();
+
+    const navigateMock = {
+      navigate: jest.fn().mockImplementation(() => {onDeviceSelected(device2);}),
+    } as unknown as NavigationProp<ParamListBase>;
+    jest.mocked(useNavigation).mockReturnValue(navigateMock);
+
+    jest.mocked(useBluetoothDevices).mockReturnValue({
+      devices: [device1, device2],
+      deviceScanError: false,
+    });
+
+    const {getByTestId} = renderWithProvider(
+      <Scan
+        onDeviceSelected={onDeviceSelected}
+        onScanningErrorStateChanged={jest.fn()}
+        ledgerError={undefined}
+      />,
+    );
+    expect(onDeviceSelected).toHaveBeenCalledWith(device1);
+
+    fireEvent.press(getByTestId(SELECT_DROP_DOWN));
+
+    expect(onDeviceSelected).toHaveBeenCalledWith(device2);
+  });
+
 });

@@ -155,9 +155,9 @@ function validateNativeCurrency(nativeCurrency) {
   }
   const ticker = nativeCurrency?.symbol || 'ETH';
 
-  if (typeof ticker !== 'string' || ticker.length < 2 || ticker.length > 6) {
+  if (typeof ticker !== 'string' || ticker.length < 1 || ticker.length > 6) {
     throw rpcErrors.invalidParams({
-      message: `Expected 2-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
+      message: `Expected 1-6 character string 'nativeCurrency.symbol'. Received:\n${ticker}`,
     });
   }
 
@@ -207,7 +207,6 @@ export async function switchToNetwork({
   isAddNetworkFlow = false,
 }) {
   const {
-    CurrencyRateController,
     NetworkController,
     PermissionController,
     SelectedNetworkController,
@@ -247,7 +246,6 @@ export async function switchToNetwork({
     symbol: networkConfiguration?.ticker || 'ETH',
     ...analytics,
   };
-
   // for some reason this extra step is necessary for accessing the env variable in test environment
   const chainPermissionsFeatureEnabled =
     { ...process.env }?.NODE_ENV === 'test'
@@ -301,7 +299,6 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    CurrencyRateController.updateExchangeRate(requestData.ticker);
     NetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );

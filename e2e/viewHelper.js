@@ -4,8 +4,8 @@ import EnableAutomaticSecurityChecksView from './pages/modals/EnableAutomaticSec
 import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
-import NetworkEducationModal from './pages/modals/NetworkEducationModal';
-import NetworkListModal from './pages/modals/NetworkListModal';
+import NetworkEducationModal from './pages/Network/NetworkEducationModal';
+import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
@@ -87,7 +87,7 @@ export const skipNotificationsDeviceSettings = async () => {
   }
 };
 
-export const importWalletWithRecoveryPhrase = async () => {
+export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -98,9 +98,11 @@ export const importWalletWithRecoveryPhrase = async () => {
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportWalletView.enterPassword(validAccount.password);
-  await ImportWalletView.reEnterPassword(validAccount.password);
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.enterPassword(password ?? validAccount.password);
+  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
 
   //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);

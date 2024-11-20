@@ -14,7 +14,11 @@ import Text, {
 
 // Internal dependencies.
 import { default as ListItemSelectWithButtonComponent } from './ListItemMultiSelectButton';
-import { SAMPLE_LISTITEMMULTISELECT_PROPS } from './ListItemMultiSelectButton.constants';
+import {
+  BUTTON_TEST_ID,
+  DEFAULT_LISTITEMMULTISELECT_GAP,
+  SAMPLE_LISTITEMMULTISELECT_PROPS,
+} from './ListItemMultiSelectButton.constants';
 import { ListItemMultiSelectButtonProps } from './ListItemMultiSelectButton.types';
 
 const ListItemSelectWithButtonMeta = {
@@ -28,6 +32,27 @@ const ListItemSelectWithButtonMeta = {
     isDisabled: {
       control: { type: 'boolean' },
       defaultValue: SAMPLE_LISTITEMMULTISELECT_PROPS.isDisabled,
+    },
+    showButtonIcon: {
+      control: { type: 'boolean' },
+      defaultValue: true,
+    },
+    buttonIcon: {
+      control: { type: 'select' },
+      options: Object.values(IconName),
+      defaultValue: IconName.MoreVertical,
+    },
+    gap: {
+      control: { type: 'number' },
+      defaultValue: DEFAULT_LISTITEMMULTISELECT_GAP,
+    },
+    buttonProps: {
+      control: 'object',
+      defaultValue: {
+        textButton: '',
+        onButtonClick: () => null,
+        buttonTestId: BUTTON_TEST_ID,
+      },
     },
   },
 };

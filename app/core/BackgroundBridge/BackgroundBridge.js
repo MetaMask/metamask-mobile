@@ -16,7 +16,6 @@ import Engine from '../Engine';
 import { createSanitizationMiddleware } from '../SanitizationMiddleware';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
-import { createEngineStream } from 'json-rpc-middleware-stream';
 import RemotePort from './RemotePort';
 import WalletConnectPort from './WalletConnectPort';
 import Port from './Port';
@@ -26,9 +25,10 @@ import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
+const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
+const { providerAsMiddleware } = require('@metamask/eth-json-rpc-middleware');
+import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 const pump = require('pump');
 // eslint-disable-next-line import/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
