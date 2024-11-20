@@ -52,7 +52,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
-import type SwapsController from '@metamask/swaps-controller';
 
 interface AssetOverviewProps {
   navigation: {
