@@ -52,10 +52,6 @@ const useAccounts = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
-  console.log(
-    'Bitcoin/ useAccounts',
-    JSON.stringify(internalAccounts, null, 2),
-  );
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMultiAccountBalancesEnabled = useSelector(

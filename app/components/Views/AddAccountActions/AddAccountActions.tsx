@@ -80,8 +80,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
         scope,
       });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Bitcoin account creation failed', error);
+      Logger.error(error as Error, 'Bitcoin account creation failed');
     } finally {
       onBack();
       setIsLoading(false);
