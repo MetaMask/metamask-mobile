@@ -22,12 +22,18 @@ const PickerNetwork = ({
   label,
   imageSource,
   hideNetworkName,
+  disabled = false,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
   return (
-    <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
+    <TouchableOpacity
+      style={styles.base}
+      onPress={onPress}
+      disabled={disabled}
+      {...props}
+    >
       <View style={hideNetworkName ? styles.networkIconContainer : null}>
         <Avatar
           variant={AvatarVariant.Network}
