@@ -336,7 +336,11 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            ).build(),
+          );
         }
       }
     },
@@ -346,6 +350,7 @@ const RootRPCMethodsUI = (props) => {
       trackEvent,
       swapsTransactions,
       addTransactionMetaIdForListening,
+      createEventBuilder,
     ],
   );
 

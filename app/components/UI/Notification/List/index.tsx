@@ -193,7 +193,9 @@ function TabbedNotificationList(props: NotificationsListProps) {
           );
           break;
         case strings('notifications.list.2'):
-          // trackEvent(MetaMetricsEvents.WEB3_NOTIFICATIONS);
+          // trackEvent(
+          //   createEventBuilder(MetaMetricsEvents.WEB3_NOTIFICATIONS).build(),
+          // );
           break;
         default:
           break;
