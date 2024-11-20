@@ -3,7 +3,6 @@ import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
-import { initialState as initialSmartTransactions } from '../../core/redux/slices/smartTransactions';
 import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import { initialState as initialFeatureFlagsState } from '../../core/redux/slices/featureFlags';
@@ -27,7 +26,6 @@ const initialRootState: RootState = {
   settings: undefined,
   alert: undefined,
   transaction: undefined,
-  smartTransactions: initialSmartTransactions,
   user: userInitialState,
   wizard: undefined,
   onboarding: undefined,
