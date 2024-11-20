@@ -965,9 +965,6 @@ export function getWalletNavbarOptions(
     },
   });
 
-  console.log('Bitcoin/ selectedInternalAccount', selectedInternalAccount);
-  console.log('Bitcoin/ network name', networkName);
-
   const formattedAddress =
     selectedInternalAccount.type === EthAccountType.Eoa ||
     selectedInternalAccount.type === EthAccountType.Erc4337
@@ -1057,6 +1054,27 @@ export function getWalletNavbarOptions(
     }
   }
 
+  const networkPicker = () => (
+    <View style={styles.leftElementContainer}>
+      {selectedInternalAccount.type === BtcAccountType.P2wpkh ? (
+        <PickerNetwork
+          label={'Bitcoin'}
+          imageSource={require('../../../images/bitcoin-logo.png')}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
+        />
+      ) : (
+        <PickerNetwork
+          label={networkName}
+          imageSource={networkImageSource}
+          onPress={onPressTitle}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
+        />
+      )}
+    </View>
+  );
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1077,21 +1095,7 @@ export function getWalletNavbarOptions(
         />
       </View>
     ),
-    headerLeft: () => (
-      <View style={styles.leftElementContainer}>
-        {selectedInternalAccount.type === BtcAccountType.P2wpkh ? (
-          <Text>Bitcoin</Text>
-        ) : (
-          <PickerNetwork
-            label={networkName}
-            imageSource={networkImageSource}
-            onPress={onPressTitle}
-            testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-            hideNetworkName
-          />
-        )}
-      </View>
-    ),
+    headerLeft: () => networkPicker(),
     headerRight: () => (
       <View style={styles.rightElementContainer}>
         <View
