@@ -13,7 +13,7 @@ export enum TokenStandard {
 export interface UseNftCollectionsMetadataRequest {
   chainId: string;
   contractAddress: string;
-};
+}
 
 // For now, we only support ERC721 tokens
 const SUPPORTED_NFT_TOKEN_STANDARDS = [TokenStandard.erc721];

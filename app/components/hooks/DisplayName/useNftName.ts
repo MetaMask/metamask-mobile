@@ -5,7 +5,7 @@ import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 export interface UseNFTNameResponse {
   name: string | undefined;
   image: string | undefined;
-};
+}
 
 /**
  * Get the display name and image for the given value.
