@@ -260,5 +260,22 @@ describe('Tags Utils', () => {
 
       expect(tags?.['wallet.pending_approval']).toBeUndefined();
     });
+
+    it('handles ApprovalController as an empty object', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: {},
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeDefined();
+      expect(tags?.['wallet.pending_approval']).toBeUndefined();
+    });
   });
 });
