@@ -49,20 +49,19 @@ const mockMetrics = {
 
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
+class MockEventDataBuilder extends MetricsEventBuilder {
+  addProperties = jest.fn().mockReturnThis();
+  addSensitiveProperties = jest.fn().mockReturnThis();
+  setSaveDataRecording = jest.fn().mockReturnThis();
+  build = jest.fn().mockReturnThis();
+}
+
 describe('useMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest
       .spyOn(MetricsEventBuilder, 'createEventBuilder')
-      .mockImplementation((event) => {
-        const builder = {
-          addProperties: jest.fn().mockReturnThis(),
-          addSensitiveProperties: jest.fn().mockReturnThis(),
-          setSaveDataRecording: jest.fn().mockReturnThis(),
-          build: jest.fn().mockReturnThis(),
-        };
-        return builder;
-      });
+      .mockImplementation((event) => new MockEventDataBuilder(event));
   });
 
   it('uses MetaMetrics instance', async () => {
