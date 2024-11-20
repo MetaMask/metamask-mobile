@@ -362,7 +362,6 @@ type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 export interface EngineState {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
-  AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -377,8 +376,6 @@ export interface EngineState {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
-  TokenDetectionController: BaseState;
-  NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
