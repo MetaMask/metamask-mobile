@@ -85,7 +85,7 @@ const selectNetworkControllerState = (state: RootState) =>
 export const selectSelectedNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.selectedNetworkClientId,
+    networkControllerState?.selectedNetworkClientId,
 );
 
 export const selectProviderConfig = createDeepEqualSelector(
@@ -122,15 +122,15 @@ export const selectTicker = createSelector(
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.chainId,
+  (providerConfig: ProviderConfig) => providerConfig?.chainId,
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.type,
+  (providerConfig: ProviderConfig) => providerConfig?.type,
 );
 export const selectNickname = createSelector(
   selectProviderConfig,
-  (providerConfig: ProviderConfig) => providerConfig.nickname,
+  (providerConfig: ProviderConfig) => providerConfig?.nickname,
 );
 export const selectRpcUrl = createSelector(
   selectProviderConfig,
@@ -141,18 +141,18 @@ export const selectNetworkStatus = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState?.networksMetadata[
-      networkControllerState.selectedNetworkClientId
+      networkControllerState?.selectedNetworkClientId
     ].status,
 );
 
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurationsByChainId,
+    networkControllerState?.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.selectedNetworkClientId,
+    networkControllerState?.selectedNetworkClientId,
 );
