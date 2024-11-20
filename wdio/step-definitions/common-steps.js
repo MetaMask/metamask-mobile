@@ -17,7 +17,6 @@ import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
-import TransactionProtectionModal from '../screen-objects/Modals/TransactionProtectionModal';
 import SettingsScreen from '../screen-objects/SettingsScreen';
 
 Then(/^the Welcome screen is displayed$/, async () => {
@@ -318,16 +317,6 @@ Given(/^I close all the onboarding modals$/, async () => {
     /* eslint-disable no-console */
 
     console.log('The onboarding modal is not visible');
-  }
-
-  try {
-    await TransactionProtectionModal.isVisible();
-    await TransactionProtectionModal.tapEnableButton();
-    await TransactionProtectionModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
   }
 
   try {

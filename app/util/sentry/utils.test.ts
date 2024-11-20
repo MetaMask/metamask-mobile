@@ -366,9 +366,6 @@ describe('captureSentryFeedback', () => {
         type: undefined,
         warningGasPriceHigh: undefined,
       },
-      smartTransactions: {
-        optInModalAppVersionSeen: null,
-      },
       user: {
         ambiguousAddressEntries: {},
         backUpSeedphraseVisible: false,
@@ -500,7 +497,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -540,7 +536,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -577,7 +572,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',

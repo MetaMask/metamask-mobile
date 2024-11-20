@@ -22,7 +22,7 @@ export const mockEvents = {
       response: suggestedGasApiResponses.error,
       responseCode: 500,
     },
-    
+
     /**
      * Ganache gas fees endpoint with a mock 200 success response.
      * @property {string} urlEndpoint - API endpoint for Ganache gas fees.

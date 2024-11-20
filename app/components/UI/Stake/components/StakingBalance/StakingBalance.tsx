@@ -166,7 +166,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   return (
     <View>
-      {hasStakedPositions && (
+      {hasEthToUnstake && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}

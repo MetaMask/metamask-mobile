@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-index 97182f2..107ef23 100644
+index a36c32e..2cf3d16 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 @@ -17,7 +17,7 @@ const metadata = {
@@ -11,19 +11,20 @@ index 97182f2..107ef23 100644
      securityAlertsEnabled: { persist: true, anonymous: true },
      selectedAddress: { persist: true, anonymous: false },
      showTestNetworks: { persist: true, anonymous: true },
-@@ -26,6 +26,11 @@ const metadata = {
+@@ -26,10 +26,11 @@ const metadata = {
      useTokenDetection: { persist: true, anonymous: true },
      smartTransactionsOptInStatus: { persist: true, anonymous: false },
      useTransactionSimulations: { persist: true, anonymous: true },
-+    useSafeChainsListValidation: { persist: true, anonymous: true },
-+    showMultiRpcModal: { persist: false, anonymous: false },
-+    tokenSortConfig: { persist: true, anonymous: false },
+-    useMultiRpcMigration: { persist: true, anonymous: true },
++    showMultiRpcModal: { persist: true, anonymous: true },
+     useSafeChainsListValidation: { persist: true, anonymous: true },
+     tokenSortConfig: { persist: true, anonymous: true },
+     privacyMode: { persist: true, anonymous: true },
 +    tokenNetworkFilter: { persist: true, anonymous: false },
-+    privacyMode: { persist: true, anonymous: true },
  };
  const name = 'PreferencesController';
  /**
-@@ -41,7 +46,7 @@ function getDefaultPreferencesState() {
+@@ -45,7 +46,7 @@ function getDefaultPreferencesState() {
          isIpfsGatewayEnabled: true,
          isMultiAccountBalancesEnabled: true,
          lostIdentities: {},
@@ -32,23 +33,27 @@ index 97182f2..107ef23 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -71,6 +76,15 @@ function getDefaultPreferencesState() {
+@@ -73,16 +74,17 @@ function getDefaultPreferencesState() {
+         showTestNetworks: false,
+         useNftDetection: false,
          useTokenDetection: true,
-         smartTransactionsOptInStatus: false,
-         useTransactionSimulations: true,
-+        useSafeChainsListValidation: true,
+-        useMultiRpcMigration: true,
 +        showMultiRpcModal: false,
-+        tokenSortConfig: {
-+          key: 'tokenFiatBalance',
-+          order: 'dsc',
-+          sortCallback: 'stringNumeric'
-+        },
+         smartTransactionsOptInStatus: true,
+         useTransactionSimulations: true,
+         useSafeChainsListValidation: true,
+         tokenSortConfig: {
+-            key: 'tokenFiatAmount',
++            key: 'tokenFiatBalance',
+             order: 'dsc',
+             sortCallback: 'stringNumeric',
+         },
+         privacyMode: false,
 +        tokenNetworkFilter: {},
-+        privacyMode: false,
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -209,22 +223,22 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -221,22 +223,22 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -78,43 +83,29 @@ index 97182f2..107ef23 100644
                  state.useNftDetection = false;
              }
          });
-@@ -305,6 +319,59 @@ class PreferencesController extends base_controller_1.BaseController {
-             state.useTransactionSimulations = useTransactionSimulations;
+@@ -300,13 +302,13 @@ class PreferencesController extends base_controller_1.BaseController {
+     /**
+      * Toggle multi rpc migration modal.
+      *
+-     * @param useMultiRpcMigration - Boolean indicating if the multi rpc modal will be displayed or not.
++     * @param showMultiRpcModal - Boolean indicating if the multi rpc modal will be displayed or not.
+      */
+-    setUseMultiRpcMigration(useMultiRpcMigration) {
++    setShowMultiRpcModal(showMultiRpcModal) {
+         this.update((state) => {
+-            state.useMultiRpcMigration = useMultiRpcMigration;
+-            if (!useMultiRpcMigration) {
+-                state.useMultiRpcMigration = false;
++            state.showMultiRpcModal = showMultiRpcModal;
++            if (!showMultiRpcModal) {
++                state.showMultiRpcModal = false;
+             }
          });
      }
-+    /**
-+     * Toggle the use safe chains list validation.
-+     *
-+     * @param useSafeChainsListValidation - Boolean indicating user preference on using chainid.network third part to check safe networks.
-+     */
-+    setUseSafeChainsListValidation(useSafeChainsListValidation) {
-+        this.update((state) => {
-+            state.useSafeChainsListValidation = useSafeChainsListValidation;
-+        });
-+    }
-+    /**
-+     * Toggle multi rpc migration modal.
-+     *
-+     * @param showMultiRpcModal - Boolean indicating if the multi rpc modal will be displayed or not.
-+     */
-+    setShowMultiRpcModal(showMultiRpcModal) {
-+      this.update((state) => {
-+        state.showMultiRpcModal = showMultiRpcModal;
-+        if (showMultiRpcModal) {
-+          state.showMultiRpcModal = false;
-+        }
-+      });
-+    }
-+    /**
-+     * Set the token sort configuration setting.
-+     *
-+     * @param tokenSortConfig - Object describing token sort configuration.
-+     */
-+    setTokenSortConfig(tokenSortConfig) {
-+      this.update((state) => {
-+        state.tokenSortConfig = tokenSortConfig;
-+      });
-+    }
+@@ -360,6 +362,16 @@ class PreferencesController extends base_controller_1.BaseController {
+             state.privacyMode = privacyMode;
+         });
+     }
 +    /**
 +     * Set the token network filter configuration setting.
 +     *
@@ -125,24 +116,14 @@ index 97182f2..107ef23 100644
 +        state.tokenNetworkFilter = tokenNetworkFilter;
 +      });
 +    }
-+    /**
-+     * A setter for the user preferences to enable/disable privacy mode.
-+     *
-+     * @param privacyMode - true to enable privacy mode, false to disable it.
-+     */
-+    setPrivacyMode(privacyMode) {
-+      this.update((state) => {
-+        state.privacyMode = privacyMode;
-+      });
-+    }
  }
  exports.PreferencesController = PreferencesController;
  _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-index 04a9d6f..5885d5b 100644
+index b587817..ad05486 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-@@ -65,7 +65,7 @@ export type PreferencesState = {
+@@ -70,7 +70,7 @@ export type PreferencesState = {
      /**
       * Controls whether the OpenSea API is used
       */
@@ -151,55 +132,27 @@ index 04a9d6f..5885d5b 100644
      /**
       * Controls whether "security alerts" are enabled
       */
-@@ -100,6 +100,26 @@ export type PreferencesState = {
-      * Controls whether transaction simulations are enabled
+@@ -108,7 +108,7 @@ export type PreferencesState = {
+     /**
+      * Controls whether Multi rpc modal is displayed or not
       */
-     useTransactionSimulations: boolean;
-+    /**
-+     * Controls whether to use the safe chains list validation
-+     */
-+    useSafeChainsListValidation: boolean;
-+    /**
-+     * Controls whether Multi rpc modal is displayed or not
-+     */
+-    useMultiRpcMigration: boolean;
 +    showMultiRpcModal: boolean;
-+    /**
-+     * Controls token sorting controls
-+     */
-+    tokenSortConfig: Record<string, string>;
+     /**
+      * Controls whether to use the safe chains list validation
+      */
+@@ -121,6 +121,10 @@ export type PreferencesState = {
+      * Controls whether balance and assets are hidden or not
+      */
+     privacyMode: boolean;
 +    /**
 +     * Controls token filtering controls
 +     */
 +    tokenNetworkFilter: Record<string, string>;
-+    /**
-+     * Controls whether balance and assets are hidden or not
-+     */
-+    privacyMode: boolean;
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
-@@ -120,7 +140,7 @@ export declare function getDefaultPreferencesState(): {
-     isIpfsGatewayEnabled: boolean;
-     isMultiAccountBalancesEnabled: boolean;
-     lostIdentities: {};
--    openSeaEnabled: boolean;
-+    displayNftMedia: boolean;
-     securityAlertsEnabled: boolean;
-     selectedAddress: string;
-     showIncomingTransactions: {
-@@ -150,6 +170,11 @@ export declare function getDefaultPreferencesState(): {
-     useTokenDetection: boolean;
-     smartTransactionsOptInStatus: boolean;
-     useTransactionSimulations: boolean;
-+    useSafeChainsListValidation: boolean;
-+    showMultiRpcModal: boolean;
-+    tokenSortConfig: Record<string, string>;
-+    tokenNetworkFilter: Record<string, boolean>;
-+    privacyMode: boolean;
- };
- /**
-  * Controller that stores shared settings and exposes convenience methods
-@@ -218,11 +243,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
+@@ -202,11 +206,11 @@ export declare class PreferencesController extends BaseController<typeof name, P
       */
      setUseNftDetection(useNftDetection: boolean): void;
      /**
@@ -207,47 +160,35 @@ index 04a9d6f..5885d5b 100644
 +     * Toggle the display nft media enabled setting.
       *
 -     * @param openSeaEnabled - Boolean indicating user preference on using OpenSea's API.
-+     * * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
++     * @param displayNftMedia - Boolean indicating user preference on using web2 third parties.
       */
 -    setOpenSeaEnabled(openSeaEnabled: boolean): void;
 +    setDisplayNftMedia(displayNftMedia: boolean): void;
      /**
       * Toggle the security alert enabled setting.
       *
-@@ -266,6 +291,35 @@ export declare class PreferencesController extends BaseController<typeof name, P
-      * @param useTransactionSimulations - true to enable transaction simulations, false to disable it.
-      */
-     setUseTransactionSimulations(useTransactionSimulations: boolean): void;
-+    /**
-+    * Toggle the use safe chains list validation.
-+    * @param useSafeChainsListValidation - Boolean indicating user preference on using chainid.network third part to check safe networks.
-+    */
-+    setUseSafeChainsListValidation(useSafeChainsListValidation: boolean): void;
-+    /**
-+     * Toggle multi rpc migration modal.
-+     *
+@@ -241,9 +245,9 @@ export declare class PreferencesController extends BaseController<typeof name, P
+     /**
+      * Toggle multi rpc migration modal.
+      *
+-     * @param useMultiRpcMigration - Boolean indicating if the multi rpc modal will be displayed or not.
 +     * @param showMultiRpcModal - Boolean indicating if the multi rpc modal will be displayed or not.
-+     */
+      */
+-    setUseMultiRpcMigration(useMultiRpcMigration: boolean): void;
 +    setShowMultiRpcModal(showMultiRpcModal: boolean): void;
-+    /**
-+     * Set the token sort configuration setting.
-+     *
-+     * @param tokenSortConfig - Object describing token sort configuration.
-+     */
-+    setTokenSortConfig(tokenSortConfig: Record<string, string>): void;
+     /**
+      * A setter for the user to opt into smart transactions
+      *
+@@ -274,6 +278,12 @@ export declare class PreferencesController extends BaseController<typeof name, P
+      * @param privacyMode - true to enable privacy mode, false to disable it.
+      */
+     setPrivacyMode(privacyMode: boolean): void;
 +    /**
 +     * Set the token sort configuration setting.
 +     *
 +     * @param tokenNetworkFilter - Object describing token sort configuration.
 +     */
 +    setTokenNetworkFilter(tokenNetworkFilter: Record<string, boolean>): void;
-+    /**
-+     * A setter for the user preferences to enable/disable privacy mode.
-+     *
-+     * @param privacyMode - true to enable privacy mode, false to disable it.
-+     */
-+    setPrivacyMode(privacyMode: boolean): void;
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.cts.map
-\ No newline at end of file

@@ -2,6 +2,7 @@ import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import type { SnapController } from '@metamask/snaps-controllers';
 import { SnapKeyringBuilderMessenger } from './types';
 import Logger from '../../util/Logger';
+import { showAccountNameSuggestionDialog } from './utils/showDialog';
 
 /**
  * Constructs a SnapKeyring builder with specified handlers for managing snap accounts.
@@ -49,34 +50,64 @@ export const snapKeyringBuilder = (
         snapId: string,
         handleUserInput: (accepted: boolean) => Promise<void>,
         accountNameSuggestion = '',
-        displayConfirmation = false,
       ) => {
-        // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
-        Logger.log(
-          `SnapKeyring: addAccount called with \n
-        - address: ${address} \n
-        - handleUserInput: ${handleUserInput} \n
-        - snapId: ${snapId} \n
-        - accountNameSuggestion: ${accountNameSuggestion} \n
-        - displayConfirmation: ${displayConfirmation}`,
+        const { id: addAccountFlowId } = controllerMessenger.call(
+          'ApprovalController:startFlow',
         );
 
-        // Approve everything for now because we have not implemented snap account confirmations yet
-        await handleUserInput(true);
-        await persistKeyringHelper();
-        const account = controllerMessenger.call(
-          'AccountsController:getAccountByAddress',
-          address,
-        );
-        if (!account) {
-          throw new Error(`Internal account not found for address: ${address}`);
+        try {
+          const accountNameConfirmationResult =
+            await showAccountNameSuggestionDialog(
+              snapId,
+              controllerMessenger,
+              accountNameSuggestion,
+            );
+
+          if (accountNameConfirmationResult.success) {
+            try {
+              await persistKeyringHelper();
+              await handleUserInput(accountNameConfirmationResult.success);
+              const account = controllerMessenger.call(
+                'AccountsController:getAccountByAddress',
+                address,
+              );
+              if (!account) {
+                throw new Error(
+                  `Internal account not found for address: ${address}`,
+                );
+              }
+
+              // Set the selected account to the new account
+              controllerMessenger.call(
+                'AccountsController:setSelectedAccount',
+                account.id,
+              );
+
+              if (accountNameConfirmationResult.name) {
+                controllerMessenger.call(
+                  'AccountsController:setAccountName',
+                  account.id,
+                  accountNameConfirmationResult.name,
+                );
+              }
+            } catch (e) {
+              // Error occurred while naming the account
+              const error = (e as Error).message;
+              throw new Error(
+                `Error occurred while creating snap account: ${error}`,
+              );
+            }
+          } else {
+            // User has cancelled account creation so remove the account from the keyring
+            await handleUserInput(accountNameConfirmationResult?.success);
+
+            throw new Error('User denied account creation');
+          }
+        } finally {
+          controllerMessenger.call('ApprovalController:endFlow', {
+            id: addAccountFlowId,
+          });
         }
-
-        // Set the selected account to the new account
-        controllerMessenger.call(
-          'AccountsController:setSelectedAccount',
-          account.id,
-        );
       },
 
       removeAccount: async (
