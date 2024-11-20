@@ -886,10 +886,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   return isRenderedAsBottomSheet ? (
-    <BottomSheet
-      ref={sheetRef}
-      isInteractable={!isNonDappNetworkSwitch && isMultichainVersion1Enabled}
-    >
+    <BottomSheet ref={sheetRef} isInteractable={!isNonDappNetworkSwitch}>
       {renderPermissionsScreens()}
     </BottomSheet>
   ) : (
