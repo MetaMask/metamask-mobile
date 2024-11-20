@@ -22,9 +22,9 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   usePolling({
     startPolling:
-    TokenDetectionController.startPolling.bind(TokenDetectionController),
+      TokenDetectionController.startPolling.bind(TokenDetectionController),
     stopPollingByPollingToken:
-    TokenDetectionController.stopPollingByPollingToken.bind(TokenDetectionController),
+      TokenDetectionController.stopPollingByPollingToken.bind(TokenDetectionController),
     input: useTokenDetection ? [{
       chainIds: chainIdsToPoll as Hex[],
       address: selectedAccount?.address as Hex
