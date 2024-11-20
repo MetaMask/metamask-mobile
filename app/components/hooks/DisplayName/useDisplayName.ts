@@ -79,7 +79,8 @@ export function useDisplayNames(
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
     const erc20Token = erc20Tokens[index];
-    const { nftCollectionName, nftCollectionImage } = nftNames[index] || {};
+    const { name: nftCollectionName, image: nftCollectionImage } =
+      nftNames[index] || {};
 
     const name =
       watchedNftName ||

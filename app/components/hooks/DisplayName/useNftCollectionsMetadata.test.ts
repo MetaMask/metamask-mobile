@@ -66,14 +66,12 @@ describe('useNftCollectionsMetadata', () => {
     const { result, waitForNextUpdate } = renderHook(() =>
       useNftCollectionsMetadata([
         {
-          value: ERC_721_ADDRESS_1,
-          type: NameType.EthereumAddress,
-          variation: CHAIN_ID_MOCK,
+          contractAddress: ERC_721_ADDRESS_1,
+          chainId: CHAIN_ID_MOCK,
         },
         {
-          value: ERC_721_ADDRESS_2,
-          type: NameType.EthereumAddress,
-          variation: CHAIN_ID_MOCK,
+          contractAddress: ERC_721_ADDRESS_2,
+          chainId: CHAIN_ID_MOCK,
         },
       ]),
     );
@@ -83,8 +81,10 @@ describe('useNftCollectionsMetadata', () => {
     expect(mockGetNFTContractInfo).toHaveBeenCalledTimes(1);
 
     expect(result.current).toStrictEqual({
-      [ERC_721_ADDRESS_1.toLowerCase()]: ERC_721_COLLECTION_1_MOCK,
-      [ERC_721_ADDRESS_2.toLowerCase()]: ERC_721_COLLECTION_2_MOCK,
+      [CHAIN_ID_MOCK]: {
+        [ERC_721_ADDRESS_1.toLowerCase()]: ERC_721_COLLECTION_1_MOCK,
+        [ERC_721_ADDRESS_2.toLowerCase()]: ERC_721_COLLECTION_2_MOCK,
+      },
     });
   });
 
@@ -105,9 +105,8 @@ describe('useNftCollectionsMetadata', () => {
       renderHook(() =>
         useNftCollectionsMetadata([
           {
-            value: '0xERC20Address',
-            type: NameType.EthereumAddress,
-            variation: CHAIN_ID_MOCK,
+            contractAddress: '0xERC20Address',
+            chainId: CHAIN_ID_MOCK,
           },
         ]),
       );
@@ -120,9 +119,8 @@ describe('useNftCollectionsMetadata', () => {
       renderHook(() =>
         useNftCollectionsMetadata([
           {
-            value: '0xERC20Address',
-            type: NameType.EthereumAddress,
-            variation: CHAIN_ID_MOCK,
+            contractAddress: '0xERC20Address',
+            chainId: CHAIN_ID_MOCK,
           },
         ]),
       );
@@ -134,14 +132,12 @@ describe('useNftCollectionsMetadata', () => {
     const { waitForNextUpdate, rerender } = renderHook(() =>
       useNftCollectionsMetadata([
         {
-          value: ERC_721_ADDRESS_1,
-          type: NameType.EthereumAddress,
-          variation: CHAIN_ID_MOCK,
+          contractAddress: ERC_721_ADDRESS_1,
+          chainId: CHAIN_ID_MOCK,
         },
         {
-          value: ERC_721_ADDRESS_2,
-          type: NameType.EthereumAddress,
-          variation: CHAIN_ID_MOCK,
+          contractAddress: ERC_721_ADDRESS_2,
+          chainId: CHAIN_ID_MOCK,
         },
       ]),
     );

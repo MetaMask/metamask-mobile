@@ -22,7 +22,9 @@ describe('useNftNames', () => {
   const useNftCollectionsMetadataMock = jest.mocked(useNftCollectionsMetadata);
 
   beforeAll(() => {
-    useNftCollectionsMetadataMock.mockReturnValue(NFT_COLLECTIONS_MOCK);
+    useNftCollectionsMetadataMock.mockReturnValue({
+      [CHAIN_ID_MOCK]: NFT_COLLECTIONS_MOCK,
+    });
   });
 
   it('returns the correct NFT name and image when not spam', () => {
@@ -33,16 +35,18 @@ describe('useNftNames', () => {
         variation: CHAIN_ID_MOCK,
       },
     ]);
-    expect(responses[0].nftCollectionName).toEqual(KNOWN_NFT_NAME);
-    expect(responses[0].nftCollectionImage).toEqual(KNOWN_NFT_IMAGE);
+    expect(responses[0]?.name).toEqual(KNOWN_NFT_NAME);
+    expect(responses[0]?.image).toEqual(KNOWN_NFT_IMAGE);
   });
 
   it('returns undefined for name and image if NFT is spam', () => {
     useNftCollectionsMetadataMock.mockReturnValue({
-      [KNOWN_NFT_VALUE.toLowerCase()]: {
-        name: KNOWN_NFT_NAME,
-        image: KNOWN_NFT_IMAGE,
-        isSpam: true,
+      [CHAIN_ID_MOCK]: {
+        [KNOWN_NFT_VALUE.toLowerCase()]: {
+          name: KNOWN_NFT_NAME,
+          image: KNOWN_NFT_IMAGE,
+          isSpam: true,
+        },
       },
     });
     const responses = useNftNames([
@@ -52,8 +56,8 @@ describe('useNftNames', () => {
         variation: CHAIN_ID_MOCK,
       },
     ]);
-    expect(responses[0].nftCollectionName).toBeUndefined();
-    expect(responses[0].nftCollectionImage).toBeUndefined();
+    expect(responses[0]?.name).toBeUndefined();
+    expect(responses[0]?.image).toBeUndefined();
   });
 
   it('returns undefined for name and image if no NFT matched', () => {
@@ -65,7 +69,7 @@ describe('useNftNames', () => {
         variation: CHAIN_ID_MOCK,
       },
     ]);
-    expect(responses[0].nftCollectionName).toBeUndefined();
-    expect(responses[0].nftCollectionImage).toBeUndefined();
+    expect(responses[0]?.name).toBeUndefined();
+    expect(responses[0]?.image).toBeUndefined();
   });
 });

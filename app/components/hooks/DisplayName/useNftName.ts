@@ -1,10 +1,11 @@
+import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 
-export interface UseNFTNameResponse {
-  nftCollectionName: string | undefined;
-  nftCollectionImage: string | undefined;
-}
+export type UseNFTNameResponse = {
+  name: string | undefined;
+  image: string | undefined;
+};
 
 /**
  * Get the display name and image for the given value.
@@ -12,25 +13,37 @@ export interface UseNFTNameResponse {
  * @param value The value to get the display name for.
  */
 export function useNftNames(
-  requests: UseDisplayNameRequest[],
-): UseNFTNameResponse[] {
-  const nftCollections = useNftCollectionsMetadata(requests);
+  nameRequests: UseDisplayNameRequest[],
+): (UseNFTNameResponse | undefined)[] {
+  const requests = nameRequests
+    .filter(({ type }) => type === NameType.EthereumAddress)
+    .map(({ value, variation }) => ({
+      chainId: variation,
+      contractAddress: value,
+    }));
 
-  return requests.map(({ value }) => {
-    const nftCollectionProperties = nftCollections[value.toLowerCase()];
+  const nftCollectionsByAddressByChain = useNftCollectionsMetadata(requests);
 
-    const isNotSpam = nftCollectionProperties?.isSpam === false;
+  return nameRequests.map(
+    ({ type, value: contractAddress, variation: chainId }) => {
+      if (type !== NameType.EthereumAddress) {
+        return undefined;
+      }
 
-    const nftCollectionName = isNotSpam
-      ? nftCollectionProperties?.name
-      : undefined;
-    const nftCollectionImage = isNotSpam
-      ? nftCollectionProperties?.image
-      : undefined;
+      const nftCollectionProperties =
+        nftCollectionsByAddressByChain[chainId]?.[
+          contractAddress.toLowerCase()
+        ];
 
-    return {
-      nftCollectionName,
-      nftCollectionImage,
-    };
-  });
+      const isSpam = nftCollectionProperties?.isSpam !== false;
+
+      if (!nftCollectionProperties || isSpam) {
+        return undefined;
+      }
+
+      const { name, image } = nftCollectionProperties;
+
+      return { name, image };
+    },
+  );
 }
