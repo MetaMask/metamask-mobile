@@ -46,7 +46,6 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
