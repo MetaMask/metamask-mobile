@@ -198,12 +198,12 @@ export const switchToSepoliaNetwork = async () => {
   await NetworkListModal.scrollToBottomOfNetworkList();
   await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   await NetworkListModal.changeNetworkTo(
-    CustomNetworks.Sepolia.providerConfig.nickname,
+    CustomNetworks.Sepolia.providerConfig?.nickname,
   );
   await Assertions.checkIfVisible(NetworkEducationModal.container);
   await Assertions.checkIfElementToHaveText(
     NetworkEducationModal.networkName,
-    CustomNetworks.Sepolia.providerConfig.nickname,
+    CustomNetworks.Sepolia.providerConfig?.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
   await Assertions.checkIfNotVisible(NetworkEducationModal.container);

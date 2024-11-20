@@ -405,14 +405,14 @@ export function blockTagParamIndex(payload) {
  */
 export const getNetworkNameFromProviderConfig = (providerConfig) => {
   let name = strings('network_information.unknown_network');
-  if (providerConfig.nickname) {
-    name = providerConfig.nickname;
-  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.MAINNET) {
+  if (providerConfig?.nickname) {
+    name = providerConfig?.nickname;
+  } else if (providerConfig?.chainId === NETWORKS_CHAIN_ID.MAINNET) {
     name = 'Ethereum Main Network';
-  } else if (providerConfig.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
+  } else if (providerConfig?.chainId === NETWORKS_CHAIN_ID.LINEA_MAINNET) {
     name = 'Linea Main Network';
   } else {
-    const networkType = providerConfig.type;
+    const networkType = providerConfig?.type;
     name = NetworkList?.[networkType]?.name || NetworkList[RPC].name;
   }
   return name;

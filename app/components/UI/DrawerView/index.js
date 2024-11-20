@@ -573,19 +573,19 @@ class DrawerView extends PureComponent {
     const { currentChainId, address, name } = this.state.account;
     const accountName = selectedInternalAccount.metadata.name;
     if (
-      currentChainId !== providerConfig.chainId ||
+      currentChainId !== providerConfig?.chainId ||
       address !== this.selectedChecksummedAddress ||
       name !== accountName
     ) {
       const ens = await doENSReverseLookup(
         this.selectedChecksummedAddress,
-        providerConfig.chainId,
+        providerConfig?.chainId,
       );
       this.setState((state) => ({
         account: {
           ens,
           name: accountName,
-          currentChainId: providerConfig.chainId,
+          currentChainId: providerConfig?.chainId,
           address: this.selectedChecksummedAddress,
         },
       }));
@@ -614,7 +614,7 @@ class DrawerView extends PureComponent {
     const { providerConfig } = this.props;
     this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
       source: 'In-app Navigation',
-      chain_id: getDecimalChainId(providerConfig.chainId),
+      chain_id: getDecimalChainId(providerConfig?.chainId),
     });
   };
 
@@ -682,9 +682,9 @@ class DrawerView extends PureComponent {
 
   viewInEtherscan = () => {
     const { providerConfig, networkConfigurations } = this.props;
-    if (providerConfig.type === RPC) {
+    if (providerConfig?.type === RPC) {
       const blockExplorer = findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
+        providerConfig?.rpcUrl,
         networkConfigurations,
       );
       const url = `${blockExplorer}/address/${this.selectedChecksummedAddress}`;
@@ -692,10 +692,10 @@ class DrawerView extends PureComponent {
       this.goToBrowserUrl(url, title);
     } else {
       const url = getEtherscanAddressUrl(
-        providerConfig.type,
+        providerConfig?.type,
         this.selectedChecksummedAddress,
       );
-      const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+      const etherscan_url = getEtherscanBaseUrl(providerConfig?.type).replace(
         'https://',
         '',
       );
@@ -927,7 +927,7 @@ class DrawerView extends PureComponent {
       networkSwitched,
       toggleInfoNetworkModal,
     } = this.props;
-    onboardNetworkAction(providerConfig.chainId);
+    onboardNetworkAction(providerConfig?.chainId);
     networkSwitched({ networkUrl: '', networkStatus: false });
     toggleInfoNetworkModal();
   };
@@ -1193,8 +1193,8 @@ class DrawerView extends PureComponent {
         >
           <NetworkInfo
             onClose={this.onInfoNetworksModalClose}
-            type={providerConfig.type}
-            ticker={providerConfig.ticker}
+            type={providerConfig?.type}
+            ticker={providerConfig?.ticker}
           />
         </Modal>
 

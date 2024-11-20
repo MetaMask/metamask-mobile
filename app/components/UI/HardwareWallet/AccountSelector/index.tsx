@@ -108,7 +108,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
               index={item.index}
               address={item.address}
               balance={item.balance}
-              ticker={providerConfig.ticker}
+              ticker={providerConfig?.ticker}
               toBlockExplorer={toBlockExplorer}
             />
           </View>

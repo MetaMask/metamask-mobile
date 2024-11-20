@@ -408,7 +408,7 @@ const HomeTabs = () => {
 
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
-    return ChainId[providerConfig.type];
+    return ChainId[providerConfig?.type];
   });
 
   const amountOfBrowserOpenTabs = useSelector(

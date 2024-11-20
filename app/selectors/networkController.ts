@@ -117,24 +117,24 @@ export const selectProviderConfig = createDeepEqualSelector(
 
 export const selectTicker = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig?.ticker,
+  (providerConfig: ProviderConfig) => providerConfig?.ticker,
 );
 
 export const selectChainId = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig.chainId,
+  (providerConfig: ProviderConfig) => providerConfig.chainId,
 );
 export const selectProviderType = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig.type,
+  (providerConfig: ProviderConfig) => providerConfig.type,
 );
 export const selectNickname = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig.nickname,
+  (providerConfig: ProviderConfig) => providerConfig.nickname,
 );
 export const selectRpcUrl = createSelector(
   selectProviderConfig,
-  (providerConfig) => providerConfig.rpcUrl,
+  (providerConfig: ProviderConfig) => providerConfig?.rpcUrl,
 );
 
 export const selectNetworkStatus = createSelector(

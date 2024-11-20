@@ -178,7 +178,7 @@ export const checkActiveAccountAndChainId = async ({
   );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
-    const networkType = providerConfig.type as NetworkType;
+    const networkType = providerConfig?.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
     let activeChainId;
@@ -186,7 +186,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
+      activeChainId = providerConfig?.chainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {

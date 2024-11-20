@@ -129,12 +129,12 @@ const AssetDetails = (props: Props) => {
 
   const getNetworkName = () => {
     let name = '';
-    if (providerConfig.nickname) {
-      name = providerConfig.nickname;
+    if (providerConfig?.nickname) {
+      name = providerConfig?.nickname;
     } else {
       name =
-        (Networks as Record<string, { name: string }>)[providerConfig.type]
-          ?.name || { ...Networks.rpc, color: null }.name;
+        (Networks as Record<string, { name: string }>)[providerConfig?.type]
+          ?.name ?? { ...Networks.rpc, color: null }.name;
     }
     return name;
   };

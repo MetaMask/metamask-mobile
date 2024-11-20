@@ -84,14 +84,14 @@ const AccountActions = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+    if (providerConfig?.rpcUrl && providerConfig?.type === RPC) {
       return findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
+        providerConfig?.rpcUrl,
         networkConfigurations,
       );
     }
     return null;
-  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
+  }, [networkConfigurations, providerConfig?.rpcUrl, providerConfig?.type]);
 
   const blockExplorerName = getBlockExplorerName(blockExplorer);
 
@@ -113,10 +113,10 @@ const AccountActions = () => {
         goToBrowserUrl(url, title);
       } else {
         const url = getEtherscanAddressUrl(
-          providerConfig.type,
+          providerConfig?.type,
           selectedAddress,
         );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+        const etherscan_url = getEtherscanBaseUrl(providerConfig?.type).replace(
           'https://',
           '',
         );
@@ -320,8 +320,8 @@ const AccountActions = () => {
   };
 
   const isExplorerVisible = Boolean(
-    (providerConfig.type === 'rpc' && blockExplorer) ||
-      providerConfig.type !== 'rpc',
+    (providerConfig?.type === 'rpc' && blockExplorer) ||
+      providerConfig?.type !== 'rpc',
   );
 
   return (

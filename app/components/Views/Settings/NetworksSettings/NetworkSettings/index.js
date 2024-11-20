@@ -1548,8 +1548,8 @@ export class NetworkSettings extends PureComponent {
     const { navigation, networkConfigurations, providerConfig } = this.props;
     const { rpcUrl } = this.state;
     if (
-      compareSanitizedUrl(rpcUrl, providerConfig.rpcUrl) &&
-      providerConfig.type === RPC
+      compareSanitizedUrl(rpcUrl, providerConfig?.rpcUrl) &&
+      providerConfig?.type === RPC
     ) {
       this.switchToMainnet();
     }

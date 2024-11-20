@@ -114,7 +114,7 @@ class NavbarTitle extends PureComponent {
         this.props.metrics.trackEvent(
           MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
           {
-            chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+            chain_id: getDecimalChainId(this.props.providerConfig?.chainId),
           },
         );
         setTimeout(() => {
@@ -129,16 +129,18 @@ class NavbarTitle extends PureComponent {
       this.props;
     let name = null;
     const color =
-      (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
+      (Networks[providerConfig?.type] &&
+        Networks[providerConfig?.type].color) ||
       null;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (providerConfig.nickname) {
-      name = providerConfig.nickname;
+    if (providerConfig?.nickname) {
+      name = providerConfig?.nickname;
     } else {
       name =
-        (Networks[providerConfig.type] && Networks[providerConfig.type].name) ||
+        (Networks[providerConfig?.type] &&
+          Networks[providerConfig?.type].name) ||
         { ...Networks.rpc, color: null }.name;
     }
 

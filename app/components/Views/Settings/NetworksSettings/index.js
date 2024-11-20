@@ -199,8 +199,8 @@ class NetworksSettings extends PureComponent {
     // Check if it's the selected network and then switch to mainnet first
     const { providerConfig } = this.props;
     if (
-      compareSanitizedUrl(providerConfig.rpcUrl, this.networkToRemove) &&
-      providerConfig.type === RPC
+      compareSanitizedUrl(providerConfig?.rpcUrl, this.networkToRemove) &&
+      providerConfig?.type === RPC
     ) {
       this.switchToMainnet();
     }
