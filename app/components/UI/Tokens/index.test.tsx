@@ -56,10 +56,22 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const selectedAddress = '0x123';
+
 const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: '1',
+          accounts: {
+            '1': {
+              address: selectedAddress,
+            },
+          },
+        },
+      },
       TokensController: {
         tokens: [
           {
@@ -109,11 +121,15 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN(2),
-          '0x01': new BN(2),
-          '0x02': new BN(0),
-        },
+        tokenBalances:{
+          [selectedAddress]: {
+            '0x1': {
+              '0x00': new BN(2),
+              '0x01': new BN(2),
+              '0x02': new BN(0),
+            }
+          }
+        }
       },
     },
   },
@@ -263,9 +279,23 @@ describe('Tokens', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '1',
+              accounts: {
+                '1': {
+                  address: selectedAddress,
+                },
+              },
+            },
+          },
           TokenBalancesController: {
-            contractBalances: {
-              '0x02': new BN(1),
+            tokenBalances: {
+              [selectedAddress]: {
+                '0x1': {
+                  '0x02': new BN(1),
+                },
+              },
             },
           },
         },
