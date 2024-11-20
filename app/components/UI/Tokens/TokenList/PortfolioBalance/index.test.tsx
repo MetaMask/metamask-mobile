@@ -76,11 +76,7 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN(2),
-          '0x01': new BN(2),
-          '0x02': new BN(0),
-        },
+        tokenBalances: { },
       },
     },
   },
