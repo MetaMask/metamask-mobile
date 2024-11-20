@@ -27,6 +27,10 @@ interface KeyValueRowTooltip {
    * @default TooltipSizes.Md
    */
   size?: ButtonIconSizes;
+  /**
+   * Optional onPress handler
+   */
+  onPress?: (...args: unknown[]) => unknown;
 }
 
 /**

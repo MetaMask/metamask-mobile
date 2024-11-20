@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SignatureMessageSection should match snapshot 1`] = `
+<TouchableOpacity
+  accessible={true}
+  activeOpacity={1}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#bbc0c566",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "display": "flex",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginBottom": 8,
+        "padding": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "display": "flex",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "marginBottom": 4,
+          }
+        }
+      >
+        Message
+      </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Signature request collapsed message
+      </Text>
+    </View>
+    <SvgMock
+      color="#9fa6ae"
+      height={16}
+      name="ArrowRight"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+</TouchableOpacity>
+`;
