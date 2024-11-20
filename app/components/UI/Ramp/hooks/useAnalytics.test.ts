@@ -1,4 +1,5 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
 
@@ -24,18 +25,17 @@ describe('useAnalytics', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'BUY_BUTTON_CLICKED';
-
-    result.current(testEvent, {
+    const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
-    });
+    } as const;
+
+    result.current(testEvent, testEventParams);
 
     expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      {
-        location: 'Amount to Buy Screen',
-        text: 'Buy',
-      },
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+        .addProperties(testEventParams)
+        .build(),
     );
   });
 });
