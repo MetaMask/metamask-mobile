@@ -337,7 +337,6 @@ describe('Smart Transactions utils', () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: true,
           timedOut: false,
           proxied: true,
         },
@@ -353,7 +352,6 @@ describe('Smart Transactions utils', () => {
         controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: true,
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
       });
@@ -363,7 +361,6 @@ describe('Smart Transactions utils', () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: false,
           timedOut: true,
           proxied: false,
         },
@@ -389,7 +386,6 @@ describe('Smart Transactions utils', () => {
         controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: false,
         smart_transaction_timed_out: true,
         smart_transaction_proxied: false,
       });
@@ -430,7 +426,6 @@ describe('Smart Transactions utils', () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: true,
           timedOut: false,
           proxied: true,
         },
@@ -446,7 +441,6 @@ describe('Smart Transactions utils', () => {
         controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: true,
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
       });
