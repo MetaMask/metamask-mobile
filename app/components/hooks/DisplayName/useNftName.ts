@@ -2,7 +2,7 @@ import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { useNftCollectionsMetadata } from './useNftCollectionsMetadata';
 
-export type UseNFTNameResponse = {
+export interface UseNFTNameResponse {
   name: string | undefined;
   image: string | undefined;
 };

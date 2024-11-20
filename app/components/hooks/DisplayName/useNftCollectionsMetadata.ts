@@ -10,7 +10,7 @@ export enum TokenStandard {
   erc1155 = 'ERC1155',
 }
 
-export type UseNftCollectionsMetadataRequest = {
+export interface UseNftCollectionsMetadataRequest {
   chainId: string;
   contractAddress: string;
 };

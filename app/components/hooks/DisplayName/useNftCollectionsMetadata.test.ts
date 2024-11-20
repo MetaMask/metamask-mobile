@@ -6,7 +6,6 @@ import {
 } from './useNftCollectionsMetadata';
 import Engine from '../../../core/Engine';
 import { getTokenDetails } from '../../../util/address';
-import { NameType } from '../../UI/Name/Name.types';
 
 jest.mock('../../../util/address', () => ({
   getTokenDetails: jest.fn(),
