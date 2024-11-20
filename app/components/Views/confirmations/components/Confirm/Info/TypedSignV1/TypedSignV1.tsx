@@ -6,7 +6,7 @@ import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import Message from './Message';
-import Simulation from '../../NoChangeSimulation';
+import NoChangeSimulation from '../../NoChangeSimulation';
 
 const TypedSignV1 = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -17,7 +17,7 @@ const TypedSignV1 = () => {
 
   return (
     <>
-      <Simulation />
+      <NoChangeSimulation />
       <InfoSection>
         <InfoRow
           label={strings('confirm.request_from')}
