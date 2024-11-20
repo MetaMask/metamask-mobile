@@ -60,20 +60,30 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   // track event and add selected currency to user profile for analytics
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
   metrics.addTraitsToUser(traits);
-  metrics.trackEvent(MetaMetricsEvents.CURRENCY_CHANGED, {
-    ...traits,
-    location: 'app_settings',
-  });
+  metrics.trackEvent(
+    metrics
+      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
 };
 
 export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
   // track event and add primary currency preference (fiat/crypto) to user profile for analytics
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
   metrics.addTraitsToUser(traits);
-  metrics.trackEvent(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE, {
-    ...traits,
-    location: 'app_settings',
-  });
+  metrics.trackEvent(
+    metrics
+      .createEventBuilder(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE)
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
 };
 
 const createStyles = (colors) =>
