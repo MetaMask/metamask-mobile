@@ -464,6 +464,22 @@ type Controllers = {
   SwapsController: SwapsController;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type NonControllers = {
+  AssetsContractController: AssetsContractController;
+  NftDetectionController: NftDetectionController;
+  TokenDetectionController: TokenDetectionController;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type NonControllerNames = keyof NonControllers;
+
+const NONCONTROLLER_NAMES = [
+  'AssetsContractController',
+  'NftDetectionController',
+  'TokenDetectionController',
+] as const;
+
 /**
  * Controllers that area always instantiated
  */
@@ -514,7 +530,10 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
+  datamodel: ComposableController<
+    Omit<EngineState, NonControllerNames>,
+    Exclude<Controllers[keyof Controllers], NonControllers[NonControllerNames]>
+  >;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1762,10 +1781,20 @@ export class Engine {
     }
 
     this.datamodel = new ComposableController<
-      EngineState,
-      Controllers[keyof Controllers]
+      Omit<EngineState, keyof NonControllers>,
+      Exclude<
+        Controllers[keyof Controllers],
+        NonControllers[keyof NonControllers]
+      >
     >({
-      controllers,
+      controllers: controllers.filter(
+        (
+          controller,
+        ): controller is Exclude<
+          Controllers[keyof Controllers],
+          NonControllers[keyof NonControllers]
+        > => !NONCONTROLLER_NAMES.find((name) => name === controller.name),
+      ),
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
@@ -2393,7 +2422,6 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2409,8 +2437,6 @@ export default {
       SwapsController,
       GasFeeController,
       TokensController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
@@ -2429,7 +2455,6 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2445,8 +2470,6 @@ export default {
       SmartTransactionsController,
       SwapsController,
       GasFeeController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
