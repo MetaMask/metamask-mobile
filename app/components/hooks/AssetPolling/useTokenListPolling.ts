@@ -24,9 +24,9 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   usePolling({
     startPolling:
-    TokenListController.startPolling.bind(TokenListController),
+      TokenListController.startPolling.bind(TokenListController),
     stopPollingByPollingToken:
-    TokenListController.stopPollingByPollingToken.bind(TokenListController),
+      TokenListController.stopPollingByPollingToken.bind(TokenListController),
     input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
   });
 
