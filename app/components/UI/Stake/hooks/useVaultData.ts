@@ -1,42 +1,41 @@
-import { useSelector } from 'react-redux';
-import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect, useCallback, useState } from 'react';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
-import { VaultData } from '@metamask/stake-sdk';
 import { useStakeContext } from './useStakeContext';
+import { selectVaultData, setVaultData } from '../slices/PooledStaking';
 
 const useVaultData = () => {
+  const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
-  const { stakingApiService } = useStakeContext(); // Get the stakingApiService directly from context
+  const { vaultData } = useSelector(selectVaultData);
+  const { stakingApiService } = useStakeContext();
 
-  const [vaultData, setVaultData] = useState({} as VaultData);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchVaultData = useCallback(async () => {
+    if (!stakingApiService) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const numericChainId = hexToNumber(chainId);
+      const vaultDataResponse = await stakingApiService.getVaultData(
+        numericChainId,
+      );
+      dispatch(setVaultData(vaultDataResponse));
+    } catch (err) {
+      setError('Failed to fetch vault data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [chainId, stakingApiService, dispatch]);
+
   useEffect(() => {
-    const fetchVaultData = async () => {
-      try {
-        setLoading(true);
-
-        if (!stakingApiService) {
-          throw new Error('Staking API service is unavailable');
-        }
-
-        const numericChainId = hexToNumber(chainId);
-        const vaultDataResponse = await stakingApiService.getVaultData(
-          numericChainId,
-        );
-
-        setVaultData(vaultDataResponse);
-      } catch (err) {
-        setError('Failed to fetch vault data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchVaultData();
-  }, [chainId, stakingApiService]);
+  }, [fetchVaultData]);
 
   const apy = vaultData?.apy || '0';
   const annualRewardRatePercentage = apy ? parseFloat(apy) : 0;
@@ -49,7 +48,7 @@ const useVaultData = () => {
 
   return {
     vaultData,
-    isLoadingVaultData: loading,
+    isLoadingVaultData: isLoading,
     error,
     annualRewardRate,
     annualRewardRateDecimal,

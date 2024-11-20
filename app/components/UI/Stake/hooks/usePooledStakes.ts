@@ -1,10 +1,14 @@
-import { useSelector } from 'react-redux';
-import { useState, useEffect, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { PooledStake } from '@metamask/stake-sdk';
 import { useStakeContext } from './useStakeContext';
+import {
+  selectPooledStakesData,
+  setPooledStakes,
+} from '../slices/PooledStaking';
 
 export enum StakeAccountStatus {
   // These statuses are only used internally rather than displayed to a user
@@ -15,51 +19,48 @@ export enum StakeAccountStatus {
 }
 
 const usePooledStakes = () => {
+  const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
   const selectedAddress =
     useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
-  const { stakingApiService } = useStakeContext(); // Get the stakingApiService directly from context
-  const [pooledStakesData, setPooledStakesData] = useState({} as PooledStake);
-  const [exchangeRate, setExchangeRate] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { pooledStakesData, exchangeRate } = useSelector(
+    selectPooledStakesData,
+  );
+  const { stakingApiService } = useStakeContext();
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+
+  const fetchData = useCallback(async () => {
+    if (!stakingApiService || !selectedAddress) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { accounts = [], exchangeRate: fetchedExchangeRate } =
+        await stakingApiService.getPooledStakes(
+          [selectedAddress],
+          hexToNumber(chainId),
+          true,
+        );
+
+      dispatch(
+        setPooledStakes({
+          pooledStakes: accounts[0] || {},
+          exchangeRate: fetchedExchangeRate,
+        }),
+      );
+    } catch (err) {
+      setError('Failed to fetch pooled stakes');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [chainId, selectedAddress, stakingApiService, dispatch]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        if (!stakingApiService) {
-          throw new Error('Staking API service is unavailable');
-        }
-
-        const addresses = selectedAddress ? [selectedAddress] : [];
-        const numericChainId = hexToNumber(chainId);
-
-        // Directly calling the stakingApiService
-        const { accounts = [], exchangeRate: fetchedExchangeRate } =
-          await stakingApiService.getPooledStakes(
-            addresses,
-            numericChainId,
-            true,
-          );
-
-        setPooledStakesData(accounts[0] || null);
-        setExchangeRate(fetchedExchangeRate);
-      } catch (err) {
-        setError('Failed to fetch pooled stakes');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [chainId, selectedAddress, stakingApiService, refreshKey]);
-
-  const refreshPooledStakes = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Increment `refreshKey` to trigger refetch
-  };
+  }, [fetchData]);
 
   const getStatus = (stake: PooledStake) => {
     if (stake.assets === '0' && stake.exitRequests.length > 0) {
@@ -72,48 +73,32 @@ const usePooledStakes = () => {
     return StakeAccountStatus.ACTIVE;
   };
 
-  const status = useMemo(() => getStatus(pooledStakesData), [pooledStakesData]);
+  const statusFlags = useMemo(() => {
+    const currentStatus = pooledStakesData
+      ? getStatus(pooledStakesData)
+      : StakeAccountStatus.NEVER_STAKED;
 
-  const hasStakedPositions = useMemo(
-    () =>
-      status === StakeAccountStatus.ACTIVE ||
-      status === StakeAccountStatus.INACTIVE_WITH_EXIT_REQUESTS,
-    [status],
-  );
-
-  const hasRewards = useMemo(
-    () =>
-      status === StakeAccountStatus.INACTIVE_WITH_REWARDS_ONLY ||
-      status === StakeAccountStatus.ACTIVE,
-    [status],
-  );
-
-  const hasRewardsOnly = useMemo(
-    () => status === StakeAccountStatus.INACTIVE_WITH_REWARDS_ONLY,
-    [status],
-  );
-
-  const hasNeverStaked = useMemo(
-    () => status === StakeAccountStatus.NEVER_STAKED,
-    [status],
-  );
-
-  const hasEthToUnstake = useMemo(
-    () => status === StakeAccountStatus.ACTIVE,
-    [status],
-  );
+    return {
+      hasStakedPositions:
+        currentStatus === StakeAccountStatus.ACTIVE ||
+        currentStatus === StakeAccountStatus.INACTIVE_WITH_EXIT_REQUESTS,
+      hasRewards:
+        currentStatus === StakeAccountStatus.INACTIVE_WITH_REWARDS_ONLY ||
+        currentStatus === StakeAccountStatus.ACTIVE,
+      hasRewardsOnly:
+        currentStatus === StakeAccountStatus.INACTIVE_WITH_REWARDS_ONLY,
+      hasNeverStaked: currentStatus === StakeAccountStatus.NEVER_STAKED,
+      hasEthToUnstake: currentStatus === StakeAccountStatus.ACTIVE,
+    };
+  }, [pooledStakesData]);
 
   return {
     pooledStakesData,
     exchangeRate,
-    isLoadingPooledStakesData: loading,
+    isLoadingPooledStakesData: isLoading,
     error,
-    refreshPooledStakes,
-    hasStakedPositions,
-    hasEthToUnstake,
-    hasNeverStaked,
-    hasRewards,
-    hasRewardsOnly,
+    refreshPooledStakes: fetchData,
+    ...statusFlags,
   };
 };
 

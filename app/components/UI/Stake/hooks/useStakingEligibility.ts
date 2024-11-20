@@ -1,41 +1,44 @@
-import { useSelector } from 'react-redux';
-import { useState, useEffect, useCallback } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect, useCallback, useState } from 'react';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
 import { useStakeContext } from './useStakeContext';
+import {
+  selectStakingEligibility,
+  setStakingEligibility,
+} from '../slices/PooledStaking';
 
 const useStakingEligibility = () => {
+  const dispatch = useDispatch();
   const selectedAddress =
     useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
+  const { isEligible } = useSelector(selectStakingEligibility);
+
   const { stakingApiService } = useStakeContext();
 
-  const [isEligible, setIsEligible] = useState<boolean>(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStakingEligibility = useCallback(async () => {
+    if (!stakingApiService) {
+      throw new Error('Staking API service is unavailable');
+    }
+
+    setIsLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-
-      if (!stakingApiService) {
-        throw new Error('Staking API service is unavailable');
-      }
-
-      const addresses = selectedAddress ? [selectedAddress] : [];
-
-      // Directly calling the stakingApiService to fetch staking eligibility
-      const { eligible } = await stakingApiService.getPooledStakingEligibility(
-        addresses,
-      );
-
-      setIsEligible(eligible);
+      const { eligible } = await stakingApiService.getPooledStakingEligibility([
+        selectedAddress,
+      ]);
+      dispatch(setStakingEligibility(eligible));
       return { isEligible: eligible };
     } catch (err) {
       setError('Failed to fetch pooled staking eligibility');
       return { isEligible: false };
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, [selectedAddress, stakingApiService]);
+  }, [selectedAddress, stakingApiService, dispatch]);
 
   useEffect(() => {
     fetchStakingEligibility();
@@ -43,9 +46,9 @@ const useStakingEligibility = () => {
 
   return {
     isEligible,
-    isLoadingEligibility: loading,
-    refreshPooledStakingEligibility: fetchStakingEligibility,
+    isLoadingEligibility: isLoading,
     error,
+    refreshPooledStakingEligibility: fetchStakingEligibility,
   };
 };
 
