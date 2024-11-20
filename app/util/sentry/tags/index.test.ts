@@ -277,5 +277,78 @@ describe('Tags Utils', () => {
       expect(tags).toBeDefined();
       expect(tags?.['wallet.pending_approval']).toBeUndefined();
     });
+
+    it('returns undefined if NftController.allNfts is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NftController: {
+              ...backgroundState.NftController,
+              allNfts: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if NotificationServicesController.metamaskNotificationsList is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NotificationServicesController: {
+              metamaskNotificationsList: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if TokensController.allTokens is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            TokensController: {
+              allTokens: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if TransactionController.transactions is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            TransactionController: {
+              transactions: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
   });
 });
