@@ -14,7 +14,6 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   // Selectors returning state updated by the polling
   const tokenBalances = useSelector(selectAllTokenBalances);
-  console.log('tokenBalances', tokenBalances);
 
   const chainIdsToPoll = isPortfolioViewEnabled
     ? (chainIds ?? Object.keys(networkConfigurations))
