@@ -167,12 +167,20 @@ const StakeInputView = () => {
             properties: {
               location: 'StakeInputView',
               amount: value,
-              is_max: value === 1,
+              // onMaxPress is called instead when it's defined and the max is clicked.
+              is_max: false,
               mode: isEth ? 'native' : 'fiat',
             },
           })({ value })
         }
-        onMaxPress={handleMaxButtonPress}
+        onMaxPress={withMetaMetrics(handleMaxButtonPress, {
+          event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+          properties: {
+            location: 'StakeInputView',
+            is_max: true,
+            mode: isEth ? 'native' : 'fiat',
+          },
+        })}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}
