@@ -678,7 +678,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           setPermissionsScreen(
             isNonDappNetworkSwitch
               ? AccountPermissionsScreens.ChooseFromPermittedNetworks
-              : AccountPermissionsScreens.Connected,
+              : AccountPermissionsScreens.PermissionsSummary,
           )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
