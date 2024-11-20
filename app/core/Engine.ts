@@ -551,6 +551,7 @@ export class Engine {
         useNftDetection: true, // set this to true to enable nft detection by default to new users
         displayNftMedia: true,
         securityAlertsEnabled: true,
+        smartTransactionsOptInStatus: true,
         tokenSortConfig: {
           key: 'tokenFiatAmount',
           order: 'dsc',
@@ -1542,6 +1543,8 @@ export class Engine {
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
           ),
+        platform: 'mobile',
+        useAccountsAPI: true,
       }),
 
       new NftDetectionController({
@@ -1908,14 +1911,12 @@ export class Engine {
       TokenDetectionController,
       TokenListController,
       TransactionController,
-      TokenRatesController,
     } = this.context;
 
     TokenListController.start();
     TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {
@@ -2158,11 +2159,11 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     //Clear assets info
-    TokensController.reset();
-    NftController.reset();
+    TokensController.resetState();
+    NftController.resetState();
 
-    TokenBalancesController.reset();
-    TokenRatesController.reset();
+    TokenBalancesController.resetState();
+    TokenRatesController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({
