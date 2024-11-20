@@ -4411,12 +4411,13 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^43.1.1":
-  version "43.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-43.1.1.tgz#f9c8b97765f06653ca45271ead5b7acea2a169e4"
-  integrity sha512-dR5XmIGRN9nMW7gPtl83iwhFF5MQzOz+Jv1tN/e5v+uNHZ6f6aYLCvESEL9fDgGOeJn81g2P39RH/fT/QpcbRA==
+"@metamask/assets-controllers@^44.0.0":
+  version "44.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-44.0.0.tgz#0ec19da2a8a1a01f65546efbe6fd218cd8d2deec"
+  integrity sha512-mepcz90wUCzexEDEWdZcnKEWzxV1ZUniFI0gRX0D8p4AbFuFY8pu02TFV8uoRHQkHuPyvsU5WwFvSvEcO8ILzg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
+    "@ethersproject/abi" "^5.7.0"
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/contracts" "^5.7.0"
