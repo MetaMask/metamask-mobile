@@ -1225,9 +1225,11 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
-    trackEvent(MetaMetricsEvents.QUOTES_RECEIVED, {
-      sensitiveProperties: { ...parameters },
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.QUOTES_RECEIVED)
+        .addSensitiveProperties(parameters)
+        .build(),
+    );
   }, [
     chainId,
     sourceToken,
@@ -1241,6 +1243,7 @@ function SwapsQuotesView({
     allQuotes,
     conversionRate,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleOpenQuotesModal = useCallback(() => {
@@ -1314,9 +1317,11 @@ function SwapsQuotesView({
           gas_fees: '',
         };
 
-        trackEvent(MetaMetricsEvents.QUOTES_TIMED_OUT, {
-          sensitiveProperties: { ...parameters },
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QUOTES_TIMED_OUT)
+            .addSensitiveProperties(parameters)
+            .build(),
+        );
       } else if (
         error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR
       ) {
@@ -1356,8 +1361,12 @@ function SwapsQuotesView({
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
 
-    trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-  }, [navigation, trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      ).build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleTermsPress = useCallback(
     () =>
