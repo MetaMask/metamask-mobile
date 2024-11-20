@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.35.1 - Nov 20, 2024
+### Fixed
+- [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
+
 ## 7.35.0 - Nov 4, 2024
 ### Added
 - [#12078](https://github.com/MetaMask/metamask-mobile/pull/12078): chore(runway): cherry-pick feat: add favorites to browser menu (#12078)
