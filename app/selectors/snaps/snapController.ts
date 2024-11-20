@@ -9,7 +9,7 @@ export const selectSnapControllerState = (state: RootState) =>
 
 export const selectSnaps = createSelector(
   selectSnapControllerState,
-  (controller) => controller.snaps,
+  (controller) => controller?.snaps,
 );
 
 export const selectSnapsMetadata = createDeepEqualSelector(

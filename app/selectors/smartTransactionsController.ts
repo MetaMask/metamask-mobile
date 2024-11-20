@@ -34,7 +34,7 @@ export const selectSmartTransactionsEnabled = (state: RootState) => {
 
   const smartTransactionsLiveness =
     state.engine.backgroundState.SmartTransactionsController
-      .smartTransactionsState?.liveness;
+      ?.smartTransactionsState?.liveness;
 
   return Boolean(
     isAllowedNetwork &&
