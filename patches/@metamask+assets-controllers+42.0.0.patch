@@ -773,7 +773,7 @@ index a34725f..21e9d20 100644
      address?: string;
      attributes?: Attributes[];
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
-index 6f48d64..f9dc513 100644
+index 6f48d64..e1532fa 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
 @@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -797,8 +797,15 @@ index 6f48d64..f9dc513 100644
          this.messagingSystem.subscribe('TokensController:stateChange', ({ tokens: newTokens, detectedTokens }) => {
              __classPrivateFieldSet(this, _TokenBalancesController_tokens, [...newTokens, ...detectedTokens], "f");
              // TODO: Either fix this lint violation or explain why it's necessary to ignore.
-@@ -113,21 +115,28 @@ class TokenBalancesController extends base_controller_1.BaseController {
+@@ -108,26 +110,34 @@ class TokenBalancesController extends base_controller_1.BaseController {
+      * Updates balances for all tokens.
+      */
+     async updateBalances() {
+-        if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f")) {
++        if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f") || __classPrivateFieldGet(this, _TokenBalancesController_updateInProgress, "f")) {
+             return;
          }
++        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, true, "f");
          const selectedInternalAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
          const newContractBalances = {};
 -        for (const token of __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f")) {
@@ -831,11 +838,11 @@ index 6f48d64..f9dc513 100644
          this.update((state) => {
              state.contractBalances = newContractBalances;
          });
-+        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, updateInProgress, "f");
++        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, false, "f");
      }
      /**
       * Reset the controller state to the default state.
-@@ -139,6 +148,6 @@ class TokenBalancesController extends base_controller_1.BaseController {
+@@ -139,6 +149,6 @@ class TokenBalancesController extends base_controller_1.BaseController {
      }
  }
  exports.TokenBalancesController = TokenBalancesController;
