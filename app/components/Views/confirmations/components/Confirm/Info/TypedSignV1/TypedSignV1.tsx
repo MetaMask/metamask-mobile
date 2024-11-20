@@ -5,10 +5,10 @@ import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
-import NoChangeSimulation from '../../NoChangeSimulation';
 import Message from './Message';
+import NoChangeSimulation from '../../NoChangeSimulation';
 
-const PersonalSign = () => {
+const TypedSignV1 = () => {
   const { approvalRequest } = useApprovalRequest();
 
   if (!approvalRequest) {
@@ -31,4 +31,4 @@ const PersonalSign = () => {
   );
 };
 
-export default PersonalSign;
+export default TypedSignV1;
