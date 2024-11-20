@@ -1,4 +1,4 @@
-import { FeatureFlags } from '@metamask/swaps-controller/dist/swapsInterfaces';
+import { FeatureFlags } from '@metamask/swaps-controller/dist/types';
 import Device from '../../util/device';
 import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants';
 

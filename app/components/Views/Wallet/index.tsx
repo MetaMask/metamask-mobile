@@ -1,19 +1,10 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
   View,
   TextStyle,
-  InteractionManager,
   Linking,
-  AppState,
-  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -44,8 +35,6 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowSmartTransactionsOptInModal } from '../../../util/onboarding';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
@@ -93,9 +82,7 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
 import { useAccountName } from '../../hooks/useAccountName';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -162,10 +149,7 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
-  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
-  const { listNotifications } = useListNotifications();
-  const { dispatchAccountSyncing } = useAccountSyncing();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
@@ -353,7 +337,7 @@ const Wallet = ({
   });
 
   /**
-   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
+   * Check to see if we need to show What's New modal
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
@@ -368,36 +352,6 @@ const Wallet = ({
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
-
-    // Show STX opt in modal before What's New modal
-    // Fired on the first load of the wallet and also on network switch
-    const checkSmartTransactionsOptInModal = async () => {
-      try {
-        const accountHasZeroBalance = hexToBN(
-          accountBalanceByChainId?.balance || '0x0',
-        ).isZero();
-        const shouldShowStxOptInModal =
-          await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
-            accountHasZeroBalance,
-          );
-        if (shouldShowStxOptInModal) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
-          });
-        }
-      } catch (error) {
-        Logger.log(
-          error,
-          'Error while checking Smart Tranasctions Opt In modal!',
-        );
-      }
-    };
-
-    InteractionManager.runAfterInteractions(() => {
-      checkSmartTransactionsOptInModal();
-    });
   }, [
     wizardStep,
     navigation,
@@ -418,35 +372,6 @@ const Wallet = ({
     /* eslint-disable-next-line */
     [navigation, providerConfig.chainId],
   );
-
-  // Layout effect when component/view is visible
-  // - fetches notifications
-  // - dispatches account syncing
-  useLayoutEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (
-        appState.current?.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        listNotifications();
-        dispatchAccountSyncing();
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
-
-    listNotifications();
-    dispatchAccountSyncing();
-
-    return () => {
-      subscription.remove();
-    };
-  }, [listNotifications, dispatchAccountSyncing]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -562,10 +487,12 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
-      let stakedAsset;
-      if (accountBalanceByChainId.stakedBalance) {
+      if (
+        accountBalanceByChainId.stakedBalance &&
+        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
+      ) {
         stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
-        stakedAsset = {
+        const stakedAsset = {
           ...nativeAsset,
           nativeAsset,
           name: 'Staked Ethereum',

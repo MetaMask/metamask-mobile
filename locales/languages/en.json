@@ -2963,20 +2963,6 @@
       "description": "Sell your crypto directly in MetaMask! We’ll help you find quotes from trusted providers, so you can sell your crypto in an accessible, fast, and secure way, every time.",
       "action_text": "Try it out"
     },
-    "stx": {
-      "header": "Enhanced Transaction Protection",
-      "description_1": "Unlock higher success rates, frontrunning protection, and better visibility with Smart Transactions.",
-      "description_2": "Only available on Ethereum. Enable or disable any time in settings.",
-      "no_thanks": "No thanks",
-      "primary_button": "Enable",
-      "learn_more": "Learn more.",
-      "benefit_1_1": "99.5% success",
-      "benefit_1_2": "rate",
-      "benefit_2_1": "Saves you",
-      "benefit_2_2": "money",
-      "benefit_3_1": "Real-time",
-      "benefit_3_2": "updates"
-    },
     "transaction_simulation": {
       "title": "Estimated balance changes",
       "description_1": "Now you can see the potential outcome of your transactions before you make them!",
@@ -3366,7 +3352,8 @@
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
-    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
+    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one."
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3503,7 +3490,10 @@
       "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
     },
     "use_max": "Use max",
-    "estimated_unstaking_time": "1 to 11 days"
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Your Wallet is ready",
@@ -3609,5 +3599,11 @@
     "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
     "proceed": "Proceed",
     "reject": "Reject the transaction"
+  },
+  "snap_account_custom_name_approval": {
+    "title": "Add account to MetaMask",
+    "input_title": "Account name",
+    "add_account_button": "Add account",
+    "name_taken_message": "This account name already exists"
   }
 }
