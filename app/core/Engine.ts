@@ -1711,26 +1711,6 @@ export class Engine {
       }),
     };
 
-    // set initial state
-    // TODO: Pass initial state into each controller constructor instead
-    // This is being set post-construction for now to ensure it's functionally equivalent with
-    // how the `ComponsedController` used to set initial state.
-    //
-    // The check for `controller.subscribe !== undefined` is to filter out BaseControllerV2
-    // controllers. They should be initialized via the constructor instead.
-    for (const controller of Object.values(this.context)) {
-      if (
-        hasProperty(initialState, controller.name) &&
-        // Use `in` operator here because the `subscribe` function is one level up the prototype chain
-        'subscribe' in controller &&
-        controller.subscribe !== undefined
-      ) {
-        // The following type error can be addressed by passing initial state into controller constructors instead
-        // @ts-expect-error No type-level guarantee that the correct state is being applied to the correct controller here.
-        controller.update(initialState[controller.name]);
-      }
-    }
-
     this.datamodel = new ComposableController(
       // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
       Object.values(this.context),
