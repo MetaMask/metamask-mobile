@@ -32,7 +32,7 @@ import inpageProviderReducer from '../core/redux/slices/inpageProvider';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
-import stakingReducer from '../components/UI/Stake/slices/PooledStaking';
+import stakingReducer from '../core/redux/slices/staking';
 /**
  * Infer state from a reducer
  *

@@ -3,7 +3,10 @@ import { useEffect, useCallback, useState } from 'react';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { useStakeContext } from './useStakeContext';
-import { selectVaultData, setVaultData } from '../slices/PooledStaking';
+import {
+  selectVaultData,
+  setVaultData,
+} from '../../../../core/redux/slices/staking';
 
 const useVaultData = () => {
   const dispatch = useDispatch();

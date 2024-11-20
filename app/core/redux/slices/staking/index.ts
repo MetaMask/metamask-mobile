@@ -10,7 +10,7 @@ interface PooledStakingState {
   isEligible: boolean;
 }
 
-const initialState: PooledStakingState = {
+export const initialState: PooledStakingState = {
   pooledStakes: {} as PooledStake,
   exchangeRate: '',
   vaultData: {} as VaultData,

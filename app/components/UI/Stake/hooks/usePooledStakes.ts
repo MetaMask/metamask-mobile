@@ -8,7 +8,7 @@ import { useStakeContext } from './useStakeContext';
 import {
   selectPooledStakesData,
   setPooledStakes,
-} from '../slices/PooledStaking';
+} from '../../../../core/redux/slices/staking';
 
 export enum StakeAccountStatus {
   // These statuses are only used internally rather than displayed to a user

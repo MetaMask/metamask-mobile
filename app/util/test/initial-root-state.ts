@@ -8,6 +8,7 @@ import { initialState as originThrottling } from '../../core/redux/slices/origin
 import { initialState as initialFeatureFlagsState } from '../../core/redux/slices/featureFlags';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
+import { initialState as initialStakingState } from '../../core/redux/slices/staking';
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
@@ -49,6 +50,7 @@ const initialRootState: RootState = {
   transactionMetrics,
   originThrottling,
   notifications: {},
+  staking: initialStakingState,
 };
 
 export default initialRootState;

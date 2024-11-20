@@ -5,11 +5,11 @@ import reducer, {
   selectPooledStakesData,
   selectVaultData,
   selectStakingEligibility,
-} from './PooledStaking';
+} from '.';
 import {
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
-} from '../__mocks__/mockData';
+} from '../../../../components/UI/Stake/__mocks__/mockData';
 import type { PooledStake, VaultData } from '@metamask/stake-sdk';
 import type { RootState } from '../../../../reducers';
 

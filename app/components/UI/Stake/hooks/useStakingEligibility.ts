@@ -5,7 +5,7 @@ import { useStakeContext } from './useStakeContext';
 import {
   selectStakingEligibility,
   setStakingEligibility,
-} from '../slices/PooledStaking';
+} from '../../../../core/redux/slices/staking';
 
 const useStakingEligibility = () => {
   const dispatch = useDispatch();
