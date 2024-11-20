@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import { Provider, Store } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -58,8 +58,7 @@ const routeMock = {
 };
 const hideModalMock = jest.fn();
 
-const renderComponent = ({ store }) => {
-  return render(
+const renderComponent = ({ store }: { store: Store }) => render(
     <Provider store={store}>
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>
@@ -67,7 +66,7 @@ const renderComponent = ({ store }) => {
             <Stack.Screen name="Approve">
               {() => (
                 <Approve
-                  modalVisible={true}
+                  modalVisible
                   navigation={navigationPropMock}
                   route={routeMock}
                   hideModal={hideModalMock}
@@ -79,10 +78,9 @@ const renderComponent = ({ store }) => {
       </ThemeContext.Provider>
     </Provider>,
   );
-};
 
 describe('Approve', () => {
-  let store;
+  let store: Store;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -135,7 +133,7 @@ describe('Approve', () => {
       },
     });
 
-    const wrapper = renderComponent({ store: storeWithUpdatedTransaction });
+    renderComponent({ store: storeWithUpdatedTransaction });
 
     fireEvent.press(screen.getByTestId('Confirm'));
     expect(navigationPropMock.navigate).toHaveBeenCalledWith(

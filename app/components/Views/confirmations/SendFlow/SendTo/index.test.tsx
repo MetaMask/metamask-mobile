@@ -49,7 +49,9 @@ describe('SendTo Component', () => {
       settings: { useBlockieIcon: false },
     });
 
-    mockValidateAddressOrENS.mockResolvedValue({});
+    mockValidateAddressOrENS.mockResolvedValue(
+      {} as unknown as ReturnType<typeof validateAddressOrENS>,
+    );
   });
 
   it('should render', () => {

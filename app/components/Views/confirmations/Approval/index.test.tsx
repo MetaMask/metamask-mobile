@@ -1,15 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import { Provider, Store } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import Approval from './index';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import { renderScreen } from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
-import Routes from '../../../../constants/navigation/Routes';
 
 const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../selectors/smartTransactionsController', () => ({
@@ -50,8 +48,7 @@ const routeMock = {
   params: {},
 };
 
-const renderComponent = ({ store }) => {
-  return render(
+const renderComponent = ({ store }: { store: Store }) => render(
     <Provider store={store}>
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>
@@ -59,7 +56,7 @@ const renderComponent = ({ store }) => {
             <Stack.Screen name="Approval">
               {() => (
                 <Approval
-                  dappTransactionModalVisible={true}
+                  dappTransactionModalVisible
                   navigation={navigationPropMock}
                   route={routeMock}
                 />
@@ -70,10 +67,9 @@ const renderComponent = ({ store }) => {
       </ThemeContext.Provider>
     </Provider>,
   );
-};
 
 describe('Approval', () => {
-  let store;
+  let store: Store;
 
   beforeEach(() => {
     jest.clearAllMocks();
