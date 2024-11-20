@@ -8,7 +8,7 @@ import EngineService from '../core/EngineService';
 import { Authentication } from '../core';
 import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { isE2E } from '../util/test/utils';
+import { isE2E, isTest } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 
 import thunk from 'redux-thunk';
@@ -27,16 +27,21 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
 let store: Store<RootState, any>, persistor;
-const createStoreAndPersistor = async () => {
+const createStoreAndPersistor = async (preloadedState?: RootState) => {
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = isE2E
-    ? await ReadOnlyNetworkStore.getState()
-    : undefined;
+  let initialState;
+  if (isE2E) {
+    initialState = await ReadOnlyNetworkStore.getState();
+  }
+
+  if (isTest && preloadedState) {
+    initialState = preloadedState;
+  }
 
   const sagaMiddleware = createSagaMiddleware();
 
@@ -102,10 +107,8 @@ const createStoreAndPersistor = async () => {
   };
 
   persistor = persistStore(store, null, onPersistComplete);
+
+  return { store, persistor };
 };
 
-(async () => {
-  await createStoreAndPersistor();
-})();
-
-export { store, persistor };
+export { store, persistor, createStoreAndPersistor };

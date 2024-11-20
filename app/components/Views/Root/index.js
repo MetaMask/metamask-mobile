@@ -1,18 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/lib/integration/react';
-import { store, persistor } from '../../../store/';
-import App from '../../Nav/App';
+import { store, persistor, createStoreAndPersistor } from '../../../store/';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
-import ErrorBoundary from '../ErrorBoundary';
-import { useAppTheme, ThemeContext } from '../../../util/theme';
-import { ToastContextWrapper } from '../../../component-library/components/Toast';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isTest } from '../../../util/test/utils';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { ConnectedRoot } from './ConnectedRoot';
 
 /**
  * Top level of the component hierarchy
@@ -27,17 +20,7 @@ export default class Root extends PureComponent {
     foxCode: 'null',
   };
 
-  async waitForStore() {
-    // Wait until store is initialized
-    await new Promise((resolve) => {
-      const intervalId = setInterval(() => {
-        if (store && persistor) {
-          clearInterval(intervalId);
-          resolve();
-        }
-      }, 100);
-    });
-  }
+  initStorePromise = null;
 
   constructor(props) {
     super(props);
@@ -49,6 +32,8 @@ export default class Root extends PureComponent {
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
 
+    this.initStorePromise = createStoreAndPersistor().catch(console.error);
+
     this.state = {
       isLoading: true, // Track loading state
       isTest,
@@ -57,8 +42,8 @@ export default class Root extends PureComponent {
 
   async componentDidMount() {
     const { isTest } = this.state;
-    if (isTest) {
-      await this.waitForStore();
+    if (isTest && this.initStorePromise) {
+      await this.initStorePromise();
       this.setState({ isLoading: false });
     }
   }
@@ -69,30 +54,6 @@ export default class Root extends PureComponent {
       return null;
     }
 
-    return (
-      <Provider store={store}>
-        <PersistGate persistor={persistor}>
-          <ConnectedRoot />
-        </PersistGate>
-      </Provider>
-    );
+    return <ConnectedRoot store={store} persistor={persistor} />;
   }
 }
-
-const ConnectedRoot = () => {
-  const theme = useAppTheme();
-
-  return (
-    <SafeAreaProvider>
-      <ThemeContext.Provider value={theme}>
-        <ToastContextWrapper>
-          <AssetPollingProvider>
-            <ErrorBoundary view="Root">
-              <App />
-            </ErrorBoundary>
-          </AssetPollingProvider>
-        </ToastContextWrapper>
-      </ThemeContext.Provider>
-    </SafeAreaProvider>
-  );
-};
