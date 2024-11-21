@@ -5204,10 +5204,10 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.0.tgz#9285e6e195810e8b7c875147ac64981b4be51733"
-  integrity sha512-EoNZJijLqBbir8ikuiHBHfhCqE1s8Odae3bhtRAd8itJB109xmfFF84djY/iaQI+EAp59Sy7iwengfRohaTK8A==
+"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.1.tgz#a765f96c20e35fc51c068fb9f88a3332b40b215e"
+  integrity sha512-zHgAitJtRwviVVFnRUA2PLRMaAwatr3jiHgiH7mPicJaeSK4ma01aGR4fHy0iy5tlVo1ZiioTmJ1Hbp8FZ6pSg==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
