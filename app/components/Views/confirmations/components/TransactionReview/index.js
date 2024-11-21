@@ -31,10 +31,8 @@ import Logger from '../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import Device from '../../../../../util/device';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  isMultiLayerFeeNetwork,
-} from '../../../../../util/networks';
+import { isMultiLayerFeeNetwork } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
   fromTokenMinimalUnit,
@@ -333,11 +331,14 @@ class TransactionReview extends PureComponent {
     const approveTransaction =
       isApprovalTransaction(data) && (!value || isZeroValue(value));
 
-    const actionKey = await getTransactionReviewActionKey({
-      ...transactionMetadata,
-      transaction,
-      txParams: undefined
-    }, chainId);
+    const actionKey = await getTransactionReviewActionKey(
+      {
+        ...transactionMetadata,
+        transaction,
+        txParams: undefined,
+      },
+      chainId,
+    );
 
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];

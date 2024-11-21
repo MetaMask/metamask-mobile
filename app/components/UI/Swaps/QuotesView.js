@@ -36,9 +36,9 @@ import {
 import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   getDecimalChainId,
 } from '../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
   getErrorMessage,
   getFetchParams,
@@ -1011,7 +1011,9 @@ function SwapsQuotesView({
             CHAIN_IDS.LINEA_SEPOLIA,
           ].includes(chainId)
         ) {
-          Logger.log('Delaying submitting trade tx to make Linea confirmation more likely',);
+          Logger.log(
+            'Delaying submitting trade tx to make Linea confirmation more likely',
+          );
           const waitPromise = new Promise((resolve) =>
             setTimeout(resolve, 5000),
           );
@@ -2156,7 +2158,11 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isHandlingSwap || isAnimating}>
+        <StyledButton
+          type="confirm"
+          onPress={handleCompleteSwap}
+          disabled={unableToSwap || isHandlingSwap || isAnimating}
+        >
           {strings('swaps.swap')}
         </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>

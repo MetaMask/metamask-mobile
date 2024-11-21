@@ -9,7 +9,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
+import { toggleUseSafeChainsListValidation } from '../../../../util/networks/engineNetworkUtils';
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
   DISPLAY_SAFE_CHAINS_LIST_VALIDATION,

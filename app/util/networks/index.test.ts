@@ -9,11 +9,13 @@ import {
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
   getNetworkNonce,
+  isPrivateConnection,
+} from '.';
+import {
   convertNetworkId,
   deprecatedGetNetworkId,
   fetchEstimatedMultiLayerL1Fee,
-  isPrivateConnection,
-} from '.';
+} from './engineNetworkUtils';
 import {
   MAINNET,
   RPC,
@@ -25,6 +27,7 @@ import {
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { getNonceLock } from '../../util/transaction-controller';
 import Engine from './../../core/Engine';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 jest.mock('./../../core/Engine', () => ({
   controllerMessenger: {
@@ -477,9 +480,12 @@ describe('network-utils', () => {
         },
       };
 
-      const layer1GasFee = await fetchEstimatedMultiLayerL1Fee({}, txMeta);
+      const layer1GasFee = await fetchEstimatedMultiLayerL1Fee(
+        {},
+        txMeta as TransactionMeta,
+      );
 
-      expect(layer1GasFee.startsWith('0x')).toEqual(false);
+      expect(layer1GasFee?.startsWith('0x')).toEqual(false);
       expect(layer1GasFee).toEqual('0a25339d61');
     });
   });
