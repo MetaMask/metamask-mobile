@@ -1029,7 +1029,6 @@ export class Engine {
     });
 
     const selectedNetworkController = new SelectedNetworkController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
@@ -1547,6 +1546,7 @@ export class Engine {
           ),
         platform: 'mobile',
         useAccountsAPI: true,
+        disabled: false
       }),
 
       new NftDetectionController({
@@ -1920,13 +1920,9 @@ export class Engine {
 
   startPolling() {
     const {
-      TokenDetectionController,
-      TokenListController,
       TransactionController,
     } = this.context;
 
-    TokenListController.start();
-    TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
   }

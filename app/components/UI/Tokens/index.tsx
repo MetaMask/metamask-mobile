@@ -44,6 +44,7 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { Hex } from '@metamask/utils';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -183,7 +184,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenRatesController,
       } = Engine.context;
       const actions = [
-        TokenDetectionController.detectTokens(),
+        TokenDetectionController.detectTokens({
+          chainIds: isPortfolioViewEnabled
+            ? Object.keys(networkConfigurationsByChainId) as Hex[]
+            : [chainId]
+        }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
         ...(isPortfolioViewEnabled
