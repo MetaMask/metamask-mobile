@@ -15,6 +15,7 @@ import {
   AccountsControllerAccountRenamedEvent as AccountsControllerAccountRenamedEventType,
 } from '@metamask/accounts-controller';
 import { ControllerMessenger } from '../Engine.types';
+import Logger from '../../../util/Logger';
 
 // Default AccountsControllerState
 export const defaultAccountsControllerState: AccountsControllerState = {
@@ -38,27 +39,33 @@ export const createAccountsController = ({
   messenger: ControllerMessenger;
   initialState?: AccountsControllerState;
 }) => {
-  const accountsControllerMessenger: AccountsControllerMessenger =
-    messenger.getRestricted({
-      name: 'AccountsController',
-      allowedEvents: [
-        'SnapController:stateChange',
-        'KeyringController:accountRemoved',
-        'KeyringController:stateChange',
-      ],
-      allowedActions: [
-        'KeyringController:getAccounts',
-        'KeyringController:getKeyringsByType',
-        'KeyringController:getKeyringForAccount',
-      ],
+  try {
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      messenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
+
+    const accountsController = new AccountsController({
+      messenger: accountsControllerMessenger,
+      state: initialState ?? defaultAccountsControllerState,
     });
 
-  const accountsController = new AccountsController({
-    messenger: accountsControllerMessenger,
-    state: initialState ?? defaultAccountsControllerState,
-  });
-
-  return accountsController;
+    return accountsController;
+  } catch (error) {
+    // Report error while initializing AccountsController
+    // TODO: Direct to vault recovery to reset controller states
+    Logger.error(error as Error, 'Failed to initialize AccountsController');
+  }
 };
 
 // Action types of AccountsController
