@@ -60,8 +60,11 @@ import { createAccountSelectorNavDetails } from '../../../components/Views/Accou
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { isBtcAccount } from '../../../core/MultiChain/utils';
+///: END:ONLY_INCLUDE_IF
 
-const trackEvent = (event) => {
+const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
 };
 
@@ -964,9 +967,14 @@ export function getWalletNavbarOptions(
     },
   });
 
-  const formattedAddress = isEthAccount(selectedInternalAccount)
-    ? toChecksumHexAddress(selectedInternalAccount.address)
-    : selectedInternalAccount.address;
+  let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (isBtcAccount(selectedInternalAccount)) {
+    // BTC addresses are not checksummed
+    formattedAddress = selectedInternalAccount.address;
+  }
+  ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
@@ -1051,9 +1059,20 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const networkPicker = () => (
-    <View style={styles.leftElementContainer}>
-      {isBtcAccount(selectedInternalAccount) ? (
+  const renderNetworkPicker = () => {
+    let networkPicker = (
+      <PickerNetwork
+        label={networkName}
+        imageSource={networkImageSource}
+        onPress={onPressTitle}
+        testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+        hideNetworkName
+      />
+    );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (isBtcAccount(selectedInternalAccount)) {
+      networkPicker = (
         <PickerNetwork
           label={'Bitcoin'}
           imageSource={require('../../../images/bitcoin-logo.png')}
@@ -1061,17 +1080,12 @@ export function getWalletNavbarOptions(
           hideNetworkName
           disabled
         />
-      ) : (
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={onPressTitle}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-        />
-      )}
-    </View>
-  );
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return <View style={styles.leftElementContainer}>{networkPicker}</View>;
+  };
 
   return {
     headerTitle: () => (
@@ -1093,7 +1107,7 @@ export function getWalletNavbarOptions(
         />
       </View>
     ),
-    headerLeft: () => networkPicker(),
+    headerLeft: () => renderNetworkPicker(),
     headerRight: () => (
       <View style={styles.rightElementContainer}>
         <View
