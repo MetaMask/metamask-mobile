@@ -67,6 +67,7 @@ import {
   TransactionController,
   TransactionControllerEvents,
   TransactionControllerState,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -153,6 +154,16 @@ import {
 import { BaseState } from '@metamask/base-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 
+/**
+ * Controllers that area always instantiated
+ */
+type RequiredControllers = Omit<Controllers, 'PPOMController'>;
+
+/**
+ * Controllers that are sometimes not instantiated
+ */
+type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
@@ -162,12 +173,12 @@ type UserStorageControllerActions = UserStorageController.AllowedActions;
 type NotificationsServicesControllerActions =
   NotificationServicesController.AllowedActions;
 
+// TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
-
 type SnapsGlobalEvents =
   | SnapControllerEvents
   | SubjectMetadataControllerEvents
@@ -232,6 +243,13 @@ type GlobalEvents =
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents;
 
+// TODO: Abstract this into controller utils for TransactionController
+export interface TransactionEventPayload {
+  transactionMeta: TransactionMeta;
+  actionId?: string;
+  error?: string;
+}
+
 /**
  * Type definition for the controller messenger used in the Engine.
  * It extends the base ControllerMessenger with global actions and events.
@@ -284,6 +302,14 @@ export interface Controllers {
   SwapsController: SwapsController;
 }
 
+/**
+ * Combines required and optional controllers for the Engine context type.
+ */
+export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
+
+/**
+ * All engine state, keyed by controller name
+ */
 export interface EngineState {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;

@@ -1,13 +1,13 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import {
   createAccountsController,
   defaultAccountsControllerState,
-} from './accountsControllerUtils';
-import { ControllerMessenger } from '../';
+} from './utils';
+import { ControllerMessenger } from '../../';
 import { withScope } from '@sentry/react-native';
-import { AGREED, METRICS_OPT_IN } from '../../../constants/storage';
-import StorageWrapper from '../../../store/storage-wrapper';
+import { AGREED, METRICS_OPT_IN } from '../../../../constants/storage';
+import StorageWrapper from '../../../../store/storage-wrapper';
 
 jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),

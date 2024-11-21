@@ -1,2 +1,2 @@
 export { default } from './Engine';
-export * from './Engine.types';
+export * from './types';

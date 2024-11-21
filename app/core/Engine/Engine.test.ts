@@ -1,8 +1,5 @@
-import Engine, {
-  Engine as EngineClass,
-  TransactionEventPayload,
-} from './Engine';
-import { EngineState } from './Engine.types';
+import Engine, { Engine as EngineClass } from './Engine';
+import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';

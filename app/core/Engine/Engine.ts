@@ -153,7 +153,7 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accountsControllerUtils';
+} from './controllers/AccountsController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -191,7 +191,13 @@ import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
-import { ControllerMessenger, Controllers, EngineState } from './Engine.types';
+import {
+  ControllerMessenger,
+  Controllers,
+  EngineState,
+  EngineContext,
+  TransactionEventPayload,
+} from './types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -201,27 +207,6 @@ const encryptor = new Encryptor({
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
-
-/**
- * Controllers that area always instantiated
- */
-type RequiredControllers = Omit<Controllers, 'PPOMController'>;
-
-/**
- * Controllers that are sometimes not instantiated
- */
-type OptionalControllers = Pick<Controllers, 'PPOMController'>;
-
-/**
- * Combines required and optional controllers for the Engine context type.
- */
-export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
-
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
 
 /**
  * Core controller responsible for composing other metamask controllers together
