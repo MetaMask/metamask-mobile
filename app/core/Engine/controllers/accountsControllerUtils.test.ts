@@ -14,7 +14,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedWithScope = jest.mocked(withScope);
 
-describe('accountControllerUtils', () => {
+describe('accountControllersUtils', () => {
   describe('createAccountsController', () => {
     beforeEach(() => {
       StorageWrapper.getItem = jest.fn((key: string) => {

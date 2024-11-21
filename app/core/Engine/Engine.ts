@@ -153,7 +153,7 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accountControllerUtils';
+} from './controllers/accountsControllerUtils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
