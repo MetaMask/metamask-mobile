@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PersonalSign should match snapshot 1`] = `
+exports[`TypedSignV1 should match snapshot 1`] = `
 [
   <View
     style={
@@ -316,7 +316,7 @@ exports[`PersonalSign should match snapshot 1`] = `
             }
           }
         >
-          Example \`personal_sign\` message
+          "0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765"
         </Text>
       </View>
       <SvgMock
