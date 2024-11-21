@@ -37,14 +37,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   );
 
   if (entry) {
-    const [
-      ,
-      {
-        name: nickname,
-        rpcEndpoints,
-        defaultRpcEndpointIndex,
-      },
-    ] = entry;
+    const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
@@ -53,4 +46,4 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   }
 };
 
-export default handleNetworkSwitch;
+export { handleNetworkSwitch };

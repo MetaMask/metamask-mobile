@@ -13,10 +13,7 @@ import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
-import handleNetworkSwitch from './handleNetworkSwitch';
 import { regex } from '../../../app/util/regex';
-
-export { handleNetworkSwitch };
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');

@@ -11,10 +11,8 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getDecimalChainId,
-  handleNetworkSwitch,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
