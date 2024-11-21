@@ -466,22 +466,6 @@ type Controllers = {
   SwapsController: SwapsController;
 };
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type NonControllers = {
-  AssetsContractController: AssetsContractController;
-  NftDetectionController: NftDetectionController;
-  TokenDetectionController: TokenDetectionController;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type NonControllerNames = keyof NonControllers;
-
-const NONCONTROLLER_NAMES = [
-  'AssetsContractController',
-  'NftDetectionController',
-  'TokenDetectionController',
-] as const;
-
 /**
  * Controllers that area always instantiated
  */
@@ -491,6 +475,24 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  * Controllers that are sometimes not instantiated
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+
+/**
+ * Messageable modules that are part of the Engine's context, but are not defined with state.
+ * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
+ */
+const STATELESS_NON_CONTROLLER_NAMES = [
+  'AssetsContractController',
+  'NftDetectionController',
+  'TokenDetectionController',
+] as const;
+
+/**
+ * Controllers that are defined with state.
+ */
+type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
 
 /**
  * Combines required and optional controllers for the Engine context type.
@@ -533,8 +535,8 @@ export class Engine {
    * ComposableController reference containing all child controllers
    */
   datamodel: ComposableController<
-    Omit<EngineState, NonControllerNames>,
-    Exclude<Controllers[keyof Controllers], NonControllers[NonControllerNames]>
+    EngineState,
+    StatefulControllers[keyof StatefulControllers]
   >;
 
   /**
@@ -1783,19 +1785,16 @@ export class Engine {
     }
 
     this.datamodel = new ComposableController<
-      Omit<EngineState, keyof NonControllers>,
-      Exclude<
-        Controllers[keyof Controllers],
-        NonControllers[keyof NonControllers]
-      >
+      EngineState,
+      StatefulControllers[keyof StatefulControllers]
     >({
       controllers: controllers.filter(
         (
           controller,
-        ): controller is Exclude<
-          Controllers[keyof Controllers],
-          NonControllers[keyof NonControllers]
-        > => !NONCONTROLLER_NAMES.find((name) => name === controller.name),
+        ): controller is StatefulControllers[keyof StatefulControllers] =>
+          !STATELESS_NON_CONTROLLER_NAMES.find(
+            (name) => name === controller.name,
+          ),
       ),
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
