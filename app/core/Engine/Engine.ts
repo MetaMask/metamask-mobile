@@ -355,7 +355,7 @@ export class Engine {
 
     // Create AccountsController
     const accountsController = createAccountsController({
-      controllerMessenger: this.controllerMessenger,
+      messenger: this.controllerMessenger,
       initialState: initialState.AccountsController,
     });
 
