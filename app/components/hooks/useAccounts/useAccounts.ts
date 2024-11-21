@@ -135,6 +135,7 @@ const useAccounts = ({
           selectedIndex = index;
         }
         // TODO - Improve UI to either include loading and/or balance load failures.
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
         const balanceWeiHex =
           accountInfoByAddress?.[formattedAddress]?.balance || '0x0';
         const stakedBalanceWeiHex =
