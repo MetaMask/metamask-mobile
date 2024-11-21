@@ -59,7 +59,6 @@ import PickerAccount from '../../../component-library/components/Pickers/PickerA
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { EthAccountType, BtcAccountType } from '@metamask/keyring-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const trackEvent = (event) => {
@@ -965,11 +964,9 @@ export function getWalletNavbarOptions(
     },
   });
 
-  const formattedAddress =
-    selectedInternalAccount.type === EthAccountType.Eoa ||
-    selectedInternalAccount.type === EthAccountType.Erc4337
-      ? toChecksumHexAddress(selectedInternalAccount.address)
-      : selectedInternalAccount.address;
+  const formattedAddress = isEthAccount(selectedInternalAccount)
+    ? toChecksumHexAddress(selectedInternalAccount.address)
+    : selectedInternalAccount.address;
 
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
@@ -1056,7 +1053,7 @@ export function getWalletNavbarOptions(
 
   const networkPicker = () => (
     <View style={styles.leftElementContainer}>
-      {selectedInternalAccount.type === BtcAccountType.P2wpkh ? (
+      {isBtcAccount(selectedInternalAccount) ? (
         <PickerNetwork
           label={'Bitcoin'}
           imageSource={require('../../../images/bitcoin-logo.png')}

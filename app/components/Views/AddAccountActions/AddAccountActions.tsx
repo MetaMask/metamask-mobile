@@ -21,6 +21,11 @@ import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-api';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { MultichainNetworks } from '../../../core/SnapKeyring/constants';
+import { useSelector } from 'react-redux';
+import {
+  hasCreatedBtcMainnetAccount,
+  hasCreatedBtcTestnetAccount,
+} from '../../../selectors/accountsController';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
@@ -69,6 +74,13 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+  const isBtcMainnetAccountAlreadyCreated = useSelector(
+    hasCreatedBtcMainnetAccount,
+  );
+  const isBtcTestnetAccountAlreadyCreated = useSelector(
+    hasCreatedBtcTestnetAccount,
+  );
   const createBitcoinAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
@@ -105,12 +117,20 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           />
           {/* ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps) */}
           <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(MultichainNetworks.BITCOIN);
+            }}
+            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+          />
+          <AccountAction
             actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
             iconName={IconName.Add}
             onPress={async () => {
               await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
             }}
-            disabled={isLoading}
+            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
           />
           {/* ///: END:ONLY_INCLUDE_IF */}
           <AccountAction

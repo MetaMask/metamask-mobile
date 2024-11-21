@@ -4,7 +4,7 @@ import BitcoinSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-snap.js
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   MessageSigningSnap as PreinstalledSnap,
-  BitcoinSnap as PreinstalledSnap,
+  BitcoinSnap as unknown as PreinstalledSnap,
 ]);
 
 export default PREINSTALLED_SNAPS;
