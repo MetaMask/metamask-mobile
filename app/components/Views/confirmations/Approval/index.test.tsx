@@ -10,7 +10,7 @@ const approvalState = {
   },
 };
 
-jest.mock('../../../../core/Engine.ts', () => ({
+jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
     KeyringController: {
