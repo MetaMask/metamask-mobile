@@ -38,7 +38,7 @@ export default function useBalance(asset?: Asset) {
   );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates) ?? {};
   const balances = useSelector(selectContractBalances);
 
   if (!asset) {

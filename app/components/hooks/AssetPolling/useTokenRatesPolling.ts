@@ -13,8 +13,8 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const currentChainId = useSelector(selectChainId);
 
   // Selectors returning state updated by the polling
-  const contractExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenMarketData = useSelector(selectTokenMarketData);
+  const contractExchangeRates = useSelector(selectContractExchangeRates) ?? {};
+  const tokenMarketData = useSelector(selectTokenMarketData) ?? {};
 
   const chainIdsToPoll = isPortfolioViewEnabled
     ? (chainIds ?? Object.keys(networkConfigurations))

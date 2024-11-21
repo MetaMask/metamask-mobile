@@ -119,7 +119,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates) ?? {};
   const tokenBalances = useSelector(selectContractBalances);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);

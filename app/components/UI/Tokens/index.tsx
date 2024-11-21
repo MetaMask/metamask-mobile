@@ -126,7 +126,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             ? parseFloat(asset.balance) * conversionRate
             : deriveBalanceFromAssetMarketDetails(
                 asset,
-                tokenExchangeRates,
+                tokenExchangeRates ?? {},
                 tokenBalances,
                 conversionRate,
                 currentCurrency,

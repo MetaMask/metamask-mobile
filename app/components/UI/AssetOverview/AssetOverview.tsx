@@ -80,7 +80,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectSelectedInternalAccountChecksummedAddress,
   );
   const { trackEvent } = useMetrics();
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates) ?? {};
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
   const ticker = useSelector((state: RootState) => selectTicker(state));

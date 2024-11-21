@@ -119,7 +119,7 @@ const AssetDetails = (props: Props) => {
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector(selectContractExchangeRates) ?? {};
   const tokenBalances = useSelector(selectContractBalances);
   const token = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
