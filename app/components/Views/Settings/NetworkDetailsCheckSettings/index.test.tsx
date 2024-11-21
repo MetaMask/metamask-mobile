@@ -22,7 +22,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
+jest.mock('../../../../util/networks/engineNetworkUtils', () => ({
   toggleUseSafeChainsListValidation: jest.fn(),
 }));
 
