@@ -4411,10 +4411,10 @@
     "@metamask/utils" "^9.1.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^44.0.0":
-  version "44.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-44.0.0.tgz#0ec19da2a8a1a01f65546efbe6fd218cd8d2deec"
-  integrity sha512-mepcz90wUCzexEDEWdZcnKEWzxV1ZUniFI0gRX0D8p4AbFuFY8pu02TFV8uoRHQkHuPyvsU5WwFvSvEcO8ILzg==
+"@metamask/assets-controllers@^44.1.0":
+  version "44.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-44.1.0.tgz#92d460b8926b138feacfff0cdf0c3efcc66091aa"
+  integrity sha512-YbEUoGSJciIrPjSxk4VJktcSEGxHUaK48OOLOjA8BMXWTlMJ1ac8OQeHwciPbTCGriwUa4QsxsequsuSGWNs/g==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
