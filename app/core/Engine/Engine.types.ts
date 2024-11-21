@@ -98,8 +98,9 @@ import {
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController from '@metamask/swaps-controller';
-import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
+import SwapsController, {
+  SwapsControllerState,
+} from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerActions,
@@ -298,7 +299,7 @@ export interface EngineState {
   TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsState;
+  SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   TokenDetectionController: BaseState;
