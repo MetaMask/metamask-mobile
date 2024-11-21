@@ -1737,11 +1737,13 @@ export class Engine {
           selectSelectedInternalAccountFormattedAddress
         ]
       ) {
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const balanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
             selectSelectedInternalAccountFormattedAddress
           ].balance,
         );
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const stakedBalanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
             selectSelectedInternalAccountFormattedAddress
