@@ -21,8 +21,6 @@ const defaultCapabilities = [
     device: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
     os_version: process.env.BROWSERSTACK_OS_VERSION || '13.0',
     app: process.env.BROWSERSTACK_ANDROID_APP_URL,
-    'browserstack.debug': true,
-    'browserstack.local': true,
   }
 ];
 
