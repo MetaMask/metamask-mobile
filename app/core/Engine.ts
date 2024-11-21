@@ -1711,9 +1711,23 @@ export class Engine {
       }),
     };
 
+    // Avoiding `Object.values` and `getKnownPropertyNames` for performance benefits: https://www.measurethat.net/Benchmarks/Show/7173/0/objectvalues-vs-reduce
+    const controllers = (
+      Object.keys(this.context) as (keyof Controllers)[]
+    ).reduce<Controllers[keyof Controllers][]>(
+      (controllers, controllerName) => {
+        const controller = this.context[controllerName];
+        if (controller) {
+          controllers.push(controller);
+        }
+        return controllers;
+      },
+      [],
+    );
+
     this.datamodel = new ComposableController(
-      // @ts-expect-error The ComposableController needs to be updated to support BaseControllerV2
-      Object.values(this.context),
+      // @ts-expect-error TODO: Filter out non-controller instances
+      controllers,
       this.controllerMessenger,
     );
 
