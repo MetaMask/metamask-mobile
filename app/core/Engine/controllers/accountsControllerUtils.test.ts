@@ -3,7 +3,7 @@ import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import {
   createAccountsController,
   defaultAccountsControllerState,
-} from './accountControllerUtils';
+} from './accountsControllerUtils';
 
 describe('accountControllerUtils', () => {
   describe('createAccountsController', () => {
