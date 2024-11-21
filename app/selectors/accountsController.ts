@@ -5,11 +5,13 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
+import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import {
-  EthAccountType,
-  EthMethod,
-  InternalAccount,
-} from '@metamask/keyring-api';
+  isBtcAccount,
+  isBtcMainnetAddress,
+  isBtcTestnetAddress,
+  isEthAccount,
+} from '../core/MultiChain/utils';
 
 /**
  *
@@ -72,10 +74,7 @@ export const selectSelectedInternalAccountFormattedAddress = createSelector(
     const selectedAddress = account?.address;
     if (selectedAddress) {
       // Ethereum accounts should always be checksummed
-      if (
-        account.type === EthAccountType.Eoa ||
-        account.type === EthAccountType.Erc4337
-      ) {
+      if (isEthAccount(account)) {
         return toChecksumHexAddress(selectedAddress);
       }
       return selectedAddress;
@@ -103,3 +102,23 @@ export const selectCanSignTransactions = createSelector(
   (selectedAccount) =>
     selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
+
+/**
+ * A selector that returns whether the the user has already created a Bitcoin mainnet account
+ */
+export function hasCreatedBtcMainnetAccount(state: RootState): boolean {
+  const accounts = selectInternalAccounts(state);
+  return accounts.some(
+    (account) => isBtcAccount(account) && isBtcMainnetAddress(account.address),
+  );
+}
+
+/**
+ * A selector that returns whether the the user has already created a Bitcoin testnet account
+ */
+export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
+  const accounts = selectInternalAccounts(state);
+  return accounts.some(
+    (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
+  );
+}

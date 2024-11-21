@@ -251,6 +251,16 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
+ * Checks if an address is an ethereum one.
+ *
+ * @param address - An address.
+ * @returns True if the address is an ethereum one, false otherwise.
+ */
+export function isEthAddress(address: string): boolean {
+  return isValidHexAddress(address as Hex);
+}
+
+/**
  * gets the internal account by address
  *
  * @param {String} address - String corresponding to an address

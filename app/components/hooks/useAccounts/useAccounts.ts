@@ -30,8 +30,9 @@ import {
   UseAccounts,
   UseAccountsParams,
 } from './useAccounts.types';
-import { InternalAccount, EthAccountType } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-api';
 import { BigNumber } from 'ethers';
+import { isEthAccount } from '../../../core/MultiChain/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -128,16 +129,14 @@ const useAccounts = ({
       (internalAccount: InternalAccount, index: number) => {
         const {
           address,
-          type,
           metadata: {
             name,
-            keyring: { type: keyringType },
+            keyring: { type },
           },
         } = internalAccount;
-        // This should be changed at controller-utils core package
-        // const checksummedAddress = toChecksumHexAddress(address) as Hex;
-        const formattedAddress =
-          type === EthAccountType.Eoa ? toChecksumHexAddress(address) : address;
+        const formattedAddress = isEthAccount(internalAccount)
+          ? toChecksumHexAddress(address)
+          : address;
         const isSelected = selectedInternalAccount?.address === address;
         if (isSelected) {
           selectedIndex = index;
@@ -181,7 +180,7 @@ const useAccounts = ({
         if (balanceError) {
           yOffset += 22;
         }
-        if (keyringType !== KeyringTypes.hd) {
+        if (type !== KeyringTypes.hd) {
           yOffset += 24;
         }
         return mappedAccount;
