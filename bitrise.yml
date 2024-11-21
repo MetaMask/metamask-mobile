@@ -252,6 +252,10 @@ workflows:
           title: Yarn Setup
   prep_environment:
     steps:
+      - restore-cache@2:
+          title: Restore Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
       - script@1:
           title: node, yarn, corepack installation
           inputs:
@@ -302,6 +306,13 @@ workflows:
                 npm i -g "corepack@$COREPACK_VERSION"
                 echo "Corepack enabling $YARN_VERSION"
                 corepack enable
+      - save-cache@1:
+          title: Save Node
+          inputs:
+            - key: node-{{ getenv "NODE_VERSION" }}-{{ .OS }}-{{ .Arch }}
+            - paths: |-
+                ../.nvm/
+                ../../../root/.nvm/
   install_applesimutils:
     steps:
       - script@1:
@@ -1520,10 +1531,19 @@ app:
       MM_NETWORK_UI_REDESIGN_ENABLED: false
     - opts:
         is_expand: false
+      PORTFOLIO_VIEW: false
+    - opts:
+        is_expand: false
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: false
+      MM_CHAIN_PERMISSIONS: false
+    - opts:
+        is_expand: false
+      MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
+    - opts:
+        is_expand: false
+      MM_POOLED_STAKING_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true

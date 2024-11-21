@@ -37,6 +37,19 @@ const mockAccount: Account = {
   isSelected: true,
 };
 
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
+    },
+  };
+});
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
@@ -111,13 +124,6 @@ describe('WalletAccount', () => {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
