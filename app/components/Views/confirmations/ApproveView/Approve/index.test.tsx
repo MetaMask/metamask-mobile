@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { Provider, Store } from 'react-redux';
+import { Provider } from 'react-redux';
+import { Store } from 'redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
