@@ -60,7 +60,7 @@ describe('accountControllersUtils', () => {
       });
       expect(accountsController.name).toEqual(accountsControllerName);
     });
-    it('should throw error when controller fails to initialize', async () => {
+    it('should catch error when controller fails to initialize', async () => {
       const controllerMessenger =
         'controllerMessenger' as unknown as ControllerMessenger;
       const accountsController = await createAccountsController({
