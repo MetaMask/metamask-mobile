@@ -94,7 +94,7 @@ interface ValueType {
   type: string;
 }
 
-const sanitizeMessage = (
+export const sanitizeMessage = (
   message: FieldValue,
   primaryType: string,
   types: Record<string, BaseType[]>,
