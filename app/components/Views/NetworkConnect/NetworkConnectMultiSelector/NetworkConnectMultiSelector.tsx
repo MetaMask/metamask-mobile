@@ -157,6 +157,7 @@ const NetworkConnectMultiSelector = ({
     onUserAction,
     onNetworksSelected,
     currentChainId,
+    networkConfigurations,
   ]);
 
   const networks = Object.entries(networkConfigurations)
