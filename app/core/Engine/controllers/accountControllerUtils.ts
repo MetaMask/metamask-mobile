@@ -16,22 +16,30 @@ import {
 } from '@metamask/accounts-controller';
 import { ControllerMessenger } from '../Engine.types';
 
+// Default AccountsControllerState
+export const defaultAccountsControllerState: AccountsControllerState = {
+  internalAccounts: {
+    accounts: {},
+    selectedAccount: '',
+  },
+};
+
 /**
  * Creates instance of AccountsController
  *
- * @param options.controllerMessenger - Controller messenger instance
+ * @param options.messenger - Controller messenger instance
  * @param options.initialState - Initial state of AccountsController
  * @returns - AccountsController instance
  */
 export const createAccountsController = ({
-  controllerMessenger,
+  messenger,
   initialState,
 }: {
-  controllerMessenger: ControllerMessenger;
+  messenger: ControllerMessenger;
   initialState?: AccountsControllerState;
 }) => {
   const accountsControllerMessenger: AccountsControllerMessenger =
-    controllerMessenger.getRestricted({
+    messenger.getRestricted({
       name: 'AccountsController',
       allowedEvents: [
         'SnapController:stateChange',
@@ -44,13 +52,6 @@ export const createAccountsController = ({
         'KeyringController:getKeyringForAccount',
       ],
     });
-
-  const defaultAccountsControllerState: AccountsControllerState = {
-    internalAccounts: {
-      accounts: {},
-      selectedAccount: '',
-    },
-  };
 
   const accountsController = new AccountsController({
     messenger: accountsControllerMessenger,
