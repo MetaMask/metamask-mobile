@@ -65,32 +65,81 @@ describe('isENS', () => {
 });
 
 describe('renderSlightlyLongAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
-      24,
-    );
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(4);
+  describe('with EVM addresses', () => {
+    const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
+        24,
+      );
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(
+        4,
+      );
+    });
+    it('should return 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
+        '0xC4955',
+      );
+      expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
+        '4D272',
+      );
+    });
   });
-  it('should return 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
-      '0xC4955',
-    );
-    expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
-      '4D272',
-    );
+  describe('non-EVM addresses', () => {
+    it('should not checksum address and maintain original format', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(24); // Default initialChars (20) + chars (4)
+      expect(afterEllipsis.length).toBe(4);
+      expect(result).toBe('bc1qxy2kgdygjrsqtzq2n0yr...0wlh');
+    });
+
+    it('should respect custom chars and initialChars parameters', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address, 5, 10);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(15); // Custom initialChars (10) + chars (5)
+      expect(afterEllipsis.length).toBe(5);
+      expect(result).toBe('bc1qxy2kgdygjrs...x0wlh');
+    });
   });
 });
 
 describe('formatAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return address formatted for short type', () => {
-    const expectedValue = '0xC495...D272';
-    expect(formatAddress(mockAddress, 'short')).toBe(expectedValue);
+  const mockEvmAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+  const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+
+  describe('with EVM addresses', () => {
+    it('should return checksummed address formatted for short type', () => {
+      const expectedValue = '0xC495...D272';
+      expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('should return checksummed address formatted for mid type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
+      expect(formatAddress(mockEvmAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('should return full checksummed address for full type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(formatAddress(mockEvmAddress, 'full')).toBe(expectedValue);
+    });
   });
-  it('should return address formatted for mid type', () => {
-    const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
-    expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+
+  describe('with non-EVM addresses', () => {
+    it('should return address formatted for short type without checksumming', () => {
+      const expectedValue = 'bc1qxy...0wlh';
+      expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('should return address formatted for mid type without checksumming', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yr...0wlh';
+      expect(formatAddress(mockBtcAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('should return full address without checksumming for full type', () => {
+      expect(formatAddress(mockBtcAddress, 'full')).toBe(mockBtcAddress);
+    });
   });
 });
 
