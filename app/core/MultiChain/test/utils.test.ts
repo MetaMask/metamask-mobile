@@ -10,8 +10,10 @@ import {
   isBtcAccount,
   isBtcMainnetAddress,
   isBtcTestnetAddress,
+  getFormattedAddressFromInternalAccount,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
 const MOCK_BTC_MAINNET_ADDRESS_2 = '1Lbcfr7sAHTD9CgdQo3HTMTkV8LK4ZnX71';
@@ -130,6 +132,27 @@ describe('MultiChain utils', () => {
 
     it('should return false for ETH addresses', () => {
       expect(isBtcTestnetAddress(MOCK_ETH_ADDRESS)).toBe(false);
+    });
+  });
+  describe('getFormattedAddressFromInternalAccount', () => {
+    it('should return checksummed address for ETH EOA accounts', () => {
+      const formatted =
+        getFormattedAddressFromInternalAccount(mockEthEOAAccount);
+      expect(formatted).toBe(toChecksumHexAddress(MOCK_ETH_ADDRESS));
+    });
+
+    it('should return checksummed address for ETH ERC4337 accounts', () => {
+      const formatted = getFormattedAddressFromInternalAccount(
+        mockEthERC4337Account,
+      );
+      expect(formatted).toBe(
+        toChecksumHexAddress(mockEthERC4337Account.address),
+      );
+    });
+
+    it('should return unformatted address for BTC accounts', () => {
+      const formatted = getFormattedAddressFromInternalAccount(mockBTCAccount);
+      expect(formatted).toBe(MOCK_BTC_MAINNET_ADDRESS);
     });
   });
 });

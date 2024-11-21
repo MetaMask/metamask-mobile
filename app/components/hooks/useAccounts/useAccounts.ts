@@ -32,7 +32,7 @@ import {
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-api';
 import { BigNumber } from 'ethers';
-import { isEthAccount } from '../../../core/MultiChain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/MultiChain/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -127,17 +127,10 @@ const useAccounts = ({
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
       (internalAccount: InternalAccount, index: number) => {
-        const {
-          address,
-          metadata: {
-            name,
-            keyring: { type },
-          },
-        } = internalAccount;
-        const formattedAddress = isEthAccount(internalAccount)
-          ? toChecksumHexAddress(address)
-          : address;
-        const isSelected = selectedInternalAccount?.address === address;
+        const formattedAddress =
+          getFormattedAddressFromInternalAccount(internalAccount);
+        const isSelected =
+          selectedInternalAccount?.address === internalAccount.address;
         if (isSelected) {
           selectedIndex = index;
         }
@@ -163,9 +156,9 @@ const useAccounts = ({
         const balanceError = checkBalanceError?.(balanceWeiHex);
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
-          name,
+          name: internalAccount.metadata.name,
           address: formattedAddress,
-          type: type as KeyringTypes,
+          type: internalAccount.type as KeyringTypes,
           yOffset,
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
@@ -180,7 +173,7 @@ const useAccounts = ({
         if (balanceError) {
           yOffset += 22;
         }
-        if (type !== KeyringTypes.hd) {
+        if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
           yOffset += 24;
         }
         return mappedAccount;

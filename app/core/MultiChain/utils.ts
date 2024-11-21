@@ -1,3 +1,4 @@
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   InternalAccount,
   EthAccountType,
@@ -16,6 +17,23 @@ import { isEthAddress } from '../../util/address';
 export function isEthAccount(account: InternalAccount): boolean {
   const { Eoa, Erc4337 } = EthAccountType;
   return Boolean(account && (account.type === Eoa || account.type === Erc4337));
+}
+
+/**
+ * Returns the formatted address of an internal account. For EVM accounts, this
+ * is the checksummed address. For Bitcoin accounts, this is the address without
+ * any formatting.
+ *
+ * @param account - The internal account to format.
+ * @returns The formatted address based on the account type.
+ */
+export function getFormattedAddressFromInternalAccount(
+  account: InternalAccount,
+): string {
+  if (isEthAccount(account)) {
+    return toChecksumHexAddress(account.address);
+  }
+  return account.address;
 }
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
