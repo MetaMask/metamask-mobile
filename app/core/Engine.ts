@@ -1798,9 +1798,6 @@ export class Engine {
         name: 'ComposableController',
         allowedActions: [],
         allowedEvents: [
-          /**
-           * V1/V2 controllers with correctly defined messengers and `stateChange` events.
-           */
           'AccountsController:stateChange',
           'AccountTrackerController:stateChange',
           'AddressBookController:stateChange',
@@ -1817,6 +1814,7 @@ export class Engine {
           'PhishingController:stateChange',
           'PPOMController:stateChange',
           'PreferencesController:stateChange',
+          'SelectedNetworkController:stateChange',
           'SignatureController:stateChange',
           'SmartTransactionsController:stateChange',
           'SnapController:stateChange',
