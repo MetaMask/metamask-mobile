@@ -5417,6 +5417,19 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^9.1.0"
 
+"@metamask/signature-controller@^21.0.0":
+  version "21.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.1.0.tgz#04b164dc0dfaeee0bf77d1be50b5f9be39c8c334"
+  integrity sha512-WD99N98DUio/Ya21tQtRV8IXAvdoakXL0icFoBir8Dnv4ZuAwFkb5TbalhWfhyAA2rwED2amTbAmIrzcvXMagw==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/utils" "^10.0.0"
+    jsonschema "^1.2.4"
+    lodash "^4.17.21"
+    uuid "^8.3.2"
+
 "@metamask/slip44@3.1.0", "@metamask/slip44@^3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.1.0.tgz#f8067796f89fbbd6eaa594660bd6a1fbd6837a51"
