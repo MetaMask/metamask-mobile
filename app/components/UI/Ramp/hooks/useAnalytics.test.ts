@@ -40,17 +40,17 @@ describe('useAnalytics', () => {
   });
 
   it('calls trackEvent for anonymous params', () => {
-    jest.mock('../constants', () => ({
-      AnonymousEvents: ['BUY_BUTTON_CLICKED'],
-    }));
-
-    const { result } = renderHookWithProvider(() => useAnalytics());
-
     const testEvent = 'BUY_BUTTON_CLICKED';
     const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
     } as const;
+
+    jest.mock('../constants', () => ({
+      AnonymousEvents: [testEvent],
+    }));
+
+    const { result } = renderHookWithProvider(() => useAnalytics());
 
     result.current(testEvent, testEventParams);
 
