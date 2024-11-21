@@ -49,15 +49,17 @@ const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
 /**
- * Returns full checksummed address
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - String corresponding to full checksummed address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function renderFullAddress(address: string) {
-  return address
-    ? toChecksumAddress(address)
-    : strings('transactions.tx_details_not_available');
+  if (address) {
+    // Non EVM addresses are not checksummed
+    return isEthAddress(address) ? toChecksumAddress(address) : address;
+  }
+  return strings('transactions.tx_details_not_available');
 }
 
 /**
