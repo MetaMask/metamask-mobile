@@ -8,7 +8,8 @@ import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 jest.mock('../../../../core/Analytics');
@@ -29,6 +30,22 @@ const initialState = {
 };
 const store = mockStore(initialState);
 
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnThis(),
+});
+
+MetaMetrics.getInstance = jest.fn().mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: mockCreateEventBuilder,
+});
+
+interface MockMetrics {
+  addTraitsToUser: jest.Mock;
+  trackEvent: jest.Mock;
+}
+
 describe('GeneralSettings', () => {
   it('should render correctly', () => {
     const wrapper = shallow(
@@ -41,10 +58,9 @@ describe('GeneralSettings', () => {
 });
 
 describe('updateUserTraitsWithCurrentCurrency', () => {
-  let mockMetrics: { addTraitsToUser: () => void; trackEvent: () => void };
+  let mockMetrics: MockMetrics;
 
   beforeEach(() => {
-    // Create a mock for the metrics object with spies on the required methods
     mockMetrics = {
       addTraitsToUser: jest.fn(),
       trackEvent: jest.fn(),
@@ -52,7 +68,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mocks after each test to avoid interference
+    jest.clearAllMocks();
   });
 
   it('adds selected currency trait', () => {
@@ -60,7 +76,6 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockMetrics);
 
-    // Check if addTraitsToUser was called with the correct argument
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
       [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
     });
@@ -70,15 +85,16 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
     const mockCurrency = 'USD';
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockMetrics);
-
-    // Check if trackEvent was called with the correct event and properties
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CURRENCY_CHANGED,
-      {
+    )
+      .addProperties({
         [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
         location: 'app_settings',
-      },
-    );
+      })
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('does not throw errors when a valid currency is passed', () => {
@@ -91,10 +107,9 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 });
 
 describe('updateUserTraitsWithCurrencyType', () => {
-  let mockMetrics: { addTraitsToUser: () => void; trackEvent: () => void };
+  let mockMetrics: MockMetrics;
 
   beforeEach(() => {
-    // Create a mock for the metrics object with spies on the required methods
     mockMetrics = {
       addTraitsToUser: jest.fn(),
       trackEvent: jest.fn(),
@@ -102,7 +117,7 @@ describe('updateUserTraitsWithCurrencyType', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks(); // Reset mocks after each test
+    jest.clearAllMocks();
   });
 
   it('adds the primary currency preference', () => {
@@ -110,7 +125,6 @@ describe('updateUserTraitsWithCurrencyType', () => {
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
 
-    // Check if addTraitsToUser was called with the correct argument
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
@@ -120,15 +134,15 @@ describe('updateUserTraitsWithCurrencyType', () => {
     const primaryCurrency = 'crypto';
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
-
-    // Check if trackEvent was called with the correct event and properties
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
-      {
+    )
+      .addProperties({
         [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
         location: 'app_settings',
-      },
-    );
+      })
+      .build();
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('does not throw errors if metrics object is properly passed', () => {

@@ -37,6 +37,7 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
@@ -61,8 +62,7 @@ export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
   const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
   metrics.addTraitsToUser(traits);
   metrics.trackEvent(
-    metrics
-      .createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
       .addProperties({
         ...traits,
         location: 'app_settings',
@@ -76,8 +76,9 @@ export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
   const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
   metrics.addTraitsToUser(traits);
   metrics.trackEvent(
-    metrics
-      .createEventBuilder(MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE)
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
+    )
       .addProperties({
         ...traits,
         location: 'app_settings',
