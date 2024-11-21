@@ -144,7 +144,6 @@ import {
   AccountsControllerGetAccountByAddressAction,
   AccountsControllerSetAccountNameAction,
   ///: END:ONLY_INCLUDE_IF
-  createAccountsController,
   AccountsControllerGetAccountAction,
   AccountsControllerGetSelectedAccountAction,
   AccountsControllerListAccountsAction,
@@ -153,7 +152,8 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController';
+} from './controllers/AccountsController/constants';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
