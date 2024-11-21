@@ -186,9 +186,8 @@ class NetworksSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
-    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {

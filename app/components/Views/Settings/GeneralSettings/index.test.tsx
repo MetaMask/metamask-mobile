@@ -49,7 +49,7 @@ const mockMetrics = {
 
 describe('updateUserTraitsWithCurrentCurrency', () => {
   afterEach(() => {
-    jest.clearAllMocks(); // Clear mocks after each test to avoid interference
+    jest.clearAllMocks();
   });
 
   it('adds selected currency trait', () => {
@@ -57,7 +57,6 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockMetrics);
 
-    // Check if addTraitsToUser was called with the correct argument
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
       [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
     });
@@ -90,7 +89,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 
 describe('updateUserTraitsWithCurrencyType', () => {
   afterEach(() => {
-    jest.clearAllMocks(); // Reset mocks after each test
+    jest.clearAllMocks();
   });
 
   it('adds the primary currency preference', () => {
@@ -98,7 +97,6 @@ describe('updateUserTraitsWithCurrencyType', () => {
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockMetrics);
 
-    // Check if addTraitsToUser was called with the correct argument
     expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });

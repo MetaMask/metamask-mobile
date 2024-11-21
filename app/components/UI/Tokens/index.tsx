@@ -13,7 +13,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
@@ -183,7 +186,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens(),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        TokenRatesController.updateExchangeRates(),
+        ...(isPortfolioViewEnabled
+          ? Object.values(networkConfigurationsByChainId)
+          : [networkConfigurationsByChainId[chainId]]
+        ).map((network) =>
+          TokenRatesController.updateExchangeRatesByChainId({
+            chainId: network.chainId,
+            nativeCurrency: network.nativeCurrency,
+          }),
+        ),
       ];
       await Promise.all(actions).catch((error) => {
         Logger.error(error, 'Error while refreshing tokens');
@@ -239,15 +250,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const isTokenFilterEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
   return (
     <View
       style={styles.wrapper}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        {isTokenFilterEnabled ? (
+        {isPortfolioViewEnabled ? (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={

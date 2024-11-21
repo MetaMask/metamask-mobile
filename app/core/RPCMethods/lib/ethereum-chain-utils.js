@@ -206,12 +206,8 @@ export async function switchToNetwork({
   origin,
   isAddNetworkFlow = false,
 }) {
-  const {
-    CurrencyRateController,
-    NetworkController,
-    PermissionController,
-    SelectedNetworkController,
-  } = controllers;
+  const { NetworkController, PermissionController, SelectedNetworkController } =
+    controllers;
   const getCaveat = ({ target, caveatType }) => {
     try {
       return PermissionController.getCaveat(origin, target, caveatType);
@@ -300,7 +296,6 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    CurrencyRateController.updateExchangeRate(requestData.ticker);
     NetworkController.setActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
