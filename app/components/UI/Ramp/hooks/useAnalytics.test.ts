@@ -40,10 +40,11 @@ describe('useAnalytics', () => {
   });
 
   it('calls trackEvent for anonymous params', () => {
-    const testEvent = 'BUY_BUTTON_CLICKED';
+    const testEvent = 'RAMP_REGION_SELECTED';
     const testEventParams = {
-      location: 'Amount to Buy Screen',
-      text: 'Buy',
+      country_id: 'test-country-id',
+      is_unsupported_offramp: false,
+      is_unsupported_onramp: false,
     } as const;
 
     jest.mock('../constants', () => ({
