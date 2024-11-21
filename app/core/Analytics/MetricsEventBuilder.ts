@@ -16,7 +16,7 @@ class TrackingEvent implements ITrackingEvent {
 
   constructor(event: IMetaMetricsEvent) {
     this.#name = event.category;
-    this.#properties = {};
+    this.#properties = event.properties || {};
     this.#sensitiveProperties = {};
     this.#saveDataRecording = true;
   }
