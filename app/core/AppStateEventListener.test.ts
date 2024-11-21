@@ -100,7 +100,6 @@ describe('AppStateEventListener', () => {
           utm_campaign: 'campaign',
         })
         .build(),
-      true,
     );
   });
 

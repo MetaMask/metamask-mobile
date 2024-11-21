@@ -66,7 +66,6 @@ export class AppStateEventListener {
           MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
             .addSensitiveProperties({ attributionId, ...utmParams })
             .build(),
-          true,
         );
       }
     } catch (error) {
