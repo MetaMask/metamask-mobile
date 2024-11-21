@@ -1,5 +1,14 @@
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+import { setupServer } from 'msw/node';
+
+const server = setupServer();
+// Enable API mocking via Mock Service Worker (MSW)
+beforeAll(() => server.listen());
+// Reset any runtime request handlers we may add during the tests
+afterEach(() => server.resetHandlers());
+// Disable API mocking after the tests are done
+afterAll(() => server.close());
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
@@ -28,7 +37,7 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps');
+jest.mock('../app/lib/snaps/preinstalled-snaps');
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),
@@ -95,14 +104,14 @@ jest.mock('react-native-blob-util', () => ({
   },
 }));
 
-jest.mock('../../store', () => ({
+jest.mock('../app/store', () => ({
   store: {
     getState: jest.fn(),
     dispatch: jest.fn(),
   },
 }));
 
-jest.mock('../../core/NotificationManager');
+jest.mock('../app/core/NotificationManager');
 
 // jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter');
 
@@ -295,9 +304,7 @@ jest.mock('@notifee/react-native', () =>
 
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
-  default: (source) => {
-    return { uri: source.uri };
-  },
+  default: (source) => ({ uri: source.uri }),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -322,8 +329,7 @@ global.crypto = {
 
 jest.mock('@react-native-firebase/messaging', () => {
 
-  const module = () => {
-      return {
+  const module = () => ({
           getToken: jest.fn(() => Promise.resolve('fcmToken')),
           deleteToken: jest.fn(() => Promise.resolve()),
           subscribeToTopic: jest.fn(),
@@ -340,15 +346,14 @@ jest.mock('@react-native-firebase/messaging', () => {
           ),
           onMessage: jest.fn(),
           onTokenRefresh: jest.fn(),
-    };
-  };
+    });
 
   module.AuthorizationStatus = {
       NOT_DETERMINED: -1,
       DENIED: 0,
       AUTHORIZED: 1,
       PROVISIONAL: 2,
-  }
+  };
 
-  return module
+  return module;
 });

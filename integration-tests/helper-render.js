@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render } from '@testing-library/react-native';
 import { ConnectedRoot } from '../app/components/Views/Root/ConnectedRoot';
 import { createStoreAndPersistor } from '../app/store';
 
