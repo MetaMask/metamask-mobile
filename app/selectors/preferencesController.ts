@@ -8,49 +8,49 @@ const selectPreferencesControllerState = (state: RootState) =>
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.ipfsGateway,
+    preferencesControllerState?.ipfsGateway,
 );
 
 export const selectUseNftDetection = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.useNftDetection,
+    preferencesControllerState?.useNftDetection,
 );
 
 export const selectShowMultiRpcModal = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.showMultiRpcModal,
+    preferencesControllerState?.showMultiRpcModal,
 );
 
 export const selectUseTokenDetection = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.useTokenDetection,
+    preferencesControllerState?.useTokenDetection,
 );
 
 export const selectDisplayNftMedia = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.displayNftMedia,
+    preferencesControllerState?.displayNftMedia,
 );
 
 export const selectUseSafeChainsListValidation = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.useSafeChainsListValidation,
+    preferencesControllerState?.useSafeChainsListValidation,
 );
 
 export const selectTokenSortConfig = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.tokenSortConfig,
+    preferencesControllerState?.tokenSortConfig,
 );
 
 export const selectTokenNetworkFilter = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.tokenNetworkFilter,
+    preferencesControllerState?.tokenNetworkFilter,
 );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
@@ -108,7 +108,7 @@ export const selectIsSecurityAlertsEnabled = createSelector(
 export const selectSmartTransactionsOptInStatus = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.smartTransactionsOptInStatus,
+    preferencesControllerState?.smartTransactionsOptInStatus,
 );
 
 export const selectUseTransactionSimulations = createSelector(
@@ -124,5 +124,5 @@ export const selectUseTransactionSimulations = createSelector(
 export const selectPrivacyMode = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.privacyMode,
+    preferencesControllerState?.privacyMode,
 );
