@@ -16,19 +16,9 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import styleSheet from './ConnectionDetails.styles';
+import styleSheet from './PermittedNetworksInfoSheet.styles';
 
-interface ConnectionDetailsProps {
-  route: {
-    params: {
-      connectionDateTime?: number;
-    };
-  };
-}
-
-const ConnectionDetails = (props: ConnectionDetailsProps) => {
-  const { connectionDateTime = 123456789 } = props.route.params;
-
+const PermittedNetworksInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -37,26 +27,17 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
-  const formatConnectionDate = (timestamp: number) =>
-    new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>
-            {strings('permissions.connection_details_title')}
+            {strings('permissions.permitted_networks')}
           </Text>
         </BottomSheetHeader>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMD}>
-            {strings('permissions.connection_details_description', {
-              connectionDateTime: formatConnectionDate(connectionDateTime),
-            })}
+            {strings('permissions.permitted_networks_info_sheet_description')}
           </Text>
         </View>
         <View style={styles.buttonsContainer}>
@@ -73,4 +54,4 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
   );
 };
 
-export default ConnectionDetails;
+export default PermittedNetworksInfoSheet;
