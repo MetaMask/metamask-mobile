@@ -89,3 +89,11 @@ export function wipeTransactions(
   const { TransactionController } = Engine.context;
   return TransactionController.wipeTransactions(...args);
 }
+
+export const getNetworkNonce = async ({ from }: { from: string }) => {
+  const { nextNonce, releaseLock } = await getNonceLock(from);
+
+  releaseLock();
+
+  return nextNonce;
+};

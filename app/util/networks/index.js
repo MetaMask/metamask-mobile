@@ -41,7 +41,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -348,14 +347,6 @@ export function isPrefixedFormattedHexString(value) {
   }
   return regex.prefixedFormattedHexString.test(value);
 }
-
-export const getNetworkNonce = async ({ from }) => {
-  const { nextNonce, releaseLock } = await getNonceLock(from);
-
-  releaseLock();
-
-  return nextNonce;
-};
 
 export function blockTagParamIndex(payload) {
   switch (payload.method) {

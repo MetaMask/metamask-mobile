@@ -32,7 +32,6 @@ import { sumHexWEIs } from '../../../../../../util/conversions';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   TESTNET_FAUCETS,
-  getNetworkNonce,
   isTestNet,
   isTestNetworkWithFaucet,
 } from '../../../../../../util/networks';
@@ -63,6 +62,7 @@ import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import { getNetworkNonce } from '../../../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({

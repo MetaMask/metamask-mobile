@@ -3,7 +3,7 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 
-const { addTransaction, estimateGas, ...proxyMethods } =
+const { addTransaction, estimateGas, getNetworkNonce, ...proxyMethods } =
   TransactionControllerUtils;
 
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
@@ -69,6 +69,51 @@ describe('Transaction Controller Util', () => {
           ],
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('getNetworkNonce', () => {
+    const nonceMock = 123;
+    const fromMock = '0x123';
+
+    beforeEach(() => {
+      jest.spyOn(Engine.context.TransactionController, 'getNonceLock');
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns value from TransactionController', async () => {
+      (
+        Engine.context.TransactionController.getNonceLock as jest.Mock
+      ).mockResolvedValueOnce({
+        nextNonce: nonceMock,
+        releaseLock: jest.fn(),
+      });
+
+      expect(
+        await TransactionControllerUtils.getNetworkNonce({ from: fromMock }),
+      ).toBe(nonceMock);
+
+      expect(
+        Engine.context.TransactionController.getNonceLock,
+      ).toHaveBeenCalledWith(fromMock);
+    });
+
+    it('releases nonce lock', async () => {
+      const releaseLockMock = jest.fn();
+
+      (
+        Engine.context.TransactionController.getNonceLock as jest.Mock
+      ).mockResolvedValueOnce({
+        nextNonce: nonceMock,
+        releaseLock: releaseLockMock,
+      });
+
+      await TransactionControllerUtils.getNetworkNonce({ from: fromMock });
+
+      expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });
   });
 });
