@@ -2,10 +2,12 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import {
   DataDeleteResponseStatus,
   DataDeleteStatus,
+  IMetaMetricsEvent,
 } from '../../../core/Analytics';
 import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -50,6 +52,10 @@ const mockMetrics = {
 (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
 
 class MockEventDataBuilder extends MetricsEventBuilder {
+  static getMockEvent(event: IMetaMetricsEvent | ITrackingEvent) {
+    return new MockEventDataBuilder(event);
+  }
+
   addProperties = jest.fn().mockReturnThis();
   addSensitiveProperties = jest.fn().mockReturnThis();
   setSaveDataRecording = jest.fn().mockReturnThis();
@@ -61,7 +67,7 @@ describe('useMetrics', () => {
     jest.clearAllMocks();
     jest
       .spyOn(MetricsEventBuilder, 'createEventBuilder')
-      .mockImplementation((event) => new MockEventDataBuilder(event));
+      .mockImplementation((event) => MockEventDataBuilder.getMockEvent(event));
   });
 
   it('uses MetaMetrics instance', async () => {

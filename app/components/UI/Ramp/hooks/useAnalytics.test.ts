@@ -1,5 +1,4 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
