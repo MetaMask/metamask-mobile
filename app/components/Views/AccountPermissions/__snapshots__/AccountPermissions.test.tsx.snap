@@ -262,6 +262,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           </Text>
         </View>
         <TouchableOpacity
+          disabled={false}
           onPress={[Function]}
           style={
             {
