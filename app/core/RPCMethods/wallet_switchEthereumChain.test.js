@@ -178,10 +178,10 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 1;
+      process.env.MM_CHAIN_PERMISSIONS = 'true';
     });
     afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 0;
+      process.env.MM_CHAIN_PERMISSIONS = 'false';
     });
     it('should not change network permissions and should switch without user approval when chain is already permitted', async () => {
       const spyOnGrantPermissionsIncremental = jest.spyOn(

@@ -246,7 +246,7 @@ export async function switchToNetwork({
   // for some reason this extra step is necessary for accessing the env variable in test environment
   const chainPermissionsFeatureEnabled =
     { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === '1'
+      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
       : isChainPermissionsFeatureEnabled;
 
   const { value: permissionedChainIds } =

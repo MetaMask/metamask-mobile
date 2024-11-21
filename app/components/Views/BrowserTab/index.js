@@ -111,6 +111,11 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
+import { useIsFocused } from '@react-navigation/native';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
   AppConstants;
@@ -307,6 +312,8 @@ export const BrowserTab = (props) => {
   const isTabActive = useSelector(
     (state) => state.browser.activeTab === props.id,
   );
+
+  const isFocused = useIsFocused();
 
   /**
    * Gets the url to be displayed to the user
@@ -1562,6 +1569,68 @@ export const BrowserTab = (props) => {
     [props.linkType],
   );
 
+  const checkTabPermissions = useCallback(() => {
+    if (!url.current) return;
+
+    const hostname = new URL(url.current).hostname;
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    const isConnected = permittedAccounts.length > 0;
+
+    if (isConnected) {
+      let permittedChains = [];
+      try {
+        const caveat = Engine.context.PermissionController.getCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+        const currentChainId = props.chainId;
+        const isCurrentChainIdAlreadyPermitted =
+          permittedChains.includes(currentChainId);
+
+        if (!isCurrentChainIdAlreadyPermitted) {
+          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+            params: {
+              isNonDappNetworkSwitch: true,
+              hostInfo: {
+                metadata: {
+                  origin: hostname,
+                },
+              },
+              isRenderedAsBottomSheet: true,
+              initialScreen: AccountPermissionsScreens.Connected,
+            },
+          });
+        }
+      } catch (e) {
+        Logger.error(e, 'Error in checkTabPermissions');
+      }
+    }
+  }, [props.chainId, props.navigation]);
+
+  const urlRef = useRef(url.current);
+  useEffect(() => {
+    urlRef.current = url.current;
+    if (
+      isMultichainVersion1Enabled &&
+      urlRef.current &&
+      isFocused &&
+      !props.isInTabsView &&
+      isTabActive
+    ) {
+      checkTabPermissions();
+    }
+  }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
+
   /**
    * Main render
    */
@@ -1724,6 +1793,10 @@ BrowserTab.propTypes = {
    * Represents the current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * Boolean indicating if browser is in tabs view
+   */
+  isInTabsView: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {

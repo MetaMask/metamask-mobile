@@ -31,7 +31,6 @@ const TransactionReviewEIP1559Update = ({
   onEdit,
   hideTotal,
   noMargin,
-  origin,
   originWarning,
   onUpdatingValuesStart,
   onUpdatingValuesEnd,
@@ -129,9 +128,7 @@ const TransactionReviewEIP1559Update = ({
               orange={Boolean(originWarning)}
               noMargin
             >
-              {!origin
-                ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.network_fee')}
+              {strings('transaction_review_eip1559.network_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>

@@ -2,10 +2,6 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    networkItemContainer: {
-      paddingHorizontal: 10,
-      paddingVertical: 14,
-    },
     networkAvatar: {
       marginHorizontal: 10,
     },
