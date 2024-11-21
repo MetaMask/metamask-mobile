@@ -301,7 +301,7 @@ class SendFlow extends PureComponent {
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT)
-        .addPropperties({
+        .addProperties({
           network: providerType,
         })
         .build(),
@@ -321,7 +321,7 @@ class SendFlow extends PureComponent {
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addPropperties({
+        .addProperties({
           button_location: 'Send Flow warning',
           button_copy: 'Buy Native Token',
           chain_id_destination: this.props.chainId,
@@ -437,7 +437,7 @@ class SendFlow extends PureComponent {
           .createEventBuilder(
             MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
           )
-          .addPropperties({
+          .addProperties({
             chain_id: getDecimalChainId(this.props.chainId),
           })
           .build(),
