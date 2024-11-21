@@ -81,32 +81,16 @@ const useMetrics = (): IUseMetricsHook => ({
   trackEvent: MetaMetrics.getInstance().trackEvent.bind(
     MetaMetrics.getInstance(),
   ),
-  enable: MetaMetrics.getInstance().enable.bind(MetaMetrics.getInstance()),
-  addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser.bind(
-    MetaMetrics.getInstance(),
-  ),
-  createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask.bind(
-    MetaMetrics.getInstance(),
-  ),
-  checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus.bind(
-    MetaMetrics.getInstance(),
-  ),
+  enable: MetaMetrics.getInstance().enable,
+  addTraitsToUser: MetaMetrics.getInstance().addTraitsToUser,
+  createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
+  checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
   getDeleteRegulationCreationDate:
-    MetaMetrics.getInstance().getDeleteRegulationCreationDate.bind(
-      MetaMetrics.getInstance(),
-    ),
-  getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId.bind(
-    MetaMetrics.getInstance(),
-  ),
-  isDataRecorded: MetaMetrics.getInstance().isDataRecorded.bind(
-    MetaMetrics.getInstance(),
-  ),
-  isEnabled: MetaMetrics.getInstance().isEnabled.bind(
-    MetaMetrics.getInstance(),
-  ),
-  getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId.bind(
-    MetaMetrics.getInstance(),
-  ),
+    MetaMetrics.getInstance().getDeleteRegulationCreationDate,
+  getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
+  isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+  isEnabled: MetaMetrics.getInstance().isEnabled,
+  getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId,
   createEventBuilder: MetricsEventBuilder.createEventBuilder,
 });
 

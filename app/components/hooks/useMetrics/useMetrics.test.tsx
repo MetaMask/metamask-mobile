@@ -74,16 +74,16 @@ describe('useMetrics', () => {
     const { result } = renderHook(() => useMetrics());
     expect(result.current).toMatchInlineSnapshot(`
       {
-        "addTraitsToUser": [Function],
-        "checkDataDeleteStatus": [Function],
-        "createDataDeletionTask": [Function],
+        "addTraitsToUser": [MockFunction],
+        "checkDataDeleteStatus": [MockFunction],
+        "createDataDeletionTask": [MockFunction],
         "createEventBuilder": [MockFunction],
-        "enable": [Function],
-        "getDeleteRegulationCreationDate": [Function],
-        "getDeleteRegulationId": [Function],
-        "getMetaMetricsId": [Function],
-        "isDataRecorded": [Function],
-        "isEnabled": [Function],
+        "enable": [MockFunction],
+        "getDeleteRegulationCreationDate": [MockFunction],
+        "getDeleteRegulationId": [MockFunction],
+        "getMetaMetricsId": [MockFunction],
+        "isDataRecorded": [MockFunction],
+        "isEnabled": [MockFunction],
         "trackEvent": [Function],
       }
     `);
