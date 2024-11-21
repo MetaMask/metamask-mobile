@@ -122,7 +122,12 @@ import {
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController, {
+  swapsUtils,
+  SwapsControllerState,
+  SwapsControllerActions,
+  SwapsControllerEvents,
+} from '@metamask/swaps-controller';
 import {
   PPOMController,
   PPOMControllerActions,
@@ -225,7 +230,6 @@ import {
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
 // TODO: Export this type from the package directly
-import { SwapsState } from '@metamask/swaps-controller/dist/SwapsController';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
@@ -307,8 +311,7 @@ type SnapsGlobalEvents =
 type GlobalActions =
   | AccountTrackerControllerActions
   | NftControllerActions
-  // TODO: uncomment once `SwapsController` is upgraded to V2
-  // | SwapsControllerActions
+  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | CurrencyRateControllerActions
@@ -346,8 +349,7 @@ type GlobalActions =
 type GlobalEvents =
   | AccountTrackerControllerEvents
   | NftControllerEvents
-  // TODO: uncomment once `SwapsController` is upgraded to V2
-  // | SwapsControllerEvents
+  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | CurrencyRateControllerEvents
@@ -396,7 +398,7 @@ export type EngineState = {
   TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsState;
+  SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   TokenDetectionController: BaseState;
@@ -1822,8 +1824,7 @@ export class Engine {
           'SmartTransactionsController:stateChange',
           'SnapController:stateChange',
           'SnapsRegistry:stateChange',
-          // TODO: uncomment once `SwapsController` is migrated to V2 and the `stateChange` event is added to its `messagingSystem`.
-          // 'SwapsController:stateChange',
+          'SwapsController:stateChange',
           'SubjectMetadataController:stateChange',
           'TokenBalancesController:stateChange',
           'TokenListController:stateChange',
