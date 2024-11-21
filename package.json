@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.34.0",
+  "version": "7.35.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -140,7 +140,7 @@
     "@metamask/accounts-controller": "^18.2.1",
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.1.0",
-    "@metamask/assets-controllers": "^41.0.0",
+    "@metamask/assets-controllers": "^43.1.1",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.3.0",
@@ -189,7 +189,7 @@
     "@metamask/snaps-utils": "^8.1.1",
     "@metamask/stake-sdk": "^0.2.13",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^9.0.12",
+    "@metamask/swaps-controller": "^10.0.0",
     "@metamask/transaction-controller": "^38.3.0",
     "@metamask/utils": "^9.2.1",
     "@ngraveio/bc-ur": "^1.1.6",

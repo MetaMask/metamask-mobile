@@ -1278,6 +1278,9 @@ export class Engine {
           assetsContractController.getBalancesInSingleCall.bind(
             assetsContractController,
           ),
+        platform: 'mobile',
+        useAccountsAPI: true,
+        disabled: false,
       }),
 
       new NftDetectionController({
@@ -1341,33 +1344,43 @@ export class Engine {
       }),
       this.transactionController,
       this.smartTransactionsController,
-      new SwapsController(
-        {
-          fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-          // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
-          fetchEstimatedMultiLayerL1Fee,
-        },
-        {
-          clientId: AppConstants.SWAPS.CLIENT_ID,
-          fetchAggregatorMetadataThreshold:
-            AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
-          fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
-          fetchTopAssetsThreshold:
-            AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
-          supportedChainIds: [
-            swapsUtils.ETH_CHAIN_ID,
-            swapsUtils.BSC_CHAIN_ID,
-            swapsUtils.SWAPS_TESTNET_CHAIN_ID,
-            swapsUtils.POLYGON_CHAIN_ID,
-            swapsUtils.AVALANCHE_CHAIN_ID,
-            swapsUtils.ARBITRUM_CHAIN_ID,
-            swapsUtils.OPTIMISM_CHAIN_ID,
-            swapsUtils.ZKSYNC_ERA_CHAIN_ID,
-            swapsUtils.LINEA_CHAIN_ID,
-            swapsUtils.BASE_CHAIN_ID,
+      new SwapsController({
+        clientId: AppConstants.SWAPS.CLIENT_ID,
+        fetchAggregatorMetadataThreshold:
+          AppConstants.SWAPS.CACHE_AGGREGATOR_METADATA_THRESHOLD,
+        fetchTokensThreshold: AppConstants.SWAPS.CACHE_TOKENS_THRESHOLD,
+        fetchTopAssetsThreshold: AppConstants.SWAPS.CACHE_TOP_ASSETS_THRESHOLD,
+        supportedChainIds: [
+          swapsUtils.ETH_CHAIN_ID,
+          swapsUtils.BSC_CHAIN_ID,
+          swapsUtils.SWAPS_TESTNET_CHAIN_ID,
+          swapsUtils.POLYGON_CHAIN_ID,
+          swapsUtils.AVALANCHE_CHAIN_ID,
+          swapsUtils.ARBITRUM_CHAIN_ID,
+          swapsUtils.OPTIMISM_CHAIN_ID,
+          swapsUtils.ZKSYNC_ERA_CHAIN_ID,
+          swapsUtils.LINEA_CHAIN_ID,
+          swapsUtils.BASE_CHAIN_ID,
+        ],
+        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'SwapsController',
+          // TODO: allow these internal calls once GasFeeController
+          // export these action types and register its action handlers
+          // allowedActions: [
+          //   'GasFeeController:getEIP1559GasFeeEstimates',
+          // ],
+          allowedActions: [
+            'NetworkController:findNetworkClientIdByChainId',
+            'NetworkController:getNetworkClientById',
           ],
-        },
-      ),
+          allowedEvents: [],
+        }),
+        // TODO: Remove once GasFeeController exports this action type
+        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
+        fetchEstimatedMultiLayerL1Fee,
+      }),
       gasFeeController,
       approvalController,
       permissionController,
@@ -1640,18 +1653,10 @@ export class Engine {
   }
 
   startPolling() {
-    const {
-      TokenDetectionController,
-      TokenListController,
-      TransactionController,
-      TokenRatesController,
-    } = this.context;
+    const { TransactionController } = this.context;
 
-    TokenListController.start();
-    TokenDetectionController.start();
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
-    TokenRatesController.start();
   }
 
   configureControllersOnNetworkChange() {
@@ -1665,8 +1670,8 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    SwapsController.configure({
-      provider,
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+    SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
@@ -1900,11 +1905,11 @@ export class Engine {
     // SelectedNetworkController.unsetAllDomains()
 
     //Clear assets info
-    TokensController.reset();
-    NftController.reset();
+    TokensController.resetState();
+    NftController.resetState();
 
-    TokenBalancesController.reset();
-    TokenRatesController.reset();
+    TokenBalancesController.resetState();
+    TokenRatesController.resetState();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (TransactionController as any).update(() => ({

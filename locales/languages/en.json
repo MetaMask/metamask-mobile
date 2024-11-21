@@ -3352,7 +3352,8 @@
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
-    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
+    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one."
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3598,5 +3599,11 @@
     "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
     "proceed": "Proceed",
     "reject": "Reject the transaction"
+  },
+  "snap_account_custom_name_approval": {
+    "title": "Add account to MetaMask",
+    "input_title": "Account name",
+    "add_account_button": "Add account",
+    "name_taken_message": "This account name already exists"
   }
 }
