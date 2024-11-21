@@ -252,7 +252,7 @@ exports[`DrawerView should render correctly 1`] = `
                 }
               }
             >
-              0xc496...a756
+              0xC496...a756
             </Text>
           </TouchableOpacity>
         </View>

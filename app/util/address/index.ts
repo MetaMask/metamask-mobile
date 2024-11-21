@@ -91,7 +91,13 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  */
 export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
-  return `${address.substr(0, chars + 2)}...${address.substr(-chars)}`;
+  // Non EVM addresses are not checksummed
+  const formattedAddress = isEthAddress(address)
+    ? toChecksumAddress(address)
+    : address;
+  return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
+    -chars,
+  )}`;
 }
 
 export function renderSlightlyLongAddress(
@@ -99,7 +105,14 @@ export function renderSlightlyLongAddress(
   chars = 4,
   initialChars = 20,
 ) {
-  return `${address.slice(0, chars + initialChars)}...${address.slice(-chars)}`;
+  // Non EVM addresses are not checksummed
+  const formattedAddress = isEthAddress(address)
+    ? toChecksumAddress(address)
+    : address;
+  return `${formattedAddress.slice(
+    0,
+    chars + initialChars,
+  )}...${formattedAddress.slice(-chars)}`;
 }
 
 /**
