@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -70,6 +70,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -184,6 +185,7 @@ function SwapsAmountView({
   accounts,
   selectedAddress,
   chainId,
+  selectedNetworkClientId,
   providerConfig,
   networkConfigurations,
   balances,
@@ -252,12 +254,18 @@ function SwapsAmountView({
   }, [navigation, route, colors]);
 
   useEffect(() => {
+    let isStopped = false;
+
     (async () => {
       try {
         const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
           getFeatureFlagChainId(chainId),
           AppConstants.SWAPS.CLIENT_ID,
         );
+
+        if (isStopped) {
+          return;
+        }
 
         const liveness = getSwapsLiveness(featureFlags, chainId);
         setLiveness(chainId, featureFlags);
@@ -288,6 +296,10 @@ function SwapsAmountView({
         navigation.pop();
       }
     })();
+
+    return () => {
+      isStopped = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSource, chainId, navigation, setLiveness]);
 
@@ -297,8 +309,12 @@ function SwapsAmountView({
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        await SwapsController.fetchAggregatorMetadataWithCache();
-        await SwapsController.fetchTopAssetsWithCache();
+        await SwapsController.fetchAggregatorMetadataWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
+        await SwapsController.fetchTopAssetsWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
       } catch (error) {
         Logger.error(
           error,
@@ -306,7 +322,7 @@ function SwapsAmountView({
         );
       }
     })();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   useEffect(() => {
     (async () => {
@@ -320,7 +336,9 @@ function SwapsAmountView({
           setInitialLoadingTokens(true);
         }
         setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         setLoadingTokens(false);
         setInitialLoadingTokens(false);
       } catch (error) {
@@ -333,7 +351,7 @@ function SwapsAmountView({
         setInitialLoadingTokens(false);
       }
     })();
-  }, [swapsControllerTokens, swapsTokens]);
+  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&
@@ -987,6 +1005,10 @@ SwapsAmountView.propTypes = {
    */
   chainId: PropTypes.string,
   /**
+   * Selected network client ID
+   */
+  selectedNetworkClientId: PropTypes.string,
+  /**
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
@@ -1008,6 +1030,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   chainId: selectChainId(state),
+  selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
 });
