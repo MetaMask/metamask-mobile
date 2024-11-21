@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+\// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, TouchableOpacity, View } from 'react-native';
@@ -31,7 +31,6 @@ const TransactionReviewEIP1559Update = ({
   onEdit,
   hideTotal,
   noMargin,
-  origin,
   originWarning,
   onUpdatingValuesStart,
   onUpdatingValuesEnd,
