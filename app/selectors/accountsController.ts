@@ -7,6 +7,7 @@ import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import {
+  getFormattedAddressFromInternalAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isBtcAccount,
   isBtcMainnetAddress,
@@ -73,15 +74,9 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 export const selectSelectedInternalAccountFormattedAddress = createSelector(
   selectSelectedInternalAccount,
   (account) => {
-    const selectedAddress = account?.address;
-    if (selectedAddress) {
-      // Ethereum accounts should always be checksummed
-      if (isEthAccount(account)) {
-        return toChecksumHexAddress(selectedAddress);
-      }
-      return selectedAddress;
-    }
-    return undefined;
+    return account && account?.address
+      ? getFormattedAddressFromInternalAccount(account)
+      : undefined;
   },
 );
 
