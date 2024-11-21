@@ -29,7 +29,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
       ]),
     );
     const sortedAccounts = Object.values(
-      accountControllerState.internalAccounts.accounts,
+      accountControllerState?.internalAccounts.accounts ?? {},
     ).sort(
       (a, b) =>
         (keyringAccountsMap.get(a.address.toLowerCase()) || 0) -
@@ -45,9 +45,9 @@ export const selectInternalAccounts = createDeepEqualSelector(
 export const selectSelectedInternalAccount = createDeepEqualSelector(
   selectAccountsControllerState,
   (accountsControllerState: AccountsControllerState) => {
-    const accountId = accountsControllerState.internalAccounts.selectedAccount;
+    const accountId = accountsControllerState?.internalAccounts.selectedAccount ?? '';
     const account =
-      accountsControllerState.internalAccounts.accounts[accountId];
+      accountsControllerState?.internalAccounts.accounts[accountId] ?? {};
     if (!account) {
       const err = new Error(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,

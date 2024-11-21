@@ -252,7 +252,7 @@ export function isExternalHardwareAccount(address: string) {
 function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
+  const { accounts } = Engine.context.AccountsController.state?.internalAccounts ?? {};
   return Object.values(accounts).find(
     (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
   );
