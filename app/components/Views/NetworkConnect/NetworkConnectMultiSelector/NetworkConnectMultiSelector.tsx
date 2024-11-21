@@ -95,6 +95,25 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
+      // Check if current network is being removed from permissions
+      if (!selectedChainIds.includes(currentChainId)) {
+        // Find the network configuration for the first permitted chain
+        const networkToSwitch = Object.entries(networkConfigurations).find(
+          ([, { chainId }]) => chainId === selectedChainIds[0],
+        );
+
+        if (networkToSwitch) {
+          const [, config] = networkToSwitch;
+          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+          // Switch to the network using networkClientId
+          await Engine.context.NetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
+      }
+
       let hasPermittedChains = false;
       try {
         hasPermittedChains = Engine.context.PermissionController.hasCaveat(
@@ -132,7 +151,13 @@ const NetworkConnectMultiSelector = ({
       }
       onUserAction(USER_INTENT.Confirm);
     }
-  }, [selectedChainIds, hostname, onUserAction, onNetworksSelected]);
+  }, [
+    selectedChainIds,
+    hostname,
+    onUserAction,
+    onNetworksSelected,
+    currentChainId,
+  ]);
 
   const networks = Object.entries(networkConfigurations)
     .map(([key, network]: [string, NetworkConfiguration]) => ({
