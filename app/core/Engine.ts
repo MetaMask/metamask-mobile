@@ -118,7 +118,7 @@ import {
 import SwapsController, {
   swapsUtils,
   SwapsControllerState,
-} from '@metamask/swaps-controller';
+} from '@metamask-previews/swaps-controller';
 import {
   PPOMController,
   PPOMControllerActions,
@@ -1626,7 +1626,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1634,16 +1633,14 @@ export class Engine {
           // allowedActions: [
           //   'GasFeeController:getEIP1559GasFeeEstimates',
           // ],
-          allowedActions: [
-            'NetworkController:findNetworkClientIdByChainId',
-            'NetworkController:getNetworkClientById',
-          ],
-          allowedEvents: [],
+          allowedActions: ['NetworkController:getNetworkClientById'],
+          allowedEvents: ['NetworkController:networkDidChange'],
         }),
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
         fetchEstimatedMultiLayerL1Fee,
+        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
       }),
       gasFeeController,
       approvalController,
@@ -1924,8 +1921,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController, SwapsController } =
-      this.context;
+    const { AccountTrackerController, NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1934,13 +1930,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
-    SwapsController.setProvider(provider, {
-      chainId: NetworkController.getNetworkClientById(
-        NetworkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
-      pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-    });
     AccountTrackerController.refresh();
   }
 

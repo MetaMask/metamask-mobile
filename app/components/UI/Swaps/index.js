@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   InteractionManager,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { View as AnimatableView } from 'react-native-animatable';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -27,7 +27,7 @@ import {
   safeNumberToBN,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import {
@@ -70,6 +70,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -247,6 +248,8 @@ function SwapsAmountView({
     hideTokenVerificationModal,
   ] = useModalHandler(false);
 
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
   useEffect(() => {
     navigation.setOptions(getSwapsAmountNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
@@ -295,8 +298,12 @@ function SwapsAmountView({
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        await SwapsController.fetchAggregatorMetadataWithCache();
-        await SwapsController.fetchTopAssetsWithCache();
+        await SwapsController.fetchAggregatorMetadataWithCache({
+          networkClientId: selectSelectedNetworkClientId,
+        });
+        await SwapsController.fetchTopAssetsWithCache({
+          networkClientId: selectSelectedNetworkClientId,
+        });
       } catch (error) {
         Logger.error(
           error,
@@ -304,7 +311,7 @@ function SwapsAmountView({
         );
       }
     })();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   useEffect(() => {
     (async () => {
@@ -318,7 +325,9 @@ function SwapsAmountView({
           setInitialLoadingTokens(true);
         }
         setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         setLoadingTokens(false);
         setInitialLoadingTokens(false);
       } catch (error) {
@@ -331,7 +340,7 @@ function SwapsAmountView({
         setInitialLoadingTokens(false);
       }
     })();
-  }, [swapsControllerTokens, swapsTokens]);
+  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&

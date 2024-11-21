@@ -1,4 +1,4 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { useCallback, useEffect } from 'react';
 import { selectChainId } from '../../../selectors/networkController';
 import { AppState } from 'react-native';

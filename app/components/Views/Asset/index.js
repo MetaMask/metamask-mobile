@@ -1,4 +1,4 @@
-import { swapsUtils } from '@metamask/swaps-controller/';
+import { swapsUtils } from '@metamask-previews/swaps-controller/';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {

@@ -9,7 +9,7 @@ import {
   TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
-import SwapsController from '@metamask/swaps-controller';
+import SwapsController from '@metamask-previews/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { BaseState } from '@metamask/base-controller';

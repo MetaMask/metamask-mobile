@@ -5,8 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { Animated, View, StyleSheet, Image } from 'react-native';
 import PropTypes from 'prop-types';
+import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import Device from '../../../../../util/device';
@@ -128,6 +130,8 @@ function LoadingAnimation({
   const [hasStartedFinishing, setHasStartedFinishing] = useState(false);
   const [renderLogos, setRenderLogos] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   /* References */
   const foxRef = useRef();
@@ -317,9 +321,11 @@ function LoadingAnimation({
         return;
       }
       if (!aggregatorMetadata) {
+        const { SwapsController } = Engine.context;
         try {
-          const { SwapsController } = Engine.context;
-          await SwapsController.fetchAggregatorMetadataWithCache();
+          await SwapsController.fetchAggregatorMetadataWithCache({
+            networkClientId: selectedNetworkClientId,
+          });
         } catch (error) {
           Logger.error(
             error,
@@ -337,7 +343,7 @@ function LoadingAnimation({
         setShouldStart(true);
       }
     })();
-  }, [aggregatorMetadata, hasStarted]);
+  }, [aggregatorMetadata, hasStarted, selectedNetworkClientId]);
 
   /* Delay the logos rendering to avoid navigation transition lag */
   useEffect(() => {

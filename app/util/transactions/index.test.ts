@@ -1,4 +1,4 @@
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { BN } from 'ethereumjs-util';
 
 /* eslint-disable-next-line import/no-namespace */
