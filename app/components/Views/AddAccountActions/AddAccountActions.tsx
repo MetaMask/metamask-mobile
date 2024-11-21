@@ -22,7 +22,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-api';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
-import { MultichainNetworks } from '../../../core/SnapKeyring/constants';
+import { MultichainNetworks } from '../../../core/MultiChain/constants';
 import { useSelector } from 'react-redux';
 import {
   hasCreatedBtcMainnetAccount,
