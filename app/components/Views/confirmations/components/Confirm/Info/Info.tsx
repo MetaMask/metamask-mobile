@@ -3,9 +3,11 @@ import React from 'react';
 
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import PersonalSign from './PersonalSign';
+import TypedSignV1 from './TypedSignV1';
 
 const ConfirmationInfoComponentMap = {
   [TransactionType.personalSign]: () => PersonalSign,
+  [TransactionType.signTypedData]: () => TypedSignV1,
 };
 
 const Info = () => {
