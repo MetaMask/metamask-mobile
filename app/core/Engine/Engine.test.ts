@@ -15,10 +15,10 @@ import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 
 jest.unmock('./Engine');
-jest.mock('../store', () => ({
+jest.mock('../../store', () => ({
   store: { getState: jest.fn(() => ({ engine: {} })) },
 }));
-jest.mock('../selectors/smartTransactionsController', () => ({
+jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
 
