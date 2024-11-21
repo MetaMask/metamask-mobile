@@ -38,7 +38,9 @@ export const createAccountsController = ({
 }: {
   messenger: ControllerMessenger;
   initialState?: AccountsControllerState;
-}) => {
+}): AccountsController => {
+  let accountsController = {} as AccountsController;
+
   try {
     const accountsControllerMessenger: AccountsControllerMessenger =
       messenger.getRestricted({
@@ -55,17 +57,17 @@ export const createAccountsController = ({
         ],
       });
 
-    const accountsController = new AccountsController({
+    accountsController = new AccountsController({
       messenger: accountsControllerMessenger,
       state: initialState ?? defaultAccountsControllerState,
     });
-
-    return accountsController;
   } catch (error) {
     // Report error while initializing AccountsController
     // TODO: Direct to vault recovery to reset controller states
     Logger.error(error as Error, 'Failed to initialize AccountsController');
   }
+
+  return accountsController;
 };
 
 // Action types of AccountsController
