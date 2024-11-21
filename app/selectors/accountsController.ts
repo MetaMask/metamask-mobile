@@ -7,9 +7,11 @@ import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isBtcAccount,
   isBtcMainnetAddress,
   isBtcTestnetAddress,
+  ///: END:ONLY_INCLUDE_IF
   isEthAccount,
 } from '../core/MultiChain/utils';
 
@@ -103,6 +105,7 @@ export const selectCanSignTransactions = createSelector(
     selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /**
  * A selector that returns whether the the user has already created a Bitcoin mainnet account
  */
@@ -122,3 +125,4 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
     (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
   );
 }
+///: END:ONLY_INCLUDE_IF

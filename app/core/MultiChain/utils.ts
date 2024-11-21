@@ -1,20 +1,11 @@
 import {
   InternalAccount,
-  BtcAccountType,
   EthAccountType,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  BtcAccountType,
 } from '@metamask/keyring-api';
 import { isEthAddress } from '../../util/address';
-
-/**
- * Returns whether an account is a Bitcoin account.
- *
- * @param account - The internal account to check.
- * @returns `true` if the account is of type P2wpkh, false otherwise.
- */
-export function isBtcAccount(account: InternalAccount): boolean {
-  const { P2wpkh } = BtcAccountType;
-  return Boolean(account && account.type === P2wpkh);
-}
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Returns whether an account is an EVM account.
@@ -25,6 +16,19 @@ export function isBtcAccount(account: InternalAccount): boolean {
 export function isEthAccount(account: InternalAccount): boolean {
   const { Eoa, Erc4337 } = EthAccountType;
   return Boolean(account && (account.type === Eoa || account.type === Erc4337));
+}
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+/**
+ * Returns whether an account is a Bitcoin account.
+ *
+ * @param account - The internal account to check.
+ * @returns `true` if the account is of type P2wpkh, false otherwise.
+ */
+export function isBtcAccount(account: InternalAccount): boolean {
+  const { P2wpkh } = BtcAccountType;
+  return Boolean(account && account.type === P2wpkh);
 }
 
 /**
@@ -56,3 +60,4 @@ export function isBtcMainnetAddress(address: string): boolean {
 export function isBtcTestnetAddress(address: string): boolean {
   return !isEthAddress(address) && !isBtcMainnetAddress(address);
 }
+///: END:ONLY_INCLUDE_IF
