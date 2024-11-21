@@ -372,10 +372,11 @@ const Wallet = ({
   );
 
   useEffect(() => {
+    if (!selectedInternalAccount) return;
     navigation.setOptions(
       getWalletNavbarOptions(
         walletRef,
-        selectedInternalAccount || '',
+        selectedInternalAccount,
         accountName,
         accountAvatarType,
         networkName,
