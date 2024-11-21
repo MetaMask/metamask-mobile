@@ -74,7 +74,7 @@ const ScreenshotDeterrentWithNavigation = ({
         cancelLabel: strings('reveal_credential.got_it'),
       },
     });
-  }, [isSRP, navigation, trackEvent, openSRPGuide]);
+  }, [isSRP, navigation, trackEvent, openSRPGuide, createEventBuilder]);
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
