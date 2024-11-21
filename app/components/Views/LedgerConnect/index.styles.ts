@@ -50,6 +50,10 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       marginTop: Device.getDeviceHeight() * 0.025,
     },
+    bodyContainerWhithErrorMessage: {
+      flex: 1,
+      marginTop: Device.getDeviceHeight() * 0.01,
+    },
     textContainer: {
       marginTop: Device.getDeviceHeight() * 0.05,
     },

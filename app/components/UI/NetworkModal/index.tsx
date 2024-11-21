@@ -317,11 +317,9 @@ const NetworkModals = (props: NetworkProps) => {
   };
 
   const switchNetwork = async () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const url = new URLPARSE(rpcUrl);
     const existingNetwork = networkConfigurationByChainId[chainId];
-
-    CurrencyRateController.updateExchangeRate(ticker);
 
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');

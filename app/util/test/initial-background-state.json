@@ -190,13 +190,14 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false,
+    "smartTransactionsOptInStatus": true,
     "useTransactionSimulations": true,
     "tokenSortConfig": {
       "key": "tokenFiatAmount",
       "order": "dsc",
       "sortCallback": "stringNumeric"
     },
+    "tokenNetworkFilter": {},
     "privacyMode": false
   },
   "TokenBalancesController": {
