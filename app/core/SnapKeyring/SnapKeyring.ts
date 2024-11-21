@@ -51,8 +51,6 @@ export const snapKeyringBuilder = (
         handleUserInput: (accepted: boolean) => Promise<void>,
         accountNameSuggestion = '',
       ) => {
-        Logger.log(`SnapKeyring: addAccount called with`);
-
         const { id: addAccountFlowId } = controllerMessenger.call(
           'ApprovalController:startFlow',
         );
