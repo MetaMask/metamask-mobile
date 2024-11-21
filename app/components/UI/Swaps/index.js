@@ -200,8 +200,6 @@ function SwapsAmountView({
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
 
-  console.log('chainId +++++..........', chainId);
-
   const previousSelectedAddress = useRef();
 
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);

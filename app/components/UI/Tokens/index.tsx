@@ -183,12 +183,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     }
 
     // Previous implementation
+    // Filter tokens based on hideZeroBalanceTokens flag
     const tokensToDisplay = hideZeroBalanceTokens
       ? tokens.filter(
           ({ address, isETH }) => !isZero(tokenBalances[address]) || isETH,
         )
       : tokens;
 
+    // Calculate fiat balances for tokens
     const tokenFiatBalances = conversionRate
       ? tokensToDisplay.map((asset) =>
           asset.isETH
@@ -203,11 +205,16 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         )
       : [];
 
+    // Combine tokens with their fiat balances
+    // tokenFiatAmount is the key in PreferencesController to sort by when sorting by declining fiat balance
+    // this key in the controller is also used by extension, so this is for consistency in syntax and config
+    // actual balance rendering for each token list item happens in TokenListItem component
     const tokensWithBalances = tokensToDisplay.map((token, i) => ({
       ...token,
       tokenFiatAmount: tokenFiatBalances[i],
     }));
 
+    // Sort the tokens based on tokenSortConfig
     return sortAssets(tokensWithBalances, tokenSortConfig);
   }, [
     conversionRate,

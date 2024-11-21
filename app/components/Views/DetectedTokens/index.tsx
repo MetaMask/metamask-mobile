@@ -31,6 +31,7 @@ import {
 } from '../../../selectors/tokensController';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import BottomSheet, {
@@ -40,7 +41,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 import { TokenI } from '../../UI/Tokens/types';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
-import { organizeTokensByChainId } from '../../UI/Tokens/util/organizeTokensByChainId';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,6 +95,7 @@ const DetectedTokens = () => {
     selectAllDetectedTokensFlat,
   ) as TokenI[];
   const chainId = useSelector(selectChainId);
+  const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
@@ -164,20 +165,19 @@ const DetectedTokens = () => {
             (await TokensController.ignoreTokens(tokensToIgnore));
           if (tokensToImport.length > 0) {
             if (isPortfolioViewEnabled) {
-              const tokensByChainId = tokensToImport.reduce<Map<Hex, Token[]>>(
-                (acc, token) => {
-                  const tokenChainId: Hex =
-                    (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+              const tokensByChainId = tokensToImport.reduce<
+                Map<Hex, TokenType[]>
+              >((acc, token) => {
+                const tokenChainId: Hex =
+                  (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-                  if (!acc.has(tokenChainId)) {
-                    acc.set(tokenChainId, []);
-                  }
+                if (!acc.has(tokenChainId)) {
+                  acc.set(tokenChainId, []);
+                }
 
-                  acc.get(tokenChainId)?.push(token);
-                  return acc;
-                },
-                new Map(),
-              );
+                acc.get(tokenChainId)?.push(token);
+                return acc;
+              }, new Map());
 
               const importPromises = Array.from(tokensByChainId.entries()).map(
                 async ([networkId, tokens]) => {
@@ -191,15 +191,10 @@ const DetectedTokens = () => {
 
               await Promise.all(importPromises);
             } else {
-              const tokensByChainId = organizeTokensByChainId(
-                tokensToImport as TokenI[],
+              await TokensController.addTokens(
+                tokensToImport,
+                selectedNetworkClientId,
               );
-              Object.keys(tokensByChainId).forEach(async (chainIdKey) => {
-                await TokensController.addTokens(
-                  tokensByChainId[chainIdKey as Hex],
-                  chainIdKey,
-                );
-              });
             }
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
@@ -223,7 +218,14 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, currentDetectedTokens, ignoredTokens, trackEvent, allNetworks],
+    [
+      chainId,
+      currentDetectedTokens,
+      ignoredTokens,
+      trackEvent,
+      selectedNetworkClientId,
+      allNetworks,
+    ],
   );
 
   const triggerIgnoreAllTokens = () => {

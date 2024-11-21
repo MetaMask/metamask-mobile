@@ -180,6 +180,7 @@ exports[`Approval render matches snapshot 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -191,7 +192,6 @@ exports[`Approval render matches snapshot 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {

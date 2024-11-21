@@ -1,3 +1,4 @@
+import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -94,19 +95,29 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedChainId = useSelector((state: RootState) =>
     selectChainId(state),
   );
+  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
   const chainId = isPortfolioViewEnabled
     ? (asset.chainId as Hex)
     : selectedChainId;
   const ticker = isPortfolioViewEnabled ? nativeCurrency : selectedTicker;
 
+  let currentAddress: Hex;
+
+  if (isPortfolioViewEnabled) {
+    currentAddress = asset.address as Hex;
+  } else {
+    currentAddress = asset.isETH
+      ? (zeroAddress() as Hex)
+      : (asset.address as Hex);
+  }
+
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
-    address: asset.address,
+    address: currentAddress,
     chainId,
     timePeriod,
     vsCurrency: currentCurrency,
@@ -142,7 +153,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
-    if (process.env.PORTFOLIO_VIEW) {
+    if (isPortfolioViewEnabled) {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -174,7 +185,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const goToSwaps = useCallback(() => {
-    if (process.env.PORTFOLIO_VIEW) {
+    if (isPortfolioViewEnabled) {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -292,16 +303,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const itemAddress = safeToChecksumAddress(asset.address);
 
-  let exchangeRate;
+  let exchangeRate: number | undefined;
   if (!isPortfolioViewEnabled) {
     exchangeRate = itemAddress
       ? tokenExchangeRates?.[itemAddress as Hex]?.price
       : undefined;
   } else {
-    // TODO: Our token rates controller does not have any data for Holesky
-    // we will use the price of the same token
-    // on Ethereum. I do not like this solution so much, but
-    // it is a quick fix
+    // TODO: Our token rates controller does not have any market data for Holesky
+    // we will use the price of the same token. I also will use the same market
+    // data for all other chains that are not mainnet. I do not like this solution
+    // so much, but it is a quick fix
     const relatedEthChainIds: Hex[] = [
       '0x1',
       '0x2105',
@@ -346,7 +357,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           : 0;
       balanceFiat = balanceToFiat(
         balance,
-        conversionRateByTicker[nativeCurrency].conversionRate,
+        conversionRate,
         exchangeRate,
         currentCurrency,
       );
@@ -359,13 +370,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   let mainBalance, secondaryBalance;
   if (!isPortfolioViewEnabled) {
     if (primaryCurrency === 'ETH') {
-      mainBalance = `${balance} ${nativeCurrency}`;
+      mainBalance = `${balance} ${asset.symbol}`;
       secondaryBalance = balanceFiat;
     } else {
-      mainBalance = !balanceFiat ? `${balance} ${nativeCurrency}` : balanceFiat;
+      mainBalance = !balanceFiat ? `${balance} ${asset.symbol}` : balanceFiat;
       secondaryBalance = !balanceFiat
         ? balanceFiat
-        : `${balance} ${nativeCurrency}`;
+        : `${balance} ${asset.symbol}`;
     }
   } else {
     mainBalance = `${balance} ${nativeCurrency}`;

@@ -9,10 +9,14 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectTokenMarketDataByChainId } from '../../../../selectors/tokenRatesController';
+import {
+  selectTokenMarketDataByChainId,
+  selectContractExchangeRates,
+} from '../../../../selectors/tokenRatesController';
 import {
   selectConversionRateBySymbol,
   selectCurrentCurrency,
+  selectConversionRate,
 } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
@@ -47,20 +51,31 @@ interface TokenDetailsProps {
   asset: TokenI;
 }
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tokenExchangeRates = useSelector((state: RootState) =>
+  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
     selectTokenMarketDataByChainId(state, asset.chainId as Hex),
   );
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const conversionRate = useSelector((state: RootState) =>
+  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+  const conversionRateLegacy = useSelector(selectConversionRate);
+  const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, nativeCurrency),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
   const tokenList = useSelector(selectTokenList);
+
+  const conversionRate = isPortfolioViewEnabled
+    ? conversionRateBySymbol
+    : conversionRateLegacy;
+  const tokenExchangeRates = isPortfolioViewEnabled
+    ? tokenExchangeRatesByChainId
+    : tokenExchangeRatesLegacy;
 
   let tokenMetadata;
   let marketData;
@@ -130,7 +145,10 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
         : null,
   };
-
+  console.log('=====================');
+  // console.log('tokenDetails', tokenDetails);
+  console.log('marketDetails', marketDetails);
+  console.log('=====================');
   return (
     <View style={styles.tokenDetailsContainer}>
       {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}

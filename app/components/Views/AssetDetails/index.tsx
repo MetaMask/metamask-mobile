@@ -109,8 +109,11 @@ interface Props {
   };
 }
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 const AssetDetails = (props: Props) => {
   const { address, chainId: networkId } = props.route.params;
+
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const styles = createStyles(colors);
@@ -121,23 +124,35 @@ const AssetDetails = (props: Props) => {
   const selectedAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
-  const tokens = useMemo(
-    () => allTokens?.[networkId as Hex]?.[selectedAccountAddress as Hex] ?? {},
-    [allTokens, networkId, selectedAccountAddress],
+  const selectedChainId = useSelector(selectChainId);
+  const chainId = isPortfolioViewEnabled ? networkId : selectedChainId;
+  const tokens = useSelector(selectTokens);
+  const tokensByChain = useMemo(
+    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? {},
+    [allTokens, chainId, selectedAccountAddress],
   );
 
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
-  const token = useMemo(
+
+  const portfolioToken = useMemo(
+    () => tokensByChain.find((rawToken) => rawToken.address === address),
+    [tokensByChain, address],
+  );
+
+  const legacyToken = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
   );
+
+  const token: TokenType | undefined = isPortfolioViewEnabled
+    ? portfolioToken
+    : legacyToken;
 
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 

@@ -57,6 +57,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
+      setTokenNetworkFilter: jest.fn(),
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
     AccountTrackerController: { refresh: jest.fn() },

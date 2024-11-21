@@ -158,6 +158,7 @@ exports[`Regions View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -169,7 +170,6 @@ exports[`Regions View renders correctly 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -974,6 +974,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -985,7 +986,6 @@ exports[`Regions View renders correctly while loading 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -1585,6 +1585,7 @@ exports[`Regions View renders correctly with error 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1596,7 +1597,6 @@ exports[`Regions View renders correctly with error 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -2234,6 +2234,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -2245,7 +2246,6 @@ exports[`Regions View renders correctly with no data 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -2845,6 +2845,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -2856,7 +2857,6 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -3494,6 +3494,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3505,7 +3506,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -4308,6 +4308,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4319,7 +4320,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -5497,6 +5497,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5508,7 +5509,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -6686,6 +6686,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6697,7 +6698,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
