@@ -196,17 +196,7 @@ const Settings: React.FC = () => {
     updateNavBar();
     handleHintText();
     setAnalyticsEnabled(isEnabled());
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.VIEW_SECURITY_SETTINGS).build(),
-    );
-  }, [
-    handleHintText,
-    updateNavBar,
-    setAnalyticsEnabled,
-    isEnabled,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [handleHintText, updateNavBar, setAnalyticsEnabled, isEnabled]);
 
   useEffect(() => {
     const triggerCascadeBasicFunctionalityDisable = async () => {

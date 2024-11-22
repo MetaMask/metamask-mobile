@@ -75,9 +75,7 @@ const Settings = () => {
 
   const onPressSecurity = () => {
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY,
-      ).build(),
+      createEventBuilder(MetaMetricsEvents.VIEW_SECURITY_SETTINGS).build(),
     );
     navigation.navigate('SecuritySettings');
   };
