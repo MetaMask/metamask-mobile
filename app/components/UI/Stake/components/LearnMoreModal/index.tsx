@@ -43,7 +43,6 @@ const LearnMoreModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
