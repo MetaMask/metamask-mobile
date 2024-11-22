@@ -32,6 +32,7 @@
     "start:android:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh android flaskDebug",
     "build:announce": "node ./scripts/metamask-bot-build-announce-bitrise.js",
     "build:android:release": "./scripts/build.sh android release",
+    "build:android:devbuild": "./scripts/build.sh android devBuild",
     "build:android:checksum": "./scripts/checksum.sh",
     "build:android:checksum:qa": "./scripts/checksum.sh QA",
     "build:android:checksum:flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/checksum.sh flask",

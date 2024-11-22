@@ -228,6 +228,15 @@ buildAndroidRun(){
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug'
 }
 
+buildAndroidDevBuild(){
+	prebuild_android
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+}
+
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
@@ -526,6 +535,8 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
+	elif [ "$MODE" == "devBuild" ] ; then
+		buildAndroidDevBuild
 	else
 		buildAndroidRun
 	fi
