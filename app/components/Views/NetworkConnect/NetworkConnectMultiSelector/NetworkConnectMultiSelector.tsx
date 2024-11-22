@@ -28,10 +28,7 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
-import {
-  selectNetworkConfigurations,
-  selectChainId,
-} from '../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
@@ -49,14 +46,12 @@ const NetworkConnectMultiSelector = ({
   initialChainId,
   selectedChainIds: propSelectedChainIds,
   isInitializedWithPermittedChains = true,
-  hideActiveNetwork = false,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentChainId = useSelector(selectChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
@@ -161,8 +156,8 @@ const NetworkConnectMultiSelector = ({
     networkConfigurations,
   ]);
 
-  const networks = Object.entries(networkConfigurations)
-    .map(([key, network]: [string, NetworkConfiguration]) => ({
+  const networks = Object.entries(networkConfigurations).map(
+    ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -171,11 +166,8 @@ const NetworkConnectMultiSelector = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }))
-    .filter((network) => {
-      if (!hideActiveNetwork) return true;
-      return network.id !== currentChainId;
-    });
+    }),
+  );
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {

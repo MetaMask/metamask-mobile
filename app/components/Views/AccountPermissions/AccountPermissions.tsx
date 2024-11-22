@@ -682,7 +682,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
-        hideActiveNetwork={isNonDappNetworkSwitch}
       />
     ),
     [
