@@ -5,7 +5,6 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcAccountType,
 } from '@metamask/keyring-api';
-import { isEthAddress } from '../../util/address';
 import { validate, Network } from 'bitcoin-address-validation';
 ///: END:ONLY_INCLUDE_IF
 

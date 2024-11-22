@@ -1,5 +1,4 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -13,7 +12,6 @@ import {
   isBtcMainnetAddress,
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
-  isEthAccount,
 } from '../core/MultiChain/utils';
 
 /**
@@ -73,11 +71,10 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
  */
 export const selectSelectedInternalAccountFormattedAddress = createSelector(
   selectSelectedInternalAccount,
-  (account) => {
-    return account && account?.address
+  (account) =>
+    account?.address
       ? getFormattedAddressFromInternalAccount(account)
-      : undefined;
-  },
+      : undefined,
 );
 
 /**

@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
