@@ -118,6 +118,7 @@ import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAs
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -429,6 +430,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.CONNECTION_DETAILS}
       component={ConnectionDetails}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
+      component={PermittedNetworksInfoSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}

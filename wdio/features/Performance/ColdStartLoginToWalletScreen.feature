@@ -1,5 +1,4 @@
 @androidApp
-@iosApp
 @performance
 Feature: Measure Wallet Screen Cold Start
   # This feature measures the cold start of the app when:

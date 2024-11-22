@@ -238,7 +238,7 @@ class NotificationManager {
             pollPromises.push(
               ...[
                 TokenBalancesController.poll(),
-                TokenDetectionController.start(),
+                TokenDetectionController.detectTokens({ chainIds: [transactionMeta.chainId] }),
               ],
             );
             break;

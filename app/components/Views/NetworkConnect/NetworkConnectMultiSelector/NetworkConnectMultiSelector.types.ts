@@ -17,4 +17,5 @@ export interface NetworkConnectMultiSelectorProps {
   initialChainId?: string;
   selectedChainIds?: string[];
   isInitializedWithPermittedChains?: boolean;
+  hideActiveNetwork?: boolean;
 }

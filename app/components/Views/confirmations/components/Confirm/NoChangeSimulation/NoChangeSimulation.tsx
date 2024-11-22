@@ -1,12 +1,12 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../../../../locales/i18n';
-import { selectUseTransactionSimulations } from '../../../../../../../../selectors/preferencesController';
-import InfoSection from '../../../../UI/InfoRow/InfoSection';
-import InfoRow from '../../../../UI/InfoRow';
+import { strings } from '../../../../../../../locales/i18n';
+import { selectUseTransactionSimulations } from '../../../../../../selectors/preferencesController';
+import InfoSection from '../../UI/InfoRow/InfoSection';
+import InfoRow from '../../UI/InfoRow';
 
-const Simulation = () => {
+const NoChangeSimulation = () => {
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
@@ -27,4 +27,4 @@ const Simulation = () => {
   );
 };
 
-export default Simulation;
+export default NoChangeSimulation;

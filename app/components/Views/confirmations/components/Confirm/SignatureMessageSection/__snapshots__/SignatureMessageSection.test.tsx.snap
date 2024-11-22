@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Message should match snapshot 1`] = `
+exports[`SignatureMessageSection should match snapshot 1`] = `
 <TouchableOpacity
   accessible={true}
   activeOpacity={1}
@@ -55,7 +55,7 @@ exports[`Message should match snapshot 1`] = `
           }
         }
       >
-        Example \`personal_sign\` message
+        Signature request collapsed message
       </Text>
     </View>
     <SvgMock
