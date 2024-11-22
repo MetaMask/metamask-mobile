@@ -24,10 +24,25 @@ class ConnectedAccountsModal {
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
+  get disconnectButton() {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.DISCONNECT,
+    );
+  }
+  get disconnectAllAccountsAndNetworksButton() {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+  }
 
   get connectAccountsButton() {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
+    );
+  }
+  get managePermissionsButton() {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.MANAGE_PERMISSIONS,
     );
   }
 
@@ -48,7 +63,6 @@ class ConnectedAccountsModal {
   }
 
   async tapManagePermissionsButton() {
-    await TestHelpers.delay(3000);
     await Gestures.waitAndTap(this.managePermissionsButton);
   }
 
