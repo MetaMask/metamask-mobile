@@ -1165,11 +1165,26 @@ workflows:
           title: Build Android Dev Build
           is_always_run: false
       - save-gradle-cache@1: {}
+      - script:
+          title: Copy and Rename APK
+          inputs:
+            - content: |-
+                # Define the source path of the generated APK
+                SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
+                
+                # Define the destination path with the new name
+                DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
+                
+                # Copy and rename the APK
+                cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
+                
+                # Optionally, print the new path for verification
+                echo "APK has been copied and renamed to: $DEST_APK_PATH"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk
+            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk.apk"
           title: Bitrise Deploy APK
     meta:
       bitrise.io:
