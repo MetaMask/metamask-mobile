@@ -158,6 +158,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -169,7 +170,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -1906,6 +1906,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1917,7 +1918,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -3061,6 +3061,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3072,7 +3073,6 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -4216,6 +4216,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4227,7 +4228,6 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -5371,6 +5371,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5382,7 +5383,6 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -6714,6 +6714,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6725,7 +6726,6 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -8057,6 +8057,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -8068,7 +8069,6 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -8706,6 +8706,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -8717,7 +8718,6 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -9355,6 +9355,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -9366,7 +9367,6 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
