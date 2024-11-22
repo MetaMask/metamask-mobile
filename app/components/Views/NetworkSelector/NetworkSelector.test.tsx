@@ -86,6 +86,46 @@ const initialState = {
           mainnet: { status: 'available', EIPS: { '1559': true } },
         },
         networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: [],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 1,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'infura',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+              {
+                name: 'public',
+                networkClientId: 'ea57f659-c004-4902-bfca-0c9688a43872',
+                type: 'custom',
+                url: 'https://mainnet-rpc.publicnode.com',
+              },
+            ],
+          },
+          '0xe708': {
+            blockExplorerUrls: [],
+            chainId: '0xe708',
+            defaultRpcEndpointIndex: 1,
+            name: 'Linea',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-mainnet',
+                type: 'infura',
+                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+              },
+              {
+                name: 'public',
+                networkClientId: 'ea57f659-c004-4902-bfca-0c9688a43877',
+                type: 'custom',
+                url: 'https://linea-rpc.publicnode.com',
+              },
+            ],
+          },
           '0xa86a': {
             blockExplorerUrls: ['https://snowtrace.io'],
             chainId: '0xa86a',
@@ -97,6 +137,11 @@ const initialState = {
                 networkClientId: 'networkId1',
                 type: 'custom',
                 url: 'https://api.avax.network/ext/bc/C/rpc',
+              },
+              {
+                networkClientId: 'networkId1',
+                type: 'custom',
+                url: 'https://api.avax2.network/ext/bc/C/rpc',
               },
             ],
           },
@@ -111,6 +156,11 @@ const initialState = {
                 networkClientId: 'networkId2',
                 type: 'infura',
                 url: 'https://polygon-mainnet.infura.io/v3/12345',
+              },
+              {
+                networkClientId: 'networkId3',
+                type: 'infura',
+                url: 'https://polygon-mainnet2.infura.io/v3/12345',
               },
             ],
           },
@@ -458,5 +508,48 @@ describe('Network Selector', () => {
     // Toggle the switch off
     fireEvent(testNetworksSwitch, 'onValueChange', false);
     expect(setShowTestNetworksSpy).toBeCalledWith(false);
+  });
+
+  describe('renderLineaMainnet', () => {
+    it('renders the linea mainnet cell correctly', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getByText } = renderComponent(initialState);
+      const lineaRpcUrl = getByText('https://linea-rpc.publicnode.com');
+      const lineaCell = getByText('Linea');
+      expect(lineaCell).toBeTruthy();
+      expect(lineaRpcUrl).toBeTruthy();
+    });
+  });
+
+  describe('renderRpcUrl', () => {
+    it('renders the RPC URL correctly for avalanche', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getByText } = renderComponent(initialState);
+      const avalancheRpcUrl = getByText('api.avax.network/ext/bc/C');
+      const avalancheCell = getByText('Avalanche Mainnet C-Chain');
+      expect(avalancheRpcUrl).toBeTruthy();
+      expect(avalancheCell).toBeTruthy();
+    });
+
+    it('renders the RPC URL correctly for optimism single RPC endpoint', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getByText } = renderComponent(initialState);
+      const optimismCell = getByText('Optimism');
+      expect(optimismCell).toBeTruthy();
+      expect(() => {
+        getByText('https://optimism-mainnet.infura.io/v3/12345');
+      }).toThrow();
+    });
+  });
+
+  describe('renderMainnet', () => {
+    it('renders the  mainnet cell correctly', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getByText } = renderComponent(initialState);
+      const mainnetRpcUrl = getByText('https://mainnet-rpc.publicnode.com');
+      const mainnetCell = getByText('Ethereum Mainnet');
+      expect(mainnetCell).toBeTruthy();
+      expect(mainnetRpcUrl).toBeTruthy();
+    });
   });
 });

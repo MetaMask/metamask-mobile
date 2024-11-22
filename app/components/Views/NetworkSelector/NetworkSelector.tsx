@@ -35,12 +35,7 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
 } from '../../../util/networks';
-import {
-  LINEA_MAINNET,
-  LINEA_SEPOLIA,
-  MAINNET,
-  SEPOLIA,
-} from '../../../constants/network';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -65,7 +60,6 @@ import createStyles from './NetworkSelector.styles';
 import {
   BUILT_IN_NETWORKS,
   InfuraNetworkType,
-  TESTNET_TICKER_SYMBOLS,
 } from '@metamask/controller-utils';
 import InfoModal from '../../../../app/components/UI/Swaps/components/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -84,11 +78,18 @@ import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRe
 import { Hex } from '@metamask/utils';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { LINEA_DEFAULT_RPC_URL } from '../../../constants/urls';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
+import {
+  TraceName,
+  TraceOperation,
+  endTrace,
+  trace,
+} from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 interface infuraNetwork {
   name: string;
@@ -130,7 +131,11 @@ const NetworkSelector = () => {
 
   // origin is defined if network selector is opened from a dapp
   const origin = route.params?.hostInfo?.metadata?.origin || '';
-
+  const parentSpan = trace({
+    name: TraceName.NetworkSwitch,
+    tags: getTraceTags(store.getState()),
+    op: TraceOperation.NetworkSwitch,
+  });
   const {
     chainId: selectedChainId,
     rpcUrl: selectedRpcUrl,
@@ -229,17 +234,16 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const {
-      CurrencyRateController,
-      NetworkController,
-      SelectedNetworkController,
-    } = Engine.context;
-
+    const { NetworkController, SelectedNetworkController } = Engine.context;
+    trace({
+      name: TraceName.SwitchCustomNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchCustomNetwork,
+    });
     if (networkConfiguration) {
       const {
         name: nickname,
         chainId,
-        nativeCurrency: ticker,
         rpcEndpoints,
         defaultRpcEndpointIndex,
       } = networkConfiguration;
@@ -253,14 +257,14 @@ const NetworkSelector = () => {
           networkConfigurationId,
         );
       } else {
-        CurrencyRateController.updateExchangeRate(ticker);
-
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
         await NetworkController.setActiveNetwork(networkClientId);
       }
 
       sheetRef.current?.onCloseBottomSheet();
+      endTrace({ name: TraceName.SwitchCustomNetwork });
+      endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
         chain_id: getDecimalChainId(chainId),
         from_network: selectedNetworkName,
@@ -346,9 +350,13 @@ const NetworkSelector = () => {
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
   const onNetworkChange = (type: InfuraNetworkType) => {
+    trace({
+      name: TraceName.SwitchBuiltInNetwork,
+      parentContext: parentSpan,
+      op: TraceOperation.SwitchBuiltInNetwork,
+    });
     const {
       NetworkController,
-      CurrencyRateController,
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
@@ -356,14 +364,6 @@ const NetworkSelector = () => {
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
-      let ticker = type;
-      if (type === LINEA_SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.LINEA_SEPOLIA as InfuraNetworkType;
-      }
-      if (type === SEPOLIA) {
-        ticker = TESTNET_TICKER_SYMBOLS.SEPOLIA as InfuraNetworkType;
-      }
-
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
 
@@ -372,7 +372,6 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
-      CurrencyRateController.updateExchangeRate(ticker);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
@@ -383,7 +382,8 @@ const NetworkSelector = () => {
     }
 
     sheetRef.current?.onCloseBottomSheet();
-
+    endTrace({ name: TraceName.SwitchBuiltInNetwork });
+    endTrace({ name: TraceName.NetworkSwitch });
     trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
       chain_id: getDecimalChainId(selectedChainId),
       from_network: selectedNetworkName,
@@ -421,11 +421,11 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
 
     const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
     const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
@@ -436,7 +436,9 @@ const NetworkSelector = () => {
           key={chainId}
           variant={CellVariant.SelectWithMenu}
           title={name}
-          secondaryText={hideKeyFromUrl(rpcUrl)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           avatarProps={{
             variant: AvatarVariant.Network,
             name: mainnetName,
@@ -485,6 +487,10 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
+    const rpcUrl =
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
@@ -505,7 +511,9 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          secondaryText={hideKeyFromUrl(LINEA_DEFAULT_RPC_URL)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           buttonProps={{
             onButtonClick: () => {
               openModal(chainId, false, LINEA_MAINNET, true);
@@ -584,7 +592,11 @@ const NetworkSelector = () => {
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
-            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
+            secondaryText={
+              rpcEndpoints?.length > 1
+                ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+                : undefined
+            }
             buttonProps={{
               onButtonClick: () => {
                 openModal(chainId, true, rpcUrl, false);

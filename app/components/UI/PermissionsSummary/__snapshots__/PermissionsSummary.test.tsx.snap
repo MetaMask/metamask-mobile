@@ -41,11 +41,14 @@ exports[`PermissionsSummary should render correctly 1`] = `
         />
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "justifyContent": "center",
+              },
+              false,
+            ]
           }
         >
           <View
@@ -99,6 +102,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         <View
           style={
             {
+              "alignItems": "flex-end",
               "flex": 1,
               "paddingRight": 16,
             }
@@ -488,6 +492,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               <View
                 style={
                   {
+                    "marginRight": 4,
                     "maxWidth": "75%",
                   }
                 }
@@ -562,13 +567,19 @@ exports[`PermissionsSummary should render correctly 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View>
+    <View
+      style={
+        {
+          "marginTop": 8,
+        }
+      }
+    >
       <View
         style={
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
-            "marginTop": 16,
+            "marginTop": 8,
           }
         }
       >
@@ -630,6 +641,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           {
             "flex": 0,
             "flexDirection": "row",
+            "marginTop": 8,
             "paddingHorizontal": 24,
           }
         }
@@ -802,11 +814,14 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         />
         <View
           style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
+            [
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "justifyContent": "center",
+              },
+              false,
+            ]
           }
         >
           <View
@@ -860,6 +875,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         <View
           style={
             {
+              "alignItems": "flex-end",
               "flex": 1,
               "paddingRight": 16,
             }
@@ -968,6 +984,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               <View
                 style={
                   {
+                    "marginRight": 4,
                     "maxWidth": "75%",
                   }
                 }
@@ -1056,13 +1073,19 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
         </View>
       </TouchableOpacity>
     </View>
-    <View>
+    <View
+      style={
+        {
+          "marginTop": 8,
+        }
+      }
+    >
       <View
         style={
           {
             "flexDirection": "row",
             "marginHorizontal": 24,
-            "marginTop": 16,
+            "marginTop": 8,
           }
         }
       >
@@ -1124,6 +1147,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           {
             "flex": 0,
             "flexDirection": "row",
+            "marginTop": 8,
             "paddingHorizontal": 24,
           }
         }
@@ -1246,7 +1270,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               ]
             }
           >
-            Connect
+            Confirm
           </Text>
         </TouchableOpacity>
       </View>

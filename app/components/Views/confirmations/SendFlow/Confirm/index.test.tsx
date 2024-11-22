@@ -2,6 +2,7 @@ import React from 'react';
 import { ConnectedComponent } from 'react-redux';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
+import { Alert } from 'react-native';
 import Confirm from '.';
 import {
   DeepPartial,
@@ -16,6 +17,8 @@ import { RootState } from '../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
 import { updateTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import Engine from '../../../../../core/Engine';
+import { flushPromises } from '../../../../../util/test/utils';
 
 const MOCK_ADDRESS = '0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58';
 
@@ -126,37 +129,46 @@ jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   isChainSupported: jest.fn(),
 }));
 
-jest.mock('../../../../../core/Engine', () => ({
-  rejectPendingApproval: jest.fn(),
-  context: {
-    TokensController: {
-      addToken: jest.fn(),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
-          },
-        ],
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../../../util/test/accountsControllerTestUtils');
+  return {
+    rejectPendingApproval: jest.fn(),
+    context: {
+      TokensController: {
+        addToken: jest.fn(),
       },
-    },
-    TransactionController: {
-      addTransaction: jest.fn().mockResolvedValue({
-        result: {},
-        transactionMeta: {
-          id: 1,
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              accounts: ['0x15249D1a506AFC731Ee941d0D40Cf33FacD34E58'],
+            },
+          ],
         },
-      }),
-      updateSecurityAlertResponse: jest.fn(),
-    },
-    PreferencesController: {
-      state: {
-        securityAlertsEnabled: true,
+      },
+      TransactionController: {
+        addTransaction: jest.fn().mockResolvedValue({
+          result: {},
+          transactionMeta: {
+            id: 1,
+          },
+        }),
+        updateSecurityAlertResponse: jest.fn(),
+      },
+      PreferencesController: {
+        state: {
+          securityAlertsEnabled: true,
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
+
 jest.mock('../../../../../util/custom-gas', () => ({
   ...jest.requireActual('../../../../../util/custom-gas'),
   getGasLimit: jest.fn(),
@@ -244,6 +256,26 @@ describe('Confirm', () => {
             },
           },
         }),
+      );
+    });
+  });
+
+  it('should show error if transaction is not added', async () => {
+    jest.spyOn(Alert, 'alert');
+
+    Engine.context.TransactionController.addTransaction = jest
+      .fn()
+      .mockRejectedValue(new Error('Transaction not added'));
+
+    render(Confirm);
+
+    await flushPromises();
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Transaction error',
+        'Transaction not added',
+        expect.any(Array),
       );
     });
   });
