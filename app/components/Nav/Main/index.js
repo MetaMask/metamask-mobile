@@ -254,7 +254,7 @@ const Main = (props) => {
     if (!isNetworkUiRedesignEnabled()) return;
 
     // Memoized values to avoid recalculations
-    const currentNetworkValues = Object.values(networkConfigurations);
+    const currentNetworkValues = Object.values(networkConfigurations ?? {});
     const previousNetworkValues = Object.values(
       previousNetworkConfigurations.current ?? {},
     );
@@ -280,7 +280,7 @@ const Main = (props) => {
         networkImageSource: networkImage,
       });
     }
-    previousNetworkConfigurations.current = networkConfigurations;
+    previousNetworkConfigurations.current = networkConfigurations ?? {};
   }, [networkConfigurations, networkName, networkImage, toastRef]);
 
   useEffect(() => {

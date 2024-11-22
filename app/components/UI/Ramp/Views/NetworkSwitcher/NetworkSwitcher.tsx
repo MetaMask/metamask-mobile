@@ -154,15 +154,12 @@ function NetworkSwitcher() {
   const switchNetwork = useCallback(
     (networkConfiguration) => {
       const { NetworkController } = Engine.context;
-      const config = Object.values(networkConfigurations).find(
+      const config = Object.values(networkConfigurations ?? {}).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
       if (config) {
-        const {
-          rpcEndpoints,
-          defaultRpcEndpointIndex,
-        } = config;
+        const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
@@ -200,7 +197,7 @@ function NetworkSwitcher() {
 
       const supportedNetworkConfigurations = rampNetworksDetails.map(
         (networkConfiguration) => {
-          const isAdded = Object.values(networkConfigurations).some(
+          const isAdded = Object.values(networkConfigurations ?? {}).some(
             (savedNetwork) =>
               savedNetwork.chainId === networkConfiguration.chainId,
           );

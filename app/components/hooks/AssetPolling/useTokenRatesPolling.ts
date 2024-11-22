@@ -9,7 +9,7 @@ import { isPortfolioViewEnabled } from '../../../util/networks';
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   // Selectors to determine polling input
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
   const currentChainId = useSelector(selectChainId);
 
   // Selectors returning state updated by the polling

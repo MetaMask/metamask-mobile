@@ -98,7 +98,7 @@ const NetworkConnectMultiSelector = ({
       // Check if current network is being removed from permissions
       if (!selectedChainIds.includes(currentChainId)) {
         // Find the network configuration for the first permitted chain
-        const networkToSwitch = Object.entries(networkConfigurations).find(
+        const networkToSwitch = Object.entries(networkConfigurations ?? {}).find(
           ([, { chainId }]) => chainId === selectedChainIds[0],
         );
 
@@ -160,7 +160,7 @@ const NetworkConnectMultiSelector = ({
     networkConfigurations,
   ]);
 
-  const networks = Object.entries(networkConfigurations)
+  const networks = Object.entries(networkConfigurations ?? {})
     .map(([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,

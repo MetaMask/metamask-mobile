@@ -158,7 +158,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       // noop
     }
 
-    const networks = Object.entries(networkConfigurations).map(
+    const networks = Object.entries(networkConfigurations ?? {}).map(
       ([key, network]: [string, NetworkConfiguration]) => ({
         id: key,
         name: network.name,

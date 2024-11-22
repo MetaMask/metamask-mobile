@@ -157,7 +157,7 @@ const Wallet = ({
   const styles = createStyles(theme);
   const { colors } = theme;
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
 
   /**
    * Object containing the balance of the current selected account

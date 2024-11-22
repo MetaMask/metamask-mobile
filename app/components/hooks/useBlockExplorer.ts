@@ -21,7 +21,7 @@ const useBlockExplorer = () => {
       let accountLink: string;
       if (type === RPC && rpcUrl) {
         const blockExplorer =
-          findBlockExplorerForRpc(rpcUrl, networkConfigurations) ||
+          findBlockExplorerForRpc(rpcUrl, networkConfigurations ?? {}) ||
           NO_RPC_BLOCK_EXPLORER;
         accountLink = `${blockExplorer}/address/${address}`;
       } else {

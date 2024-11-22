@@ -5,7 +5,7 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 
 const useNetworkInfo = (chainId?: string) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
 
   if (!chainId) {
     return {};

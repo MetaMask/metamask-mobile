@@ -10,7 +10,7 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 const useCheckMultiRpcModal = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
 
   const showMultiRpcModal = useSelector(selectShowMultiRpcModal);
 

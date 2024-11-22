@@ -50,7 +50,7 @@ const AssetOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
   const tokenList = useSelector(selectTokenList);
   const chainId = useSelector(selectChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -38,7 +38,7 @@ const IncomingTransactionsSettings = () => {
     selectShowIncomingTransactionNetworks,
   );
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
 
   const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
 

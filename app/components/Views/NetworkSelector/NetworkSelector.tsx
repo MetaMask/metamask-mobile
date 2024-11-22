@@ -177,7 +177,7 @@ const NetworkSelector = () => {
     async (clientId: string, chainId: `0x${string}`) => {
       const { NetworkController } = Engine.context;
 
-      const existingNetwork = networkConfigurations[chainId];
+      const existingNetwork = networkConfigurations?.[chainId];
       if (!existingNetwork) {
         Logger.error(
           new Error(`No existing network found for chainId: ${chainId}`),
@@ -549,7 +549,7 @@ const NetworkSelector = () => {
   };
 
   const renderRpcNetworks = () =>
-    Object.values(networkConfigurations).map((networkConfiguration) => {
+    Object.values(networkConfigurations ?? {}).map((networkConfiguration) => {
       const {
         name: nickname,
         rpcEndpoints,
@@ -649,7 +649,7 @@ const NetworkSelector = () => {
       >;
       const { name, imageSource, chainId } = TypedNetworks[networkType];
 
-      const networkConfiguration = networkConfigurations[chainId];
+      const networkConfiguration = networkConfigurations?.[chainId];
 
       const rpcUrl =
         networkConfiguration?.rpcEndpoints?.[
@@ -810,7 +810,7 @@ const NetworkSelector = () => {
   };
 
   const removeRpcUrl = (chainId: `0x${string}`) => {
-    const networkConfiguration = networkConfigurations[chainId];
+    const networkConfiguration = networkConfigurations?.[chainId];
 
     if (!networkConfiguration) {
       throw new Error(`Unable to find network with chain id ${chainId}`);

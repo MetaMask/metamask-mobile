@@ -246,7 +246,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);

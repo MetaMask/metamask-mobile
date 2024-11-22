@@ -7,9 +7,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  getBlockExplorerByChainId,
-} from '../../../../../util/notifications';
+import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -29,7 +27,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkBlockExplorer = useMemo(() => {
     const hexChainId = toHex(props.chainId);
-    return Object.values(networkConfigurations).find(
+    return Object.values(networkConfigurations ?? {}).find(
       (networkConfig) => networkConfig.chainId === hexChainId,
     )?.blockExplorerUrls?.[0];
   }, [networkConfigurations, props.chainId]);

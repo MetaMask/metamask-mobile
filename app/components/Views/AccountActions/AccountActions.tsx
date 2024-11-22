@@ -87,7 +87,7 @@ const AccountActions = () => {
     if (providerConfig?.rpcUrl && providerConfig?.type === RPC) {
       return findBlockExplorerForRpc(
         providerConfig?.rpcUrl,
-        networkConfigurations,
+        networkConfigurations ?? {},
       );
     }
     return null;

@@ -45,7 +45,7 @@ const MultiRpcModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const chainId = useSelector(selectChainId);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
   const { trackEvent } = useMetrics();
   const { navigate } = useNavigation();
 

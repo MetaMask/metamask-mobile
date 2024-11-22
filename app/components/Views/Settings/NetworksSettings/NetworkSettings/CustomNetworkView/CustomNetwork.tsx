@@ -36,7 +36,7 @@ const CustomNetwork = ({
   showCompletionMessage = true,
   hideWarningIcons = false,
 }: CustomNetworkProps) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectNetworkConfigurations) ?? {};
   const selectedChainId = useSelector(selectChainId);
   const { safeChains } = useSafeChains();
 
