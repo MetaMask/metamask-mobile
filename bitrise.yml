@@ -1537,6 +1537,9 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
+      MM_CHAIN_PERMISSIONS: false
+    - opts:
+        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
@@ -1576,16 +1579,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.34.1
+      VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1482
+      VERSION_NUMBER: 1497
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.34.1
+      FLASK_VERSION_NAME: 7.35.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1482
+      FLASK_VERSION_NUMBER: 1497
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
