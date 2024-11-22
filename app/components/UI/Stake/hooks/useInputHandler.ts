@@ -18,7 +18,7 @@ import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
 interface InputHandlerParams {
   balance: BN;
 }
-
+const MAX_DIGITS = 12;
 const useInputHandler = ({ balance }: InputHandlerParams) => {
   const [amountEth, setAmountEth] = useState('0');
   const [amountWei, setAmountWei] = useState<BN>(new BN(0));
@@ -74,6 +74,13 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
 
   const handleKeypadChange = useCallback(
     ({ value }) => {
+      const digitsOnly = value.replace(/[^0-9.]/g, '');
+      const [whole = '', fraction = ''] = digitsOnly.split('.');
+      const totalDigits = whole.length + fraction.length;
+
+      if (totalDigits > MAX_DIGITS) {
+        return;
+      }
       isEth ? handleEthInput(value) : handleFiatInput(value);
     },
     [handleEthInput, handleFiatInput, isEth],
@@ -112,13 +119,13 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
       setFiatAmount(newFiatAmount);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
-        .addProperties({
-          location: 'Stake',
-          amount: value,
-          is_max: value === 1,
-          mode: isEth ? 'native' : 'fiat'
-        })
-        .build()
+          .addProperties({
+            location: 'Stake',
+            amount: value,
+            is_max: value === 1,
+            mode: isEth ? 'native' : 'fiat',
+          })
+          .build(),
       );
     },
     [balance, conversionRate, createEventBuilder, isEth, trackEvent],
@@ -144,13 +151,13 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
       setFiatAmount(fiatValue);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
-        .addProperties({
-          location: 'Stake',
-          amount: ethValue,
-          is_max: true,
-          mode: isEth ? 'native' : 'fiat'
-        })
-        .build()
+          .addProperties({
+            location: 'Stake',
+            amount: ethValue,
+            is_max: true,
+            mode: isEth ? 'native' : 'fiat',
+          })
+          .build(),
       );
     },
     [conversionRate, createEventBuilder, isEth, trackEvent],
