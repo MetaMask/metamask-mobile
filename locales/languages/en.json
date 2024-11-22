@@ -1880,7 +1880,15 @@
     "cancel": "Cancel",
     "got_it": "Got it",
     "connection_details_title": "Connection Details",
-    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}",
+    "title_add_network_permission": "Add network permission",
+    "add_this_network": "Add this network",
+    "permitted_networks": "Permitted networks",
+    "choose_from_permitted_networks": "Choose from permitted networks",
+    "this_site_cant": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
+    "non_permitted_network_description": "This site can't be used with your current network. Add network permissions or choose an already permitted network.",
+    "edit_permissions": "Edit permissions",
+    "permitted_networks_info_sheet_description": "This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site."
   },
   "select": {
     "cancel": "Cancel",
@@ -3352,7 +3360,8 @@
     "blind_sign_error": "Blind signing error",
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
-    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device."
+    "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
+    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one."
   },
   "account_actions": {
     "edit_name": "Edit account name",

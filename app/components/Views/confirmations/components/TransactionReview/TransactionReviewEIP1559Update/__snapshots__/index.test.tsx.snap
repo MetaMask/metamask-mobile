@@ -96,7 +96,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
             ]
           }
         >
-          Estimated gas fee
+          Network fee
           <TouchableOpacity
             hitSlop={
               {
