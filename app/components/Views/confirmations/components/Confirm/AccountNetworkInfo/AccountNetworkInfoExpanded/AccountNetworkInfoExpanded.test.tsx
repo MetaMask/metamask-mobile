@@ -5,10 +5,16 @@ import { personalSignatureConfirmationState } from '../../../../../../../util/te
 import AccountNetworkInfoExpanded from './AccountNetworkInfoExpanded';
 
 describe('AccountNetworkInfoExpanded', () => {
-  it('should match snapshot for personal sign', async () => {
-    const container = renderWithProvider(<AccountNetworkInfoExpanded />, {
+  it('should render correctly', async () => {
+    const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot();
+    expect(getByText('Account')).toBeDefined();
+    expect(getByText('Balance')).toBeDefined();
+    expect(getByText('0 ETH')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('RPC URL')).toBeDefined();
+    expect(getByText('mainnet.infura.io/v3/')).toBeDefined();
   });
 });
