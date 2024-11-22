@@ -20,6 +20,13 @@ import { Hex } from '@metamask/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
 
+jest.mock('../constants', () => {
+  return {
+    ...jest.requireActual('../constants'),
+    isNotificationsFeatureEnabled: () => true,
+  };
+});
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     NotificationServicesController: {
@@ -170,15 +177,13 @@ describe('useAccountSettingsProps', () => {
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
       .mockReturnValue([MOCK_ACCOUNTS[0].address]);
 
-      const isMetamaskNotificationsEnabled = jest
-      .spyOn(Selectors,
-        'selectIsMetamaskNotificationsEnabled',
-      )
+    const isMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
       .mockReturnValue(true);
 
     return {
       selectIsUpdatingMetamaskNotificationsAccount,
-      isMetamaskNotificationsEnabled
+      isMetamaskNotificationsEnabled,
     };
   }
 
@@ -189,9 +194,12 @@ describe('useAccountSettingsProps', () => {
       [MOCK_ACCOUNTS[1].address]: false,
     });
 
-    Engine.context.NotificationServicesController.checkAccountsPresence = mockCheckAccountsPresence;
+    Engine.context.NotificationServicesController.checkAccountsPresence =
+      mockCheckAccountsPresence;
 
-    mockSelectors.selectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([]);
+    mockSelectors.selectIsUpdatingMetamaskNotificationsAccount.mockReturnValue(
+      [],
+    );
     mockSelectors.isMetamaskNotificationsEnabled.mockReturnValue(true);
 
     const { hook, store } = arrangeHook(MOCK_ACCOUNTS);
@@ -200,13 +208,15 @@ describe('useAccountSettingsProps', () => {
       await hook.result.current.updateAndfetchAccountSettings();
     });
 
-    expect(mockCheckAccountsPresence).toHaveBeenCalledWith(MOCK_ACCOUNTS.map(account => account.address));
+    expect(mockCheckAccountsPresence).toHaveBeenCalledWith(
+      MOCK_ACCOUNTS.map((account) => account.address),
+    );
 
     expect(store.dispatch).toHaveBeenCalledWith(
       updateAccountState({
         [MOCK_ACCOUNTS[0].address]: true,
         [MOCK_ACCOUNTS[1].address]: false,
-      })
+      }),
     );
   });
 });

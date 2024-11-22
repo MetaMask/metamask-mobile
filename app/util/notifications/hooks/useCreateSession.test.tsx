@@ -11,6 +11,13 @@ import * as Selectors from '../../../selectors/notifications';
 import * as Actions from '../../../actions/notification/helpers';
 import useCreateSession from './useCreateSession';
 
+jest.mock('../constants', () => {
+  return {
+    ...jest.requireActual('../constants'),
+    isNotificationsFeatureEnabled: () => true,
+  };
+});
+
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
 

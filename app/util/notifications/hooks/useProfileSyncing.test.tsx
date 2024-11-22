@@ -11,6 +11,13 @@ import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../../util/test/initial-root-state';
 import { useProfileSyncing } from './useProfileSyncing';
 
+jest.mock('../constants', () => {
+  return {
+    ...jest.requireActual('../constants'),
+    isNotificationsFeatureEnabled: () => true,
+  };
+});
+
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
 
