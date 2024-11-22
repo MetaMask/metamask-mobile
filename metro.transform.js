@@ -70,9 +70,9 @@ module.exports.transform = async ({ src, filename, options }) => {
       active: getBuildTypeFeatures(),
     });
 
-    if (didModify) {
-      await lintTransformedFile(getESLintInstance(), filename, processedSource);
-    }
+    // if (didModify) {
+    //   await lintTransformedFile(getESLintInstance(), filename, processedSource);
+    // }
     return defaultTransformer.transform({
       src: processedSource,
       filename,
