@@ -1,10 +1,13 @@
-import type { JsonMap, UserTraits } from '@segment/analytics-react-native';
+import type { UserTraits } from '@segment/analytics-react-native';
 import {
+  CombinedProperties,
   DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
   IMetaMetricsEvent,
+  ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 export const SourceType = {
   SDK: 'sdk',
@@ -18,14 +21,23 @@ export interface IUseMetricsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties?: JsonMap,
-    saveDataRecording?: boolean,
-  ): void;
+
+  /**
+   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
+   */
   trackEvent(
     event: IMetaMetricsEvent,
-    properties?: JsonMap,
+    properties?: CombinedProperties,
+    saveDataRecording?: boolean,
+  ): void;
+  /**
+   * track an event
+   * @param event - Analytics event build with {@link MetricsEventBuilder}
+   * @param saveDataRecording - param to skip saving the data recording flag (optional)
+   */
+  trackEvent(
+    // New signature
+    event: ITrackingEvent,
     saveDataRecording?: boolean,
   ): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
@@ -34,4 +46,5 @@ export interface IUseMetricsHook {
   getDeleteRegulationId(): string | undefined;
   isDataRecorded(): boolean;
   getMetaMetricsId(): Promise<string | undefined>;
+  createEventBuilder(event: IMetaMetricsEvent): MetricsEventBuilder;
 }

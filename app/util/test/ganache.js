@@ -5,8 +5,7 @@ export const DEFAULT_GANACHE_PORT = 8545;
 
 const defaultOptions = {
   blockTime: 2,
-  network_id: 1338,
-  chainId: 1338,
+  network_id: 1337,
   port: DEFAULT_GANACHE_PORT,
   vmErrorsOnRPCResponse: false,
   hardfork: 'muirGlacier',

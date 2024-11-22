@@ -1,6 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import { createSelector } from 'reselect';
-import { TokenRatesState } from '@metamask/assets-controllers';
+import { TokenRatesControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { selectChainId } from './networkController';
 import { Hex } from '@metamask/utils';
@@ -11,6 +11,12 @@ const selectTokenRatesControllerState = (state: RootState) =>
 export const selectContractExchangeRates = createSelector(
   selectChainId,
   selectTokenRatesControllerState,
-  (chainId: Hex, tokenRatesControllerState: TokenRatesState) =>
+  (chainId: Hex, tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData[chainId],
+);
+
+export const selectTokenMarketData = createSelector(
+  selectTokenRatesControllerState,
+  (tokenRatesControllerState: TokenRatesControllerState) =>
+    tokenRatesControllerState.marketData,
 );

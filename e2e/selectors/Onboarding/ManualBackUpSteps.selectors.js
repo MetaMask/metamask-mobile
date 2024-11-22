@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const ManualBackUpStepsSelectorsIDs = {
   PROTECT_CONTAINER: 'protect-your-account-screen',
   STEP_1_CONTAINER: 'manual_backup_step_1-screen',

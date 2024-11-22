@@ -5,9 +5,9 @@ export interface ValidState {
   engine: {
     backgroundState: Record<string, unknown>;
   };
+  settings: Record<string, unknown>;
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export function ensureValidState<T>(
   state: T,
   migrationNumber: number,

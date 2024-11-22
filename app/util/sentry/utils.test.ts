@@ -172,7 +172,6 @@ describe('captureSentryFeedback', () => {
                   },
                   methods: [
                     'personal_sign',
-                    'eth_sign',
                     'eth_signTransaction',
                     'eth_signTypedData_v1',
                     'eth_signTypedData_v3',
@@ -225,7 +224,7 @@ describe('captureSentryFeedback', () => {
             logs: {},
           },
           NetworkController: {
-            networkConfigurations: {},
+            networkConfigurationsByChainId: {},
             networksMetadata: {
               mainnet: {
                 EIPS: {
@@ -233,11 +232,6 @@ describe('captureSentryFeedback', () => {
                 },
                 status: NetworkStatus.Available,
               },
-            },
-            providerConfig: {
-              chainId: '0x1',
-              ticker: 'ETH',
-              type: 'mainnet',
             },
             selectedNetworkClientId: 'mainnet',
           },
@@ -249,9 +243,6 @@ describe('captureSentryFeedback', () => {
           NftDetectionController: {},
           PermissionController: undefined,
           PreferencesController: {
-            disabledRpcMethodPreferences: {
-              eth_sign: false,
-            },
             displayNftMedia: true,
             featureFlags: {},
             identities: {
@@ -261,7 +252,7 @@ describe('captureSentryFeedback', () => {
                 name: 'Account 1',
               },
             },
-            ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+            ipfsGateway: 'https://dweb.link/ipfs/',
             isIpfsGatewayEnabled: true,
             isMultiAccountBalancesEnabled: true,
             lostIdentities: {},
@@ -339,7 +330,7 @@ describe('captureSentryFeedback', () => {
         hideZeroBalanceTokens: false,
         lockTime: 30000,
         primaryCurrency: 'ETH',
-        searchEngine: 'DuckDuckGo',
+        searchEngine: 'Google',
         useBlockieIcon: true,
       },
       alert: {
@@ -375,12 +366,8 @@ describe('captureSentryFeedback', () => {
         type: undefined,
         warningGasPriceHigh: undefined,
       },
-      smartTransactions: {
-        optInModalAppVersionSeen: null,
-      },
       user: {
         ambiguousAddressEntries: {},
-        appTheme: 'os',
         backUpSeedphraseVisible: false,
         gasEducationCarouselSeen: false,
         initialScreen: '',
@@ -510,7 +497,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -550,7 +536,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -587,7 +572,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',

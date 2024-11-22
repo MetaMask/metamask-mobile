@@ -36,4 +36,9 @@ export interface NotificationMenuItem {
    * This is meant to be a stringified date
    */
   createdAt: string;
+
+  /**
+   * A boolean that indicates if the notification is read or not
+   */
+  isRead?: boolean;
 }

@@ -18,6 +18,7 @@ import { hexToBN, toHexadecimal } from '../../../../util/number';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../selectors/networkController';
+import { Token } from '@metamask/assets-controllers';
 
 function useHandleSuccessfulOrder() {
   const { selectedChainId, selectedAddress } = useRampSDK();
@@ -42,7 +43,7 @@ function useHandleSuccessfulOrder() {
       const { TokensController } = Engine.context;
 
       if (
-        !TokensController.state.tokens.find((stateToken) =>
+        !TokensController.state.tokens.find((stateToken: Token) =>
           toLowerCaseEquals(stateToken.address, address),
         )
       ) {

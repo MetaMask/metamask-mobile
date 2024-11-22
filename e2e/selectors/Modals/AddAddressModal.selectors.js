@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const AddAddressModalSelectorsIDs = {
   CONTAINER: 'add-address-modal',
   ENTER_ALIAS_INPUT: 'address-alias-input',

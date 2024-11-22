@@ -7,7 +7,6 @@ import {
   View,
   ActivityIndicator,
   Keyboard,
-  Platform,
   Linking,
 } from 'react-native';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -49,64 +48,19 @@ import {
   ClearPrivacy,
   BlockaidSettings,
 } from './Sections';
-import {
-  selectProviderType,
-  selectNetworkConfigurations,
-} from '../../../../selectors/networkController';
-import {
-  selectIpfsGateway,
-  selectIsIpfsGatewayEnabled,
-  selectIsMultiAccountBalancesEnabled,
-  selectDisplayNftMedia,
-  selectUseNftDetection,
-  selectShowIncomingTransactionNetworks,
-  selectShowTestNetworks,
-  selectUseSafeChainsListValidation,
-  selectUseTransactionSimulations,
-} from '../../../../selectors/preferencesController';
-import {
-  SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-  SECURITY_PRIVACY_VIEW_ID,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import ipfsGateways from '../../../../util/ipfs-gateways.json';
-import SelectComponent from '../../../UI/SelectComponent';
-import { timeoutFetch } from '../../../../util/general';
+import { selectProviderType } from '../../../../selectors/networkController';
+import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
+import { SECURITY_PRIVACY_VIEW_ID } from '../../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import createStyles from './SecuritySettings.styles';
-import {
-  EtherscanNetworksType,
-  Gateway,
-  HeadingProps,
-  NetworksI,
-  SecuritySettingsParams,
-} from './SecuritySettings.types';
+import { HeadingProps, SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import {
-  BATCH_BALANCE_REQUESTS_SECTION,
   BIOMETRY_CHOICE_STRING,
   CLEAR_BROWSER_HISTORY_SECTION,
-  DISPLAY_SAFE_CHAINS_LIST_VALIDATION,
-  HASH_STRING,
-  HASH_TO_TEST,
-  IPFS_GATEWAY_SECTION,
-  NFT_AUTO_DETECT_MODE_SECTION,
-  NFT_DISPLAY_MEDIA_MODE_SECTION,
   PASSCODE_CHOICE_STRING,
   SDK_SECTION,
-  USE_SAFE_CHAINS_LIST_VALIDATION,
 } from './SecuritySettings.constants';
-import Cell from '../../../..//component-library/components/Cells/Cell/Cell';
-import { CellVariant } from '../../../../component-library/components/Cells/Cell';
-import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import Networks, {
-  getAllNetworks,
-  getNetworkImageSource,
-  toggleUseSafeChainsListValidation,
-} from '../../../../util/networks';
-import images from 'images/image-icons';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
-import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import Text, {
   TextVariant,
   TextColor,
@@ -122,11 +76,23 @@ import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../../selectors/notifications';
 import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
+import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
+import DisplayNFTMediaSettings from '../../Settings/DisplayNFTMediaSettings';
+import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
+import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
+import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
+import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
+import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -141,7 +107,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled, addTraitsToUser } = useMetrics();
+  const { trackEvent, isEnabled } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -154,8 +120,6 @@ const Settings: React.FC = () => {
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
-  const [onlineIpfsGateways, setOnlineIpfsGateways] = useState<Gateway[]>([]);
-  const [gotAvailableGateways, setGotAvailableGateways] = useState(false);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
@@ -169,41 +133,41 @@ const Settings: React.FC = () => {
 
   const scrollViewRef = useRef<ScrollView>(null);
   const detectNftComponentRef = useRef<View>(null);
+  const {
+    disableNotifications,
+    loading: disableNotificationsLoading,
+    error: disableNotificationsError,
+  } = useDisableNotifications();
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserHistory = useSelector((state: any) => state.browser.history);
+  const browserHistory = useSelector(
+    (state: RootState) => state.browser.history,
+  );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
-  const showTestNetworks = useSelector(selectShowTestNetworks);
-  const showIncomingTransactionsNetworks = useSelector(
-    selectShowIncomingTransactionNetworks,
-  );
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const useSafeChainsListValidation = useSelector(
-    selectUseSafeChainsListValidation,
-  );
+  const lockTime = useSelector((state: RootState) => state.settings.lockTime);
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
 
-  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
 
   const seedphraseBackedUp = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.seedphraseBackedUp,
+    (state: RootState) => state.user.seedphraseBackedUp,
   );
+
+  /**
+   * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
+   */
+  useCheckNftAutoDetectionModal();
+
+  /**
+   * Show multi rpc modal if there are networks duplicated and if never showed before
+   */
+  useCheckMultiRpcModal();
+
   const type = useSelector(selectProviderType);
-  const isMultiAccountBalancesEnabled = useSelector(
-    selectIsMultiAccountBalancesEnabled,
-  );
-  const ipfsGateway = useSelector(selectIpfsGateway);
-  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
-  const myNetworks = ETHERSCAN_SUPPORTED_NETWORKS as EtherscanNetworksType;
+
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -217,34 +181,6 @@ const Settings: React.FC = () => {
       ),
     );
   }, [colors, navigation]);
-
-  const handleAvailableIpfsGateways = useCallback(async () => {
-    if (!isIpfsGatewayEnabled) return;
-    const ipfsGatewaysPromises = ipfsGateways.map(async (gateway: Gateway) => {
-      const testUrl =
-        gateway.value + HASH_TO_TEST + '#x-ipfs-companion-no-redirect';
-      try {
-        const res = await timeoutFetch(testUrl, 1200);
-        const text = await res.text();
-        const available = text.trim() === HASH_STRING.trim();
-        return { ...gateway, available };
-      } catch (e) {
-        const available = false;
-        return { ...gateway, available };
-      }
-    });
-    const ipfsGatewaysAvailability = await Promise.all(ipfsGatewaysPromises);
-    const onlineGateways = ipfsGatewaysAvailability.filter(
-      (gateway) => gateway.available,
-    );
-
-    const sortedOnlineIpfsGateways = [...onlineGateways].sort(
-      (a, b) => a.key - b.key,
-    );
-
-    setGotAvailableGateways(true);
-    setOnlineIpfsGateways(sortedOnlineIpfsGateways);
-  }, [isIpfsGatewayEnabled]);
 
   const handleHintText = useCallback(async () => {
     const currentSeedphraseHints = await StorageWrapper.getItem(
@@ -271,8 +207,20 @@ const Settings: React.FC = () => {
   ]);
 
   useEffect(() => {
-    !isBasicFunctionalityEnabled && disableProfileSyncing();
-  }, [disableProfileSyncing, isBasicFunctionalityEnabled]);
+    const triggerCascadeBasicFunctionalityDisable = async () => {
+      if (!isBasicFunctionalityEnabled) {
+        isNotificationEnabled && (await disableNotifications());
+        isProfileSyncingEnabled && (await disableProfileSyncing());
+      }
+    };
+    triggerCascadeBasicFunctionalityDisable();
+  }, [
+    disableNotifications,
+    disableProfileSyncing,
+    isBasicFunctionalityEnabled,
+    isNotificationEnabled,
+    isProfileSyncingEnabled,
+  ]);
 
   const scrollToDetectNFTs = useCallback(() => {
     if (detectNftComponentRef.current) {
@@ -306,10 +254,6 @@ const Settings: React.FC = () => {
       waitForRenderDetectNftComponentRef();
     }, [waitForRenderDetectNftComponentRef]),
   );
-
-  useEffect(() => {
-    handleAvailableIpfsGateways();
-  }, [handleAvailableIpfsGateways]);
 
   const toggleHint = () => {
     setShowHint(!showHint);
@@ -365,7 +309,7 @@ const Settings: React.FC = () => {
         }
         await Authentication.storePassword(password, authType);
       } catch (error) {
-        Logger.error(error as string, {});
+        Logger.error(error as unknown as Error, {});
       }
 
       dispatch(passwordSet());
@@ -387,7 +331,7 @@ const Settings: React.FC = () => {
           '',
         );
       } else {
-        Logger.error(e as string, 'SecuritySettings:biometrics');
+        Logger.error(e as unknown as Error, 'SecuritySettings:biometrics');
       }
       setLoading(false);
     }
@@ -399,7 +343,7 @@ const Settings: React.FC = () => {
     try {
       credentials = await Authentication.getPassword();
     } catch (error) {
-      Logger.error(error as string, {});
+      Logger.error(error as unknown as Error, {});
     }
 
     if (credentials && credentials.password !== '') {
@@ -478,59 +422,6 @@ const Settings: React.FC = () => {
     </View>
   );
 
-  const toggleIsMultiAccountBalancesEnabled = (
-    multiAccountBalancesEnabled: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsMultiAccountBalancesEnabled(
-      multiAccountBalancesEnabled,
-    );
-  };
-
-  const renderMultiAccountBalancesSection = () => (
-    <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.batch_balance_requests_title')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isMultiAccountBalancesEnabled}
-            onValueChange={toggleIsMultiAccountBalancesEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-            {...generateTestId(
-              Platform,
-              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            )}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.batch_balance_requests_description')}
-      </Text>
-    </View>
-  );
-  const toggleEnableIncomingTransactions = (
-    hexChainId: string,
-    value: boolean,
-  ) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setEnableNetworkIncomingTransactions(
-      hexChainId,
-      value,
-    );
-  };
-
   const clearBrowserHistory = () => {
     dispatch(clearHistory());
     toggleClearBrowserHistoryModal();
@@ -554,104 +445,6 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     </ActionModal>
-  );
-
-  const toggleDisplayNftMedia = (value: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController?.setDisplayNftMedia(value);
-    if (!value) PreferencesController?.setUseNftDetection(value);
-  };
-
-  const toggleNftAutodetect = useCallback(
-    (value) => {
-      const { PreferencesController } = Engine.context;
-      if (value) {
-        PreferencesController.setDisplayNftMedia(value);
-      }
-      PreferencesController.setUseNftDetection(value);
-      const traits = {
-        [UserProfileProperty.NFT_AUTODETECTION]: value
-          ? UserProfileProperty.ON
-          : UserProfileProperty.OFF,
-      };
-      addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED, {
-        ...traits,
-        location: 'app_settings',
-      });
-    },
-    [addTraitsToUser, trackEvent],
-  );
-
-  const renderDisplayNftMedia = useCallback(
-    () => (
-      <View style={styles.halfSetting} testID={NFT_DISPLAY_MEDIA_MODE_SECTION}>
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.display_nft_media')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={displayNftMedia}
-              onValueChange={toggleDisplayNftMedia}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-              testID="display-nft-toggle"
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.display_nft_media_desc_new')}
-        </Text>
-      </View>
-    ),
-    [colors, styles, displayNftMedia, theme],
-  );
-
-  const renderUseSafeChainsListValidation = useCallback(
-    () => (
-      <View style={styles.halfSetting} testID={USE_SAFE_CHAINS_LIST_VALIDATION}>
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('wallet.network_details_check')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useSafeChainsListValidation}
-              onValueChange={toggleUseSafeChainsListValidation}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-              testID={DISPLAY_SAFE_CHAINS_LIST_VALIDATION}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.use_safe_chains_list_validation_desc_1')}
-          <Text variant={TextVariant.BodyMDBold}>chainid.network </Text>
-          {strings('app_settings.use_safe_chains_list_validation_desc_2')}{' '}
-          chainid.network
-        </Text>
-      </View>
-    ),
-    [colors, styles, useSafeChainsListValidation, theme.brandColors],
   );
 
   const toggleUseTransactionSimulations = (value: boolean) => {
@@ -708,109 +501,6 @@ const Settings: React.FC = () => {
     [colors, styles, useTransactionSimulations, theme.brandColors.white],
   );
 
-  const renderAutoDetectNft = useCallback(
-    () => (
-      <View
-        style={styles.setting}
-        testID={NFT_AUTO_DETECT_MODE_SECTION}
-        ref={detectNftComponentRef}
-      >
-        <View style={styles.titleContainer}>
-          <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-            {strings('app_settings.nft_autodetect_mode')}
-          </Text>
-          <View style={styles.switchElement}>
-            <Switch
-              value={useNftDetection}
-              onValueChange={toggleNftAutodetect}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </View>
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.autodetect_nft_desc')}
-        </Text>
-      </View>
-    ),
-    [colors, styles, useNftDetection, theme, toggleNftAutodetect],
-  );
-
-  const setIpfsGateway = (gateway: string) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIpfsGateway(gateway);
-  };
-
-  const setIsIpfsGatewayEnabled = (isIpfsGatewatEnabled: boolean) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setIsIpfsGatewayEnabled(isIpfsGatewatEnabled);
-  };
-
-  const renderIpfsGateway = () => (
-    <View style={styles.setting} testID={IPFS_GATEWAY_SECTION}>
-      <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
-          {strings('app_settings.ipfs_gateway')}
-        </Text>
-        <View style={styles.switchElement}>
-          <Switch
-            value={isIpfsGatewayEnabled}
-            onValueChange={setIsIpfsGatewayEnabled}
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </View>
-      </View>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.desc}
-      >
-        {strings('app_settings.ipfs_gateway_content')}
-      </Text>
-      {isIpfsGatewayEnabled && (
-        <View style={styles.accessory}>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.desc}
-          >
-            {strings('app_settings.ipfs_gateway_desc')}
-          </Text>
-          <View style={styles.picker}>
-            {gotAvailableGateways ? (
-              <SelectComponent
-                selectedValue={ipfsGateway}
-                defaultValue={strings('app_settings.ipfs_gateway_down')}
-                onValueChange={setIpfsGateway}
-                label={strings('app_settings.ipfs_gateway')}
-                options={onlineIpfsGateways}
-              />
-            ) : (
-              <View>
-                <ActivityIndicator size="small" />
-              </View>
-            )}
-          </View>
-        </View>
-      )}
-    </View>
-  );
-
   const handleChangeText = (text: string) => setHintText(text);
 
   const renderHint = () => (
@@ -824,174 +514,6 @@ const Settings: React.FC = () => {
     />
   );
 
-  const renderShowIncomingTransactions = () => {
-    const renderMainnet = () => {
-      const { name: mainnetName, chainId } = Networks.mainnet;
-      return (
-        <Cell
-          variant={CellVariant.Display}
-          title={mainnetName}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: mainnetName,
-            imageSource: images.ETHEREUM,
-          }}
-          secondaryText="etherscan.io"
-          style={styles.cellBorder}
-        >
-          <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
-            onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
-            }
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </Cell>
-      );
-    };
-
-    const renderLineaMainnet = () => {
-      const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-
-      return (
-        <Cell
-          variant={CellVariant.Display}
-          title={lineaMainnetName}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: lineaMainnetName,
-            imageSource: images['LINEA-MAINNET'],
-          }}
-          secondaryText="lineascan.build"
-          style={styles.cellBorder}
-        >
-          <Switch
-            value={showIncomingTransactionsNetworks[chainId]}
-            onValueChange={(value) =>
-              toggleEnableIncomingTransactions(chainId, value)
-            }
-            trackColor={{
-              true: colors.primary.default,
-              false: colors.border.muted,
-            }}
-            thumbColor={theme.brandColors.white}
-            style={styles.switch}
-            ios_backgroundColor={colors.border.muted}
-          />
-        </Cell>
-      );
-    };
-
-    const renderRpcNetworks = () =>
-      Object.values(networkConfigurations).map(
-        ({ nickname, rpcUrl, chainId }) => {
-          if (!chainId) return null;
-
-          if (!Object.keys(myNetworks).includes(chainId)) return null;
-
-          const { name } = { name: nickname || rpcUrl };
-          //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-          const image = getNetworkImageSource({ chainId: chainId?.toString() });
-
-          return (
-            <Cell
-              key={chainId}
-              variant={CellVariant.Display}
-              title={name}
-              secondaryText={myNetworks[chainId].domain}
-              avatarProps={{
-                variant: AvatarVariant.Network,
-                name,
-                imageSource: image,
-              }}
-              style={styles.cellBorder}
-            >
-              <Switch
-                value={showIncomingTransactionsNetworks[chainId]}
-                onValueChange={(value) =>
-                  toggleEnableIncomingTransactions(chainId, value)
-                }
-                trackColor={{
-                  true: colors.primary.default,
-                  false: colors.border.muted,
-                }}
-                thumbColor={theme.brandColors.white}
-                style={styles.switch}
-                ios_backgroundColor={colors.border.muted}
-              />
-            </Cell>
-          );
-        },
-      );
-
-    const renderOtherNetworks = () => {
-      const NetworksTyped = Networks as NetworksI;
-      const getOtherNetworks = () => getAllNetworks().slice(2);
-      return getOtherNetworks().map((networkType) => {
-        const { name, imageSource, chainId } = NetworksTyped[networkType];
-        if (!chainId) return null;
-        return (
-          <Cell
-            key={chainId}
-            variant={CellVariant.Display}
-            title={name}
-            secondaryText={myNetworks[chainId]?.domain}
-            avatarProps={{
-              variant: AvatarVariant.Network,
-              name,
-              imageSource,
-            }}
-            style={styles.cellBorder}
-          >
-            <Switch
-              value={showIncomingTransactionsNetworks[chainId]}
-              onValueChange={(value) => {
-                chainId && toggleEnableIncomingTransactions(chainId, value);
-              }}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              style={styles.switch}
-              ios_backgroundColor={colors.border.muted}
-            />
-          </Cell>
-        );
-      });
-    };
-
-    return (
-      <View
-        style={styles.setting}
-        testID={SecurityPrivacyViewSelectorsIDs.INCOMING_TRANSACTIONS}
-      >
-        <Text variant={TextVariant.BodyLGMedium}>
-          {strings('app_settings.incoming_transactions_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.desc}
-        >
-          {strings('app_settings.incoming_transactions_content')}
-        </Text>
-        <View style={styles.transactionsContainer}>
-          {renderMainnet()}
-          {renderLineaMainnet()}
-          {renderRpcNetworks()}
-          {showTestNetworks && renderOtherNetworks()}
-        </View>
-      </View>
-    );
-  };
-
   const toggleProfileSyncing = async () => {
     if (isProfileSyncingEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -999,6 +521,13 @@ const Settings: React.FC = () => {
       });
     } else {
       await enableProfileSyncing();
+      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
+        settings_group: 'security_privacy',
+        settings_type: 'profile_syncing',
+        old_value: isProfileSyncingEnabled,
+        new_value: !isProfileSyncingEnabled,
+        was_notifications_on: isNotificationEnabled,
+      });
     }
   };
 
@@ -1019,6 +548,9 @@ const Settings: React.FC = () => {
   const profileSyncModalMessage = !isProfileSyncingEnabled
     ? strings('app_settings.enabling_profile_sync')
     : strings('app_settings.disabling_profile_sync');
+
+  const modalLoading = profileSyncLoading || disableNotificationsLoading;
+  const modalError = profileSyncError || disableNotificationsError;
 
   return (
     <ScrollView
@@ -1057,7 +589,13 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        <ProfileSyncingComponent handleSwitchToggle={toggleProfileSyncing} />
+        {isNotificationsFeatureEnabled() && (
+          <ProfileSyncingComponent
+            handleSwitchToggle={toggleProfileSyncing}
+            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+            isProfileSyncingEnabled={isProfileSyncingEnabled}
+          />
+        )}
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1077,7 +615,7 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.network_provider')}
         </Text>
-        {renderUseSafeChainsListValidation()}
+        <NetworkDetailsCheckSettings />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1085,8 +623,8 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.transactions_subheading')}
         </Text>
-        {renderMultiAccountBalancesSection()}
-        {renderShowIncomingTransactions()}
+        <BatchAccountBalanceSettings />
+        <IncomingTransactionsSettings />
         {renderHistoryModal()}
         {renderUseTransactionSimulations()}
         <Text
@@ -1096,9 +634,13 @@ const Settings: React.FC = () => {
         >
           {strings('app_settings.token_nft_ens_subheading')}
         </Text>
-        {renderDisplayNftMedia()}
-        {isMainnet && renderAutoDetectNft()}
-        {renderIpfsGateway()}
+        <DisplayNFTMediaSettings />
+        {isMainnet && (
+          <View ref={detectNftComponentRef}>
+            <AutoDetectNFTSettings />
+          </View>
+        )}
+        <IPFSGatewaySettings />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}
@@ -1122,9 +664,9 @@ const Settings: React.FC = () => {
         {renderHint()}
       </View>
       <SwitchLoadingModal
-        loading={profileSyncLoading}
+        loading={modalLoading}
         loadingText={profileSyncModalMessage}
-        error={profileSyncError}
+        error={modalError}
       />
     </ScrollView>
   );

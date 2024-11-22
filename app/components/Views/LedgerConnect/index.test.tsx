@@ -6,8 +6,7 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { fireEvent } from '@testing-library/react-native';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,
@@ -36,16 +35,6 @@ interface UseBluetoothDevicesHook {
   deviceScanError: boolean;
 }
 
-interface UseLedgerBluetoothHook {
-  isSendingLedgerCommands: boolean;
-  isAppLaunchConfirmationNeeded: boolean;
-  ledgerLogicToRun: jest.Mock;
-  error: LedgerCommunicationErrors | undefined;
-}
-
-jest.mock('../../hooks/useBluetoothPermissions');
-jest.mock('../../hooks/Ledger/useBluetooth');
-jest.mock('../../hooks/Ledger/useBluetoothDevices');
 jest.mock('../../hooks/Ledger/useLedgerBluetooth');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -68,6 +57,11 @@ jest.mock('../../../util/device', () => ({
   isIphoneX: jest.fn(),
   getDeviceWidth: jest.fn(),
   getDeviceHeight: jest.fn(),
+}));
+
+jest.mock('../../../core/Ledger/Ledger', () => ({
+  ...jest.requireActual('../../../core/Ledger/Ledger'),
+  getDeviceId: jest.fn().mockResolvedValue('device-id'),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -108,37 +102,34 @@ jest.mock('../../hooks/useBluetoothPermissions', () => ({
   })),
 }));
 
-jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
-  __esModule: true,
-  default: jest.fn((_deviceId?: string) => ({
-    isSendingLedgerCommands: false,
-    isAppLaunchConfirmationNeeded: false,
-    ledgerLogicToRun: jest.fn(),
-    error: undefined,
-  })),
-}));
-
 jest.mock('react-native-permissions', () => ({
   openSettings: jest.fn(),
 }));
 
 describe('LedgerConnect', () => {
+  let isSendingLedgerCommands = false;
+  let isAppLaunchConfirmationNeeded = false;
+
   const onConfirmationComplete = jest.fn();
+  const ledgerLogicToRun = jest.fn();
+  const selectedDevice: BluetoothDevice = { id: '1', name: 'Ledger device' };
+  const setSelectedDevice = jest.fn();
 
   const checkLedgerCommunicationErrorFlow = function (
     ledgerCommunicationError: LedgerCommunicationErrors,
     expectedTitle: string,
     expectedErrorBody: string,
   ) {
-    (useLedgerBluetooth as jest.Mock).mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(),
-      error: ledgerCommunicationError,
-    });
-
     const { getByText } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={ledgerCommunicationError}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
 
     expect(getByText(expectedTitle)).toBeTruthy();
@@ -173,20 +164,6 @@ describe('LedgerConnect', () => {
     });
 
     (
-      useLedgerBluetooth as unknown as jest.MockedFunction<
-        typeof useLedgerBluetooth
-      >
-    ).mockImplementation(() => ({
-      isSendingLedgerCommands: false,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(),
-      error: undefined,
-      cleanupBluetoothConnection(): void {
-        throw new Error('Function not implemented.');
-      },
-    }));
-
-    (
       useNavigation as jest.MockedFunction<typeof useNavigation>
     ).mockReturnValue({
       navigate: jest.fn(),
@@ -204,32 +181,35 @@ describe('LedgerConnect', () => {
 
   it('render matches latest snapshot', () => {
     const wrapper = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('calls connectLedger when continue button is pressed', () => {
-    const ledgerLogicToRun = jest.fn();
-
-    (
-      useLedgerBluetooth as unknown as jest.MockedFunction<
-        typeof useLedgerBluetooth
-      >
-    ).mockReturnValue({
-      isSendingLedgerCommands: false,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun,
-      error: undefined,
-      cleanupBluetoothConnection(): void {
-        throw new Error('Function not implemented.');
-      },
-    });
+    isSendingLedgerCommands = false;
+    isAppLaunchConfirmationNeeded = false;
 
     ledgerLogicToRun.mockImplementation((callback: () => void) => callback());
 
     const { getByTestId } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
 
     const continueButton = getByTestId('add-network-button');
@@ -278,19 +258,19 @@ describe('LedgerConnect', () => {
       dispatch: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>);
 
-    (
-      useLedgerBluetooth as unknown as jest.MockedFunction<
-        () => UseLedgerBluetoothHook
-      >
-    ).mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(),
-      error: LedgerCommunicationErrors.LedgerHasPendingConfirmation,
-    });
+    isSendingLedgerCommands = true;
+    isAppLaunchConfirmationNeeded = false;
 
     renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={LedgerCommunicationErrors.LedgerHasPendingConfirmation}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
 
     expect(navigate).toHaveBeenNthCalledWith(1, 'SelectHardwareWallet');
@@ -299,7 +279,15 @@ describe('LedgerConnect', () => {
   it('displays android 12+ permission text on android 12+ device', () => {
     jest.mocked(getSystemVersion).mockReturnValue('13');
     const { getByText } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
     expect(
       getByText(
@@ -311,7 +299,15 @@ describe('LedgerConnect', () => {
   it('displays android 11 permission text on android 11 device', () => {
     jest.mocked(getSystemVersion).mockReturnValue('11');
     const { getByText } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
     expect(
       getByText(strings('ledger.ledger_reminder_message_step_four')),
@@ -327,7 +323,15 @@ describe('LedgerConnect', () => {
     });
 
     const { getByText } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
     const installInstructionsLink = getByText(
       strings('ledger.how_to_install_eth_app'),
@@ -344,29 +348,43 @@ describe('LedgerConnect', () => {
   });
 
   it('calls connectLedger on retry button', () => {
-    const ledgerLogicToRun = jest.fn();
-
-    (
-      useLedgerBluetooth as unknown as jest.MockedFunction<
-        typeof useLedgerBluetooth
-      >
-    ).mockReturnValue({
-      isSendingLedgerCommands: true,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun,
-      error: LedgerCommunicationErrors.FailedToOpenApp,
-      cleanupBluetoothConnection(): void {
-        throw new Error('Function not implemented.');
-      },
-    });
+    isSendingLedgerCommands = true;
+    isAppLaunchConfirmationNeeded = false;
 
     const { getByTestId } = renderWithProvider(
-      <LedgerConnect onConnectLedger={onConfirmationComplete} />,
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={LedgerCommunicationErrors.FailedToOpenApp}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
     );
 
     const retryButton = getByTestId('add-network-button');
     fireEvent.press(retryButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
+  });
+
+  it('shows error message about multiple devices support', async () => {
+    isSendingLedgerCommands = true;
+    isAppLaunchConfirmationNeeded = false;
+    const { getByTestId } = renderWithProvider(
+      <LedgerConnect
+        onConnectLedger={onConfirmationComplete}
+        isSendingLedgerCommands={isSendingLedgerCommands}
+        isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
+        ledgerLogicToRun={ledgerLogicToRun}
+        ledgerError={undefined}
+        selectedDevice={selectedDevice}
+        setSelectedDevice={setSelectedDevice}
+      />,
+    );
+    await waitFor(() => {
+      expect(getByTestId('multiple-devices-error-message')).toBeDefined();
+    });
   });
 });

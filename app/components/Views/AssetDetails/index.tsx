@@ -133,13 +133,8 @@ const AssetDetails = (props: Props) => {
       name = providerConfig.nickname;
     } else {
       name =
-        /*
-         * TODO: remove any as soon as NetworkController
-         * removes goerli from provider config types
-         */
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (Networks as any)[providerConfig.type]?.name ||
-        { ...Networks.rpc, color: null }.name;
+        (Networks as Record<string, { name: string }>)[providerConfig.type]
+          ?.name || { ...Networks.rpc, color: null }.name;
     }
     return name;
   };

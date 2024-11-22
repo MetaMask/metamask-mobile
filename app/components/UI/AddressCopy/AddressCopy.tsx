@@ -3,12 +3,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 // External dependencies
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { formatAddress } from '../../../util/address';
 import Icon, {
   IconColor,
   IconName,
@@ -25,12 +20,11 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
-import { AddressCopyProps } from './AddressCopy.types';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
+const AddressCopy = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
@@ -69,28 +63,15 @@ const AddressCopy = ({ formatAddressType = 'full' }: AddressCopyProps) => {
   };
   return (
     <View style={styles.address}>
-      <Text variant={TextVariant.BodySMBold}>
-        {strings('asset_overview.address')}:
-      </Text>
       <TouchableOpacity
         style={styles.copyButton}
         onPress={copyAccountToClipboard}
         testID={WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON}
       >
-        <Text
-          color={TextColor.Primary}
-          variant={TextVariant.BodySM}
-          testID={WalletViewSelectorsIDs.ACCOUNT_ADDRESS}
-        >
-          {selectedInternalAccount
-            ? formatAddress(selectedInternalAccount.address, formatAddressType)
-            : null}
-        </Text>
         <Icon
           name={IconName.Copy}
-          size={IconSize.Sm}
-          color={IconColor.Primary}
-          style={styles.icon}
+          size={IconSize.Lg}
+          color={IconColor.Default}
         />
       </TouchableOpacity>
     </View>

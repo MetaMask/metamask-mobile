@@ -184,6 +184,7 @@ describe('conversion utils', () => {
         conversionUtil('1', {
           fromNumericBase: 'dec',
           toNumericBase: 'dec',
+          //@ts-expect-error - conversion.js file needs conversion to ts file
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,
@@ -196,6 +197,7 @@ describe('conversion utils', () => {
         conversionUtil('1.5', {
           fromNumericBase: 'dec',
           toNumericBase: 'dec',
+          //@ts-expect-error - conversion.js file needs conversion to ts file
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,
@@ -210,6 +212,7 @@ describe('conversion utils', () => {
         conversionUtil('468.58', {
           fromNumericBase: 'dec',
           toNumericBase: 'dec',
+          //@ts-expect-error - conversion.js file needs conversion to ts file
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,
@@ -222,6 +225,7 @@ describe('conversion utils', () => {
         conversionUtil('702.87', {
           fromNumericBase: 'dec',
           toNumericBase: 'dec',
+          //@ts-expect-error - conversion.js file needs conversion to ts file
           toCurrency: 'usd',
           conversionRate: 468.58,
           numberOfDecimals: 2,

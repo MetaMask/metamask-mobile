@@ -14,7 +14,6 @@ jest.mock('../../../core/Analytics/MetaMetrics');
 
 const mockMetrics = {
   trackEvent: jest.fn().mockImplementation(() => Promise.resolve()),
-  trackAnonymousEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => true),
@@ -67,7 +66,6 @@ describe('OptinMetrics', () => {
             location: 'onboarding_metametrics',
             updated_after_onboarding: false,
           },
-          true,
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
@@ -95,7 +93,6 @@ describe('OptinMetrics', () => {
             location: 'onboarding_metametrics',
             updated_after_onboarding: false,
           },
-          true,
         );
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',

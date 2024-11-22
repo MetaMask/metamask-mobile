@@ -1,5 +1,6 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
+import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
@@ -16,7 +17,10 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { Notification } from '../../../../util/notifications';
-import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
+import {
+  useListNotifications,
+  useMarkNotificationAsRead,
+} from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
@@ -52,10 +56,10 @@ function Loading() {
   );
 }
 
-function NotificationsListItem(props: NotificationsListItemProps) {
+export function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-
+  const { trackEvent } = useMetrics();
   const onNotificationClick = useCallback(
     (item: Notification) => {
       markNotificationAsRead([
@@ -65,22 +69,42 @@ function NotificationsListItem(props: NotificationsListItemProps) {
           isRead: item.isRead,
         },
       ]);
-      if (hasNotificationModal(item.type)) {
+      if (hasNotificationModal(item?.type)) {
         props.navigation.navigate(Routes.NOTIFICATIONS.DETAILS, {
           notification: item,
         });
       }
+
+      NotificationsService.getBadgeCount().then((count) => {
+        if (count > 0) {
+          NotificationsService.decrementBadgeCount(count - 1);
+        } else {
+          NotificationsService.setBadgeCount(0);
+        }
+      });
+
+      trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
+        notification_id: item.id,
+        notification_type: item.type,
+        ...('chain_id' in item && {
+          chain_id: item.chain_id,
+        }),
+        previously_read: item.isRead,
+      });
     },
-    [markNotificationAsRead, props.navigation],
+    [markNotificationAsRead, props.navigation, trackEvent],
   );
 
   const menuItemState = useMemo(() => {
     const notificationState =
-      NotificationComponentState[props.notification.type];
-    return notificationState.createMenuItem(props.notification);
+      props.notification?.type && hasNotificationComponents(props.notification.type)
+      ? NotificationComponentState[props.notification.type]
+      : undefined;
+
+    return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
 
-  if (!hasNotificationComponents(props.notification.type)) {
+  if (!hasNotificationComponents(props.notification.type) || !menuItemState) {
     return null;
   }
 
@@ -89,8 +113,12 @@ function NotificationsListItem(props: NotificationsListItemProps) {
       handleOnPress={() => onNotificationClick(props.notification)}
       styles={styles}
       simultaneousHandlers={undefined}
+      isRead={props.notification.isRead}
     >
-      <NotificationMenuItem.Icon {...menuItemState} />
+      <NotificationMenuItem.Icon
+        isRead={props.notification.isRead}
+        {...menuItemState}
+      />
       <NotificationMenuItem.Content {...menuItemState} />
     </NotificationMenuItem.Root>
   );
@@ -100,11 +128,11 @@ function useNotificationListProps(props: {
   navigation: NavigationProp<ParamListBase>;
 }) {
   const { styles } = useStyles();
-
+  const { listNotifications, isLoading } = useListNotifications();
   const getListProps = useCallback(
     (data: Notification[], tabLabel?: string) => {
       const listProps: FlatListProps<Notification> = {
-        keyExtractor: (item) => item.id,
+        keyExtractor: (item: Notification) => item.id,
         data,
         ListEmptyComponent: (
           <Empty
@@ -112,13 +140,14 @@ function useNotificationListProps(props: {
           />
         ),
         contentContainerStyle: styles.list,
-        renderItem: ({ item }) => (
+        renderItem: ({ item }: { item: Notification }) => (
           <NotificationsListItem
             notification={item}
-            // eslint-disable-next-line react/prop-types
             navigation={props.navigation}
           />
         ),
+        onRefresh: async () => await listNotifications(),
+        refreshing: isLoading,
         initialNumToRender: 10,
         maxToRenderPerBatch: 2,
         onEndReachedThreshold: 0.5,
@@ -126,7 +155,7 @@ function useNotificationListProps(props: {
 
       return { ...listProps, tabLabel: tabLabel ?? '' };
     },
-    [props.navigation, styles.list],
+    [isLoading, listNotifications, props.navigation, styles.list],
   );
 
   return getListProps;

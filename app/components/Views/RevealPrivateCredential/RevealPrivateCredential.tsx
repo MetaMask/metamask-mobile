@@ -11,7 +11,9 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { InternalAccount } from '@metamask/keyring-api';
 import QRCode from 'react-native-qrcode-svg';
+import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
@@ -62,15 +64,26 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
 
+interface RootStackParamList extends ParamListBase {
+  RevealPrivateCredential: {
+    credentialName: string;
+    shouldUpdateNav?: boolean;
+    selectedAccount?: InternalAccount;
+  };
+}
+
+type RevealPrivateCredentialRouteProp = RouteProp<
+  RootStackParamList,
+  'RevealPrivateCredential'
+>;
+
 interface IRevealPrivateCredentialProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   credentialName: string;
   cancel: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
+  route: RevealPrivateCredentialRouteProp;
 }
 
 const RevealPrivateCredential = ({
@@ -91,9 +104,10 @@ const RevealPrivateCredential = ({
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(
+  const checkSummedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
@@ -106,6 +120,8 @@ const RevealPrivateCredential = ({
   const styles = createStyles(theme);
 
   const credentialSlug = credentialName || route?.params.credentialName;
+  const selectedAddress =
+    route?.params?.selectedAccount?.address || checkSummedAddress;
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
@@ -150,7 +166,7 @@ const RevealPrivateCredential = ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         let msg = strings('reveal_credential.warning_incorrect_password');
-        if (isHardwareAccount(selectedAddress)) {
+        if (selectedAddress && isHardwareAccount(selectedAddress)) {
           msg = strings('reveal_credential.hardware_error');
         } else if (
           e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
@@ -359,7 +375,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT}
+            testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -372,7 +388,7 @@ const RevealPrivateCredential = ({
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
               testID={
-                RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+                RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
               }
               style={styles.clipboardButton}
             />
@@ -383,7 +399,10 @@ const RevealPrivateCredential = ({
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
-        <View style={styles.qrCodeWrapper}>
+        <View
+          style={styles.qrCodeWrapper}
+          testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
+        >
           <QRCode
             value={clipboardPrivateCredential}
             size={Dimensions.get('window').width - 176}
@@ -475,6 +494,7 @@ const RevealPrivateCredential = ({
               size={ButtonSize.Lg}
               onPress={revealCredential}
               style={styles.revealButton}
+              testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
             />
           ) : (
             <ButtonReveal
@@ -543,7 +563,7 @@ const RevealPrivateCredential = ({
   return (
     <View
       style={[styles.wrapper]}
-      testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID}
+      testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <ActionView
         cancelText={
@@ -561,6 +581,9 @@ const RevealPrivateCredential = ({
         }
         confirmTestID={
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+        }
+        scrollViewTestID={
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
       >
         <>

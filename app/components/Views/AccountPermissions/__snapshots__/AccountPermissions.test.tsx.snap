@@ -139,7 +139,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           style={
             {
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -214,7 +214,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               {
                 "color": "#6a737d",
                 "flexShrink": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -234,6 +234,11 @@ exports[`AccountPermissions renders correctly 1`] = `
               {
                 "backgroundColor": "transparent",
                 "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
                 "marginLeft": 16,
               }
             }
@@ -244,7 +249,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -273,36 +278,42 @@ exports[`AccountPermissions renders correctly 1`] = `
           testID="accounts-connected-network-picker"
         >
           <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderRadius": 8,
-                "height": 16,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "width": 16,
-              }
-            }
+            style={null}
           >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+            <View
+              accessibilityLabel="Ethereum Main Network"
               style={
                 {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
                   "height": 16,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
                   "width": 16,
                 }
               }
-              testID="network-avatar-image"
-            />
+              testID="network-avatar-picker"
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={
+                  {
+                    "default": {
+                      "uri": "MockImage",
+                    },
+                  }
+                }
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -311,7 +322,7 @@ exports[`AccountPermissions renders correctly 1`] = `
               {
                 "color": "#141618",
                 "flexShrink": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -392,14 +403,13 @@ exports[`AccountPermissions renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Link"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
                   "color": "#0376c9",
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

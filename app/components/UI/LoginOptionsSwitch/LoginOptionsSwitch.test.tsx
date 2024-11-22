@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 describe('LoginWithBiometricsSwitch', () => {
   const mockStore = configureMockStore();
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  // eslint-disable-next-line no-empty-function
   const handleUpdate = (_biometricsEnabled: boolean) => {};
   it('should render correctly', () => {
     const store = mockStore({});

@@ -21,7 +21,7 @@ const Input: React.FC<InputProps> = ({
   isReadonly = false,
   onBlur,
   onFocus,
-  autoFocus = false,
+  autoFocus = true,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
@@ -64,7 +64,7 @@ const Input: React.FC<InputProps> = ({
       {...props}
       style={styles.base}
       editable={!isDisabled && !isReadonly}
-      autoFocus
+      autoFocus={autoFocus}
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}
     />

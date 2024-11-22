@@ -1,4 +1,4 @@
-import { AddressBookState } from '@metamask/address-book-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-api';
 import type { NetworkState } from '@metamask/network-controller';
@@ -8,7 +8,7 @@ export interface AddNicknameProps {
   closeModal: () => void;
   address: string;
   addressNickname: string;
-  networkConfigurations: NetworkState['networkConfigurations'];
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'];
   nicknameExists: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -17,6 +17,6 @@ export interface AddNicknameProps {
   providerChainId: Hex;
   providerNetwork: string;
   providerRpcTarget: string;
-  addressBook: AddressBookState['addressBook'];
+  addressBook: AddressBookControllerState['addressBook'];
   internalAccounts: InternalAccount[];
 }

@@ -12,7 +12,7 @@ export const createStyles = ({ colors }: Theme) =>
       flex: 1,
       alignItems: 'flex-start',
       backgroundColor: colors.background.default,
-      paddingTop: 40,
+      paddingTop: 60,
       paddingHorizontal: 16,
     },
     card: {

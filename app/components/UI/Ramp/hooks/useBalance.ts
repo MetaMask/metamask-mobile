@@ -54,10 +54,12 @@ export default function useBalance(asset?: Asset) {
   let balance, balanceFiat, balanceBN;
   if (assetAddress === NATIVE_ADDRESS) {
     balance = renderFromWei(
+      //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
 
     balanceBN = hexToBN(
+      //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);

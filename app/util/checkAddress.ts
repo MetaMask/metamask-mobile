@@ -1,4 +1,4 @@
-import type { AddressBookState } from '@metamask/address-book-controller';
+import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 
 /**
@@ -12,7 +12,7 @@ import { toChecksumAddress } from 'ethereumjs-util';
  * transaction recipient.
  */
 const checkIfAddressIsSaved = (
-  addressBook: AddressBookState['addressBook'],
+  addressBook: AddressBookControllerState['addressBook'],
   chainId: string,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

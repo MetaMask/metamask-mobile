@@ -2,31 +2,53 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
 import AddressElement from '.';
-import Engine from '../../../../../core/Engine';
 import { renderShortAddress } from '../../../../../util/address';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-
-const mockEngine = Engine;
+import { mockNetworkState } from '../../../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.unmock('react-redux');
 
-jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-  context: {
-    NetworkController: {
-      getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
-        provider: {
-          sendAsync: () => null,
+const mockedNetworkControllerState = mockNetworkState({
+  chainId: CHAIN_IDS.MAINNET,
+  id: 'mainnet',
+  nickname: 'Ethereum Mainnet',
+  ticker: 'ETH',
+});
+
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      NetworkController: {
+        getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
+          provider: {
+            sendAsync: () => null,
+          },
+        })),
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
+          },
+        }),
+        state: {
+          ...mockedNetworkControllerState,
         },
-      })),
-    },
-    KeyringController: {
-      state: {
-        keyrings: [],
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-  },
-}));
+  };
+});
 
 const initialState = {
   engine: {

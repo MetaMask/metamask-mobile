@@ -1,14 +1,12 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 
 import Button, {
   ButtonVariants,
@@ -30,6 +28,11 @@ import {
   useMarkNotificationAsRead,
 } from '../../../util/notifications/hooks/useNotifications';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const TRIGGER_TYPES_VALS: ReadonlySet<string> = new Set<string>(
   Object.values(TRIGGER_TYPES),
@@ -40,7 +43,8 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const { listNotifications, isLoading } = useListNotifications();
+  const { trackEvent } = useMetrics();
+  const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -49,7 +53,9 @@ const NotificationsView = ({
 
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
-  }, [markNotificationAsRead, notifications]);
+    NotificationsService.setBadgeCount(0);
+    trackEvent(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ);
+  }, [markNotificationAsRead, notifications, trackEvent]);
 
   const allNotifications = useMemo(() => {
     // All unique notifications
@@ -74,13 +80,10 @@ const NotificationsView = ({
   // NOTE - We currently do not support web3 notifications
   const announcementNotifications = useMemo(() => [], []);
 
-  // Effect - fetch notifications when component/view is visible.
-  useEffect(() => {
-    async function updateNotifications() {
-      await listNotifications();
-    }
-    updateNotifications();
-  }, [listNotifications]);
+  const unreadCount = useMemo(
+    () => allNotifications.filter((n) => !n.isRead).length,
+    [allNotifications],
+  );
 
   return (
     <View
@@ -96,7 +99,7 @@ const NotificationsView = ({
             web3Notifications={announcementNotifications}
             loading={isLoading}
           />
-          {!isLoading && (
+          {!isLoading && unreadCount > 0 && (
             <Button
               variant={ButtonVariants.Primary}
               label={strings('notifications.mark_all_as_read')}
@@ -124,19 +127,23 @@ NotificationsView.navigationOptions = ({
   navigation: NavigationProp<Record<string, undefined>>;
 }) => ({
   headerRight: () => (
-    <TouchableOpacity
+    <ButtonIcon
+      size={ButtonIconSizes.Md}
+      iconName={IconName.Setting}
       onPress={() => navigation.navigate(Routes.SETTINGS.NOTIFICATIONS)}
-    >
-      <Icon name={IconName.Setting} size={IconSize.Lg} style={styles.icon} />
-    </TouchableOpacity>
+      style={styles.icon}
+    />
   ),
   headerLeft: () => (
-    <TouchableOpacity onPress={() => navigation.navigate(Routes.WALLET.HOME)}>
-      <Icon name={IconName.Close} size={IconSize.Md} style={styles.icon} />
-    </TouchableOpacity>
+    <ButtonIcon
+      size={ButtonIconSizes.Md}
+      iconName={IconName.Close}
+      onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+      style={styles.icon}
+    />
   ),
   headerTitle: () => (
-    <Text variant={TextVariant.HeadingMD}>
+    <Text variant={TextVariant.HeadingMD} style={styles.title}>
       {strings('app_settings.notifications_title')}
     </Text>
   ),

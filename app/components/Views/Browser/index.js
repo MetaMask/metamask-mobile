@@ -1,11 +1,16 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+} from 'react';
 import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
   closeAllTabs,
   closeTab,
@@ -37,9 +42,14 @@ import BrowserTab from '../BrowserTab';
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../selectors/networkController';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -61,12 +71,14 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
     accountsLength,
+    chainId,
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
   const { trackEvent } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
+  const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
@@ -114,8 +126,8 @@ export const Browser = (props) => {
     [navigation, route, colors],
   );
 
-  const newTab = (url) => {
-    createNewTab(url || AppConstants.HOMEPAGE_URL);
+  const newTab = (url, linkType) => {
+    createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
   };
 
   const updateTabInfo = (url, tabID) =>
@@ -146,6 +158,7 @@ export const Browser = (props) => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
+
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
@@ -222,15 +235,15 @@ export const Browser = (props) => {
     [tabs],
   );
 
-  // Handle deeplinks.
+  // Handle links with associated timestamp.
   useEffect(
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
-        // Open url from deeplink.
-        newTab(newTabUrl);
+        // Open url from link.
+        newTab(newTabUrl, linkType);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -359,16 +372,18 @@ export const Browser = (props) => {
         id={tab.id}
         key={`tab_${tab.id}`}
         initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+        linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
+        isInTabsView={route.params?.showTabs}
       />
     ));
 
   return (
     <View
       style={baseStyles.flexGrow}
-      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}
       {renderTabsView()}
@@ -381,10 +396,11 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  createNewTab: (url) => dispatch(createNewTab(url)),
+  createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
   closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
@@ -430,6 +446,10 @@ Browser.propTypes = {
   route: PropTypes.object,
   accountsLength: PropTypes.number,
   networkConfigurations: PropTypes.object,
+  /**
+   * Current network chainId
+   */
+  chainId: PropTypes.string,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

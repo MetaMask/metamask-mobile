@@ -6,7 +6,6 @@ Feature: Lock and Reset Wallet
 
   Scenario: Skip onboarding
     Given the app displayed the splash animation
-    And the splash animation disappears
     And I unlock wallet with <password>
     Examples:
       | password  |

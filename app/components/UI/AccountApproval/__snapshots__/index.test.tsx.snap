@@ -97,6 +97,7 @@ exports[`AccountApproval should render correctly 1`] = `
           "marginTop": 10,
         }
       }
+      testID="transaction-header-origin"
     >
       <Text
         allowFontScaling={false}
@@ -326,7 +327,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 },
                 "1": undefined,
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -350,7 +351,7 @@ exports[`AccountApproval should render correctly 1`] = `
                 },
                 "1": undefined,
                 "color": "#141618",
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -377,7 +378,7 @@ exports[`AccountApproval should render correctly 1`] = `
               },
               "1": undefined,
               "color": "#141618",
-              "fontFamily": "Euclid Circular B",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,

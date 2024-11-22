@@ -1,26 +1,14 @@
-import {
-  ASSET_BACK_BUTTON,
-  TOKEN_ASSET_OVERVIEW,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-} from './testIDs/Screens/TokenOverviewScreen.testIds.js';
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
+import { TokenOverviewSelectorsIDs } from '../../e2e/selectors/TokenOverview.selectors';
 
 class TokenOverviewScreen {
   get tokenAssetOverview() {
-    return Selectors.getElementByPlatform(TOKEN_ASSET_OVERVIEW);
+    return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.CONTAINER);
   }
 
   get sendButton() {
-    return Selectors.getElementByPlatform(TOKEN_OVERVIEW_SEND_BUTTON);
-  }
-
-  get backButtonTokenOverview() {
-    return Selectors.getElementByPlatform(ASSET_BACK_BUTTON);
-  }
-
-  async tapBackButton() {
-    await Gestures.waitAndTap(this.backButtonTokenOverview);
+    return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
   async isTokenOverviewVisible() {

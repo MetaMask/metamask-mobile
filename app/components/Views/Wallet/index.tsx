@@ -4,11 +4,10 @@ import {
   StyleSheet,
   View,
   TextStyle,
-  InteractionManager,
   Linking,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -27,6 +26,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -34,18 +35,14 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import {
-  shouldShowSmartTransactionsOptInModal,
-  shouldShowWhatsNewModal,
-} from '../../../util/onboarding';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isMainNet,
 } from '../../../util/networks';
 import {
+  selectChainId,
+  selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
@@ -59,7 +56,6 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -74,15 +70,24 @@ import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import { setNftAutoDetectionModalOpen } from '../../../actions/security';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
 } from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  getMetamaskNotificationsUnreadCount,
+  getMetamaskNotificationsReadCount,
+  selectIsMetamaskNotificationsEnabled,
+  selectIsProfileSyncingEnabled,
+} from '../../../selectors/notifications';
+import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import { useAccountName } from '../../hooks/useAccountName';
+
+import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
+import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -99,12 +104,12 @@ const createStyles = ({ colors, typography }: Theme) =>
       backgroundColor: colors.primary.default,
     },
     tabStyle: {
-      paddingBottom: 0,
+      paddingBottom: 8,
       paddingVertical: 8,
     },
     tabBar: {
       borderColor: colors.background.default,
-      marginTop: 16,
+      marginBottom: 8,
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
@@ -140,7 +145,6 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
-  currentRouteName,
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
@@ -152,7 +156,8 @@ const Wallet = ({
   const { trackEvent } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
-  const dispatch = useDispatch();
+
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   /**
    * Object containing the balance of the current selected account
@@ -163,6 +168,7 @@ const Wallet = ({
    * ETH to current currency conversion rate
    */
   const conversionRate = useSelector(selectConversionRate);
+  const contractBalances = useSelector(selectContractBalances);
   /**
    * Currency code of the currently-active currency
    */
@@ -209,6 +215,14 @@ const Wallet = ({
 
   const currentToast = toastRef?.current;
 
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -239,6 +253,7 @@ const Wallet = ({
       ],
       closeButtonOptions: {
         label: strings(`privacy_policy.toast_action_button`),
+        variant: ButtonVariants.Primary,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           currentToast?.closeToast();
@@ -265,22 +280,35 @@ const Wallet = ({
    * Network onboarding state
    */
   const networkOnboardingState = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.networkOnboarded.networkOnboardedState,
+    (state: RootState) => state.networkOnboarded.networkOnboardedState,
   );
 
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const networkName = useSelector(selectNetworkName);
+  const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+
+  const unreadNotificationCount = useSelector(
+    getMetamaskNotificationsUnreadCount,
+  );
+
+  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
+  const chainId = useSelector(selectChainId);
+  const name = useSelector(selectNetworkName);
+
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const useNftDetection = useSelector(selectUseNftDetection);
-  const isNFTAutoDetectionModalViewed = useSelector(
-    (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
-  );
+  /**
+   * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
+   */
+  useCheckNftAutoDetectionModal();
+
+  /**
+   * Show multi rpc modal if there are networks duplicated and if never showed before
+   */
+  useCheckMultiRpcModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -294,33 +322,18 @@ const Wallet = ({
     });
   }, [navigate, providerConfig.chainId, trackEvent]);
 
-  const checkNftAutoDetectionModal = useCallback(() => {
-    const isOnMainnet = isMainNet(providerConfig.chainId);
-    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
-      });
-      dispatch(setNftAutoDetectionModalOpen(true));
-    }
-  }, [
-    dispatch,
-    isNFTAutoDetectionModalViewed,
-    navigation,
-    providerConfig.chainId,
-    useNftDetection,
-  ]);
-
+  /**
+   * Check to see if notifications are enabled
+   */
   useEffect(() => {
-    if (
-      currentRouteName === 'Wallet' ||
-      currentRouteName === 'SecuritySettings'
-    ) {
-      checkNftAutoDetectionModal();
+    async function checkIfNotificationsAreEnabled() {
+      await NotificationsService.isDeviceNotificationEnabled();
     }
+    checkIfNotificationsAreEnabled();
   });
 
   /**
-   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
+   * Check to see if we need to show What's New modal
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
@@ -335,51 +348,6 @@ const Wallet = ({
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
-
-    const checkWhatsNewModal = async () => {
-      try {
-        const shouldShowWhatsNew = await shouldShowWhatsNewModal();
-        if (shouldShowWhatsNew) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.WHATS_NEW,
-          });
-        }
-      } catch (error) {
-        Logger.log(error, "Error while checking What's New modal!");
-      }
-    };
-
-    // Show STX opt in modal before What's New modal
-    // Fired on the first load of the wallet and also on network switch
-    const checkSmartTransactionsOptInModal = async () => {
-      try {
-        const accountHasZeroBalance = hexToBN(
-          accountBalanceByChainId?.balance || '0x0',
-        ).isZero();
-        const shouldShowStxOptInModal =
-          await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
-            accountHasZeroBalance,
-          );
-        if (shouldShowStxOptInModal) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
-          });
-        } else {
-          await checkWhatsNewModal();
-        }
-      } catch (error) {
-        Logger.log(
-          error,
-          'Error while checking Smart Tranasctions Opt In modal!',
-        );
-      }
-    };
-
-    InteractionManager.runAfterInteractions(() => {
-      checkSmartTransactionsOptInModal();
-    });
   }, [
     wizardStep,
     navigation,
@@ -387,16 +355,13 @@ const Wallet = ({
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
-    checkNftAutoDetectionModal,
     accountBalanceByChainId?.balance,
   ]);
 
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { TokenDetectionController, AccountTrackerController } =
-          Engine.context;
-        TokenDetectionController.detectTokens();
+        const { AccountTrackerController } = Engine.context;
         AccountTrackerController.refresh();
       });
     },
@@ -407,22 +372,35 @@ const Wallet = ({
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
         navigation,
         colors,
         isNotificationEnabled,
+        isProfileSyncingEnabled,
+        unreadNotificationCount,
+        readNotificationCount,
       ),
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
     networkImageSource,
     onTitlePress,
     isNotificationEnabled,
+    isProfileSyncingEnabled,
+    unreadNotificationCount,
+    readNotificationCount,
   ]);
 
   const renderTabBar = useCallback(
@@ -477,34 +455,57 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let stakedBalance: any = 0;
+
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
+      const nativeAsset = {
+        // TODO: Add name property to Token interface in controllers.
+        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+        symbol: getTicker(ticker),
+        isETH: true,
+        balance,
+        balanceFiat: weiToFiat(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hexToBN(accountBalanceByChainId.balance) as any,
+          conversionRate,
+          currentCurrency,
+        ),
+        logo: '../images/eth-logo-new.png',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      assets.push(nativeAsset);
 
-      assets = [
-        {
-          // TODO: Add name property to Token interface in controllers.
-          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-          symbol: getTicker(ticker),
-          isETH: true,
-          balance,
+      if (
+        accountBalanceByChainId.stakedBalance &&
+        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
+      ) {
+        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
+        const stakedAsset = {
+          ...nativeAsset,
+          nativeAsset,
+          name: 'Staked Ethereum',
+          isStaked: true,
+          balance: stakedBalance,
           balanceFiat: weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.stakedBalance) as any,
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        ...(tokens || []),
-      ];
-    } else {
-      assets = tokens;
+        } as any;
+        assets.push(stakedAsset);
+      }
     }
+
     return (
       <View
         style={styles.wrapper}
@@ -523,41 +524,40 @@ const Wallet = ({
             />
           </View>
         ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
-        ) : null}
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          // eslint-disable-next-line react/jsx-no-bind
-          onChangeTab={onChangeTab}
-        >
-          <Tokens
-            tabLabel={strings('wallet.tokens')}
-            key={'tokens-tab'}
-            navigation={navigation}
-            // TODO - Consolidate into the correct type.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tokens={assets}
-          />
-          <CollectibleContracts
-            // TODO - Extend component to support injected tabLabel prop.
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            tabLabel={strings('wallet.collectibles')}
-            key={'nfts-tab'}
-            navigation={navigation}
-          />
-        </ScrollableTabView>
+        <>
+          {accountBalanceByChainId && <PortfolioBalance />}
+          <ScrollableTabView
+            renderTabBar={renderTabBar}
+            // eslint-disable-next-line react/jsx-no-bind
+            onChangeTab={onChangeTab}
+          >
+            <Tokens
+              tabLabel={strings('wallet.tokens')}
+              key={'tokens-tab'}
+              navigation={navigation}
+              // TODO - Consolidate into the correct type.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tokens={assets}
+            />
+            <CollectibleContracts
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tabLabel={strings('wallet.collectibles')}
+              key={'nfts-tab'}
+              navigation={navigation}
+            />
+          </ScrollableTabView>
+        </>
       </View>
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,
@@ -566,6 +566,7 @@ const Wallet = ({
     ticker,
     conversionRate,
     currentCurrency,
+    contractBalances,
   ]);
   const renderLoader = useCallback(
     () => (
@@ -605,7 +606,6 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-  currentRouteName: getCurrentRoute(state),
 });
 
 // TODO: Replace "any" with type

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
@@ -72,6 +72,8 @@ function SendTransaction() {
   );
   const trackEvent = useAnalytics();
 
+  const [isConfirming, setIsConfirming] = useState(false);
+
   const {
     styles,
     theme: { colors, themeAppearance },
@@ -111,6 +113,9 @@ function SendTransaction() {
   useEffect(() => {
     trackEvent(
       'OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED',
+      //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+      // transactionAnalyticsPayload expecting chain_id_source to be a string
+      // but RampTransaction type / interface expecting it to be a number
       transactionAnalyticsPayload,
     );
   }, [trackEvent, transactionAnalyticsPayload]);
@@ -122,37 +127,42 @@ function SendTransaction() {
     } catch {
       return;
     }
-    let transactionParams: TransactionParams;
-    const amount = addHexPrefix(
-      new BN(
-        toTokenMinimalUnit(
-          orderData.cryptoAmount || '0',
-          orderData.cryptoCurrency.decimals,
-        ).toString(),
-      ).toString('hex'),
-    );
-    if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
-      transactionParams = {
-        from: safeToChecksumAddress(orderData.walletAddress) as string,
-        to: safeToChecksumAddress(orderData.depositWallet),
-        value: amount,
-        chainId: chainIdAsHex,
-      };
-    } else {
-      transactionParams = {
-        from: safeToChecksumAddress(orderData.walletAddress) as string,
-        to: safeToChecksumAddress(orderData.cryptoCurrency.address),
-        value: '0x0',
-        data: generateTransferData('transfer', {
-          toAddress: safeToChecksumAddress(orderData.depositWallet),
-          amount,
-        }),
-      };
-    }
 
     try {
+      setIsConfirming(true);
+      let transactionParams: TransactionParams;
+      const amount = addHexPrefix(
+        new BN(
+          toTokenMinimalUnit(
+            orderData.cryptoAmount || '0',
+            orderData.cryptoCurrency.decimals,
+          ).toString(),
+        ).toString('hex'),
+      );
+      if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
+        transactionParams = {
+          from: safeToChecksumAddress(orderData.walletAddress) as string,
+          to: safeToChecksumAddress(orderData.depositWallet),
+          value: amount,
+          chainId: chainIdAsHex,
+        };
+      } else {
+        transactionParams = {
+          from: safeToChecksumAddress(orderData.walletAddress) as string,
+          to: safeToChecksumAddress(orderData.cryptoCurrency.address),
+          value: '0x0',
+          data: generateTransferData('transfer', {
+            toAddress: safeToChecksumAddress(orderData.depositWallet),
+            amount,
+          }),
+        };
+      }
+
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
       const response = await addTransaction(transactionParams, {
@@ -166,14 +176,22 @@ function SendTransaction() {
         navigation.goBack();
         trackEvent(
           'OFFRAMP_SEND_TRANSACTION_CONFIRMED',
+          //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+          // transactionAnalyticsPayload expecting chain_id_source to be a string
+          // but RampTransaction type / interface expecting it to be a number
           transactionAnalyticsPayload,
         );
       }
     } catch (error) {
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_REJECTED',
+        //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
+        // transactionAnalyticsPayload expecting chain_id_source to be a string
+        // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
+    } finally {
+      setIsConfirming(false);
     }
   }, [
     navigation,
@@ -188,12 +206,14 @@ function SendTransaction() {
     return null;
   }
 
-  let tokenIcon;
+  let tokenIcon: ImageSourcePropType;
   const symbol = orderData.cryptoCurrency.symbol;
   if (symbol === 'ETH') {
-    tokenIcon = imageIcons.ETHEREUM;
+    tokenIcon = imageIcons.ETHEREUM as ImageSourcePropType;
   } else if (Object.keys(imageIcons).includes(symbol)) {
-    tokenIcon = imageIcons[symbol as keyof typeof imageIcons];
+    tokenIcon = imageIcons[
+      symbol as keyof typeof imageIcons
+    ] as ImageSourcePropType;
   } else {
     tokenIcon = { uri: orderData.cryptoCurrency.logo };
   }
@@ -305,6 +325,7 @@ function SendTransaction() {
               onPress={handleSend}
               accessibilityRole="button"
               accessible
+              isDisabled={isConfirming}
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}

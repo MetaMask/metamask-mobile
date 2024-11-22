@@ -10,7 +10,7 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import { useMarkNotificationAsRead } from '../../../../util/notifications/hooks/useNotifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+import { hasNotificationComponents, NotificationComponentState } from '../../../../util/notifications/notification-states';
 import Header from './Title';
 import { createStyles } from './styles';
 import ModalField from './Fields';
@@ -47,10 +47,14 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
     }
   }, [notification, markNotificationAsRead]);
 
+
   const state =
-    NotificationComponentState[notification?.type]?.createModalDetails?.(
-      notification,
-    );
+    notification?.type &&
+    hasNotificationComponents(notification.type)
+      ? NotificationComponentState[notification.type]?.createModalDetails?.(
+          notification,
+        )
+      : undefined;
 
   const HeaderLeft = useCallback(
     () => (
@@ -68,7 +72,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   const HeaderTitle = useCallback(
     () => (
       <Header
-        title={state?.title || ''}
+        title={state?.title ?? ''}
         subtitle={toLocaleDate(state?.createdAt)}
       />
     ),
@@ -85,6 +89,7 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
   if (!state) {
     return null;
   }
+
   return (
     <ScrollView contentContainerStyle={styles.contentContainerWrapper}>
       <View style={styles.renderContainer}>
@@ -98,11 +103,14 @@ const NotificationsDetails = ({ route, navigation }: Props) => {
             modalField={field}
             isCollapsed={isCollapsed}
             setIsCollapsed={setIsCollapsed}
+            notification={notification}
           />
         ))}
 
         {/* Modal Footers */}
-        {state.footer && <ModalFooter modalFooter={state.footer} />}
+        {state.footer && (
+          <ModalFooter modalFooter={state.footer} notification={notification} />
+        )}
       </View>
     </ScrollView>
   );

@@ -3,16 +3,30 @@
 /* eslint-disable import/no-namespace */
 import createMockStore from 'redux-mock-store';
 import { act, renderHook } from '@testing-library/react-hooks';
+import { toChecksumAddress } from 'ethereumjs-util';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { updateAccountState } from '../../../core/redux/slices/notifications';
 import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from './useSwitchNotifications';
 import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../test/initial-root-state';
-import Engine from '../../../core/Engine';
 import * as Selectors from '../../../selectors/notifications';
+import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { Hex } from '@metamask/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import Engine from '../../../core/Engine';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NotificationServicesController: {
+      checkAccountsPresence: jest.fn(),
+    },
+  },
+}));
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -39,7 +53,7 @@ describe('useSwitchNotifications', () => {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
-    return hook;
+    return { hook, store };
   };
 
   it('switchs feature announcements', async () => {
@@ -47,16 +61,16 @@ describe('useSwitchNotifications', () => {
       .spyOn(Actions, 'setFeatureAnnouncementsEnabled')
       .mockImplementation(jest.fn());
 
-    const { result } = arrangeHook();
-    const { switchFeatureAnnouncements } = result.current;
+    const { hook } = arrangeHook();
+    const { switchFeatureAnnouncements } = hook.result.current;
 
     await act(async () => {
       await switchFeatureAnnouncements(true);
     });
 
     expect(mockSetFeatureAnnouncementEnabled).toHaveBeenCalledWith(true);
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(hook.result.current.loading).toBe(false);
+    expect(hook.result.current.error).toBeNull();
   });
 
   it('switchs account notifications', async () => {
@@ -67,8 +81,8 @@ describe('useSwitchNotifications', () => {
       .spyOn(Actions, 'deleteOnChainTriggersByAccount')
       .mockImplementation(jest.fn());
 
-    const { result } = arrangeHook();
-    const { switchAccountNotifications } = result.current;
+    const { hook } = arrangeHook();
+    const { switchAccountNotifications } = hook.result.current;
 
     const accounts = ['account1', 'account2'];
     const state = true;
@@ -79,8 +93,8 @@ describe('useSwitchNotifications', () => {
 
     expect(mockUpdateOnChainTriggersByAccount).toHaveBeenCalledWith(accounts);
     expect(mockDeleteOnChainTriggersByAccount).not.toHaveBeenCalled();
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(hook.result.current.loading).toBe(false);
+    expect(hook.result.current.error).toBeNull();
   });
 
   it('deletes account notifications', async () => {
@@ -91,8 +105,8 @@ describe('useSwitchNotifications', () => {
       .spyOn(Actions, 'deleteOnChainTriggersByAccount')
       .mockImplementation(jest.fn());
 
-    const { result } = arrangeHook();
-    const { switchAccountNotifications } = result.current;
+    const { hook } = arrangeHook();
+    const { switchAccountNotifications } = hook.result.current;
 
     const accounts = ['account1', 'account2'];
     const state = false;
@@ -103,8 +117,8 @@ describe('useSwitchNotifications', () => {
 
     expect(mockDeleteOnChainTriggersByAccount).toHaveBeenCalledWith(accounts);
     expect(mockUpdateOnChainTriggersByAccount).not.toHaveBeenCalled();
-    expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(hook.result.current.loading).toBe(false);
+    expect(hook.result.current.error).toBeNull();
   });
 });
 
@@ -113,100 +127,86 @@ describe('useAccountSettingsProps', () => {
     jest.clearAllMocks();
   });
 
-  function arrangeHook(accounts: string[]) {
+  const MOCK_ACCOUNT_ADDRESSES = Object.values(
+    MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+  ).map((account) => account.address);
+
+  const MOCK_ACCOUNT_1: Account = {
+    name: 'Account 1',
+    address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
+    type: KeyringTypes.hd,
+    yOffset: 0,
+    isSelected: false,
+    assets: {
+      fiatBalance: '\n0 ETH',
+    },
+    balanceError: undefined,
+  };
+  const MOCK_ACCOUNT_2: Account = {
+    name: 'Account 2',
+    address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
+    type: KeyringTypes.hd,
+    yOffset: 78,
+    isSelected: true,
+    assets: {
+      fiatBalance: '\n< 0.00001 ETH',
+    },
+    balanceError: undefined,
+  };
+
+  const MOCK_ACCOUNTS = [MOCK_ACCOUNT_1, MOCK_ACCOUNT_2];
+
+  function arrangeHook(accounts: Account[]) {
     const store = arrangeStore();
     const hook = renderHook(() => useAccountSettingsProps(accounts), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
-    return hook;
-  }
-
-  function arrangeEngine() {
-    // Mock Properties - used so we can polyfill/mock engine
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mockedProperties: any = {};
-
-    jest.replaceProperty(Engine, 'context', {
-      NotificationServicesController: {
-        ...mockedProperties,
-        checkAccountsPresence: jest.fn(),
-      },
-      ...mockedProperties,
-    });
-
-    const mockCheckAccountsPresence = jest
-      .spyOn(
-        Engine.context.NotificationServicesController,
-        'checkAccountsPresence',
-      )
-      .mockResolvedValue({});
-    return {
-      mockCheckAccountsPresence,
-    };
+    return { hook, store };
   }
 
   function arrangeSelectors() {
     const selectIsUpdatingMetamaskNotificationsAccount = jest
       .spyOn(Selectors, 'selectIsUpdatingMetamaskNotificationsAccount')
-      .mockReturnValue([]);
+      .mockReturnValue([MOCK_ACCOUNTS[0].address]);
+
+      const isMetamaskNotificationsEnabled = jest
+      .spyOn(Selectors,
+        'selectIsMetamaskNotificationsEnabled',
+      )
+      .mockReturnValue(true);
 
     return {
       selectIsUpdatingMetamaskNotificationsAccount,
+      isMetamaskNotificationsEnabled
     };
   }
 
-  it('fetchs initial account settings', async () => {
-    const ACCOUNT_1 = 'account1';
-
-    const mockEngine = arrangeEngine();
-    mockEngine.mockCheckAccountsPresence.mockResolvedValue({ ACCOUNT_1: true });
-    arrangeSelectors();
-
-    const { result, waitForValueToChange } = arrangeHook([ACCOUNT_1]);
-
-    // Initial Effect
-    expect(result.current.initialLoading).toBe(true);
-    expect(result.current.data).toEqual({});
-    await waitForValueToChange(() => result.current.initialLoading);
-
-    // Effect Finished
-    expect(result.current.initialLoading).toBe(false);
-    expect(result.current.data).toEqual({ ACCOUNT_1: true });
-  });
-
-  it('returns accounts update status if an account is being updated', () => {
-    const ACCOUNT_1 = 'account1';
-    arrangeEngine();
+  it('dispatches updateAccountState with the result of checkAccountsPresence', async () => {
     const mockSelectors = arrangeSelectors();
-    mockSelectors.selectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
-      ACCOUNT_1,
-    ]);
-
-    const { result } = arrangeHook([]);
-    expect(result.current.accountsBeingUpdated.length).toBeGreaterThan(0);
-  });
-
-  it('performs refetch to update account settings', async () => {
-    const ACCOUNT_1 = 'account1';
-
-    const mockEngine = arrangeEngine();
-    arrangeSelectors();
-
-    const { result, waitForValueToChange } = arrangeHook([]);
-
-    // Wait for initial loading effect to finish (reset mocks)
-    await waitForValueToChange(() => result.current.initialLoading === false);
-    mockEngine.mockCheckAccountsPresence.mockClear();
-    mockEngine.mockCheckAccountsPresence.mockResolvedValueOnce({
-      ACCOUNT_1: true,
+    const mockCheckAccountsPresence = jest.fn().mockResolvedValue({
+      [MOCK_ACCOUNTS[0].address]: true,
+      [MOCK_ACCOUNTS[1].address]: false,
     });
 
-    // Act, perform refetch/update
+    Engine.context.NotificationServicesController.checkAccountsPresence = mockCheckAccountsPresence;
+
+    mockSelectors.selectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([]);
+    mockSelectors.isMetamaskNotificationsEnabled.mockReturnValue(true);
+
+    const { hook, store } = arrangeHook(MOCK_ACCOUNTS);
+
     await act(async () => {
-      await result.current.update([ACCOUNT_1]);
+      await hook.result.current.updateAndfetchAccountSettings();
     });
 
-    expect(mockEngine.mockCheckAccountsPresence).toHaveBeenCalledTimes(1);
+    expect(mockCheckAccountsPresence).toHaveBeenCalledWith(MOCK_ACCOUNTS.map(account => account.address));
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      updateAccountState({
+        [MOCK_ACCOUNTS[0].address]: true,
+        [MOCK_ACCOUNTS[1].address]: false,
+      })
+    );
   });
 });

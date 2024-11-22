@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 
 // External dependencies
+import { selectPrivacyMode } from '../../../selectors/preferencesController';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -24,6 +25,9 @@ import Logger from '../../../util/Logger';
 // Internal dependencies
 import styleSheet from './WalletAccount.styles';
 import { WalletAccountProps } from './WalletAccount.types';
+import { TraceName, TraceOperation, trace } from '../../../util/trace';
+import { store } from '../../../store';
+import { getTraceTags } from '../../../util/sentry/tags';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,6 +38,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
   const yourAccountRef = useRef(null);
   const accountActionsRef = useRef(null);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const privacyMode = useSelector(selectPrivacyMode);
   const { ensName } = useEnsNameByAddress(selectedAccount?.address);
   const defaultName = selectedAccount?.metadata?.name;
   const accountName = useMemo(
@@ -78,9 +83,20 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
         accountName={accountName}
         accountAvatarType={accountAvatarType}
         onPress={() => {
-          navigate(...createAccountSelectorNavDetails({}));
+          trace({
+            name: TraceName.AccountList,
+            tags: getTraceTags(store.getState()),
+            op: TraceOperation.AccountList,
+          });
+          navigate(
+            ...createAccountSelectorNavDetails({
+              privacyMode,
+            }),
+          );
         }}
-        accountTypeLabel={getLabelTextByAddress(selectedAccount.address)}
+        accountTypeLabel={
+          getLabelTextByAddress(selectedAccount?.address) || undefined
+        }
         showAddress={false}
         cellAccountContainerStyle={styles.account}
         style={styles.accountPicker}
@@ -88,7 +104,7 @@ const WalletAccount = ({ style }: WalletAccountProps, ref: React.Ref<any>) => {
       />
       <View style={styles.middleBorder} />
       <View style={styles.addressContainer} ref={accountActionsRef}>
-        <AddressCopy formatAddressType="short" />
+        <AddressCopy />
         <ButtonIcon
           iconName={IconName.MoreHorizontal}
           size={ButtonIconSizes.Sm}

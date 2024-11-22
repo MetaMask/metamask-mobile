@@ -37,7 +37,7 @@ const getDefaultState = () => {
           smartTransactions: {
             expectedDeadline: 45,
             maxDeadline: 160,
-            returnTxHashAsap: false,
+            mobileReturnTxHashAsap: false,
           },
         },
       },

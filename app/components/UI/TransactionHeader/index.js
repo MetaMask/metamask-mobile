@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import WebsiteIcon from '../WebsiteIcon';
 import { getHost, getUrlObj } from '../../../util/browser';
 import networkList, {
-  isMutichainVersion1Enabled,
+  isMultichainVersion1Enabled,
 } from '../../../util/networks';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import AppConstants from '../../../core/AppConstants';
@@ -17,6 +17,8 @@ import {
   selectNickname,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { TransactionReviewSelectorsIDs } from '../../../../e2e/selectors/TransactionReview.selectors';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -27,9 +29,9 @@ const createStyles = (colors) =>
       alignItems: 'center',
     },
     domainLogo: {
-      width: isMutichainVersion1Enabled ? 32 : 56,
-      height: isMutichainVersion1Enabled ? 32 : 56,
-      borderRadius: isMutichainVersion1Enabled ? 16 : 32,
+      width: isMultichainVersion1Enabled ? 32 : 56,
+      height: isMultichainVersion1Enabled ? 32 : 56,
+      borderRadius: isMultichainVersion1Enabled ? 16 : 32,
     },
     assetLogo: {
       alignItems: 'center',
@@ -195,7 +197,7 @@ const TransactionHeader = (props) => {
   };
 
   const renderDomainUrlContainer = () => (
-    <View style={styles.domanUrlContainer}>
+    <View style={styles.domanUrlContainer} testID={TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN}>
       {renderSecureIcon()}
       {renderTitle()}
     </View>
@@ -209,12 +211,13 @@ const TransactionHeader = (props) => {
       </Text>
     </View>
   );
+  const showOrigin = !INTERNAL_ORIGINS.includes(props.currentPageInformation.origin);
 
   return (
     <View style={styles.transactionHeader}>
       {renderTopIcon()}
-      {isMutichainVersion1Enabled ? null : renderDomainUrlContainer()}
-      {isMutichainVersion1Enabled ? null : renderNetworkContainer()}
+      {isMultichainVersion1Enabled || !showOrigin ? null : renderDomainUrlContainer()}
+      {isMultichainVersion1Enabled ? null : renderNetworkContainer()}
     </View>
   );
 };

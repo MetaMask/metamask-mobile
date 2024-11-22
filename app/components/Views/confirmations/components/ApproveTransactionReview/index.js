@@ -6,14 +6,13 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../../util/browser';
 import {
-  safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
   shouldShowBlockExplorer,
@@ -52,7 +51,6 @@ import TransactionHeader from '../../../../UI/TransactionHeader';
 import TransactionReviewDetailsCard from '../TransactionReview/TransactionReviewDetailsCard';
 import AppConstants from '../../../../../core/AppConstants';
 import { UINT256_HEX_MAX_VALUE } from '../../../../../constants/transaction';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import { getBlockaidTransactionMetricsParams } from '../../../../../util/blockaid';
 import { withNavigation } from '@react-navigation/compat';
 import {
@@ -85,6 +83,7 @@ import {
 import { selectTokenList } from '../../../../../selectors/tokenListController';
 import { selectTokensLength } from '../../../../../selectors/tokensController';
 import { selectAccountsLength } from '../../../../../selectors/accountTrackerController';
+import { selectCurrentTransactionSecurityAlertResponse } from '../../../../../selectors/confirmTransaction';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -101,6 +100,10 @@ import { regex } from '../../../../../util/regex';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -283,6 +286,10 @@ class ApproveTransactionReview extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
+    /**
+     * Object containing blockaid validation response for confirmation
+     */
+    securityAlertResponse: PropTypes.object,
   };
 
   state = {
@@ -307,13 +314,12 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   customSpendLimitInput = React.createRef();
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
+  channelIdOrHostname = this.props.transaction.origin;
 
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  sdkConnection = SDKConnect.getInstance().getConnection({
+    channelId: this.channelIdOrHostname,
+  });
+  originIsMMSDKRemoteConn = Boolean(this.sdkConnection);
 
   fetchEstimatedL1Fee = async () => {
     const { transaction, chainId } = this.props;
@@ -350,14 +356,25 @@ class ApproveTransactionReview extends PureComponent {
     } = this.props;
     const { AssetsContractController } = Engine.context;
 
-    let host;
+    const host = getHost(origin);
 
-    if (this.originIsWalletConnect) {
-      host = getHost(origin.split(WALLET_CONNECT_ORIGIN)[1]);
-    } else if (this.originIsMMSDKRemoteConn) {
-      host = origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
-    } else {
-      host = getHost(origin);
+    if (!this.originIsMMSDKRemoteConn) {
+      // Check if it is walletConnect origin
+      WC2Manager.getInstance().then((wc2) => {
+        this.originIsWalletConnect = wc2.getSessions().some((session) => {
+          // Otherwise, compare the origin with the metadata URL
+          if (
+            session.peer.metadata.url === origin ||
+            origin.startsWith(WALLET_CONNECT_ORIGIN)
+          ) {
+            DevLogger.log(
+              `ApproveTransactionReview::componentDidMount Found matching session for origin ${origin}`,
+            );
+            return true;
+          }
+          return false;
+        });
+      });
     }
 
     let tokenSymbol,
@@ -371,7 +388,10 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const contract = tokenList[safeToChecksumAddress(to)];
+    // The tokenList addresses we get from state are not checksum addresses
+    // also, the tokenList we get does not contain the tokenStandard, so even if the token exists in tokenList we will
+    // need to fetch it using getTokenDetails
+    const contract = tokenList[to];
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -387,7 +407,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance = balance;
       tokenStandard = standard;
       createdSpendCap = isReadyToApprove;
-    } else if (!contract) {
+    } else {
       try {
         const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
@@ -410,12 +430,9 @@ class ApproveTransactionReview extends PureComponent {
           );
         }
       } catch (e) {
-        tokenSymbol = 'ERC20 Token';
-        tokenDecimals = 18;
+        tokenSymbol = contract?.symbol || 'ERC20 Token';
+        tokenDecimals = contract?.decimals || 18;
       }
-    } else {
-      tokenSymbol = contract.symbol;
-      tokenDecimals = contract.decimals;
     }
 
     const approveAmount = fromTokenMinimalUnit(
@@ -541,46 +558,60 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   getAnalyticsParams = () => {
+    const {
+      chainId,
+      transaction,
+      onSetAnalyticsParams,
+      shouldUseSmartTransaction,
+    } = this.props;
+
+    const {
+      token: { tokenSymbol } = {},
+      originalApproveAmount,
+      encodedHexAmount,
+    } = this.state || {};
+
+    const baseParams = {
+      account_type: transaction?.from
+        ? getAddressAccountType(transaction.from)
+        : 'unknown',
+      dapp_host_name: transaction?.origin || 'unknown',
+      chain_id: chainId ? getDecimalChainId(chainId) : 'unknown',
+      active_currency: { value: tokenSymbol || 'N/A', anonymous: true },
+      number_tokens_requested: {
+        value: originalApproveAmount || '0',
+        anonymous: true,
+      },
+      unlimited_permission_requested:
+        encodedHexAmount === UINT256_HEX_MAX_VALUE,
+      referral_type: 'unknown',
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+      is_smart_transaction: shouldUseSmartTransaction || false,
+    };
+
     try {
-      const {
-        chainId,
-        transaction,
-        onSetAnalyticsParams,
-        shouldUseSmartTransaction,
-      } = this.props;
-      const {
-        token: { tokenSymbol },
-        originalApproveAmount,
-        encodedHexAmount,
-      } = this.state;
       const isDapp = !Object.values(AppConstants.DEEPLINKS).includes(
         transaction?.origin,
       );
-      const unlimited = encodedHexAmount === UINT256_HEX_MAX_VALUE;
+
       const params = {
-        account_type: getAddressAccountType(transaction?.from),
-        dapp_host_name: transaction?.origin,
-        chain_id: getDecimalChainId(chainId),
-        active_currency: { value: tokenSymbol, anonymous: true },
-        number_tokens_requested: {
-          value: originalApproveAmount,
-          anonymous: true,
-        },
-        unlimited_permission_requested: unlimited,
+        ...baseParams,
         referral_type: isDapp ? 'dapp' : transaction?.origin,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
-        is_smart_transaction: shouldUseSmartTransaction,
       };
+
       // Send analytics params to parent component so it's available when cancelling and confirming
-      onSetAnalyticsParams && onSetAnalyticsParams(params);
+      if (onSetAnalyticsParams) {
+        onSetAnalyticsParams(params);
+      }
 
       return params;
     } catch (error) {
-      return {};
+      Logger.error(error, 'Error in getAnalyticsParams:');
+      return baseParams;
     }
   };
 
@@ -731,23 +762,13 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   getConfirmButtonState() {
-    const { transaction } = this.props;
-    const { id, currentTransactionSecurityAlertResponse } = transaction;
+    const { securityAlertResponse } = this.props;
     let confirmButtonState = ConfirmButtonState.Normal;
-    if (
-      id &&
-      currentTransactionSecurityAlertResponse?.id &&
-      currentTransactionSecurityAlertResponse.id === id
-    ) {
-      if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Malicious
-      ) {
+
+    if (securityAlertResponse) {
+      if (securityAlertResponse.result_type === ResultType.Malicious) {
         confirmButtonState = ConfirmButtonState.Error;
-      } else if (
-        currentTransactionSecurityAlertResponse?.response?.result_type ===
-        ResultType.Warning
-      ) {
+      } else if (securityAlertResponse.result_type === ResultType.Warning) {
         confirmButtonState = ConfirmButtonState.Warning;
       }
     }
@@ -809,7 +830,7 @@ class ApproveTransactionReview extends PureComponent {
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -873,6 +894,7 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
               confirmButtonState={this.getConfirmButtonState()}
+              confirmTestID="Confirm"
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
@@ -1306,6 +1328,7 @@ const mapStateToProps = (state) => ({
     getRampNetworks(state),
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

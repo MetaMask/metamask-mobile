@@ -1,22 +1,28 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { Alert, ListRenderItem, Platform, View } from 'react-native';
+import { Alert, ListRenderItem, View, ViewStyle } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Hex } from '@metamask/utils';
 
 // External dependencies.
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
+import { InternalAccount } from '@metamask/keyring-api';
 import { useStyles } from '../../../component-library/hooks';
-import Text from '../../../component-library/components/Texts/Text';
+import { TextColor } from '../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../component-library/components/Texts/SensitiveText';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
 import {
   formatAddress,
-  safeToChecksumAddress,
   getLabelTextByAddress,
+  safeToChecksumAddress,
 } from '../../../util/address';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -25,12 +31,13 @@ import { AvatarVariant } from '../../../component-library/components/Avatars/Ava
 import { Account, Assets } from '../../hooks/useAccounts';
 import UntypedEngine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID } from '../../../../wdio/screen-objects/testIDs/Components/AccountListComponent.testIds.js';
+import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -44,8 +51,10 @@ const AccountSelectorList = ({
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
   isAutoScrollEnabled = true,
+  privacyMode = false,
   ...props
 }: AccountSelectorListProps) => {
+  const { navigate } = useNavigation();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
@@ -62,22 +71,46 @@ const AccountSelectorList = ({
       : AvatarAccountType.JazzIcon,
   );
 
+  const internalAccounts = useSelector(selectInternalAccounts);
   const getKeyExtractor = ({ address }: Account) => address;
 
   const renderAccountBalances = useCallback(
-    ({ fiatBalance, tokens }: Assets, address: string) => (
-      <View
-        style={styles.balancesContainer}
-        {...generateTestId(
-          Platform,
-          `${ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`,
-        )}
-      >
-        <Text style={styles.balanceLabel}>{fiatBalance}</Text>
-        {tokens && <AvatarGroup tokenList={tokens} />}
-      </View>
-    ),
-    [styles.balancesContainer, styles.balanceLabel],
+    ({ fiatBalance, tokens }: Assets, address: string) => {
+      const fiatBalanceStrSplit = fiatBalance.split('\n');
+      const fiatBalanceAmount = fiatBalanceStrSplit[0] || '';
+      const tokenTicker = fiatBalanceStrSplit[1] || '';
+      return (
+        <View
+          style={styles.balancesContainer}
+          testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+        >
+          <SensitiveText
+            length={SensitiveTextLength.Long}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+          >
+            {fiatBalanceAmount}
+          </SensitiveText>
+          <SensitiveText
+            length={SensitiveTextLength.Short}
+            style={styles.balanceLabel}
+            isHidden={privacyMode}
+            color={privacyMode ? TextColor.Alternative : TextColor.Default}
+          >
+            {tokenTicker}
+          </SensitiveText>
+          {tokens && (
+            <AvatarGroup
+              avatarPropsList={tokens.map((tokenObj) => ({
+                ...tokenObj,
+                variant: AvatarVariant.Token,
+              }))}
+            />
+          )}
+        </View>
+      );
+    },
+    [styles.balancesContainer, styles.balanceLabel, privacyMode],
   );
 
   const onLongPress = useCallback(
@@ -144,6 +177,23 @@ const AccountSelectorList = ({
     ],
   );
 
+  const onNavigateToAccountActions = useCallback(
+    (selectedAccount: string) => {
+      const account = internalAccounts.find(
+        (accountData: InternalAccount) =>
+          accountData.address.toLowerCase() === selectedAccount.toLowerCase(),
+      );
+
+      if (!account) return;
+
+      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ACCOUNT_ACTIONS,
+        params: { selectedAccount: account },
+      });
+    },
+    [navigate, internalAccounts],
+  );
+
   const renderAccountItem: ListRenderItem<Account> = useCallback(
     ({
       item: { name, address, assets, type, isSelected, balanceError },
@@ -157,7 +207,7 @@ const AccountSelectorList = ({
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
       const cellVariant = isMultiSelect
         ? CellVariant.MultiSelect
-        : CellVariant.Select;
+        : CellVariant.SelectWithMenu;
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -168,12 +218,16 @@ const AccountSelectorList = ({
         );
       }
 
-      const cellStyle = {
+      const cellStyle: ViewStyle = {
         opacity: isLoading ? 0.5 : 1,
       };
+      if (!isMultiSelect) {
+        cellStyle.alignItems = 'center';
+      }
 
       return (
         <Cell
+          key={address}
           onLongPress={() => {
             onLongPress({
               address,
@@ -186,6 +240,7 @@ const AccountSelectorList = ({
           isSelected={isSelectedAccount}
           title={accountName}
           secondaryText={shortAddress}
+          showSecondaryTextIcon={false}
           tertiaryText={balanceError}
           onPress={() => onSelectAccount?.(address, isSelectedAccount)}
           avatarProps={{
@@ -193,9 +248,13 @@ const AccountSelectorList = ({
             type: accountAvatarType,
             accountAddress: address,
           }}
-          tagLabel={tagLabel ? strings(tagLabel) : tagLabel}
+          tagLabel={tagLabel}
           disabled={isDisabled}
           style={cellStyle}
+          buttonProps={{
+            onButtonClick: () => onNavigateToAccountActions(address),
+            buttonTestId: `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+          }}
         >
           {renderRightAccessory?.(address, accountName) ||
             (assets && renderAccountBalances(assets, address))}
@@ -203,6 +262,7 @@ const AccountSelectorList = ({
       );
     },
     [
+      onNavigateToAccountActions,
       accountAvatarType,
       onSelectAccount,
       renderAccountBalances,

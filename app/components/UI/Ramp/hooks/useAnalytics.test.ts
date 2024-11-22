@@ -1,4 +1,5 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
 
@@ -7,7 +8,6 @@ jest.mock('../../../../core/Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn().mockReturnValue({
       trackEvent: jest.fn(),
-      trackAnonymousEvent: jest.fn(),
     }),
   },
 }));
@@ -21,40 +21,44 @@ describe('useAnalytics', () => {
     jest.clearAllMocks();
   });
 
-  it('calls trackEvent with the correct params', () => {
+  it('calls trackEvent for non-anonymous params', () => {
     const { result } = renderHookWithProvider(() => useAnalytics());
 
     const testEvent = 'BUY_BUTTON_CLICKED';
-
-    result.current(testEvent, {
+    const testEventParams = {
       location: 'Amount to Buy Screen',
       text: 'Buy',
-    });
+    } as const;
+
+    result.current(testEvent, testEventParams);
 
     expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      {
-        location: 'Amount to Buy Screen',
-        text: 'Buy',
-      },
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+        .addProperties(testEventParams)
+        .build(),
     );
   });
 
-  it('calls trackAnonymousEvent with the correct params', () => {
-    const { result } = renderHookWithProvider(() => useAnalytics());
-
+  it('calls trackEvent for anonymous params', () => {
     const testEvent = 'RAMP_REGION_SELECTED';
-    const testPayload = {
+    const testEventParams = {
       country_id: 'test-country-id',
       is_unsupported_offramp: false,
       is_unsupported_onramp: false,
-    };
+    } as const;
 
-    result.current(testEvent, testPayload);
+    jest.mock('../constants', () => ({
+      AnonymousEvents: [testEvent],
+    }));
 
-    expect(MetaMetrics.getInstance().trackAnonymousEvent).toHaveBeenCalledWith(
-      MetaMetricsEvents[testEvent],
-      testPayload,
+    const { result } = renderHookWithProvider(() => useAnalytics());
+
+    result.current(testEvent, testEventParams);
+
+    expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents[testEvent])
+        .addSensitiveProperties(testEventParams)
+        .build(),
     );
   });
 });

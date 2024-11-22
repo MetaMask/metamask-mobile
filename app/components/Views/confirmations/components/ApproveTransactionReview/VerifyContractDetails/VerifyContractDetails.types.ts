@@ -26,5 +26,5 @@ export interface VerifyContractDetailsProps {
   tokenSymbol: string;
   providerType: string;
   providerRpcTarget: string;
-  networkConfigurations: NetworkState['networkConfigurations'];
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'];
 }

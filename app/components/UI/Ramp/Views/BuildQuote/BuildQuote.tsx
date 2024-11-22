@@ -27,8 +27,6 @@ import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBal
 import { Asset } from '../../../../hooks/useAddressBalance/useAddressBalance.types';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
 import BaseSelectorButton from '../../../../Base/SelectorButton';
 import StyledButton from '../../../StyledButton';
 
@@ -73,10 +71,16 @@ import {
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
@@ -363,8 +367,7 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount &&
-          maxSellAmount.lt(amountPercentage)
+          maxSellAmount?.lt(amountPercentage)
         ) {
           amountToSet = maxSellAmount;
         }
@@ -605,25 +608,29 @@ const BuildQuote = () => {
               <SkeletonText thick smaller spacingHorizontal />
             </View>
             <SkeletonText thin small spacingTop spacingVertical />
-            <Box>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <ListItem.Icon>
-                    <SkeletonText />
-                  </ListItem.Icon>
-                </ListItem.Body>
-                <SkeletonText smaller thin />
-              </ListItem.Content>
+            <Box compact>
+              <ListItem>
+                <ListItemColumn>
+                  <SkeletonText />
+                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin smaller />
+                </ListItemColumnEnd>
+              </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
             <SkeletonText thin smaller spacingVertical />
-            <Box>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <SkeletonText small />
-                </ListItem.Body>
-                <SkeletonText smaller thin />
-              </ListItem.Content>
+            <Box compact>
+              <ListItem>
+                <ListItemColumn>
+                  <View style={styles.flexRow}>
+                    <SkeletonText medium />
+                  </View>
+                </ListItemColumn>
+                <ListItemColumnEnd widthType={WidthType.Fill}>
+                  <SkeletonText thin small />
+                </ListItemColumnEnd>
+              </ListItem>
             </Box>
             <SkeletonText spacingTopSmall spacingVertical thin medium />
           </ScreenLayout.Content>
@@ -679,9 +686,36 @@ const BuildQuote = () => {
     );
   }
 
-  const displayAmount = isBuy
-    ? formatAmount(amountNumber)
-    : `${amount} ${selectedAsset?.symbol}`;
+  // If the current view is for Sell the amount (crypto) is displayed as is
+  let displayAmount = `${amount} ${selectedAsset?.symbol}`;
+
+  // If the current ivew is for Buy we will format the amount
+  if (isBuy) {
+    // Split the amount to detect if it has decimals
+    const splitAmount = amount.split(/(\.)|(,)/);
+    // If the splitAmount array has more than 1 element it means that the amount has decimals
+    // For example:
+    //    100.50 -> splitAmount = ['100', '.', undefined, '50']
+    //    100,50 -> splitAmount = ['100', undefined, ',', '50']
+    // Note: this help us capture the input separator (dot or comma)
+    const hasDecimalsSplit = splitAmount.length > 1;
+
+    displayAmount =
+      isBuy && amountFocused
+        ? // If the amount is focused (being edited) the amount integer part will be shown in groups separated by spaces
+          `${formatAmount(Math.trunc(amountNumber), true)}${
+            // If the amount has decimals the decimal part will be shown
+            // using the separator and the decimal part
+            // Note, the decimal part will be displayed even if it is being typed (ends with a separator or 0)
+            hasDecimalsSplit
+              ? `${splitAmount[1] ?? splitAmount[2] ?? ''}${
+                  splitAmount[3] ?? ''
+                }`
+              : ''
+          }`
+        : // If the amount is not focused it will be fully formatted
+          formatAmount(amountNumber);
+  }
 
   let quickAmounts: QuickAmount[] = [];
 
@@ -721,9 +755,7 @@ const BuildQuote = () => {
                 accessible
                 onPress={handleChangeRegion}
               >
-                <Text reset style={styles.flagText}>
-                  {selectedRegion?.emoji}
-                </Text>
+                <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
               {isSell ? (
                 <>
@@ -733,7 +765,7 @@ const BuildQuote = () => {
                     accessible
                     onPress={handleFiatSelectorPress}
                   >
-                    <Text primary centered>
+                    <Text variant={TextVariant.BodyLGMedium}>
                       {currentFiatCurrency?.symbol}
                     </Text>
                   </SelectorButton>
@@ -759,7 +791,10 @@ const BuildQuote = () => {
             />
             {addressBalance ? (
               <Row>
-                <Text small grey>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                >
                   {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
                   {addressBalance}
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
@@ -786,21 +821,21 @@ const BuildQuote = () => {
               !hasInsufficientBalance &&
               amountIsOverGas && (
                 <Row>
-                  <Text red small>
+                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                     {strings('fiat_on_ramp_aggregator.enter_lower_gas_fees')}
                   </Text>
                 </Row>
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -815,7 +850,7 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text red small>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}

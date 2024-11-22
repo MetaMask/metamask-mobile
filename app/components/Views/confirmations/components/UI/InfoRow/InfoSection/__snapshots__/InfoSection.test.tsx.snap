@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InfoSection should match snapshot for simple text value 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c566",
+      "borderRadius": 8,
+      "borderWidth": 1,
+      "marginBottom": 8,
+      "padding": 8,
+    }
+  }
+>
+  <View>
+    <Text>
+      Test
+    </Text>
+  </View>
+</View>
+`;

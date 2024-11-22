@@ -1,13 +1,13 @@
 import React from 'react';
 import NFTAutoDetectionModal from './NFTAutoDetectionModal';
-import renderWithProvider from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { RootState } from 'app/reducers';
-
-const mockEngine = Engine;
 
 const setUseNftDetectionSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -19,7 +19,6 @@ const setDisplayNftMediaSpy = jest.spyOn(
   'setDisplayNftMedia',
 );
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     PreferencesController: {
       setUseNftDetection: jest.fn(),
@@ -27,10 +26,6 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
-
-type PartialDeepState<T> = {
-  [P in keyof T]?: PartialDeepState<T[P]>;
-};
 
 const initialState = {
   engine: {
@@ -44,7 +39,7 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
-const renderComponent = (state: PartialDeepState<RootState> = {}) =>
+const renderComponent = (state: DeepPartial<RootState> = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}>

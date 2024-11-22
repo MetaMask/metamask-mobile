@@ -19,7 +19,6 @@ import {
 } from '../../../util/theme';
 import Device from '../../../util/device';
 import Scan from './Scan';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
@@ -35,21 +34,41 @@ import { getSystemVersion } from 'react-native-device-info';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import createStyles from './index.styles';
+import {
+  BluetoothDevice,
+  BluetoothInterface,
+} from '../../hooks/Ledger/useBluetoothDevices';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
 
 interface LedgerConnectProps {
   onConnectLedger: () => void;
+  isSendingLedgerCommands: boolean;
+  isAppLaunchConfirmationNeeded: boolean;
+  ledgerLogicToRun: (
+    func: (transport: BluetoothInterface) => Promise<void>,
+  ) => Promise<void>;
+  ledgerError: LedgerCommunicationErrors | undefined;
+  selectedDevice: LedgerDevice;
+  setSelectedDevice: (device: LedgerDevice) => void;
 }
 
-const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
+const LedgerConnect = ({
+  onConnectLedger,
+  isSendingLedgerCommands,
+  isAppLaunchConfirmationNeeded,
+  ledgerLogicToRun,
+  ledgerError,
+  selectedDevice,
+  setSelectedDevice,
+}: LedgerConnectProps) => {
   const theme = useAppThemeFromContext() ?? mockTheme;
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(theme.colors), [theme]);
-  const [selectedDevice, setSelectedDevice] = useState<LedgerDevice>(null);
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
+  const [hasMatchingDeviceId, setHasMatchingDeviceId] = useState(true);
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
-
   const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   useEffect(() => {
@@ -58,18 +77,25 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
     );
   }, [navigation, theme.colors]);
 
-  const {
-    isSendingLedgerCommands,
-    isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
-    error: ledgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
-
   const connectLedger = () => {
     setLoading(true);
     ledgerLogicToRun(async () => {
       onConnectLedger();
     });
+  };
+
+  const onDeviceSelected = (currentDevice: BluetoothDevice | undefined) => {
+    const getStoredDeviceId = async () => {
+      const storedDeviceId = await getDeviceId();
+      const isMatchingDeviceId =
+        !storedDeviceId || currentDevice?.id === storedDeviceId;
+      setHasMatchingDeviceId(isMatchingDeviceId);
+
+      if (isMatchingDeviceId) {
+        setSelectedDevice(currentDevice);
+      }
+    };
+    getStoredDeviceId();
   };
 
   const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
@@ -102,6 +128,11 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
       },
     });
   };
+
+  const getStylesWithMultipleDevicesErrorMessage = () =>
+    hasMatchingDeviceId
+      ? styles.bodyContainer
+      : styles.bodyContainerWhithErrorMessage;
 
   useEffect(() => {
     if (ledgerError) {
@@ -246,13 +277,16 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
               <Text bold>{strings('ledger.open_eth_app_message_two')} </Text>
             </Text>
           )}
+          {!hasMatchingDeviceId && (
+            <Text red small testID={'multiple-devices-error-message'}>
+              {strings('ledger.multiple_devices_error_message')}
+            </Text>
+          )}
         </View>
-        <View style={styles.bodyContainer}>
+        <View style={getStylesWithMultipleDevicesErrorMessage()}>
           {!isAppLaunchConfirmationNeeded ? (
             <Scan
-              onDeviceSelected={(ledgerDevice) =>
-                setSelectedDevice(ledgerDevice)
-              }
+              onDeviceSelected={onDeviceSelected}
               onScanningErrorStateChanged={(error) => setErrorDetails(error)}
               ledgerError={ledgerError}
             />
@@ -263,7 +297,9 @@ const LedgerConnect = ({ onConnectLedger }: LedgerConnectProps) => {
                 type="confirm"
                 onPress={connectLedger}
                 testID={'add-network-button'}
-                disabled={loading || isSendingLedgerCommands}
+                disabled={
+                  !hasMatchingDeviceId || loading || isSendingLedgerCommands
+                }
               >
                 {loading || isSendingLedgerCommands ? (
                   <ActivityIndicator color={styles.loader.color} />
