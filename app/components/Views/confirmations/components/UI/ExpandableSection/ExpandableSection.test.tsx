@@ -7,7 +7,7 @@ import InfoRow from '../InfoRow';
 import ExpandableSection from './ExpandableSection';
 
 describe('ExpandableSection', () => {
-  it('should match snapshot for simple ExpandableSection', async () => {
+  it('should render correctly for simple ExpandableSection', async () => {
     const { getByText } = render(
       <ExpandableSection
         collapsedContent={
