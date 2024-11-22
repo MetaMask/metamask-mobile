@@ -56,8 +56,7 @@ const {
  */
 export function renderFullAddress(address: string) {
   if (address) {
-    // Non EVM addresses are not checksummed
-    return isEthAddress(address) ? toChecksumAddress(address) : address;
+    return toFormattedAddress(address);
   }
   return strings('transactions.tx_details_not_available');
 }
@@ -84,6 +83,16 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
 };
 
 /**
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ */
+export function toFormattedAddress(address: string) {
+  return isEthAddress(address) ? toChecksumAddress(address) : address;
+}
+
+/**
  * Returns short address format
  *
  * @param {String} address - String corresponding to an address
@@ -93,10 +102,7 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  */
 export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
-  // Non EVM addresses are not checksummed
-  const formattedAddress = isEthAddress(address)
-    ? toChecksumAddress(address)
-    : address;
+  const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
     -chars,
   )}`;
@@ -107,10 +113,7 @@ export function renderSlightlyLongAddress(
   chars = 4,
   initialChars = 20,
 ) {
-  // Non EVM addresses are not checksummed
-  const formattedAddress = isEthAddress(address)
-    ? toChecksumAddress(address)
-    : address;
+  const formattedAddress = toFormattedAddress(address);
   return `${formattedAddress.slice(
     0,
     chars + initialChars,
