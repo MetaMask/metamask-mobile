@@ -28,7 +28,10 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
@@ -45,12 +48,14 @@ const NetworkConnectMultiSelector = ({
   initialChainId,
   selectedChainIds: propSelectedChainIds,
   isInitializedWithPermittedChains = true,
+  hideActiveNetwork = false,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const currentChainId = useSelector(selectChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
@@ -90,6 +95,25 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
+      // Check if current network is being removed from permissions
+      if (!selectedChainIds.includes(currentChainId)) {
+        // Find the network configuration for the first permitted chain
+        const networkToSwitch = Object.entries(networkConfigurations).find(
+          ([, { chainId }]) => chainId === selectedChainIds[0],
+        );
+
+        if (networkToSwitch) {
+          const [, config] = networkToSwitch;
+          const { rpcEndpoints, defaultRpcEndpointIndex } = config;
+          const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+
+          // Switch to the network using networkClientId
+          await Engine.context.NetworkController.setActiveNetwork(
+            networkClientId,
+          );
+        }
+      }
+
       let hasPermittedChains = false;
       try {
         hasPermittedChains = Engine.context.PermissionController.hasCaveat(
@@ -127,10 +151,17 @@ const NetworkConnectMultiSelector = ({
       }
       onUserAction(USER_INTENT.Confirm);
     }
-  }, [selectedChainIds, hostname, onUserAction, onNetworksSelected]);
+  }, [
+    selectedChainIds,
+    hostname,
+    onUserAction,
+    onNetworksSelected,
+    currentChainId,
+    networkConfigurations,
+  ]);
 
-  const networks = Object.entries(networkConfigurations).map(
-    ([key, network]: [string, NetworkConfiguration]) => ({
+  const networks = Object.entries(networkConfigurations)
+    .map(([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -139,8 +170,11 @@ const NetworkConnectMultiSelector = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }),
-  );
+    }))
+    .filter((network) => {
+      if (!hideActiveNetwork) return true;
+      return network.id !== currentChainId;
+    });
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {
@@ -159,6 +193,11 @@ const NetworkConnectMultiSelector = ({
     [networks, selectedChainIds],
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllNetworkPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
@@ -168,13 +207,14 @@ const NetworkConnectMultiSelector = ({
             origin: urlWithProtocol && new URL(urlWithProtocol).hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, urlWithProtocol]);
+  }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
+
   const areAllNetworksSelected = networks
     .map(({ id }) => id)
     .every((id) => selectedChainIds?.includes(id));
-
   const areAnyNetworksSelected = selectedChainIds?.length !== 0;
   const areNoNetworksSelected = selectedChainIds?.length === 0;
 

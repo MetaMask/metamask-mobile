@@ -10,7 +10,7 @@ import { mockNetworkState } from '../util/test/network';
 import MetaMetrics from './Analytics/MetaMetrics';
 import { store } from '../store';
 import { MetaMetricsEvents } from './Analytics';
-import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
+import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { MarketDataDetails } from '../components/UI/Tokens';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -98,6 +98,7 @@ describe('Engine', () => {
     const ticker = 'ETH';
     const ethConversionRate = 4000; // $4,000 / ETH
     const ethBalance = 1;
+    const stakedEthBalance = 1;
 
     const state: Partial<EngineState> = {
       AccountsController: createMockAccountsControllerState(
@@ -121,7 +122,6 @@ describe('Engine', () => {
             id: '0x1',
             nickname: 'mainnet',
             ticker: 'ETH',
-            type: RpcEndpointType.Infura,
           }),
         },
         // TODO(dbrans): Investigate why the shape of the NetworkController state in this
@@ -234,6 +234,91 @@ describe('Engine', () => {
       const totalFiatBalance = engine.getTotalFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
+      const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
+        ([fiat, fiat1d], token) => {
+          const value = Number(token.price) * token.balance * ethConversionRate;
+          return [
+            fiat + value,
+            fiat1d + value / (1 + token.pricePercentChange1d / 100),
+          ];
+        },
+        [0, 0],
+      );
+
+      expect(totalFiatBalance).toStrictEqual({
+        ethFiat,
+        ethFiat1dAgo: ethFiat / (1 + ethPricePercentChange1d / 100),
+        tokenFiat,
+        tokenFiat1dAgo,
+      });
+    });
+
+    it('calculates when there is ETH and staked ETH and tokens', () => {
+      const ethPricePercentChange1d = 5;
+
+      const tokens = [
+        {
+          address: '0x001',
+          balance: 1,
+          price: '1',
+          pricePercentChange1d: -1,
+        },
+        {
+          address: '0x002',
+          balance: 2,
+          price: '2',
+          pricePercentChange1d: 2,
+        },
+      ];
+
+      engine = Engine.init({
+        ...state,
+        AccountTrackerController: {
+          accountsByChainId: {
+            [chainId]: {
+              [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+            },
+          },
+          accounts: {
+            [selectedAddress]: { balance: (ethBalance * 1e18).toString(), stakedBalance: (stakedEthBalance * 1e18).toString() },
+          },
+        },
+        TokensController: {
+          tokens: tokens.map((token) => ({
+            address: token.address,
+            balance: token.balance,
+            decimals: 18,
+            symbol: 'TEST',
+          })),
+          ignoredTokens: [],
+          detectedTokens: [],
+          allTokens: {},
+          allIgnoredTokens: {},
+          allDetectedTokens: {},
+        },
+        TokenRatesController: {
+          marketData: {
+            [chainId]: {
+              [zeroAddress()]: {
+                pricePercentChange1d: ethPricePercentChange1d,
+              },
+              ...tokens.reduce(
+                (acc, token) => ({
+                  ...acc,
+                  [token.address]: {
+                    price: token.price,
+                    pricePercentChange1d: token.pricePercentChange1d,
+                  },
+                }),
+                {},
+              ),
+            },
+          },
+        },
+      });
+
+      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
           const value = Number(token.price) * token.balance * ethConversionRate;
