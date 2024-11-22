@@ -41,7 +41,7 @@ const SendFlowAddressFrom = ({
     checksummedSelectedAddress,
   );
   const [accountName, setAccountName] = useState(
-    selectedInternalAccount?.metadata.name,
+    selectedInternalAccount?.metadata?.name,
   );
   const [accountBalance, setAccountBalance] = useState('');
 
@@ -94,7 +94,7 @@ const SendFlowAddressFrom = ({
         const balanceIsZero = hexToBN(
           accounts[checksummedSelectedAddress].balance,
         ).isZero();
-        setAccountName(ens || selectedInternalAccount?.metadata.name);
+        setAccountName(ens || selectedInternalAccount?.metadata?.name);
         setAccountBalance(balance);
         fromAccountBalanceState(balanceIsZero);
       }
@@ -106,11 +106,11 @@ const SendFlowAddressFrom = ({
     ticker,
     chainId,
     fromAccountBalanceState,
-    selectedInternalAccount?.metadata.name,
+    selectedInternalAccount?.metadata?.name,
   ]);
 
   const onSelectAccount = async (address: string) => {
-    const name = selectedInternalAccount?.metadata.name;
+    const name = selectedInternalAccount?.metadata?.name;
     const balance = `${renderFromWei(accounts[address].balance)} ${getTicker(
       ticker,
     )}`;
