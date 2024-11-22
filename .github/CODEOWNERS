@@ -15,6 +15,9 @@ app/core/Analytics/                  @MetaMask/mobile-platform
 app/util/metrics/                    @MetaMask/mobile-platform
 app/components/hooks/useMetrics/     @MetaMask/mobile-platform
 app/store/migrations/                @MetaMask/mobile-platform
+bitrise.yml                          @MetaMask/mobile-platform
+yarn.lock                            @MetaMask/mobile-platform
+ios/Podfile.lock                     @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
@@ -109,7 +112,6 @@ app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
 app/components/Views/QRScanner @MetaMask/wallet-ux
 app/components/Views/Settings @MetaMask/wallet-ux
 app/components/Views/TermsAndConditions @MetaMask/wallet-ux
-
 app/reducers/experimentalSettings @MetaMask/wallet-ux
 app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
