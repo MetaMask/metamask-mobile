@@ -15,10 +15,15 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
-const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-const MOCK_BTC_MAINNET_ADDRESS_2 = '1Lbcfr7sAHTD9CgdQo3HTMTkV8LK4ZnX71';
+// P2WPKH
+const MOCK_BTC_MAINNET_ADDRESS = 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
+// P2PKH
+const MOCK_BTC_MAINNET_ADDRESS_2 = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
+// P2WPKH
 const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
 const MOCK_ETH_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+
+const SOL_ADDRESSES = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockEthEOAAccount: InternalAccount = {
   address: MOCK_ETH_ADDRESS,
@@ -79,11 +84,11 @@ const mockBTCAccount: InternalAccount = {
 
 describe('MultiChain utils', () => {
   describe('isEthAccount', () => {
-    it('should return true for EOA accounts', () => {
+    it('returns true for EOA accounts', () => {
       expect(isEthAccount(mockEthEOAAccount)).toBe(true);
     });
 
-    it('should return true for ERC4337 accounts', () => {
+    it('returns true for ERC4337 accounts', () => {
       expect(isEthAccount(mockEthERC4337Account)).toBe(true);
     });
 
@@ -93,55 +98,61 @@ describe('MultiChain utils', () => {
   });
 
   describe('isBtcAccount', () => {
-    it('should return true for P2WPKH accounts', () => {
+    it('returns true for P2WPKH accounts', () => {
       expect(isBtcAccount(mockBTCAccount)).toBe(true);
     });
 
-    it('should return false for ETH accounts', () => {
+    it('returns false for ETH accounts', () => {
       expect(isBtcAccount(mockEthEOAAccount)).toBe(false);
     });
   });
 
   describe('isBtcMainnetAddress', () => {
-    it('should return true for bc1 addresses', () => {
+    it('returns true for P2WPKH addresses (bc1...)', () => {
       expect(isBtcMainnetAddress(MOCK_BTC_MAINNET_ADDRESS)).toBe(true);
     });
 
-    it('should return true for addresses starting with 1', () => {
+    it('returns true for P2PKH addresses (starts with 1)', () => {
       expect(isBtcMainnetAddress(MOCK_BTC_MAINNET_ADDRESS_2)).toBe(true);
     });
 
-    it('should return false for testnet addresses', () => {
+    it('returns false for testnet addresses', () => {
       expect(isBtcMainnetAddress(MOCK_BTC_TESTNET_ADDRESS)).toBe(false);
     });
 
-    it('should return false for ETH addresses', () => {
+    it('returns false for ETH addresses', () => {
       expect(isBtcMainnetAddress(MOCK_ETH_ADDRESS)).toBe(false);
+    });
+    it('returns false for SOL addresses', () => {
+      expect(isBtcMainnetAddress(SOL_ADDRESSES)).toBe(false);
     });
   });
 
   describe('isBtcTestnetAddress', () => {
-    it('should return true for testnet addresses', () => {
+    it('returns true for testnet addresses', () => {
       expect(isBtcTestnetAddress(MOCK_BTC_TESTNET_ADDRESS)).toBe(true);
     });
 
-    it('should return false for mainnet addresses', () => {
+    it('returns false for mainnet addresses', () => {
       expect(isBtcTestnetAddress(MOCK_BTC_MAINNET_ADDRESS)).toBe(false);
       expect(isBtcTestnetAddress(MOCK_BTC_MAINNET_ADDRESS_2)).toBe(false);
     });
 
-    it('should return false for ETH addresses', () => {
+    it('returns false for ETH addresses', () => {
       expect(isBtcTestnetAddress(MOCK_ETH_ADDRESS)).toBe(false);
+    });
+    it('returns false for SOL addresses', () => {
+      expect(isBtcTestnetAddress(SOL_ADDRESSES)).toBe(false);
     });
   });
   describe('getFormattedAddressFromInternalAccount', () => {
-    it('should return checksummed address for ETH EOA accounts', () => {
+    it('returns checksummed address for ETH EOA accounts', () => {
       const formatted =
         getFormattedAddressFromInternalAccount(mockEthEOAAccount);
       expect(formatted).toBe(toChecksumHexAddress(MOCK_ETH_ADDRESS));
     });
 
-    it('should return checksummed address for ETH ERC4337 accounts', () => {
+    it('returns checksummed address for ETH ERC4337 accounts', () => {
       const formatted = getFormattedAddressFromInternalAccount(
         mockEthERC4337Account,
       );
@@ -150,7 +161,7 @@ describe('MultiChain utils', () => {
       );
     });
 
-    it('should return unformatted address for BTC accounts', () => {
+    it('returns unformatted address for BTC accounts', () => {
       const formatted = getFormattedAddressFromInternalAccount(mockBTCAccount);
       expect(formatted).toBe(MOCK_BTC_MAINNET_ADDRESS);
     });
