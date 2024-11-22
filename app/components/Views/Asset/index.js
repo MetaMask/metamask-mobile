@@ -471,9 +471,9 @@ class Asset extends PureComponent {
       isAssetAllowed &&
       AppConstants.SWAPS.ACTIVE;
 
-    const displayBuyButton =
-      (asset.isETH && this.props.isNetworkBuyNativeTokenSupported) ||
-      this.props.isNetworkRampSupported;
+    const displayBuyButton = asset.isETH
+      ? this.props.isNetworkBuyNativeTokenSupported
+      : this.props.isNetworkRampSupported;
 
     return (
       <View style={styles.wrapper}>
