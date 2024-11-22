@@ -146,7 +146,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   };
   const onBuy = () => {
-    const [route, params] = createBuyNavigationDetails();
+    const [route, params] = createBuyNavigationDetails({
+      address: asset.address,
+      chainId: getDecimalChainId(chainId),
+    });
     navigation.navigate(route, params || {});
     trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       text: 'Buy',

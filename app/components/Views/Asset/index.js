@@ -41,7 +41,10 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
+import {
+  isNetworkRampNativeTokenSupported,
+  isNetworkRampSupported,
+} from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -153,6 +156,10 @@ class Asset extends PureComponent {
     route: PropTypes.object,
     rpcUrl: PropTypes.string,
     networkConfigurations: PropTypes.object,
+    /**
+     * Boolean that indicates if network is supported to buy
+     */
+    isNetworkRampSupported: PropTypes.bool,
     /**
      * Boolean that indicates if native token is supported to buy
      */
@@ -465,7 +472,8 @@ class Asset extends PureComponent {
       AppConstants.SWAPS.ACTIVE;
 
     const displayBuyButton =
-      asset.isETH && this.props.isNetworkBuyNativeTokenSupported;
+      (asset.isETH && this.props.isNetworkBuyNativeTokenSupported) ||
+      this.props.isNetworkRampSupported;
 
     return (
       <View style={styles.wrapper}>
@@ -517,6 +525,10 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  isNetworkRampSupported: isNetworkRampSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
