@@ -158,7 +158,7 @@ const useAccounts = ({
         const mappedAccount: Account = {
           name: internalAccount.metadata.name,
           address: formattedAddress,
-          type: internalAccount.type as KeyringTypes,
+          type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
