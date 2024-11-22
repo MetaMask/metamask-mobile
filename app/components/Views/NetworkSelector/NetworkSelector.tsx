@@ -429,11 +429,11 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
 
     const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
     const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
@@ -444,7 +444,9 @@ const NetworkSelector = () => {
           key={chainId}
           variant={CellVariant.SelectWithMenu}
           title={name}
-          secondaryText={hideKeyFromUrl(rpcUrl)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           avatarProps={{
             variant: AvatarVariant.Network,
             name: mainnetName,
@@ -493,10 +495,10 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
     const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
@@ -517,7 +519,9 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          secondaryText={hideKeyFromUrl(rpcUrl)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           buttonProps={{
             onButtonClick: () => {
               openModal(chainId, false, LINEA_MAINNET, true);
@@ -596,7 +600,11 @@ const NetworkSelector = () => {
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
-            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
+            secondaryText={
+              rpcEndpoints?.length > 1
+                ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+                : undefined
+            }
             buttonProps={{
               onButtonClick: () => {
                 openModal(chainId, true, rpcUrl, false);
