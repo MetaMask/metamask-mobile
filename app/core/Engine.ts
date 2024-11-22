@@ -34,13 +34,8 @@ import {
   NftControllerActions,
   TokenRatesControllerActions,
   TokenRatesControllerEvents,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
+  AssetsContractControllerActions,
+  AssetsContractControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -338,13 +333,7 @@ type GlobalActions =
   | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
+  | AssetsContractControllerActions;
 
 type GlobalEvents =
   | AccountTrackerControllerEvents
@@ -375,7 +364,8 @@ type GlobalEvents =
   | TokenListControllerEvents
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
+  | SmartTransactionsControllerEvents
+  | AssetsContractControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
