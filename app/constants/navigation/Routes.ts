@@ -43,7 +43,6 @@ const Routes = {
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
     WHATS_NEW: 'WhatsNewModal',
-    SMART_TRANSACTIONS_OPT_IN: 'SmartTransactionsOptInModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     ENABLE_AUTOMATIC_SECURITY_CHECKS: 'EnableAutomaticSecurityChecksModal',
@@ -104,6 +103,7 @@ const Routes = {
     ACCOUNT_PERMISSIONS: 'AccountPermissions',
     REVOKE_ALL_ACCOUNT_PERMISSIONS: 'RevokeAllAccountPermissions',
     CONNECTION_DETAILS: 'ConnectionDetails',
+    PERMITTED_NETWORKS_INFO_SHEET: 'PermittedNetworksInfoSheet',
     NETWORK_SELECTOR: 'NetworkSelector',
     RETURN_TO_DAPP_MODAL: 'ReturnToDappModal',
     ACCOUNT_ACTIONS: 'AccountActions',
@@ -155,6 +155,7 @@ const Routes = {
     MODALS: {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
+      GAS_IMPACT: 'GasImpact',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
