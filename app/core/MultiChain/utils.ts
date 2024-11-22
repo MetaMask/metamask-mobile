@@ -6,6 +6,7 @@ import {
   BtcAccountType,
 } from '@metamask/keyring-api';
 import { isEthAddress } from '../../util/address';
+import { validate, Network } from 'bitcoin-address-validation';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -61,10 +62,7 @@ export function isBtcAccount(account: InternalAccount): boolean {
  * @returns `true` if the address is on the Bitcoin mainnet, `false` otherwise.
  */
 export function isBtcMainnetAddress(address: string): boolean {
-  return (
-    !isEthAddress(address) &&
-    (address.startsWith('bc1') || address.startsWith('1'))
-  );
+  return validate(address, Network.mainnet);
 }
 
 /**
@@ -76,6 +74,6 @@ export function isBtcMainnetAddress(address: string): boolean {
  * @returns `true` if the address is on the Bitcoin testnet, `false` otherwise.
  */
 export function isBtcTestnetAddress(address: string): boolean {
-  return !isEthAddress(address) && !isBtcMainnetAddress(address);
+  return validate(address, Network.testnet);
 }
 ///: END:ONLY_INCLUDE_IF
