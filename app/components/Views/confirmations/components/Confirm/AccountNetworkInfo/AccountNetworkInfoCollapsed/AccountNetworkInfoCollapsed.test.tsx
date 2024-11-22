@@ -9,6 +9,7 @@ describe('AccountNetworkInfoCollapsed', () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed />, {
       state: personalSignatureConfirmationState,
     });
+    expect(getByText('0x935E...5477')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 });
