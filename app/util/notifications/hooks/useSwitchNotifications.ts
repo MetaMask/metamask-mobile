@@ -92,16 +92,10 @@ export function useAccountSettingsProps(accounts: Account[]) {
   const dispatch = useDispatch();
 
   // Memoize the accounts array to avoid unnecessary re-fetching
-  const memoAccounts = useMemo(
-    () => accounts.map((account) => account.address),
-    [accounts],
-  );
+  const memoAccounts = useMemo(() => accounts.map((account) => account.address),[accounts]);
   const updateAndfetchAccountSettings = useCallback(async () => {
     try {
-      const result =
-        await Engine.context.NotificationServicesController.checkAccountsPresence(
-          memoAccounts,
-        );
+      const result = await Engine.context.NotificationServicesController.checkAccountsPresence(memoAccounts);
       dispatch(updateAccountState(result));
       return result;
     } catch (err) {

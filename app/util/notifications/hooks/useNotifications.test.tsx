@@ -24,12 +24,10 @@ import {
   createMockNotificationEthSent,
 } from '../../../components/UI/Notification/__mocks__/mock_notifications';
 
-jest.mock('../constants', () => {
-  return {
-    ...jest.requireActual('../constants'),
-    isNotificationsFeatureEnabled: () => true,
-  };
-});
+jest.mock('../constants', () => ({
+  ...jest.requireActual('../constants'),
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);

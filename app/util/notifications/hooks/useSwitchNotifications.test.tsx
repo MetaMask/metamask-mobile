@@ -20,12 +20,10 @@ import { Hex } from '@metamask/utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
 
-jest.mock('../constants', () => {
-  return {
-    ...jest.requireActual('../constants'),
-    isNotificationsFeatureEnabled: () => true,
-  };
-});
+jest.mock('../constants', () => ({
+  ...jest.requireActual('../constants'),
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
