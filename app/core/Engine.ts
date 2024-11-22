@@ -1545,7 +1545,7 @@ export class Engine {
           ),
         platform: 'mobile',
         useAccountsAPI: true,
-        disabled: false
+        disabled: false,
       }),
 
       new NftDetectionController({
@@ -1752,9 +1752,9 @@ export class Engine {
     }
 
     this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionBlockReceived',
-      (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
+      'TransactionController:incomingTransactionsReceived',
+      (incomingTransactions: TransactionMeta[]) => {
+        NotificationManager.gotIncomingTransaction(incomingTransactions);
       },
     );
 
@@ -1918,9 +1918,7 @@ export class Engine {
   }
 
   startPolling() {
-    const {
-      TransactionController,
-    } = this.context;
+    const { TransactionController } = this.context;
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
@@ -1999,13 +1997,19 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
-        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance);
-        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+        const balanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].balance,
+        );
+        const stakedBalanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].stakedBalance || '0x00',
+        );
+        const totalAccountBalance = balanceBN
+          .add(stakedBalanceBN)
+          .toString('hex');
         ethFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,

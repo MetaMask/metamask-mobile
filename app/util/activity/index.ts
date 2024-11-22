@@ -64,29 +64,17 @@ export const filterByAddressAndNetwork = (
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tx: any,
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tokens: any[],
   selectedAddress: string,
   networkId: string,
   chainId: string,
 ): boolean => {
   const {
     txParams: { from, to },
-    isTransfer,
-    transferInformation,
   } = tx;
 
-  if (
+  return (
     isFromOrToSelectedAddress(from, to, selectedAddress) &&
     isFromCurrentChain(tx, networkId, chainId) &&
     tx.status !== TX_UNAPPROVED
-  ) {
-    return isTransfer
-      ? !!tokens.find(({ address }) =>
-          toLowerCaseEquals(address, transferInformation.contractAddress),
-        )
-      : true;
-  }
-  return false;
+  );
 };

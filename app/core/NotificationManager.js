@@ -394,56 +394,47 @@ class NotificationManager {
   /**
    * Generates a notification for an incoming transaction
    */
-  gotIncomingTransaction = async (lastBlock) => {
+  gotIncomingTransaction = async (incomingTransactions) => {
     const {
       AccountTrackerController,
-      TransactionController,
       AccountsController,
     } = Engine.context;
+
     const selectedInternalAccount = AccountsController.getSelectedAccount();
+
     const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
       selectedInternalAccount.address,
     );
 
-    const chainId = selectChainId(store.getState());
     const ticker = useSelector(selectTicker);
-
-    /// Find the incoming TX
-    const transactions = TransactionController.getTransactions({
-      filterToCurrentNetwork: false,
-    });
 
     // If a TX has been confirmed more than 10 min ago, it's considered old
     const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
 
-    if (transactions.length) {
-      const txs = transactions
-        .reverse()
-        .filter(
-          (tx) =>
-            safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
-            safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
-            tx.chainId === chainId &&
-            tx.status === 'confirmed' &&
-            lastBlock <= parseInt(tx.blockNumber, 10) &&
-            tx.time > oldestTimeAllowed,
-        );
-      if (txs.length > 0) {
-        this._showNotification({
-          type: 'received',
-          transaction: {
-            nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
-            amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
-            id: txs[0]?.id,
-            assetType: getTicker(ticker),
-          },
-          autoHide: true,
-          duration: 7000,
-        });
-      }
+    const filteredTransactions = incomingTransactions.filter(tx => safeToChecksumAddress(tx.txParams?.to) ===
+      selectedInternalAccountChecksummedAddress &&
+      tx.time > oldestTimeAllowed);
+
+    if (!filteredTransactions.length) {
+      return;
     }
+
+    const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
+    const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
+    const id = filteredTransactions[0]?.id;
+
+    this._showNotification({
+      type: 'received',
+      transaction: {
+        nonce,
+        amount,
+        id,
+        assetType: getTicker(ticker),
+      },
+      autoHide: true,
+      duration: 7000,
+    });
+
     // Update balance upon detecting a new incoming transaction
     AccountTrackerController.refresh();
   };
@@ -477,8 +468,8 @@ export default {
   setTransactionToView(id) {
     return instance?.setTransactionToView(id);
   },
-  gotIncomingTransaction(lastBlock) {
-    return instance?.gotIncomingTransaction(lastBlock);
+  gotIncomingTransaction(incomingTransactions) {
+    return instance?.gotIncomingTransaction(incomingTransactions);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);
