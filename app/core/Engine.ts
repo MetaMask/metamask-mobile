@@ -136,6 +136,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
+  SnapInterfaceControllerState,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -380,6 +382,7 @@ export interface EngineState {
   TokenDetectionController: BaseState;
   NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  SnapInterfaceController: SnapInterfaceControllerState;
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
   SubjectMetadataController: SubjectMetadataControllerState;
@@ -907,6 +910,14 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -1203,6 +1214,22 @@ export class Engine {
         disableSnaps:
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+        ],
+        allowedEvents: [],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: snapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1546,7 +1573,7 @@ export class Engine {
           ),
         platform: 'mobile',
         useAccountsAPI: true,
-        disabled: false
+        disabled: false,
       }),
 
       new NftDetectionController({
@@ -1668,6 +1695,7 @@ export class Engine {
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
       loggingController,
+      snapInterfaceController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       this.snapController,
       this.subjectMetadataController,
@@ -1919,9 +1947,7 @@ export class Engine {
   }
 
   startPolling() {
-    const {
-      TransactionController,
-    } = this.context;
+    const { TransactionController } = this.context;
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling();
@@ -1990,6 +2016,20 @@ export class Engine {
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
+      const balanceBN = hexToBN(
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance,
+      );
+      const stakedBalanceBN = hexToBN(
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance || '0x00',
+      );
+      const totalAccountBalance = balanceBN
+        .add(stakedBalanceBN)
+        .toString('hex');
+
       let ethFiat = 0;
       let ethFiat1dAgo = 0;
       let tokenFiat = 0;
@@ -2000,13 +2040,19 @@ export class Engine {
           selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
-        const balanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance);
-        const stakedBalanceBN = hexToBN(accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance || '0x00');
-        const totalAccountBalance = balanceBN.add(stakedBalanceBN).toString('hex');
+        const balanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].balance,
+        );
+        const stakedBalanceBN = hexToBN(
+          accountsByChainId[toHexadecimal(chainId)][
+            selectSelectedInternalAccountChecksummedAddress
+          ].stakedBalance || '0x00',
+        );
+        const totalAccountBalance = balanceBN
+          .add(stakedBalanceBN)
+          .toString('hex');
         ethFiat = weiToFiatNumber(
           totalAccountBalance,
           conversionRate,
@@ -2321,6 +2367,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2367,6 +2414,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
