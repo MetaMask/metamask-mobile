@@ -1,6 +1,7 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
@@ -54,20 +55,17 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
-  navigation,
   asset,
   displayBuyButton,
   displaySwapsButton,
 }: AssetOverviewProps) => {
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
@@ -146,11 +144,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   };
   const onBuy = () => {
-    const [route, params] = createBuyNavigationDetails({
-      address: asset.address,
-      chainId: getDecimalChainId(chainId),
-    });
-    navigation.navigate(route, params || {});
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
     trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
       text: 'Buy',
       location: 'TokenDetails',

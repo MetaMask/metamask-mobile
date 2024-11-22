@@ -484,7 +484,6 @@ class Asset extends PureComponent {
             header={
               <>
                 <AssetOverview
-                  navigation={navigation}
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
