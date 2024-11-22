@@ -15,6 +15,7 @@ import {
   getKeyringByAddress,
   getLabelTextByAddress,
   isSnapAccount,
+  toFormattedAddress,
 } from '.';
 import {
   mockHDKeyringAddress,
@@ -84,8 +85,9 @@ describe('renderSlightlyLongAddress', () => {
       );
     });
   });
+
   describe('non-EVM addresses', () => {
-    it('should not checksum address and maintain original format', () => {
+    it('does not checksum address and maintain original format', () => {
       const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       const result = renderSlightlyLongAddress(address);
       const [beforeEllipsis, afterEllipsis] = result.split('...');
@@ -94,7 +96,7 @@ describe('renderSlightlyLongAddress', () => {
       expect(result).toBe('bc1qxy2kgdygjrsqtzq2n0yr...0wlh');
     });
 
-    it('should respect custom chars and initialChars parameters', () => {
+    it('respects custom chars and initialChars parameters', () => {
       const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
       const result = renderSlightlyLongAddress(address, 5, 10);
       const [beforeEllipsis, afterEllipsis] = result.split('...');
@@ -110,35 +112,53 @@ describe('formatAddress', () => {
   const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
 
   describe('with EVM addresses', () => {
-    it('should return checksummed address formatted for short type', () => {
+    it('returns checksummed address formatted for short type', () => {
       const expectedValue = '0xC495...D272';
       expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
     });
 
-    it('should return checksummed address formatted for mid type', () => {
+    it('returns checksummed address formatted for mid type', () => {
       const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
       expect(formatAddress(mockEvmAddress, 'mid')).toBe(expectedValue);
     });
 
-    it('should return full checksummed address for full type', () => {
+    it('returns full checksummed address for full type', () => {
       const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
       expect(formatAddress(mockEvmAddress, 'full')).toBe(expectedValue);
     });
   });
 
   describe('with non-EVM addresses', () => {
-    it('should return address formatted for short type without checksumming', () => {
+    it('returns address formatted for short type without checksumming', () => {
       const expectedValue = 'bc1qxy...0wlh';
       expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
     });
 
-    it('should return address formatted for mid type without checksumming', () => {
+    it('returns address formatted for mid type without checksumming', () => {
       const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yr...0wlh';
       expect(formatAddress(mockBtcAddress, 'mid')).toBe(expectedValue);
     });
 
-    it('should return full address without checksumming for full type', () => {
-      expect(formatAddress(mockBtcAddress, 'full')).toBe(mockBtcAddress);
+    it('returns full address without checksumming for full type', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(formatAddress(mockBtcAddress, 'full')).toBe(expectedValue);
+    });
+  });
+});
+
+describe('toFormattedAddress', () => {
+  describe('with EVM addresses', () => {
+    it('returns checksummed address for lowercase input', () => {
+      const input = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const expected = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(toFormattedAddress(input)).toBe(expected);
+    });
+  });
+
+  describe('with non-EVM addresses', () => {
+    it('returns original address without modification', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(toFormattedAddress(address)).toBe(address);
     });
   });
 });
