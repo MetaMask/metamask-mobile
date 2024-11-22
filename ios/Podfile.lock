@@ -823,7 +823,6 @@ DEPENDENCIES:
   - GzipSwift
   - lottie-ios (from `../node_modules/lottie-ios`)
   - lottie-react-native (from `../node_modules/lottie-react-native`)
-  - OpenSSL-Universal
   - OpenSSL-Universal (= 1.1.1100)
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -1202,7 +1201,7 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
+  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: fb207f74935626041e7308c9e88dcdda680f1073
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
   RCTTypeSafety: 146fd11361680250b7580dd1f7f601995cfad1b1
@@ -1297,6 +1296,6 @@ SPEC CHECKSUMS:
   Yoga: 6f5ab94cd8b1ecd04b6e973d0bc583ede2a598cc
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: e0bcc4eb12d48746028cd4f4161a292fa9ddc627
+PODFILE CHECKSUM: f96c69ea951ea163e7d3af6b60441c95fa2f0dd9
 
 COCOAPODS: 1.16.2

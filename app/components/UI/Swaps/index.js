@@ -299,10 +299,10 @@ function SwapsAmountView({
       const { SwapsController } = Engine.context;
       try {
         await SwapsController.fetchAggregatorMetadataWithCache({
-          networkClientId: selectSelectedNetworkClientId,
+          networkClientId: selectedNetworkClientId,
         });
         await SwapsController.fetchTopAssetsWithCache({
-          networkClientId: selectSelectedNetworkClientId,
+          networkClientId: selectedNetworkClientId,
         });
       } catch (error) {
         Logger.error(

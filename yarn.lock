@@ -4341,10 +4341,10 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/swaps-controller@11.0.0-preview-8176e4502716cfe6450c2b73be6ee403b0cea072":
-  version "11.0.0-preview-8176e4502716cfe6450c2b73be6ee403b0cea072"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/swaps-controller/-/swaps-controller-11.0.0-preview-8176e4502716cfe6450c2b73be6ee403b0cea072.tgz#c43f3c529911bf133a73382f7f872e74bf0e0ae4"
-  integrity sha512-Y+uJxvzgtSD9qm7u1Kh+kGAYHY5Qi9oVIbZNKxhZIpki6dTwDt8VDnzplybytTYMQEbsXdjJ5m5LFyl2Q/KF2Q==
+"@metamask-previews/swaps-controller@11.0.0-preview-40be04506cf92f5e6a271eb90c96b4ddcf57dd5d":
+  version "11.0.0-preview-40be04506cf92f5e6a271eb90c96b4ddcf57dd5d"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/swaps-controller/-/swaps-controller-11.0.0-preview-40be04506cf92f5e6a271eb90c96b4ddcf57dd5d.tgz#cdae62da08260031a31631cd22730610ccd39507"
+  integrity sha512-2+4T0HgDSjl7+HMkoFdJGESZHdOFzgqrSt8HY7T/9eI+wnhjmxFY0pNl0MxqZrqDMXznj3MOF7x9ccc28bemjQ==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"

@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -316,7 +316,7 @@ async function resetAndStartPolling({
     walletAddress,
     networkClientId,
   });
-  await SwapsController.stopPollingAndResetState;
+  await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
     fetchParams,
     fetchParams.metaData,
@@ -767,7 +767,7 @@ function SwapsQuotesView({
     }
   }, [error, navigation]);
 
-  const selectedNetworkClientId = selectSelectedNetworkClientId();
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const handleRetryFetchQuotes = useCallback(() => {
     if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
@@ -1372,6 +1372,7 @@ function SwapsQuotesView({
       destinationToken,
       sourceAmount,
       walletAddress: selectedAddress,
+      networkClientId: selectedNetworkClientId,
     });
 
     return () => {
@@ -1385,6 +1386,7 @@ function SwapsQuotesView({
     slippage,
     sourceAmount,
     sourceToken.address,
+    selectedNetworkClientId,
   ]);
 
   /** selectedQuote alert effect */
