@@ -191,16 +191,26 @@ describe('Accounts Controller Selectors', () => {
 });
 
 describe('Bitcoin Account Selectors', () => {
+  function getStateWithAccount(account: InternalAccount) {
+    return {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [account.id]: account,
+              },
+              selectedAccount: account.id,
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+  }
+
   const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
   const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
-
-  const MOCK_BTC_MAINNET_UUID = createMockUuidFromAddress(
-    MOCK_BTC_MAINNET_ADDRESS,
-  );
-
-  const MOCK_BTC_TESTNET_UUID = createMockUuidFromAddress(
-    MOCK_BTC_TESTNET_ADDRESS,
-  );
 
   const btcMainnetAccount = createMockInternalAccount(
     MOCK_BTC_MAINNET_ADDRESS,
@@ -218,84 +228,24 @@ describe('Bitcoin Account Selectors', () => {
 
   describe('hasCreatedBtcMainnetAccount', () => {
     it('returns true when a BTC mainnet account exists', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [MOCK_BTC_MAINNET_UUID]: btcMainnetAccount,
-                },
-                selectedAccount: MOCK_BTC_MAINNET_UUID,
-              },
-            },
-            KeyringController: MOCK_KEYRING_CONTROLLER,
-          },
-        },
-      } as RootState;
-
+      const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
     });
 
     it('returns false when no BTC mainnet account exists', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [MOCK_BTC_TESTNET_UUID]: btcTestnetAccount,
-                },
-                selectedAccount: MOCK_BTC_TESTNET_UUID,
-              },
-            },
-            KeyringController: MOCK_KEYRING_CONTROLLER,
-          },
-        },
-      } as RootState;
-
+      const state = getStateWithAccount(btcTestnetAccount);
       expect(hasCreatedBtcMainnetAccount(state)).toBe(false);
     });
   });
 
   describe('hasCreatedBtcTestnetAccount', () => {
     it('returns true when a BTC testnet account exists', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [MOCK_BTC_TESTNET_UUID]: btcTestnetAccount,
-                },
-                selectedAccount: MOCK_BTC_TESTNET_UUID,
-              },
-            },
-            KeyringController: MOCK_KEYRING_CONTROLLER,
-          },
-        },
-      } as RootState;
-
+      const state = getStateWithAccount(btcTestnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(true);
     });
 
     it('returns false when no BTC testnet account exists', () => {
-      const state = {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [MOCK_BTC_MAINNET_UUID]: btcMainnetAccount,
-                },
-                selectedAccount: MOCK_BTC_MAINNET_UUID,
-              },
-            },
-            KeyringController: MOCK_KEYRING_CONTROLLER,
-          },
-        },
-      } as RootState;
-
+      const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
     });
   });
