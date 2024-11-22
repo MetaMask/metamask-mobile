@@ -76,7 +76,7 @@ module.exports = {
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
-        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
       ],
       rules: {
         'no-restricted-syntax': [
@@ -91,7 +91,7 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker',
+              'selectTicker'
             ]
               .map((method) => `(${method})`)
               .join('|')}/]`,
