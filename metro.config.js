@@ -8,6 +8,18 @@
 
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
 
+const path = require("path");
+
+const featureFlagModuleDir = path.resolve(__dirname, "../../core/feature-flags/packages/remote-feature-flag-controller");
+
+const extraNodeModules = {
+  "@metamask/remote-feature-flag-controller": featureFlagModuleDir,
+};
+
+const watchFolders = [
+  featureFlagModuleDir,
+];
+
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
   const {
@@ -15,10 +27,16 @@ module.exports = function (baseConfig) {
   } = defaultConfig;
 
   return mergeConfig(defaultConfig, {
+    watchFolders,
     resolver: {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
+      extraNodeModules: new Proxy (extraNodeModules, {
+        get: (target, name) =>
+          name in target ? target[name] : path.join(process.cwd(), `node_modules/${name}`),
+      }),
+      unstable_enableSymlinks: true,
     },
     transformer: {
       babelTransformerPath: require.resolve('./metro.transform.js'),

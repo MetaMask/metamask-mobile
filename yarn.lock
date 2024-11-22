@@ -5345,6 +5345,10 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
+"@metamask/remote-feature-flag-controller@link:../../core/feature-flags/packages/remote-feature-flag-controller":
+  version "0.0.0"
+  uid ""
+
 "@metamask/rpc-errors@7.0.1", "@metamask/rpc-errors@^6.0.0", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^6.3.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-7.0.1.tgz#0eb2231a1d5e6bb102df5ac07f365c695bf70055"
