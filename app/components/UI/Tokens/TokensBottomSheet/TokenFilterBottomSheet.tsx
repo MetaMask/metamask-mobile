@@ -4,7 +4,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
+import {
+  selectIsAllNetworksTokenFilter,
+  selectTokenNetworkFilter,
+} from '../../../../selectors/preferencesController';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -33,6 +36,7 @@ const TokenFilterBottomSheet = () => {
 
   const chainId = useSelector(selectChainId);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
   const allNetworksEnabled = useMemo(
     () => enableAllNetworksFilter(allNetworks),
     [allNetworks],
@@ -59,9 +63,6 @@ const TokenFilterBottomSheet = () => {
   const isCurrentNetwork = Boolean(
     tokenNetworkFilter[chainId] && Object.keys(tokenNetworkFilter).length === 1,
   );
-  const isAllNetworks =
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length;
-
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
       <View style={styles.bottomSheetWrapper}>

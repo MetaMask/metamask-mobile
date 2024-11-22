@@ -27,7 +27,10 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectShowTestNetworks } from '../../../selectors/preferencesController';
+import {
+  selectIsAllNetworksTokenFilter,
+  selectShowTestNetworks,
+} from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
   getDecimalChainId,
@@ -123,6 +126,7 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
+  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -173,12 +177,17 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
-  const setTokenNetworkFilter = useCallback((chainId: string) => {
-    const { PreferencesController } = Engine.context;
-    PreferencesController.setTokenNetworkFilter({
-      [chainId]: true,
-    });
-  }, []);
+  const setTokenNetworkFilter = useCallback(
+    (chainId: string) => {
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetworks) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      }
+    },
+    [isAllNetworks],
+  );
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
@@ -380,7 +389,7 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       NetworkController.setActiveNetwork(clientId);
-      setTokenNetworkFilter(networkConfiguration.chainId);
+
       closeRpcModal();
       AccountTrackerController.refresh();
 

@@ -143,6 +143,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         balance={secondaryBalance}
         onPress={() =>
           !asset.isETH &&
+          !asset.isNative &&
           navigation.navigate('AssetDetails', {
             chainId: asset.chainId,
             address: asset.address,

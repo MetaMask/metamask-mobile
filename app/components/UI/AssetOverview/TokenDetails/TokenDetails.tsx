@@ -145,10 +145,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         ? localizeLargeNumber(i18n, marketData.dilutedMarketCap)
         : null,
   };
-  console.log('=====================');
-  // console.log('tokenDetails', tokenDetails);
-  console.log('marketDetails', marketDetails);
-  console.log('=====================');
+
   return (
     <View style={styles.tokenDetailsContainer}>
       {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}

@@ -26,14 +26,11 @@ import {
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../../../util/networks';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../../../selectors/networkController';
+import { selectChainId } from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
 import {
   selectUseTokenDetection,
-  selectTokenNetworkFilter,
+  selectIsAllNetworksTokenFilter,
 } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
@@ -76,12 +73,7 @@ export const TokenListFooter = ({
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-  // TODO: Can probably create "isAllNetworks" selector for these
-  // since they are re-used in multiple places
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter); // X
-  const allNetworks = useSelector(selectNetworkConfigurations); // X
-  const isAllNetworks =
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length; // X
+  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
 
   const styles = createStyles(colors);
 

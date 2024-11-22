@@ -12,6 +12,7 @@ import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
+
 // External Dependencies
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
@@ -40,7 +41,7 @@ import BottomSheet, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 import { TokenI } from '../../UI/Tokens/types';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import { selectIsAllNetworksTokenFilter } from '../../../selectors/preferencesController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,12 +100,8 @@ const DetectedTokens = () => {
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
-  // TODO: Can probably create "isAllNetworks" selector for these
-  // since they are re-used in multiple places
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter); // X
-  const allNetworks = useSelector(selectNetworkConfigurations); // X
-  const isAllNetworks =
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length; // X
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);

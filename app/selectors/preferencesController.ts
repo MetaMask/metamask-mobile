@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
+import { selectNetworkConfigurations } from './networkController';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController;
@@ -125,4 +126,11 @@ export const selectPrivacyMode = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.privacyMode,
+);
+
+export const selectIsAllNetworksTokenFilter = createSelector(
+  selectTokenNetworkFilter,
+  selectNetworkConfigurations,
+  (tokenNetworkFilter, allNetworks) =>
+    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length,
 );
