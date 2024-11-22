@@ -21,6 +21,7 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AssetsContractController": {},
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -39,6 +40,8 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
+  "TokenDetectionController": {},
+  "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
     "versionInfo": []
