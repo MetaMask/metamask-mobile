@@ -89,7 +89,10 @@ const AssetOptions = (props: Props) => {
 
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('AssetDetails', { address, chainId: networkId });
+      navigation.navigate('AssetDetails', {
+        address,
+        chainId: networkId,
+      });
     });
   };
 

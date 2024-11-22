@@ -71,8 +71,13 @@ describe('useAddressBalance', () => {
       .fn()
       .mockReturnValue(Promise.resolve(0x0186a0));
     //@ts-expect-error - for test purposes is not needed to add the other properties of AssetsContractController
-    Engine.context.AssetsContractController = {
-      getERC20BalanceOf: mockGetERC20BalanceOf,
+    Engine.context = {
+      AssetsContractController: {
+        getERC20BalanceOf: mockGetERC20BalanceOf,
+      },
+      TokensController: {
+        addToken: jest.fn(),
+      },
     };
   });
 

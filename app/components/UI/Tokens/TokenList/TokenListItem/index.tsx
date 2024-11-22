@@ -81,7 +81,10 @@ export const TokenListItem = ({
   const { data: tokenBalances } = useTokenBalancesController();
 
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectChainId);
+  const chainId = isPortfolioViewEnabled
+    ? (asset.chainId as Hex)
+    : selectedChainId;
   const ticker = useSelector(selectTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -114,12 +117,12 @@ export const TokenListItem = ({
 
   if (isPortfolioViewEnabled) {
     const tokenPercentageChange = asset.address
-      ? multiChainMarketData?.[asset.chainId as Hex]?.[asset.address as Hex]
+      ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
           ?.pricePercentChange1d
       : 0;
 
     pricePercentChange1d = asset.isNative
-      ? multiChainMarketData?.[asset.chainId as Hex]?.[zeroAddress() as Hex]
+      ? multiChainMarketData?.[chainId as Hex]?.[zeroAddress() as Hex]
           ?.pricePercentChange1d
       : tokenPercentageChange;
   } else {
@@ -179,13 +182,15 @@ export const TokenListItem = ({
     asset = { ...asset, balanceFiat };
   } else {
     mainBalance = asset.balance;
-    secondaryBalance = asset.balanceFiat;
+    secondaryBalance = asset.balanceFiat
+      ? asset.balanceFiat
+      : strings('wallet.unable_to_find_conversion_rate');
   }
 
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-  const { isStakingSupportedChain } = useStakingChainByChainId(asset.chainId);
+  const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
@@ -251,7 +256,7 @@ export const TokenListItem = ({
     if (isPortfolioViewEnabled && asset.isNative) {
       return (
         <NetworkAssetLogo
-          chainId={asset.chainId as Hex}
+          chainId={chainId as Hex}
           style={styles.ethLogo}
           ticker={asset.symbol}
           big={false}
@@ -273,8 +278,8 @@ export const TokenListItem = ({
     asset.image,
     asset.symbol,
     asset.isNative,
-    asset.chainId,
     styles.ethLogo,
+    chainId,
   ]);
 
   return (
@@ -292,9 +297,7 @@ export const TokenListItem = ({
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={networkBadgeSource(
-              isPortfolioViewEnabled ? (asset.chainId as Hex) : chainId,
-            )}
+            imageSource={networkBadgeSource(chainId)}
             name={networkName}
           />
         }

@@ -379,7 +379,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${nativeCurrency}`;
+    mainBalance = `${balance} ${asset.symbol}`;
     secondaryBalance = asset.balanceFiat;
   }
 

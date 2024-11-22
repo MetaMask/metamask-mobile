@@ -89,7 +89,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  const chainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectChainId);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
@@ -253,24 +253,30 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
-        NetworkController,
         AccountsController,
       } = Engine.context;
 
-      const networkConfigurations =
-        NetworkController.state.networkConfigurationsByChainId;
-      const chainIds = Object.keys(networkConfigurations);
       const selectedAddress =
         AccountsController.state.internalAccounts.selectedAccount;
 
       const actions = [
         TokenDetectionController.detectTokens({
-          chainIds: chainIds as Hex[],
+          chainIds: isPortfolioViewEnabled
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [selectedChainId],
           selectedAddress,
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        TokenRatesController.updateExchangeRates(),
+        ...(isPortfolioViewEnabled
+          ? Object.values(networkConfigurationsByChainId)
+          : [networkConfigurationsByChainId[selectedChainId]]
+        ).map((network) =>
+          TokenRatesController.updateExchangeRatesByChainId({
+            chainId: network.chainId,
+            nativeCurrency: network.nativeCurrency,
+          }),
+        ),
       ];
       await Promise.all(actions).catch((error) => {
         Logger.error(error, 'Error while refreshing tokens');
@@ -300,7 +306,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             token_standard: 'ERC20',
             asset_type: 'token',
             tokens: [`${symbol} - ${tokenAddress}`],
-            chain_id: getDecimalChainId(chainId),
+            chain_id: getDecimalChainId(selectedChainId),
           })
           .build(),
       );
@@ -316,7 +322,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
         .addProperties({
           source: 'manual',
-          chain_id: getDecimalChainId(chainId),
+          chain_id: getDecimalChainId(selectedChainId),
         })
         .build(),
     );

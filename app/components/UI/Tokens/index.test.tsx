@@ -15,6 +15,8 @@ import Engine from '../../../core/Engine';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -41,6 +43,7 @@ jest.mock('../../../core/Engine', () => ({
     },
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+      updateExchangeRates: jest.fn(() => Promise.resolve()),
     },
     NetworkController: {
       getNetworkClientById: () => ({
@@ -52,6 +55,21 @@ jest.mock('../../../core/Engine', () => ({
         },
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
+      state: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            ticker: 'ETH',
+          },
+        },
+      },
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          selectedAccount: '0x123',
+        },
+      },
     },
   },
 }));
@@ -359,7 +377,9 @@ describe('Tokens', () => {
         Engine.context.CurrencyRateController.updateExchangeRate,
       ).toHaveBeenCalled();
       expect(
-        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        !isPortfolioViewEnabled
+          ? Engine.context.TokenRatesController.updateExchangeRatesByChainId
+          : Engine.context.TokenRatesController.updateExchangeRates,
       ).toHaveBeenCalled();
     });
   });

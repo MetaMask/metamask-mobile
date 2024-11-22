@@ -44,7 +44,7 @@ const TokenSortBottomSheet = () => {
         break;
       case SortOption.Alphabetical:
         PreferencesController.setTokenSortConfig({
-          key: 'name',
+          key: 'symbol',
           sortCallback: 'alphaNumeric',
           order: 'asc',
         });

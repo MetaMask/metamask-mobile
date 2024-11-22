@@ -34,17 +34,26 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
   selectProviderConfig,
+  selectNetworkConfigurationByChainId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectConversionRateBySymbol,
 } from '../../../selectors/currencyRateController';
 import {
   selectAllTokens,
   selectTokens,
 } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketDataByChainId,
+  selectTokenMarketData,
+} from '../../../selectors/tokenRatesController';
+import {
+  selectContractBalances,
+  selectTokensBalances,
+} from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
@@ -104,7 +113,7 @@ interface Props {
   route: {
     params: {
       address: Hex;
-      chainId: string;
+      chainId: Hex;
     };
   };
 }
@@ -132,14 +141,27 @@ const AssetDetails = (props: Props) => {
     [allTokens, chainId, selectedAccountAddress],
   );
 
-  const conversionRate = useSelector(selectConversionRate);
+  const conversionRateLegacy = useSelector(selectConversionRate);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId),
+  );
+  const conversionRateBySymbol = useSelector((state: RootState) =>
+    selectConversionRateBySymbol(
+      state,
+      networkConfigurationByChainId?.nativeCurrency,
+    ),
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
-
+  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
+    selectTokenMarketDataByChainId(state, chainId),
+  );
+  const tokenBalancesLegacy = useSelector(selectContractBalances);
+  const allTokenBalances = useSelector(selectTokensBalances);
+  const allTokenMarketData = useSelector(selectTokenMarketData);
   const portfolioToken = useMemo(
     () => tokensByChain.find((rawToken) => rawToken.address === address),
     [tokensByChain, address],
@@ -284,13 +306,30 @@ const AssetDetails = (props: Props) => {
 
   const renderTokenBalance = () => {
     let balanceDisplay = '';
+    const tokenExchangeRates = isPortfolioViewEnabled
+      ? tokenExchangeRatesByChainId
+      : tokenExchangeRatesLegacy;
+    const tokenBalances = isPortfolioViewEnabled
+      ? allTokenBalances
+      : tokenBalancesLegacy;
+    const multiChainTokenBalance =
+      allTokenBalances[selectedAccountAddress as Hex]?.[chainId as Hex]?.[
+        address as Hex
+      ];
+    const tokenBalance = isPortfolioViewEnabled
+      ? multiChainTokenBalance
+      : tokenBalancesLegacy[address];
+    const conversionRate = isPortfolioViewEnabled
+      ? conversionRateBySymbol
+      : conversionRateLegacy;
+
     const exchangeRate =
       tokenExchangeRates && address in tokenExchangeRates
         ? tokenExchangeRates[address]?.price
         : undefined;
     const balance =
-      address in tokenBalances
-        ? renderFromTokenMinimalUnit(tokenBalances[address], decimals)
+      address in tokenBalances || isPortfolioViewEnabled
+        ? renderFromTokenMinimalUnit(tokenBalance, decimals)
         : undefined;
     const balanceFiat = balance
       ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
