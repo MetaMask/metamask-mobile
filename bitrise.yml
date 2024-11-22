@@ -1184,7 +1184,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk.apk"
+            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
           title: Bitrise Deploy APK
     meta:
       bitrise.io:
@@ -1435,6 +1435,33 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_release
+  build_ios_devbuild:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $VERSION_NAME
+            - build_version: $VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
+          title: iOS Sourcemaps & Build
+          is_always_run: false
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask.ipa
+          title: Deploy iOS IPA
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'

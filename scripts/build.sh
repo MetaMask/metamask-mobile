@@ -250,6 +250,11 @@ buildAndroidRunFlask(){
 	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
 }
 
+buildIosDevBuild(){
+	prebuild_ios
+	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build && cd ..
+}
+
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
@@ -577,6 +582,8 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
+	elif [ "$MODE" == "devbuild" ] ; then
+		buildIosDevBuild
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice

@@ -42,6 +42,7 @@
     "build:android:pre-release:bundle:qa": "GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
     "build:android:pre-release:bundle:flask": "export METAMASK_BUILD_TYPE='flask' && GENERATE_BUNDLE=true ./scripts/build.sh android flask --pre",
     "build:ios:release": "./scripts/build.sh ios release",
+    "build:ios:devbuild": "./scripts/build.sh ios devbuild",
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
     "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
