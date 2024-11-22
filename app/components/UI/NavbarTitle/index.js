@@ -144,7 +144,9 @@ class NavbarTitle extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (providerConfig.nickname) {
+    if (networkName) {
+      name = networkName;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -153,19 +155,6 @@ class NavbarTitle extends PureComponent {
     }
 
     const realTitle = translate ? strings(title) : title;
-    let displayName = networkName;
-
-    if (!displayName) {
-      if (providerConfig.nickname) {
-        displayName = providerConfig.nickname;
-      } else {
-        displayName =
-          (Networks[providerConfig.type] &&
-            Networks[providerConfig.type].name) ||
-          { ...Networks.rpc, color: null }.name;
-      }
-    }
-
     return (
       <TouchableOpacity
         onPress={this.openNetworkList}
@@ -193,7 +182,7 @@ class NavbarTitle extends PureComponent {
               ]}
             />
             <Text numberOfLines={1} style={styles.networkName}>
-              {displayName || name}
+              {name}
             </Text>
           </View>
         ) : null}
