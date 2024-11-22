@@ -1,6 +1,7 @@
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ActivitiesView {
   static FIRST_ROW = 0;
