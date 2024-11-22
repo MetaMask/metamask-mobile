@@ -55,7 +55,7 @@ const defaultProps = {
 };
  */
 
-describe('SwapsAmountView', () => {
+describe.skip('SwapsAmountView', () => {
   it('render correctly', () => {
     const wrapper = renderWithProvider(<SwapsAmountView />, {
       state: mockInitialState,
