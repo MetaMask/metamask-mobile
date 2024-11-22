@@ -1,14 +1,17 @@
 import React from 'react';
-import AssetOverview from './AssetOverview';
+import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
+import { NetworkController } from '@metamask/network-controller';
+import AssetOverview from './AssetOverview';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { NetworkController } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { fireEvent } from '@testing-library/react-native';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { getDecimalChainId } from '../../../util/networks';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -99,6 +102,28 @@ describe('AssetOverview', () => {
     expect(container).toMatchSnapshot();
   });
 
+  it('should handle buy button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        navigation={navigation}
+        displayBuyButton
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(MOCK_CHAIN_ID),
+      }),
+    );
+  });
+
   it('should handle send button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview
@@ -152,5 +177,20 @@ describe('AssetOverview', () => {
 
     const swapButton = queryByTestId('token-swap-button');
     expect(swapButton).toBeNull();
+  });
+
+  it('should not render buy button if displayBuyButton is false', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        navigation={navigation}
+        displayBuyButton={false}
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    expect(buyButton).toBeNull();
   });
 });
