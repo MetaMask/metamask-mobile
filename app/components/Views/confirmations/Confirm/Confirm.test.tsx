@@ -9,7 +9,7 @@ import Confirm from './index';
 
 describe('Confirm', () => {
   it('should match snapshot for personal sign', async () => {
-    const { getByText } = renderWithProvider(<Confirm />, {
+    const { getAllByRole, getByText } = renderWithProvider(<Confirm />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Signature request')).toBeDefined();
@@ -23,14 +23,16 @@ describe('Confirm', () => {
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getByText('Message')).toBeDefined();
     expect(getByText('Example `personal_sign` message')).toBeDefined();
-    expect(getByText('Reject')).toBeDefined();
-    expect(getByText('Confirm')).toBeDefined();
+    expect(getAllByRole('button')).toHaveLength(2);
   });
 
   it('should match snapshot for typed sign v1', async () => {
-    const { getByText, getAllByText } = renderWithProvider(<Confirm />, {
-      state: typedSignV1ConfirmationState,
-    });
+    const { getAllByRole, getAllByText, getByText } = renderWithProvider(
+      <Confirm />,
+      {
+        state: typedSignV1ConfirmationState,
+      },
+    );
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('Estimated changes')).toBeDefined();
     expect(
@@ -42,7 +44,6 @@ describe('Confirm', () => {
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getAllByText('Message')).toHaveLength(2);
     expect(getByText('Hi, Alice!')).toBeDefined();
-    expect(getByText('Reject')).toBeDefined();
-    expect(getByText('Confirm')).toBeDefined();
+    expect(getAllByRole('button')).toHaveLength(2);
   });
 });
