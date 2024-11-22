@@ -1,4 +1,3 @@
-import { hexToBN } from '@metamask/controller-utils';
 import usePoolStakedUnstake from '.';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -61,7 +60,7 @@ const mockConvertToShares = jest
 
 const mockGetShares = jest
   .fn()
-  .mockResolvedValue(hexToBN(MOCK_USER_SHARES));
+  .mockResolvedValue(BigNumber.from(MOCK_USER_SHARES));
 
 let mockAddTransaction: jest.Mock;
 
@@ -169,7 +168,7 @@ describe('usePoolStakedUnstake', () => {
       expect(mockGetShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES).toString(), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });
