@@ -251,8 +251,25 @@ buildAndroidRunFlask(){
 }
 
 buildIosDevBuild(){
+	remapEnvVariableLocal
 	prebuild_ios
-	cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask -configuration Debug -sdk iphonesimulator -derivedDataPath build && cd ..
+	
+	
+	echo "Setting up env vars...";
+	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+	echo "Build started..."
+	brew install watchman
+	cd ios
+
+	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskRelease.plist"
+	scheme="MetaMask"
+
+	echo "exportOptionsPlist: $exportOptionsPlist"
+  	echo "Generating archive packages for $scheme"
+	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+	echo "Generating ipa for $scheme"
+	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	cd ..
 }
 
 buildIosSimulator(){
