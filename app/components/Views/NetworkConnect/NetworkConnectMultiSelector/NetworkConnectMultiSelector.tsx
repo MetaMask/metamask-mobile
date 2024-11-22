@@ -36,6 +36,7 @@ import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
+import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -80,7 +81,7 @@ const NetworkConnectMultiSelector = ({
         );
       }
     } catch (e) {
-      // noop
+      Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
 
     if (currentlyPermittedChains.length === 0 && initialChainId) {
@@ -121,8 +122,8 @@ const NetworkConnectMultiSelector = ({
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
         );
-      } catch {
-        // noop
+      } catch (e) {
+        Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
 
       if (hasPermittedChains) {
