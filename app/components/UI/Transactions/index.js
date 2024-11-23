@@ -75,6 +75,7 @@ import {
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -778,6 +779,7 @@ class Transactions extends PureComponent {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
+              testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
               data={transactions}
