@@ -19,6 +19,7 @@ import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -55,15 +56,6 @@ const StakeInputView = () => {
     navigation.navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
     });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
-        .addProperties({
-          selected_provider: 'consensys',
-          text: 'Tooltip Question Mark Trigger',
-          location: 'Stake Input View',
-        })
-        .build(),
-    );
   };
 
   const handleStakePress = useCallback(() => {
@@ -153,13 +145,30 @@ const StakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: 'consensys',
+            text: 'Currency Switch Trigger',
+            location: 'Stake Input View',
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <View style={styles.rewardsRateContainer}>
         <EstimatedAnnualRewardsCard
           estimatedAnnualRewards={estimatedAnnualRewards}
-          onIconPress={navigateToLearnMoreModal}
+          onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+            event: MetaMetricsEvents.TOOLTIP_OPENED,
+            properties: {
+              selected_provider: 'consensys',
+              text: 'Tooltip Opened',
+              location: 'Stake Input View',
+              tooltip_name: 'MetaMask Pool Estimated Rewards',
+            },
+          })}
           isLoading={isLoadingVaultData}
         />
       </View>

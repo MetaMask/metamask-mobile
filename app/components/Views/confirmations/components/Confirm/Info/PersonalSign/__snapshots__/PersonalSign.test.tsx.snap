@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Title should match snapshot 1`] = `
+exports[`PersonalSign should match snapshot 1`] = `
 [
   <View
     style={
