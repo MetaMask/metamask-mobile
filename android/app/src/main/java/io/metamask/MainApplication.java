@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 
 import io.metamask.nativesdk.NativeSDKPackage;
 import io.metamask.nativeModules.RNTar.RNTarPackage;
+import io.metamask.nativeModules.EthRpc.EthRpcPackage;
 
 import android.content.Context;
 import android.content.Intent;
@@ -53,6 +54,8 @@ public class MainApplication extends Application implements ShareApplication, Re
       packages.add(new RCTMinimizerPackage());
       packages.add(new NativeSDKPackage());
       packages.add(new RNTarPackage());
+	  packages.add(new EthRpcPackage());
+	
 
       return packages;
 		}
