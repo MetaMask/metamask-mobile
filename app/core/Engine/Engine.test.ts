@@ -1,3 +1,4 @@
+import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -9,7 +10,6 @@ import { store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
 import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '../../components/UI/Tokens';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';

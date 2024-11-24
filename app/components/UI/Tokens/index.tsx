@@ -11,6 +11,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
+  selectIsAllNetworks,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
@@ -24,10 +25,7 @@ import { TokenI, TokensI } from './types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  selectTokenNetworkFilter,
-  selectTokenSortConfig,
-} from '../../../selectors/preferencesController';
+import { selectTokenSortConfig } from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -46,32 +44,6 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { Hex } from '@metamask/utils';
 
-// this will be imported from TokenRatesController when it is exported from there
-// PR: https://github.com/MetaMask/core/pull/4622
-export interface MarketDataDetails {
-  tokenAddress: `0x${string}`;
-  value: number;
-  currency: string;
-  allTimeHigh: number;
-  allTimeLow: number;
-  circulatingSupply: number;
-  dilutedMarketCap: number;
-  high1d: number;
-  low1d: number;
-  marketCap: number;
-  marketCapPercentChange1d: number;
-  price: number;
-  priceChange1d: number;
-  pricePercentChange1d: number;
-  pricePercentChange1h: number;
-  pricePercentChange1y: number;
-  pricePercentChange7d: number;
-  pricePercentChange14d: number;
-  pricePercentChange30d: number;
-  pricePercentChange200d: number;
-  totalVolume: number;
-}
-
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
@@ -86,7 +58,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const chainId = useSelector(selectChainId);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
@@ -173,6 +144,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   };
 
+  const allNetworksFilterShown = useSelector(selectIsAllNetworks);
+
   const onRefresh = async () => {
     requestAnimationFrame(async () => {
       setRefreshing(true);
@@ -186,8 +159,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled
-            ? Object.keys(networkConfigurationsByChainId) as Hex[]
-            : [chainId]
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [chainId],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
@@ -209,11 +182,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const removeToken = async () => {
-    const { TokensController } = Engine.context;
+    const { TokensController, NetworkController } = Engine.context;
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      tokenToRemove?.chainId as Hex,
+    );
     const tokenAddress = tokenToRemove?.address || '';
     const symbol = tokenToRemove?.symbol;
     try {
-      await TokensController.ignoreTokens([tokenAddress]);
+      await TokensController.ignoreTokens([tokenAddress], networkClientId);
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,
@@ -266,7 +242,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <ButtonBase
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {tokenNetworkFilter[chainId]
+                  {!allNetworksFilterShown
                     ? networkName ?? strings('wallet.current_network')
                     : strings('wallet.all_networks')}
                 </Text>
