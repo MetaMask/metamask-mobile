@@ -28,7 +28,6 @@ const initialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  ...jest.requireActual('../../../core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
