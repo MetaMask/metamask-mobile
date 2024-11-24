@@ -4182,21 +4182,21 @@
   resolved "https://registry.yarnpkg.com/@kwsites/promise-deferred/-/promise-deferred-1.1.1.tgz#8ace5259254426ccef57f3175bc64ed7095ed919"
   integrity sha512-GaHYm+c0O9MjZRu0ongGBRbinu8gVAMd2UZjji6jVmqKtZluZnptXGWhz1E8j8D2HJ3f/yMxKAUC0b+57wncIw==
 
-"@lavamoat/aa@^4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@lavamoat/aa/-/aa-4.2.0.tgz#1262589c77386b1741fe904ebdfe97b959bc8fa4"
-  integrity sha512-pVpBmSkGldOsRoF7axIMtyg+9euU2DsZ/kvYFSRCa7z0PkH2mCTXtowrCXph3R12D0bQY7ffXYJQGL/aDplYtA==
+"@lavamoat/aa@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@lavamoat/aa/-/aa-4.3.0.tgz#eabc756f3838971e05321335035ae11f2b1aaf8a"
+  integrity sha512-Kwf64RpLDvWCzHdG1IEItGf0JfMH9DyjBhIAj1NNJQzmKIaFE/DCc6INKJu7iVqp7aVdKaVB3aJlV4/lKOmJDg==
   dependencies:
     resolve "1.22.8"
 
-"@lavamoat/allow-scripts@^3.0.4":
-  version "3.0.4"
-  resolved "https://registry.yarnpkg.com/@lavamoat/allow-scripts/-/allow-scripts-3.0.4.tgz#0e1fe6ebf061470bc88c2468d31aafb0af394e82"
-  integrity sha512-0BXKxGiZBP2sRCbj+m8T6Xhiuv521/Kn6+otmRd7Fb/JiR5N2ys4ae5GSrhqYw6qDVhh3Xro0NpUJ0B3bpu2wQ==
+"@lavamoat/allow-scripts@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@lavamoat/allow-scripts/-/allow-scripts-3.1.0.tgz#0dd8fe039256225c0528506a4abf5d66093b6b0b"
+  integrity sha512-R9UzC8i8K/37AOi0C+oLOaI/eykW8L3//yaXZIEAf6tQN6KBIeDn2Fyn4OAcHLcxl3HxPNp98O02UpBU75vnzQ==
   dependencies:
-    "@lavamoat/aa" "^4.2.0"
+    "@lavamoat/aa" "^4.3.0"
     "@npmcli/run-script" "7.0.4"
-    bin-links "4.0.3"
+    bin-links "4.0.4"
     npm-normalize-package-bin "3.0.1"
     yargs "17.7.2"
 
@@ -13430,10 +13430,10 @@ bignumber.js@^9.0.1, bignumber.js@^9.1.2:
   resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.1.2.tgz#b7c4242259c008903b13707983b5f4bbd31eda0c"
   integrity sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==
 
-bin-links@4.0.3:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/bin-links/-/bin-links-4.0.3.tgz#9e4a3c5900830aee3d7f52178b65e01dcdde64a5"
-  integrity sha512-obsRaULtJurnfox/MDwgq6Yo9kzbv1CPTk/1/s7Z/61Lezc8IKkFCOXNeVLXz0456WRzBQmSsDWlai2tIhBsfA==
+bin-links@4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/bin-links/-/bin-links-4.0.4.tgz#c3565832b8e287c85f109a02a17027d152a58a63"
+  integrity sha512-cMtq4W5ZsEwcutJrVId+a/tjt8GSbS+h0oNkdl6+6rBuEv8Ot33Bevj5KPm40t309zuhVic8NjpuL42QCiJWWA==
   dependencies:
     cmd-shim "^6.0.0"
     npm-normalize-package-bin "^3.0.0"
