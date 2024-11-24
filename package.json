@@ -220,7 +220,7 @@
     "@walletconnect/core": "2.15.0",
     "@walletconnect/jsonrpc-types": "1.0.4",
     "@walletconnect/react-native-compat": "2.15.0",
-    "@walletconnect/se-sdk": "1.10.0",
+    "@walletconnect/se-sdk": "1.11.0",
     "@walletconnect/utils": "2.15.0",
     "@xmldom/xmldom": "^0.8.10",
     "appium-adb": "^9.11.4",
