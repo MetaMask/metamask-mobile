@@ -4,38 +4,38 @@ import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
   AccountTrackerControllerState,
+  AccountTrackerControllerActions,
+  AccountTrackerControllerEvents,
   AssetsContractController,
+  AssetsContractControllerActions,
+  AssetsContractControllerEvents,
   CurrencyRateController,
   CurrencyRateState,
-  CurrencyRateControllerEvents,
   CurrencyRateControllerActions,
-  NftController,
+  CurrencyRateControllerEvents,
   NftDetectionController,
+  NftController,
   NftControllerState,
+  NftControllerActions,
+  NftControllerEvents,
   TokenBalancesController,
+  TokenBalancesControllerState,
   TokenBalancesControllerActions,
   TokenBalancesControllerEvents,
-  TokenBalancesControllerState,
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenRatesController,
-  TokenRatesControllerState,
-  TokensController,
-  TokensControllerState,
-  CodefiTokenPricesServiceV2,
-  TokensControllerActions,
-  TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  NftControllerEvents,
-  AccountTrackerControllerEvents,
-  AccountTrackerControllerActions,
-  NftControllerActions,
+  TokenRatesController,
+  TokenRatesControllerState,
   TokenRatesControllerActions,
   TokenRatesControllerEvents,
-  AssetsContractControllerActions,
-  AssetsContractControllerEvents,
+  CodefiTokenPricesServiceV2,
+  TokensController,
+  TokensControllerState,
+  TokensControllerActions,
+  TokensControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -47,6 +47,7 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
+import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -88,8 +89,8 @@ import {
 import {
   GasFeeController,
   GasFeeState,
-  GasFeeControllerEvents,
   GasFeeControllerActions,
+  GasFeeControllerEvents,
 } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
@@ -275,7 +276,6 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
-import { BaseState } from '@metamask/base-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
