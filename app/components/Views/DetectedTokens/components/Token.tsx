@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Token as TokenType } from '@metamask/assets-controllers';
+import {
+  MarketDataDetails,
+  Token as TokenType,
+} from '@metamask/assets-controllers';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
@@ -10,43 +13,27 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { selectChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
 import {
-  selectConversionRate,
+  selectConversionRateFoAllChains,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { Colors } from '../../../../util/theme/models';
 import { Hex } from '@metamask/utils';
-
-// Replace this interface by importing from TokenRatesController when it exports it
-interface MarketDataDetails {
-  tokenAddress: `0x${string}`;
-  currency: string;
-  allTimeHigh: number;
-  allTimeLow: number;
-  circulatingSupply: number;
-  dilutedMarketCap: number;
-  high1d: number;
-  low1d: number;
-  marketCap: number;
-  marketCapPercentChange1d: number;
-  price: number;
-  priceChange1d: number;
-  pricePercentChange1d: number;
-  pricePercentChange1h: number;
-  pricePercentChange1y: number;
-  pricePercentChange7d: number;
-  pricePercentChange14d: number;
-  pricePercentChange30d: number;
-  pricePercentChange200d: number;
-  totalVolume: number;
-}
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { NetworkBadgeSource } from '../../../UI/AssetOverview/Balance/Balance';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../constants/network';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -109,20 +96,34 @@ const createStyles = (colors: Colors) =>
   });
 
 interface Props {
-  token: TokenType;
+  token: TokenType & { chainId: Hex };
   selected: boolean;
   toggleSelected: (selected: boolean) => void;
 }
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
   const { address, symbol, aggregators = [], decimals } = token;
+  const accountAddress = useSelector(selectSelectedInternalAccountAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
-  const conversionRate = useSelector(selectConversionRate);
+  const tokenExchangeRatesAllChains = useSelector(selectTokenMarketData);
+  const currentChainId = useSelector(selectChainId);
+  const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
+  const tokenBalancesAllChains = useSelector(selectTokensBalances);
+  const balanceAllChainsForAccount =
+    tokenBalancesAllChains[accountAddress as Hex];
+  const tokenBalances =
+    balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
+  const conversionRateByChainId = useSelector(selectConversionRateFoAllChains);
+  const chainIdToUse = token.chainId ?? currentChainId;
+
+  const conversionRate =
+    conversionRateByChainId[CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId]]
+      ?.conversionRate;
+
   const currentCurrency = useSelector(selectCurrentCurrency);
+
   const tokenMarketData =
     (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
     null;
@@ -168,11 +169,21 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 
   return (
     <View style={styles.tokenContainer}>
-      <TokenImage
-        asset={token}
-        containerStyle={styles.logo}
-        iconStyle={styles.logo}
-      />
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource(chainIdToUse, token.symbol)}
+          />
+        }
+      >
+        <TokenImage
+          asset={token}
+          containerStyle={styles.logo}
+          iconStyle={styles.logo}
+        />
+      </BadgeWrapper>
+
       <View style={styles.tokenInfoContainer}>
         <Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>
         {fiatBalance ? (
