@@ -7,17 +7,18 @@ import {
   AssetsContractController,
   CurrencyRateController,
   CurrencyRateState,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
-  GetTokenListState,
+  CurrencyRateControllerEvents,
+  CurrencyRateControllerActions,
   NftController,
   NftDetectionController,
   NftControllerState,
   TokenBalancesController,
+  TokenBalancesControllerActions,
+  TokenBalancesControllerEvents,
+  TokenBalancesControllerState,
   TokenDetectionController,
   TokenListController,
   TokenListState,
-  TokenListStateChange,
   TokenRatesController,
   TokenRatesControllerState,
   TokensController,
@@ -27,14 +28,14 @@ import {
   TokensControllerEvents,
   TokenListControllerActions,
   TokenListControllerEvents,
-  TokenBalancesControllerState,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
+  NftControllerEvents,
+  AccountTrackerControllerEvents,
+  AccountTrackerControllerActions,
+  NftControllerActions,
+  TokenRatesControllerActions,
+  TokenRatesControllerEvents,
+  AssetsContractControllerActions,
+  AssetsContractControllerEvents,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -46,7 +47,6 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
@@ -79,6 +79,7 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
   TransactionMeta,
@@ -87,8 +88,8 @@ import {
 import {
   GasFeeController,
   GasFeeState,
-  GasFeeStateChange,
-  GetGasFeeState,
+  GasFeeControllerEvents,
+  GasFeeControllerActions,
 } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
@@ -118,6 +119,8 @@ import {
 import SwapsController, {
   swapsUtils,
   SwapsControllerState,
+  SwapsControllerActions,
+  SwapsControllerEvents,
 } from '@metamask/swaps-controller';
 import {
   PPOMController,
@@ -136,6 +139,8 @@ import {
   SnapControllerActions,
   PersistedSnapControllerState,
   SnapsRegistryMessenger,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -270,6 +275,7 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { BaseState } from '@metamask/base-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -281,30 +287,29 @@ const encryptor = new Encryptor({
 let currentChainId: any;
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
 type SnapsGlobalActions =
   | SnapControllerActions
+  | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 
 type SnapsGlobalEvents =
   | SnapControllerEvents
+  | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  | AccountTrackerControllerActions
+  | NftControllerActions
+  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
+  | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
@@ -312,49 +317,54 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
+  | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
+  | TokenRatesControllerActions
   | TokenListControllerActions
+  | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
+  | AssetsContractControllerActions;
 
 type GlobalEvents =
+  | AccountTrackerControllerEvents
+  | NftControllerEvents
+  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
+  | CurrencyRateControllerEvents
+  | GasFeeControllerEvents
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
+  | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
+  | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
+  | SmartTransactionsControllerEvents
+  | AssetsContractControllerEvents;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
