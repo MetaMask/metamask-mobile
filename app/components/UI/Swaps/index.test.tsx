@@ -16,7 +16,6 @@ jest.mock('@react-navigation/native', () => {
       navigate: jest.fn(),
     }),
     useRoute: () => ({}),
-    useLinking: jest.fn(),
   };
 });
 
@@ -28,15 +27,8 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
-}));
-
 describe('SwapsAmountView', () => {
-  it('renders correctly', async () => {
+  it('renders', async () => {
     const wrapper = renderWithProvider(<SwapsAmountView />, {
       state: mockInitialState,
     });
