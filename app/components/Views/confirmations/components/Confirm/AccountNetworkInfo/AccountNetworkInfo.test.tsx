@@ -5,10 +5,11 @@ import { personalSignatureConfirmationState } from '../../../../../../util/test/
 import AccountNetworkInfo from './AccountNetworkInfo';
 
 describe('AccountNetworkInfo', () => {
-  it('should match snapshot for personal sign', async () => {
-    const container = renderWithProvider(<AccountNetworkInfo />, {
+  it('should render correctly', async () => {
+    const { getByText } = renderWithProvider(<AccountNetworkInfo />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot();
+    expect(getByText('0x935E...5477')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 });

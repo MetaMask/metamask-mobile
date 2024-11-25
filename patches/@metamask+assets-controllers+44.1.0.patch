@@ -54,7 +54,7 @@ index 6ccbe9c..49270d6 100644
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
- }, _NftController_onPreferencesControllerStateChange = 
+ }, _NftController_onPreferencesControllerStateChange =
 @@ -597,16 +597,16 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
@@ -117,7 +117,7 @@ index 6ccbe9c..49270d6 100644
 +            error: 'URI import error',
          };
      }
- }, _NftController_getNftURIAndStandard = 
+ }, _NftController_getNftURIAndStandard =
 @@ -840,10 +843,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
@@ -161,3 +161,144 @@ index a34725f..21e9d20 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+index 6f48d64..e1532fa 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+@@ -10,7 +10,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
+-var _TokenBalancesController_handle, _TokenBalancesController_interval, _TokenBalancesController_tokens, _TokenBalancesController_disabled;
++var _TokenBalancesController_handle, _TokenBalancesController_interval, _TokenBalancesController_tokens, _TokenBalancesController_disabled, _TokenBalancesController_updateInProgress;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TokenBalancesController = exports.getDefaultTokenBalancesState = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+@@ -60,9 +60,11 @@ class TokenBalancesController extends base_controller_1.BaseController {
+         _TokenBalancesController_interval.set(this, void 0);
+         _TokenBalancesController_tokens.set(this, void 0);
+         _TokenBalancesController_disabled.set(this, void 0);
++        _TokenBalancesController_updateInProgress.set(this, void 0);
+         __classPrivateFieldSet(this, _TokenBalancesController_disabled, disabled, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_interval, interval, "f");
+         __classPrivateFieldSet(this, _TokenBalancesController_tokens, tokens, "f");
++        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, false, "f");
+         this.messagingSystem.subscribe('TokensController:stateChange', ({ tokens: newTokens, detectedTokens }) => {
+             __classPrivateFieldSet(this, _TokenBalancesController_tokens, [...newTokens, ...detectedTokens], "f");
+             // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+@@ -108,26 +110,34 @@ class TokenBalancesController extends base_controller_1.BaseController {
+      * Updates balances for all tokens.
+      */
+     async updateBalances() {
+-        if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f")) {
++        if (__classPrivateFieldGet(this, _TokenBalancesController_disabled, "f") || __classPrivateFieldGet(this, _TokenBalancesController_updateInProgress, "f")) {
+             return;
+         }
++        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, true, "f");
+         const selectedInternalAccount = this.messagingSystem.call('AccountsController:getSelectedAccount');
+         const newContractBalances = {};
+-        for (const token of __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f")) {
++        const balancePromises = __classPrivateFieldGet(this, _TokenBalancesController_tokens, "f").map((token) => {
+             const { address } = token;
+-            try {
+-                const balance = await this.messagingSystem.call('AssetsContractController:getERC20BalanceOf', address, selectedInternalAccount.address);
++            return this.messagingSystem.call('AssetsContractController:getERC20BalanceOf', address, selectedInternalAccount.address)
++            .then((balance) => {
+                 newContractBalances[address] = (0, controller_utils_1.toHex)(balance);
+-                token.hasBalanceError = false;
+-            }
+-            catch (error) {
++                token = {
++                    ...token,
++                    hasBalanceError: false
++                }
++            }).catch((error) => {
+                 newContractBalances[address] = (0, controller_utils_1.toHex)(0);
+-                token.hasBalanceError = true;
+-            }
+-        }
++                token = {
++                    ...token,
++                    hasBalanceError: true
++                }
++            })
++        });
++        await Promise.all(balancePromises);
+         this.update((state) => {
+             state.contractBalances = newContractBalances;
+         });
++        __classPrivateFieldSet(this, _TokenBalancesController_updateInProgress, false, "f");
+     }
+     /**
+      * Reset the controller state to the default state.
+@@ -139,6 +149,6 @@ class TokenBalancesController extends base_controller_1.BaseController {
+     }
+ }
+ exports.TokenBalancesController = TokenBalancesController;
+-_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap();
++_TokenBalancesController_handle = new WeakMap(), _TokenBalancesController_interval = new WeakMap(), _TokenBalancesController_tokens = new WeakMap(), _TokenBalancesController_disabled = new WeakMap(), _TokenBalancesController_updateInProgress = new WeakMap();
+ exports.default = TokenBalancesController;
+ //# sourceMappingURL=TokenBalancesController.cjs.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+index ab23c95..8fd5efd 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+@@ -204,13 +204,10 @@ class TokenDetectionController extends (0, polling_controller_1.StaticIntervalPo
+         // Try detecting tokens via Account API first if conditions allow
+         if (supportedNetworks && chainsToDetectUsingAccountAPI.length > 0) {
+             const apiResult = await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_attemptAccountAPIDetection).call(this, chainsToDetectUsingAccountAPI, addressToDetect, supportedNetworks);
+-            // If API succeeds and no chains are left for RPC detection, we can return early
+-            if (apiResult?.result === 'success' &&
+-                chainsToDetectUsingRpc.length === 0) {
+-                return;
++            // If the account API call failed, have those chains fall back to RPC detection
++            if (apiResult?.result === 'failed') {
++                __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks);
+             }
+-            // If API fails or chainsToDetectUsingRpc still has items, add chains to RPC detection
+-            __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks);
+         }
+         // Proceed with RPC detection if there are chains remaining in chainsToDetectUsingRpc
+         if (chainsToDetectUsingRpc.length > 0) {
+@@ -446,8 +443,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+         const tokenBalancesByChain = await __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f")
+             .getMultiNetworksBalances(selectedAddress, chainIds, supportedNetworks)
+             .catch(() => null);
+-        if (!tokenBalancesByChain ||
+-            Object.keys(tokenBalancesByChain).length === 0) {
++        if (tokenBalancesByChain === null) {
+             return { result: 'failed' };
+         }
+         // Process each chain ID individually
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.mjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.mjs
+index f75eb5c..ebc30bb 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.mjs
+@@ -205,13 +205,10 @@ export class TokenDetectionController extends StaticIntervalPollingController()
+         // Try detecting tokens via Account API first if conditions allow
+         if (supportedNetworks && chainsToDetectUsingAccountAPI.length > 0) {
+             const apiResult = await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_attemptAccountAPIDetection).call(this, chainsToDetectUsingAccountAPI, addressToDetect, supportedNetworks);
+-            // If API succeeds and no chains are left for RPC detection, we can return early
+-            if (apiResult?.result === 'success' &&
+-                chainsToDetectUsingRpc.length === 0) {
+-                return;
++            // If the account API call failed, have those chains fall back to RPC detection
++            if (apiResult?.result === 'failed') {
++                __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks);
+             }
+-            // If API fails or chainsToDetectUsingRpc still has items, add chains to RPC detection
+-            __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_addChainsToRpcDetection).call(this, chainsToDetectUsingRpc, chainsToDetectUsingAccountAPI, clientNetworks);
+         }
+         // Proceed with RPC detection if there are chains remaining in chainsToDetectUsingRpc
+         if (chainsToDetectUsingRpc.length > 0) {
+@@ -446,8 +443,7 @@ async function _TokenDetectionController_addDetectedTokensViaAPI({ selectedAddre
+         const tokenBalancesByChain = await __classPrivateFieldGet(this, _TokenDetectionController_accountsAPI, "f")
+             .getMultiNetworksBalances(selectedAddress, chainIds, supportedNetworks)
+             .catch(() => null);
+-        if (!tokenBalancesByChain ||
+-            Object.keys(tokenBalancesByChain).length === 0) {
++        if (tokenBalancesByChain === null) {
+             return { result: 'failed' };
+         }
+         // Process each chain ID individually

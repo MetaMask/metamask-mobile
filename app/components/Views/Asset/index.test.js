@@ -13,7 +13,7 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../core/Engine.ts', () => {
+jest.mock('../../../core/Engine', () => {
   const {
     MOCK_ADDRESS_1,
   } = require('../../../util/test/accountsControllerTestUtils');
