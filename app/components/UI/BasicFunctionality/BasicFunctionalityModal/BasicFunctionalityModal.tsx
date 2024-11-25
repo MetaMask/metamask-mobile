@@ -44,7 +44,7 @@ interface Props {
 }
 
 const BasicFunctionalityModal = ({ route }: Props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -65,27 +65,34 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     if (permission !== 'authorized') {
       return;
     }
-      enableNotifications();
+    enableNotifications();
   }, [enableNotifications]);
 
   const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       dispatch(toggleBasicFunctionality(!isEnabled));
       trackEvent(
-        !isEnabled
-          ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
-          : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
+        createEventBuilder(
+          !isEnabled
+            ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
+            : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
+        ).build(),
       );
-      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-        settings_group: 'security_privacy',
-        settings_type: 'basic_functionality',
-        old_value: isEnabled,
-        new_value: !isEnabled,
-        was_notifications_on: isEnabled ? isNotificationsFeatureEnabled : false,
-        was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+          .addProperties({
+            settings_group: 'security_privacy',
+            settings_type: 'basic_functionality',
+            old_value: isEnabled,
+            new_value: !isEnabled,
+            was_notifications_on: isEnabled
+              ? isNotificationsFeatureEnabled
+              : false,
+            was_profile_syncing_on: isEnabled ? isProfileSyncingEnabled : false,
+          })
+          .build(),
+      );
     });
-
     if (
       route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
       route.params.caller === Routes.NOTIFICATIONS.OPT_IN

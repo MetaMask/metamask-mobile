@@ -12,6 +12,7 @@ import { getBlockaidMetricsParams } from '../blockaid';
 import Device from '../device';
 import { getDecimalChainId } from '../networks';
 import Logger from '../Logger';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 
 export const typedSign = {
   V1: 'eth_signTypedData',
@@ -105,10 +106,15 @@ export const handleSignatureAction = async (
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
   MetaMetrics.getInstance().trackEvent(
-    confirmation
-      ? MetaMetricsEvents.SIGNATURE_APPROVED
-      : MetaMetricsEvents.SIGNATURE_REJECTED,
-    getAnalyticsParams(messageParams, signType, securityAlertResponse),
+    MetricsEventBuilder.createEventBuilder(
+      confirmation
+        ? MetaMetricsEvents.SIGNATURE_APPROVED
+        : MetaMetricsEvents.SIGNATURE_REJECTED,
+    )
+      .addProperties(
+        getAnalyticsParams(messageParams, signType, securityAlertResponse),
+      )
+      .build(),
   );
 };
 

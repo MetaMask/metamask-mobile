@@ -36,7 +36,7 @@ const ProtectYourWallet = ({
   toggleHint,
 }: IProtectYourWalletProps) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
 
@@ -49,9 +49,13 @@ const ProtectYourWallet = ({
   const goToBackup = (): void => {
     navigation.navigate(Routes.ACCOUNT_BACKUP.STEP_1_B);
 
-    trackEvent(MetaMetricsEvents.WALLET_SECURITY_STARTED, {
-      source: 'Settings',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_STARTED)
+        .addProperties({
+          source: 'Settings',
+        })
+        .build(),
+    );
   };
 
   const onBack = (): void => navigation.goBack();

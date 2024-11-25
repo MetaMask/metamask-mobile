@@ -23,7 +23,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
 
 const ProfileSyncingModal = () => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { disableProfileSyncing } = useProfileSyncing();
@@ -39,13 +39,17 @@ const ProfileSyncingModal = () => {
       if (isProfileSyncingEnabled) {
         await disableProfileSyncing();
       }
-      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-        settings_group: 'security_privacy',
-        settings_type: 'profile_syncing',
-        old_value: isProfileSyncingEnabled,
-        new_value: !isProfileSyncingEnabled,
-        was_notifications_on: isMetamaskNotificationsEnabled,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+          .addProperties({
+            settings_group: 'security_privacy',
+            settings_type: 'profile_syncing',
+            old_value: isProfileSyncingEnabled,
+            new_value: !isProfileSyncingEnabled,
+            was_notifications_on: isMetamaskNotificationsEnabled,
+          })
+          .build(),
+      );
     });
   };
 
@@ -93,7 +97,7 @@ const ProfileSyncingModal = () => {
         hascheckBox={isProfileSyncingEnabled}
         handleCta={handleCta}
         handleCancel={handleCancel}
-        />
+      />
     </BottomSheet>
   );
 };

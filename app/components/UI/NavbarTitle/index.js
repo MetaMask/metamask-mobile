@@ -112,10 +112,12 @@ class NavbarTitle extends PureComponent {
         });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-          {
-            chain_id: getDecimalChainId(this.props.providerConfig.chainId),
-          },
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+            .addProperties({
+              chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+            })
+            .build(),
         );
         setTimeout(() => {
           this.animating = false;

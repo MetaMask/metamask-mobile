@@ -1,5 +1,6 @@
 import trackDappViewedEvent from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { createMockAccountsControllerState } from '../../test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/testUtils';
 
@@ -80,10 +81,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(mockMetrics.trackEvent).toBeCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
-      expectedMetrics,
-    );
+    )
+      .addProperties(expectedMetrics)
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('does not tracks as first visit when dapp hostname is in history', () => {
@@ -111,11 +115,13 @@ describe('trackDappViewedEvent', () => {
       hostname: 'uniswap.org',
       numberOfConnectedAccounts: 1,
     });
-
-    expect(mockMetrics.trackEvent).toBeCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
-      expectedMetrics,
-    );
+    )
+      .addProperties(expectedMetrics)
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks connected accounts number', () => {
@@ -144,10 +150,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(mockMetrics.trackEvent).toBeCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
-      expectedMetrics,
-    );
+    )
+      .addProperties(expectedMetrics)
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks account number', () => {
@@ -176,10 +185,13 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(mockMetrics.trackEvent).toBeCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
-      expectedMetrics,
-    );
+    )
+      .addProperties(expectedMetrics)
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('tracks dapp url', () => {
@@ -208,9 +220,12 @@ describe('trackDappViewedEvent', () => {
       numberOfConnectedAccounts: 1,
     });
 
-    expect(mockMetrics.trackEvent).toBeCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.DAPP_VIEWED,
-      expectedMetrics,
-    );
+    )
+      .addProperties(expectedMetrics)
+      .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 });

@@ -38,7 +38,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<ReusableModalRef>(null);
@@ -94,7 +94,11 @@ const DeleteWalletModal = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED, {});
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED,
+      ).build(),
+    );
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });

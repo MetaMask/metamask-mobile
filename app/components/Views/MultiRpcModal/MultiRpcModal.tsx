@@ -46,22 +46,26 @@ const MultiRpcModal = () => {
   const navigation = useNavigation();
   const chainId = useSelector(selectChainId);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
 
   const dismissMultiRpcModalMigration = useCallback(() => {
     const { PreferencesController } = Engine.context;
     PreferencesController.setShowMultiRpcModal(false);
-    trackEvent(MetaMetricsEvents.MULTI_RPC_MIGRATION_MODAL_ACCEPTED, {
-      chainId,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MULTI_RPC_MIGRATION_MODAL_ACCEPTED)
+        .addProperties({
+          chainId,
+        })
+        .build(),
+    );
 
     if (sheetRef?.current) {
       sheetRef.current.onCloseBottomSheet();
     } else {
       navigation.goBack();
     }
-  }, [trackEvent, chainId, navigation]);
+  }, [trackEvent, chainId, navigation, createEventBuilder]);
 
   return (
     <BottomSheet ref={sheetRef}>

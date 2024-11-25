@@ -59,7 +59,7 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   // TODO: Replace "any" with type
@@ -118,9 +118,13 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+          .addProperties({
+            chain_id: getDecimalChainId(providerConfig.chainId),
+          })
+          .build(),
+      );
     } else {
       onPress?.();
     }
@@ -132,6 +136,7 @@ const AccountRightButton = ({
     navigate,
     providerConfig.chainId,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();

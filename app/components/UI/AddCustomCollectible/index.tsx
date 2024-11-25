@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Alert,
-  Text,
-  TextInput,
-  View,
-  StyleSheet,
-} from 'react-native';
+import { Alert, Text, TextInput, View, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
@@ -86,7 +80,7 @@ const AddCustomCollectible = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const assetTokenIdInput = React.createRef() as any;
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const selectedAddress = useSelector(
@@ -201,7 +195,11 @@ const AddCustomCollectible = ({
     const { NftController } = Engine.context as any;
     NftController.addNft(address, tokenId);
 
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_ADDED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
     setLoading(false);
     navigation.goBack();
   };
@@ -223,10 +221,7 @@ const AddCustomCollectible = ({
   };
 
   return (
-    <View
-      style={styles.wrapper}
-      testID={NFTImportScreenSelectorsIDs.CONTAINER}
-    >
+    <View style={styles.wrapper} testID={NFTImportScreenSelectorsIDs.CONTAINER}>
       <ActionView
         cancelText={strings('add_asset.collectibles.cancel_add_collectible')}
         confirmText={strings('add_asset.collectibles.add_collectible')}

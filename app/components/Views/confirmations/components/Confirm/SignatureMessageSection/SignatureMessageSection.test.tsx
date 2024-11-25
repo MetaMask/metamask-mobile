@@ -6,8 +6,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import SignatureMessageSection from './SignatureMessageSection';
 
 describe('SignatureMessageSection', () => {
-  it('should match snapshot', async () => {
-    const container = renderWithProvider(
+  it('should render collapsed message correctly', async () => {
+    const { getByText } = renderWithProvider(
       <SignatureMessageSection
         messageCollapsed="Signature request collapsed message"
         messageExpanded={<Text>Signature request expanded message</Text>}
@@ -17,7 +17,8 @@ describe('SignatureMessageSection', () => {
         state: {},
       },
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText('Message')).toBeDefined();
+    expect(getByText('Signature request collapsed message')).toBeDefined();
   });
 
   it('should show expanded view when open button is clicked', async () => {
