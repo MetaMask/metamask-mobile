@@ -198,7 +198,7 @@ const EditGasFee1559 = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const styles = createStyles(colors);
 
@@ -219,8 +219,9 @@ const EditGasFee1559 = ({
   const toggleAdvancedOptions = () => {
     if (!showAdvancedOptions) {
       trackEvent(
-        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        createEventBuilder(MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED)
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     setShowAdvancedOptions((showAdvancedOptions) => !showAdvancedOptions);
@@ -231,7 +232,11 @@ const EditGasFee1559 = ({
   };
 
   const save = () => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
 
     onSave(selectedOption);
   };

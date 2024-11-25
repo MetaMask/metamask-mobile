@@ -39,7 +39,7 @@ import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { onSelectAccount, checkBalanceError, privacyMode } =
     route.params || {};
 
@@ -71,12 +71,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onSelectAccount?.(address);
 
       // Track Event: "Switched Account"
-      trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-        source: 'Wallet Tab',
-        number_of_accounts: accounts?.length,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent],
+    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
   const onRemoveImportedAccount = useCallback(

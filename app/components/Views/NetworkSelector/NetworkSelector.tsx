@@ -35,10 +35,7 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
 } from '../../../util/networks';
-import {
-  LINEA_MAINNET,
-  MAINNET,
-} from '../../../constants/network';
+import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
   ButtonSize,
@@ -121,7 +118,7 @@ const NetworkSelector = () => {
   const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = theme;
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -237,10 +234,7 @@ const NetworkSelector = () => {
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
 
   const onSetRpcTarget = async (networkConfiguration: NetworkConfiguration) => {
-    const {
-      NetworkController,
-      SelectedNetworkController,
-    } = Engine.context;
+    const { NetworkController, SelectedNetworkController } = Engine.context;
     trace({
       name: TraceName.SwitchCustomNetwork,
       parentContext: parentSpan,
@@ -271,11 +265,15 @@ const NetworkSelector = () => {
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
-      trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: getDecimalChainId(chainId),
-        from_network: selectedNetworkName,
-        to_network: nickname,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: getDecimalChainId(chainId),
+            from_network: selectedNetworkName,
+            to_network: nickname,
+          })
+          .build(),
+      );
     }
   };
 
@@ -370,7 +368,6 @@ const NetworkSelector = () => {
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
-
       const networkConfiguration =
         networkConfigurations[BUILT_IN_NETWORKS[type].chainId];
 
@@ -391,11 +388,15 @@ const NetworkSelector = () => {
     sheetRef.current?.onCloseBottomSheet();
     endTrace({ name: TraceName.SwitchBuiltInNetwork });
     endTrace({ name: TraceName.NetworkSwitch });
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: getDecimalChainId(selectedChainId),
-      from_network: selectedNetworkName,
-      to_network: type,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties({
+          chain_id: getDecimalChainId(selectedChainId),
+          from_network: selectedNetworkName,
+          to_network: type,
+        })
+        .build(),
+    );
   };
 
   const filterNetworksByName = (
@@ -428,11 +429,11 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
 
     const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
     const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
@@ -443,7 +444,9 @@ const NetworkSelector = () => {
           key={chainId}
           variant={CellVariant.SelectWithMenu}
           title={name}
-          secondaryText={hideKeyFromUrl(rpcUrl)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           avatarProps={{
             variant: AvatarVariant.Network,
             name: mainnetName,
@@ -492,10 +495,10 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
+    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
     const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
+      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
+        .url;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
@@ -516,7 +519,9 @@ const NetworkSelector = () => {
           onPress={() => onNetworkChange(LINEA_MAINNET)}
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
-          secondaryText={hideKeyFromUrl(rpcUrl)}
+          secondaryText={
+            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+          }
           buttonProps={{
             onButtonClick: () => {
               openModal(chainId, false, LINEA_MAINNET, true);
@@ -595,7 +600,11 @@ const NetworkSelector = () => {
             onPress={() => onSetRpcTarget(networkConfiguration)}
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
-            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
+            secondaryText={
+              rpcEndpoints?.length > 1
+                ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+                : undefined
+            }
             buttonProps={{
               onButtonClick: () => {
                 openModal(chainId, true, rpcUrl, false);

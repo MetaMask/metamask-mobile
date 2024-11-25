@@ -43,7 +43,7 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -54,8 +54,8 @@ const NotificationsView = ({
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
     NotificationsService.setBadgeCount(0);
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ);
-  }, [markNotificationAsRead, notifications, trackEvent]);
+    trackEvent(createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ).build());
+  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
 
   const allNotifications = useMemo(() => {
     // All unique notifications

@@ -10,6 +10,7 @@ import styleSheet from './Title.styles';
 const getTitle = (confirmationType?: string) => {
   switch (confirmationType) {
     case TransactionType.personalSign:
+    case TransactionType.signTypedData:
       return strings('confirm.title.signature');
     default:
       return '';
