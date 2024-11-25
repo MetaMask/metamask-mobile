@@ -42,11 +42,11 @@ const IncomingTransactionsSettings = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const toggleEnableIncomingTransactions = (
-    hexChainId: EtherscanSupportedHexChainId,
+    hexChainId: Hex,
     value: boolean,
   ) => {
     PreferencesController.setEnableNetworkIncomingTransactions(
-      hexChainId,
+      hexChainId as EtherscanSupportedHexChainId,
       value,
     );
   };

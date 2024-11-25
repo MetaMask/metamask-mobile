@@ -12,7 +12,7 @@ interface NetworkCellProps {
   name: string;
   chainId: Hex;
   imageSource: ImageSourcePropType;
-  secondaryText: string;
+  secondaryText?: string;
   showIncomingTransactionsNetworks: Record<string, boolean>;
   toggleEnableIncomingTransactions: (
     chainId: Hex,
