@@ -197,9 +197,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "useBlockieIcon": true,
   },
   "signatureRequest": "object",
-  "smartTransactions": {
-    "optInModalAppVersionSeen": null,
-  },
   "swaps": "object",
   "transaction": "object",
   "transactionMetrics": "object",

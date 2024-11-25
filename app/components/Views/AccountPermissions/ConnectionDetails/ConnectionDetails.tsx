@@ -26,7 +26,7 @@ interface ConnectionDetailsProps {
   };
 }
 
-const AccountPermissionsConfirmRevokeAll = (props: ConnectionDetailsProps) => {
+const ConnectionDetails = (props: ConnectionDetailsProps) => {
   const { connectionDateTime = 123456789 } = props.route.params;
 
   const { styles } = useStyles(styleSheet, {});
@@ -73,4 +73,4 @@ const AccountPermissionsConfirmRevokeAll = (props: ConnectionDetailsProps) => {
   );
 };
 
-export default AccountPermissionsConfirmRevokeAll;
+export default ConnectionDetails;

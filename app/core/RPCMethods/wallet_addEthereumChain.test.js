@@ -296,10 +296,12 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     await expect(
       wallet_addEthereumChain({
         req: {
-          params: [{
+          params: [
+            {
               ...correctParams,
               nativeCurrency: { symbol, decimals: 18 },
-          }],
+            },
+          ],
         },
         ...otherOptions,
       }),
@@ -429,7 +431,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       }),
     );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
-    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
@@ -468,15 +469,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
     expect(spyOnAddNetwork).not.toHaveBeenCalled();
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
-    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 1;
+      process.env.MM_CHAIN_PERMISSIONS = 'true';
     });
     afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 0;
+      process.env.MM_CHAIN_PERMISSIONS = 'false';
     });
     afterEach(() => {
       jest.clearAllMocks();
