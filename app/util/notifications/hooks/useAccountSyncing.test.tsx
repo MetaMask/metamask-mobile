@@ -9,7 +9,7 @@ import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../../util/test/initial-root-state';
-import { useAccountSyncing } from './useAccountSyncing';
+import { useDispatchAccountSyncing } from './useAccountSyncing';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -25,14 +25,14 @@ function arrangeStore() {
   return store;
 }
 
-describe('useAccountSyncing', () => {
+describe('useDispatchAccountSyncing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   function arrangeHook() {
     const store = arrangeStore();
-    const hook = renderHook(() => useAccountSyncing(), {
+    const hook = renderHook(() => useDispatchAccountSyncing(), {
       wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
     });
 
