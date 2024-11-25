@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { zeroAddress } from 'ethereumjs-util';
@@ -14,7 +14,10 @@ import {
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketData,
+} from '../../../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -27,6 +30,8 @@ import {
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
+  getDefaultNetworkByChainId,
+  isPortfolioViewEnabled,
 } from '../../../../../util/networks';
 import createStyles from '../../styles';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -41,14 +46,19 @@ import Text, {
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import AssetElement from '../../../AssetElement';
 import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import images from 'images/image-icons';
 import { TokenI } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
-import { CustomNetworkImgMapping } from '../../../../../util/networks/customNetworks';
-import useStakingChain from '../../../Stake/hooks/useStakingChain';
+import { useStakingChainByChainId } from '../../../Stake/hooks/useStakingChain';
+import {
+  PopularList,
+  UnpopularNetworkList,
+  CustomNetworkImgMapping,
+} from '../../../../../util/networks/customNetworks';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -70,7 +80,10 @@ export const TokenListItem = ({
   const { data: tokenBalances } = useTokenBalancesController();
 
   const { type } = useSelector(selectProviderConfig);
-  const chainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectChainId);
+  const chainId = isPortfolioViewEnabled
+    ? (asset.chainId as Hex)
+    : selectedChainId;
   const ticker = useSelector(selectTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
@@ -84,6 +97,7 @@ export const TokenListItem = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const multiChainMarketData = useSelector(selectTokenMarketData);
 
   const styles = createStyles(colors);
 
@@ -98,92 +112,179 @@ export const TokenListItem = ({
       currentCurrency,
     );
 
-  const pricePercentChange1d = itemAddress
-    ? tokenExchangeRates?.[itemAddress as `0x${string}`]?.pricePercentChange1d
-    : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+  let pricePercentChange1d: number;
+
+  if (isPortfolioViewEnabled) {
+    const tokenPercentageChange = asset.address
+      ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
+          ?.pricePercentChange1d
+      : 0;
+
+    pricePercentChange1d = asset.isNative
+      ? multiChainMarketData?.[chainId as Hex]?.[zeroAddress() as Hex]
+          ?.pricePercentChange1d
+      : tokenPercentageChange;
+  } else {
+    pricePercentChange1d = itemAddress
+      ? tokenExchangeRates?.[itemAddress as Hex]?.pricePercentChange1d
+      : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+  }
 
   // render balances according to primary currency
   let mainBalance;
   let secondaryBalance;
 
-  // Set main and secondary balances based on the primary currency and asset type.
-  if (primaryCurrency === 'ETH') {
-    // Default to displaying the formatted balance value and its fiat equivalent.
-    mainBalance = balanceValueFormatted;
-    secondaryBalance = balanceFiat;
-
-    // For ETH as a native currency, adjust display based on network safety.
-    if (asset.isETH) {
-      // Main balance always shows the formatted balance value for ETH.
+  if (!isPortfolioViewEnabled) {
+    // Set main and secondary balances based on the primary currency and asset type.
+    if (primaryCurrency === 'ETH') {
+      // Default to displaying the formatted balance value and its fiat equivalent.
       mainBalance = balanceValueFormatted;
-      // Display fiat value as secondary balance only for original native tokens on safe networks.
-      secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
-    }
-  } else {
-    // For non-ETH currencies, determine balances based on the presence of fiat value.
-    mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
-    secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+      secondaryBalance = balanceFiat;
 
-    // Adjust balances for native currencies in non-ETH scenarios.
-    if (asset.isETH) {
-      // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
-      if (!balanceFiat) {
-        mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
-      } else if (isOriginalNativeTokenSymbol) {
-        mainBalance = balanceFiat; // Show fiat value if it's a safe network
-      } else {
-        mainBalance = ''; // Otherwise, set to an empty string
+      // For ETH as a native currency, adjust display based on network safety.
+      if (asset.isETH) {
+        // Main balance always shows the formatted balance value for ETH.
+        mainBalance = balanceValueFormatted;
+        // Display fiat value as secondary balance only for original native tokens on safe networks.
+        secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
       }
-      // Secondary balance mirrors the main balance logic for consistency.
+    } else {
+      // For non-ETH currencies, determine balances based on the presence of fiat value.
+      mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
       secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+
+      // Adjust balances for native currencies in non-ETH scenarios.
+      if (asset.isETH) {
+        // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
+        if (!balanceFiat) {
+          mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
+        } else if (isOriginalNativeTokenSymbol) {
+          mainBalance = balanceFiat; // Show fiat value if it's a safe network
+        } else {
+          mainBalance = ''; // Otherwise, set to an empty string
+        }
+        // Secondary balance mirrors the main balance logic for consistency.
+        secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+      }
     }
-  }
 
-  if (asset?.hasBalanceError) {
-    mainBalance = asset.symbol;
-    secondaryBalance = strings('wallet.unable_to_load');
-  }
+    if (asset?.hasBalanceError) {
+      mainBalance = asset.symbol;
+      secondaryBalance = strings('wallet.unable_to_load');
+    }
 
-  if (balanceFiat === TOKEN_RATE_UNDEFINED) {
-    mainBalance = balanceValueFormatted;
-    secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
-  }
+    if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+      mainBalance = balanceValueFormatted;
+      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+    }
 
-  asset = { ...asset, balanceFiat };
+    asset = { ...asset, balanceFiat };
+  } else {
+    mainBalance = asset.balance;
+    secondaryBalance = asset.balanceFiat
+      ? asset.balanceFiat
+      : strings('wallet.unable_to_find_conversion_rate');
+  }
 
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
 
-  const { isStakingSupportedChain } = useStakingChain();
+  const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
-  const NetworkBadgeSource = () => {
-    if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+  const networkBadgeSource = useCallback(
+    (currentChainId: Hex) => {
+      if (!isPortfolioViewEnabled) {
+        if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
+        if (isMainnet) return images.ETHEREUM;
 
-    if (isMainnet) return images.ETHEREUM;
+        if (isLineaMainnet) return images['LINEA-MAINNET'];
 
-    if (isLineaMainnet) return images['LINEA-MAINNET'];
+        if (CustomNetworkImgMapping[chainId]) {
+          return CustomNetworkImgMapping[chainId];
+        }
 
-    if (CustomNetworkImgMapping[chainId]) {
-      return CustomNetworkImgMapping[chainId];
-    }
+        return ticker ? images[ticker] : undefined;
+      }
+      if (isTestNet(currentChainId))
+        return getTestNetImageByChainId(currentChainId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
 
-    return ticker ? images[ticker] : undefined;
-  };
+      if (defaultNetwork) {
+        return defaultNetwork.imageSource;
+      }
+
+      const unpopularNetwork = UnpopularNetworkList.find(
+        (networkConfig) => networkConfig.chainId === currentChainId,
+      );
+
+      const customNetworkImg = CustomNetworkImgMapping[currentChainId];
+
+      const popularNetwork = PopularList.find(
+        (networkConfig) => networkConfig.chainId === currentChainId,
+      );
+
+      const network = unpopularNetwork || popularNetwork;
+      if (network) {
+        return network.rpcPrefs.imageSource;
+      }
+      if (customNetworkImg) {
+        return customNetworkImg;
+      }
+    },
+    [chainId, isLineaMainnet, isMainnet, ticker],
+  );
 
   const onItemPress = (token: TokenI) => {
     // if the asset is staked, navigate to the native asset details
     if (asset.isStaked) {
-      return navigation.navigate('Asset', {...token.nativeAsset});
+      return navigation.navigate('Asset', {
+        ...token.nativeAsset,
+      });
     }
     navigation.navigate('Asset', {
       ...token,
     });
   };
 
+  const renderNetworkAvatar = useCallback(() => {
+    if (!isPortfolioViewEnabled && asset.isETH) {
+      return <NetworkMainAssetLogo style={styles.ethLogo} />;
+    }
+
+    if (isPortfolioViewEnabled && asset.isNative) {
+      return (
+        <NetworkAssetLogo
+          chainId={chainId as Hex}
+          style={styles.ethLogo}
+          ticker={asset.symbol}
+          big={false}
+          biggest={false}
+          testID={'PLACE HOLDER'}
+        />
+      );
+    }
+
+    return (
+      <AvatarToken
+        name={asset.symbol}
+        imageSource={{ uri: asset.image }}
+        size={AvatarSize.Md}
+      />
+    );
+  }, [
+    asset.isETH,
+    asset.image,
+    asset.symbol,
+    asset.isNative,
+    styles.ethLogo,
+    chainId,
+  ]);
+
   return (
     <AssetElement
       // assign staked asset a unique key
-      key={asset.isStaked ? '0x_staked' : (itemAddress || '0x')}
+      key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
       onPress={onItemPress}
       onLongPress={asset.isETH ? null : showRemoveMenu}
       asset={asset}
@@ -195,20 +296,12 @@ export const TokenListItem = ({
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={NetworkBadgeSource()}
+            imageSource={networkBadgeSource(chainId)}
             name={networkName}
           />
         }
       >
-        {asset.isETH ? (
-          <NetworkMainAssetLogo style={styles.ethLogo} />
-        ) : (
-          <AvatarToken
-            name={asset.symbol}
-            imageSource={{ uri: asset.image }}
-            size={AvatarSize.Md}
-          />
-        )}
+        {renderNetworkAvatar()}
       </BadgeWrapper>
 
       <View style={styles.balances}>
@@ -222,7 +315,9 @@ export const TokenListItem = ({
             {asset.name || asset.symbol}
           </Text>
           {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
-          {asset.isETH && isStakingSupportedChain && !asset.isStaked && <StakeButton asset={asset} />}
+          {asset.isETH && isStakingSupportedChain && !asset.isStaked && (
+            <StakeButton asset={asset} />
+          )}
         </View>
         {!isTestNet(chainId) ? (
           <PercentageChange value={pricePercentChange1d} />

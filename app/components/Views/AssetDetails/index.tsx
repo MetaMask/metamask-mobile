@@ -17,7 +17,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
-import Networks, { getDecimalChainId } from '../../../util/networks';
+import Networks, {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
@@ -34,18 +37,30 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
   selectProviderConfig,
+  selectNetworkConfigurationByChainId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectConversionRateBySymbol,
 } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectAllTokens,
+  selectTokens,
+} from '../../../selectors/tokensController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketDataByChainId,
+} from '../../../selectors/tokenRatesController';
+import {
+  selectContractBalances,
+  selectTokensBalances,
+} from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from 'app/reducers';
 import { Colors } from '../../../util/theme/models';
 import { Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -100,31 +115,66 @@ interface Props {
   route: {
     params: {
       address: Hex;
+      chainId: Hex;
     };
   };
 }
 
 const AssetDetails = (props: Props) => {
-  const { address } = props.route.params;
+  const { address, chainId: networkId } = props.route.params;
+
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
+  const allTokens = useSelector(selectAllTokens);
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const selectedChainId = useSelector(selectChainId);
+  const chainId = isPortfolioViewEnabled ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
-  const conversionRate = useSelector(selectConversionRate);
+  const tokensByChain = useMemo(
+    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? {},
+    [allTokens, chainId, selectedAccountAddress],
+  );
+
+  const conversionRateLegacy = useSelector(selectConversionRate);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId),
+  );
+  const conversionRateBySymbol = useSelector((state: RootState) =>
+    selectConversionRateBySymbol(
+      state,
+      networkConfigurationByChainId?.nativeCurrency,
+    ),
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
-  const token = useMemo(
+  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
+    selectTokenMarketDataByChainId(state, chainId),
+  );
+  const tokenBalancesLegacy = useSelector(selectContractBalances);
+  const allTokenBalances = useSelector(selectTokensBalances);
+  const portfolioToken = useMemo(
+    () => tokensByChain.find((rawToken) => rawToken.address === address),
+    [tokensByChain, address],
+  );
+
+  const legacyToken = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
   );
+
+  const token: TokenType | undefined = isPortfolioViewEnabled
+    ? portfolioToken
+    : legacyToken;
+
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
   const getNetworkName = () => {
@@ -259,13 +309,30 @@ const AssetDetails = (props: Props) => {
 
   const renderTokenBalance = () => {
     let balanceDisplay = '';
+    const tokenExchangeRates = isPortfolioViewEnabled
+      ? tokenExchangeRatesByChainId
+      : tokenExchangeRatesLegacy;
+    const tokenBalances = isPortfolioViewEnabled
+      ? allTokenBalances
+      : tokenBalancesLegacy;
+    const multiChainTokenBalance =
+      allTokenBalances[selectedAccountAddress as Hex]?.[chainId as Hex]?.[
+        address as Hex
+      ];
+    const tokenBalance = isPortfolioViewEnabled
+      ? multiChainTokenBalance
+      : tokenBalancesLegacy[address];
+    const conversionRate = isPortfolioViewEnabled
+      ? conversionRateBySymbol
+      : conversionRateLegacy;
+
     const exchangeRate =
       tokenExchangeRates && address in tokenExchangeRates
         ? tokenExchangeRates[address]?.price
         : undefined;
     const balance =
-      address in tokenBalances
-        ? renderFromTokenMinimalUnit(tokenBalances[address], decimals)
+      address in tokenBalances || isPortfolioViewEnabled
+        ? renderFromTokenMinimalUnit(tokenBalance, decimals)
         : undefined;
     const balanceFiat = balance
       ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)

@@ -1295,16 +1295,19 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
-            'AssetsContractController:getERC20BalanceOf',
+            'AccountsController:getSelectedAccount',
+            'NetworkController:getState',
+            'NetworkController:getNetworkClientById',
+            'PreferencesController:getState',
+            'TokensController:getState',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'NetworkController:stateChange',
+            'PreferencesController:stateChange',
+          ],
         }),
         interval: 180000,
-        tokens: [
-          ...tokensController.state.tokens,
-          ...tokensController.state.detectedTokens,
-        ],
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({
@@ -1733,8 +1736,23 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: contractBalances } =
           TokenBalancesController.state;
+
+        const selectedNetworkClientId =
+          NetworkController.state.selectedNetworkClientId;
+        const chainId = NetworkController.getNetworkClientById(
+          selectedNetworkClientId,
+        ).configuration.chainId;
+        const selectedInternalAccount = AccountsController.getAccount(
+          AccountsController.state.internalAccounts.selectedAccount,
+        );
+
+        const tokenBalances =
+          contractBalances?.[selectedInternalAccount?.address as Hex]?.[
+            chainId
+          ] ?? {};
+
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -1744,7 +1762,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -1822,18 +1840,30 @@ export class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
+      const { NetworkController, AccountsController } = this.context;
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
-      const tokens = backgroundState.TokensController.tokens;
+
+      const selectedNetworkClientId =
+        backgroundState.NetworkController.selectedNetworkClientId;
+      const chainId = NetworkController.getNetworkClientById(
+        selectedNetworkClientId,
+      ).configuration.chainId;
+      const selectedInternalAccount = AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
+
       const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+        backgroundState.TokenBalancesController.tokenBalances?.[
+          selectedInternalAccount?.address as Hex
+        ]?.[chainId];
 
       let tokenFound = false;
       tokens.forEach((token: { address: string | number }) => {
         if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
+          tokenBalances[token.address as Hex] &&
+          !isZero(tokenBalances[token.address as Hex])
         ) {
           tokenFound = true;
         }

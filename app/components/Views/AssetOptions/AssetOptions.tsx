@@ -39,12 +39,13 @@ interface Props {
     params: {
       address: string;
       isNativeCurrency: boolean;
+      chainId: string;
     };
   };
 }
 
 const AssetOptions = (props: Props) => {
-  const { address, isNativeCurrency } = props.route.params;
+  const { address, isNativeCurrency, chainId: networkId } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -88,7 +89,10 @@ const AssetOptions = (props: Props) => {
 
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('AssetDetails');
+      navigation.navigate('AssetDetails', {
+        address,
+        chainId: networkId,
+      });
     });
   };
 

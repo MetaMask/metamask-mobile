@@ -51,6 +51,7 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import { selectTokens } from '../../../selectors/tokensController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -300,6 +301,7 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -325,6 +327,24 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+
+  /**
+   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   */
+  const handleNetworkFilter = useCallback(() => {
+    // TODO: Come back possibly just add the chain id of the eth
+    // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
+  }, [chainId, tokenNetworkFilter]);
+
+  useEffect(() => {
+    handleNetworkFilter();
+  }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled
@@ -366,7 +386,14 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
-        AccountTrackerController.refresh();
+
+        Object.values(networkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
+          },
+        );
       });
     },
     /* eslint-disable-next-line */
@@ -488,6 +515,7 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
+      // TODO: Need to handle staked asset in multi chain
       if (
         accountBalanceByChainId.stakedBalance &&
         !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
