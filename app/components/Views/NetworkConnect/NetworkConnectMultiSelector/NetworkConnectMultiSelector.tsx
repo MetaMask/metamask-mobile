@@ -28,7 +28,10 @@ import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
@@ -52,6 +55,7 @@ const NetworkConnectMultiSelector = ({
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const currentChainId = useSelector(selectChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
