@@ -38,7 +38,7 @@ export const createEnableAutomaticSecurityChecksModalNavDetails =
 
 const EnableAutomaticSecurityChecksModal = () => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
   const dispatch = useDispatch();
@@ -47,10 +47,14 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED, {
-      ...generateDeviceAnalyticsMetaData(),
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
+      )
+        .addProperties(generateDeviceAnalyticsMetaData())
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   useEffect(() => {
     dispatch(setAutomaticSecurityChecksModalOpen(true));
@@ -63,24 +67,30 @@ const EnableAutomaticSecurityChecksModal = () => {
     () =>
       dismissModal(() => {
         trackEvent(
-          MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
-          { ...generateDeviceAnalyticsMetaData() },
+          createEventBuilder(
+            MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
+          )
+            .addProperties(generateDeviceAnalyticsMetaData())
+            .build(),
         );
         dispatch(userSelectedAutomaticSecurityChecksOptions());
       }),
-    [dispatch, trackEvent],
+    [dispatch, trackEvent, createEventBuilder],
   );
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
       trackEvent(
-        MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
-        { ...generateDeviceAnalyticsMetaData() },
+        createEventBuilder(
+          MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
+        )
+          .addProperties(generateDeviceAnalyticsMetaData())
+          .build(),
       );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));
     });
-  }, [dispatch, trackEvent]);
+  }, [dispatch, trackEvent, createEventBuilder]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>

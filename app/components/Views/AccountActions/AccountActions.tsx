@@ -67,7 +67,7 @@ const AccountActions = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
 
@@ -123,7 +123,11 @@ const AccountActions = () => {
         goToBrowserUrl(url, etherscan_url);
       }
 
-      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
+        ).build(),
+      );
     });
   };
 
@@ -139,13 +143,21 @@ const AccountActions = () => {
           Logger.log('Error while trying to share address', err);
         });
 
-      trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
+        ).build(),
+      );
     });
   };
 
   const goToExportPrivateKey = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED);
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
+        ).build(),
+      );
 
       navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         credentialName: 'private_key',
@@ -183,16 +195,21 @@ const AccountActions = () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
-      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
-        accountType: keyring?.type,
-        selectedAddress,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+          .addProperties({
+            accountType: keyring?.type,
+            selectedAddress,
+          })
+          .build(),
+      );
     }
   }, [
     controllers.KeyringController,
     keyring?.type,
     selectedAddress,
     trackEvent,
+    createEventBuilder,
   ]);
 
   /**
@@ -214,16 +231,21 @@ const AccountActions = () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
       await removeAccountsFromPermissions([selectedAddress]);
-      trackEvent(MetaMetricsEvents.ACCOUNT_REMOVED, {
-        accountType: keyring?.type,
-        selectedAddress,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+          .addProperties({
+            accountType: keyring?.type,
+            selectedAddress,
+          })
+          .build(),
+      );
     }
   }, [
     controllers.KeyringController,
     keyring?.type,
     selectedAddress,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const showRemoveSnapAccountAlert = useCallback(() => {
@@ -272,21 +294,34 @@ const AccountActions = () => {
       switch (keyringType) {
         case ExtendedKeyringTypes.ledger:
           await forgetLedger();
-          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-            device_type: HardwareDeviceTypes.LEDGER,
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+              .addProperties({
+                device_type: HardwareDeviceTypes.LEDGER,
+              })
+              .build(),
+          );
           break;
         case ExtendedKeyringTypes.qr:
           await controllers.KeyringController.forgetQRDevice();
-          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN, {
-            device_type: HardwareDeviceTypes.QR,
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN)
+              .addProperties({
+                device_type: HardwareDeviceTypes.QR,
+              })
+              .build(),
+          );
           break;
         default:
           break;
       }
     }
-  }, [controllers.KeyringController, keyring?.type, trackEvent]);
+  }, [
+    controllers.KeyringController,
+    keyring?.type,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Trigger the remove hardware account action when user click on the remove account button
