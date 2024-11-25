@@ -1,0 +1,68 @@
+diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
+index a12a342..bf66879 100644
+--- a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
++++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
+@@ -118,15 +118,21 @@ var SignTypedDataVersion;
+  * @param KeyringConstructor - The Keyring class for the builder.
+  * @returns A builder function for the given Keyring.
+  */
+-function keyringBuilderFactory(KeyringConstructor) {
+-    const builder = () => new KeyringConstructor();
++function keyringBuilderFactory(KeyringConstructor, pbkdf2MobileNative) {
++let builder = undefined
++    if(pbkdf2MobileNative){
++     builder = () => new KeyringConstructor(pbkdf2MobileNative);
++    }else{
++     builder = () => new KeyringConstructor();
++    }
+     builder.type = KeyringConstructor.type;
++    
+     return builder;
+ }
+ exports.keyringBuilderFactory = keyringBuilderFactory;
+-const defaultKeyringBuilders = [
++const defaultKeyringBuilders = (pbkdf2MobileNative) => [
+     keyringBuilderFactory(eth_simple_keyring_1.default),
+-    keyringBuilderFactory(eth_hd_keyring_1.default),
++    pbkdf2MobileNative ?  keyringBuilderFactory(eth_hd_keyring_1.default, pbkdf2MobileNative) : keyringBuilderFactory(eth_hd_keyring_1.default),
+ ];
+ const getDefaultKeyringState = () => {
+     return {
+@@ -256,7 +262,7 @@ class KeyringController extends base_controller_1.BaseController {
+      * @param options.state - Initial state to set on this controller.
+      */
+     constructor(options) {
+-        const { encryptor = encryptorUtils, keyringBuilders, messenger, state, } = options;
++        const { encryptor = encryptorUtils, keyringBuilders, messenger, state, pbkdf2MobileNative } = options;
+         super({
+             name,
+             metadata: {
+@@ -283,8 +289,8 @@ class KeyringController extends base_controller_1.BaseController {
+         _KeyringController_cacheEncryptionKey.set(this, void 0);
+         _KeyringController_qrKeyringStateListener.set(this, void 0);
+         __classPrivateFieldSet(this, _KeyringController_keyringBuilders, keyringBuilders
+-            ? keyringBuilders.concat(defaultKeyringBuilders)
+-            : defaultKeyringBuilders, "f");
++            ? keyringBuilders.concat(defaultKeyringBuilders(pbkdf2MobileNative))
++            : defaultKeyringBuilders(pbkdf2MobileNative), "f");
+         __classPrivateFieldSet(this, _KeyringController_encryptor, encryptor, "f");
+         __classPrivateFieldSet(this, _KeyringController_keyrings, [], "f");
+         __classPrivateFieldSet(this, _KeyringController_unsupportedKeyrings, [], "f");
+@@ -1388,6 +1394,7 @@ async function _KeyringController_newKeyring(type, data) {
+     const keyring = keyringBuilder();
+     // @ts-expect-error Enforce data type after updating clients
+     await keyring.deserialize(data);
++    
+     if (keyring.init) {
+         await keyring.init();
+     }
+@@ -1395,7 +1402,8 @@ async function _KeyringController_newKeyring(type, data) {
+         if (!keyring.generateRandomMnemonic) {
+             throw new Error(constants_1.KeyringControllerError.UnsupportedGenerateRandomMnemonic);
+         }
+-        keyring.generateRandomMnemonic();
++
++        await keyring.generateRandomMnemonic();
+         await keyring.addAccounts(1);
+     }
+     await __classPrivateFieldGet(this, _KeyringController_instances, "m", _KeyringController_checkForDuplicate).call(this, type, await keyring.getAccounts());

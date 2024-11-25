@@ -52,6 +52,8 @@ class AesEncryptionLibrary implements EncryptionLibrary {
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await Aes.decrypt(data, key, iv, CipherAlgorithm.cbc);
+
+  pbkdf2 = Aes.pbkdf2;
 }
 
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
@@ -87,6 +89,8 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await AesForked.decrypt(data, key, iv);
+
+  pbkdf2 = AesForked.pbkdf2;
 }
 
 // Those wrappers are stateless, we can build them only once!

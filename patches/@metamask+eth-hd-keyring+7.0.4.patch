@@ -1,0 +1,62 @@
+diff --git a/node_modules/@metamask/eth-hd-keyring/index.js b/node_modules/@metamask/eth-hd-keyring/index.js
+index 46a634e..58dd033 100644
+--- a/node_modules/@metamask/eth-hd-keyring/index.js
++++ b/node_modules/@metamask/eth-hd-keyring/index.js
+@@ -26,15 +26,17 @@ const hdPathString = `m/44'/60'/0'/0`;
+ const type = 'HD Key Tree';
+ 
+ class HdKeyring {
++  pbkdf2MobileNative = undefined;
+   /* PUBLIC METHODS */
+-  constructor(opts = {}) {
++  constructor(pbkdf2MobileNative) {
+     this.type = type;
+     this._wallets = [];
+-    this.deserialize(opts);
++    this.deserialize();
++    this.pbkdf2MobileNative = pbkdf2MobileNative;
+   }
+ 
+-  generateRandomMnemonic() {
+-    this._initFromMnemonic(bip39.generateMnemonic(wordlist));
++  async generateRandomMnemonic() {
++   await this._initFromMnemonic(bip39.generateMnemonic(wordlist));
+   }
+ 
+   _uint8ArrayToString(mnemonic) {
+@@ -92,7 +94,7 @@ class HdKeyring {
+     });
+   }
+ 
+-  deserialize(opts = {}) {
++  async deserialize(opts = {}) {    
+     if (opts.numberOfAccounts && !opts.mnemonic) {
+       throw new Error(
+         'Eth-Hd-Keyring: Deserialize method cannot be called with an opts value for numberOfAccounts and no menmonic',
+@@ -111,7 +113,7 @@ class HdKeyring {
+     this.hdPath = opts.hdPath || hdPathString;
+ 
+     if (opts.mnemonic) {
+-      this._initFromMnemonic(opts.mnemonic);
++      await this._initFromMnemonic(opts.mnemonic);
+     }
+ 
+     if (opts.numberOfAccounts) {
+@@ -277,7 +279,7 @@ class HdKeyring {
+    * as a string, an array of UTF-8 bytes, or a Buffer. Mnemonic input
+    * passed as type buffer or array of UTF-8 bytes must be NFKD normalized.
+    */
+-  _initFromMnemonic(mnemonic) {
++ async _initFromMnemonic(mnemonic) {
+     if (this.root) {
+       throw new Error(
+         'Eth-Hd-Keyring: Secret recovery phrase already provided',
+@@ -295,7 +297,7 @@ class HdKeyring {
+     }
+     
+     // eslint-disable-next-line n/no-sync
+-    const seed = bip39.mnemonicToSeedSync(this.mnemonic, wordlist);
++    const seed = await bip39.mnemonicToSeedSync(this.mnemonic, wordlist, '', this.pbkdf2MobileNative);
+     this.hdWallet = HDKey.fromMasterSeed(seed);
+     this.root = this.hdWallet.derive(this.hdPath);
+   }

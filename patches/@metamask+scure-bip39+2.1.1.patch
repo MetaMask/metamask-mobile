@@ -1,0 +1,32 @@
+diff --git a/node_modules/@metamask/scure-bip39/dist/index.js b/node_modules/@metamask/scure-bip39/dist/index.js
+index e0c500c..e4d99e9 100644
+--- a/node_modules/@metamask/scure-bip39/dist/index.js
++++ b/node_modules/@metamask/scure-bip39/dist/index.js
+@@ -1,6 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.mnemonicToSeedSync = exports.mnemonicToSeed = exports.validateMnemonic = exports.entropyToMnemonic = exports.mnemonicToEntropy = exports.generateMnemonic = void 0;
++const { bytesToString, hexToBytes } = require("@metamask/utils");
+ /*! scure-bip39 - MIT License (c) 2022 Patricio Palladino, Paul Miller (paulmillr.com) */
+ const _assert_1 = require("@noble/hashes/_assert");
+ const pbkdf2_1 = require("@noble/hashes/pbkdf2");
+@@ -146,8 +147,18 @@ exports.mnemonicToSeed = mnemonicToSeed;
+  * mnemonicToSeedSync(mnem, 'password');
+  * // new Uint8Array([...64 bytes])
+  */
+-function mnemonicToSeedSync(mnemonic, wordlist, passphrase = '') {
++async function mnemonicToSeedSync(mnemonic, wordlist, passphrase = '', pbkdf2MobileNative = undefined) {
+     const encodedMnemonicUint8Array = encodeMnemonicForSeedDerivation(mnemonic, wordlist);
++    if(pbkdf2MobileNative){
++        const key =  await pbkdf2MobileNative(bytesToString(encodedMnemonicUint8Array),
++        'mnemonic',
++        2048,
++        512,
++        'sha512');
++        const keyInbytes = hexToBytes(key);        
++        return keyInbytes;
++    }
++
+     return (0, pbkdf2_1.pbkdf2)(sha512_1.sha512, encodedMnemonicUint8Array, salt(passphrase), { c: 2048, dkLen: 64 });
+ }
+ exports.mnemonicToSeedSync = mnemonicToSeedSync;

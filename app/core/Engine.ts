@@ -161,7 +161,11 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
+import {
+  ENCRYPTION_LIBRARY,
+  Encryptor,
+  LEGACY_DERIVATION_OPTIONS,
+} from './Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
@@ -270,6 +274,7 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { getEncryptionLibrary } from './Encryptor/lib';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -824,6 +829,8 @@ export class Engine {
       state: initialKeyringState || initialState.KeyringController,
       // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
+      pbkdf2MobileNative: getEncryptionLibrary(ENCRYPTION_LIBRARY.original)
+        .pbkdf2,
     });
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
