@@ -290,7 +290,10 @@ export type ControllerMessenger = ExtendedControllerMessenger<
 /**
  * All mobile controllers, keyed by name
  */
-export interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -328,7 +331,7 @@ export interface Controllers {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Combines required and optional controllers for the Engine context type.
@@ -338,7 +341,10 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 /**
  * All engine state, keyed by controller name
  */
-export interface EngineState {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsContractController: BaseState;
@@ -373,4 +379,4 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};
