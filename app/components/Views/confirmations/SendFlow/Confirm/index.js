@@ -469,8 +469,10 @@ class Confirm extends PureComponent {
     });
     // For analytics
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
 
     showCustomNonce && (await this.setNetworkNonce());
@@ -652,7 +654,11 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+        this.props.metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          )
+          .build(),
       );
     }
   };
@@ -877,8 +883,10 @@ class Confirm extends PureComponent {
           });
           this.checkRemoveCollectible();
           this.props.metrics.trackEvent(
-            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-            gaParams,
+            this.props.metrics
+              .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED)
+              .addProperties(gaParams)
+              .build(),
           );
           stopGasPolling();
           resetTransaction();
@@ -1008,12 +1016,14 @@ class Confirm extends PureComponent {
         });
         this.checkRemoveCollectible();
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-          {
-            ...this.getAnalyticsParams(transactionMeta),
-            ...getBlockaidTransactionMetricsParams(transaction),
-            ...this.getTransactionMetrics(),
-          },
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED)
+            .addProperties({
+              ...this.getAnalyticsParams(transactionMeta),
+              ...getBlockaidTransactionMetricsParams(transaction),
+              ...this.getTransactionMetrics(),
+            })
+            .build(),
         );
         stopGasPolling();
         resetTransaction();
@@ -1036,7 +1046,11 @@ class Confirm extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       resetTransaction();
@@ -1172,7 +1186,9 @@ class Confirm extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -1239,8 +1255,10 @@ class Confirm extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 

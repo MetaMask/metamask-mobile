@@ -50,7 +50,7 @@ export const TokenList = ({
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const chainId = useSelector(selectChainId);
   const detectedTokens = useSelector(selectDetectedTokens);
@@ -62,13 +62,17 @@ export const TokenList = ({
 
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'detected',
-      chain_id: getDecimalChainId(chainId),
-      tokens: detectedTokens?.map(
-        (token) => `${token.symbol} - ${token.address}`,
-      ),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'detected',
+          chain_id: getDecimalChainId(chainId),
+          tokens: detectedTokens?.map(
+            (token) => `${token.symbol} - ${token.address}`,
+          ),
+        })
+        .build(),
+    );
     setIsAddTokenEnabled(true);
   };
 

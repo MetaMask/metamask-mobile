@@ -34,7 +34,7 @@ const NFTAutoDetectionModal = () => {
   const navigation = useNavigation();
   const chainId = useSelector(selectChainId);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {
@@ -43,13 +43,21 @@ const NFTAutoDetectionModal = () => {
         PreferencesController.setDisplayNftMedia(true);
       }
       PreferencesController.setUseNftDetection(true);
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE, {
-        chainId,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_ENABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
     } else {
-      trackEvent(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE, {
-        chainId,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NFT_AUTO_DETECTION_MODAL_DISABLE)
+          .addProperties({
+            chainId,
+          })
+          .build(),
+      );
     }
 
     if (sheetRef?.current) {

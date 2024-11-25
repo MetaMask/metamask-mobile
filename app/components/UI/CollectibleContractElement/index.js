@@ -106,7 +106,7 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -138,9 +138,13 @@ function CollectibleContractElement({
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),
