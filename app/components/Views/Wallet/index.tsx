@@ -429,6 +429,7 @@ const Wallet = ({
         appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
+        console.log('handleAppStateChange', appState.current, nextAppState);
         dispatchAccountSyncing();
       }
 
@@ -442,10 +443,9 @@ const Wallet = ({
 
     if (!isAccountSyncingReadyToBeDispatched) {
       setIsAccountSyncingReadyToBeDispatched(true);
-      return;
+    } else {
+      dispatchAccountSyncing();
     }
-
-    dispatchAccountSyncing();
 
     return () => {
       subscription.remove();

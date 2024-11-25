@@ -93,6 +93,9 @@ const mockInitialState = {
       AccountsController: {
         ...MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
+      UserStorageController: {
+        isAccountSyncingReadyToBeDispatched: true,
+      },
     },
   },
 };
@@ -121,6 +124,10 @@ jest.mock('react-native-scrollable-tab-view', () => {
 jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
   useDispatchAccountSyncing: jest.fn().mockReturnValue({
     dispatchAccountSyncing: jest.fn(),
+    error: undefined,
+  }),
+  useSetIsAccountSyncingReadyToBeDispatched: jest.fn().mockReturnValue({
+    setIsAccountSyncingReadyToBeDispatched: jest.fn(),
     error: undefined,
   }),
 }));
@@ -206,6 +213,7 @@ describe('Wallet', () => {
       'change',
       expect.any(Function),
     );
+
     const handleAppStateChange = (
       addEventListener as jest.Mock
     ).mock.calls.find(([event]) => event === 'change')[1];
