@@ -1142,9 +1142,9 @@ workflows:
       - build_android_release
   build_android_qa:
     envs:
-    - MM_MULTICHAIN_V1_ENABLED: 'true'
-    - MM_CHAIN_PERMISSIONS: 'true'
-    - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
+      - MM_MULTICHAIN_V1_ENABLED: 'true'
+      - MM_CHAIN_PERMISSIONS: 'true'
+      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     before_run:
       - code_setup
     after_run:
@@ -1392,6 +1392,9 @@ workflows:
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
+      - MM_MULTICHAIN_V1_ENABLED: 'true'
+      - MM_CHAIN_PERMISSIONS: 'true'
+      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     before_run:
       - code_setup
     after_run:
