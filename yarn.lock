@@ -5691,10 +5691,8 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@39.1.0-preview-690da12e":
-  version "39.1.0-preview-690da12e"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/transaction-controller/-/transaction-controller-39.1.0-preview-690da12e.tgz#55ab55fed4e3a586a1137c5a368443aa041fb5b8"
-  integrity sha512-xyiGGnQrIW48mFPemECvmFhy/rNnWhNOde1nCssL8kQUPG2lAjSzNIIzuLSOQVVPHmCzOqTUoUxthUht/7oOVA==
+"@metamask/transaction-controller@file:.yalc/@metamask/transaction-controller":
+  version "39.1.0"
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"
