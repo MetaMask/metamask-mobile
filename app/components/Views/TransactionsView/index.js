@@ -79,6 +79,7 @@ const TransactionsView = ({
       const allTransactions = allTransactionsSorted.filter((tx) => {
         const filter = filterByAddressAndNetwork(
           tx,
+          tokens,
           selectedAddress,
           networkId,
           chainId,
