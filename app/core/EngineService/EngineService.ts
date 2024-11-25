@@ -37,7 +37,7 @@ class EngineService {
       tags: getTraceTags(store.getState()),
     });
     const reduxState = store.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
+    const state = reduxState?.engine?.backgroundState ?? reduxState?.engine?.datamodel.state ?? {};
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
