@@ -44,7 +44,7 @@ app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
 
 # Accounts Team
 app/core/Encryptor/   @MetaMask/accounts-engineers
-app/core/Engine/controller/AccountsController   @MetaMask/accounts-engineers
+app/core/Engine/controllers/accounts   @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
