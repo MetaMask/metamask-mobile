@@ -9,7 +9,10 @@ import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
 import * as Actions from '../../../actions/notification/helpers';
 import initialRootState from '../../../util/test/initial-root-state';
-import { useDispatchAccountSyncing } from './useAccountSyncing';
+import {
+  useDispatchAccountSyncing,
+  useSetIsAccountSyncingReadyToBeDispatched,
+} from './useAccountSyncing';
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -98,5 +101,62 @@ describe('useDispatchAccountSyncing', () => {
     expect(result.current.error).toEqual(
       'MOCK - failed to sync internal account with user storage',
     );
+  });
+});
+
+describe('useSetIsAccountSyncingReadyToBeDispatched', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function arrangeHook() {
+    const store = arrangeStore();
+    const hook = renderHook(() => useSetIsAccountSyncingReadyToBeDispatched(), {
+      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
+
+    return hook;
+  }
+
+  function arrangeActions() {
+    const setIsAccountSyncingReadyToBeDispatched = jest
+      .spyOn(Actions, 'setIsAccountSyncingReadyToBeDispatched')
+      .mockResolvedValue(undefined);
+
+    return {
+      setIsAccountSyncingReadyToBeDispatched,
+    };
+  }
+
+  it('sets the correct value and sets error as undefined', async () => {
+    const mockActions = arrangeActions();
+
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.setIsAccountSyncingReadyToBeDispatched(true);
+    });
+
+    expect(
+      mockActions.setIsAccountSyncingReadyToBeDispatched,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it('sets error message when setIsAccountSyncingReadyToBeDispatched returns an error', async () => {
+    const mockActions = arrangeActions();
+    mockActions.setIsAccountSyncingReadyToBeDispatched.mockRejectedValueOnce(
+      new Error('MOCK - failed to set value'),
+    );
+
+    const { result } = arrangeHook();
+    await act(async () => {
+      await result.current.setIsAccountSyncingReadyToBeDispatched(true);
+    });
+
+    expect(
+      mockActions.setIsAccountSyncingReadyToBeDispatched,
+    ).toHaveBeenCalledTimes(1);
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error).toEqual('MOCK - failed to set value');
   });
 });
