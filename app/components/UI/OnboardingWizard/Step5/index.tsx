@@ -36,7 +36,7 @@ interface Step5Props {
 }
 
 const Step5 = ({ onClose }: Step5Props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dynamicOnboardingStyles = onboardingStyles(colors);
@@ -46,10 +46,14 @@ const Step5 = ({ onClose }: Step5Props) => {
    */
   const onNext = () => {
     dispatch(setOnboardingWizardStep?.(6));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 5,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED)
+        .addProperties({
+          tutorial_step_count: 5,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+        })
+        .build(),
+    );
   };
 
   /**
@@ -57,10 +61,14 @@ const Step5 = ({ onClose }: Step5Props) => {
    */
   const onBack = () => {
     dispatch(setOnboardingWizardStep?.(4));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 5,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED)
+        .addProperties({
+          tutorial_step_count: 5,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[5],
+        })
+        .build(),
+    );
   };
 
   /**

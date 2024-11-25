@@ -1527,16 +1527,19 @@ export class Engine {
         }),
         trackMetaMetricsEvent: () =>
           MetaMetrics.getInstance().trackEvent(
-            MetaMetricsEvents.TOKEN_DETECTED,
-            {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.getNetworkClientById(
-                  networkController?.state.selectedNetworkClientId,
-                ).configuration.chainId,
-              ),
-            },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.TOKEN_DETECTED,
+            )
+              .addProperties({
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                chain_id: getDecimalChainId(
+                  networkController.getNetworkClientById(
+                    networkController?.state.selectedNetworkClientId,
+                  ).configuration.chainId,
+                ),
+              })
+              .build(),
           ),
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(

@@ -100,17 +100,27 @@ class BrowserBottomBar extends PureComponent {
   };
 
   trackSearchEvent = () => {
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-      option_chosen: 'Browser Bottom Bar Menu',
-      number_of_tabs: undefined,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
+        .addProperties({
+          option_chosen: 'Browser Bottom Bar Menu',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
   };
 
   trackNavigationEvent = (navigationOption) => {
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_NAVIGATION, {
-      option_chosen: navigationOption,
-      os: Platform.OS,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_NAVIGATION)
+        .addProperties({
+          option_chosen: navigationOption,
+          os: Platform.OS,
+        })
+        .build(),
+    );
   };
 
   render() {

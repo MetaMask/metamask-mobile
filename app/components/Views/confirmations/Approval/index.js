@@ -265,8 +265,10 @@ class Approval extends PureComponent {
     await this.detectOrigin(); // Ensure detectOrigin finishes before proceeding
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_STARTED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -307,8 +309,10 @@ class Approval extends PureComponent {
    */
   trackConfirmScreen = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -316,14 +320,16 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackEditScreen = async () => {
-    const { transaction } = this.props;
+    const { transaction, metrics } = this.props;
     const actionKey = await getTransactionReviewActionKey({ transaction });
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .addProperties({
+          ...this.getTrackingParams(),
+          actionKey,
+        })
+        .build(),
     );
   };
 
@@ -332,8 +338,10 @@ class Approval extends PureComponent {
    */
   trackOnCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -374,8 +382,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -441,12 +449,14 @@ class Approval extends PureComponent {
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-      {
-        ...this.getAnalyticsParams(),
-        ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
+        .addProperties({
+          ...this.getAnalyticsParams(),
+          ...this.getBlockaidMetricsParams(),
+          ...this.getTransactionMetrics(),
+        })
+        .build(),
     );
   };
 
@@ -467,16 +477,20 @@ class Approval extends PureComponent {
         this.showWalletConnectNotification();
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-          gaParams,
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
+            .addProperties(gaParams)
+            .build(),
         );
       } else {
         this.showWalletConnectNotification(true);
       }
     } finally {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-        gaParams,
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED)
+          .addProperties(gaParams)
+          .build(),
       );
     }
   };
@@ -613,22 +627,28 @@ class Approval extends PureComponent {
         this.props.hideModal();
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       this.setState({ transactionHandled: false });
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-      {
-        ...this.getAnalyticsParams({
-          gasEstimateType,
-          gasSelected,
-        }),
-        ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED)
+        .addProperties({
+          ...this.getAnalyticsParams({
+            gasEstimateType,
+            gasSelected,
+          }),
+          ...this.getBlockaidMetricsParams(),
+          ...this.getTransactionMetrics(),
+        })
+        .build(),
     );
     this.setState({ transactionConfirmed: false });
   };

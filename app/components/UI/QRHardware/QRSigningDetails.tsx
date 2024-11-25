@@ -130,7 +130,7 @@ const QRSigningDetails = ({
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const KeyringController = useMemo(() => {
@@ -238,10 +238,14 @@ const QRSigningDetails = ({
           return;
         }
       }
-      trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-        error:
-          'received signature request id is not matched with origin request',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+          .addProperties({
+            error:
+              'received signature request id is not matched with origin request',
+          })
+          .build(),
+      );
       setErrorMessage(strings('transaction.mismatched_qr_request_id'));
       failureCallback?.(strings('transaction.mismatched_qr_request_id'));
     },
@@ -251,6 +255,7 @@ const QRSigningDetails = ({
       failureCallback,
       successCallback,
       trackEvent,
+      createEventBuilder,
     ],
   );
   const onScanError = useCallback(
