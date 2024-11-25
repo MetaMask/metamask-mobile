@@ -3,143 +3,67 @@ import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
 import {
   AccountTrackerController,
-  AccountTrackerControllerState,
   AssetsContractController,
   CurrencyRateController,
-  CurrencyRateState,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
-  GetTokenListState,
   NftController,
   NftDetectionController,
-  NftControllerState,
   TokenBalancesController,
   TokenDetectionController,
   TokenListController,
-  TokenListState,
-  TokenListStateChange,
   TokenRatesController,
-  TokenRatesControllerState,
   TokensController,
-  TokensControllerState,
   CodefiTokenPricesServiceV2,
-  TokensControllerActions,
-  TokensControllerEvents,
-  TokenListControllerActions,
-  TokenListControllerEvents,
-  TokenBalancesControllerState,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
-import PREINSTALLED_SNAPS from '../lib/snaps/preinstalled-snaps';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 ///: END:ONLY_INCLUDE_IF
-import {
-  AddressBookController,
-  AddressBookControllerActions,
-  AddressBookControllerEvents,
-  AddressBookControllerState,
-} from '@metamask/address-book-controller';
+import { AddressBookController } from '@metamask/address-book-controller';
 import { ComposableController } from '@metamask/composable-controller';
 import {
   KeyringController,
   KeyringControllerState,
-  KeyringControllerActions,
-  KeyringControllerEvents,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
   NetworkController,
-  NetworkControllerActions,
-  NetworkControllerEvents,
   NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
-import {
-  PhishingController,
-  PhishingControllerActions,
-  PhishingControllerEvents,
-  PhishingControllerState,
-} from '@metamask/phishing-controller';
-import {
-  PreferencesController,
-  PreferencesControllerActions,
-  PreferencesControllerEvents,
-  PreferencesState,
-} from '@metamask/preferences-controller';
+import { PhishingController } from '@metamask/phishing-controller';
+import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
-  TransactionControllerEvents,
-  TransactionControllerState,
   TransactionMeta,
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
-import {
-  GasFeeController,
-  GasFeeState,
-  GasFeeStateChange,
-  GetGasFeeState,
-} from '@metamask/gas-fee-controller';
+import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
   AcceptOptions,
   ApprovalController,
-  ApprovalControllerActions,
-  ApprovalControllerEvents,
-  ApprovalControllerState,
 } from '@metamask/approval-controller';
-import {
-  SelectedNetworkController,
-  SelectedNetworkControllerState,
-  SelectedNetworkControllerEvents,
-  SelectedNetworkControllerActions,
-} from '@metamask/selected-network-controller';
+import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
-  PermissionControllerActions,
-  PermissionControllerEvents,
-  PermissionControllerState,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
-  SubjectMetadataControllerActions,
-  SubjectMetadataControllerEvents,
-  SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, {
-  swapsUtils,
-  SwapsControllerState,
-} from '@metamask/swaps-controller';
-import {
-  PPOMController,
-  PPOMControllerActions,
-  PPOMControllerEvents,
-  PPOMState,
-} from '@metamask/ppom-validator';
+import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import { PPOMController } from '@metamask/ppom-validator';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   JsonSnapsRegistry,
-  AllowedActions as SnapsAllowedActions,
-  AllowedEvents as SnapsAllowedEvents,
   SnapController,
-  SnapsRegistryState,
-  SnapControllerEvents,
-  SnapControllerActions,
-  PersistedSnapControllerState,
   SnapsRegistryMessenger,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
-import { getSnapsWebViewPromise } from '../lib/snaps';
+import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
   buildSnapRestrictedMethodSpecifications,
@@ -149,27 +73,22 @@ import type { EnumToUnion, DialogType } from '@metamask/snaps-sdk';
 import { Duplex } from 'stream';
 ///: END:ONLY_INCLUDE_IF
 import { MetaMaskKeyring as QRHardwareKeyring } from '@keystonehq/metamask-airgapped-keyring';
-import {
-  LoggingController,
-  LoggingControllerState,
-  LoggingControllerActions,
-  LoggingControllerEvents,
-} from '@metamask/logging-controller';
+import { LoggingController } from '@metamask/logging-controller';
 import {
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from './Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
   isTestNet,
   deprecatedGetNetworkId,
   getDecimalChainId,
-} from '../util/networks';
-import AppConstants from './AppConstants';
-import { store } from '../store';
+} from '../../util/networks';
+import AppConstants from '../AppConstants';
+import { store } from '../../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -177,11 +96,11 @@ import {
   toHexadecimal,
   addHexPrefix,
   hexToBN,
-} from '../util/number';
-import NotificationManager from './NotificationManager';
-import Logger from '../util/Logger';
-import { isZero } from '../util/lodash';
-import { MetaMetricsEvents, MetaMetrics } from './Analytics';
+} from '../../util/number';
+import NotificationManager from '../NotificationManager';
+import Logger from '../../util/Logger';
+import { isZero } from '../../util/lodash';
+import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
@@ -192,8 +111,8 @@ import {
   detectSnapLocation,
   fetchFunction,
   DetectSnapLocationOptions,
-} from './Snaps';
-import { getRpcMethodMiddleware } from './RPCMethods/RPCMethodMiddleware';
+} from '../Snaps';
+import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
 import {
   AuthenticationController,
@@ -208,47 +127,50 @@ import {
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
-} from './Permissions/specifications.js';
-import { backupVault } from './BackupVault';
+} from '../Permissions/specifications.js';
+import { backupVault } from '../BackupVault';
 import {
   SignatureController,
-  SignatureControllerActions,
-  SignatureControllerEvents,
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
 import { hasProperty, Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
-import { PPOM, ppomInit } from '../lib/ppom/PPOMView';
-import RNFSStorageBackend from '../lib/ppom/ppom-storage-backend';
+import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
+import RNFSStorageBackend from '../../lib/ppom/ppom-storage-backend';
 import {
-  AccountsController,
-  AccountsControllerActions,
-  AccountsControllerEvents,
-  AccountsControllerMessenger,
-  AccountsControllerState,
-} from '@metamask/accounts-controller';
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  AccountsControllerSetSelectedAccountAction,
+  AccountsControllerGetAccountByAddressAction,
+  AccountsControllerSetAccountNameAction,
+  ///: END:ONLY_INCLUDE_IF
+  AccountsControllerGetAccountAction,
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerListAccountsAction,
+  AccountsControllerUpdateAccountMetadataAction,
+  AccountsControllerSelectedEvmAccountChangeEvent,
+  AccountsControllerSelectedAccountChangeEvent,
+  AccountsControllerAccountAddedEvent,
+  AccountsControllerAccountRenamedEvent,
+} from './controllers/AccountsController/constants';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../core/redux/slices/inpageProvider';
-import SmartTransactionsController, {
-  type SmartTransactionsControllerActions,
-  type SmartTransactionsControllerEvents,
-  type SmartTransactionsControllerState,
-} from '@metamask/smart-transactions-controller';
-import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
-import { selectShouldUseSmartTransaction } from '../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../reducers/swaps';
+} from '../../core/redux/slices/inpageProvider';
+import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
+import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { submitSmartTransactionHook } from '../util/smart-transactions/smart-publish-hook';
+import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
-import { ExtendedControllerMessenger } from './ExtendedControllerMessenger';
+import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import EthQuery from '@metamask/eth-query';
-import DomainProxyMap from '../lib/DomainProxyMap/DomainProxyMap';
+import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
   MetaMetricsEventName,
@@ -258,17 +180,24 @@ import {
   getSmartTransactionMetricsSensitiveProperties as getSmartTransactionMetricsSensitivePropertiesType,
 } from '@metamask/smart-transactions-controller/dist/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { snapKeyringBuilder } from './SnapKeyring';
-import { removeAccountsFromPermissions } from './Permissions';
-import { keyringSnapPermissionsBuilder } from './SnapKeyring/keyringSnapsPermissions';
-import { HandleSnapRequestArgs } from './Snaps/types';
-import { handleSnapRequest } from './Snaps/utils';
+import { snapKeyringBuilder } from '../SnapKeyring';
+import { removeAccountsFromPermissions } from '../Permissions';
+import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+import { HandleSnapRequestArgs } from '../Snaps/types';
+import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../util/smart-transactions';
-import { trace } from '../util/trace';
-import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
-import { JsonMap } from './Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
+import { trace } from '../../util/trace';
+import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { JsonMap } from '../Analytics/MetaMetrics.types';
+import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
+import {
+  ControllerMessenger,
+  Controllers,
+  EngineState,
+  EngineContext,
+  TransactionEventPayload,
+} from './types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -278,192 +207,6 @@ const encryptor = new Encryptor({
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
-
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
-type SnapsGlobalActions =
-  | SnapControllerActions
-  | SubjectMetadataControllerActions
-  | PhishingControllerActions
-  | SnapsAllowedActions;
-
-type SnapsGlobalEvents =
-  | SnapControllerEvents
-  | SubjectMetadataControllerEvents
-  | PhishingControllerEvents
-  | SnapsAllowedEvents;
-///: END:ONLY_INCLUDE_IF
-
-type GlobalActions =
-  | AddressBookControllerActions
-  | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
-  | KeyringControllerActions
-  | NetworkControllerActions
-  | PermissionControllerActions
-  | SignatureControllerActions
-  | LoggingControllerActions
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
-  ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
-  | AccountsControllerActions
-  | PreferencesControllerActions
-  | PPOMControllerActions
-  | TokensControllerActions
-  | TokenListControllerActions
-  | SelectedNetworkControllerActions
-  | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
-
-type GlobalEvents =
-  | AddressBookControllerEvents
-  | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
-  | KeyringControllerEvents
-  | TokenListStateChange
-  | NetworkControllerEvents
-  | PermissionControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  | SnapsGlobalEvents
-  ///: END:ONLY_INCLUDE_IF
-  | SignatureControllerEvents
-  | LoggingControllerEvents
-  | KeyringControllerEvents
-  | PPOMControllerEvents
-  | AccountsControllerEvents
-  | PreferencesControllerEvents
-  | TokensControllerEvents
-  | TokenListControllerEvents
-  | TransactionControllerEvents
-  | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
-
-type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
-type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
-
-export interface EngineState {
-  AccountTrackerController: AccountTrackerControllerState;
-  AddressBookController: AddressBookControllerState;
-  NftController: NftControllerState;
-  TokenListController: TokenListState;
-  CurrencyRateController: CurrencyRateState;
-  KeyringController: KeyringControllerState;
-  NetworkController: NetworkState;
-  PreferencesController: PreferencesState;
-  PhishingController: PhishingControllerState;
-  TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesControllerState;
-  TransactionController: TransactionControllerState;
-  SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsControllerState;
-  GasFeeController: GasFeeState;
-  TokensController: TokensControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  SnapController: PersistedSnapControllerState;
-  SnapsRegistry: SnapsRegistryState;
-  SubjectMetadataController: SubjectMetadataControllerState;
-  AuthenticationController: AuthenticationController.AuthenticationControllerState;
-  UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
-  ///: END:ONLY_INCLUDE_IF
-  PermissionController: PermissionControllerState<Permissions>;
-  ApprovalController: ApprovalControllerState;
-  LoggingController: LoggingControllerState;
-  PPOMController: PPOMState;
-  AccountsController: AccountsControllerState;
-  SelectedNetworkController: SelectedNetworkControllerState;
-}
-
-/**
- * All mobile controllers, keyed by name
- */
-interface Controllers {
-  AccountsController: AccountsController;
-  AccountTrackerController: AccountTrackerController;
-  AddressBookController: AddressBookController;
-  ApprovalController: ApprovalController;
-  AssetsContractController: AssetsContractController;
-  CurrencyRateController: CurrencyRateController;
-  GasFeeController: GasFeeController;
-  KeyringController: KeyringController;
-  LoggingController: LoggingController;
-  NetworkController: NetworkController;
-  NftController: NftController;
-  NftDetectionController: NftDetectionController;
-  // TODO: Fix permission types
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PermissionController: PermissionController<any, any>;
-  SelectedNetworkController: SelectedNetworkController;
-  PhishingController: PhishingController;
-  PreferencesController: PreferencesController;
-  PPOMController: PPOMController;
-  TokenBalancesController: TokenBalancesController;
-  TokenListController: TokenListController;
-  TokenDetectionController: TokenDetectionController;
-  TokenRatesController: TokenRatesController;
-  TokensController: TokensController;
-  TransactionController: TransactionController;
-  SmartTransactionsController: SmartTransactionsController;
-  SignatureController: SignatureController;
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  SnapController: SnapController;
-  SubjectMetadataController: SubjectMetadataController;
-  AuthenticationController: AuthenticationController.Controller;
-  UserStorageController: UserStorageController.Controller;
-  NotificationServicesController: NotificationServicesController.Controller;
-  NotificationServicesPushController: NotificationServicesPushController.Controller;
-  ///: END:ONLY_INCLUDE_IF
-  SwapsController: SwapsController;
-}
-
-/**
- * Controllers that area always instantiated
- */
-type RequiredControllers = Omit<Controllers, 'PPOMController'>;
-
-/**
- * Controllers that are sometimes not instantiated
- */
-type OptionalControllers = Pick<Controllers, 'PPOMController'>;
-
-/**
- * Combines required and optional controllers for the Engine context type.
- */
-export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
-
-/**
- * Type definition for the controller messenger used in the Engine.
- * It extends the base ControllerMessenger with global actions and events.
- */
-export type ControllerMessenger = ExtendedControllerMessenger<
-  GlobalActions,
-  GlobalEvents
->;
-
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -594,31 +337,11 @@ export class Engine {
         networkController?.state.selectedNetworkClientId,
       ).configuration.chainId,
     });
-    const accountsControllerMessenger: AccountsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          'SnapController:stateChange',
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
 
-    const defaultAccountsControllerState: AccountsControllerState = {
-      internalAccounts: {
-        accounts: {},
-        selectedAccount: '',
-      },
-    };
-
-    const accountsController = new AccountsController({
-      messenger: accountsControllerMessenger,
-      state: initialState.AccountsController ?? defaultAccountsControllerState,
+    // Create AccountsController
+    const accountsController = createAccountsController({
+      messenger: this.controllerMessenger,
+      initialState: initialState.AccountsController,
     });
 
     const nftController = new NftController({
@@ -631,8 +354,8 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
+          AccountsControllerGetAccountAction,
+          AccountsControllerGetSelectedAccountAction,
           'AssetsContractController:getERC721AssetName',
           'AssetsContractController:getERC721AssetSymbol',
           'AssetsContractController:getERC721TokenURI',
@@ -643,7 +366,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
-          'AccountsController:selectedEvmAccountChange',
+          AccountsControllerSelectedEvmAccountChangeEvent,
         ],
       }),
     });
@@ -672,14 +395,14 @@ export class Engine {
         allowedActions: [
           `${approvalController.name}:addRequest`,
           'NetworkController:getNetworkClientById',
-          'AccountsController:getAccount',
-          'AccountsController:getSelectedAccount',
+          AccountsControllerGetAccountAction,
+          AccountsControllerGetSelectedAccountAction,
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
           'TokenListController:stateChange',
-          'AccountsController:selectedEvmAccountChange',
+          AccountsControllerSelectedEvmAccountChangeEvent,
         ],
       }),
     });
@@ -781,9 +504,9 @@ export class Engine {
         'PhishingController:testOrigin',
         'PhishingController:maybeUpdateState',
         'KeyringController:getAccounts',
-        'AccountsController:setSelectedAccount',
-        'AccountsController:getAccountByAddress',
-        'AccountsController:setAccountName',
+        AccountsControllerSetSelectedAccountAction,
+        AccountsControllerGetAccountByAddressAction,
+        AccountsControllerSetAccountNameAction,
       ],
       allowedEvents: [],
     });
@@ -939,15 +662,15 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'AccountTrackerController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
-          'AccountsController:listAccounts',
+          AccountsControllerGetSelectedAccountAction,
+          AccountsControllerListAccountsAction,
           'PreferencesController:getState',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
         ],
         allowedEvents: [
-          'AccountsController:selectedEvmAccountChange',
-          'AccountsController:selectedAccountChange',
+          AccountsControllerSelectedEvmAccountChangeEvent,
+          AccountsControllerSelectedAccountChangeEvent,
         ],
       }),
       state: initialState.AccountTrackerController ?? { accounts: {} },
@@ -1265,14 +988,14 @@ export class Engine {
           'AuthenticationController:performSignIn',
           'NotificationServicesController:disableNotificationServices',
           'NotificationServicesController:selectIsNotificationServicesEnabled',
-          'AccountsController:listAccounts',
-          'AccountsController:updateAccountMetadata',
+          AccountsControllerListAccountsAction,
+          AccountsControllerUpdateAccountMetadataAction,
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
-          'AccountsController:accountAdded',
-          'AccountsController:accountRenamed',
+          AccountsControllerAccountAddedEvent,
+          AccountsControllerAccountRenamedEvent,
         ],
       }),
       nativeScryptCrypto: scrypt,
@@ -1407,7 +1130,7 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'TransactionController',
         allowedActions: [
-          `${accountsController.name}:getSelectedAccount`,
+          AccountsControllerGetSelectedAccountAction,
           `${approvalController.name}:addRequest`,
           `${networkController.name}:getNetworkClientById`,
           `${networkController.name}:findNetworkClientIdByChainId`,
@@ -1500,7 +1223,7 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenDetectionController',
           allowedActions: [
-            'AccountsController:getSelectedAccount',
+            AccountsControllerGetSelectedAccountAction,
             'NetworkController:getNetworkClientById',
             'NetworkController:getNetworkConfigurationByNetworkClientId',
             'NetworkController:getState',
@@ -1509,7 +1232,7 @@ export class Engine {
             'TokenListController:getState',
             'TokensController:getState',
             'TokensController:addDetectedTokens',
-            'AccountsController:getAccount',
+            AccountsControllerGetAccountAction,
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1518,7 +1241,7 @@ export class Engine {
             'NetworkController:networkDidChange',
             'TokenListController:stateChange',
             'TokensController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
+            AccountsControllerSelectedEvmAccountChangeEvent,
           ],
         }),
         trackMetaMetricsEvent: () =>
@@ -1554,7 +1277,7 @@ export class Engine {
             'NetworkController:getState',
             'NetworkController:getNetworkClientById',
             'PreferencesController:getState',
-            'AccountsController:getSelectedAccount',
+            AccountsControllerGetSelectedAccountAction,
           ],
         }),
         disabled: false,
@@ -1569,7 +1292,7 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            'AccountsController:getSelectedAccount',
+            AccountsControllerGetSelectedAccountAction,
             'AssetsContractController:getERC20BalanceOf',
           ],
           allowedEvents: ['TokensController:stateChange'],
@@ -1588,13 +1311,13 @@ export class Engine {
             'TokensController:getState',
             'NetworkController:getNetworkClientById',
             'NetworkController:getState',
-            'AccountsController:getAccount',
-            'AccountsController:getSelectedAccount',
+            AccountsControllerGetAccountAction,
+            AccountsControllerGetSelectedAccountAction,
           ],
           allowedEvents: [
             'TokensController:stateChange',
             'NetworkController:stateChange',
-            'AccountsController:selectedEvmAccountChange',
+            AccountsControllerSelectedEvmAccountChangeEvent,
           ],
         }),
         tokenPricesService: codefiTokenApiV2,
