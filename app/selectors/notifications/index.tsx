@@ -35,6 +35,11 @@ export const selectIsProfileSyncingUpdateLoading = createSelector(
   (userStorageControllerState: UserStorageState) =>
     userStorageControllerState.isProfileSyncingUpdateLoading,
 );
+export const selectIsAccountSyncingReadyToBeDispatched = createSelector(
+  selectUserStorageControllerState,
+  (userStorageControllerState: UserStorageState) =>
+    userStorageControllerState.isAccountSyncingReadyToBeDispatched,
+);
 
 export const selectIsSignedIn = createSelector(
   selectAuthenticationControllerState,

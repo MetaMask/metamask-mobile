@@ -88,6 +88,7 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
+  selectIsAccountSyncingReadyToBeDispatched,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
@@ -96,8 +97,10 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+import {
+  useDispatchAccountSyncing,
+  useSetIsAccountSyncingReadyToBeDispatched,
+} from '../../../util/notifications/hooks/useAccountSyncing';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -160,7 +163,9 @@ const Wallet = ({
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
   const appState = useRef(AppState.currentState);
-  const { dispatchAccountSyncing } = useAccountSyncing();
+  const { dispatchAccountSyncing } = useDispatchAccountSyncing();
+  const { setIsAccountSyncingReadyToBeDispatched } =
+    useSetIsAccountSyncingReadyToBeDispatched();
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -300,6 +305,9 @@ const Wallet = ({
   );
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isAccountSyncingReadyToBeDispatched = useSelector(
+    selectIsAccountSyncingReadyToBeDispatched,
+  );
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -432,12 +440,17 @@ const Wallet = ({
       handleAppStateChange,
     );
 
+    if (!isAccountSyncingReadyToBeDispatched) {
+      setIsAccountSyncingReadyToBeDispatched(true);
+      return;
+    }
+
     dispatchAccountSyncing();
 
     return () => {
       subscription.remove();
     };
-  }, [dispatchAccountSyncing]);
+  }, [dispatchAccountSyncing, isAccountSyncingReadyToBeDispatched]);
 
   const renderTabBar = useCallback(
     (props) => (

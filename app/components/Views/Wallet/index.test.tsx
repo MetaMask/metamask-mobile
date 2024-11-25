@@ -7,7 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { useAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
+import { useDispatchAccountSyncing } from '../../../util/notifications/hooks/useAccountSyncing';
 import { AppState } from 'react-native';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
@@ -119,7 +119,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
 });
 
 jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
-  useAccountSyncing: jest.fn().mockReturnValue({
+  useDispatchAccountSyncing: jest.fn().mockReturnValue({
     dispatchAccountSyncing: jest.fn(),
     error: undefined,
   }),
@@ -190,7 +190,9 @@ describe('Wallet', () => {
     jest.clearAllMocks();
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(1);
+    expect(
+      useDispatchAccountSyncing().dispatchAccountSyncing,
+    ).toHaveBeenCalledTimes(1);
   });
   it('dispatches account syncing when appState switches from inactive|background to active', () => {
     jest.clearAllMocks();
@@ -213,13 +215,17 @@ describe('Wallet', () => {
       handleAppStateChange('active');
     });
 
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(2);
+    expect(
+      useDispatchAccountSyncing().dispatchAccountSyncing,
+    ).toHaveBeenCalledTimes(2);
 
     act(() => {
       handleAppStateChange('inactive');
       handleAppStateChange('active');
     });
 
-    expect(useAccountSyncing().dispatchAccountSyncing).toHaveBeenCalledTimes(3);
+    expect(
+      useDispatchAccountSyncing().dispatchAccountSyncing,
+    ).toHaveBeenCalledTimes(3);
   });
 });

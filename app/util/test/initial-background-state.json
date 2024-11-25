@@ -345,6 +345,8 @@
   },
   "UserStorageController": {
     "isProfileSyncingEnabled": true,
-    "isProfileSyncingUpdateLoading": false
+    "isProfileSyncingUpdateLoading": false,
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false
   }
 }
