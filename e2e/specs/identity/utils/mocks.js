@@ -5,6 +5,7 @@ import {
 } from '@metamask/notification-services-controller';
 import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 const AuthMocks = AuthenticationController.Mocks;
 const NotificationMocks = NotificationServicesController.Mocks;
@@ -26,9 +27,18 @@ export async function mockNotificationServices(server) {
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
 
-  userStorageMockttpControllerInstance.setupPath('accounts', server);
-  userStorageMockttpControllerInstance.setupPath('networks', server);
-  userStorageMockttpControllerInstance.setupPath('notifications', server);
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.accounts,
+    server,
+  );
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.networks,
+    server,
+  );
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.notifications,
+    server,
+  );
 
   // Notifications
   mockAPICall(server, NotificationMocks.getMockFeatureAnnouncementResponse());

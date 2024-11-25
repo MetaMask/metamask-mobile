@@ -2,15 +2,24 @@ import {
   determineIfFeatureEntryFromURL,
   getDecodedProxiedURL,
 } from '../helpers';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-// TODO: Export user storage schema from @metamask/profile-sync-controller
+const baseUrl =
+  'https://user-storage\\.api\\.cx\\.metamask\\.io\\/api\\/v1\\/userstorage';
+
 export const pathRegexps = {
-  accounts:
-    /https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/accounts/u,
-  networks:
-    /https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/networks/u,
-  notifications:
-    /https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/notifications/u,
+  [USER_STORAGE_FEATURE_NAMES.accounts]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
+    'u',
+  ),
+  [USER_STORAGE_FEATURE_NAMES.networks]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.networks}`,
+    'u',
+  ),
+  [USER_STORAGE_FEATURE_NAMES.notifications]: new RegExp(
+    `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.notifications}`,
+    'u',
+  ),
 };
 
 export class UserStorageMockttpController {
@@ -57,44 +66,68 @@ export class UserStorageMockttpController {
 
     const data = await request.body.getJson();
 
-    const newOrUpdatedSingleOrBatchEntries =
-      isFeatureEntry && typeof data?.data === 'string'
-        ? [
-            {
-              HashedKey: getDecodedProxiedURL(request.url).split('/').pop(),
-              Data: data?.data,
-            },
-          ]
-        : Object.entries(data?.data).map(([key, value]) => ({
-            HashedKey: key,
-            Data: value,
-          }));
+    // We're handling batch delete inside the PUT method due to API limitations
+    if (data?.batch_delete) {
+      const keysToDelete = data.batch_delete;
 
-    newOrUpdatedSingleOrBatchEntries.forEach((entry) => {
       const internalPathData = this.paths.get(path);
 
       if (!internalPathData) {
-        return;
+        return {
+          statusCode,
+        };
       }
 
-      const doesThisEntryExist = internalPathData.response?.find(
-        (existingEntry) => existingEntry.HashedKey === entry.HashedKey,
-      );
+      this.paths.set(path, {
+        ...internalPathData,
+        response: internalPathData.response.filter(
+          (entry) => !keysToDelete.includes(entry.HashedKey),
+        ),
+      });
+    }
 
-      if (doesThisEntryExist) {
-        this.paths.set(path, {
-          ...internalPathData,
-          response: internalPathData.response.map((existingEntry) =>
-            existingEntry.HashedKey === entry.HashedKey ? entry : existingEntry,
-          ),
-        });
-      } else {
-        this.paths.set(path, {
-          ...internalPathData,
-          response: [...(internalPathData?.response || []), entry],
-        });
-      }
-    });
+    if (data?.data) {
+      const newOrUpdatedSingleOrBatchEntries =
+        isFeatureEntry && typeof data?.data === 'string'
+          ? [
+              {
+                HashedKey: getDecodedProxiedURL(request.url).split('/').pop(),
+                Data: data?.data,
+              },
+            ]
+          : Object.entries(data?.data).map(([key, value]) => ({
+              HashedKey: key,
+              Data: value,
+            }));
+
+      newOrUpdatedSingleOrBatchEntries.forEach((entry) => {
+        const internalPathData = this.paths.get(path);
+
+        if (!internalPathData) {
+          return;
+        }
+
+        const doesThisEntryExist = internalPathData.response?.find(
+          (existingEntry) => existingEntry.HashedKey === entry.HashedKey,
+        );
+
+        if (doesThisEntryExist) {
+          this.paths.set(path, {
+            ...internalPathData,
+            response: internalPathData.response.map((existingEntry) =>
+              existingEntry.HashedKey === entry.HashedKey
+                ? entry
+                : existingEntry,
+            ),
+          });
+        } else {
+          this.paths.set(path, {
+            ...internalPathData,
+            response: [...(internalPathData?.response || []), entry],
+          });
+        }
+      });
+    }
 
     return {
       statusCode,

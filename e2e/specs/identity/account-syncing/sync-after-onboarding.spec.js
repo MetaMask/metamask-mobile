@@ -1,4 +1,5 @@
 import { SDK } from '@metamask/profile-sync-controller';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
@@ -15,9 +16,9 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListView from '../../../pages/AccountListView';
 import Assertions from '../../../utils/Assertions';
 import { mockNotificationServices } from '../utils/mocks';
-import { SmokeNotifications } from '../../../tags';
+import { SmokeIdentity } from '../../../tags';
 
-describe(SmokeNotifications('Account syncing'), () => {
+describe(SmokeIdentity('Account syncing'), () => {
   beforeAll(async () => {
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
@@ -26,9 +27,13 @@ describe(SmokeNotifications('Account syncing'), () => {
     const { userStorageMockttpControllerInstance } =
       await mockNotificationServices(mockServer);
 
-    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
-      getResponse: accountsSyncMockResponse,
-    });
+    userStorageMockttpControllerInstance.setupPath(
+      USER_STORAGE_FEATURE_NAMES.accounts,
+      mockServer,
+      {
+        getResponse: accountsSyncMockResponse,
+      },
+    );
 
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();

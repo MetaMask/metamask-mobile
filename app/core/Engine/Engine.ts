@@ -930,7 +930,6 @@ export class Engine {
         allowedActions: [
           'KeyringController:getState',
           'KeyringController:getAccounts',
-
           'SnapController:handleRequest',
           'UserStorageController:enableProfileSyncing',
         ],
@@ -968,6 +967,18 @@ export class Engine {
               )
                 .addProperties({
                   profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
                 })
                 .build(),
             );

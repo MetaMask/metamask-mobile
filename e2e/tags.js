@@ -6,7 +6,7 @@ const tags = {
   SmokeSwaps: 'SmokeSwaps',
   SmokeRest: 'SmokeRest',
   smokeAssets: 'smokeAssets',
-  smokeNotifications: 'smokeNotifications',
+  smokeIdentity: 'smokeIdentity',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -16,8 +16,7 @@ const SmokeConfirmations = (testName) =>
   `${tags.smokeConfirmations} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
-const SmokeNotifications = (testName) =>
-  `${tags.smokeNotifications} ${testName}`;
+const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
 
 export {
   Regression,
@@ -26,5 +25,5 @@ export {
   SmokeConfirmations,
   SmokeSwaps,
   SmokeAssets,
-  SmokeNotifications,
+  SmokeIdentity,
 };

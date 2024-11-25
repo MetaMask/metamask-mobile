@@ -135,8 +135,8 @@ stages:
       - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_notifications_ios: {}
-      # - run_tag_smoke_notifications_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -161,8 +161,8 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_swaps_ios: {}
@@ -547,20 +547,20 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_notifications_ios:
+  run_tag_smoke_identity_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
-      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
+      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_notifications_android:
+  run_tag_smoke_identity_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
-      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
+      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_assets_ios:
