@@ -29,6 +29,9 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      UserStorageController: {
+        isProfileSyncingEnabled: false,
+      },
     },
   },
   security: {
@@ -67,6 +70,11 @@ let mockUseParamsValues: {
 jest.mock('../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../util/navigation/navUtils'),
   useParams: jest.fn(() => mockUseParamsValues),
+}));
+
+jest.mock('../../../../util/notifications/constants', () => ({
+  ...jest.requireActual('../../../../util/notifications/constants'),
+  isNotificationsFeatureEnabled: () => false,
 }));
 
 describe('SecuritySettings', () => {

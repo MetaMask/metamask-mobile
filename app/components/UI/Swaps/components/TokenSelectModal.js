@@ -157,7 +157,7 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const searchInput = useRef(null);
   const list = useRef();
@@ -304,17 +304,25 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
-        sensitiveProperties: {
-          address,
-          symbol,
-          chain_id: getDecimalChainId(chainId),
-        },
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED)
+          .addSensitiveProperties({
+            address,
+            symbol,
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress, trackEvent],
+    [
+      chainId,
+      hideTokenImportModal,
+      onItemPress,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleBlockExplorerPress = useCallback(() => {

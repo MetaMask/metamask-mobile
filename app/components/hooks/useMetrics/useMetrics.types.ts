@@ -1,6 +1,5 @@
 import type { UserTraits } from '@segment/analytics-react-native';
 import {
-  CombinedProperties,
   DataDeleteDate,
   IDeleteRegulationResponse,
   IDeleteRegulationStatus,
@@ -21,25 +20,12 @@ export interface IUseMetricsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
   addTraitsToUser(userTraits: UserTraits): Promise<void>;
-
-  /**
-   * @deprecated use `trackEvent(ITrackingEvent,boolean)` instead
-   */
-  trackEvent(
-    event: IMetaMetricsEvent,
-    properties?: CombinedProperties,
-    saveDataRecording?: boolean,
-  ): void;
   /**
    * track an event
    * @param event - Analytics event build with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent(
-    // New signature
-    event: ITrackingEvent,
-    saveDataRecording?: boolean,
-  ): void;
+  trackEvent(event: ITrackingEvent, saveDataRecording?: boolean): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
   checkDataDeleteStatus(): Promise<IDeleteRegulationStatus>;
   getDeleteRegulationCreationDate(): DataDeleteDate;

@@ -1,6 +1,7 @@
 import { store } from '../../../store';
 import { addToViewedDapp } from '../../../actions/browser';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { prefixUrlWithProtocol } from '../../browser';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 
@@ -29,13 +30,17 @@ const trackDappViewedEvent = ({
   // Add Dapp hostname to viewed dapps
   store.dispatch(addToViewedDapp(hostname));
 
-  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.DAPP_VIEWED, {
-    Referrer: prefixUrlWithProtocol(hostname),
-    is_first_visit: isFirstVisit,
-    number_of_accounts: numberOfWalletAccounts,
-    number_of_accounts_connected: numberOfConnectedAccounts,
-    source: 'in-app browser',
-  });
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.DAPP_VIEWED)
+      .addProperties({
+        Referrer: prefixUrlWithProtocol(hostname),
+        is_first_visit: isFirstVisit,
+        number_of_accounts: numberOfWalletAccounts,
+        number_of_accounts_connected: numberOfConnectedAccounts,
+        source: 'in-app browser',
+      })
+      .build(),
+  );
 };
 
 export default trackDappViewedEvent;

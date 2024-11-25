@@ -18,6 +18,11 @@ interface ExpandableSectionProps {
   expandedContent: ReactNode;
   expandedContentTitle: string;
   closeButtonTestId?: string;
+  iconVerticalPosition?: IconVerticalPosition;
+}
+
+export enum IconVerticalPosition {
+  Top = 'top',
 }
 
 const ExpandableSection = ({
@@ -25,9 +30,13 @@ const ExpandableSection = ({
   expandedContent,
   expandedContentTitle,
   closeButtonTestId,
+  iconVerticalPosition,
 }: ExpandableSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [expanded, setExpanded] = useState(false);
+
+  const iconStyle =
+    iconVerticalPosition === IconVerticalPosition.Top ? { top: 18 } : {};
 
   return (
     <>
@@ -44,6 +53,10 @@ const ExpandableSection = ({
             color={IconColor.Muted}
             size={IconSize.Sm}
             name={IconName.ArrowRight}
+            style={{
+              ...styles.expandIcon,
+              ...iconStyle,
+            }}
           />
         </View>
       </TouchableOpacity>

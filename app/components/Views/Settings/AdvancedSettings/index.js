@@ -261,10 +261,15 @@ class AdvancedSettings extends PureComponent {
       smartTransactionsOptInStatus,
     );
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
-      stx_opt_in: smartTransactionsOptInStatus,
-      location: 'Advanced Settings',
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN)
+        .addProperties({
+          stx_opt_in: smartTransactionsOptInStatus,
+          location: 'Advanced Settings',
+        })
+        .build(),
+    );
   };
 
   openLinkAboutStx = () => {

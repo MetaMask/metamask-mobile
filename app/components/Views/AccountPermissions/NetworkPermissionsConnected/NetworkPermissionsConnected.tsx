@@ -64,7 +64,7 @@ const AccountPermissionsConnected = ({
   urlWithProtocol,
 }: NetworkPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
@@ -78,10 +78,14 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [providerConfig.chainId, navigate, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -188,11 +192,15 @@ const AccountPermissionsConnected = ({
             );
 
             if (theNetworkName) {
-              trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-                chain_id: getDecimalChainId(chainId),
-                from_network: providerConfig?.nickname || theNetworkName,
-                to_network: theNetworkName,
-              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+                  .addProperties({
+                    chain_id: getDecimalChainId(chainId),
+                    from_network: providerConfig?.nickname || theNetworkName,
+                    to_network: theNetworkName,
+                  })
+                  .build(),
+              );
               onDismissSheet();
             }
           }}
