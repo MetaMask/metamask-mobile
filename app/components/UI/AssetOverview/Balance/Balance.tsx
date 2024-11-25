@@ -45,6 +45,8 @@ interface BalanceProps {
 const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
+  if (!chainId) {
+  }
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
   if (!isPortfolioViewEnabled) {
@@ -93,11 +95,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
-  const selectedChainId = useSelector(selectChainId);
-
-  const chainId = isPortfolioViewEnabled
-    ? (asset.chainId as Hex)
-    : selectedChainId;
+  const chainId = useSelector(selectChainId);
 
   const ticker = asset.symbol;
 

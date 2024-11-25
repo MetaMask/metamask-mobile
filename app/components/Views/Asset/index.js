@@ -206,6 +206,7 @@ class Asset extends PureComponent {
                 params: {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
+                  chainId: route.params?.chainId,
                 },
               })
           : undefined,
