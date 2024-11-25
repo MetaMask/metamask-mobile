@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-navigation/native/lib/commonjs/useLinking.native.js b/node_modules/@react-navigation/native/lib/commonjs/useLinking.native.js
+index 5e4f8a4..39c29eb 100644
+--- a/node_modules/@react-navigation/native/lib/commonjs/useLinking.native.js
++++ b/node_modules/@react-navigation/native/lib/commonjs/useLinking.native.js
+@@ -39,7 +39,7 @@ function useLinking(ref, {
+       // https://github.com/facebook/react-native/commit/6d1aca806cee86ad76de771ed3a1cc62982ebcd7
+       if (subscription !== null && subscription !== void 0 && subscription.remove) {
+         subscription.remove();
+-      } else {
++      } else if ('removeEventListener' in _reactNative.Linking) {
+         _reactNative.Linking.removeEventListener('url', callback);
+       }
+     };
