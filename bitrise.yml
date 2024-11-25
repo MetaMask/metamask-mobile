@@ -71,6 +71,10 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
+  multichain_e2e_pipeline:
+    stages:
+      - build_multichain_e2e_ios_android_stage: {}
+      - run_multichain_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -130,6 +134,19 @@ stages:
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
+  build_multichain_e2e_ios_android_stage:
+    abort_on_fail: true
+    envs:
+      - MM_MULTICHAIN_V1_ENABLED: 'true'
+      - MM_CHAIN_PERMISSIONS: 'true'
+      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
+    workflows:
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
+  run_multichain_e2e_ios_android_stage:
+    workflows:
+      - run_tag_multichain_ios: {}
+      - run_tag_multichain_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -630,6 +647,22 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
+  run_tag_multichain_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/multichain/*'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_multichain_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/spec/multichain/*'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     before_run:
       - code_setup
@@ -927,11 +960,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
@@ -1141,10 +1169,6 @@ workflows:
     after_run:
       - build_android_release
   build_android_qa:
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
-      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     before_run:
       - code_setup
     after_run:
@@ -1392,9 +1416,6 @@ workflows:
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
-      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     before_run:
       - code_setup
     after_run:
