@@ -157,7 +157,6 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { BaseState } from '@metamask/base-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 
 /**
@@ -321,6 +320,24 @@ export type Controllers = {
 export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 
 /**
+ * Messageable modules that are part of the Engine's context, but are not defined with state.
+ * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
+ */
+export const STATELESS_NON_CONTROLLER_NAMES = [
+  'AssetsContractController',
+  'NftDetectionController',
+  'TokenDetectionController',
+] as const;
+
+/**
+ * Controllers that are defined with state.
+ */
+export type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
+
+/**
  * All engine state, keyed by controller name
  */
 // Interfaces are incompatible with our controllers and state types by default.
@@ -329,7 +346,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
-  AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -344,8 +360,6 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
-  TokenDetectionController: BaseState;
-  NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
