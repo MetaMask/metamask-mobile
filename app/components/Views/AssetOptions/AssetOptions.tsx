@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import { Hex } from '@metamask/utils';
 import React, { useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
