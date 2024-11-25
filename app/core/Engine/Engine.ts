@@ -153,6 +153,7 @@ import {
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
 } from './controllers/accounts/constants';
+import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { createAccountsController } from './controllers/accounts/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -339,8 +340,22 @@ export class Engine {
     });
 
     // Create AccountsController
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
     const accountsController = createAccountsController({
-      messenger: this.controllerMessenger,
+      messenger: accountsControllerMessenger,
       initialState: initialState.AccountsController,
     });
 
