@@ -97,7 +97,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
@@ -366,12 +366,16 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        number_of_accounts: accountsLength,
-        source: SourceType.PERMISSION_SYSTEM,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            source: SourceType.PERMISSION_SYSTEM,
+          })
+          .build(),
+      );
     },
-    [accountsLength, channelIdOrHostname, trackEvent],
+    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -444,12 +448,16 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: connectedAccountLength,
-        account_type: getAddressAccountType(activeAddress),
-        source: eventSource,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: connectedAccountLength,
+            account_type: getAddressAccountType(activeAddress),
+            source: eventSource,
+          })
+          .build(),
+      );
       let labelOptions: ToastOptions['labelOptions'] = [];
 
       if (connectedAccountLength >= 1) {
@@ -479,6 +487,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     triggerDappViewedEvent,
     trackEvent,
     faviconSource,
+    createEventBuilder,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -491,7 +500,11 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
       } catch (e) {
         if (e instanceof Error) {
           Logger.error(e, 'error while trying to add a new account');
@@ -500,7 +513,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setIsLoading(false);
       }
     },
-    [trackEvent],
+    [trackEvent, createEventBuilder],
   );
 
   const handleNetworksSelected = useCallback(
@@ -562,13 +575,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -588,6 +609,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleConnect,
     trackEvent,
     handleUpdateNetworkPermissions,
+    createEventBuilder,
   ]);
 
   const handleSheetDismiss = () => {

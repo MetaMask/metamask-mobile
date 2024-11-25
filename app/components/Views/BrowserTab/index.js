@@ -399,8 +399,15 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
 
-    trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
-  }, [dismissTextSelectionIfNeeded, showOptions, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_BROWSER_OPTIONS).build(),
+    );
+  }, [
+    dismissTextSelectionIfNeeded,
+    showOptions,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Show the options menu
@@ -852,11 +859,15 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-      option_chosen: 'Search on URL',
-      number_of_tabs: undefined,
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
+        .addProperties({
+          option_chosen: 'Search on URL',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /**
    *  Function that allows custom handling of any web view requests.
@@ -977,7 +988,7 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    trackEvent(MetaMetricsEvents.DAPP_HOME);
+    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
 
   /**
@@ -1129,9 +1140,13 @@ export const BrowserTab = (props) => {
           error,
           setAccountsPermissionsVisible: () => {
             // Track Event: "Opened Acount Switcher"
-            trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
-              number_of_accounts: accounts?.length,
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+                .addProperties({
+                  number_of_accounts: accounts?.length,
+                })
+                .build(),
+            );
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
@@ -1202,33 +1217,43 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
-      option_chosen: 'Browser Options',
-      number_of_tabs: undefined,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+        .addProperties({
+          option_chosen: 'Browser Options',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
   };
 
   /**
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
-      dapp_name: title.current || '',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_ADD_FAVORITES)
+        .addProperties({
+          dapp_name: title.current || '',
+        })
+        .build(),
+    );
   };
 
   /**
    * Track share site event
    */
   const trackShareEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SHARE_SITE).build(),
+    );
   };
 
   /**
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
+    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
   };
 
   /**
@@ -1263,7 +1288,9 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+    );
   };
 
   /**
@@ -1290,7 +1317,9 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
+    );
   };
 
   /**
