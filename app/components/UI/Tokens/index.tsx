@@ -183,9 +183,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const removeToken = async () => {
     const { TokensController, NetworkController } = Engine.context;
-    const networkClientId = NetworkController.findNetworkClientIdByChainId(
-      tokenToRemove?.chainId as Hex,
-    );
+    const networkClientId =
+      NetworkController.findNetworkClientIdByChainId(chainId);
     const tokenAddress = tokenToRemove?.address || '';
     const symbol = tokenToRemove?.symbol;
     try {

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { Hex } from '@metamask/utils';
 import React, { useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +29,7 @@ import { getDecimalChainId } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
+
 interface Option {
   label: string;
   onPress: () => void;
@@ -146,7 +148,11 @@ const AssetOptions = (props: Props) => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(async () => {
             try {
-              await TokensController.ignoreTokens([address]);
+              const { NetworkController } = Engine.context;
+
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(chainId);
+              await TokensController.ignoreTokens([address], networkClientId);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,
