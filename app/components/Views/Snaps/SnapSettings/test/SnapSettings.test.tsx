@@ -318,7 +318,7 @@ describe('SnapSettings with keyring snap', () => {
       snap_manageState: {},
     },
     manifest: {
-      version: '1.1.6' as SemVerVersion,
+      version: '1.1.6' as Snap['manifest']['version'],
       description: 'An example of a key management snap for a simple keyring.',
       proposedName: mockSnapName,
       repository: {
@@ -350,7 +350,7 @@ describe('SnapSettings with keyring snap', () => {
     },
     status: 'stopped' as SnapStatus,
     sourceCode: '',
-    version: '1.1.6' as SemVerVersion,
+    version: '1.1.6' as Snap['manifest']['version'],
     versionHistory: [
       {
         version: '1.1.6',
@@ -442,7 +442,6 @@ describe('SnapSettings with keyring snap', () => {
       KEYRING_SNAP_REMOVAL_WARNING_CONTINUE,
     );
     fireEvent.press(keyringSnapRemovalWarningContinueButton);
-
 
     // Step 3: Wait for the warning modal to appear and enter the snap name
     await waitFor(() => {

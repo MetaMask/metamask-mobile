@@ -61,7 +61,7 @@ describe('KeyringSnapRemovalWarning', () => {
       snap_manageState: {},
     },
     manifest: {
-      version: '1.1.6' as SemVerVersion,
+      version: '1.1.6' as Snap['manifest']['version'],
       description: 'An example of a key management snap for a simple keyring.',
       proposedName: mockSnapName,
       repository: {
@@ -93,7 +93,7 @@ describe('KeyringSnapRemovalWarning', () => {
     },
     status: 'stopped' as SnapStatus,
     sourceCode: '',
-    version: '1.1.6' as SemVerVersion,
+    version: '1.1.6' as Snap['manifest']['version'],
     versionHistory: [
       {
         version: '1.1.6',
@@ -273,11 +273,7 @@ describe('KeyringSnapRemovalWarning', () => {
     fireEvent.press(continueButton);
 
     await waitFor(() => {
-      expect(
-        getByText(
-          `Failed to remove ${mockSnapName}`,
-        ),
-      ).toBeTruthy();
+      expect(getByText(`Failed to remove ${mockSnapName}`)).toBeTruthy();
     });
   });
 

@@ -1,16 +1,10 @@
-import {
-  Json,
-  JsonRpcParams,
-  JsonRpcRequest,
-  PendingJsonRpcResponse,
-} from '@metamask/utils';
 import eth_accounts from './';
 
 describe('eth_accounts', () => {
   const mockPermittedAccounts = ['0x1', '0x2'];
   const mockGetAccounts = jest.fn();
-  let mockRes: PendingJsonRpcResponse<Json>;
-  const mockReq: JsonRpcRequest<JsonRpcParams> = {
+  let mockRes: Parameters<typeof eth_accounts.implementation>[1];
+  const mockReq: Parameters<typeof eth_accounts.implementation>[0] = {
     id: '1',
     jsonrpc: '2.0',
     method: 'eth_accounts',
