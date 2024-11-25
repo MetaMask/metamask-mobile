@@ -45,8 +45,6 @@ interface BalanceProps {
 const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
-  if (!chainId) {
-  }
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
   if (!isPortfolioViewEnabled) {
