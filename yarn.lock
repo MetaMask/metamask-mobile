@@ -5368,10 +5368,10 @@
     is-stream "^2.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/react-native-actionsheet@2.4.2":
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.2.tgz#9f956fe9e784d92c8e33656877fcfaabe4a482f1"
-  integrity sha512-oibRXUzF+7DB0Nyzp2cMGN7ztB9Sl21W1NFq1IMa00mB4/X43JY+u+LCkx625WvQUeq0GO2ZQ6hG1L5XjMumSA==
+"@metamask/react-native-actionsheet@2.4.3":
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/@metamask/react-native-actionsheet/-/react-native-actionsheet-2.4.3.tgz#6bc589ac472f2c74cf1293940a00923217082e4f"
+  integrity sha512-mHDWcFPU052F+QeocFrhguF5JCOT5NhTSE+iFSytMvwM4mZMkYU323Cbtdv1KSW7UtP+3M8Bi0rHEOzVXvVlyQ==
 
 "@metamask/react-native-button@^3.0.0":
   version "3.0.0"
