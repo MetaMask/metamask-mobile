@@ -37,6 +37,7 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
+        '@typescript-eslint/no-parameter-properties': 'off',
       },
     },
     {

@@ -1,11 +1,12 @@
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
-} from '../../../util/test/renderWithProvider';
-import SwapsAmountView from './';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
+} from '../../../../../util/test/renderWithProvider';
+import LoadingAnimation from './';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { RootState } from '../../../../../reducers';
 
+/*
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -19,6 +20,7 @@ jest.mock('@react-navigation/native', () => {
     useLinking: jest.fn(),
   };
 });
+*/
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
@@ -28,16 +30,18 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
+/*
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest
     .fn()
     .mockImplementation((callback) => callback(mockInitialState)),
 }));
+*/
 
-describe('SwapsAmountView', () => {
-  it('renders correctly', async () => {
-    const wrapper = renderWithProvider(<SwapsAmountView />, {
+describe('LoadingAnimation', () => {
+  it('renders', () => {
+    const wrapper = renderWithProvider(<LoadingAnimation />, {
       state: mockInitialState,
     });
     expect(wrapper).toMatchSnapshot();
