@@ -58,9 +58,10 @@ import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
-const trackEvent = (event, params = {}) => {
-  MetaMetrics.getInstance().trackEvent(event, params);
+const trackEvent = (event) => {
+  MetaMetrics.getInstance().trackEvent(event);
 };
 
 const styles = StyleSheet.create({
@@ -218,7 +219,10 @@ export function getNavigationOptionsTitle(
   });
 
   function navigationPop() {
-    if (navigationPopEvent) trackEvent(navigationPopEvent);
+    if (navigationPopEvent)
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(navigationPopEvent).build(),
+      );
     navigation.goBack();
   }
 
@@ -555,11 +559,15 @@ export function getSendFlowTitle(
     const providerType = route?.params?.providerType ?? '';
     const additionalTransactionMetricsParams =
       getBlockaidTransactionMetricsParams(transaction);
-    trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
-      view: title.split('.')[1],
-      network: providerType,
-      ...additionalTransactionMetricsParams,
-    });
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_FLOW_CANCEL)
+        .addProperties({
+          view: title.split('.')[1],
+          network: providerType,
+          ...additionalTransactionMetricsParams,
+        })
+        .build(),
+    );
     resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
   };
@@ -1003,22 +1011,38 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
-    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_QR_SCANNER,
+      ).build(),
+    );
   }
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED, {
-        unread_count: unreadNotificationCount,
-        read_count: readNotificationCount,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
+        )
+          .addProperties({
+            unread_count: unreadNotificationCount,
+            read_count: readNotificationCount,
+          })
+          .build(),
+      );
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
-        action_type: 'started',
-        is_profile_syncing_enabled: isProfileSyncingEnabled,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
+        )
+          .addProperties({
+            action_type: 'started',
+            is_profile_syncing_enabled: isProfileSyncingEnabled,
+          })
+          .build(),
+      );
     }
   }
 
@@ -1676,10 +1700,16 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
-        ...trade,
-        responseTime: new Date().getTime() - quoteBegin,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
+        )
+          .addProperties({
+            ...trade,
+            responseTime: new Date().getTime() - quoteBegin,
+          })
+          .build(),
+      );
     }
     navigation.pop();
   };
@@ -1689,10 +1719,16 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
-        ...trade,
-        responseTime: new Date().getTime() - quoteBegin,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
+        )
+          .addProperties({
+            ...trade,
+            responseTime: new Date().getTime() - quoteBegin,
+          })
+          .build(),
+      );
     }
     navigation.dangerouslyGetParent()?.pop();
   };
