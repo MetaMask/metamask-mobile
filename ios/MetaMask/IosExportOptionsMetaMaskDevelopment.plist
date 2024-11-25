@@ -5,7 +5,7 @@
     <key>provisioningProfiles</key>
     <dict>
       <key>io.metamask.MetaMask</key>
-      <string>Bitrise Development io.metamask.MetaMask</string>
+      <string>match Development io.metamask.MetaMask</string>
     </dict>
     <key>uploadSymbols</key>
     <true/>
