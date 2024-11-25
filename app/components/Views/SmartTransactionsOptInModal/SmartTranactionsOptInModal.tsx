@@ -135,7 +135,7 @@ const Benefit = ({ iconName, text }: Props) => {
 const SmartTransactionsOptInModal = () => {
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
 
   const styles = createStyles(colors);
@@ -153,10 +153,10 @@ const SmartTransactionsOptInModal = () => {
 
   const optIn = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(true);
-    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+    trackEvent(createEventBuilder(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN).addProperties({
       stx_opt_in: true,
       location: 'SmartTransactionsOptInModal',
-    });
+    }).build());
     hasOptedIn.current = true;
     await markOptInModalAsSeen();
     dismissModal();
@@ -164,10 +164,10 @@ const SmartTransactionsOptInModal = () => {
 
   const optOut = async () => {
     Engine.context.PreferencesController.setSmartTransactionsOptInStatus(false);
-    trackEvent(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN, {
+    trackEvent(createEventBuilder(MetaMetricsEvents.SMART_TRANSACTION_OPT_IN).addProperties({
       stx_opt_in: false,
       location: 'SmartTransactionsOptInModal',
-    });
+    }).build());
     hasOptedIn.current = false;
     await markOptInModalAsSeen();
     dismissModal();

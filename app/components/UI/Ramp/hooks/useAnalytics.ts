@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { InteractionManager } from 'react-native';
 import { AnalyticsEvents } from '../types';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 const AnonymousEvents: (keyof AnalyticsEvents)[] = [
   'RAMP_REGION_SELECTED',
@@ -36,18 +37,17 @@ export function trackEvent<T extends keyof AnalyticsEvents>(
   eventType: T,
   params: AnalyticsEvents[T],
 ) {
-  const metrics = MetaMetrics.getInstance();
-  const event = MetaMetricsEvents[eventType];
   const anonymous = AnonymousEvents.includes(eventType);
+  const metrics = MetaMetrics.getInstance();
+  const event = MetricsEventBuilder.createEventBuilder(
+    MetaMetricsEvents[eventType],
+  );
+
   InteractionManager.runAfterInteractions(() => {
     if (anonymous) {
-      metrics.trackEvent(event, {
-        sensitiveProperties: { ...params },
-      });
+      metrics.trackEvent(event.addSensitiveProperties({ ...params }).build());
     } else {
-      metrics.trackEvent(event, {
-        ...params,
-      });
+      metrics.trackEvent(event.addProperties({ ...params }).build());
     }
   });
 }
