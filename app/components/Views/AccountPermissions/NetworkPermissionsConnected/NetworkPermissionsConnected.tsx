@@ -113,10 +113,7 @@ const AccountPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(
-      ([key]) =>
-        permittedChainIds.includes(key) && key !== providerConfig?.chainId,
-    )
+    .filter(([key]) => permittedChainIds.includes(key))
     .map(([key, network]) => ({
       id: key,
       name: network.name,
@@ -187,6 +184,11 @@ const AccountPermissionsConnected = ({
         <NetworkSelectorList
           networks={networks}
           onSelectNetwork={(chainId) => {
+            if (chainId === providerConfig?.chainId) {
+              onDismissSheet();
+              return;
+            }
+
             const theNetworkName = handleNetworkSwitch(
               getDecimalChainId(chainId),
             );
