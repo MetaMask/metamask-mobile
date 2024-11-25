@@ -152,8 +152,8 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { createAccountsController } from './controllers/AccountsController/utils';
+} from './controllers/accounts/constants';
+import { createAccountsController } from './controllers/accounts/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
