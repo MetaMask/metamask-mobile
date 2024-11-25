@@ -62,7 +62,7 @@ const EditGasFeeLegacy = ({
   selectedGasObject,
   hasDappSuggestedGas,
 }: EditGasFeeLegacyUpdateProps) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
   const [gasPriceError, setGasPriceError] = useState<string>('');
@@ -95,12 +95,16 @@ const EditGasFeeLegacy = ({
   });
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
-      ...analyticsParams,
-      chain_id: getDecimalChainId(chainId),
-      function_type: view,
-      gas_mode: 'Basic',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties({
+          ...analyticsParams,
+          chain_id: getDecimalChainId(chainId),
+          function_type: view,
+          gas_mode: 'Basic',
+        })
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObjectLegacy?.suggestedGasPrice,
@@ -115,6 +119,7 @@ const EditGasFeeLegacy = ({
     chainId,
     view,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const changeGas = useCallback((gas) => {

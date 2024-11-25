@@ -38,7 +38,7 @@ const Step1 = ({ onClose }: Step1Props) => {
   const theme = useContext(ThemeContext) || mockTheme;
   const dynamicOnboardingStyles = onboardingStyles(theme.colors);
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const content = useCallback(
     () => (
@@ -54,11 +54,15 @@ const Step1 = ({ onClose }: Step1Props) => {
   const onNext = useCallback(() => {
     dispatch(setOnboardingWizardStep?.(2));
 
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
-      tutorial_step_count: 1,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-    });
-  }, [dispatch, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STARTED)
+        .addProperties({
+          tutorial_step_count: 1,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
+        })
+        .build(),
+    );
+  }, [dispatch, trackEvent, createEventBuilder]);
 
   return (
     <View

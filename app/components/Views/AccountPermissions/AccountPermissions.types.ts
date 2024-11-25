@@ -8,6 +8,7 @@ export enum AccountPermissionsScreens {
   ConnectMoreNetworks = 'ConnectMoreNetworks',
   Revoke = 'Revoke',
   PermissionsSummary = 'PermissionsSummary',
+  ChooseFromPermittedNetworks = 'ChooseFromPermittedNetworks',
 }
 
 /**
@@ -24,6 +25,7 @@ export interface AccountPermissionsProps {
       };
       isRenderedAsBottomSheet?: boolean;
       initialScreen?: AccountPermissionsScreens;
+      isNonDappNetworkSwitch?: boolean;
     };
   };
 }
