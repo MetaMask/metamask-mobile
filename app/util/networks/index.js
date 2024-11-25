@@ -584,10 +584,4 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isMultichainVersion1Enabled = true;
-
-export const isChainPermissionsFeatureEnabled = true;
-
-export const isPermissionsSettingsV1Enabled = true;
-
 export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
