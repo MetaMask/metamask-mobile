@@ -8,8 +8,10 @@ app/component-library/               @MetaMask/design-system-engineers
 
 # Platform Team
 patches/                             @MetaMask/mobile-platform
-app/core/Engine.ts                   @MetaMask/mobile-platform
-app/core/Engine.test.js              @MetaMask/mobile-platform
+app/core/Engine/Engine.ts            @MetaMask/mobile-platform
+app/core/Engine/Engine.test.ts       @MetaMask/mobile-platform
+app/core/Engine/index.ts             @MetaMask/mobile-platform
+app/core/Engine/types.ts             @MetaMask/mobile-platform
 app/core/Analytics/                  @MetaMask/mobile-platform
 app/util/metrics/                    @MetaMask/mobile-platform
 app/components/hooks/useMetrics/     @MetaMask/mobile-platform
@@ -41,7 +43,8 @@ app/reducers/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
 app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
 
 # Accounts Team
-app/core/Encryptor/                  @MetaMask/accounts-engineers
+app/core/Encryptor/   @MetaMask/accounts-engineers
+app/core/Engine/controller/AccountsController   @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
