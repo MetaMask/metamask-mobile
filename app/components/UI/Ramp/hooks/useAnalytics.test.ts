@@ -1,7 +1,6 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import useAnalytics from './useAnalytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../../../core/Analytics', () => ({
   ...jest.requireActual('../../../../core/Analytics'),
