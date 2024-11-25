@@ -1,13 +1,18 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
-import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { selectContractExchangeRates, selectTokenMarketData } from '../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketData,
+} from '../../../selectors/tokenRatesController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentChainId = useSelector(selectChainId);
@@ -17,22 +22,21 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const tokenMarketData = useSelector(selectTokenMarketData);
 
   const chainIdsToPoll = isPortfolioViewEnabled
-    ? (chainIds ?? Object.keys(networkConfigurations))
+    ? chainIds ?? Object.keys(networkConfigurations)
     : [currentChainId];
 
   const { TokenRatesController } = Engine.context;
 
   usePolling({
-    startPolling:
-    TokenRatesController.startPolling.bind(TokenRatesController),
+    startPolling: TokenRatesController.startPolling.bind(TokenRatesController),
     stopPollingByPollingToken:
-    TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
-    input: chainIdsToPoll.map((chainId) => ({chainId: chainId as Hex})),
+      TokenRatesController.stopPollingByPollingToken.bind(TokenRatesController),
+    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex })),
   });
 
   return {
     contractExchangeRates,
-    tokenMarketData
+    tokenMarketData,
   };
 };
 

@@ -57,7 +57,7 @@ const EditAccountName = () => {
   const route = useRoute<EditAccountNameRouteProp>();
   const { selectedAccount } = route.params;
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
@@ -116,7 +116,11 @@ const EditAccountName = () => {
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
         const analyticsProps = await analyticsProperties();
-        trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProps);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
+            .addProperties({ ...analyticsProps })
+            .build(),
+        );
       } catch {
         return {};
       }

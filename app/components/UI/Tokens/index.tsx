@@ -13,7 +13,10 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { getDecimalChainId, isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
 import { TokenList } from './TokenList';
@@ -192,13 +195,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           ? Object.values(networkConfigurationsByChainId)
           : [networkConfigurationsByChainId[chainId]]
         ).map((network) =>
-          TokenRatesController.updateExchangeRatesByChainId(
-            {
-              chainId: network.chainId,
-              nativeCurrency: network.nativeCurrency,
-            },
-          ),
-        )
+          TokenRatesController.updateExchangeRatesByChainId({
+            chainId: network.chainId,
+            nativeCurrency: network.nativeCurrency,
+          }),
+        ),
       ];
       await Promise.all(actions).catch((error) => {
         Logger.error(error, 'Error while refreshing tokens');

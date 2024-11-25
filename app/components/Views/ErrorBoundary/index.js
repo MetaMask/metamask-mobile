@@ -415,7 +415,7 @@ class ErrorBoundary extends Component {
   generateErrorReport = (error, errorInfo = '') => {
     const {
       view,
-      metrics: { trackEvent },
+      metrics: { trackEvent, createEventBuilder },
     } = this.props;
     const analyticsParams = { error: error?.toString(), boundary: view };
     // Organize stack trace
@@ -425,7 +425,11 @@ class ErrorBoundary extends Component {
     // Limit to 5 levels
     analyticsParams.stack = stackList.slice(1, 5).join(', ');
 
-    trackEvent(MetaMetricsEvents.ERROR_SCREEN_VIEWED, analyticsParams);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ERROR_SCREEN_VIEWED)
+        .addProperties(analyticsParams)
+        .build(),
+    );
   };
 
   componentDidCatch(error, errorInfo) {

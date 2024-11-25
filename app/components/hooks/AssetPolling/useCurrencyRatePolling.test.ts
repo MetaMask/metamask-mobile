@@ -12,9 +12,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useCurrencyRatePolling', () => {
-
   it('Should poll by the native currencies in network state', async () => {
-
     const state = {
       engine: {
         backgroundState: {
@@ -32,11 +30,10 @@ describe('useCurrencyRatePolling', () => {
       },
     };
 
-    renderHookWithProvider(() => useCurrencyRatePolling(), {state});
+    renderHookWithProvider(() => useCurrencyRatePolling(), { state });
 
-      expect(
-        jest.mocked(Engine.context.CurrencyRateController.startPolling)
-      ).toHaveBeenCalledWith({nativeCurrencies: ['ETH', 'POL']});
-
+    expect(
+      jest.mocked(Engine.context.CurrencyRateController.startPolling),
+    ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH', 'POL'] });
   });
 });
