@@ -27,13 +27,12 @@ export const createAccountsController = ({
   messenger: AccountsControllerMessenger;
   initialState?: AccountsControllerState;
 }): AccountsController => {
-  let accountsController = {} as AccountsController;
-
   try {
-    accountsController = new AccountsController({
+    const accountsController = new AccountsController({
       messenger,
       state: initialState ?? defaultAccountsControllerState,
     });
+    return accountsController;
   } catch (error) {
     // Report error while initializing AccountsController
     Logger.error(error as Error, 'Failed to initialize AccountsController');
@@ -41,6 +40,4 @@ export const createAccountsController = ({
     // TODO: Direct to vault recovery to reset controller states
     throw error;
   }
-
-  return accountsController;
 };
