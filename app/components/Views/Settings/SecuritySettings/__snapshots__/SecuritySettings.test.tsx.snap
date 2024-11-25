@@ -911,7 +911,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
             thumbTintColor="#ffffff"
             tintColor="#bbc0c566"
-            value={true}
+            value={false}
           />
         </View>
         <Text
