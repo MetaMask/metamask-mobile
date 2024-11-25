@@ -1450,49 +1450,9 @@ export class Engine {
     STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
       delete childControllers[name];
     });
-    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
-      {
-        // Avoiding type-safe filter operation with type predicate for performance reasons
-        controllers: childControllers as StatefulControllers,
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'ComposableController',
-          allowedActions: [],
-          allowedEvents: [
-            'AccountsController:stateChange',
-            'AccountTrackerController:stateChange',
-            'AddressBookController:stateChange',
-            'ApprovalController:stateChange',
-            'CurrencyRateController:stateChange',
-            'GasFeeController:stateChange',
-            'KeyringController:stateChange',
-            'LoggingController:stateChange',
-            'NetworkController:stateChange',
-            'NftController:stateChange',
-            'PermissionController:stateChange',
-            'PhishingController:stateChange',
-            'PPOMController:stateChange',
-            'PreferencesController:stateChange',
-            'SelectedNetworkController:stateChange',
-            'SignatureController:stateChange',
-            'SmartTransactionsController:stateChange',
-            'SwapsController:stateChange',
-            'TokenBalancesController:stateChange',
-            'TokenListController:stateChange',
-            'TokenRatesController:stateChange',
-            'TokensController:stateChange',
-            'TransactionController:stateChange',
-            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-            'SnapController:stateChange',
-            'SnapsRegistry:stateChange',
-            'SubjectMetadataController:stateChange',
-            'AuthenticationController:stateChange',
-            'UserStorageController:stateChange',
-            'NotificationServicesController:stateChange',
-            'NotificationServicesPushController:stateChange',
-            ///: END:ONLY_INCLUDE_IF
-          ],
-        }),
-      },
+    this.datamodel = new ComposableController(
+      Object.values(childControllers),
+      this.controllerMessenger,
     );
 
     const { NftController: nfts } = this.context;

@@ -143,7 +143,7 @@
     "@metamask/approval-controller": "^7.1.0",
     "@metamask/assets-controllers": "^43.1.1",
     "@metamask/base-controller": "^7.0.1",
-    "@metamask/composable-controller": "npm:@metamask-previews/composable-controller@9.0.1-preview-9d476a5",
+    "@metamask/composable-controller": "3.0.3",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
     "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
