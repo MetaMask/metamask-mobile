@@ -15,7 +15,8 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 ## Documentation
 
 - [Architecture](./docs/readme/architecture.md)
-- [Development Environment Setup](./docs/readme/environment.md)
+- [Expo Development Environment Setup](./docs/readme/expo-environment.md)
+- [Native Development Environment Setup](./docs/readme/environment.md)
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
 - [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
@@ -24,13 +25,59 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 
 ## Getting started
 
-### Environment setup
+### Using Expo (recommended)
 
-Before running the app, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to successfully build the app.
+Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native enviornment setup, developers only need to download a precompiled develpoment build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
+
+#### Expo Environment Setup
+
+[Install node, yarn and watchman.](./docs/readme/expo-environment.md)
+
+#### Clone the project
+
+```bash
+git clone git@github.com:MetaMask/metamask-mobile.git && \
+cd metamask-mobile
+```
+
+#### Install dependencies
+
+```bash
+yarn setup:expo
+```
+
+#### Run the bundler
+
+```bash
+yarn watch
+```
+
+#### Download and install the development build
+
+Go to the app's [GitHub Releases page](https://github.com/MetaMask/metamask-mobile/releases), download the latest release development build (android-expo-dev-build.apk or ios-expo-dev-build.ipa) and install it on an Android/iOS simulator or Android/iOS physical device.
+
+#### Load the app
+
+If on a simulator:
+- use the initial expo screen that appears when starting the development to choose the bundler url
+- OR press "a" for Android or "i" for iOS on the terminal where the bundler is running
+
+If on a physical device:
+- Use the camera app to scan the QR code presented by the bundler running on the terminal
+
+That's it! This will work for any javascript development, if you need to develop or modify native code please see the next section.
+
+### Native Development
+
+If developing or modifying native code or installing any library that introduces or uses native code, it is not possible to use an Expo precompiled development build as you need to compile the native side of the application again. To do so, please follow the steps stated in this section.
+
+#### Native Environment setup
+
+Before running the app for native development, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to successfully build the app.
 
 [Setup your development environment](./docs/readme/environment.md)
 
-### Building the app
+#### Building the app
 
 **Clone the project**
 
@@ -39,16 +86,16 @@ git clone git@github.com:MetaMask/metamask-mobile.git && \
 cd metamask-mobile
 ```
 
-#### Firebase Messaging Setup
+##### Firebase Messaging Setup
 
 MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you’ll need configuration files for both iOS and Android platforms.
 
-##### Internal Contributor instructions
+###### Internal Contributor instructions
 
 1. Grab the `.js.env` file from 1Password, ask around for the correct vault. This file contains the `GOOGLE_SERVICES_B64_ANDROID` and `GOOGLE_SERVICES_B64_IOS` secrets that will be used to generate the relevant configuration files for IOS/Android.
 2. [Install](./README.md#install-dependencies) and [run & start](./README.md#running-the-app) the application as documented below.
 
-##### External Contributor instructions
+###### External Contributor instructions
 
 As an external contributor, you need to provide your own Firebase project configuration files:
 - **`GoogleService-Info.plist`** (iOS)
@@ -77,7 +124,7 @@ export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleServi
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 [Firebase Project Quickstart](https://firebaseopensource.com/projects/firebase/quickstart-js/messaging/readme/#getting_started)
 
-#### Install dependencies
+##### Install dependencies
 
 ```bash
 yarn setup
@@ -85,7 +132,7 @@ yarn setup
 
 _Not the usual install command, this will run scripts and a lengthy postinstall flow_
 
-### Running the app
+#### Running the app for native development
 
 **Run Metro bundler**
 

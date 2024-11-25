@@ -64,6 +64,8 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:run
     ```
 
+_NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
+
 - **Run Specific Tests**:
   - **iOS**:
 
