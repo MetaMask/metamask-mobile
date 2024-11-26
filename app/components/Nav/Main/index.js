@@ -132,7 +132,7 @@ const Main = (props) => {
     stopIncomingTransactionPolling();
 
     if (showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling([networkClientId]);
+      startIncomingTransactionPolling([chainId]);
     }
   }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
 
@@ -177,11 +177,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.networkClientId]);
+          await updateIncomingTransactions([props.chainId]);
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.networkClientId],
+    [backgroundMode, removeNotVisibleNotifications, props.chainId],
   );
 
   const initForceReload = () => {

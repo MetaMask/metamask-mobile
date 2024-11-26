@@ -3,6 +3,7 @@
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const DEFAULT_FIXTURE_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
@@ -944,9 +945,13 @@ class FixtureBuilder {
     return this;
   }
 
-  withToken(token) {
+  withTokens(tokens) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
-      tokens: [token],
+      allTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT.toLowerCase()]: tokens,
+        }
+      }
     });
     return this;
   }

@@ -27,7 +27,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
+import { selectAllTokensFlat, selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
@@ -225,7 +225,7 @@ const mapStateToProps = (state) => {
   return {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
-    tokens: selectTokens(state),
+    tokens: selectAllTokensFlat(state),
     selectedInternalAccount: selectSelectedInternalAccount(state),
     transactions: [
       ...nonReplacedTransactions,

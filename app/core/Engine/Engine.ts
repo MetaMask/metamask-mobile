@@ -1614,10 +1614,12 @@ export class Engine {
   startPolling() {
     const { NetworkController, TransactionController } = this.context;
 
-    const networkClientId = getGlobalNetworkClientId(NetworkController);
+    const chainId = getGlobalChainId(NetworkController);
+
+    TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([networkClientId]);
+    TransactionController.startIncomingTransactionPolling([chainId]);
   }
 
   configureControllersOnNetworkChange() {

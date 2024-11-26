@@ -113,9 +113,9 @@ describe(SmokeCore('Incoming Transactions'), () => {
 
         await withFixtures(
             {
-                fixture: new FixtureBuilder().withToken({
+                fixture: new FixtureBuilder().withTokens([{
                     address: TOKEN_ADDRESS_MOCK, decimals: 18, symbol: TOKEN_SYMBOL_MOCK
-                }).build(),
+                }]).build(),
                 restartDevice: true
             },
             async () => {

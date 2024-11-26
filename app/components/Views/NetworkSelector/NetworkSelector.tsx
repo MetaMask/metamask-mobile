@@ -381,7 +381,7 @@ const NetworkSelector = () => {
       AccountTrackerController.refresh();
 
       setTimeout(async () => {
-        await updateIncomingTransactions([clientId]);
+        await updateIncomingTransactions([networkConfiguration.chainId]);
       }, 1000);
     }
 
