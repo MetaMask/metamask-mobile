@@ -4,7 +4,7 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import Engine from '../../../core/Engine';
 import {
   selectConversionRate,
-  selectCurrencyRates,
+  selectConversionRateFoAllChains,
 } from '../../../selectors/currencyRateController';
 
 // Polls native currency prices across networks.
@@ -14,7 +14,7 @@ const useCurrencyRatePolling = () => {
 
   // Selectors returning state updated by the polling
   const conversionRate = useSelector(selectConversionRate);
-  const currencyRates = useSelector(selectCurrencyRates);
+  const currencyRates = useSelector(selectConversionRateFoAllChains);
 
   const nativeCurrencies = [
     ...new Set(

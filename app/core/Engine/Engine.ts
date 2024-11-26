@@ -416,6 +416,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'NetworkController:stateChange',
           'TokenListController:stateChange',
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
@@ -1310,18 +1311,19 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            'AccountsController:getSelectedAccount',
-            'NetworkController:getState',
             'NetworkController:getNetworkClientById',
-            'PreferencesController:getState',
+            'NetworkController:getState',
             'TokensController:getState',
+            'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
           allowedEvents: [
             'TokensController:stateChange',
-            'NetworkController:stateChange',
             'PreferencesController:stateChange',
+            'NetworkController:stateChange',
           ],
         }),
+        // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
       }),
@@ -1751,23 +1753,13 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { tokenBalances: contractBalances } =
+        const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
 
-        const selectedNetworkClientId =
-          NetworkController.state.selectedNetworkClientId;
-        const chainId = NetworkController.getNetworkClientById(
-          selectedNetworkClientId,
-        ).configuration.chainId;
-        const selectedInternalAccount = AccountsController.getAccount(
-          AccountsController.state.internalAccounts.selectedAccount,
-        );
-
         const tokenBalances =
-          contractBalances?.[selectedInternalAccount?.address as Hex]?.[
+          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
             chainId
           ] ?? {};
-
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -1855,34 +1847,23 @@ export class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
-      const { NetworkController, AccountsController } = this.context;
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
 
-      const selectedNetworkClientId =
-        backgroundState.NetworkController.selectedNetworkClientId;
-      const chainId = NetworkController.getNetworkClientById(
-        selectedNetworkClientId,
-      ).configuration.chainId;
-      const selectedInternalAccount = AccountsController.getAccount(
-        AccountsController.state.internalAccounts.selectedAccount,
-      );
-
-      const tokenBalances =
-        backgroundState.TokenBalancesController.tokenBalances?.[
-          selectedInternalAccount?.address as Hex
-        ]?.[chainId];
+      const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
-        if (
-          tokenBalances[token.address as Hex] &&
-          !isZero(tokenBalances[token.address as Hex])
-        ) {
-          tokenFound = true;
+      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+        for (const tokens of Object.values(chains)) {
+          for (const balance of Object.values(tokens)) {
+            if (!isZero(balance)) {
+              tokenFound = true;
+              break tokenLoop;
+            }
+          }
         }
-      });
+      }
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
