@@ -765,9 +765,10 @@ export class Engine {
         allowedEvents: ['PreferencesController:stateChange'],
       }),
       state: {
-        ... initialState.RemoteFeatureFlagController
+        ...initialState.RemoteFeatureFlagController
       },
-      disabled: false, // TODO: implement basic functionality toggle
+      disabled:
+          store.getState().settings.basicFunctionalityEnabled === false,
       clientConfigApiService: new ClientConfigApiService({
         fetch: fetchFunction,
         config: {
