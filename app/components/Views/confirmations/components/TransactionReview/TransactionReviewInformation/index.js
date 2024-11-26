@@ -50,6 +50,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import WarningMessage from '../../../SendFlow/WarningMessage';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectTicker,
 } from '../../../../../../selectors/networkController';
 import {
@@ -193,6 +194,10 @@ class TransactionReviewInformation extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
+    /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
@@ -256,8 +261,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -355,16 +360,14 @@ class TransactionReviewInformation extends PureComponent {
           currentCurrency,
           amountToken,
         );
-        const totalValue = `${
-          amountToken + ' ' + selectedAsset.symbol
-        } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${amountToken + ' ' + selectedAsset.symbol
+          } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       ERC721: () => {
         const totalFiat = totalGasFiat;
-        const totalValue = `${selectedAsset.name}  (#${
-          selectedAsset.tokenId
-        }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId
+          }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       default: () => [undefined, undefined],
@@ -514,13 +517,11 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         });
 
-        renderableTotalMinNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMinNative}`;
+        renderableTotalMinNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMinNative}`;
 
-        renderableTotalMaxNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMaxNative}`;
+        renderableTotalMaxNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMaxNative}`;
 
         return [
           renderableTotalMinNative,
@@ -741,6 +742,7 @@ class TransactionReviewInformation extends PureComponent {
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   contractExchangeRates: selectContractExchangeRates(state),

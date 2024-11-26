@@ -378,10 +378,12 @@ describe('network-utils', () => {
       });
 
       expect(
-        await getNetworkNonce({
-          from: fromMock,
-          networkClientId: networkClientIdMock,
-        }),
+        await getNetworkNonce(
+          {
+            from: fromMock,
+          },
+          networkClientIdMock,
+        ),
       ).toBe(nonceMock);
 
       expect(getNonceLock).toHaveBeenCalledWith(fromMock, networkClientIdMock);
@@ -394,10 +396,12 @@ describe('network-utils', () => {
         releaseLock: releaseLockMock,
       });
 
-      await getNetworkNonce({
-        from: fromMock,
-        networkClientId: networkClientIdMock,
-      });
+      await getNetworkNonce(
+        {
+          from: fromMock,
+        },
+        networkClientIdMock,
+      );
 
       expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });

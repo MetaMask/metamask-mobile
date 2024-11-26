@@ -369,7 +369,7 @@ export function isPrefixedFormattedHexString(value) {
   return regex.prefixedFormattedHexString.test(value);
 }
 
-export const getNetworkNonce = async ({ from, networkClientId }) => {
+export const getNetworkNonce = async ({ from }, networkClientId) => {
   const { nextNonce, releaseLock } = await getNonceLock(from, networkClientId);
 
   releaseLock();
