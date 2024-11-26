@@ -1,5 +1,5 @@
-import { FeatureFlags } from "@metamask/remote-feature-flag-controller";
-import { mockedMinimumAppVersion } from "./minimumAppVersion/mocks";
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
+import { mockedMinimumAppVersion } from './minimumAppVersion/mocks';
 
 export const mockedState = {
   engine: {
@@ -7,7 +7,7 @@ export const mockedState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: [
           mockedMinimumAppVersion
-        ] as FeatureFlags,
+        ],
         cacheTimestamp: 0,
       },
     },

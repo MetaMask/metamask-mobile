@@ -1,4 +1,4 @@
-import { FEATURE_FLAG_NAME, FeatureFlagType } from "./types";
+import { FEATURE_FLAG_NAME, FeatureFlagType } from './types';
 
 export const mockedMinimumAppVersion: FeatureFlagType = {
   [FEATURE_FLAG_NAME]: {

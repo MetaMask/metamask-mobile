@@ -14,8 +14,8 @@ export const selectMobileMinimumVersions = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFeatureFlag = remoteFeatureFlags.find(
-      (remoteFeatureFlag) =>
-        remoteFeatureFlag[FEATURE_FLAG_NAME]
+      (featureflag) =>
+        featureflag[FEATURE_FLAG_NAME]
     );
 
     return (
