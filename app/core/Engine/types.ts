@@ -151,7 +151,6 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { BaseState } from '@metamask/base-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 
 /**
@@ -313,7 +312,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export interface EngineState {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
-  AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -328,8 +326,6 @@ export interface EngineState {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
-  TokenDetectionController: BaseState;
-  NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
