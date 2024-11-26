@@ -7,6 +7,7 @@
 app/component-library/               @MetaMask/design-system-engineers
 
 # Platform Team
+.github/CODEOWNERS                   @MetaMask/mobile-platform
 patches/                             @MetaMask/mobile-platform
 app/core/Engine/Engine.ts            @MetaMask/mobile-platform
 app/core/Engine/Engine.test.ts       @MetaMask/mobile-platform
@@ -15,49 +16,48 @@ app/core/Engine/types.ts             @MetaMask/mobile-platform
 app/core/Analytics/                  @MetaMask/mobile-platform
 app/util/metrics/                    @MetaMask/mobile-platform
 app/components/hooks/useMetrics/     @MetaMask/mobile-platform
-
-# Supply Chain Team
-bitrise.yml                          @MetaMask/supply-chain @MetaMask/mobile-platform
-yarn.lock                            @MetaMask/supply-chain @MetaMask/mobile-platform
-ios/Podfile.lock                     @MetaMask/supply-chain @MetaMask/mobile-platform
+app/store/migrations/                @MetaMask/mobile-platform
+bitrise.yml                          @MetaMask/mobile-platform
+yarn.lock                            @MetaMask/mobile-platform
+ios/Podfile.lock                     @MetaMask/mobile-platform
 
 # Ramps Team
-app/components/UI/Ramp/              @MetaMask/ramp @MetaMask/mobile-platform
-app/reducers/fiatOrders/             @MetaMask/ramp @MetaMask/mobile-platform
+app/components/UI/Ramp/              @MetaMask/ramp
+app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
-app/components/Views/confirmations   @MetaMask/confirmations @MetaMask/mobile-platform
-ppom                                 @MetaMask/confirmations @MetaMask/mobile-platform
+app/components/Views/confirmations   @MetaMask/confirmations
+ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
-app/actions/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/components/Views/SDK   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/DeeplinkManager   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/SDKConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/core/WalletConnect   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/reducers/sdk   @MetaMask/sdk-devs @MetaMask/mobile-platform
-app/util/walletconnect.js   @MetaMask/sdk-devs @MetaMask/mobile-platform
+app/actions/sdk   @MetaMask/sdk-devs
+app/components/Approvals/WalletConnectApproval   @MetaMask/sdk-devs
+app/components/Views/SDK   @MetaMask/sdk-devs
+app/components/Views/WalletConnectSessions   @MetaMask/sdk-devs
+app/core/BackgroundBridge/WalletConnectPort.ts   @MetaMask/sdk-devs
+app/core/DeeplinkManager   @MetaMask/sdk-devs
+app/core/RPCMethods/RPCMethodMiddleware.ts   @MetaMask/sdk-devs
+app/core/SDKConnect   @MetaMask/sdk-devs
+app/core/WalletConnect   @MetaMask/sdk-devs
+app/reducers/sdk   @MetaMask/sdk-devs
+app/util/walletconnect.js   @MetaMask/sdk-devs
 
 # Accounts Team
 app/core/Encryptor/   @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts   @MetaMask/accounts-engineers
 
 # Swaps Team
-app/components/UI/Swaps              @MetaMask/swaps-engineers @MetaMask/mobile-platform
+app/components/UI/Swaps              @MetaMask/swaps-engineers
 
 # Notifications Team
-app/components/Views/Notifications @MetaMask/notifications @MetaMask/mobile-platform
-app/components/Views/Settings/NotificationsSettings @MetaMask/notifications @MetaMask/mobile-platform
-app/components/UI/Notifications @MetaMask/notifications @MetaMask/mobile-platform
-app/reducers/notification  @MetaMask/notifications  @MetaMask/mobile-platform
-app/actions/notification @MetaMask/notifications  @MetaMask/mobile-platform
-app/selectors/notification @MetaMask/notifications  @MetaMask/mobile-platform
-app/util/notifications  @MetaMask/notifications  @MetaMask/mobile-platform
-app/store/util/notifications @MetaMask/notifications @MetaMask/mobile-platform
+app/components/Views/Notifications @MetaMask/notifications
+app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
+app/components/UI/Notifications @MetaMask/notifications
+app/reducers/notification  @MetaMask/notifications 
+app/actions/notification @MetaMask/notifications 
+app/selectors/notification @MetaMask/notifications 
+app/util/notifications  @MetaMask/notifications 
+app/store/util/notifications @MetaMask/notifications
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -115,7 +115,6 @@ app/components/Views/QRAccountDisplay @MetaMask/wallet-ux
 app/components/Views/QRScanner @MetaMask/wallet-ux
 app/components/Views/Settings @MetaMask/wallet-ux
 app/components/Views/TermsAndConditions @MetaMask/wallet-ux
-
 app/reducers/experimentalSettings @MetaMask/wallet-ux
 app/reducers/modals @MetaMask/wallet-ux
 app/reducers/navigation @MetaMask/wallet-ux
