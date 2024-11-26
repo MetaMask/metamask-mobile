@@ -137,9 +137,8 @@ stages:
   build_multichain_e2e_ios_android_stage:
     abort_on_fail: true
     envs:
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
-      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
+      - MM_MULTICHAIN_V1_ENABLED: 'false'
+      - MM_CHAIN_PERMISSIONS: 'false'
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
@@ -1169,9 +1168,6 @@ workflows:
     after_run:
       - build_android_release
   build_android_qa:
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
     before_run:
       - code_setup
     after_run:
@@ -1706,4 +1702,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: test-multichain-e2e-ci-workflow
-    pipeline: create_qa_builds_pipeline
+    pipeline: multichain_e2e_pipeline
