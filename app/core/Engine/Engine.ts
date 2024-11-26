@@ -229,7 +229,7 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController<EngineState, StatefulControllers>;
+  datamodel: ComposableController;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1450,10 +1450,50 @@ export class Engine {
     STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
       delete childControllers[name];
     });
-    this.datamodel = new ComposableController(
-      Object.values(childControllers),
-      this.controllerMessenger,
-    );
+    this.datamodel = new ComposableController({
+      controllers: Object.values(
+        childControllers,
+      ) as StatefulControllers[keyof StatefulControllers][],
+      // @ts-expect-error - `@metamask/base-controller` version misalignment
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'ComposableController',
+        allowedActions: [],
+        allowedEvents: [
+          'AccountsController:stateChange',
+          'AccountTrackerController:stateChange',
+          'AddressBookController:stateChange',
+          'ApprovalController:stateChange',
+          'CurrencyRateController:stateChange',
+          'GasFeeController:stateChange',
+          'KeyringController:stateChange',
+          'LoggingController:stateChange',
+          'NetworkController:stateChange',
+          'NftController:stateChange',
+          'PermissionController:stateChange',
+          'PhishingController:stateChange',
+          'PPOMController:stateChange',
+          'PreferencesController:stateChange',
+          'SelectedNetworkController:stateChange',
+          'SignatureController:stateChange',
+          'SmartTransactionsController:stateChange',
+          'SwapsController:stateChange',
+          'TokenBalancesController:stateChange',
+          'TokenListController:stateChange',
+          'TokenRatesController:stateChange',
+          'TokensController:stateChange',
+          'TransactionController:stateChange',
+          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+          'SnapController:stateChange',
+          'SnapsRegistry:stateChange',
+          'SubjectMetadataController:stateChange',
+          'AuthenticationController:stateChange',
+          'UserStorageController:stateChange',
+          'NotificationServicesController:stateChange',
+          'NotificationServicesPushController:stateChange',
+          ///: END:ONLY_INCLUDE_IF
+        ],
+      }),
+    });
 
     const { NftController: nfts } = this.context;
 

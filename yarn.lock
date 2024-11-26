@@ -4146,7 +4146,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^4.0.0":
+"@metamask/base-controller@^4.0.1":
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-4.1.1.tgz#9b411adf4822de7382fe69d07bb6b3fc3e738923"
   integrity sha512-sJdsd/XlyOa0kRJ16qbM+xeQ8peV1yZcYumJmHCClPK09MkAlxq7EzsrahVZXUCFwcxtSucf244pbttnVqNthw==
@@ -4200,12 +4200,12 @@
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
 
-"@metamask/composable-controller@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-4.0.0.tgz#ea504abb358e26b1c9791bace3b0d6a07158ce41"
-  integrity sha512-+/DfZ9PY9URjy1DWujUakG8S0a2knjQIpV2SwVTr5L7qahp8dI7CYV78SK+SAxhWs0H+fM9wVObUc0LqAadKSg==
+"@metamask/composable-controller@5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/composable-controller/-/composable-controller-5.0.0.tgz#8f9b8178543c25e7723cbac9b40820586b22e6b2"
+  integrity sha512-RH+v0tu9iRJiEHzZcP8PDu28hFP0qPpbY6fuBFyf5iONhqaL+d+yuN8hPr0cLTPdJ08cprdfakznFCmdteZGpw==
   dependencies:
-    "@metamask/base-controller" "^4.0.0"
+    "@metamask/base-controller" "^4.0.1"
 
 "@metamask/contract-metadata@^2.4.0":
   version "2.5.0"
