@@ -106,7 +106,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const [urDecoder, setURDecoder] = useState(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const theme = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
 
   let expectedURTypes: string[];
@@ -143,14 +143,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const onError = useCallback(
     (error) => {
       if (onScanError && error) {
-        trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-          purpose,
-          error,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({ purpose, error })
+            .build(),
+        );
         onScanError(error.message);
       }
     },
-    [purpose, onScanError, trackEvent],
+    [purpose, onScanError, trackEvent, createEventBuilder],
   );
 
   const onBarCodeRead = useCallback(
@@ -166,10 +167,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         urDecoder.receivePart(content);
         setProgress(Math.ceil(urDecoder.getProgress() * 100));
         if (urDecoder.isError()) {
-          trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-            purpose,
-            error: urDecoder.resultError(),
-          });
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+              .addProperties({ purpose, error: urDecoder.resultError() })
+              .build(),
+          );
           onScanError(strings('transaction.unknown_qr_code'));
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
@@ -178,18 +180,26 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
             setProgress(0);
             setURDecoder(new URRegistryDecoder());
           } else if (purpose === 'sync') {
-            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-              purpose,
-              received_ur_type: ur.type,
-              error: 'invalid `sync` qr code',
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  purpose,
+                  received_ur_type: ur.type,
+                  error: 'invalid `sync` qr code',
+                })
+                .build(),
+            );
             onScanError(strings('transaction.invalid_qr_code_sync'));
           } else {
-            trackEvent(MetaMetricsEvents.HARDWARE_WALLET_ERROR, {
-              purpose,
-              received_ur_type: ur.type,
-              error: 'invalid `sign` qr code',
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+                .addProperties({
+                  purpose,
+                  received_ur_type: ur.type,
+                  error: 'invalid `sign` qr code',
+                })
+                .build(),
+            );
             onScanError(strings('transaction.invalid_qr_code_sign'));
           }
         }
@@ -205,6 +215,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
       purpose,
       onScanSuccess,
       trackEvent,
+      createEventBuilder,
     ],
   );
 

@@ -138,6 +138,11 @@ const initialState = {
                 type: 'custom',
                 url: 'https://api.avax.network/ext/bc/C/rpc',
               },
+              {
+                networkClientId: 'networkId1',
+                type: 'custom',
+                url: 'https://api.avax2.network/ext/bc/C/rpc',
+              },
             ],
           },
           '0x89': {
@@ -151,6 +156,11 @@ const initialState = {
                 networkClientId: 'networkId2',
                 type: 'infura',
                 url: 'https://polygon-mainnet.infura.io/v3/12345',
+              },
+              {
+                networkClientId: 'networkId3',
+                type: 'infura',
+                url: 'https://polygon-mainnet2.infura.io/v3/12345',
               },
             ],
           },
@@ -519,6 +529,16 @@ describe('Network Selector', () => {
       const avalancheCell = getByText('Avalanche Mainnet C-Chain');
       expect(avalancheRpcUrl).toBeTruthy();
       expect(avalancheCell).toBeTruthy();
+    });
+
+    it('renders the RPC URL correctly for optimism single RPC endpoint', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getByText } = renderComponent(initialState);
+      const optimismCell = getByText('Optimism');
+      expect(optimismCell).toBeTruthy();
+      expect(() => {
+        getByText('https://optimism-mainnet.infura.io/v3/12345');
+      }).toThrow();
     });
   });
 

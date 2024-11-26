@@ -42,7 +42,7 @@ export const TokenListFooter = ({
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const detectedTokens = useSelector(selectDetectedTokens);
@@ -60,11 +60,15 @@ export const TokenListFooter = ({
 
   const goToBuy = () => {
     navigation.navigate(...createBuyNavigationDetails());
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy Native Token',
-      location: 'Home Screen',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy Native Token',
+          location: 'Home Screen',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   return (

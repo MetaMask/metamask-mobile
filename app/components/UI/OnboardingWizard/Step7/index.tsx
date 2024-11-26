@@ -37,7 +37,7 @@ interface Step7Props {
 }
 
 const Step7 = ({ navigation, onClose }: Step7Props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const [ready, setReady] = useState(false);
   const [coachmarkTop, setCoachmarkTop] = useState(0);
@@ -65,10 +65,14 @@ const Step7 = ({ navigation, onClose }: Step7Props) => {
     setTimeout(() => {
       dispatch(setOnboardingWizardStep?.(6));
     }, 1);
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 7,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[7],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED)
+        .addProperties({
+          tutorial_step_count: 7,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[7],
+        })
+        .build(),
+    );
   };
 
   /**
