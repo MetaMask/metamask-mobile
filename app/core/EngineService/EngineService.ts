@@ -9,10 +9,7 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
-import {
-  isBaseController,
-  isBaseControllerV1,
-} from '@metamask/base-controller';
+import { isBaseController } from '@metamask/base-controller';
 import { Controllers } from '../Engine/types';
 
 interface InitializeEngineResult {
@@ -90,12 +87,6 @@ class EngineService {
           engine.controllerMessenger.subscribe(
             `${controller.name}:stateChange`,
             () => update_bg_state_cb(controller.name),
-          );
-          // TODO: Remove once it is confirmed that Engine context never interacts with any V1 controller throughout its lifecycle.
-          // @ts-expect-error - TODO: remove this directive once `@metamask/base-controller` updates `isBaseController` input type to `unknown`
-        } else if (isBaseControllerV1(controller)) {
-          engine.context[controller.name].subscribe(() =>
-            update_bg_state_cb(controller.name),
           );
         }
       },
