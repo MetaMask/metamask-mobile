@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SwapsAmountView renders correctly 1`] = `
+exports[`SwapsAmountView renders 1`] = `
 <RCTSafeAreaView
   style={
     {
