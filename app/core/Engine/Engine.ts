@@ -1421,6 +1421,7 @@ export class Engine {
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: this.snapController,
+      SnapsRegistry: snapsRegistry,
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
