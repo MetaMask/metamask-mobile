@@ -20,20 +20,26 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
     onBack();
-    trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT, {});
-  }, [navigate, onBack, trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+      ).build(),
+    );
+  }, [navigate, onBack, trackEvent, createEventBuilder]);
 
   const openConnectHardwareWallet = useCallback(() => {
     navigate(Routes.HW.CONNECT);
     onBack();
-    trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET, {});
-  }, [onBack, navigate, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
+    );
+  }, [onBack, navigate, trackEvent, createEventBuilder]);
 
   const createNewAccount = useCallback(async () => {
     const { KeyringController } = Engine.context;
@@ -42,7 +48,11 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       const addedAccountAddress = await KeyringController.addNewAccount();
       Engine.setSelectedAddress(addedAccountAddress);
-      trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT, {});
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+        ).build(),
+      );
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -52,7 +62,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading, trackEvent]);
+  }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView>

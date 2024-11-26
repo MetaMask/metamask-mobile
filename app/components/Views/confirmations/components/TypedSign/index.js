@@ -7,6 +7,7 @@ import SignatureRequest from '../SignatureRequest';
 import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import Device from '../../../../../util/device';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { KEYSTONE_TX_CANCELED } from '../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import {
@@ -108,8 +109,11 @@ class TypedSign extends PureComponent {
     } = this.props;
 
     metrics.trackEvent(
-      MetaMetricsEvents.SIGNATURE_REQUESTED,
-      getAnalyticsParams(messageParams, 'typed_sign'),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SIGNATURE_REQUESTED,
+      )
+        .addProperties(getAnalyticsParams(messageParams, 'typed_sign'))
+        .build(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);
   };
@@ -125,8 +129,11 @@ class TypedSign extends PureComponent {
     const { metrics } = this.props;
     if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
       metrics.trackEvent(
-        MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-        getAnalyticsParams(),
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+        )
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     showWalletConnectNotification(this.props.messageParams, false, true);

@@ -117,10 +117,11 @@ import {
   SnapController,
   AllowedActions as SnapsAllowedActions,
   AllowedEvents as SnapsAllowedEvents,
+  PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
+  JsonSnapsRegistry as SnapsRegistry,
   SnapsRegistryState,
-  PersistedSnapControllerState,
   SnapsRegistryActions,
   SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
@@ -157,7 +158,6 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { BaseState } from '@metamask/base-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 
 /**
@@ -324,6 +324,7 @@ export type Controllers = {
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: SnapController;
+  SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
@@ -347,7 +348,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
-  AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -362,8 +362,6 @@ export type EngineState = {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
-  TokenDetectionController: BaseState;
-  NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;

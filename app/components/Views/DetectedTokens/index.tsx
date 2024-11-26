@@ -76,7 +76,7 @@ interface IgnoredTokensByAddress {
 
 const DetectedTokens = () => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const detectedTokens = useSelector(selectDetectedTokens);
   const chainId = useSelector(selectChainId);
@@ -137,12 +137,16 @@ const DetectedTokens = () => {
             await TokensController.addTokens(tokensToImport, networkClientId);
             InteractionManager.runAfterInteractions(() =>
               tokensToImport.forEach(({ address, symbol }) =>
-                trackEvent(MetaMetricsEvents.TOKEN_ADDED, {
-                  token_address: address,
-                  token_symbol: symbol,
-                  chain_id: getDecimalChainId(chainId),
-                  source: 'detected',
-                }),
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                    .addProperties({
+                      token_address: address,
+                      token_symbol: symbol,
+                      chain_id: getDecimalChainId(chainId),
+                      source: 'detected',
+                    })
+                    .build(),
+                ),
               ),
             );
           }
@@ -157,7 +161,14 @@ const DetectedTokens = () => {
         }
       });
     },
-    [chainId, detectedTokens, ignoredTokens, trackEvent, networkClientId],
+    [
+      chainId,
+      detectedTokens,
+      ignoredTokens,
+      trackEvent,
+      networkClientId,
+      createEventBuilder,
+    ],
   );
 
   const triggerIgnoreAllTokens = () => {
@@ -166,13 +177,17 @@ const DetectedTokens = () => {
       isHidingAll: true,
     });
 
-    trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-      location: 'token_detection',
-      token_standard: 'ERC20',
-      asset_type: 'token',
-      tokens: detectedTokensForAnalytics,
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+        .addProperties({
+          location: 'token_detection',
+          token_standard: 'ERC20',
+          asset_type: 'token',
+          tokens: detectedTokensForAnalytics,
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const triggerImportTokens = async () => {
@@ -263,11 +278,15 @@ const DetectedTokens = () => {
     if (hasPendingAction) {
       return;
     }
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CANCELED, {
-      source: 'detected',
-      tokens: detectedTokensForAnalytics,
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CANCELED)
+        .addProperties({
+          source: 'detected',
+          tokens: detectedTokensForAnalytics,
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   return (
