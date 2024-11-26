@@ -136,10 +136,10 @@ stages:
       - android_e2e_build: {}
   build_multichain_e2e_ios_android_stage:
     abort_on_fail: true
-    # envs:
-    #   - MM_MULTICHAIN_V1_ENABLED: 'true'
-    #   - MM_CHAIN_PERMISSIONS: 'true'
-    #   - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
+    envs:
+      - MM_MULTICHAIN_V1_ENABLED: 'true'
+      - MM_CHAIN_PERMISSIONS: 'true'
+      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
