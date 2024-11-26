@@ -19,6 +19,7 @@ import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -97,6 +98,7 @@ const AccountPermissionsConfirmRevokeAll = (
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
             onPress={revokeAllAccounts}
+            testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
             isDanger
           />
         </View>
