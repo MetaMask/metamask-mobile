@@ -781,8 +781,8 @@ export class Engine {
     const featureFlagController = new RemoteFeatureFlagController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
-        allowedActions: ['PreferencesController:getState'],
-        allowedEvents: ['PreferencesController:stateChange'],
+        allowedActions: [],
+        allowedEvents: [],
       }),
       state: {
         ...initialState.RemoteFeatureFlagController
