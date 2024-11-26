@@ -27,7 +27,8 @@ const buildEvent = (e: WithMetaMetricsEvent) => {
   return eventBuilder.build();
 };
 
-export const withMetaMetrics = <T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const withMetaMetrics = <T extends (...args: any[]) => any>(
   func: T,
   events: WithMetaMetricsEvent | WithMetaMetricsEvent[],
 ) => {
