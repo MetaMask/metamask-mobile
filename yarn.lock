@@ -4835,6 +4835,22 @@
     bn.js "^5.2.1"
     uuid "^8.3.2"
 
+"@metamask/gas-fee-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-21.0.0.tgz#1cd21f3d33b097adb9c2d9bea17ac5ee72b491e6"
+  integrity sha512-34/AORJFpaHgr1jtzIk1/SzGSw7sYZL49kww7x7tW9wZcxV7r8rPZ5K25TveORzZtdfEsz1CVZjO4iEM8B4Lwg==
+  dependencies:
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/ethjs-unit" "^0.3.0"
+    "@metamask/polling-controller" "^11.0.0"
+    "@metamask/utils" "^9.1.0"
+    "@types/bn.js" "^5.1.5"
+    "@types/uuid" "^8.3.0"
+    bn.js "^5.2.1"
+    uuid "^8.3.2"
+
 "@metamask/json-rpc-engine@^10.0.0":
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.0.tgz#d2beb23ca43596bf2e4a72c54c1d4c24fce1c8a6"
@@ -5141,6 +5157,18 @@
     ethereum-cryptography "^2.1.2"
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
+
+"@metamask/polling-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-11.0.0.tgz#3de28c27a9be5d85879cf9bd35d03a62dbf8932c"
+  integrity sha512-fXG60Ft7lYgqC8lV8m4FL18hU4K2NnsPzoWTm1Lhen2cysLbgAzqxxGdeIFEMaDiCzcvEtLuEffY8FDKCM0ewQ==
+  dependencies:
+    "@metamask/base-controller" "^7.0.1"
+    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/utils" "^9.1.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
 
 "@metamask/polling-controller@^12.0.1":
   version "12.0.1"
