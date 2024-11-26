@@ -35,7 +35,7 @@ interface Step4Props {
 
 const Step4 = ({ onClose }: Step4Props) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const [coachmarkTop, setCoachmarkTop] = useState(0);
 
@@ -50,18 +50,26 @@ const Step4 = ({ onClose }: Step4Props) => {
 
   const onNext = () => {
     dispatch(setOnboardingWizardStep?.(5));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED)
+        .addProperties({
+          tutorial_step_count: 4,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+        })
+        .build(),
+    );
   };
 
   const onBack = () => {
     dispatch(setOnboardingWizardStep?.(3));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED)
+        .addProperties({
+          tutorial_step_count: 4,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+        })
+        .build(),
+    );
   };
 
   const getOnboardingStyles = () => onboardingStyles(colors);

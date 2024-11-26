@@ -303,18 +303,6 @@ describe('NetworkSwitcher View', () => {
         ],
       ]
     `);
-    expect(
-      (Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock)
-        .mock.calls,
-    ).toMatchInlineSnapshot(`
-      [
-        [
-          [
-            "POL",
-          ],
-        ],
-      ]
-    `);
   });
 
   it('renders correctly with errors', async () => {

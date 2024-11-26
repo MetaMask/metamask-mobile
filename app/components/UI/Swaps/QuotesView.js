@@ -408,7 +408,7 @@ function SwapsQuotesView({
   const navigation = useNavigation();
   /* Get params from navigation */
   const route = useRoute();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -742,9 +742,11 @@ function SwapsQuotesView({
         chain_id: getDecimalChainId(chainId),
       };
 
-      trackEvent(MetaMetricsEvents.GAS_FEES_CHANGED, {
-        sensitiveProperties: { ...parameters },
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.GAS_FEES_CHANGED)
+          .addSensitiveProperties(parameters)
+          .build(),
+      );
     },
     [
       chainId,
@@ -753,6 +755,7 @@ function SwapsQuotesView({
       gasEstimateType,
       gasLimit,
       trackEvent,
+      createEventBuilder,
     ],
   );
 
@@ -897,9 +900,11 @@ function SwapsQuotesView({
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
       };
-      trackEvent(MetaMetricsEvents.SWAP_STARTED, {
-        sensitiveProperties: { ...parameters },
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWAP_STARTED)
+          .addSensitiveProperties(parameters)
+          .build(),
+      );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -912,6 +917,7 @@ function SwapsQuotesView({
       selectedQuoteId,
       conversionRate,
       destinationToken,
+      createEventBuilder,
     ],
   );
 
@@ -1011,7 +1017,9 @@ function SwapsQuotesView({
             CHAIN_IDS.LINEA_SEPOLIA,
           ].includes(chainId)
         ) {
-          Logger.log('Delaying submitting trade tx to make Linea confirmation more likely',);
+          Logger.log(
+            'Delaying submitting trade tx to make Linea confirmation more likely',
+          );
           const waitPromise = new Promise((resolve) =>
             setTimeout(resolve, 5000),
           );
@@ -1166,9 +1174,11 @@ function SwapsQuotesView({
       custom_spend_limit_amount: currentAmount,
       chain_id: getDecimalChainId(chainId),
     };
-    trackEvent(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED, {
-      sensitiveProperties: { ...parameters },
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED)
+        .addSensitiveProperties(parameters)
+        .build(),
+    );
   }, [
     chainId,
     allQuotes,
@@ -1185,6 +1195,7 @@ function SwapsQuotesView({
     sourceAmount,
     sourceToken,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleQuotesReceivedMetric = useCallback(() => {
@@ -1214,9 +1225,11 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
-    trackEvent(MetaMetricsEvents.QUOTES_RECEIVED, {
-      sensitiveProperties: { ...parameters },
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.QUOTES_RECEIVED)
+        .addSensitiveProperties(parameters)
+        .build(),
+    );
   }, [
     chainId,
     sourceToken,
@@ -1230,6 +1243,7 @@ function SwapsQuotesView({
     allQuotes,
     conversionRate,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleOpenQuotesModal = useCallback(() => {
@@ -1261,9 +1275,11 @@ function SwapsQuotesView({
       chain_id: getDecimalChainId(chainId),
     };
 
-    trackEvent(MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED, {
-      sensitiveProperties: { ...parameters },
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED)
+        .addSensitiveProperties(parameters)
+        .build(),
+    );
   }, [
     chainId,
     selectedQuote,
@@ -1278,6 +1294,7 @@ function SwapsQuotesView({
     conversionRate,
     allQuotes.length,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const handleQuotesErrorMetric = useCallback(
@@ -1300,16 +1317,20 @@ function SwapsQuotesView({
           gas_fees: '',
         };
 
-        trackEvent(MetaMetricsEvents.QUOTES_TIMED_OUT, {
-          sensitiveProperties: { ...parameters },
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.QUOTES_TIMED_OUT)
+            .addSensitiveProperties(parameters)
+            .build(),
+        );
       } else if (
         error?.key === swapsUtils.SwapsError.QUOTES_NOT_AVAILABLE_ERROR
       ) {
         const parameters = { ...data };
-        trackEvent(MetaMetricsEvents.NO_QUOTES_AVAILABLE, {
-          sensitiveProperties: { ...parameters },
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NO_QUOTES_AVAILABLE)
+            .addSensitiveProperties(parameters)
+            .build(),
+        );
       } else {
         trackErrorAsAnalytics(`Swaps: ${error?.key}`, error?.description);
       }
@@ -1322,6 +1343,7 @@ function SwapsQuotesView({
       hasEnoughTokenBalance,
       slippage,
       trackEvent,
+      createEventBuilder,
     ],
   );
 
@@ -1339,8 +1361,12 @@ function SwapsQuotesView({
       Logger.error(error, 'Navigation: Error when navigating to buy ETH.');
     }
 
-    trackEvent(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST);
-  }, [navigation, trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      ).build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const handleTermsPress = useCallback(
     () =>
@@ -1586,9 +1612,11 @@ function SwapsQuotesView({
     navigation.setParams({ selectedQuote: undefined });
     navigation.setParams({ quoteBegin: Date.now() });
 
-    trackEvent(MetaMetricsEvents.QUOTES_REQUESTED, {
-      sensitiveProperties: { ...data },
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.QUOTES_REQUESTED)
+        .addSensitiveProperties(data)
+        .build(),
+    );
   }, [
     chainId,
     destinationToken,
@@ -1600,6 +1628,7 @@ function SwapsQuotesView({
     sourceToken,
     trackedRequestedQuotes,
     trackEvent,
+    createEventBuilder,
   ]);
 
   /* Metrics: Quotes received */
@@ -2156,7 +2185,11 @@ function SwapsQuotesView({
             </QuotesSummary.Body>
           </QuotesSummary>
         )}
-        <StyledButton type="confirm" onPress={handleCompleteSwap} disabled={unableToSwap || isHandlingSwap || isAnimating}>
+        <StyledButton
+          type="confirm"
+          onPress={handleCompleteSwap}
+          disabled={unableToSwap || isHandlingSwap || isAnimating}
+        >
           {strings('swaps.swap')}
         </StyledButton>
         <TouchableOpacity onPress={handleTermsPress} style={styles.termsButton}>

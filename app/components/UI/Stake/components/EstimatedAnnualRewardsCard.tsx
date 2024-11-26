@@ -69,7 +69,7 @@ const EstimatedAnnualRewardsCard = ({
           >
             <Icon
               name={IconName.Question}
-              color={IconColor.Alternative}
+              color={IconColor.Muted}
               size={IconSize.Sm}
             />
           </TouchableOpacity>

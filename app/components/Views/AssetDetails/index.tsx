@@ -107,7 +107,7 @@ interface Props {
 const AssetDetails = (props: Props) => {
   const { address } = props.route.params;
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -182,13 +182,17 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-                location: 'token_details',
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                tokens: [`${symbol} - ${address}`],
-                chain_id: getDecimalChainId(chainId),
-              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                  .addProperties({
+                    location: 'token_details',
+                    token_standard: 'ERC20',
+                    asset_type: 'token',
+                    tokens: [`${symbol} - ${address}`],
+                    chain_id: getDecimalChainId(chainId),
+                  })
+                  .build(),
+              );
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }

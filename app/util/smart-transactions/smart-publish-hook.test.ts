@@ -148,7 +148,6 @@ function withRequest<ReturnValue>(
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     messenger: controllerMessenger.getRestricted({
       name: 'SmartTransactionsController',
       allowedActions: ['NetworkController:getNetworkClientById'],
@@ -200,7 +199,7 @@ function withRequest<ReturnValue>(
       smartTransactions: {
         expectedDeadline: 45,
         maxDeadline: 150,
-        returnTxHashAsap: false,
+        mobileReturnTxHashAsap: false,
       },
       mobile_active: true,
       extension_active: true,
@@ -231,7 +230,7 @@ describe('submitSmartTransactionHook', () => {
 
   it('returns a txHash asap if the feature flag requires it', async () => {
     withRequest(async ({ request }) => {
-      request.featureFlags.smartTransactions.returnTxHashAsap = true;
+      request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash });
     });

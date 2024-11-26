@@ -22,14 +22,15 @@ export const mockEvents = {
       response: suggestedGasApiResponses.error,
       responseCode: 500,
     },
-    
+
     /**
      * Ganache gas fees endpoint with a mock 200 success response.
      * @property {string} urlEndpoint - API endpoint for Ganache gas fees.
      * @property {Object} response - Success response data.
      */
     suggestedGasFeesApiGanache: {
-      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
+      urlEndpoint:
+        'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
       response: suggestedGasFeesApiGanache,
       responseCode: 200,
     },

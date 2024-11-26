@@ -29,7 +29,6 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
@@ -80,7 +79,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any;
-  smartTransactions: StateFromReducer<typeof smartTransactionsReducer>;
   user: IUserReducer;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,7 +143,6 @@ const rootReducer = combineReducers<RootState, any>({
   settings: settingsReducer,
   alert: alertReducer,
   transaction: transactionReducer,
-  smartTransactions: smartTransactionsReducer,
   user: userReducer,
   wizard: wizardReducer,
   onboarding: onboardingReducer,

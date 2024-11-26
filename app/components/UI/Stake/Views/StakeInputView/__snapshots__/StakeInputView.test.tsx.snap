@@ -567,7 +567,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   onPress={[Function]}
                                 >
                                   <SvgMock
-                                    color="#6a737d"
+                                    color="#9fa6ae"
                                     height={16}
                                     name="Question"
                                     style={

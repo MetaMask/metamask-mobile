@@ -45,7 +45,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -79,7 +79,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -96,12 +96,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsController.fetchTokenWithCache();
+        await SwapsControllerFromEngine.fetchTokenWithCache();
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -134,25 +134,33 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourceToken: asset.address,
         sourcePage: 'MainView',
       },
     });
-    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-      text: 'Swap',
-      tokenSymbol: '',
-      location: 'TokenDetails',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Swap',
+          tokenSymbol: '',
+          location: 'TokenDetails',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
   const onBuy = () => {
     const [route, params] = createBuyNavigationDetails();
     navigation.navigate(route, params || {});
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy',
-      location: 'TokenDetails',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const goToBrowserUrl = (url: string) => {
