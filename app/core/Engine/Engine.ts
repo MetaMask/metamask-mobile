@@ -194,7 +194,6 @@ import { JsonMap } from '../Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
-  Controllers,
   EngineState,
   EngineContext,
   TransactionEventPayload,
@@ -231,10 +230,7 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController<
-    EngineState,
-    StatefulControllers[keyof StatefulControllers]
-  >;
+  datamodel: ComposableController<EngineState, StatefulControllers>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1468,71 +1464,55 @@ export class Engine {
       }),
     };
 
-    // Avoiding `Object.values` and `getKnownPropertyNames` for performance benefits: https://www.measurethat.net/Benchmarks/Show/7173/0/objectvalues-vs-reduce
-    const controllers = (
-      Object.keys(this.context) as (keyof Controllers)[]
-    ).reduce<Controllers[keyof Controllers][]>(
-      (controllers, controllerName) => {
-        const controller = this.context[controllerName];
-        if (controller) {
-          controllers.push(controller);
-        }
-        return controllers;
-      },
-      [],
-    );
-
-    this.datamodel = new ComposableController<
-      EngineState,
-      StatefulControllers[keyof StatefulControllers]
-    >({
-      controllers: controllers.filter(
-        (
-          controller,
-        ): controller is StatefulControllers[keyof StatefulControllers] =>
-          !STATELESS_NON_CONTROLLER_NAMES.find(
-            (name) => name === controller.name,
-          ),
-      ),
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'ComposableController',
-        allowedActions: [],
-        allowedEvents: [
-          'AccountsController:stateChange',
-          'AccountTrackerController:stateChange',
-          'AddressBookController:stateChange',
-          'ApprovalController:stateChange',
-          'CurrencyRateController:stateChange',
-          'GasFeeController:stateChange',
-          'KeyringController:stateChange',
-          'LoggingController:stateChange',
-          'NetworkController:stateChange',
-          'NftController:stateChange',
-          'PermissionController:stateChange',
-          'PhishingController:stateChange',
-          'PPOMController:stateChange',
-          'PreferencesController:stateChange',
-          'SelectedNetworkController:stateChange',
-          'SignatureController:stateChange',
-          'SmartTransactionsController:stateChange',
-          'SwapsController:stateChange',
-          'TokenBalancesController:stateChange',
-          'TokenListController:stateChange',
-          'TokenRatesController:stateChange',
-          'TokensController:stateChange',
-          'TransactionController:stateChange',
-          ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-          'SnapController:stateChange',
-          'SnapsRegistry:stateChange',
-          'SubjectMetadataController:stateChange',
-          'AuthenticationController:stateChange',
-          'UserStorageController:stateChange',
-          'NotificationServicesController:stateChange',
-          'NotificationServicesPushController:stateChange',
-          ///: END:ONLY_INCLUDE_IF
-        ],
-      }),
+    const childControllers = Object.assign({}, this.context);
+    STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
+      if (name in childControllers && childControllers[name]) {
+        delete childControllers[name];
+      }
     });
+    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
+      {
+        controllers: childControllers as StatefulControllers,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ComposableController',
+          allowedActions: [],
+          allowedEvents: [
+            'AccountsController:stateChange',
+            'AccountTrackerController:stateChange',
+            'AddressBookController:stateChange',
+            'ApprovalController:stateChange',
+            'CurrencyRateController:stateChange',
+            'GasFeeController:stateChange',
+            'KeyringController:stateChange',
+            'LoggingController:stateChange',
+            'NetworkController:stateChange',
+            'NftController:stateChange',
+            'PermissionController:stateChange',
+            'PhishingController:stateChange',
+            'PPOMController:stateChange',
+            'PreferencesController:stateChange',
+            'SelectedNetworkController:stateChange',
+            'SignatureController:stateChange',
+            'SmartTransactionsController:stateChange',
+            'SwapsController:stateChange',
+            'TokenBalancesController:stateChange',
+            'TokenListController:stateChange',
+            'TokenRatesController:stateChange',
+            'TokensController:stateChange',
+            'TransactionController:stateChange',
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            'SnapController:stateChange',
+            'SnapsRegistry:stateChange',
+            'SubjectMetadataController:stateChange',
+            'AuthenticationController:stateChange',
+            'UserStorageController:stateChange',
+            'NotificationServicesController:stateChange',
+            'NotificationServicesPushController:stateChange',
+            ///: END:ONLY_INCLUDE_IF
+          ],
+        }),
+      },
+    );
 
     const { NftController: nfts } = this.context;
 
