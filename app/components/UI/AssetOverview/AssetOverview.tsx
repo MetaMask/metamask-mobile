@@ -1,6 +1,7 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
@@ -63,20 +64,17 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
-  navigation,
   asset,
   displayBuyButton,
   displaySwapsButton,
 }: AssetOverviewProps) => {
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const conversionRate = useSelector(selectConversionRate);
   const conversionRateByTicker = useSelector(selectConversionRateFoAllChains);
@@ -262,8 +260,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   ]);
 
   const onBuy = () => {
-    const [route, params] = createBuyNavigationDetails();
-    navigation.navigate(route, params || {});
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
         .addProperties({
