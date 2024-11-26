@@ -100,7 +100,7 @@ def common_target_logic
   pod 'GzipSwift'
 
   # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
-  pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Release']
+  pod 'OpenSSL-Universal', :modular_headers => true
 end
 
 post_integrate do |installer|
