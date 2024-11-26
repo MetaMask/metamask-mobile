@@ -24,7 +24,7 @@ const DEFAULT_FEATURE_FLAGS = {
     smartTransactions: {
       expectedDeadline: 45,
       maxDeadline: 150,
-      returnTxHashAsap: false,
+      mobileReturnTxHashAsap: false,
     },
   },
   bsc: {
@@ -90,7 +90,7 @@ describe('swaps reducer', () => {
         smartTransactions: {
           expectedDeadline: 45,
           maxDeadline: 150,
-          returnTxHashAsap: false,
+          mobileReturnTxHashAsap: false,
         },
       };
 
@@ -122,7 +122,7 @@ describe('swaps reducer', () => {
         smartTransactions: {
           expectedDeadline: 45,
           maxDeadline: 150,
-          returnTxHashAsap: false,
+          mobileReturnTxHashAsap: false,
         },
       };
 
@@ -154,7 +154,7 @@ describe('swaps reducer', () => {
         smartTransactions: {
           expectedDeadline: 45,
           maxDeadline: 150,
-          returnTxHashAsap: false,
+          mobileReturnTxHashAsap: false,
         },
       };
 
@@ -226,7 +226,7 @@ describe('swaps reducer', () => {
             smartTransactions: {
               expectedDeadline: 45,
               maxDeadline: 150,
-              returnTxHashAsap: false,
+              mobileReturnTxHashAsap: false,
             },
           },
         },
@@ -281,7 +281,7 @@ describe('swaps reducer', () => {
             smartTransactions: {
               expectedDeadline: 45,
               maxDeadline: 150,
-              returnTxHashAsap: false,
+              mobileReturnTxHashAsap: false,
             },
           },
         },

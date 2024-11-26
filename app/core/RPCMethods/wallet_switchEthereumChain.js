@@ -58,7 +58,6 @@ const wallet_switchEthereumChain = async ({
       res.result = null;
       return;
     }
-
     const analyticsParams = await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,
@@ -75,8 +74,10 @@ const wallet_switchEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.NETWORK_SWITCHED,
-      analyticsParams,
+      MetaMetrics.getInstance()
+        .createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties(analyticsParams)
+        .build(),
     );
 
     res.result = null;

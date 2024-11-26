@@ -1,22 +1,13 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
   View,
   TextStyle,
-  InteractionManager,
   Linking,
-  AppState,
-  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { baseStyles } from '../../../styles/common';
@@ -35,6 +26,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -43,13 +35,10 @@ import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import ErrorBoundary from '../ErrorBoundary';
 import { useTheme } from '../../../util/theme';
-import { shouldShowSmartTransactionsOptInModal } from '../../../util/onboarding';
-import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isMainNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -67,13 +56,12 @@ import {
   ParamListBase,
   useNavigation,
 } from '@react-navigation/native';
-import { WalletAccount } from '../../../components/UI/WalletAccount';
 import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
@@ -83,18 +71,9 @@ import usePrevious from '../../hooks/usePrevious';
 import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectShowMultiRpcModal,
-  selectUseNftDetection,
-} from '../../../selectors/preferencesController';
-import {
-  setNftAutoDetectionModalOpen,
-  setMultiRpcMigrationModalOpen,
-} from '../../../actions/security';
-import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
   showNftFetchingLoadingIndicator as showNftFetchingLoadingIndicatorAction,
 } from '../../../reducers/collectibles';
-import { getCurrentRoute } from '../../../reducers/navigation';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import {
   getMetamaskNotificationsUnreadCount,
@@ -103,9 +82,12 @@ import {
   selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import { useListNotifications } from '../../../util/notifications/hooks/useNotifications';
+import { useAccountName } from '../../hooks/useAccountName';
+
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
-import { isObject } from 'lodash';
+import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
+import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -163,21 +145,18 @@ const Wallet = ({
   navigation,
   storePrivacyPolicyShownDate,
   shouldShowNewPrivacyToast,
-  currentRouteName,
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
-  const appState = useRef(AppState.currentState);
   const { navigate } = useNavigation();
-  const { listNotifications } = useListNotifications();
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
-  const dispatch = useDispatch();
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   /**
@@ -189,6 +168,7 @@ const Wallet = ({
    * ETH to current currency conversion rate
    */
   const conversionRate = useSelector(selectConversionRate);
+  const contractBalances = useSelector(selectContractBalances);
   /**
    * Currency code of the currently-active currency
    */
@@ -234,6 +214,14 @@ const Wallet = ({
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
   const currentToast = toastRef?.current;
+
+  const accountName = useAccountName();
+
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
 
   useEffect(() => {
     if (
@@ -292,9 +280,7 @@ const Wallet = ({
    * Network onboarding state
    */
   const networkOnboardingState = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.networkOnboarded.networkOnboardedState,
+    (state: RootState) => state.networkOnboarded.networkOnboardedState,
   );
 
   const isNotificationEnabled = useSelector(
@@ -314,11 +300,15 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const useNftDetection = useSelector(selectUseNftDetection);
-  const showMultiRpcModal = useSelector(selectShowMultiRpcModal);
-  const isNFTAutoDetectionModalViewed = useSelector(
-    (state: RootState) => state.security.isNFTAutoDetectionModalViewed,
-  );
+  /**
+   * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
+   */
+  useCheckNftAutoDetectionModal();
+
+  /**
+   * Show multi rpc modal if there are networks duplicated and if never showed before
+   */
+  useCheckMultiRpcModal();
 
   /**
    * Callback to trigger when pressing the navigation title.
@@ -327,52 +317,19 @@ const Wallet = ({
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
 
-  const isNetworkDuplicated = Object.values(networkConfigurations).some(
-    (networkConfiguration) =>
-      isObject(networkConfiguration) &&
-      Array.isArray(networkConfiguration.rpcEndpoints) &&
-      networkConfiguration.rpcEndpoints.length > 1,
-  );
-
-  const checkNftAutoDetectionModal = useCallback(() => {
-    const isOnMainnet = isMainNet(providerConfig.chainId);
-    if (!useNftDetection && isOnMainnet && !isNFTAutoDetectionModalViewed) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.NFT_AUTO_DETECTION_MODAL,
-      });
-      dispatch(setNftAutoDetectionModalOpen(true));
-    }
-  }, [
-    dispatch,
-    isNFTAutoDetectionModalViewed,
-    navigation,
-    providerConfig.chainId,
-    useNftDetection,
-  ]);
-
-  const checkMultiRpcModal = useCallback(() => {
-    if (showMultiRpcModal && isNetworkDuplicated) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.MULTI_RPC_MIGRATION_MODAL,
-      });
-      dispatch(setMultiRpcMigrationModalOpen(true));
-    }
-  }, [dispatch, showMultiRpcModal, navigation, isNetworkDuplicated]);
-
+  /**
+   * Check to see if notifications are enabled
+   */
   useEffect(() => {
-    if (
-      currentRouteName === 'Wallet' ||
-      currentRouteName === 'SecuritySettings'
-    ) {
-      checkNftAutoDetectionModal();
-      checkMultiRpcModal();
-    }
-
     async function checkIfNotificationsAreEnabled() {
       await NotificationsService.isDeviceNotificationEnabled();
     }
@@ -380,7 +337,7 @@ const Wallet = ({
   });
 
   /**
-   * Check to see if we need to show What's New modal and Smart Transactions Opt In modal
+   * Check to see if we need to show What's New modal
    */
   useEffect(() => {
     const networkOnboarded = getIsNetworkOnboarded(
@@ -395,36 +352,6 @@ const Wallet = ({
       // Do not check since it will conflict with the onboarding wizard and/or network onboarding
       return;
     }
-
-    // Show STX opt in modal before What's New modal
-    // Fired on the first load of the wallet and also on network switch
-    const checkSmartTransactionsOptInModal = async () => {
-      try {
-        const accountHasZeroBalance = hexToBN(
-          accountBalanceByChainId?.balance || '0x0',
-        ).isZero();
-        const shouldShowStxOptInModal =
-          await shouldShowSmartTransactionsOptInModal(
-            providerConfig.chainId,
-            providerConfig.rpcUrl,
-            accountHasZeroBalance,
-          );
-        if (shouldShowStxOptInModal) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.MODAL.SMART_TRANSACTIONS_OPT_IN,
-          });
-        }
-      } catch (error) {
-        Logger.log(
-          error,
-          'Error while checking Smart Tranasctions Opt In modal!',
-        );
-      }
-    };
-
-    InteractionManager.runAfterInteractions(() => {
-      checkSmartTransactionsOptInModal();
-    });
   }, [
     wizardStep,
     navigation,
@@ -432,7 +359,6 @@ const Wallet = ({
     providerConfig.rpcUrl,
     networkOnboardingState,
     prevChainId,
-    checkNftAutoDetectionModal,
     accountBalanceByChainId?.balance,
   ]);
 
@@ -447,31 +373,13 @@ const Wallet = ({
     [navigation, providerConfig.chainId],
   );
 
-  useLayoutEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        listNotifications();
-      }
-
-      appState.current = nextAppState;
-    };
-
-    const subscription = AppState.addEventListener(
-      'change',
-      handleAppStateChange,
-    );
-    listNotifications();
-    return () => {
-      subscription.remove();
-    };
-  }, [listNotifications]);
-
   useEffect(() => {
     navigation.setOptions(
       getWalletNavbarOptions(
+        walletRef,
+        selectedAddress || '',
+        accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -485,6 +393,9 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
+    selectedAddress,
+    accountName,
+    accountAvatarType,
     navigation,
     colors,
     networkName,
@@ -518,9 +429,11 @@ const Wallet = ({
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
-        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+        );
         // Call detect nfts
         const { NftDetectionController } = Engine.context;
         try {
@@ -535,6 +448,7 @@ const Wallet = ({
       trackEvent,
       hideNftFetchingLoadingIndicator,
       showNftFetchingLoadingIndicator,
+      createEventBuilder,
     ],
   );
 
@@ -548,34 +462,57 @@ const Wallet = ({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let balance: any = 0;
-    let assets = tokens;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let stakedBalance: any = 0;
+
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
+      const nativeAsset = {
+        // TODO: Add name property to Token interface in controllers.
+        name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+        symbol: getTicker(ticker),
+        isETH: true,
+        balance,
+        balanceFiat: weiToFiat(
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          hexToBN(accountBalanceByChainId.balance) as any,
+          conversionRate,
+          currentCurrency,
+        ),
+        logo: '../images/eth-logo-new.png',
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+      assets.push(nativeAsset);
 
-      assets = [
-        {
-          // TODO: Add name property to Token interface in controllers.
-          name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
-          symbol: getTicker(ticker),
-          isETH: true,
-          balance,
+      if (
+        accountBalanceByChainId.stakedBalance &&
+        !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
+      ) {
+        stakedBalance = renderFromWei(accountBalanceByChainId.stakedBalance);
+        const stakedAsset = {
+          ...nativeAsset,
+          nativeAsset,
+          name: 'Staked Ethereum',
+          isStaked: true,
+          balance: stakedBalance,
           balanceFiat: weiToFiat(
             // TODO: Replace "any" with type
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            hexToBN(accountBalanceByChainId.balance) as any,
+            hexToBN(accountBalanceByChainId.stakedBalance) as any,
             conversionRate,
             currentCurrency,
           ),
-          logo: '../images/eth-logo-new.png',
           // TODO: Replace "any" with type
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
-        ...(tokens || []),
-      ];
-    } else {
-      assets = tokens;
+        } as any;
+        assets.push(stakedAsset);
+      }
     }
+
     return (
       <View
         style={styles.wrapper}
@@ -593,9 +530,6 @@ const Wallet = ({
               }
             />
           </View>
-        ) : null}
-        {selectedAddress ? (
-          <WalletAccount style={styles.walletAccount} ref={walletRef} />
         ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
@@ -625,13 +559,12 @@ const Wallet = ({
         </>
       </View>
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     tokens,
     accountBalanceByChainId,
-    selectedAddress,
     styles.wrapper,
     styles.banner,
-    styles.walletAccount,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
     renderTabBar,
@@ -640,6 +573,7 @@ const Wallet = ({
     ticker,
     conversionRate,
     currentCurrency,
+    contractBalances,
   ]);
   const renderLoader = useCallback(
     () => (
@@ -679,7 +613,6 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
-  currentRouteName: getCurrentRoute(state),
 });
 
 // TODO: Replace "any" with type

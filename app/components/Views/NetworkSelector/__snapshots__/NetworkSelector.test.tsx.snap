@@ -560,7 +560,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                           testID="cellbase-avatar-title"
                                         >
-                                          Ethereum Main Network
+                                          Ethereum Mainnet
                                         </Text>
                                       </View>
                                     </View>
@@ -686,7 +686,7 @@ exports[`Network Selector renders correctly 1`] = `
                                           }
                                           testID="cellbase-avatar-title"
                                         >
-                                          Linea Main Network
+                                          Linea
                                         </Text>
                                       </View>
                                     </View>
@@ -1890,8 +1890,68 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                               testID="cellbase-avatar-title"
                                             >
-                                              Ethereum Main Network
+                                              Ethereum Mainnet
                                             </Text>
+                                            <TouchableOpacity
+                                              accessibilityState={
+                                                {
+                                                  "busy": undefined,
+                                                  "checked": undefined,
+                                                  "disabled": undefined,
+                                                  "expanded": undefined,
+                                                  "selected": undefined,
+                                                }
+                                              }
+                                              accessible={true}
+                                              focusable={false}
+                                              onClick={[Function]}
+                                              onPress={[Function]}
+                                              onResponderGrant={[Function]}
+                                              onResponderMove={[Function]}
+                                              onResponderRelease={[Function]}
+                                              onResponderTerminate={[Function]}
+                                              onResponderTerminationRequest={[Function]}
+                                              onStartShouldSetResponder={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "flex-start",
+                                                  "flexDirection": "row",
+                                                  "marginBottom": 0,
+                                                  "zIndex": 1,
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                numberOfLines={1}
+                                                style={
+                                                  {
+                                                    "color": "#6a737d",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 14,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 22,
+                                                  }
+                                                }
+                                              >
+                                                https://mainnet-rpc.publicnode.com
+                                              </Text>
+                                              <SvgMock
+                                                color="#141618"
+                                                height={10}
+                                                name="ArrowDown"
+                                                style={
+                                                  {
+                                                    "height": 10,
+                                                    "paddingLeft": 8,
+                                                    "paddingTop": 24,
+                                                    "width": 10,
+                                                  }
+                                                }
+                                                width={10}
+                                              />
+                                            </TouchableOpacity>
                                           </View>
                                         </View>
                                       </View>
@@ -1928,7 +1988,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2080,7 +2140,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               }
                                               testID="cellbase-avatar-title"
                                             >
-                                              Linea Main Network
+                                              Linea
                                             </Text>
                                             <TouchableOpacity
                                               accessibilityState={
@@ -2125,7 +2185,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   }
                                                 }
                                               >
-                                                https://linea-mainnet.infura.io/v3
+                                                https://linea-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
                                                 color="#141618"
@@ -2150,7 +2210,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2374,7 +2434,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2598,7 +2658,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2754,66 +2814,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             >
                                               Optimism
                                             </Text>
-                                            <TouchableOpacity
-                                              accessibilityState={
-                                                {
-                                                  "busy": undefined,
-                                                  "checked": undefined,
-                                                  "disabled": undefined,
-                                                  "expanded": undefined,
-                                                  "selected": undefined,
-                                                }
-                                              }
-                                              accessible={true}
-                                              focusable={false}
-                                              onClick={[Function]}
-                                              onPress={[Function]}
-                                              onResponderGrant={[Function]}
-                                              onResponderMove={[Function]}
-                                              onResponderRelease={[Function]}
-                                              onResponderTerminate={[Function]}
-                                              onResponderTerminationRequest={[Function]}
-                                              onStartShouldSetResponder={[Function]}
-                                              style={
-                                                {
-                                                  "alignItems": "flex-start",
-                                                  "flexDirection": "row",
-                                                  "marginBottom": 0,
-                                                  "zIndex": 1,
-                                                }
-                                              }
-                                            >
-                                              <Text
-                                                accessibilityRole="text"
-                                                numberOfLines={1}
-                                                style={
-                                                  {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
-                                                    "fontWeight": "400",
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 22,
-                                                  }
-                                                }
-                                              >
-                                                optimism-mainnet.infura.io/v3
-                                              </Text>
-                                              <SvgMock
-                                                color="#141618"
-                                                height={10}
-                                                name="ArrowDown"
-                                                style={
-                                                  {
-                                                    "height": 10,
-                                                    "paddingLeft": 8,
-                                                    "paddingTop": 24,
-                                                    "width": 10,
-                                                  }
-                                                }
-                                                width={10}
-                                              />
-                                            </TouchableOpacity>
                                           </View>
                                         </View>
                                       </View>
@@ -2822,7 +2822,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >
@@ -2976,66 +2976,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             >
                                               Gnosis Chain
                                             </Text>
-                                            <TouchableOpacity
-                                              accessibilityState={
-                                                {
-                                                  "busy": undefined,
-                                                  "checked": undefined,
-                                                  "disabled": undefined,
-                                                  "expanded": undefined,
-                                                  "selected": undefined,
-                                                }
-                                              }
-                                              accessible={true}
-                                              focusable={false}
-                                              onClick={[Function]}
-                                              onPress={[Function]}
-                                              onResponderGrant={[Function]}
-                                              onResponderMove={[Function]}
-                                              onResponderRelease={[Function]}
-                                              onResponderTerminate={[Function]}
-                                              onResponderTerminationRequest={[Function]}
-                                              onStartShouldSetResponder={[Function]}
-                                              style={
-                                                {
-                                                  "alignItems": "flex-start",
-                                                  "flexDirection": "row",
-                                                  "marginBottom": 0,
-                                                  "zIndex": 1,
-                                                }
-                                              }
-                                            >
-                                              <Text
-                                                accessibilityRole="text"
-                                                numberOfLines={1}
-                                                style={
-                                                  {
-                                                    "color": "#6a737d",
-                                                    "fontFamily": "EuclidCircularB-Regular",
-                                                    "fontSize": 14,
-                                                    "fontWeight": "400",
-                                                    "letterSpacing": 0,
-                                                    "lineHeight": 22,
-                                                  }
-                                                }
-                                              >
-                                                rpc.gnosischain.com
-                                              </Text>
-                                              <SvgMock
-                                                color="#141618"
-                                                height={10}
-                                                name="ArrowDown"
-                                                style={
-                                                  {
-                                                    "height": 10,
-                                                    "paddingLeft": 8,
-                                                    "paddingTop": 24,
-                                                    "width": 10,
-                                                  }
-                                                }
-                                                width={10}
-                                              />
-                                            </TouchableOpacity>
                                           </View>
                                         </View>
                                       </View>
@@ -3044,7 +2984,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   <View
                                     style={
                                       {
-                                        "paddingHorizontal": 20,
+                                        "paddingRight": 20,
                                       }
                                     }
                                   >

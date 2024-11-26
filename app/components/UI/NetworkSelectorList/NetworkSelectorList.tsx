@@ -24,7 +24,7 @@ const NetworkSelectorList = ({
   onSelectNetwork,
   networks = [],
   isLoading = false,
-  selectedNetworkIds,
+  selectedChainIds,
   isMultiSelect = true,
   renderRightAccessory,
   isSelectionDisabled,
@@ -33,7 +33,6 @@ const NetworkSelectorList = ({
 }: NetworkConnectMultiSelectorProps) => {
   const networksLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
-
   /**
    * Ref for the FlatList component.
    * The type of the ref is not explicitly defined.
@@ -51,8 +50,8 @@ const NetworkSelectorList = ({
         ? CellVariant.MultiSelect
         : CellVariant.Select;
       let isSelectedNetwork = isSelected;
-      if (selectedNetworkIds) {
-        isSelectedNetwork = selectedNetworkIds.includes(id);
+      if (selectedChainIds) {
+        isSelectedNetwork = selectedChainIds.includes(id);
       }
 
       return (
@@ -68,7 +67,6 @@ const NetworkSelectorList = ({
             size: AvatarSize.Sm,
           }}
           disabled={isDisabled}
-          style={styles.networkItemContainer}
         >
           {renderRightAccessory?.(id, name)}
         </Cell>
@@ -76,11 +74,10 @@ const NetworkSelectorList = ({
     },
     [
       isLoading,
-      selectedNetworkIds,
+      selectedChainIds,
       renderRightAccessory,
       isSelectionDisabled,
       onSelectNetwork,
-      styles,
       isMultiSelect,
     ],
   );

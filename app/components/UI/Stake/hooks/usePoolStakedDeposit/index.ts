@@ -1,6 +1,7 @@
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import {
   TransactionParams,
+  TransactionType,
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
@@ -30,7 +31,6 @@ const attemptDepositTransaction =
   async (
     depositValueWei: string,
     receiver: string, // the address that can claim exited ETH
-    gasBufferPercentage: number = 30, // 30% Buffer
     referrer: string = ZERO_ADDRESS, // any address to track referrals or deposits from different interfaces (can use zero address if not needed)
   ) => {
     try {
@@ -47,7 +47,6 @@ const attemptDepositTransaction =
           referrer,
           {
             gasLimit,
-            gasBufferPct: gasBufferPercentage,
           },
         );
 
@@ -62,9 +61,10 @@ const attemptDepositTransaction =
       );
 
       // TODO: Add Stake/Unstake/Claim TransactionType to display contract method in confirmation screen.
-      return addTransaction(txParams, {
+      return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         origin: ORIGIN_METAMASK,
+        type: TransactionType.stakingDeposit,
       });
     } catch (e) {
       const errorMessage = (e as Error).message;

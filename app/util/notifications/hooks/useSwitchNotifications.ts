@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import { updateAccountState } from '../../../core/redux/slices/notifications';
 import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
 import Logger from '../../../util/Logger';
+import { isNotificationsFeatureEnabled } from '../constants';
 
 export function useSwitchNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -22,6 +23,10 @@ export function useSwitchNotifications() {
 
   const switchFeatureAnnouncements = useCallback(
     async (state: boolean) => {
+      if (!isNotificationsFeatureEnabled()) {
+        return;
+      }
+
       resetStates();
       setLoading(true);
 
@@ -89,14 +94,14 @@ export function useAccountSettingsProps(accounts: Account[]) {
   // Memoize the accounts array to avoid unnecessary re-fetching
   const memoAccounts = useMemo(() => accounts.map((account) => account.address),[accounts]);
   const updateAndfetchAccountSettings = useCallback(async () => {
-  try {
-    const result = await Engine.context.NotificationServicesController.checkAccountsPresence(memoAccounts);
-    dispatch(updateAccountState(result));
-    return result;
-  } catch (err) {
-    Logger.log('Failed to get account settings:', err);
-  }
-}, [dispatch, memoAccounts]);
+    try {
+      const result = await Engine.context.NotificationServicesController.checkAccountsPresence(memoAccounts);
+      dispatch(updateAccountState(result));
+      return result;
+    } catch (err) {
+      Logger.log('Failed to get account settings:', err);
+    }
+  }, [dispatch, memoAccounts]);
 
   return { updateAndfetchAccountSettings };
 }

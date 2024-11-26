@@ -22,6 +22,7 @@ import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -44,10 +45,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       dict[`${word},${i}`] = { currentPosition: undefined };
     });
     setWordsDict(dict);
-  };
-
-  const track = (event, properties) => {
-    trackOnboarding(event, properties);
   };
 
   const updateNavBar = useCallback(() => {
@@ -133,7 +130,11 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           steps: route.params?.steps,
           words,
         });
-        track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED);
+        trackOnboarding(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
+          ).build(),
+        );
       });
     } else {
       Alert.alert(

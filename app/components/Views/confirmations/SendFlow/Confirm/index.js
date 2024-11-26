@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import PropTypes from 'prop-types';
 import Eth from '@metamask/ethjs-query';
+import { isEmpty } from 'lodash';
 import {
   renderFromWei,
   renderFromTokenMinimalUnit,
@@ -300,6 +301,7 @@ class Confirm extends PureComponent {
     multiLayerL1FeeTotal: '0x0',
     result: {},
     transactionMeta: {},
+    isChangeInSimulationModalShown: false,
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -467,8 +469,10 @@ class Confirm extends PureComponent {
     });
     // For analytics
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
 
     showCustomNonce && (await this.setNetworkNonce());
@@ -485,11 +489,25 @@ class Confirm extends PureComponent {
     const { TransactionController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
 
-    const { result, transactionMeta } =
-      await TransactionController.addTransaction(transactionParams, {
-        deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        origin: TransactionTypes.MMM,
-      });
+    let result, transactionMeta;
+    try {
+      ({ result, transactionMeta } = await TransactionController.addTransaction(
+        transactionParams,
+        {
+          deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          origin: TransactionTypes.MMM,
+        },
+      ));
+    } catch (error) {
+      Logger.error(error, 'error while adding transaction (Confirm)');
+      navigation?.dangerouslyGetParent()?.pop();
+      Alert.alert(
+        strings('transactions.transaction_error'),
+        error && error.message,
+        [{ text: 'OK' }],
+      );
+      return;
+    }
 
     setTransactionId(transactionMeta.id);
 
@@ -636,7 +654,11 @@ class Confirm extends PureComponent {
     this.setState({ mode });
     if (mode === EDIT) {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+        this.props.metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          )
+          .build(),
       );
     }
   };
@@ -861,8 +883,10 @@ class Confirm extends PureComponent {
           });
           this.checkRemoveCollectible();
           this.props.metrics.trackEvent(
-            MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-            gaParams,
+            this.props.metrics
+              .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED)
+              .addProperties(gaParams)
+              .build(),
           );
           stopGasPolling();
           resetTransaction();
@@ -882,14 +906,34 @@ class Confirm extends PureComponent {
       resetTransaction,
       gasEstimateType,
       shouldUseSmartTransaction,
+      transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
     } = this.props;
 
     const {
       legacyGasTransaction,
       transactionConfirmed,
       EIP1559GasTransaction,
+      isChangeInSimulationModalShown,
     } = this.state;
     if (transactionConfirmed) return;
+
+    if (isUpdatedAfterSecurityCheck && !isChangeInSimulationModalShown) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalShown: true });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalShown: true });
+            resetTransaction();
+            navigation?.dangerouslyGetParent()?.pop();
+          },
+        },
+      });
+      return;
+    }
+
     this.setState({ transactionConfirmed: true, stopUpdateGas: true });
     try {
       const transaction = this.prepareTransactionToSend();
@@ -972,12 +1016,14 @@ class Confirm extends PureComponent {
         });
         this.checkRemoveCollectible();
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.SEND_TRANSACTION_COMPLETED,
-          {
-            ...this.getAnalyticsParams(transactionMeta),
-            ...getBlockaidTransactionMetricsParams(transaction),
-            ...this.getTransactionMetrics(),
-          },
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_COMPLETED)
+            .addProperties({
+              ...this.getAnalyticsParams(transactionMeta),
+              ...getBlockaidTransactionMetricsParams(transaction),
+              ...this.getTransactionMetrics(),
+            })
+            .build(),
         );
         stopGasPolling();
         resetTransaction();
@@ -1000,7 +1046,11 @@ class Confirm extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Confirm)');
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       resetTransaction();
@@ -1136,7 +1186,9 @@ class Confirm extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -1203,8 +1255,10 @@ class Confirm extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 
@@ -1284,6 +1338,7 @@ class Confirm extends PureComponent {
       EIP1559GasObject,
       EIP1559GasTransaction,
       legacyGasObject,
+      transactionMeta,
     } = this.state;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -1456,6 +1511,7 @@ class Confirm extends PureComponent {
           <StyledButton
             type={'confirm'}
             disabled={
+              isEmpty(transactionMeta) ||
               transactionConfirmed ||
               !gasEstimationReady ||
               Boolean(errorMessage) ||

@@ -7,10 +7,7 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  getBlockExplorerByChainId,
-  TRIGGER_TYPES,
-} from '../../../../../util/notifications';
+import { getBlockExplorerByChainId } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -25,7 +22,7 @@ type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
 export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const defaultBlockExplorer = getBlockExplorerByChainId(props.chainId);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkBlockExplorer = useMemo(() => {
@@ -45,14 +42,18 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   const onPress = () => {
     Linking.openURL(txHashUrl);
-    trackEvent(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED, {
-      notification_id: notification.id,
-      notification_type: notification.type,
-      ...(notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT
-        ? { chain_id: notification?.chain_id }
-        : {}),
-      clicked_item: 'block_explorer',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+        .addProperties({
+          notification_id: notification.id,
+          notification_type: notification.type,
+          ...('chain_id' in notification && {
+            chain_id: notification.chain_id,
+          }),
+          clicked_item: 'block_explorer',
+        })
+        .build(),
+    );
   };
 
   return (

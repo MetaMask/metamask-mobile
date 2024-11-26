@@ -11,6 +11,7 @@ import { useTheme } from '../../../../util/theme';
 import { createDetectedTokensNavDetails } from '../../../Views/DetectedTokens';
 import { selectChainId } from '../../../../selectors/networkController';
 import { selectDetectedTokens } from '../../../../selectors/tokensController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../util/networks';
 import createStyles from '../styles';
 import Text from '../../../../component-library/components/Texts/Text';
@@ -18,6 +19,7 @@ import { TokenI } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { TokenListFooter } from './TokenListFooter';
 import { TokenListItem } from './TokenListItem';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 interface TokenListProps {
   tokens: TokenI[];
@@ -48,10 +50,11 @@ export const TokenList = ({
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
     >();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const chainId = useSelector(selectChainId);
   const detectedTokens = useSelector(selectDetectedTokens);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
 
@@ -59,18 +62,23 @@ export const TokenList = ({
 
   const showDetectedTokens = () => {
     navigation.navigate(...createDetectedTokensNavDetails());
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'detected',
-      chain_id: getDecimalChainId(chainId),
-      tokens: detectedTokens?.map(
-        (token) => `${token.symbol} - ${token.address}`,
-      ),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'detected',
+          chain_id: getDecimalChainId(chainId),
+          tokens: detectedTokens?.map(
+            (token) => `${token.symbol} - ${token.address}`,
+          ),
+        })
+        .build(),
+    );
     setIsAddTokenEnabled(true);
   };
 
   return tokens?.length ? (
     <FlatList
+      testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (
         <TokenListItem
@@ -78,6 +86,7 @@ export const TokenList = ({
           showRemoveMenu={showRemoveMenu}
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
         />
       )}
       keyExtractor={(_, index) => index.toString()}

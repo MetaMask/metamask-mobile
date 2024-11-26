@@ -1,6 +1,5 @@
 import TestHelpers from '../../helpers';
 import { TEST_DAPP_LOCAL_URL } from './TestDApp';
-
 import {
   BrowserViewSelectorsIDs,
   BrowserViewSelectorsText,
@@ -8,10 +7,10 @@ import {
 } from '../../selectors/Browser/BrowserView.selectors';
 import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
-
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+
 class Browser {
   get searchButton() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
@@ -45,8 +44,9 @@ class Browser {
   }
 
   get clearURLButton() {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_CLEAR_ICON);
+    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
+
   get backToSafetyButton() {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
@@ -57,19 +57,20 @@ class Browser {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavourtiesButton() {
+  get addFavouritesButton() {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.ADD_FAVORITES_BUTTON,
     );
   }
-  get HomePageFavourtiesTab() {
+
+  get homePageFavouritesTab() {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       BrowserViewSelectorsXPaths.FAVORITE_TAB,
     );
   }
 
-  get TestDappURLInFavourtiesTab() {
+  get testDappURLInFavouritesTab() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -148,7 +149,7 @@ class Browser {
   }
 
   async tapAddToFavoritesButton() {
-    await Gestures.waitAndTap(this.addFavourtiesButton);
+    await Gestures.waitAndTap(this.addFavouritesButton);
   }
 
   async tapAddBookmarksButton() {
@@ -169,10 +170,10 @@ class Browser {
 
   async tapDappInFavorites() {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
     } else {
-      await Gestures.tapWebElement(this.HomePageFavourtiesTab);
-      await Gestures.tapWebElement(this.TestDappURLInFavourtiesTab);
+      await Gestures.tapWebElement(this.homePageFavouritesTab);
+      await Gestures.tapWebElement(this.testDappURLInFavouritesTab);
     }
   }
 

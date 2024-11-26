@@ -30,10 +30,14 @@ const createStyles = (params: {
       marginRight: 24,
       marginLeft: 24,
     },
+    bottomButtonsContainer: {
+      marginTop: 8,
+    },
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
       paddingHorizontal: 24,
+      marginTop: 8,
     },
     buttonPositioning: {
       flex: 1,
@@ -55,6 +59,9 @@ const createStyles = (params: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    logoContainerNonDapp: {
+      marginTop: 8,
     },
     domainLogoContainer: {
       width: 32,
@@ -78,6 +85,7 @@ const createStyles = (params: {
       maxWidth: '75%',
     },
     permissionRequestNetworkName: {
+      marginRight: 4,
       maxWidth: '75%',
     },
     avatarGroup: {
@@ -107,21 +115,32 @@ const createStyles = (params: {
       justifyContent: 'space-between',
     },
     startAccessory: { flex: 1, paddingLeft: 16 },
-    endAccessory: { flex: 1, paddingRight: 16 },
+    endAccessory: {
+      flex: 1,
+      paddingRight: 16,
+      alignItems: 'flex-end',
+    },
     editArrow: {
       marginHorizontal: 16,
     },
     walletIcon: { alignSelf: 'flex-start' },
     dataIcon: { alignSelf: 'flex-start' },
     disconnectAllContainer: {
-      marginTop: 16,
       marginHorizontal: 24,
+      marginTop: 8,
       flexDirection: 'row',
     },
     disconnectButton: { flex: 1 },
     editTextContainer: {
       width: 56,
       alignItems: 'center',
+    },
+    nonDappNetworkSwitchButtons: {
+      gap: 16,
+    },
+    description: {
+      marginHorizontal: 24,
+      marginBottom: 16,
     },
   });
 };

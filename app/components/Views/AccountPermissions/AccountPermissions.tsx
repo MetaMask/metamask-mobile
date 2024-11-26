@@ -54,20 +54,30 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMultichainVersion1Enabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import NetworkPermissionsConnected from './NetworkPermissionsConnected';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const {
     hostInfo: {
       metadata: { origin: hostname },
     },
     isRenderedAsBottomSheet = true,
     initialScreen = AccountPermissionsScreens.Connected,
+    isNonDappNetworkSwitch = false,
   } = props.route.params;
   const accountAvatarType = useSelector((state: RootState) =>
     state.settings.useBlockieIcon
@@ -104,9 +114,18 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     hostname,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [networkAvatars, setNetworkAvatars] = useState<
+    ({ name: string; imageSource: string } | null)[]
+  >([]);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
-    useState<AccountPermissionsScreens>(initialScreen);
+    useState<AccountPermissionsScreens>(
+      isNonDappNetworkSwitch && isMultichainVersion1Enabled
+        ? AccountPermissionsScreens.PermissionsSummary
+        : initialScreen,
+    );
   const { accounts, ensByAccountAddress } = useAccounts({
     isLoading,
   });
@@ -116,6 +135,64 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const activeAddress: string = permittedAccountsByHostname[0];
 
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
+  const [networkSelectorUserIntent, setNetworkSelectorUserIntent] = useState(
+    USER_INTENT.None,
+  );
+
+  const { chainId } = useNetworkInfo(hostname);
+
+  useEffect(() => {
+    let currentlyPermittedChains: string[] = [];
+    try {
+      const caveat = Engine.context.PermissionController.getCaveat(
+        hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+      if (Array.isArray(caveat?.value)) {
+        currentlyPermittedChains = caveat.value.filter(
+          (item): item is string => typeof item === 'string',
+        );
+      }
+    } catch (e) {
+      // noop
+    }
+
+    const networks = Object.entries(networkConfigurations).map(
+      ([key, network]: [string, NetworkConfiguration]) => ({
+        id: key,
+        name: network.name,
+        rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
+        isSelected: false,
+        chainId: network?.chainId,
+        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        imageSource: getNetworkImageSource({
+          chainId: network?.chainId,
+        }),
+      }),
+    );
+
+    const theNetworkAvatars: ({ name: string; imageSource: string } | null)[] =
+      currentlyPermittedChains.map((selectedId) => {
+        const network = networks.find(({ id }) => id === selectedId);
+        if (network) {
+          return {
+            name: network.name,
+            imageSource: network.imageSource as string,
+            variant: AvatarVariant.Network,
+          };
+        }
+        return null;
+      });
+
+    if (
+      [USER_INTENT.None, USER_INTENT.Confirm].includes(
+        networkSelectorUserIntent,
+      )
+    ) {
+      setNetworkAvatars(theNetworkAvatars);
+    }
+  }, [hostname, networkConfigurations, networkSelectorUserIntent]);
 
   const hideSheet = useCallback(
     (callback?: () => void) =>
@@ -128,8 +205,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   useEffect(() => {
     if (
       previousPermittedAccounts.current === undefined &&
-      permittedAccountsByHostname.length === 0 &&
-      isRenderedAsBottomSheet
+      permittedAccountsByHostname.length === 0
     ) {
       // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
@@ -212,11 +288,19 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       try {
         setIsLoading(true);
         await KeyringController.addNewAccount();
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
-        trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-          source: metricsSource,
-          number_of_accounts: accounts?.length,
-        });
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+            .addProperties({
+              source: metricsSource,
+              number_of_accounts: accounts?.length,
+            })
+            .build(),
+        );
       } catch (e) {
         Logger.error(e as Error, 'Error while trying to add a new account.');
       } finally {
@@ -232,13 +316,11 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       setIsLoading(true);
       let newActiveAddress;
       let connectedAccountLength = 0;
-      let addedAccountCount = 0;
       let removedAccountCount = 0;
 
       if (!isMultichainVersion1Enabled) {
         newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
         connectedAccountLength = selectedAddresses.length;
-        addedAccountCount = selectedAddresses.length;
       } else {
         // Function to normalize Ethereum addresses using checksum
         const normalizeAddresses = (addresses: string[]) =>
@@ -263,7 +345,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accountsToAdd = normalizedSelectedAddresses.filter(
           (account) => !normalizedPermittedAccounts.includes(account),
         );
-        addedAccountCount = accountsToAdd.length;
 
         // Add newly selected accounts
         if (accountsToAdd.length > 0) {
@@ -273,7 +354,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           newActiveAddress = normalizedSelectedAddresses[0];
         }
 
-        // if (!isFirstRenderOfEditingAllAccountPermissions.current) {
         // Identify accounts to be removed
         accountsToRemove = normalizedPermittedAccounts.filter(
           (account) => !normalizedSelectedAddresses.includes(account),
@@ -284,7 +364,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         if (accountsToRemove.length > 0) {
           removePermittedAccounts(hostname, accountsToRemove);
         }
-        // }
 
         // Calculate the number of connected accounts after changes
         connectedAccountLength =
@@ -302,34 +381,9 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let labelOptions: ToastOptions['labelOptions'] = [];
       // Start of Selection
       if (connectedAccountLength >= 1) {
-        if (addedAccountCount > 0) {
-          labelOptions = [
-            { label: `${addedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                addedAccountCount > 1
-                  ? 'toast.accounts_connected'
-                  : 'toast.account_connected',
-              )}\n`,
-            },
-          ];
-        }
-        if (removedAccountCount > 0) {
-          labelOptions.push(
-            { label: `${removedAccountCount} `, isBold: true },
-            {
-              label: `${strings(
-                removedAccountCount > 1
-                  ? 'toast.accounts_disconnected'
-                  : 'toast.account_disconnected',
-              )}\n`,
-            },
-          );
-        }
-        labelOptions.push(
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        );
+        labelOptions = [
+          { label: `${strings('toast.accounts_permissions_updated')}` },
+        ];
       }
 
       if (connectedAccountLength === 1 && removedAccountCount === 0) {
@@ -346,11 +400,15 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         hasNoTimeout: false,
       });
       const totalAccounts = accountsLength;
-      trackEvent(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS, {
-        number_of_accounts: totalAccounts,
-        number_of_accounts_connected: connectedAccountLength,
-        number_of_networks: nonTestnetNetworks,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADD_ACCOUNT_DAPP_PERMISSIONS)
+          .addProperties({
+            number_of_accounts: totalAccounts,
+            number_of_accounts_connected: connectedAccountLength,
+            number_of_networks: nonTestnetNetworks,
+          })
+          .build(),
+      );
     } catch (e) {
       Logger.error(e as Error, 'Error while trying to connect to a dApp.');
     } finally {
@@ -368,20 +426,59 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     accountsLength,
     nonTestnetNetworks,
     trackEvent,
+    createEventBuilder,
+  ]);
+
+  useEffect(() => {
+    if (!isMultichainVersion1Enabled) {
+      return;
+    }
+
+    if (networkSelectorUserIntent === USER_INTENT.Confirm) {
+      if (isNonDappNetworkSwitch) {
+        setPermissionsScreen(
+          AccountPermissionsScreens.ChooseFromPermittedNetworks,
+        );
+      } else {
+        setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+      }
+
+      setNetworkSelectorUserIntent(USER_INTENT.None);
+      const networkToastProps: ToastOptions = {
+        variant: ToastVariants.Network,
+        labelOptions: [
+          {
+            label: strings('toast.network_permissions_updated'),
+          },
+        ],
+        hasNoTimeout: false,
+        networkImageSource: faviconSource,
+      };
+      toastRef?.current?.showToast(networkToastProps);
+    }
+  }, [
+    networkSelectorUserIntent,
+    hideSheet,
+    faviconSource,
+    toastRef,
+    isNonDappNetworkSwitch,
   ]);
 
   useEffect(() => {
     if (userIntent === USER_INTENT.None) return;
-
     const handleUserActions = (action: USER_INTENT) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
           hideSheet(() => {
-            trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-              source: metricsSource,
-              number_of_accounts: accounts?.length,
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+                .addProperties({
+                  source: metricsSource,
+                  number_of_accounts: accounts?.length,
+                })
+                .build(),
+            );
           });
           break;
         }
@@ -402,14 +499,22 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // Is this where we want to track importing an account or within ImportPrivateKeyView screen?
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
 
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // Is this where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen?
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -428,6 +533,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     handleConnect,
     accounts?.length,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const renderConnectedScreen = useCallback(
@@ -488,6 +594,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
           : navigation.navigate('PermissionsManager'),
       isRenderedAsBottomSheet,
       accountAddresses: checksummedPermittedAddresses,
+      accounts,
+      networkAvatars,
     };
 
     return <PermissionsSummary {...permissionsSummaryProps} />;
@@ -498,6 +606,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     navigation,
     permittedAccountsByHostname,
     setSelectedAddresses,
+    networkAvatars,
+    accounts,
   ]);
 
   const renderEditAccountsPermissionsScreen = useCallback(
@@ -587,21 +697,27 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       <NetworkConnectMultiSelector
         onSelectNetworkIds={setSelectedAddresses}
         isLoading={isLoading}
-        onUserAction={setUserIntent}
+        onUserAction={setNetworkSelectorUserIntent}
         urlWithProtocol={urlWithProtocol}
         hostname={hostname}
         onBack={() =>
-          setPermissionsScreen(AccountPermissionsScreens.PermissionsSummary)
+          setPermissionsScreen(
+            isNonDappNetworkSwitch
+              ? AccountPermissionsScreens.ChooseFromPermittedNetworks
+              : AccountPermissionsScreens.PermissionsSummary,
+          )
         }
         isRenderedAsBottomSheet={isRenderedAsBottomSheet}
+        hideActiveNetwork={isNonDappNetworkSwitch}
       />
     ),
     [
       isLoading,
-      setUserIntent,
+      setNetworkSelectorUserIntent,
       urlWithProtocol,
       hostname,
       isRenderedAsBottomSheet,
+      isNonDappNetworkSwitch,
     ],
   );
 
@@ -634,6 +750,135 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     ],
   );
 
+  const renderChooseFromPermittedNetworksScreen = useCallback(
+    () => (
+      <NetworkPermissionsConnected
+        isLoading={isLoading}
+        onSetSelectedAddresses={setSelectedAddresses}
+        onSetPermissionsScreen={setPermissionsScreen}
+        onDismissSheet={hideSheet}
+        accounts={accountsFilteredByPermissions.permitted}
+        ensByAccountAddress={ensByAccountAddress}
+        selectedAddresses={[activeAddress]}
+        favicon={faviconSource}
+        hostname={hostname}
+        urlWithProtocol={urlWithProtocol}
+        secureIcon={secureIcon}
+        accountAvatarType={accountAvatarType}
+      />
+    ),
+    [
+      ensByAccountAddress,
+      activeAddress,
+      isLoading,
+      accountsFilteredByPermissions,
+      setSelectedAddresses,
+      setPermissionsScreen,
+      hideSheet,
+      faviconSource,
+      hostname,
+      urlWithProtocol,
+      secureIcon,
+      accountAvatarType,
+    ],
+  );
+
+  const renderNetworkPermissionSummaryScreen = useCallback(() => {
+    const permissionsSummaryProps: PermissionsSummaryProps = {
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: faviconSource as string,
+        url: urlWithProtocol,
+      },
+      onEdit: () => {
+        setPermissionsScreen(AccountPermissionsScreens.EditAccountsPermissions);
+        setSelectedAddresses(
+          permittedAccountsByHostname.map(toChecksumHexAddress),
+        );
+      },
+      onEditNetworks: () =>
+        setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
+      onUserAction: setUserIntent,
+      onAddNetwork: () => {
+        let currentlyPermittedChains: string[] = [];
+        try {
+          const caveat = Engine.context.PermissionController.getCaveat(
+            hostname,
+            PermissionKeys.permittedChains,
+            CaveatTypes.restrictNetworkSwitching,
+          );
+          if (Array.isArray(caveat?.value)) {
+            currentlyPermittedChains = caveat.value.filter(
+              (item): item is string => typeof item === 'string',
+            );
+          }
+        } catch (e) {
+          // noop
+        }
+
+        // Add current chainId if no chains are permitted yet
+        if (chainId) {
+          currentlyPermittedChains = [chainId, ...currentlyPermittedChains];
+        } else {
+          throw new Error('No chainId provided');
+        }
+
+        Engine.context.PermissionController.updateCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+          currentlyPermittedChains,
+        );
+
+        const networkToastProps: ToastOptions = {
+          variant: ToastVariants.Network,
+          labelOptions: [
+            {
+              label: strings('toast.network_permissions_updated'),
+            },
+          ],
+          hasNoTimeout: false,
+          networkImageSource: faviconSource,
+        };
+        toastRef?.current?.showToast(networkToastProps);
+
+        hideSheet();
+      },
+      onBack: () =>
+        isRenderedAsBottomSheet
+          ? setPermissionsScreen(AccountPermissionsScreens.Connected)
+          : navigation.navigate('PermissionsManager'),
+      isRenderedAsBottomSheet,
+      accountAddresses: permittedAccountsByHostname.map(toChecksumHexAddress),
+      accounts,
+      networkAvatars,
+      isNetworkSwitch: true,
+      showActionButtons: false,
+      isDisconnectAllShown: false,
+      isNonDappNetworkSwitch: true,
+      onChooseFromPermittedNetworks: () => {
+        setPermissionsScreen(
+          AccountPermissionsScreens.ChooseFromPermittedNetworks,
+        );
+      },
+    };
+
+    return <PermissionsSummary {...permissionsSummaryProps} />;
+  }, [
+    faviconSource,
+    urlWithProtocol,
+    isRenderedAsBottomSheet,
+    navigation,
+    permittedAccountsByHostname,
+    setSelectedAddresses,
+    networkAvatars,
+    accounts,
+    chainId,
+    hideSheet,
+    hostname,
+    toastRef,
+  ]);
+
   const renderPermissionsScreens = useCallback(() => {
     switch (permissionsScreen) {
       case AccountPermissionsScreens.Connected:
@@ -646,21 +891,30 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         return renderConnectNetworksScreen();
       case AccountPermissionsScreens.Revoke:
         return renderRevokeScreen();
+      case AccountPermissionsScreens.ChooseFromPermittedNetworks:
+        return renderChooseFromPermittedNetworksScreen();
       case AccountPermissionsScreens.PermissionsSummary:
-        return renderPermissionsSummaryScreen();
+        return isNonDappNetworkSwitch
+          ? renderNetworkPermissionSummaryScreen()
+          : renderPermissionsSummaryScreen();
     }
   }, [
     permissionsScreen,
+    isNonDappNetworkSwitch,
     renderConnectedScreen,
     renderConnectMoreAccountsScreen,
     renderEditAccountsPermissionsScreen,
     renderConnectNetworksScreen,
     renderRevokeScreen,
+    renderChooseFromPermittedNetworksScreen,
     renderPermissionsSummaryScreen,
+    renderNetworkPermissionSummaryScreen,
   ]);
 
   return isRenderedAsBottomSheet ? (
-    <BottomSheet ref={sheetRef}>{renderPermissionsScreens()}</BottomSheet>
+    <BottomSheet ref={sheetRef} isInteractable={!isNonDappNetworkSwitch}>
+      {renderPermissionsScreens()}
+    </BottomSheet>
   ) : (
     renderPermissionsScreens()
   );

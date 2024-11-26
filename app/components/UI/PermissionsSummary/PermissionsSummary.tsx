@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -24,7 +24,6 @@ import TextComponent, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../component-library/components/Avatars/AvatarGroup';
-import { SAMPLE_AVATARGROUP_PROPS } from '../../../component-library/components/Avatars/AvatarGroup/AvatarGroup.constants';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -41,6 +40,11 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { getNetworkImageSource } from '../../../util/networks';
+import Engine from '../../../core/Engine';
+import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
+import { useSelector } from 'react-redux';
+import { selectProviderConfig } from '../../../selectors/networkController';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -56,12 +60,24 @@ const PermissionsSummary = ({
   isRenderedAsBottomSheet = true,
   isDisconnectAllShown = true,
   isNetworkSwitch = false,
+  isNonDappNetworkSwitch = false,
   accountAddresses = [],
+  accounts = [],
+  networkAvatars = [],
+  onAddNetwork = () => undefined,
+  onChooseFromPermittedNetworks = () => undefined,
 }: PermissionsSummaryProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
+  const providerConfig = useSelector(selectProviderConfig);
+
+  const hostname = useMemo(
+    () => new URL(currentPageInformation.url).hostname,
+    [currentPageInformation.url],
+  );
+  const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
   let chainName = '';
@@ -112,7 +128,7 @@ const PermissionsSummary = ({
     return (
       <View style={styles.header}>
         <View style={styles.startAccessory}>
-          {onBack && (
+          {onBack && !isNonDappNetworkSwitch && (
             <ButtonIcon
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Default}
@@ -122,8 +138,39 @@ const PermissionsSummary = ({
           )}
         </View>
 
-        <View style={styles.logoContainer}>{renderTopIcon()}</View>
-        <View style={styles.endAccessory}></View>
+        <View
+          style={[
+            styles.logoContainer,
+            isNonDappNetworkSwitch && styles.logoContainerNonDapp,
+          ]}
+        >
+          {renderTopIcon()}
+        </View>
+        <View style={styles.endAccessory}>
+          {!isRenderedAsBottomSheet && (
+            <ButtonIcon
+              size={ButtonIconSizes.Sm}
+              iconName={IconName.Info}
+              iconColor={IconColor.Default}
+              onPress={() => {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.SHEET.CONNECTION_DETAILS,
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        origin:
+                          currentPageInformation?.url &&
+                          new URL(currentPageInformation?.url).hostname,
+                      },
+                    },
+                    connectionDateTime: new Date().getTime(),
+                  },
+                });
+              }}
+              testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
+            />
+          )}
+        </View>
       </View>
     );
   }
@@ -149,47 +196,80 @@ const PermissionsSummary = ({
     </View>
   );
 
+  const onRevokeAllHandler = useCallback(async () => {
+    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    navigate('PermissionsManager');
+  }, [hostname, navigate]);
+
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
           metadata: {
-            origin:
-              currentPageInformation?.url &&
-              new URL(currentPageInformation?.url).hostname,
+            origin: hostname,
           },
         },
+        onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
       },
     });
-  }, [navigate, currentPageInformation?.url]);
+  }, [navigate, isRenderedAsBottomSheet, onRevokeAllHandler, hostname]);
 
   const getAccountLabel = useCallback(() => {
     if (isAlreadyConnected) {
       if (accountAddresses.length === 0 && selectedAccount) {
         return `${strings('permissions.connected_to')} ${selectedAccount.name}`;
       }
-      return accountAddresses.length === 1
-        ? `1 ${strings('accounts.account_connected')}`
-        : `${accountAddresses.length} ${strings(
-            'accounts.accounts_connected',
-          )}`;
+      if (accountAddresses.length === 1) {
+        const matchedConnectedAccount = accounts.find(
+          (account) => account.address === accountAddresses[0],
+        );
+        return matchedConnectedAccount?.name;
+      }
+
+      return `${accountAddresses.length} ${strings(
+        'accounts.accounts_connected',
+      )}`;
     }
 
-    if (
-      accountAddresses.length === 1 ||
-      (accountAddresses.length === 0 && selectedAccount)
-    ) {
-      return (
-        selectedAccount?.name &&
-        `${strings('permissions.requesting_for')}${selectedAccount?.name}`
+    if (accountAddresses.length === 1 && accounts?.length >= 1) {
+      const matchedAccount = accounts.find(
+        (account) => account.address === accountAddresses[0],
       );
+      return `${strings('permissions.requesting_for')}${
+        matchedAccount?.name ? matchedAccount.name : accountAddresses[0]
+      }`;
+    }
+
+    if (accountAddresses.length === 0 && selectedAccount) {
+      return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
     }
 
     return strings('permissions.requesting_for_accounts', {
       numberOfAccounts: accountAddresses.length,
     });
-  }, [accountAddresses, isAlreadyConnected, selectedAccount]);
+  }, [accountAddresses, isAlreadyConnected, selectedAccount, accounts]);
+
+  const getNetworkLabel = useCallback(() => {
+    if (isAlreadyConnected) {
+      return networkAvatars.length === 1
+        ? networkAvatars[0]?.name
+        : `${strings('permissions.n_networks_connect', {
+            numberOfNetworks: networkAvatars.length,
+          })}`;
+    }
+
+    if (networkAvatars.length === 1) {
+      return (
+        networkAvatars[0]?.name &&
+        `${strings('permissions.requesting_for')}${networkAvatars[0]?.name}`
+      );
+    }
+
+    return strings('permissions.requesting_for_networks', {
+      numberOfNetworks: networkAvatars.length,
+    });
+  }, [networkAvatars, isAlreadyConnected]);
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
@@ -259,7 +339,7 @@ const PermissionsSummary = ({
               {strings('permissions.use_enabled_networks')}
             </TextComponent>
             <View style={styles.permissionRequestNetworkInfo}>
-              {isNetworkSwitch && (
+              {(isNetworkSwitch || isNonDappNetworkSwitch) && (
                 <>
                   <View style={styles.permissionRequestNetworkName}>
                     <TextComponent numberOfLines={1} ellipsizeMode="tail">
@@ -267,28 +347,54 @@ const PermissionsSummary = ({
                         {strings('permissions.requesting_for')}
                       </TextComponent>
                       <TextComponent variant={TextVariant.BodySMMedium}>
-                        {chainName}
+                        {isNonDappNetworkSwitch
+                          ? networkInfo?.networkName || providerConfig.nickname
+                          : chainName}
                       </TextComponent>
                     </TextComponent>
                   </View>
                   <Avatar
                     variant={AvatarVariant.Network}
                     size={AvatarSize.Xs}
-                    name={chainName}
-                    imageSource={chainImage}
+                    name={
+                      isNonDappNetworkSwitch
+                        ? networkInfo?.networkName || providerConfig.nickname
+                        : chainName
+                    }
+                    imageSource={
+                      isNonDappNetworkSwitch
+                        ? // @ts-expect-error getNetworkImageSource is not implemented in typescript
+                          getNetworkImageSource({
+                            chainId: providerConfig.chainId,
+                          })
+                        : chainImage
+                    }
                   />
                 </>
               )}
-              {!isNetworkSwitch && (
-                <View style={styles.avatarGroup}>
-                  <AvatarGroup
-                    avatarPropsList={SAMPLE_AVATARGROUP_PROPS.avatarPropsList}
-                  />
-                </View>
+              {!isNetworkSwitch && !isNonDappNetworkSwitch && (
+                <>
+                  <View style={styles.permissionRequestNetworkName}>
+                    <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                      <TextComponent variant={TextVariant.BodySM}>
+                        {getNetworkLabel()}
+                      </TextComponent>
+                    </TextComponent>
+                  </View>
+                  <View style={styles.avatarGroup}>
+                    <AvatarGroup
+                      // @ts-expect-error - AvatarGroup is not typed
+                      avatarPropsList={networkAvatars.map((avatar) => ({
+                        ...avatar,
+                        variant: AvatarVariant.Network,
+                      }))}
+                    />
+                  </View>
+                </>
               )}
             </View>
           </View>
-          {!isNetworkSwitch && renderEndAccessory()}
+          {!isNetworkSwitch && !isNonDappNetworkSwitch && renderEndAccessory()}
         </View>
       </TouchableOpacity>
     );
@@ -301,20 +407,29 @@ const PermissionsSummary = ({
           {renderHeader()}
           <View style={styles.title}>
             <TextComponent variant={TextVariant.HeadingSM}>
-              {!isAlreadyConnected || isNetworkSwitch
+              {isNonDappNetworkSwitch
+                ? strings('permissions.title_add_network_permission')
+                : !isAlreadyConnected || isNetworkSwitch
                 ? strings('permissions.title_dapp_url_wants_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })
                 : strings('permissions.title_dapp_url_has_approval_to', {
-                    dappUrl: new URL(currentPageInformation.url).hostname,
+                    dappUrl: hostname,
                   })}
             </TextComponent>
           </View>
-          {/*TODO These should be conditional upon which permissions are being requested*/}
+          {isNonDappNetworkSwitch && (
+            <TextComponent
+              variant={TextVariant.BodyMD}
+              style={styles.description}
+            >
+              {strings('permissions.non_permitted_network_description')}
+            </TextComponent>
+          )}
           {!isNetworkSwitch && renderAccountPermissionsRequestInfoCard()}
           {renderNetworkPermissionsRequestInfoCard()}
         </View>
-        <View>
+        <View style={styles.bottomButtonsContainer}>
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
@@ -330,7 +445,7 @@ const PermissionsSummary = ({
               />
             </View>
           )}
-          {showActionButtons && (
+          {showActionButtons && !isNonDappNetworkSwitch && (
             <View style={styles.actionButtonsContainer}>
               <StyledButton
                 type={'cancel'}
@@ -349,8 +464,36 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {strings('accounts.connect')}
+                {isNetworkSwitch
+                  ? strings('confirmation_modal.confirm_cta')
+                  : strings('accounts.connect')}
               </StyledButton>
+            </View>
+          )}
+          {isNonDappNetworkSwitch && (
+            <View style={styles.nonDappNetworkSwitchButtons}>
+              <View style={styles.actionButtonsContainer}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  label={strings('permissions.add_this_network')}
+                  onPress={onAddNetwork}
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.disconnectButton,
+                  }}
+                />
+              </View>
+              <View style={styles.actionButtonsContainer}>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  label={strings('permissions.choose_from_permitted_networks')}
+                  onPress={onChooseFromPermittedNetworks}
+                  size={ButtonSize.Lg}
+                  style={{
+                    ...styles.disconnectButton,
+                  }}
+                />
+              </View>
             </View>
           )}
         </View>

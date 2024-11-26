@@ -116,7 +116,7 @@ const CollectibleContracts = ({
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
   );
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -218,9 +218,11 @@ const CollectibleContracts = ({
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
-    trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+    );
     setIsAddNFTEnabled(true);
-  }, [navigation, trackEvent]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const renderFooter = useCallback(
     () => (

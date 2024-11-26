@@ -317,8 +317,8 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -340,9 +340,13 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -390,6 +394,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -505,6 +512,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -548,7 +556,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -864,6 +872,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -881,6 +890,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -1128,6 +1138,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -1145,6 +1156,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -1558,8 +1570,8 @@ exports[`Tokens should render correctly 1`] = `
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -1581,9 +1593,13 @@ exports[`Tokens should render correctly 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -1631,6 +1647,9 @@ exports[`Tokens should render correctly 1`] = `
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -1746,6 +1765,7 @@ exports[`Tokens should render correctly 1`] = `
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -1789,7 +1809,7 @@ exports[`Tokens should render correctly 1`] = `
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -2105,6 +2125,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -2122,6 +2143,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -2369,6 +2391,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -2386,6 +2409,7 @@ exports[`Tokens should render correctly 1`] = `
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -2799,8 +2823,8 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             "flexDirection": "row",
                             "justifyContent": "space-between",
                             "paddingBottom": 16,
-                            "paddingLeft": 16,
-                            "paddingRight": 16,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                             "paddingTop": 8,
                           }
                         }
@@ -2822,9 +2846,13 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
+                          testID="sort-by"
                         >
                           <Text
                             accessibilityRole="none"
@@ -2872,6 +2900,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
@@ -3005,6 +3036,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                         renderItem={[Function]}
                         scrollEventThrottle={50}
                         stickyHeaderIndices={[]}
+                        testID="token-list"
                         viewabilityConfigCallbackPairs={[]}
                       >
                         <RCTRefreshControl />
@@ -3048,7 +3080,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       onLoadEnd={[Function]}
                                       source={
                                         {
-                                          "uri": undefined,
+                                          "uri": "",
                                         }
                                       }
                                       style={
@@ -3364,6 +3396,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                    ETH
                                 </Text>
@@ -3381,6 +3414,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -3628,6 +3662,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   &lt; 0.00001 BAT
                                 </Text>
@@ -3645,6 +3680,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>
@@ -3892,6 +3928,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "lineHeight": 24,
                                     }
                                   }
+                                  testID="fiat-balance-test-id"
                                 >
                                   0 LINK
                                 </Text>
@@ -3909,6 +3946,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       "textTransform": "uppercase",
                                     }
                                   }
+                                  testID="main-balance-test-id"
                                 >
                                   &lt; $0.01
                                 </Text>

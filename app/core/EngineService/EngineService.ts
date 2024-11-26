@@ -7,6 +7,9 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { getTraceTags } from '../../util/sentry/tags';
+import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import getUIStartupSpan from '../Performance/UIStartup';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -27,6 +30,12 @@ class EngineService {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initalizeEngine = (store: any) => {
+    trace({
+      name: TraceName.EngineInitialization,
+      op: TraceOperation.EngineInitialization,
+      parentContext: getUIStartupSpan(),
+      tags: getTraceTags(store.getState()),
+    });
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     // TODO: Replace "any" with type
@@ -34,6 +43,7 @@ class EngineService {
     const Engine = UntypedEngine as any;
     Engine.init(state);
     this.updateControllers(store, Engine);
+    endTrace({ name: TraceName.EngineInitialization });
   };
 
   // TODO: Replace "any" with type
@@ -53,7 +63,6 @@ class EngineService {
         name: 'AddressBookController',
         key: `${engine.context.AddressBookController.name}:stateChange`,
       },
-      { name: 'AssetsContractController' },
       { name: 'NftController', key: 'NftController:stateChange' },
       {
         name: 'TokensController',
@@ -104,7 +113,10 @@ class EngineService {
         name: 'SmartTransactionsController',
         key: `${engine.context.SmartTransactionsController.name}:stateChange`,
       },
-      { name: 'SwapsController' },
+      {
+        name: 'SwapsController',
+        key: `${engine.context.SwapsController.name}:stateChange`,
+      },
       {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
@@ -142,6 +154,10 @@ class EngineService {
         name: 'NotificationServicesController',
         key: 'NotificationServicesController:stateChange',
       },
+      {
+        name: 'NotificationServicesPushController',
+        key: 'NotificationServicesPushController:stateChange',
+      },
       ///: END:ONLY_INCLUDE_IF
       {
         name: 'PermissionController',
@@ -158,18 +174,6 @@ class EngineService {
       {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      },
-      {
-        name: 'AuthenticationController',
-        key: `AuthenticationController:stateChange`,
-      },
-      {
-        name: 'UserStorageController',
-        key: `UserStorageController:stateChange`,
-      },
-      {
-        name: 'NotificationServicesController',
-        key: `NotificationServicesController:stateChange`,
       },
     ];
 

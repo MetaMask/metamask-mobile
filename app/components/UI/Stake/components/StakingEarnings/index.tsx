@@ -16,11 +16,14 @@ import ButtonIcon, {
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
 import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
 import useStakingChain from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import useStakingEarnings from '../../hooks/useStakingEarnings';
 import usePooledStakes from '../../hooks/usePooledStakes';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 
 const StakingEarningsContent = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -38,23 +41,18 @@ const StakingEarningsContent = () => {
     isLoadingEarningsData,
   } = useStakingEarnings();
 
-  const onNavigateToTooltipModal = () =>
+  const onDisplayAnnualRateTooltip = () =>
     openTooltipModal(
       strings('stake.annual_rate'),
       strings('tooltip_modal.reward_rate.tooltip'),
     );
 
-  const { isEligible, isLoadingEligibility } = useStakingEligibility();
-
   const { isStakingSupportedChain } = useStakingChain();
 
-  const isLoadingData = isLoadingEligibility || isLoadingEarningsData;
   if (
     !isPooledStakingFeatureEnabled() ||
-    !isEligible ||
     !isStakingSupportedChain ||
-    !hasStakedPositions ||
-    isLoadingData
+    !hasStakedPositions
   )
     return <></>;
 
@@ -81,12 +79,28 @@ const StakingEarningsContent = () => {
               accessibilityLabel={strings(
                 'stake.accessibility_labels.stake_annual_rate_tooltip',
               )}
-              onPress={onNavigateToTooltipModal}
+              onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
+                event: MetaMetricsEvents.TOOLTIP_OPENED,
+                properties: getTooltipMetricProperties(
+                  'Staking Earnings',
+                  'Annual Rate',
+                ),
+              })}
             />
           </View>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
-            {annualRewardRate}
-          </Text>
+          {isLoadingEarningsData ? (
+            <SkeletonPlaceholder>
+              <SkeletonPlaceholder.Item
+                width={100}
+                height={20}
+                borderRadius={6}
+              />
+            </SkeletonPlaceholder>
+          ) : (
+            <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+              {annualRewardRate}
+            </Text>
+          )}
         </View>
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapperCentered}>
@@ -98,13 +112,31 @@ const StakingEarningsContent = () => {
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
-            <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-            >
-              {lifetimeRewardsETH}
-            </Text>
+            {isLoadingEarningsData ? (
+              <SkeletonPlaceholder>
+                <SkeletonPlaceholder.Item
+                  width={100}
+                  height={20}
+                  borderRadius={6}
+                />
+                <SkeletonPlaceholder.Item
+                  width={100}
+                  height={20}
+                  borderRadius={6}
+                  marginTop={5}
+                />
+              </SkeletonPlaceholder>
+            ) : (
+              <>
+                <Text variant={TextVariant.BodyMD}>{lifetimeRewardsFiat}</Text>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                >
+                  {lifetimeRewardsETH}
+                </Text>
+              </>
+            )}
           </View>
         </View>
         <View style={styles.keyValueRow}>
@@ -117,15 +149,33 @@ const StakingEarningsContent = () => {
             </Text>
           </View>
           <View style={styles.keyValueSecondaryText}>
-            <Text variant={TextVariant.BodyMD}>
-              {estimatedAnnualEarningsFiat}
-            </Text>
-            <Text
-              variant={TextVariant.BodySMMedium}
-              color={TextColor.Alternative}
-            >
-              {estimatedAnnualEarningsETH}
-            </Text>
+            {isLoadingEarningsData ? (
+              <SkeletonPlaceholder>
+                <SkeletonPlaceholder.Item
+                  width={100}
+                  height={20}
+                  borderRadius={6}
+                />
+                <SkeletonPlaceholder.Item
+                  width={100}
+                  height={20}
+                  borderRadius={6}
+                  marginTop={5}
+                />
+              </SkeletonPlaceholder>
+            ) : (
+              <>
+                <Text variant={TextVariant.BodyMD}>
+                  {estimatedAnnualEarningsFiat}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Alternative}
+                >
+                  {estimatedAnnualEarningsETH}
+                </Text>
+              </>
+            )}
           </View>
         </View>
       </View>

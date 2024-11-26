@@ -1,5 +1,13 @@
-import type { PooledStakes, VaultData } from '@metamask/stake-sdk';
+import {
+  ChainId,
+  StakingApiService,
+  StakingType,
+  type PooledStakes,
+  type VaultData,
+} from '@metamask/stake-sdk';
 import { TokenI } from '../../Tokens/types';
+import { Contract } from 'ethers';
+import { Stake } from '../sdk/stakeSdkProvider';
 
 export const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
@@ -59,6 +67,18 @@ export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   exchangeRate: '1.010906701603882254',
 };
 
+export const MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT: PooledStakes = {
+  accounts: [
+    {
+      account: '0x0111111111abcdef2222222222abcdef33333333',
+      lifetimeRewards: '0',
+      assets: '99999999990000000000000',
+      exitRequests: [],
+    },
+  ],
+  exchangeRate: '1.010906701603882254',
+};
+
 export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   apy: '2.853065141088762750393474836309926',
   capacity:
@@ -85,4 +105,34 @@ export const MOCK_REWARD_DATA = {
     ETH: '0.13 ETH',
     FIAT: '$334.93',
   },
+};
+
+export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
+  fetchFromApi: jest.fn(),
+  getPooledStakes: jest.fn(),
+  getVaultData: jest.fn(),
+  getPooledStakingEligibility: jest.fn(),
+  baseUrl: 'https://staking.api.com',
+};
+
+const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
+  chainId: ChainId.ETHEREUM,
+  connectSignerOrProvider: jest.fn(),
+  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  convertToShares: jest.fn(),
+  encodeClaimExitedAssetsTransactionData: jest.fn(),
+  encodeDepositTransactionData: jest.fn(),
+  encodeEnterExitQueueTransactionData: jest.fn(),
+  encodeMulticallTransactionData: jest.fn(),
+  estimateClaimExitedAssetsGas: jest.fn(),
+  estimateDepositGas: jest.fn(),
+  estimateEnterExitQueueGas: jest.fn(),
+  estimateMulticallGas: jest.fn(),
+};
+
+export const MOCK_POOL_STAKING_SDK: Stake = {
+  stakingContract: MOCK_POOLED_STAKING_CONTRACT_SERVICE,
+  stakingApiService: MOCK_STAKING_API_SERVICE as StakingApiService,
+  sdkType: StakingType.POOLED,
+  setSdkType: jest.fn(),
 };
