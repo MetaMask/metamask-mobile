@@ -6,4 +6,5 @@ export interface FeatureFlagType {
     appleMinimumOS: number;
     androidMinimumAPIVersion: number;
   }
-};
+}
+
