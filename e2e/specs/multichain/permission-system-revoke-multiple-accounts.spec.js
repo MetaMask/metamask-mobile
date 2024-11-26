@@ -11,12 +11,12 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
 describe(
-  Regression(
+  SmokeCore(
     'Connecting to multiple dapps and revoking permission on one but staying connected to the other',
   ),
   () => {
