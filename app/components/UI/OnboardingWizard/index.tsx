@@ -91,7 +91,7 @@ const OnboardingWizard = ({
   const { drawerRef } = useContext(DrawerContext);
   const theme = useTheme();
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
 
   const isAutomaticSecurityChecksModalOpen = useSelector(
@@ -106,11 +106,17 @@ const OnboardingWizard = ({
   const closeOnboardingWizard = async () => {
     await StorageWrapper.setItem(ONBOARDING_WIZARD, EXPLORED);
     dispatch(setOnboardingWizardStep(0));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED, {
-      tutorial_step_count: step,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
-    });
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_SKIPPED)
+        .addProperties({
+          tutorial_step_count: step,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[step],
+        })
+        .build(),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_COMPLETED).build(),
+    );
   };
 
   // Since react-native-default-preference is not covered by the fixtures,

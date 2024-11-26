@@ -2,10 +2,14 @@
 
 ## Current Main Branch
 
-## 7.35.0 - Nov 15, 2024
+## 7.35.1 - Nov 20, 2024
+### Fixed
+- [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined (#12331)
+
+## 7.35.0 - Nov 4, 2024
 ### Added
 - [#12078](https://github.com/MetaMask/metamask-mobile/pull/12078): chore(runway): cherry-pick feat: add favorites to browser menu (#12078)
-- [#12159](https://github.com/MetaMask/metamask-mobile/pull/12159): feat: Add re-simulation feature (#12107) (#12159)
+- [#12107](https://github.com/MetaMask/metamask-mobile/pull/12107): feat: Add re-simulation feature (#12107)
 - [#11770](https://github.com/MetaMask/metamask-mobile/pull/11770): feat: enable Security Alerts API (#11770)
 - [#11812](https://github.com/MetaMask/metamask-mobile/pull/11812): feat: network value component for re-designed confirmation pages (#11812)
 - [#11608](https://github.com/MetaMask/metamask-mobile/pull/11608): feat: enable sentry performance reporting on local development builds  (#11608)

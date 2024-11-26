@@ -53,7 +53,7 @@ const WalletActions = () => {
   const dispatch = useDispatch();
 
   const [isNetworkRampSupported] = useRampNetwork();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
@@ -71,37 +71,67 @@ const WalletActions = () => {
       });
     });
 
-    trackEvent(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED, {
-      text: 'Receive',
-      tokenSymbol: '',
-      location: 'TabBar',
-      chain_id: getDecimalChainId(chainId),
-    });
-  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RECEIVE_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Receive',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
 
   const onBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       navigate(...createBuyNavigationDetails());
     });
 
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy',
-      location: 'TabBar',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
-  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TabBar',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
 
   const onSell = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       navigate(...createSellNavigationDetails());
     });
 
-    trackEvent(MetaMetricsEvents.SELL_BUTTON_CLICKED, {
-      text: 'Sell',
-      location: 'TabBar',
-      chain_id_source: getDecimalChainId(chainId),
-    });
-  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SELL_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Sell',
+          location: 'TabBar',
+          chain_id_source: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
 
   const onSend = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
@@ -109,12 +139,16 @@ const WalletActions = () => {
       ticker && dispatch(newAssetTransaction(getEther(ticker)));
     });
 
-    trackEvent(MetaMetricsEvents.SEND_BUTTON_CLICKED, {
-      text: 'Send',
-      tokenSymbol: '',
-      location: 'TabBar',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SEND_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Send',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   }, [
     closeBottomSheetAndNavigate,
     navigate,
@@ -122,6 +156,7 @@ const WalletActions = () => {
     dispatch,
     trackEvent,
     chainId,
+    createEventBuilder,
   ]);
 
   const goToSwaps = useCallback(() => {
@@ -135,13 +170,23 @@ const WalletActions = () => {
       });
     });
 
-    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-      text: 'Swap',
-      tokenSymbol: '',
-      location: 'TabBar',
-      chain_id: getDecimalChainId(chainId),
-    });
-  }, [closeBottomSheetAndNavigate, navigate, trackEvent, chainId]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Swap',
+          tokenSymbol: '',
+          location: 'TabBar',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    trackEvent,
+    chainId,
+    createEventBuilder,
+  ]);
 
   const sendIconStyle = useMemo(
     () => ({

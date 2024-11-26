@@ -176,7 +176,9 @@ class ReceiveRequest extends PureComponent {
       });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS)
+        .build(),
     );
   };
 
@@ -193,11 +195,16 @@ class ReceiveRequest extends PureComponent {
     } else {
       navigation.navigate(...createBuyNavigationDetails());
 
-      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy Native Token',
-        location: 'Receive Modal',
-        chain_id_destination: getDecimalChainId(this.props.chainId),
-      });
+      this.props.metrics.trackEvent(
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+          .addProperties({
+            text: 'Buy Native Token',
+            location: 'Receive Modal',
+            chain_id_destination: getDecimalChainId(this.props.chainId),
+          })
+          .build(),
+      );
     }
   };
 
@@ -223,7 +230,9 @@ class ReceiveRequest extends PureComponent {
     });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 

@@ -27,12 +27,16 @@ const testIds = {
 const RevealPrivateKey = () => {
   const styles = createStyles();
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const goToExportPrivateKey = () => {
-    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
+      ).build(),
+    );
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
       shouldUpdateNav: true,

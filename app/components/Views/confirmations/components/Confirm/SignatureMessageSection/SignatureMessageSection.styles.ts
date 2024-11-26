@@ -9,6 +9,10 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       display: 'flex',
+      width: '100%',
+    },
+    message: {
+      marginTop: 8,
     },
     title: {
       color: theme.colors.text.default,

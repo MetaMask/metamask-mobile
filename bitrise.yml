@@ -63,7 +63,7 @@ pipelines:
   #App launch times pipeline. Runs on browserstack
   app_launch_times_pipeline:
     stages:
-      - create_build_qa_android: {}
+      - create_build_qa: {}
       - app_launch_times_test_stage: {}
 
   #App Upgrade pipeline. Runs on browserstack
@@ -192,6 +192,7 @@ stages:
   app_launch_times_test_stage:
     workflows:
       - run_android_app_launch_times_appium_test: {}
+      - run_ios_app_launch_times_appium_test: {}
   app_upgrade_test_stage:
     workflows:
       - run_tag_upgrade_android: {}
@@ -519,6 +520,15 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
+  run_ios_app_launch_times_appium_test:
+    envs:
+      - TEST_TYPE: 'performance'
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
+        machine_type_id: g2.mac.large
+    after_run:
+      - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
   run_tag_smoke_accounts_ios:
@@ -1208,11 +1218,16 @@ workflows:
                 APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/qa/release/"$CUSTOM_ID".apk
                 mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_ANDROID_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_ANDROID_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1225,10 +1240,6 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
-          title: Pull browserstack app json list
       - script@1:
           title: Run Android E2E tests on Browserstack
           is_always_run: true
@@ -1236,16 +1247,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                # Check if BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist
-                if [ ! -s "$BROWSERSTACK_UPLOADED_APPS_LIST" ]; then
-                  # If the file is empty or does not exist, use the existing BROWSERSTACK_APP_URL.
-                  # This is incase an engineer wants to kick off the tests with an existing browserstack url
-                  echo "BROWSERSTACK_UPLOADED_APPS_LIST is empty or does not exist. Using existing BROWSERSTACK_APP_URL."
-                else
-                  # If the file is not empty, extract the app_url
-                  export BROWSERSTACK_APP_URL=$(jq -r '.[0].app_url' "$BROWSERSTACK_UPLOADED_APPS_LIST")
-                  echo "BROWSERSTACK_APP_URL extracted from BROWSERSTACK_UPLOADED_APPS_LIST: $BROWSERSTACK_APP_URL"
-                fi
                 # Check if TEST_TYPE is set to upgrade
                 if [ "$TEST_TYPE" = "upgrade" ]; then
                   TEST_TYPE="--upgrade"
@@ -1255,6 +1256,46 @@ workflows:
                   TEST_TYPE="--performance"
                 fi
                 yarn test:wdio:android:browserstack $TEST_TYPE
+      - script@1:
+          is_always_run: true
+          is_skippable: false
+          title: Package test reports
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                cd $BITRISE_SOURCE_DIR/wdio/reports/
+                zip -r test-report.zip html/
+                mv test-report.zip $BITRISE_DEPLOY_DIR/
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: true
+          is_skippable: false
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR/test-report.zip
+          title: Deploy test report
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
+  wdio_ios_e2e_test:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - script@1:
+          title: Run iOS E2E tests on Browserstack
+          is_always_run: true
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                # Check if TEST_TYPE is set to upgrade
+                if [ "$TEST_TYPE" = "upgrade" ]; then
+                  TEST_TYPE="--upgrade"
+                # Check if TEST_TYPE is set to performance
+                elif [ "$TEST_TYPE" = "performance" ]; then
+                  TEST_TYPE="--performance"
+                fi
+                yarn test:wdio:ios:browserstack $TEST_TYPE
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -1401,10 +1442,15 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 IPA_PATH=ios/build/output/MetaMask-QA.ipa
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
-                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_APP_URL
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_APP_URL
                 mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_IOS_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_IOS_APP_URL
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
@@ -1537,6 +1583,9 @@ app:
       MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
+      MM_CHAIN_PERMISSIONS: false
+    - opts:
+        is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
@@ -1576,16 +1625,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.35.0
+      VERSION_NAME: 7.35.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1497
+      VERSION_NUMBER: 1502
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.35.0
+      FLASK_VERSION_NAME: 7.35.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1497
+      FLASK_VERSION_NUMBER: 1502
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

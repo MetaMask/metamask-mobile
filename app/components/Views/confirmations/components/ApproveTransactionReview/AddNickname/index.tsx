@@ -68,7 +68,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const chooseToContinue = () => {
@@ -113,7 +113,11 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const saveTokenNickname = () => {
@@ -128,8 +132,9 @@ const AddNickname = (props: AddNicknameProps) => {
     );
     closeModal();
     trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
-      getAnalyticsParams(),
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME)
+        .addProperties(getAnalyticsParams())
+        .build(),
     );
   };
 
