@@ -32,19 +32,14 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => {
-  const Engine = jest.requireActual('../../../core/Engine');
-  return {
-    ...Engine,
-    context: {
-      ...Engine.context,
-      SwapsController: {
-        startFetchAndSetQuotes: jest.fn(),
-        stopPollingAndResetState: jest.fn(),
-      },
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    SwapsController: {
+      startFetchAndSetQuotes: jest.fn(),
+      stopPollingAndResetState: jest.fn(),
     },
-  };
-});
+  },
+}));
 
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
