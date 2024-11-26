@@ -16,9 +16,9 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListView from '../../../pages/AccountListView';
 import Assertions from '../../../utils/Assertions';
 import { mockNotificationServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeNotifications } from '../../../tags';
 
-describe(SmokeIdentity('Account syncing'), () => {
+describe(SmokeNotifications('Account syncing'), () => {
   beforeAll(async () => {
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',

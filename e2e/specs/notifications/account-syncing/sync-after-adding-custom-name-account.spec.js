@@ -17,10 +17,10 @@ import Assertions from '../../../utils/Assertions';
 import AddAccountModal from '../../../pages/modals/AddAccountModal';
 import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
 import { mockNotificationServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeNotifications } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-describe(SmokeIdentity('Account syncing'), () => {
+describe(SmokeNotifications('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
   let decryptedAccountNames = '';
 
