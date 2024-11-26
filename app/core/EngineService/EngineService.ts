@@ -169,7 +169,7 @@ class EngineService {
       },
     ];
 
-    engine?.datamodel?.subscribe?.(() => {
+    engine.controllerMessenger.subscribe('ComposableController:stateChange', () => {
       if (!engine.context.KeyringController.metadata.vault) {
         Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
       }
