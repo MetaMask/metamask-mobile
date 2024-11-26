@@ -1703,4 +1703,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: test-multichain-e2e-ci-workflow
-    pipeline: multichain_e2e_pipeline
+    pipeline: create-ci-workflow-for-multichain-flow
