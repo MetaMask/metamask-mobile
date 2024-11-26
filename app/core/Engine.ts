@@ -475,6 +475,24 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
 /**
+ * Messageable modules that are part of the Engine's context, but are not defined with state.
+ * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
+ */
+const STATELESS_NON_CONTROLLER_NAMES = [
+  'AssetsContractController',
+  'NftDetectionController',
+  'TokenDetectionController',
+] as const;
+
+/**
+ * Controllers that are defined with state.
+ */
+type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
+
+/**
  * Combines required and optional controllers for the Engine context type.
  */
 export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
@@ -514,7 +532,10 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  datamodel: ComposableController<EngineState, Controllers[keyof Controllers]>;
+  datamodel: ComposableController<
+    EngineState,
+    StatefulControllers[keyof StatefulControllers]
+  >;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -1763,9 +1784,16 @@ export class Engine {
 
     this.datamodel = new ComposableController<
       EngineState,
-      Controllers[keyof Controllers]
+      StatefulControllers[keyof StatefulControllers]
     >({
-      controllers,
+      controllers: controllers.filter(
+        (
+          controller,
+        ): controller is StatefulControllers[keyof StatefulControllers] =>
+          !STATELESS_NON_CONTROLLER_NAMES.find(
+            (name) => name === controller.name,
+          ),
+      ),
       messenger: this.controllerMessenger.getRestricted({
         name: 'ComposableController',
         allowedActions: [],
