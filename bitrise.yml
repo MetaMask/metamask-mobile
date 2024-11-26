@@ -1455,12 +1455,27 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
           title: iOS Sourcemaps & Build
           is_always_run: false
+       - script:
+          title: Copy and Rename IPA
+          inputs:
+            - content: |-
+                # Define the source path of the generated IPA
+                SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
+                
+                # Define the destination path with the new name
+                DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
+                
+                # Copy and rename the IPA
+                cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
+                
+                # Optionally, print the new path for verification
+                echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask.ipa
+            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
           title: Deploy iOS IPA
   build_ios_qa:
     envs:
