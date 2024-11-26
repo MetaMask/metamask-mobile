@@ -1169,7 +1169,7 @@ workflows:
     after_run:
       - build_android_release
   build_android_qa:
-  envs:
+    envs:
       - MM_MULTICHAIN_V1_ENABLED: 'false'
       - MM_CHAIN_PERMISSIONS: 'false'
     before_run:
