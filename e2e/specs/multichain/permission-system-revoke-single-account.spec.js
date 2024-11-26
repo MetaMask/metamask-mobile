@@ -33,10 +33,11 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
-        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapPermissionsButton();
+        await TestHelpers.delay(5500); // this is because the toast is delayed.
 
-        await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
-        await ConnectedAccountsModal.tapDisconnectButton();
+        await ConnectedAccountsModal.tapDisconnectAllButton();
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

@@ -5,9 +5,6 @@ export const ConnectedAccountModalSelectorsText = {
   DISCONNECT_ALL: enContent.accounts.disconnect_all_accounts,
   IMPORTED: enContent.accounts.imported,
   TITLE: enContent.accounts.connected_accounts_title,
-  MANAGE_PERMISSIONS: enContent.permissions.manage_permissions,
-  DISCONNECT: enContent.accounts.disconnect,
-  DISCONNECT_ALL_ACCOUNTS_NETWORKS: enContent.accounts.disconnect_all,
 };
 
 export const ConnectedAccountsSelectorsIDs = {
@@ -15,4 +12,7 @@ export const ConnectedAccountsSelectorsIDs = {
   NETWORK_PICKER: 'accounts-connected-network-picker',
   DISCONNECT_ALL_BUTTON: 'accounts-connected-revoke-button',
   CONTAINER: 'accounts-connected-modal-container',
+  MANAGE_PERMISSIONS: 'manage_permissions',
+  DISCONNECT: 'disconnect',
+  DISCONNECT_ALL_ACCOUNTS_NETWORKS: 'disconnect_all',
 };
