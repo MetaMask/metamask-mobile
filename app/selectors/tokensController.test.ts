@@ -1,4 +1,4 @@
-import { TokensControllerState } from '@metamask/assets-controllers';
+import { Token, TokensControllerState } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
   selectTokens,
@@ -8,10 +8,13 @@ import {
   selectDetectedTokens,
   selectAllTokensFlat,
   selectAllDetectedTokensForSelectedAddress,
+  selectAllDetectedTokensFlat,
 } from './tokensController';
 
 describe('TokensController Selectors', () => {
   const mockToken = { address: '0xToken1', symbol: 'TOKEN1' };
+  const mockToken2 = { address: '0xToken2', symbol: 'TOKEN2' };
+
   const mockTokensControllerState = {
     tokens: [mockToken],
     ignoredTokens: ['0xToken2'],
@@ -24,6 +27,9 @@ describe('TokensController Selectors', () => {
     allDetectedTokens: {
       '1': {
         '0xAddress1': [mockToken],
+      },
+      '2': {
+        '0xAddress2': [mockToken2],
       },
     },
   };
@@ -40,6 +46,22 @@ describe('TokensController Selectors', () => {
     it('returns tokens from TokensController state', () => {
       expect(selectTokens(mockRootState)).toStrictEqual([mockToken]);
     });
+
+    it('returns an empty array if no tokens are present', () => {
+      const stateWithoutTokens = {
+        ...mockRootState,
+        engine: {
+          backgroundState: {
+            TokensController: {
+              ...mockTokensControllerState,
+              tokens: [],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectTokens(stateWithoutTokens)).toStrictEqual([]);
+    });
   });
 
   describe('selectTokensByAddress', () => {
@@ -49,7 +71,7 @@ describe('TokensController Selectors', () => {
       });
     });
 
-    it('returns an empty object if no tokens are present', () => {
+    it('handles an empty tokens array', () => {
       const stateWithoutTokens = {
         ...mockRootState,
         engine: {
@@ -93,7 +115,7 @@ describe('TokensController Selectors', () => {
       expect(selectIgnoreTokens(mockRootState)).toStrictEqual(['0xToken2']);
     });
 
-    it('returns undefined if no ignored tokens are present', () => {
+    it('returns undefined if ignored tokens are not set', () => {
       const stateWithoutIgnoredTokens = {
         ...mockRootState,
         engine: {
@@ -173,6 +195,24 @@ describe('TokensController Selectors', () => {
           undefined,
         );
       expect(detectedTokens).toStrictEqual({});
+    });
+  });
+
+  describe('selectAllDetectedTokensFlat', () => {
+    it('returns all detected tokens as a flat array', () => {
+      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({
+        '0x1': [mockToken as Token],
+        '0x2': [mockToken2 as Token],
+      });
+      expect(detectedTokens).toStrictEqual([
+        { ...mockToken, chainId: '0x1' },
+        { ...mockToken2, chainId: '0x2' },
+      ]);
+    });
+
+    it('returns an empty array if no detected tokens are present', () => {
+      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({});
+      expect(detectedTokens).toStrictEqual([]);
     });
   });
 });
