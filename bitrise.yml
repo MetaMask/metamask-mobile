@@ -136,9 +136,6 @@ stages:
       - android_e2e_build: {}
   build_multichain_e2e_ios_android_stage:
     abort_on_fail: true
-    # envs:
-    #   - MM_MULTICHAIN_V1_ENABLED: true
-    #   - MM_CHAIN_PERMISSIONS: true
     workflows:
       - build_ios_multichain_e2e: {}
       - build_android_multichain_e2e: {}
@@ -665,7 +662,7 @@ workflows:
       - android_e2e_test
   run_tag_multichain_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
+      - TEST_SUITE_FOLDER: './e2e/specs/permission-systems/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -675,7 +672,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
+      - TEST_SUITE_FOLDER: './e2e/specs/permission-systems/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
@@ -1185,9 +1182,6 @@ workflows:
     after_run:
       - build_android_release
   build_android_qa:
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
     before_run:
       - code_setup
     after_run:
