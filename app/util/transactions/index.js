@@ -8,10 +8,7 @@ import {
   ERC721,
   ERC1155,
 } from '@metamask/controller-utils';
-import {
-  isEIP1559Transaction,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask-previews/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -127,15 +124,9 @@ const reviewActionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.tx_review_set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings(
-    'transactions.tx_review_staking_claim',
-  ),
-  [TransactionType.stakingDeposit]: strings(
-    'transactions.tx_review_staking_deposit',
-  ),
-  [TransactionType.stakingUnstake]: strings(
-    'transactions.tx_review_staking_unstake',
-  ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -154,15 +145,9 @@ const actionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
-  [TransactionType.stakingClaim]: strings(
-    'transactions.tx_review_staking_claim',
-  ),
-  [TransactionType.stakingDeposit]: strings(
-    'transactions.tx_review_staking_deposit',
-  ),
-  [TransactionType.stakingUnstake]: strings(
-    'transactions.tx_review_staking_unstake',
-  ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -420,13 +405,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const txParams = transaction.txParams ?? transaction.transaction ?? {};
   const { data, to } = txParams;
 
-  if (
-    [
-      TransactionType.stakingClaim,
-      TransactionType.stakingDeposit,
-      TransactionType.stakingUnstake,
-    ].includes(type)
-  ) {
+  if ([TransactionType.stakingClaim, TransactionType.stakingDeposit, TransactionType.stakingUnstake].includes(type)) {
     return type;
   }
 
@@ -487,11 +466,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -1061,7 +1040,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1560,7 +1539,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          swapsUtils.getSwapsContractAddress(chainId)))
+        swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 
