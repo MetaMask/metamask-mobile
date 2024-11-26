@@ -12259,10 +12259,10 @@ base-x@^3.0.2, base-x@^3.0.8:
   dependencies:
     safe-buffer "^5.0.1"
 
-base58-js@^1.0.0:
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/base58-js/-/base58-js-1.0.5.tgz#00697bff954aa85007fa45ce76b699b7960768cd"
-  integrity sha512-LkkAPP8Zu+c0SVNRTRVDyMfKVORThX+rCViget00xdgLRrKkClCTz1T7cIrpr69ShwV5XJuuoZvMvJ43yURwkA==
+base58-js@1.0.0, base58-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/base58-js/-/base58-js-1.0.0.tgz#08b6d745d811103114cc150f7da517b3c02a24ec"
+  integrity sha512-izVZ4M54gJYRk7VGsiRatRyUVCUaUDF15earKs3u9sUXlawvTwttC9xitGk8Xzlgib5rDL71WPOe4JsyJu9Scg==
 
 base58check@^2.0.0:
   version "2.0.0"
@@ -12310,12 +12310,7 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bech32@1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
-  integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
-
-bech32@^2.0.0:
+bech32@1.1.4, bech32@2.0.0, bech32@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-2.0.0.tgz#078d3686535075c8c79709f054b1b226a133b355"
   integrity sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==
@@ -12374,7 +12369,7 @@ bip66@^1.1.5:
   dependencies:
     safe-buffer "^5.0.1"
 
-bitcoin-address-validation@^2.2.3:
+bitcoin-address-validation@2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-2.2.3.tgz#ffae6d48facd5ce7ef60574891aab979d21f9828"
   integrity sha512-1uGCGl26Ye8JG5qcExtFLQfuib6qEZWNDo1ZlLlwp/z7ygUFby3IxolgEfgMGaC+LG9csbVASLcH8fRLv7DIOg==
@@ -25331,10 +25326,10 @@ sha.js@^2.4.0, sha.js@^2.4.11, sha.js@^2.4.8:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
 
-sha256-uint8array@^0.10.3:
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.10.7.tgz#c751fc914f4227b26d996980562065fa4eadcf99"
-  integrity sha512-1Q6JQU4tX9NqsDGodej6pkrUVQVNapLZnvkwIhddH/JqzBZF1fSaxSWNY6sziXBE8aEa2twtGkXUrwzGeZCMpQ==
+sha256-uint8array@0.10.3, sha256-uint8array@^0.10.3:
+  version "0.10.3"
+  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.10.3.tgz#322a91413f78f518e0b9c8f8e982cc2e629b59c7"
+  integrity sha512-SFTs87RfXVulKrhhP6B5/qcFruOKQZaKf6jY9V4PJ7NOG0qIlQP6XL4pQq5xagsuP/Wd55S7tUBJpRajEsDUEQ==
 
 shaka-player@^2.5.9:
   version "2.5.23"
