@@ -127,7 +127,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
     (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
     null;
   const tokenBalance = renderFromTokenMinimalUnit(
-    tokenBalances[address],
+    tokenBalances[address as Hex],
     decimals,
   );
   const tokenBalanceWithSymbol = `${
