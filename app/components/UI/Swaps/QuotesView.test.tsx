@@ -12,8 +12,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       setOptions: jest.fn(),
-      //pop: jest.fn(),
-      //navigate: jest.fn(),
     }),
     useRoute: () => ({
       params: {
@@ -28,7 +26,6 @@ jest.mock('@react-navigation/native', () => {
         ],
       },
     }),
-    //useLinking: jest.fn(),
   };
 });
 
