@@ -139,7 +139,6 @@ stages:
     envs:
       - MM_MULTICHAIN_V1_ENABLED: 'true'
       - MM_CHAIN_PERMISSIONS: 'true'
-      - MM_PERMISSIONS_SETTINGS_V1_ENABLED: 'true'
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
@@ -1705,5 +1704,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: test-multichain-e2e-ci-workflow
-    pipeline: create_qa_builds_pipeline
+  - push_branch: test-multichain-e2e-ci-workflow-tests
+    pipeline: multichain_e2e_pipeline
