@@ -63,7 +63,6 @@ describe('importAdditionalAccounts', () => {
     it('should add 1 account', async () => {
       setQueriedBalanceOnce(new BN(1));
       setQueriedBalanceOnce(new BN(0));
-
       mockKeyring.addAccounts
         .mockResolvedValueOnce(['0x1234'])
         .mockResolvedValueOnce(['0x5678']);
@@ -80,7 +79,6 @@ describe('importAdditionalAccounts', () => {
       setQueriedBalanceOnce(new BN(1));
       setQueriedBalanceOnce(new BN(2));
       setQueriedBalanceOnce(new BN(0));
-
       mockKeyring.addAccounts
         .mockResolvedValueOnce(['0x1234'])
         .mockResolvedValueOnce(['0x5678'])
