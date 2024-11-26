@@ -12,7 +12,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { AccountsList} from './AccountsList';
+import { AccountsList } from './AccountsList';
 import { useAccounts } from '../../../../components/hooks/useAccounts';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
@@ -49,7 +49,9 @@ import {
   useAccountSettingsProps,
   useSwitchNotifications,
 } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import styleSheet, { styles as navigationOptionsStyles } from './NotificationsSettings.styles';
+import styleSheet, {
+  styles as navigationOptionsStyles,
+} from './NotificationsSettings.styles';
 import AppConstants from '../../../../core/AppConstants';
 import notificationsRows from './notificationsRows';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -105,7 +107,7 @@ const MainNotificationSettings = ({
 };
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const { accounts } = useAccounts();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const theme = useTheme();
 
   const isMetamaskNotificationsEnabled = useSelector(
@@ -145,7 +147,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const [uiNotificationStatus, setUiNotificationStatus] = React.useState(false);
   const [platformAnnouncementsState, setPlatformAnnouncementsState] =
     React.useState(isFeatureAnnouncementsEnabled);
-  const accountSettingsData = useSelector((state: RootState) => state.notifications);
+  const accountSettingsData = useSelector(
+    (state: RootState) => state.notifications,
+  );
   const loading = enableLoading || disableLoading;
   const errorText = enablingError || disablingError;
   const loadingText = !uiNotificationStatus
@@ -179,12 +183,21 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const toggleCustomNotificationsEnabled = useCallback(async () => {
     setPlatformAnnouncementsState(!platformAnnouncementsState);
     await switchFeatureAnnouncements(!platformAnnouncementsState);
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
-      settings_type: 'product_announcements',
-      old_value: platformAnnouncementsState,
-      new_value: !platformAnnouncementsState,
-    });
-  }, [platformAnnouncementsState, switchFeatureAnnouncements, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'product_announcements',
+          old_value: platformAnnouncementsState,
+          new_value: !platformAnnouncementsState,
+        })
+        .build(),
+    );
+  }, [
+    platformAnnouncementsState,
+    switchFeatureAnnouncements,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const goToLearnMore = () => {
     Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
@@ -194,7 +207,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.RESET_NOTIFICATIONS,
     });
-  },[navigation]);
+  }, [navigation]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -208,15 +221,18 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
     );
   }, [colors, isFullScreenModal, navigation]);
 
-  const renderResetNotificationsBtn = useCallback(() => (
-        <Button
-          variant={ButtonVariants.Primary}
-          label={strings('app_settings.reset_notifications')}
-          size={ButtonSize.Md}
-          onPress={onPressResetNotifications}
-          style={styles.button}
-        />
-    ), [onPressResetNotifications, styles.button]);
+  const renderResetNotificationsBtn = useCallback(
+    () => (
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('app_settings.reset_notifications')}
+        size={ButtonSize.Md}
+        onPress={onPressResetNotifications}
+        style={styles.button}
+      />
+    ),
+    [onPressResetNotifications, styles.button],
+  );
 
   return (
     <ScrollView style={styles.wrapper}>
@@ -261,7 +277,9 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             accountAvatarType={accountAvatarType}
             accountSettingsData={accountSettingsData}
             updateAndfetchAccountSettings={updateAndfetchAccountSettings}
-            isUpdatingMetamaskNotificationsAccount={isUpdatingMetamaskNotificationsAccount}
+            isUpdatingMetamaskNotificationsAccount={
+              isUpdatingMetamaskNotificationsAccount
+            }
           />
           {renderResetNotificationsBtn()}
         </>

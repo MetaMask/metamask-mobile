@@ -75,7 +75,7 @@ export const Browser = (props) => {
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
@@ -105,11 +105,15 @@ export const Browser = (props) => {
   }, isEqual);
 
   const handleRightTopButtonAnalyticsEvent = () => {
-    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
-      number_of_accounts: accountsLength,
-      number_of_accounts_connected: permittedAccountsList.length,
-      number_of_networks: nonTestnetNetworks,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
+        .addProperties({
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAccountsList.length,
+          number_of_networks: nonTestnetNetworks,
+        })
+        .build(),
+    );
   };
 
   useEffect(
@@ -145,7 +149,9 @@ export const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
+    );
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);

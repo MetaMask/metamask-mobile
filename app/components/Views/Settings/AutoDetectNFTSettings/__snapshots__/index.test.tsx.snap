@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AutoDetectNFTSettings should render correctly 1`] = `
+exports[`AutoDetectNFTSettings render matches snapshot 1`] = `
 <View
   style={
     {

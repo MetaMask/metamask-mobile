@@ -77,7 +77,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -136,12 +136,16 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         sourcePage: 'MainView',
       },
     });
-    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-      text: 'Swap',
-      tokenSymbol: '',
-      location: 'TokenDetails',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Swap',
+          tokenSymbol: '',
+          location: 'TokenDetails',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
   const onBuy = () => {
     navigation.navigate(
@@ -150,11 +154,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         chainId: getDecimalChainId(chainId),
       }),
     );
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy',
-      location: 'TokenDetails',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const goToBrowserUrl = (url: string) => {

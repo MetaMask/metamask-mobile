@@ -36,18 +36,22 @@ const ScreenshotDeterrentWithNavigation = ({
   enabled: boolean;
   isSRP: boolean;
 }) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
   const navigation = useNavigation();
 
   const openSRPGuide = useCallback(() => {
     setAlertPresent(false);
-    trackEvent(MetaMetricsEvents.SCREENSHOT_LEARN_MORE, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SCREENSHOT_LEARN_MORE).build(),
+    );
     Linking.openURL(SRP_GUIDE_URL);
-  }, [trackEvent]);
+  }, [trackEvent, createEventBuilder]);
 
   const showScreenshotAlert = useCallback(() => {
-    trackEvent(MetaMetricsEvents.SCREENSHOT_WARNING, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SCREENSHOT_WARNING).build(),
+    );
     setAlertPresent(true);
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -61,14 +65,16 @@ const ScreenshotDeterrentWithNavigation = ({
         }),
         onCancel: () => {
           setAlertPresent(false);
-          trackEvent(MetaMetricsEvents.SCREENSHOT_OK, {});
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.SCREENSHOT_OK).build(),
+          );
         },
         onConfirm: openSRPGuide,
         confirmLabel: strings('reveal_credential.learn_more'),
         cancelLabel: strings('reveal_credential.got_it'),
       },
     });
-  }, [isSRP, navigation, trackEvent, openSRPGuide]);
+  }, [isSRP, navigation, trackEvent, openSRPGuide, createEventBuilder]);
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
