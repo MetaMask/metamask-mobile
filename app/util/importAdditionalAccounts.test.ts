@@ -26,7 +26,7 @@ jest.mock('../core/Engine', () => ({
  */
 function setQueriedBalance(balance: BN) {
   mockEthQuery.getBalance.mockImplementation((_, callback) =>
-    callback(balance),
+    callback(null, balance),
   );
 }
 
@@ -36,12 +36,16 @@ function setQueriedBalance(balance: BN) {
  * @param balance - The balance to be queried
  */
 function setQueriedBalanceOnce(balance: BN) {
-  mockEthQuery.getBalance.mockImplementationOnce((_, callback) =>
-    callback(balance),
-  );
+  mockEthQuery.getBalance.mockImplementationOnce((_, callback) => {
+    callback(null, balance);
+  });
 }
 
 describe('importAdditionalAccounts', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('when there is no account with balance', () => {
     it('should not add any account', async () => {
       setQueriedBalance(new BN(0));
@@ -59,6 +63,7 @@ describe('importAdditionalAccounts', () => {
     it('should add 1 account', async () => {
       setQueriedBalanceOnce(new BN(1));
       setQueriedBalanceOnce(new BN(0));
+
       mockKeyring.addAccounts
         .mockResolvedValueOnce(['0x1234'])
         .mockResolvedValueOnce(['0x5678']);
@@ -66,6 +71,42 @@ describe('importAdditionalAccounts', () => {
       await importAdditionalAccounts();
 
       expect(mockKeyring.addAccounts).toHaveBeenCalledTimes(2);
+      expect(mockKeyring.removeAccount).toHaveBeenCalledWith('0x5678');
+    });
+  });
+
+  describe('when there are multiple accounts with balance', () => {
+    it('should add 2 accounts', async () => {
+      setQueriedBalanceOnce(new BN(1));
+      setQueriedBalanceOnce(new BN(2));
+      setQueriedBalanceOnce(new BN(0));
+
+      mockKeyring.addAccounts
+        .mockResolvedValueOnce(['0x1234'])
+        .mockResolvedValueOnce(['0x5678'])
+        .mockResolvedValueOnce(['0x9abc']);
+
+      await importAdditionalAccounts();
+
+      expect(mockKeyring.addAccounts).toHaveBeenCalledTimes(3);
+      expect(mockKeyring.removeAccount).toHaveBeenCalledWith('0x9abc');
+    });
+  });
+
+  describe('when ethQuery.getBalance throws an error', () => {
+    it('should not remove all the accounts', async () => {
+      setQueriedBalanceOnce(new BN(1));
+      mockEthQuery.getBalance.mockImplementationOnce((_, callback) =>
+        callback(new Error('error')),
+      );
+      mockKeyring.addAccounts
+        .mockResolvedValueOnce(['0x1234'])
+        .mockResolvedValueOnce(['0x5678']);
+
+      await importAdditionalAccounts();
+
+      expect(mockKeyring.addAccounts).toHaveBeenCalledTimes(2);
+      expect(mockKeyring.removeAccount).toHaveBeenCalledTimes(1);
       expect(mockKeyring.removeAccount).toHaveBeenCalledWith('0x5678');
     });
   });
