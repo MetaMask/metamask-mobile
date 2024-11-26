@@ -230,13 +230,9 @@ export default class SnapBridge {
 
   getState = () => {
     const { context, datamodel } = Engine;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { KeyringController } = context as any;
+    const { KeyringController } = context;
     const vault = KeyringController.state.vault;
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { network, selectedAddress } = datamodel.flatState as any;
+    const { NetworkController: { network, selectedAddress } } = datamodel.state;
     return {
       isInitialized: !!vault,
       isUnlocked: true,
