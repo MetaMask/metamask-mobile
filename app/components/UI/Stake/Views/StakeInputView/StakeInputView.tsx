@@ -18,13 +18,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './StakeInputView.styles';
 import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -82,6 +83,15 @@ const StakeInputView = () => {
         annualRewardRate,
       },
     });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED)
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
+    );
   }, [
     isHighGasCostImpact,
     navigation,
@@ -90,6 +100,9 @@ const StakeInputView = () => {
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
+    trackEvent,
+    createEventBuilder,
+    amountEth,
   ]);
 
   const handleMaxButtonPress = () => {
@@ -199,13 +212,7 @@ const StakeInputView = () => {
             isOverMaximum || !isNonZeroAmount || isLoadingStakingGasFee
           }
           width={ButtonWidthTypes.Full}
-          onPress={withMetaMetrics(handleStakePress, {
-            event: MetaMetricsEvents.REVIEW_STAKE_BUTTON_CLICKED,
-            properties: {
-              tokens_to_stake_native_value: amountEth,
-              tokens_to_stake_usd_value: fiatAmount,
-            },
-          })}
+          onPress={handleStakePress}
         />
       </View>
     </ScreenLayout>

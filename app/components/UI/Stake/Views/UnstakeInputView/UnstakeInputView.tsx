@@ -17,7 +17,7 @@ import { View } from 'react-native';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
@@ -25,6 +25,8 @@ const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -66,7 +68,23 @@ const UnstakeInputView = () => {
         amountFiat: fiatAmount,
       },
     });
-  }, [amountWei, fiatAmount, navigation]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
+    );
+  }, [
+    amountEth,
+    amountWei,
+    createEventBuilder,
+    fiatAmount,
+    navigation,
+    trackEvent,
+  ]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -96,7 +114,7 @@ const UnstakeInputView = () => {
         amounts={percentageOptions}
         onAmountPress={({ value }: { value: number }) =>
           withMetaMetrics(handleQuickAmountPress, {
-            event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+            event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
             properties: {
               location: 'UnstakeInputView',
               amount: value,
@@ -121,14 +139,7 @@ const UnstakeInputView = () => {
           variant={ButtonVariants.Primary}
           isDisabled={isOverMaximum || !isNonZeroAmount}
           width={ButtonWidthTypes.Full}
-          onPress={withMetaMetrics(handleUnstakePress, {
-            event: MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED,
-            properties: {
-              selected_provider: 'consensys',
-              tokens_to_stake_native_value: amountEth,
-              tokens_to_stake_usd_value: fiatAmount,
-            },
-          })}
+          onPress={handleUnstakePress}
         />
       </View>
     </ScreenLayout>

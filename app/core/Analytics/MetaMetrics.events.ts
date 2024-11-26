@@ -278,6 +278,7 @@ enum EVENT_NAME {
   REVIEW_STAKE_BUTTON_CLICKED = 'Review Stake Button Clicked',
   REVIEW_UNSTAKE_BUTTON_CLICKED = 'Review Unstake Button Clicked',
   STAKE_INPUT_QUICK_AMOUNT_CLICKED = 'Stake Input Quick Amount Clicked',
+  UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED = 'Unstake Input Quick Amount Clicked',
   STAKE_WITHDRAW_BUTTON_CLICKED = 'Stake Withdraw Button Clicked',
   STAKE_CLAIM_BUTTON_CLICKED = 'Stake Claim Button Clicked',
   STAKE_LEARN_MORE_CLICKED = 'Stake Learn More Clicked',
@@ -898,6 +899,9 @@ const events = {
   ),
   STAKE_INPUT_QUICK_AMOUNT_CLICKED: generateOpt(
     EVENT_NAME.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+  ),
+  UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED: generateOpt(
+    EVENT_NAME.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
   ),
   STAKE_WITHDRAW_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.STAKE_WITHDRAW_BUTTON_CLICKED,
