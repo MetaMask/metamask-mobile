@@ -152,8 +152,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { createAccountsController } from './controllers/AccountsController/utils';
+} from './controllers/accounts/constants';
+import { AccountsControllerMessenger } from '@metamask/accounts-controller';
+import { createAccountsController } from './controllers/accounts/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -339,8 +340,22 @@ export class Engine {
     });
 
     // Create AccountsController
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
     const accountsController = createAccountsController({
-      messenger: this.controllerMessenger,
+      messenger: accountsControllerMessenger,
       initialState: initialState.AccountsController,
     });
 
@@ -1247,16 +1262,19 @@ export class Engine {
         }),
         trackMetaMetricsEvent: () =>
           MetaMetrics.getInstance().trackEvent(
-            MetaMetricsEvents.TOKEN_DETECTED,
-            {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.getNetworkClientById(
-                  networkController?.state.selectedNetworkClientId,
-                ).configuration.chainId,
-              ),
-            },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.TOKEN_DETECTED,
+            )
+              .addProperties({
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                chain_id: getDecimalChainId(
+                  networkController.getNetworkClientById(
+                    networkController?.state.selectedNetworkClientId,
+                  ).configuration.chainId,
+                ),
+              })
+              .build(),
           ),
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(

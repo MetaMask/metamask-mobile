@@ -29,7 +29,7 @@ import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/M
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const styles = createStyles();
-  const { trackEvent, addTraitsToUser } = useMetrics();
+  const { trackEvent, addTraitsToUser, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const cancelButtonProps: ButtonProps = {
@@ -44,10 +44,14 @@ const ExperienceEnhancerModal = () => {
         has_marketing_consent: false,
       };
       addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'marketing_consent_modal',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            ...traits,
+            location: 'marketing_consent_modal',
+          })
+          .build(),
+      );
     },
     testID: ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
   };
@@ -62,10 +66,14 @@ const ExperienceEnhancerModal = () => {
 
       const traits = { has_marketing_consent: true };
       addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'marketing_consent_modal',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            ...traits,
+            location: 'marketing_consent_modal',
+          })
+          .build(),
+      );
     },
     testID: ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
   };
