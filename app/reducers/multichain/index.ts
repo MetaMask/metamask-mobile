@@ -1,6 +1,6 @@
 import { MultichainSettingsState } from '../../actions/multichain/state';
 
-const initialState: MultichainSettingsState = {
+export const initialState: MultichainSettingsState = {
   bitcoinSupportEnabled: false,
   bitcoinTestnetSupportEnabled: false,
 };
