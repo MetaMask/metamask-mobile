@@ -761,8 +761,8 @@ export class Engine {
     const featureFlagController = new RemoteFeatureFlagController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
-        allowedActions: ['PreferencesController:getState'],
-        allowedEvents: ['PreferencesController:stateChange'],
+        allowedActions: ['RemoteFeatureFlagController:getState'],
+        allowedEvents: ['RemoteFeatureFlagController:stateChange'],
       }),
       state: {
         ...initialState.RemoteFeatureFlagController
@@ -780,8 +780,6 @@ export class Engine {
     });
 
     featureFlagController.getRemoteFeatureFlags();
-
-    console.log('feature flag controller #1#1#1', featureFlagController);
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -2404,8 +2402,6 @@ export default {
           ? 0
           : CurrencyRateController.conversionRate,
     };
-
-    console.log('remote feature flag state', RemoteFeatureFlagController);
 
     return {
       AccountTrackerController,

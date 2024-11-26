@@ -1,4 +1,4 @@
-export const FEATURE_FLAG_NAME = 'mobileMinimumVersion';
+export const FEATURE_FLAG_NAME = 'mobileMinimumVersions';
 
 export type FeatureFlagType = {
   [FEATURE_FLAG_NAME]: {

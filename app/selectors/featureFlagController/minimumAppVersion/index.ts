@@ -17,6 +17,7 @@ export const selectMobileMinimumVersions = createSelector(
       (remoteFeatureFlag) =>
         remoteFeatureFlag[FEATURE_FLAG_NAME]
     );
+
     return (
       remoteFeatureFlag as FeatureFlagType
       ?? featureFlagFallback
