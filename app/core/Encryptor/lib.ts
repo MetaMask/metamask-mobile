@@ -105,6 +105,23 @@ class AesForkedEncryptionLibrary implements EncryptionLibrary {
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await AesForked.decrypt(data, key, iv);
+
+  pbkdf2 = async (
+    password: Uint8Array,
+    salt: Uint8Array,
+    iterations: number,
+    keyLength: number,
+  ): Promise<Uint8Array> => {
+    const derivationKey = await Aes.pbkdf2(
+      bytesToString(password),
+      bytesToString(salt),
+      iterations,
+      keyLength * 8, //512 bits
+      ShaAlgorithm.Sha512,
+    );
+
+    return hexToBytes(derivationKey);
+  };
 }
 
 // Those wrappers are stateless, we can build them only once!

@@ -46,6 +46,21 @@ export interface EncryptionLibrary {
    * @returns The decrypted original data.
    */
   decrypt(data: string, key: string, iv: string): Promise<string>;
+  /**
+   * Derives a key using PBKDF2.
+   *
+   * @param password - The password used to generate the key.
+   * @param salt - The salt used during key generation.
+   * @param iterations - The number of iterations used during key generation.
+   * @param keyLength - The length of the key to generate.
+   * @returns The generated key.
+   */
+  pbkdf2(
+    password: Uint8Array,
+    salt: Uint8Array,
+    iterations: number,
+    keyLength: number,
+  ): Promise<Uint8Array>;
 }
 
 /**
