@@ -159,6 +159,7 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import { ComposableControllerEvents } from '@metamask/composable-controller';
 
 /**
  * Controllers that area always instantiated
@@ -240,6 +241,7 @@ type GlobalActions =
   | AssetsContractControllerActions;
 
 type GlobalEvents =
+  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
