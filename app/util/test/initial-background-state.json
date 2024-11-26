@@ -201,7 +201,7 @@
     "privacyMode": false
   },
   "TokenBalancesController": {
-    "contractBalances": {}
+    "tokenBalances": {}
   },
   "TokenRatesController": {
     "marketData": {}
