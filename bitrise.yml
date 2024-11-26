@@ -136,12 +136,12 @@ stages:
       - android_e2e_build: {}
   build_multichain_e2e_ios_android_stage:
     abort_on_fail: true
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: 'true'
-      - MM_CHAIN_PERMISSIONS: 'true'
+    # envs:
+    #   - MM_MULTICHAIN_V1_ENABLED: true
+    #   - MM_CHAIN_PERMISSIONS: true
     workflows:
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
+      - run_multichain_e2e_builds: {}
+      # - android_e2e_build: {}
   run_multichain_e2e_ios_android_stage:
     workflows:
       - run_tag_multichain_ios: {}
@@ -527,6 +527,13 @@ workflows:
       - TEST_TYPE: 'upgrade'
     after_run:
       - wdio_android_e2e_test
+  run_multichain_e2e_builds:
+    envs:
+      - MM_MULTICHAIN_V1_ENABLED: true
+      - MM_CHAIN_PERMISSIONS: true
+    after_run:
+      - ios_e2e_build
+      # - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
