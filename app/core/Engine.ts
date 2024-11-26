@@ -764,22 +764,23 @@ export class Engine {
         allowedActions: ['PreferencesController:getState'],
         allowedEvents: ['PreferencesController:stateChange'],
       }),
-      state: initialState.RemoteFeatureFlagController || {},
+      state: {
+        ... initialState.RemoteFeatureFlagController
+      },
       disabled: false, // TODO: implement basic functionality toggle
       clientConfigApiService: new ClientConfigApiService({
         fetch: fetchFunction,
-        // TODO: get env vars to config clientConfigAPI service
         config: {
           client: ClientType.Mobile,
-          environment: EnvironmentType.Production,
-          distribution: DistributionType.Main,
+          environment: EnvironmentType.Production, // TODO: get env var from .js.env. define fallback
+          distribution: DistributionType.Main, // TODO: get env var from .js.env. define fallback
         },
       }),
     });
 
     featureFlagController.getRemoteFeatureFlags();
 
-    console.log('feature flag controller', featureFlagController);
+    console.log('feature flag controller #1#1#1', featureFlagController);
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
