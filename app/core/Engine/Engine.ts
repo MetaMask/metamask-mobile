@@ -2027,7 +2027,6 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2043,8 +2042,6 @@ export default {
       SwapsController,
       GasFeeController,
       TokensController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
@@ -2073,7 +2070,6 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
@@ -2089,8 +2085,6 @@ export default {
       SmartTransactionsController,
       SwapsController,
       GasFeeController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
