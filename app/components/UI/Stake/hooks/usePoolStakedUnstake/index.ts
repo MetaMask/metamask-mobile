@@ -10,6 +10,8 @@ import { addTransaction } from '../../../../../util/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import useBalance from '../useBalance';
+import { Stake } from '../../sdk/stakeSdkProvider';
+import { NetworkClientId } from '@metamask/network-controller';
 
 const generateUnstakeTxParams = (
   activeAccountAddress: string,
@@ -25,7 +27,11 @@ const generateUnstakeTxParams = (
 });
 
 const attemptUnstakeTransaction =
-  (pooledStakingContract: PooledStakingContract, stakedBalanceWei: string) =>
+  (
+    pooledStakingContract: PooledStakingContract,
+    stakedBalanceWei: string,
+    networkClientId: NetworkClientId,
+  ) =>
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
@@ -78,6 +84,7 @@ const attemptUnstakeTransaction =
 
       return await addTransaction(txParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: ORIGIN_METAMASK,
         type: TransactionType.stakingUnstake,
       });
@@ -91,15 +98,16 @@ const attemptUnstakeTransaction =
   };
 
 const usePoolStakedUnstake = () => {
-  const stakeContext = useStakeContext();
-  const { stakedBalanceWei } = useBalance();
+  const { networkClientId, stakingContract } =
+    useStakeContext() as Required<Stake>;
 
-  const stakingContract = stakeContext.stakingContract as PooledStakingContract;
+  const { stakedBalanceWei } = useBalance();
 
   return {
     attemptUnstakeTransaction: attemptUnstakeTransaction(
       stakingContract,
       stakedBalanceWei,
+      networkClientId,
     ),
   };
 };

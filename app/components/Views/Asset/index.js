@@ -23,6 +23,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
 } from '../../../selectors/networkController';
@@ -41,7 +42,10 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
+import {
+  isNetworkRampNativeTokenSupported,
+  isNetworkRampSupported,
+} from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -154,9 +158,17 @@ class Asset extends PureComponent {
     rpcUrl: PropTypes.string,
     networkConfigurations: PropTypes.object,
     /**
+     * Boolean that indicates if network is supported to buy
+     */
+    isNetworkRampSupported: PropTypes.bool,
+    /**
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -428,9 +440,11 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { networkClientId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([networkClientId]);
 
     this.setState({ refreshing: false });
   };
@@ -464,8 +478,9 @@ class Asset extends PureComponent {
       isAssetAllowed &&
       AppConstants.SWAPS.ACTIVE;
 
-    const displayBuyButton =
-      asset.isETH && this.props.isNetworkBuyNativeTokenSupported;
+    const displayBuyButton = asset.isETH
+      ? this.props.isNetworkBuyNativeTokenSupported
+      : this.props.isNetworkRampSupported;
 
     return (
       <View style={styles.wrapper}>
@@ -476,7 +491,6 @@ class Asset extends PureComponent {
             header={
               <>
                 <AssetOverview
-                  navigation={navigation}
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
@@ -517,10 +531,15 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  isNetworkRampSupported: isNetworkRampSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),
   ),
+  networkClientId: selectNetworkClientId(state),
 });
 
 export default connect(mapStateToProps)(withMetricsAwareness(Asset));

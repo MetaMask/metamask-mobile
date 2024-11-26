@@ -1540,7 +1540,7 @@ export class NetworkSettings extends PureComponent {
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await updateIncomingTransactions([networkClientId]);
     }, 1000);
   };
 

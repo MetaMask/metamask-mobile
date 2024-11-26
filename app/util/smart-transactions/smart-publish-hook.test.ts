@@ -100,6 +100,7 @@ const defaultTransactionMeta: TransactionMeta = {
   },
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
+  networkClientId: 'testNetworkClientId',
   time: 1624408066355,
   // defaultGasEstimates: {
   //   gas: '0x7b0d',

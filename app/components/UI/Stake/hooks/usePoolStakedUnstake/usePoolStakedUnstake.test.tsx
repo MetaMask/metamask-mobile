@@ -35,6 +35,7 @@ const MOCK_UNSTAKE_GAS_LIMIT = 73135;
 const MOCK_UNSTAKE_VALUE_WEI = '10000000000000000'; // 0.01 ETH
 const MOCK_STAKED_BALANCE_VALUE_WEI = '20000000000000000'; // 0.02 ETH
 const MOCK_UNSTAKE_ALL_VALUE_WEI = MOCK_STAKED_BALANCE_VALUE_WEI;
+const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
 
 const ENCODED_TX_UNSTAKE_DATA = {
   chainId: 1,
@@ -106,6 +107,7 @@ const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+  networkClientId: MOCK_NETWORK_CLIENT_ID,
 };
 
 const mockBalance: Pick<ReturnType<typeof useBalance>, 'stakedBalanceWei'> = {

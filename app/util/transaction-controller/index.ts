@@ -4,6 +4,7 @@ import {
 } from '@metamask/transaction-controller';
 
 import Engine from '../../core/Engine';
+import { NetworkClientId } from '@metamask/network-controller';
 
 // Keeping this export as function to put more logic in the future
 export async function addTransaction(
@@ -15,11 +16,9 @@ export async function addTransaction(
   return await TransactionController.addTransaction(transaction, opts);
 }
 
-// Keeping this export as function to put more logic in the future
-export async function estimateGas(transaction: TransactionParams) {
+export async function estimateGas(transaction: TransactionParams, networkClientId: NetworkClientId) {
   const { TransactionController } = Engine.context;
-
-  return await TransactionController.estimateGas(transaction);
+  return await TransactionController.estimateGas(transaction, networkClientId);
 }
 
 // Proxy methods

@@ -238,7 +238,7 @@ class NotificationManager {
           case 'ERC20': {
             pollPromises.push(
               ...[
-                TokenBalancesController.poll(),
+                TokenBalancesController.updateBalancesByChainId({ chainId: transactionMeta.chainId }),
                 TokenDetectionController.detectTokens({ chainIds: [transactionMeta.chainId] }),
               ],
             );
