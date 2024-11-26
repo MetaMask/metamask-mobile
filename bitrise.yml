@@ -140,8 +140,8 @@ stages:
     #   - MM_MULTICHAIN_V1_ENABLED: true
     #   - MM_CHAIN_PERMISSIONS: true
     workflows:
-      - run_multichain_e2e_builds: {}
-      # - android_e2e_build: {}
+      - build_ios_multichain_e2e: {}
+      - build_android_multichain_e2e: {}
   run_multichain_e2e_ios_android_stage:
     workflows:
       - run_tag_multichain_ios: {}
@@ -527,13 +527,23 @@ workflows:
       - TEST_TYPE: 'upgrade'
     after_run:
       - wdio_android_e2e_test
-  run_multichain_e2e_builds:
+  build_ios_multichain_e2e:
     envs:
       - MM_MULTICHAIN_V1_ENABLED: true
       - MM_CHAIN_PERMISSIONS: true
     after_run:
       - ios_e2e_build
       # - android_e2e_build
+  build_android_multichain_e2e:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - MM_MULTICHAIN_V1_ENABLED: true
+      - MM_CHAIN_PERMISSIONS: true
+    after_run:
+      - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
