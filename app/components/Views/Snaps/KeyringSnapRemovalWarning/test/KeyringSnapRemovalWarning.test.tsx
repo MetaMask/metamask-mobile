@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Snap, SnapStatus } from '@metamask/snaps-utils';
 import { SnapId } from '@metamask/snaps-sdk';
-import { SemVerVersion } from '@metamask/utils';
 import { createMockSnapInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KEYRING_ACCOUNT_LIST_ITEM } from '../../components/KeyringAccountListItem/KeyringAccountListItem.constants';
 

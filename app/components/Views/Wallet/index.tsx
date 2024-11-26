@@ -433,7 +433,6 @@ const Wallet = ({
         appState.current?.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        console.log('handleAppStateChange', appState.current, nextAppState);
         dispatchAccountSyncing();
       }
 
@@ -454,7 +453,11 @@ const Wallet = ({
     return () => {
       subscription.remove();
     };
-  }, [dispatchAccountSyncing, isAccountSyncingReadyToBeDispatched]);
+  }, [
+    dispatchAccountSyncing,
+    isAccountSyncingReadyToBeDispatched,
+    setIsAccountSyncingReadyToBeDispatched,
+  ]);
 
   const renderTabBar = useCallback(
     (props) => (
