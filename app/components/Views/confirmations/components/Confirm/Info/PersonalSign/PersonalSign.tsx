@@ -5,8 +5,8 @@ import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
+import NoChangeSimulation from '../../NoChangeSimulation';
 import Message from './Message';
-import Simulation from './Simulation';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -17,7 +17,7 @@ const PersonalSign = () => {
 
   return (
     <>
-      <Simulation />
+      <NoChangeSimulation />
       <InfoSection>
         <InfoRow
           label={strings('confirm.request_from')}

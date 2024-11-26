@@ -5,6 +5,8 @@ import StakeButton from './index';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockNavigate = jest.fn();
@@ -23,14 +25,21 @@ jest.mock('../../constants', () => ({
   isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  MetaMetricsEvents: {
-    STAKE_BUTTON_CLICKED: 'Stake Button Clicked',
-  },
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-  }),
-}));
+jest.mock('../../../../hooks/useMetrics');
+
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: jest.fn(),
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {

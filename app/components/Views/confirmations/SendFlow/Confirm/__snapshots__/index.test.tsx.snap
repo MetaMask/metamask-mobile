@@ -1319,7 +1319,7 @@ exports[`Confirm should render correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    Estimated gas fee
+                                    Network fee
                                     <TouchableOpacity
                                       hitSlop={
                                         {

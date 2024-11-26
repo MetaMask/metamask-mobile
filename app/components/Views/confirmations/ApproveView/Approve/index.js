@@ -116,14 +116,6 @@ class Approve extends PureComponent {
      */
     transactions: PropTypes.array,
     /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
      * A string representing the network name
      */
     providerType: PropTypes.string,
@@ -386,18 +378,6 @@ class Approve extends PureComponent {
     }
   };
 
-  trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType, metrics } =
-      this.props;
-
-    metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
-  };
-
   cancelGasEdition = () => {
     this.setState({
       stopUpdateGas: false,
@@ -493,7 +473,12 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        metrics.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+            .addProperties(gaParams)
+            .build(),
+        );
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -503,7 +488,12 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      metrics.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(gaParams)
+          .build(),
+      );
     }
   };
 
@@ -618,10 +608,11 @@ class Approve extends PureComponent {
       if (shouldUseSmartTransaction) {
         this.props.hideModal();
       }
-
       metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_COMPLETED,
-        this.getAnalyticsParams(),
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(this.getAnalyticsParams())
+          .build(),
       );
     } catch (error) {
       if (
@@ -635,7 +626,13 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
+        );
       }
       this.setState({ transactionHandled: false });
     }
@@ -653,8 +650,10 @@ class Approve extends PureComponent {
       },
     );
     metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_CANCELLED,
-      this.getAnalyticsParams(),
+      metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
     hideModal();
 
@@ -674,7 +673,13 @@ class Approve extends PureComponent {
     const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          )
+          .build(),
+      );
     }
   };
 

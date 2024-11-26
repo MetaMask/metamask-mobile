@@ -51,19 +51,6 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:build
     ```
 
-- **Run All Tests Locally**:
-  - **iOS Debug**:
-
-    ```bash
-    yarn test:e2e:ios:debug:run
-    ```
-
-  - **Android Debug**:
-
-    ```bash
-    yarn test:e2e:android:debug:run
-    ```
-
 - **Run Specific Tests**:
   - **iOS**:
 
