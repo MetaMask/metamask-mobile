@@ -281,6 +281,7 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { RemoteFeatureFlagControllerActions } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -758,11 +759,30 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
+    const getFeatureFlagAppEnvironment = () => {
+      const env = process.env.METAMASK_ENVIRONMENT;
+      switch(env) {
+        case 'local': return EnvironmentType.Development;
+        case 'pre-release': return EnvironmentType.ReleaseCandidate;
+        case 'production': return EnvironmentType.Production;
+        default: return EnvironmentType.Development;
+      }
+    };
+    const getFeatureFlagAppDistribution = () => {
+      const dist = process.env.METAMASK_BUILD_TYPE;
+      switch(dist) {
+        case 'main': return DistributionType.Main;
+        case 'flask': return DistributionType.Flask;
+        default: return DistributionType.Main;
+      }
+
+    };
+
     const featureFlagController = new RemoteFeatureFlagController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'RemoteFeatureFlagController',
-        allowedActions: ['RemoteFeatureFlagController:getState'],
-        allowedEvents: ['RemoteFeatureFlagController:stateChange'],
+        allowedActions: ['PreferencesController:getState'],
+        allowedEvents: ['PreferencesController:stateChange'],
       }),
       state: {
         ...initialState.RemoteFeatureFlagController
@@ -773,8 +793,8 @@ export class Engine {
         fetch: fetchFunction,
         config: {
           client: ClientType.Mobile,
-          environment: EnvironmentType.Production, // TODO: get env var from .js.env. define fallback
-          distribution: DistributionType.Main, // TODO: get env var from .js.env. define fallback
+          environment: getFeatureFlagAppEnvironment(),
+          distribution: getFeatureFlagAppDistribution(),
         },
       }),
     });
