@@ -45,6 +45,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
+import HDKeyring from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -199,6 +200,7 @@ import {
   EngineContext,
   TransactionEventPayload,
 } from './types';
+import { AesLib } from '../Encryptor/lib';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -504,6 +506,13 @@ export class Engine {
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     additionalKeyrings.push(ledgerKeyringBuilder);
+
+    const hdKeyringBuilder = () =>
+      new HDKeyring({
+        cryptographicFunctions: { pbkdf2Sha512: AesLib.pbkdf2 },
+      });
+    hdKeyringBuilder.type = HDKeyring.type;
+    additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({

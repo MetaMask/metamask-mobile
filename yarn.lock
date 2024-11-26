@@ -4306,6 +4306,17 @@
     "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
 
+"@metamask/eth-hd-keyring@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-8.0.0.tgz#b44ff93f47d6f06c33099766007135d03c89020a"
+  integrity sha512-8i1EkTZwg0I1f66dkp5PAAYv4HMx79F5FcPM40JZRIVsi9H1BJ77hnKzqq1DIRDCL5POV94HcWWp0SD22xOkyw==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/scure-bip39" "^2.1.1"
+    "@metamask/utils" "^9.2.1"
+    ethereum-cryptography "^2.1.2"
+
 "@metamask/eth-json-rpc-filters@^8.0.0":
   version "8.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-filters/-/eth-json-rpc-filters-8.0.0.tgz#fd0ca224dc198e270e142c1f2007e05cacb5f16a"

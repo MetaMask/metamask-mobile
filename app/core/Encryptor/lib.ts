@@ -8,6 +8,7 @@ import {
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import { EncryptionLibrary, KeyDerivationOptions } from './types';
+import { bytesToString, hexToBytes } from '@metamask/utils';
 
 // Actual native libraries
 const Aes = NativeModules.Aes;
@@ -52,6 +53,23 @@ class AesEncryptionLibrary implements EncryptionLibrary {
 
   decrypt = async (data: string, key: string, iv: unknown): Promise<string> =>
     await Aes.decrypt(data, key, iv, CipherAlgorithm.cbc);
+
+  pbkdf2 = async (
+    password: Uint8Array,
+    salt: Uint8Array,
+    iterations: number,
+    keyLength: number,
+  ): Promise<Uint8Array> => {
+    const derivationKey = await Aes.pbkdf2(
+      bytesToString(password),
+      bytesToString(salt),
+      iterations,
+      keyLength * 8,
+      ShaAlgorithm.Sha512,
+    );
+
+    return hexToBytes(derivationKey);
+  };
 }
 
 class AesForkedEncryptionLibrary implements EncryptionLibrary {
