@@ -159,10 +159,7 @@ function NetworkSwitcher() {
       );
 
       if (config) {
-        const {
-          rpcEndpoints,
-          defaultRpcEndpointIndex,
-        } = config;
+        const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};

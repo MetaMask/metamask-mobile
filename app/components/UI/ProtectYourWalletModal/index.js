@@ -102,11 +102,13 @@ class ProtectYourWalletModal extends PureComponent {
       this.props.passwordSet ? { screen: 'AccountBackupStep1' } : undefined,
     );
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-      {
-        wallet_protection_required: false,
-        source: 'Modal',
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Modal',
+        })
+        .build(),
     );
   };
 
@@ -124,11 +126,13 @@ class ProtectYourWalletModal extends PureComponent {
   onDismiss = () => {
     this.props.protectWalletModalNotVisible();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED,
-      {
-        wallet_protection_required: false,
-        source: 'Modal',
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Modal',
+        })
+        .build(),
     );
   };
 

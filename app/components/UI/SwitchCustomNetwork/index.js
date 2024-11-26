@@ -96,7 +96,7 @@ const SwitchCustomNetwork = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const { networkName } = useNetworkInfo(
     new URL(currentPageInformation.url).hostname,
@@ -113,16 +113,23 @@ const SwitchCustomNetwork = ({
 
   useEffect(() => {
     trackEvent(
-      MetaMetricsEvents.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
-      trackingData,
+      createEventBuilder(
+        MetaMetricsEvents.NETWORK_SWITCH_REQUESTED_AND_MODAL_SHOWN,
+      )
+        .addProperties(trackingData)
+        .build(),
     );
-  }, [trackEvent, trackingData]);
+  }, [trackEvent, trackingData, createEventBuilder]);
 
   /**
    * Calls onConfirm callback and analytics to track connect confirmed event
    */
   const confirm = () => {
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCH_CONFIRM_PRESSED, trackingData);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SWITCH_CONFIRM_PRESSED)
+        .addProperties(trackingData)
+        .build(),
+    );
     onConfirm && onConfirm();
   };
 

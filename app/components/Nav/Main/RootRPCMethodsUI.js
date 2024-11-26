@@ -131,7 +131,7 @@ export const useSwapConfirmedEvent = ({ trackSwaps }) => {
 };
 
 const RootRPCMethodsUI = (props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [transactionModalType, setTransactionModalType] = useState(undefined);
   const tokenList = useSelector(selectTokenList);
   const setTransactionObject = props.setTransactionObject;
@@ -244,15 +244,28 @@ const RootRPCMethodsUI = (props) => {
 
         Logger.log('Swaps', 'Sending metrics event', event);
 
-        trackEvent(event, { sensitiveProperties: { ...parameters } });
+        trackEvent(
+          createEventBuilder(event)
+            .addSensitiveProperties({ ...parameters })
+            .build(),
+        );
       } catch (e) {
         Logger.error(e, MetaMetricsEvents.SWAP_TRACKING_FAILED);
-        trackEvent(MetaMetricsEvents.SWAP_TRACKING_FAILED, {
-          error: e,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWAP_TRACKING_FAILED)
+            .addProperties({
+              error: e,
+            })
+            .build(),
+        );
       }
     },
-    [props.selectedAddress, props.shouldUseSmartTransaction, trackEvent],
+    [
+      props.selectedAddress,
+      props.shouldUseSmartTransaction,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const { addTransactionMetaIdForListening } = useSwapConfirmedEvent({
@@ -326,7 +339,11 @@ const RootRPCMethodsUI = (props) => {
           );
           Logger.error(error, 'error while trying to send transaction (Main)');
         } else {
-          trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            ).build(),
+          );
         }
       }
     },
@@ -336,6 +353,7 @@ const RootRPCMethodsUI = (props) => {
       trackEvent,
       swapsTransactions,
       addTransactionMetaIdForListening,
+      createEventBuilder,
     ],
   );
 

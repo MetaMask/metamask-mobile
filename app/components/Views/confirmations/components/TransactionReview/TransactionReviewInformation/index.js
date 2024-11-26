@@ -309,7 +309,9 @@ class TransactionReviewInformation extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 

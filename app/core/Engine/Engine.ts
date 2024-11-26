@@ -152,8 +152,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { createAccountsController } from './controllers/AccountsController/utils';
+} from './controllers/accounts/constants';
+import { AccountsControllerMessenger } from '@metamask/accounts-controller';
+import { createAccountsController } from './controllers/accounts/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -339,8 +340,22 @@ export class Engine {
     });
 
     // Create AccountsController
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
     const accountsController = createAccountsController({
-      messenger: this.controllerMessenger,
+      messenger: accountsControllerMessenger,
       initialState: initialState.AccountsController,
     });
 
@@ -431,7 +446,6 @@ export class Engine {
     });
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -1246,16 +1260,19 @@ export class Engine {
         }),
         trackMetaMetricsEvent: () =>
           MetaMetrics.getInstance().trackEvent(
-            MetaMetricsEvents.TOKEN_DETECTED,
-            {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.getNetworkClientById(
-                  networkController?.state.selectedNetworkClientId,
-                ).configuration.chainId,
-              ),
-            },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.TOKEN_DETECTED,
+            )
+              .addProperties({
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                chain_id: getDecimalChainId(
+                  networkController.getNetworkClientById(
+                    networkController?.state.selectedNetworkClientId,
+                  ).configuration.chainId,
+                ),
+              })
+              .build(),
           ),
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -1344,7 +1361,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1639,7 +1655,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
