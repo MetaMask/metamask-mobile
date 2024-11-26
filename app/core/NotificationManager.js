@@ -14,10 +14,11 @@ import {
 
 import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId, selectTicker } from '../selectors/networkController';
+import { selectTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { useSelector } from 'react-redux';
 import { getTicker } from '../../app/util/transactions';
+import Logger from '../util/Logger';
+import { TransactionStatus } from '@metamask/transaction-controller';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -395,48 +396,59 @@ class NotificationManager {
    * Generates a notification for an incoming transaction
    */
   gotIncomingTransaction = async (incomingTransactions) => {
-    const {
-      AccountTrackerController,
-      AccountsController,
-    } = Engine.context;
+    try {
+      const {
+        AccountTrackerController,
+        AccountsController,
+      } = Engine.context;
 
-    const selectedInternalAccount = AccountsController.getSelectedAccount();
+      const selectedInternalAccount = AccountsController.getSelectedAccount();
 
-    const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
-      selectedInternalAccount.address,
-    );
+      const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
+        selectedInternalAccount.address,
+      );
 
-    const ticker = useSelector(selectTicker);
+      const ticker = selectTicker(store.getState());
 
-    // If a TX has been confirmed more than 10 min ago, it's considered old
-    const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
+      // If a TX has been confirmed more than 10 min ago, it's considered old
+      const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
 
-    const filteredTransactions = incomingTransactions.filter(tx => safeToChecksumAddress(tx.txParams?.to) ===
-      selectedInternalAccountChecksummedAddress &&
-      tx.time > oldestTimeAllowed);
+      const filteredTransactions = incomingTransactions.reverse()
+        .filter(
+          (tx) =>
+            safeToChecksumAddress(tx.txParams?.to) ===
+            selectedInternalAccountChecksummedAddress &&
+            safeToChecksumAddress(tx.txParams?.from) !==
+            selectedInternalAccountChecksummedAddress &&
+            tx.status === TransactionStatus.confirmed &&
+            tx.time > oldestTimeAllowed,
+        );
 
-    if (!filteredTransactions.length) {
-      return;
+      if (!filteredTransactions.length) {
+        return;
+      }
+
+      const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
+      const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
+      const id = filteredTransactions[0]?.id;
+
+      this._showNotification({
+        type: 'received',
+        transaction: {
+          nonce,
+          amount,
+          id,
+          assetType: getTicker(ticker),
+        },
+        autoHide: true,
+        duration: 7000,
+      });
+
+      // Update balance upon detecting a new incoming transaction
+      AccountTrackerController.refresh();
+    } catch (error) {
+      Logger.log('Notifications', 'Error while processing incoming transaction', error);
     }
-
-    const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
-    const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
-    const id = filteredTransactions[0]?.id;
-
-    this._showNotification({
-      type: 'received',
-      transaction: {
-        nonce,
-        amount,
-        id,
-        assetType: getTicker(ticker),
-      },
-      autoHide: true,
-      duration: 7000,
-    });
-
-    // Update balance upon detecting a new incoming transaction
-    AccountTrackerController.refresh();
   };
 }
 
