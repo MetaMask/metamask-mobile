@@ -486,8 +486,10 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.APPROVAL_STARTED,
-          this.getAnalyticsParams(),
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_STARTED)
+            .addProperties(this.getAnalyticsParams())
+            .build(),
         );
       },
     );
@@ -619,12 +621,17 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
 
-    this.props.metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(event)
+        .addProperties({
+          view: transaction.origin,
+          numberOfTokens: tokensLength,
+          numberOfAccounts: accountsLength,
+          network: providerType,
+        })
+        .build(),
+    );
   };
 
   toggleViewData = () => {
@@ -635,7 +642,9 @@ class ApproveTransactionReview extends PureComponent {
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS)
+        .build(),
     );
     this.setState({ viewDetails: !viewDetails });
   };
@@ -649,8 +658,10 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -668,7 +679,9 @@ class ApproveTransactionReview extends PureComponent {
       originalApproveAmount,
     } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
     );
 
     updateTokenAllowanceState({
@@ -756,8 +769,10 @@ class ApproveTransactionReview extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 
@@ -1211,7 +1226,9 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -1219,11 +1236,13 @@ class ApproveTransactionReview extends PureComponent {
     const { onCancel, transaction } = this.props;
     onCancel && onCancel();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-      {
-        ...this.getAnalyticsParams(),
-        ...getBlockaidTransactionMetricsParams(transaction),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+        .addProperties({
+          ...this.getAnalyticsParams(),
+          ...getBlockaidTransactionMetricsParams(transaction),
+        })
+        .build(),
     );
   };
 
@@ -1236,11 +1255,13 @@ class ApproveTransactionReview extends PureComponent {
 
     if (tokenStandard === ERC20 && !isReadyToApprove) {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-        {
-          ...this.getAnalyticsParams(),
-          ...getBlockaidTransactionMetricsParams(this.props.transaction),
-        },
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+          .addProperties({
+            ...this.getAnalyticsParams(),
+            ...getBlockaidTransactionMetricsParams(this.props.transaction),
+          })
+          .build(),
       );
       return this.setState({ isReadyToApprove: true });
     }

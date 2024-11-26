@@ -29,7 +29,8 @@ export const mockEvents = {
      * @property {Object} response - Success response data.
      */
     suggestedGasFeesApiGanache: {
-      urlEndpoint: 'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
+      urlEndpoint:
+        'https://gas.api.cx.metamask.io/networks/1337/suggestedGasFees',
       response: suggestedGasFeesApiGanache,
       responseCode: 200,
     },

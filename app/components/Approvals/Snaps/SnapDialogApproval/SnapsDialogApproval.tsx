@@ -14,8 +14,8 @@ import {
   ButtonVariants,
   ButtonSize,
 } from '../../../../component-library/components/Buttons/Button';
-import { SnapUIRenderer } from '../../../UI/Snaps/SnapUIRenderer/SnapUIRenderer';
 import Engine from '../../../../core/Engine';
+import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 
 const SnapDialogApproval = () => {
   const { approvalRequest } = useApprovalRequest();

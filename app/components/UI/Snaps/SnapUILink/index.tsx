@@ -1,31 +1,36 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import React, { useMemo } from 'react';
-import { Image, ImageStyle, StyleProp } from 'react-native';
+import { LinkChildren } from '@metamask/snaps-sdk/jsx';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import React from 'react';
+import { Linking } from 'react-native';
 
-export interface SnapUIImageProps {
-  value: string;
-  style?: StyleProp<ImageStyle>;
-  width?: number;
-  height?: number;
+export interface SnapUILinkProps {
+  children: LinkChildren;
+  href: string;
 }
 
-export const SnapUIImage: React.FC<SnapUIImageProps> = ({
-  value,
-  width,
-  height,
-  style,
-}) => {
-  const src = useMemo(
-    () => ({ uri: `data:image/svg+xml;utf8,${encodeURIComponent(value)}` }),
-    [value],
-  );
-
-  return (
-    <Image
-      testID="snaps-ui-image"
-      source={src}
-      style={[{ width, height }, style]}
-    />
-  );
+const validateUrl = (href: string) => {
+  if (!href.startsWith('https://')) {
+    throw new Error('Invalid URL');
+  }
 };
+
+const onPress = (href: string) => {
+  validateUrl(href);
+  Linking.openURL(href);
+};
+
+export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
+  <Text
+    testID="snaps-ui-link"
+    variant={TextVariant.BodyMD}
+    color={TextColor.Info}
+    onPress={() => onPress(href)}
+  >
+    {children}
+  </Text>
+);
 ///: END:ONLY_INCLUDE_IF

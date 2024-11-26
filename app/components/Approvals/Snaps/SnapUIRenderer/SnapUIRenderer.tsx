@@ -7,7 +7,7 @@ import { getMemoizedInterface } from '../../../../selectors/snaps/interfaceContr
 
 import { SnapInterfaceContextProvider } from './SnapInterfaceContext';
 import { mapToTemplate } from './utils';
-import TemplateRenderer from '../../TemplateRenderer';
+import TemplateRenderer from '../../../UI/TemplateRenderer';
 
 // Component that maps Snaps UI JSON format to MetaMask Template Renderer format
 const SnapUIRendererComponent = ({

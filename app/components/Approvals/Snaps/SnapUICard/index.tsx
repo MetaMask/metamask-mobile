@@ -2,8 +2,6 @@
 import React from 'react';
 import { Image } from 'react-native';
 // External dependencies.
-import { SnapUICardProps } from './SnapUICardProps.types';
-import styles, { Box } from '../../Box';
 import {
   AlignItems,
   Display,
@@ -15,6 +13,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { SnapUICardProps } from './SnapUICard.props';
+import styles, { Box } from '../../../UI/Box';
 
 export const SnapUICard: React.FC<SnapUICardProps> = ({
   image,
