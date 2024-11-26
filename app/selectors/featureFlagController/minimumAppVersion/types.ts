@@ -5,5 +5,5 @@ export type FeatureFlagType = {
     appMinimumBuild: number;
     appleMinimumOS: number;
     androidMinimumAPIVersion: number;
-  },
+  }
 };

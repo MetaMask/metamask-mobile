@@ -13,3 +13,14 @@ export const mockedState = {
     },
   },
 };
+
+export const mockedEmptyFlagsState = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: [] as FeatureFlags,
+        cacheTimestamp: 0,
+      },
+    },
+  },
+};
