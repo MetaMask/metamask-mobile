@@ -1455,7 +1455,7 @@ workflows:
                 GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
           title: iOS Sourcemaps & Build
           is_always_run: false
-       - script:
+      - script:
           title: Copy and Rename IPA
           inputs:
             - content: |-
