@@ -4,9 +4,9 @@ import { FEATURE_FLAG_NAME, FeatureFlagType } from './types';
 
 const featureFlagFallback: FeatureFlagType = {
   [FEATURE_FLAG_NAME]: {
-    appMinimumBuild: 1024,
-    appleMinimumOS: 1025,
-    androidMinimumAPIVersion: 1026,
+    appMinimumBuild: 1243,
+    appleMinimumOS: 6,
+    androidMinimumAPIVersion: 21,
   },
 };
 
