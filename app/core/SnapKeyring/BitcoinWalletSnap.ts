@@ -4,15 +4,14 @@ import { HandlerType } from '@metamask/snaps-utils';
 import { Json, JsonRpcRequest } from '@metamask/utils';
 // This dependency is still installed as part of the `package.json`, however
 // the Snap is being pre-installed only for Flask build (for the moment).
-import BitcoinWalletSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-snap.json';
+// import BitcoinWalletSnap from '@metamask/bitcoin-wallet-snap/dist/preinstalled-snap.json';
 import { handleSnapRequest } from '../Snaps/utils';
 import Engine from '../Engine';
 
 export const BITCOIN_WALLET_SNAP_ID: SnapId =
-  BitcoinWalletSnap.snapId as SnapId;
+  'npm:@metamask/bitcoin-wallet-snap' as SnapId;
 
-export const BITCOIN_WALLET_NAME: string =
-  BitcoinWalletSnap.manifest.proposedName;
+export const BITCOIN_WALLET_NAME: string = 'Bitcoin';
 
 const controllerMessenger = Engine.controllerMessenger;
 

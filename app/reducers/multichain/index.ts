@@ -1,8 +1,8 @@
 import { MultichainSettingsState } from '../../actions/multichain/state';
 
 export const initialState: MultichainSettingsState = {
-  bitcoinSupportEnabled: false,
-  bitcoinTestnetSupportEnabled: false,
+  bitcoinSupportEnabled: true,
+  bitcoinTestnetSupportEnabled: true,
 };
 
 const multichainReducer = (state = initialState) => state;
