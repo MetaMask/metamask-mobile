@@ -172,11 +172,8 @@ const AssetDetails = (props: Props) => {
         onConfirm: () => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(() => {
-            const { NetworkController } = Engine.context;
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(chainId);
             try {
-              TokensController.ignoreTokens([address], networkClientId);
+              TokensController.ignoreTokens([address]);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,

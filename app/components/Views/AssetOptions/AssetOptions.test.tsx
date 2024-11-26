@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
-import { strings } from '../../../../locales/i18n';
+// import { strings } from '../../../../locales/i18n';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -123,18 +123,10 @@ describe('AssetOptions Component', () => {
       />,
     );
 
-    expect(
-      getByText(strings('asset_details.options.view_on_portfolio')),
-    ).toBeTruthy();
-    expect(
-      getByText(strings('asset_details.options.view_on_block')),
-    ).toBeTruthy();
-    expect(
-      getByText(strings('asset_details.options.token_details')),
-    ).toBeTruthy();
-    expect(
-      getByText(strings('asset_details.options.remove_token')),
-    ).toBeTruthy();
+    expect(getByText('View on Portfolio')).toBeTruthy();
+    expect(getByText('View on block explorer')).toBeTruthy();
+    expect(getByText('Token details')).toBeTruthy();
+    expect(getByText('Remove token')).toBeTruthy();
   });
 
   it('handles "View on Block Explorer" press', () => {
@@ -149,7 +141,7 @@ describe('AssetOptions Component', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('asset_details.options.view_on_block')));
+    fireEvent.press(getByText('View on block explorer'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -171,7 +163,7 @@ describe('AssetOptions Component', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('asset_details.options.remove_token')));
+    fireEvent.press(getByText('Remove token'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'AssetHideConfirmation',
       params: expect.anything(),
@@ -190,7 +182,7 @@ describe('AssetOptions Component', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('asset_details.options.token_details')));
+    fireEvent.press(getByText('Token details'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('AssetDetails');
   });
 });
