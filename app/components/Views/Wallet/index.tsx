@@ -1,10 +1,18 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
   View,
   TextStyle,
   Linking,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { connect, useSelector } from 'react-redux';
@@ -80,6 +88,7 @@ import {
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
   selectIsProfileSyncingEnabled,
+  selectIsAccountSyncingReadyToBeDispatched,
 } from '../../../selectors/notifications';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
@@ -88,6 +97,10 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  useDispatchAccountSyncing,
+  useSetIsAccountSyncingReadyToBeDispatched,
+} from '../../../util/notifications/hooks/useAccountSyncing';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -149,6 +162,10 @@ const Wallet = ({
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
+  const appState = useRef(AppState.currentState);
+  const { dispatchAccountSyncing } = useDispatchAccountSyncing();
+  const { setIsAccountSyncingReadyToBeDispatched } =
+    useSetIsAccountSyncingReadyToBeDispatched();
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
   const theme = useTheme();
@@ -288,6 +305,9 @@ const Wallet = ({
   );
 
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
+  const isAccountSyncingReadyToBeDispatched = useSelector(
+    selectIsAccountSyncingReadyToBeDispatched,
+  );
 
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
@@ -405,6 +425,38 @@ const Wallet = ({
     isProfileSyncingEnabled,
     unreadNotificationCount,
     readNotificationCount,
+  ]);
+
+  useLayoutEffect(() => {
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (
+        appState.current?.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        dispatchAccountSyncing();
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener(
+      'change',
+      handleAppStateChange,
+    );
+
+    if (!isAccountSyncingReadyToBeDispatched) {
+      setIsAccountSyncingReadyToBeDispatched(true);
+    } else {
+      dispatchAccountSyncing();
+    }
+
+    return () => {
+      subscription.remove();
+    };
+  }, [
+    dispatchAccountSyncing,
+    isAccountSyncingReadyToBeDispatched,
+    setIsAccountSyncingReadyToBeDispatched,
   ]);
 
   const renderTabBar = useCallback(

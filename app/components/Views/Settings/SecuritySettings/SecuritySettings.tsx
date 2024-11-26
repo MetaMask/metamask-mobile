@@ -89,7 +89,6 @@ import AutoDetectNFTSettings from '../../Settings/AutoDetectNFTSettings';
 import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
-import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 
@@ -593,13 +592,11 @@ const Settings: React.FC = () => {
             handleSwitchToggle={toggleBasicFunctionality}
           />
         </View>
-        {isNotificationsFeatureEnabled() && (
-          <ProfileSyncingComponent
-            handleSwitchToggle={toggleProfileSyncing}
-            isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
-            isProfileSyncingEnabled={isProfileSyncingEnabled}
-          />
-        )}
+        <ProfileSyncingComponent
+          handleSwitchToggle={toggleProfileSyncing}
+          isBasicFunctionalityEnabled={isBasicFunctionalityEnabled}
+          isProfileSyncingEnabled={isProfileSyncingEnabled}
+        />
         <Text
           variant={TextVariant.BodyLGMedium}
           color={TextColor.Alternative}

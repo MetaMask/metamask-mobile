@@ -2,7 +2,11 @@ import { getErrorMessage } from '@metamask/utils';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
-import { Notification, mmStorage, getAllUUIDs } from '../../../util/notifications';
+import {
+  Notification,
+  mmStorage,
+  getAllUUIDs,
+} from '../../../util/notifications';
 import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
 
 export type MarkAsReadNotificationsParam = Pick<
@@ -184,6 +188,18 @@ export const syncInternalAccountsWithUserStorage = async () => {
   }
 };
 
+export const setIsAccountSyncingReadyToBeDispatched = async (
+  isReady: boolean,
+) => {
+  try {
+    await Engine.context.UserStorageController.setIsAccountSyncingReadyToBeDispatched(
+      isReady,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
 /**
  * Perform the deletion of the notifications storage key and the creation of on chain triggers to reset the notifications.
  *
@@ -201,7 +217,10 @@ export const performDeleteStorage = async (): Promise<string | undefined> => {
     return getErrorMessage(error);
   }
 };
-export const enablePushNotifications = async (userStorage: UserStorage, fcmToken?: string) => {
+export const enablePushNotifications = async (
+  userStorage: UserStorage,
+  fcmToken?: string,
+) => {
   try {
     const uuids = getAllUUIDs(userStorage);
     await Engine.context.NotificationServicesPushController.enablePushNotifications(
@@ -224,7 +243,9 @@ export const disablePushNotifications = async (userStorage: UserStorage) => {
   }
 };
 
-export const updateTriggerPushNotifications = async (userStorage: UserStorage) => {
+export const updateTriggerPushNotifications = async (
+  userStorage: UserStorage,
+) => {
   try {
     const uuids = getAllUUIDs(userStorage);
     await Engine.context.NotificationServicesPushController.updateTriggerPushNotifications(

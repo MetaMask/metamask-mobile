@@ -18,6 +18,7 @@ import AddAccountModal from '../../../pages/modals/AddAccountModal';
 import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
 import { mockNotificationServices } from '../utils/mocks';
 import { SmokeNotifications } from '../../../tags';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(SmokeNotifications('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
@@ -32,9 +33,13 @@ describe(SmokeNotifications('Account syncing'), () => {
     const { userStorageMockttpControllerInstance } =
       await mockNotificationServices(mockServer);
 
-    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
-      getResponse: accountsSyncMockResponse,
-    });
+    userStorageMockttpControllerInstance.setupPath(
+      USER_STORAGE_FEATURE_NAMES.accounts,
+      mockServer,
+      {
+        getResponse: accountsSyncMockResponse,
+      },
+    );
 
     decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {

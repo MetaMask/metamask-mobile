@@ -181,6 +181,8 @@ export const sentryStateMask = {
       UserStorageController: {
         isProfileSyncingEnabled: true,
         isProfileSyncingUpdateLoading: false,
+        hasAccountSyncingSyncedAtLeastOnce: false,
+        isAccountSyncingReadyToBeDispatched: false,
       },
     },
   },

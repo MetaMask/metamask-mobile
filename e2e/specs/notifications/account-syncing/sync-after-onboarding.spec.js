@@ -1,4 +1,5 @@
 import { SDK } from '@metamask/profile-sync-controller';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
@@ -26,9 +27,13 @@ describe(SmokeNotifications('Account syncing'), () => {
     const { userStorageMockttpControllerInstance } =
       await mockNotificationServices(mockServer);
 
-    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
-      getResponse: accountsSyncMockResponse,
-    });
+    userStorageMockttpControllerInstance.setupPath(
+      USER_STORAGE_FEATURE_NAMES.accounts,
+      mockServer,
+      {
+        getResponse: accountsSyncMockResponse,
+      },
+    );
 
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
