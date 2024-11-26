@@ -446,7 +446,6 @@ export class Engine {
     });
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -1362,7 +1361,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1657,7 +1655,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
