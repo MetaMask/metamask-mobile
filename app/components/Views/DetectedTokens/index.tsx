@@ -176,7 +176,7 @@ const DetectedTokens = () => {
             const ignorePromises = Array.from(
               tokensToIgnoreByChainId.entries(),
             ).map(async ([networkId, tokens]) => {
-              const chainConfig = allNetworks[networkId as Hex];
+              const chainConfig = allNetworks[networkId];
               const { defaultRpcEndpointIndex } = chainConfig;
               const { networkClientId: networkInstanceId } =
                 chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
@@ -209,7 +209,7 @@ const DetectedTokens = () => {
 
               const importPromises = Array.from(tokensByChainId.entries()).map(
                 async ([networkId, tokens]) => {
-                  const chainConfig = allNetworks[networkId as Hex];
+                  const chainConfig = allNetworks[networkId];
                   const { defaultRpcEndpointIndex } = chainConfig;
                   const { networkClientId: networkInstanceId } =
                     chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
