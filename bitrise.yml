@@ -1169,6 +1169,9 @@ workflows:
     after_run:
       - build_android_release
   build_android_qa:
+  envs:
+      - MM_MULTICHAIN_V1_ENABLED: 'false'
+      - MM_CHAIN_PERMISSIONS: 'false'
     before_run:
       - code_setup
     after_run:
@@ -1703,4 +1706,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: test-multichain-e2e-ci-workflow
-    pipeline: multichain_e2e_pipeline
+    pipeline: create_qa_builds_pipeline

@@ -584,12 +584,13 @@ export const deprecatedGetNetworkId = async () => {
   });
 };
 
-export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
-export const isMultichainVersion1Enabled = process.env.MM_MULTICHAIN_V1_ENABLED;
+export const isMultichainVersion1Enabled =
+  process.env.MM_MULTICHAIN_V1_ENABLED === 'true';
 
 export const isChainPermissionsFeatureEnabled =
-  process.env.MM_CHAIN_PERMISSIONS;
+  process.env.MM_CHAIN_PERMISSIONS === 'true';
 
 export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED;
+  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
+
+export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
