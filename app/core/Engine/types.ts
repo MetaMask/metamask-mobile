@@ -2,18 +2,20 @@ import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
   AccountTrackerControllerState,
+  AccountTrackerControllerActions,
+  AccountTrackerControllerEvents,
   CurrencyRateController,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
   CurrencyRateState,
+  CurrencyRateControllerActions,
+  CurrencyRateControllerEvents,
   NftController,
   NftControllerState,
+  NftControllerActions,
+  NftControllerEvents,
   NftDetectionController,
   TokenListController,
   TokenListControllerActions,
   TokenListControllerEvents,
-  GetTokenListState,
-  TokenListStateChange,
   TokenListState,
   TokensController,
   TokensControllerActions,
@@ -21,17 +23,16 @@ import {
   TokensControllerState,
   TokenBalancesController,
   TokenBalancesControllerState,
+  TokenBalancesControllerActions,
+  TokenBalancesControllerEvents,
   TokenDetectionController,
   TokenRatesController,
   TokenRatesControllerState,
+  TokenRatesControllerActions,
+  TokenRatesControllerEvents,
   AssetsContractController,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
+  AssetsContractControllerActions,
+  AssetsContractControllerEvents,
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -65,15 +66,16 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
-  GasFeeStateChange,
-  GetGasFeeState,
   GasFeeState,
+  GasFeeControllerActions,
+  GasFeeControllerEvents,
 } from '@metamask/gas-fee-controller';
 import {
   ApprovalController,
@@ -101,6 +103,8 @@ import {
 } from '@metamask/permission-controller';
 import SwapsController, {
   SwapsControllerState,
+  SwapsControllerActions,
+  SwapsControllerEvents,
 } from '@metamask/swaps-controller';
 import {
   PPOMController,
@@ -117,6 +121,8 @@ import {
   SnapControllerActions,
   SnapsRegistryState,
   PersistedSnapControllerState,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -167,30 +173,29 @@ type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
+  | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
+  | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  | AccountTrackerControllerActions
+  | NftControllerActions
+  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
+  | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
@@ -198,49 +203,54 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
+  | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
+  | TokenRatesControllerActions
   | TokenListControllerActions
+  | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
+  | AssetsContractControllerActions;
 
 type GlobalEvents =
+  | AccountTrackerControllerEvents
+  | NftControllerEvents
+  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
+  | CurrencyRateControllerEvents
+  | GasFeeControllerEvents
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
+  | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
+  | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
+  | SmartTransactionsControllerEvents
+  | AssetsContractControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
