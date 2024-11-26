@@ -33,6 +33,11 @@ import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import stakingReducer from '../core/redux/slices/staking';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { MultichainSettingsState } from '../actions/multichain/state';
+import multichainReducer from './multichain';
+///: END:ONLY_INCLUDE_IF
+
 /**
  * Infer state from a reducer
  *
@@ -125,6 +130,9 @@ export interface RootState {
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   staking: StateFromReducer<typeof stakingReducer>;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  multichainSettings: MultichainSettingsState;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -165,6 +173,9 @@ const rootReducer = combineReducers<RootState, any>({
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   staking: stakingReducer,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  multichainSettings: multichainReducer,
+  ///: END:ONLY_INCLUDE_IF
 });
 
 export default rootReducer;
