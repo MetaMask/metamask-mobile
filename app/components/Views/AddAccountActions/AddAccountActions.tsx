@@ -28,6 +28,10 @@ import {
   hasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
+import {
+  selectIsBitcoinSupportEnabled,
+  selectIsBitcoinTestnetSupportEnabled,
+} from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -78,6 +82,12 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 
+  const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
+
+  const isBitcoinTestnetSupportEnabled = useSelector(
+    selectIsBitcoinTestnetSupportEnabled,
+  );
+
   const isBtcMainnetAccountAlreadyCreated = useSelector(
     hasCreatedBtcMainnetAccount,
   );
@@ -119,22 +129,30 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
           />
           {/* ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps) */}
-          <AccountAction
-            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
-            iconName={IconName.Add}
-            onPress={async () => {
-              await createBitcoinAccount(MultichainNetworks.BITCOIN);
-            }}
-            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
-          />
-          <AccountAction
-            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
-            iconName={IconName.Add}
-            onPress={async () => {
-              await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
-            }}
-            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
-          />
+          {isBitcoinSupportEnabled && (
+            <AccountAction
+              actionTitle={strings(
+                'account_actions.add_bitcoin_account_mainnet',
+              )}
+              iconName={IconName.Add}
+              onPress={async () => {
+                await createBitcoinAccount(MultichainNetworks.BITCOIN);
+              }}
+              disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+            />
+          )}
+          {isBitcoinTestnetSupportEnabled && (
+            <AccountAction
+              actionTitle={strings(
+                'account_actions.add_bitcoin_account_testnet',
+              )}
+              iconName={IconName.Add}
+              onPress={async () => {
+                await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
+              }}
+              disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+            />
+          )}
           {/* ///: END:ONLY_INCLUDE_IF */}
           <AccountAction
             actionTitle={strings('account_actions.import_account')}
