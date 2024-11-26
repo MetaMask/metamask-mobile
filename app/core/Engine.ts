@@ -281,7 +281,6 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
-import { RemoteFeatureFlagControllerActions } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 
 const NON_EMPTY = 'NON_EMPTY';
 
