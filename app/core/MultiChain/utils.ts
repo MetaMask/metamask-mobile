@@ -4,7 +4,9 @@ import {
   EthAccountType,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcAccountType,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-api';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { validate, Network } from 'bitcoin-address-validation';
 ///: END:ONLY_INCLUDE_IF
 
