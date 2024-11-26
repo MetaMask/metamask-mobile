@@ -278,6 +278,7 @@ import { trace } from '../util/trace';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { JsonMap } from './Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../components/UI/Stake/constants';
+import { StatefulControllers, STATELESS_NON_CONTROLLER_NAMES } from './Engine/types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -473,24 +474,6 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  * Controllers that are sometimes not instantiated
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
-
-/**
- * Messageable modules that are part of the Engine's context, but are not defined with state.
- * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
- */
-const STATELESS_NON_CONTROLLER_NAMES = [
-  'AssetsContractController',
-  'NftDetectionController',
-  'TokenDetectionController',
-] as const;
-
-/**
- * Controllers that are defined with state.
- */
-type StatefulControllers = Omit<
-  Controllers,
-  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
->;
 
 /**
  * Combines required and optional controllers for the Engine context type.
