@@ -13,6 +13,7 @@ import {
   RpcEndpointType,
 } from '@metamask/network-controller';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import { SecurityAlertSource } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -176,8 +177,8 @@ describe('PPOM Utils', () => {
       MockEngine.context.PreferencesController.state.securityAlertsEnabled =
         false;
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(0);
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate if request is send to users own account ', async () => {
@@ -384,6 +385,28 @@ describe('PPOM Utils', () => {
         .mockRejectedValue(new Error('Test Error'));
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('sets security alerts response to failed when security alerts API and controller PPOM throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+
+      const validateMock = () => new Error('Test Error');
+
+      const ppomMock = {
+        validateJsonRpc: validateMock,
+      };
+
+      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (callback: any) => callback(ppomMock),
+      );
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {chainId: CHAIN_ID_MOCK, req: { ...mockRequest } , source: SecurityAlertSource.Local});
     });
   });
 });
