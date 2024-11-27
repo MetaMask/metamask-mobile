@@ -5,7 +5,7 @@ import {
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
   DERIVATION_OPTIONS_DEFAULT_OWASP2023,
 } from './constants';
-import { pbkdf2, pbkdf2Forked } from './pbkdf2';
+import { pbkdf2 } from './pbkdf2';
 export {
   Encryptor,
   ENCRYPTION_LIBRARY,
@@ -13,5 +13,4 @@ export {
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
   DERIVATION_OPTIONS_DEFAULT_OWASP2023,
   pbkdf2,
-  pbkdf2Forked,
 };
