@@ -484,6 +484,8 @@ workflows:
   ios_build_regression_tests:
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
@@ -498,6 +500,8 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
@@ -1715,5 +1719,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: test-multichain-e2e-ci-workflow-tests
+  - push_branch: enable-mc-flag-off-regression
     pipeline: multichain_e2e_pipeline
