@@ -19,7 +19,7 @@ jest.mock('../../../../util/dappTransactions', () => ({
   handleGetGasLimit: jest.fn(),
 }));
 
-jest.mock('../../../../core/Engine.ts', () => ({
+jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
   context: {
     KeyringController: {

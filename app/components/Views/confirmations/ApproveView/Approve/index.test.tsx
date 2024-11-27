@@ -21,7 +21,7 @@ jest.mock('../../../../../core/GasPolling/GasPolling', () => ({
   stopGasPolling: jest.fn().mockResolvedValue(null),
 }));
 
-jest.mock('../../../../../core/Engine.ts', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     tryUnsubscribe: jest.fn(),
     subscribe: jest.fn(),
@@ -59,7 +59,8 @@ const routeMock = {
 };
 const hideModalMock = jest.fn();
 
-const renderComponent = ({ store }: { store: Store }) => render(
+const renderComponent = ({ store }: { store: Store }) =>
+  render(
     <Provider store={store}>
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>

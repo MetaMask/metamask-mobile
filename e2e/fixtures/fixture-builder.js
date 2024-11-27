@@ -389,7 +389,7 @@ class FixtureBuilder {
               topAggId: null,
               tokensLastFetched: 0,
               isInPolling: false,
-              pollingCyclesLeft: 3,
+              pollingCyclesLeft: 4,
               quoteRefreshSeconds: null,
               usedGasEstimate: null,
               usedCustomGas: null,
