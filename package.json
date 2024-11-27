@@ -146,7 +146,7 @@
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
-    "@metamask/eth-hd-keyring": "^8.0.0",
+    "@metamask/eth-hd-keyring": "^9.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
     "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
