@@ -1,7 +1,7 @@
 export const FEATURE_FLAG_NAME = 'mobileMinimumVersions';
 
 export interface FeatureFlagType {
-  [FEATURE_FLAG_NAME]: {
+  [featureFlagName: string]: {
     appMinimumBuild: number;
     appleMinimumOS: number;
     androidMinimumAPIVersion: number;
