@@ -201,6 +201,7 @@ const BuildQuote = () => {
     fromAddress: selectedAddress,
     chainId: selectedChainId,
     amount,
+    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
     isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
   });
 

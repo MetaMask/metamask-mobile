@@ -5,6 +5,8 @@ import useInterval from '../../../hooks/useInterval';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { generateTransferData } from '../../../../util/transactions';
+import { addHexPrefix, BN } from 'ethereumjs-util';
+import { toTokenMinimalUnit } from '../../../../util/number';
 
 const TRANSFER_GAS_LIMIT = 21000;
 const POLLING_INTERVAL = 15000; // 15 seconds
@@ -14,6 +16,7 @@ interface Options {
   fromAddress: string;
   chainId: string;
   amount: string;
+  decimals: number;
   isNativeToken: boolean;
 }
 
@@ -32,6 +35,7 @@ function useERC20GasLimitEstimation({
   fromAddress,
   chainId,
   amount,
+  decimals,
   isNativeToken,
 }: Options) {
   const [estimatedGasLimit, setEstimatedGasLimit] =
@@ -44,13 +48,18 @@ function useERC20GasLimitEstimation({
 
     const estimateGas = async () => {
       try {
+        const amountInMinimalUnit = toTokenMinimalUnit(amount, decimals);
+        const amountHex = addHexPrefix(
+          new BN(amountInMinimalUnit.toString()).toString('hex'),
+        );
+
         const transaction: TransactionParams = {
           from: safeToChecksumAddress(fromAddress) as string,
           to: safeToChecksumAddress(tokenAddress),
           value: '0x0',
           data: generateTransferData('transfer', {
             toAddress: safeToChecksumAddress(fromAddress),
-            amount,
+            amount: amountHex,
           }),
           chainId: toHex(chainId),
         };
@@ -63,7 +72,7 @@ function useERC20GasLimitEstimation({
     };
 
     estimateGas();
-  }, [tokenAddress, fromAddress, amount, chainId, isNativeToken]);
+  }, [tokenAddress, fromAddress, amount, decimals, chainId, isNativeToken]);
 
   useInterval(
     () => {
