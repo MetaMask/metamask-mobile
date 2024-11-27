@@ -221,7 +221,11 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      this.#cleanup();
+      const mobileReturnTxHashAsap =
+        this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
+      if (!mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
     }
   }
 
@@ -401,6 +405,7 @@ class SmartTransactionHook {
               smartTransaction,
             });
           }
+          this.#cleanup();
         }
       },
     );
