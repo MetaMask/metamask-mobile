@@ -34,12 +34,7 @@ function useERC20GasLimitEstimation({
     null,
   );
 
-  const estimateERC20GasLimit = ({
-    tokenAddress,
-    fromAddress,
-    chainId,
-    amount,
-  }: Options) => {
+  const estimateERC20GasLimit = () => {
     if (!tokenAddress || !fromAddress || !amount || !chainId) {
       return TRANSFER_GAS_LIMIT.toString();
     }
@@ -67,6 +62,7 @@ function useERC20GasLimitEstimation({
     estimateGas();
     return TRANSFER_GAS_LIMIT.toString();
   };
+
   usePolling({
     startPolling: estimateERC20GasLimit,
     stopPollingByPollingToken: () => {},
