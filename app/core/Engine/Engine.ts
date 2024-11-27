@@ -1,13 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
-import {
-  RemoteFeatureFlagController,
-  ClientConfigApiService,
-  ClientType,
-  DistributionType,
-  EnvironmentType,
-} from '@metamask/remote-feature-flag-controller';
 
 import {
   AccountTrackerController,
@@ -87,6 +80,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
+import RemoteFeatureFlagController from './controllers/RemoteFeatureFlagController';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
 import {
   isMainnetByChainId,
@@ -273,6 +267,9 @@ export class Engine {
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
+
+    // Basic Functionality toggle defaults to true
+    const isBasicFunctionalityEnabled = store.getState().settings?.basicFunctionalityEnabled ?? true;
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -486,47 +483,12 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
-    const getFeatureFlagAppEnvironment = () => {
-      const env = process.env.METAMASK_ENVIRONMENT;
-      switch(env) {
-        case 'local': return EnvironmentType.Development;
-        case 'pre-release': return EnvironmentType.ReleaseCandidate;
-        case 'production': return EnvironmentType.Production;
-        default: return EnvironmentType.Development;
-      }
-    };
-    const getFeatureFlagAppDistribution = () => {
-      const dist = process.env.METAMASK_BUILD_TYPE;
-      switch(dist) {
-        case 'main': return DistributionType.Main;
-        case 'flask': return DistributionType.Flask;
-        default: return DistributionType.Main;
-      }
-
-    };
-
-    const remoteFeatureFlagController = new RemoteFeatureFlagController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'RemoteFeatureFlagController',
-        allowedActions: [],
-        allowedEvents: [],
-      }),
-      state: {
-        ...initialState.RemoteFeatureFlagController
-      },
-      disabled:
-          store.getState().settings.basicFunctionalityEnabled === false,
-      clientConfigApiService: new ClientConfigApiService({
-        fetch: fetchFunction,
-        config: {
-          client: ClientType.Mobile,
-          environment: getFeatureFlagAppEnvironment(),
-          distribution: getFeatureFlagAppDistribution(),
-        },
-      }),
+    const remoteFeatureFlagController = RemoteFeatureFlagController.init({
+      initialState,
+      controllerMessenger: this.controllerMessenger,
+      fetchFunction,
+      disabled: !isBasicFunctionalityEnabled
     });
-
-    remoteFeatureFlagController.getRemoteFeatureFlags();
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -983,8 +945,7 @@ export class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
       getFeatureFlags: () => ({
-        disableSnaps:
-          store.getState().settings.basicFunctionalityEnabled === false,
+        disableSnaps: !isBasicFunctionalityEnabled,
       }),
     });
 
@@ -1805,7 +1766,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1816,9 +1777,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
