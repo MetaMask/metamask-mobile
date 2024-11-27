@@ -1,10 +1,12 @@
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountsControllerMessenger,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import {
   createAccountsController,
   defaultAccountsControllerState,
 } from './utils';
-import { ControllerMessenger } from '../../';
 import { withScope } from '@sentry/react-native';
 import { AGREED, METRICS_OPT_IN } from '../../../../constants/storage';
 import StorageWrapper from '../../../../store/storage-wrapper';
@@ -16,7 +18,24 @@ const mockedWithScope = jest.mocked(withScope);
 
 describe('accountControllersUtils', () => {
   describe('createAccountsController', () => {
+    let accountsControllerMessenger: AccountsControllerMessenger;
+
     beforeEach(() => {
+      const globalMessenger = new ExtendedControllerMessenger();
+      accountsControllerMessenger = globalMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
+      // Mock required for Logger
       StorageWrapper.getItem = jest.fn((key: string) => {
         switch (key) {
           case METRICS_OPT_IN:
@@ -32,14 +51,12 @@ describe('accountControllersUtils', () => {
     });
 
     it('AccountsController state should be default state when no initial state is passed in', () => {
-      const controllerMessenger = new ExtendedControllerMessenger();
       const accountsController = createAccountsController({
-        messenger: controllerMessenger,
+        messenger: accountsControllerMessenger,
       });
       expect(accountsController.state).toEqual(defaultAccountsControllerState);
     });
     it('AccountsController state should be initial state when initial state is passed in', () => {
-      const controllerMessenger = new ExtendedControllerMessenger();
       const initialAccountsControllerState: AccountsControllerState = {
         internalAccounts: {
           accounts: {},
@@ -47,27 +64,28 @@ describe('accountControllersUtils', () => {
         },
       };
       const accountsController = createAccountsController({
-        messenger: controllerMessenger,
+        messenger: accountsControllerMessenger,
         initialState: initialAccountsControllerState,
       });
       expect(accountsController.state).toEqual(initialAccountsControllerState);
     });
     it('AccountsController name should be AccountsController', () => {
-      const controllerMessenger = new ExtendedControllerMessenger();
       const accountsControllerName = 'AccountsController';
       const accountsController = createAccountsController({
-        messenger: controllerMessenger,
+        messenger: accountsControllerMessenger,
       });
       expect(accountsController.name).toEqual(accountsControllerName);
     });
-    it('should catch error when controller fails to initialize', async () => {
-      const controllerMessenger =
-        'controllerMessenger' as unknown as ControllerMessenger;
-      const accountsController = await createAccountsController({
-        messenger: controllerMessenger,
-      });
+    it('should detect and log an error when controller fails to initialize', async () => {
+      const brokenAccountsControllerMessenger =
+        'controllerMessenger' as unknown as AccountsControllerMessenger;
+      await expect(() =>
+        createAccountsController({
+          messenger: brokenAccountsControllerMessenger,
+        }),
+      ).toThrow();
+
       expect(mockedWithScope).toHaveBeenCalledTimes(1);
-      expect(accountsController).toEqual({});
     });
   });
 });

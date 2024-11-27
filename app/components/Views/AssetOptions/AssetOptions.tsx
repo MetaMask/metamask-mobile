@@ -59,7 +59,7 @@ const AssetOptions = (props: Props) => {
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -128,9 +128,13 @@ const AssetOptions = (props: Props) => {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
   };
 
   const removeToken = () => {
@@ -151,15 +155,21 @@ const AssetOptions = (props: Props) => {
                   tokenSymbol: tokenList[address.toLowerCase()]?.symbol || null,
                 }),
               });
-              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-                location: 'token_details',
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                tokens: [
-                  `${tokenList[address.toLowerCase()]?.symbol} - ${address}`,
-                ],
-                chain_id: getDecimalChainId(chainId),
-              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                  .addProperties({
+                    location: 'token_details',
+                    token_standard: 'ERC20',
+                    asset_type: 'token',
+                    tokens: [
+                      `${
+                        tokenList[address.toLowerCase()]?.symbol
+                      } - ${address}`,
+                    ],
+                    chain_id: getDecimalChainId(chainId),
+                  })
+                  .build(),
+              );
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }

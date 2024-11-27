@@ -3,6 +3,7 @@ import { ChainId } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -145,8 +146,9 @@ const wallet_addEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.NETWORK_SWITCHED,
-      analyticsParams,
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties(analyticsParams)
+        .build(),
     );
 
     res.result = null;
@@ -169,12 +171,16 @@ const wallet_addEthereumChain = async ({
   );
   requestData.alerts = alerts;
 
-  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.NETWORK_REQUESTED, {
-    chain_id: getDecimalChainId(chainId),
-    source: 'Custom Network API',
-    symbol: ticker,
-    ...analytics,
-  });
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_REQUESTED)
+      .addProperties({
+        chain_id: getDecimalChainId(chainId),
+        source: 'Custom Network API',
+        symbol: ticker,
+        ...analytics,
+      })
+      .build(),
+  );
   // Remove all existing approvals, including other add network requests.
   ApprovalController.clear(providerErrors.userRejectedRequest());
 
@@ -191,13 +197,16 @@ const wallet_addEthereumChain = async ({
       });
     } catch (error) {
       MetaMetrics.getInstance().trackEvent(
-        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-        {
-          chain_id: getDecimalChainId(chainId),
-          source: 'Custom Network API',
-          symbol: ticker,
-          ...analytics,
-        },
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        )
+          .addProperties({
+            chain_id: getDecimalChainId(chainId),
+            source: 'Custom Network API',
+            symbol: ticker,
+            ...analytics,
+          })
+          .build(),
       );
       throw providerErrors.userRejectedRequest();
     }
@@ -217,12 +226,16 @@ const wallet_addEthereumChain = async ({
       ],
     });
 
-    MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.NETWORK_ADDED, {
-      chain_id: getDecimalChainId(chainId),
-      source: 'Custom Network API',
-      symbol: ticker,
-      ...analytics,
-    });
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+          source: 'Custom Network API',
+          symbol: ticker,
+          ...analytics,
+        })
+        .build(),
+    );
 
     const { networkClientId } =
       networkConfiguration?.rpcEndpoints?.[
@@ -246,8 +259,9 @@ const wallet_addEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetricsEvents.NETWORK_SWITCHED,
-      analyticsParams,
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   } finally {
     endApprovalFlow({ id: approvalFlowId });

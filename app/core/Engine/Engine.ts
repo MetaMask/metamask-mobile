@@ -152,8 +152,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { createAccountsController } from './controllers/AccountsController/utils';
+} from './controllers/accounts/constants';
+import { AccountsControllerMessenger } from '@metamask/accounts-controller';
+import { createAccountsController } from './controllers/accounts/utils';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -339,8 +340,22 @@ export class Engine {
     });
 
     // Create AccountsController
+    const accountsControllerMessenger: AccountsControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'AccountsController',
+        allowedEvents: [
+          'SnapController:stateChange',
+          'KeyringController:accountRemoved',
+          'KeyringController:stateChange',
+        ],
+        allowedActions: [
+          'KeyringController:getAccounts',
+          'KeyringController:getKeyringsByType',
+          'KeyringController:getKeyringForAccount',
+        ],
+      });
     const accountsController = createAccountsController({
-      messenger: this.controllerMessenger,
+      messenger: accountsControllerMessenger,
       initialState: initialState.AccountsController,
     });
 
@@ -401,6 +416,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'NetworkController:stateChange',
           'TokenListController:stateChange',
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
@@ -431,7 +447,6 @@ export class Engine {
     });
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -1246,16 +1261,19 @@ export class Engine {
         }),
         trackMetaMetricsEvent: () =>
           MetaMetrics.getInstance().trackEvent(
-            MetaMetricsEvents.TOKEN_DETECTED,
-            {
-              token_standard: 'ERC20',
-              asset_type: 'token',
-              chain_id: getDecimalChainId(
-                networkController.getNetworkClientById(
-                  networkController?.state.selectedNetworkClientId,
-                ).configuration.chainId,
-              ),
-            },
+            MetricsEventBuilder.createEventBuilder(
+              MetaMetricsEvents.TOKEN_DETECTED,
+            )
+              .addProperties({
+                token_standard: 'ERC20',
+                asset_type: 'token',
+                chain_id: getDecimalChainId(
+                  networkController.getNetworkClientById(
+                    networkController?.state.selectedNetworkClientId,
+                  ).configuration.chainId,
+                ),
+              })
+              .build(),
           ),
         getBalancesInSingleCall:
           assetsContractController.getBalancesInSingleCall.bind(
@@ -1292,16 +1310,20 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
-            'AssetsContractController:getERC20BalanceOf',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'TokensController:getState',
+            'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'PreferencesController:stateChange',
+            'NetworkController:stateChange',
+          ],
         }),
+        // TODO: This is long, can we decrease it?
         interval: 180000,
-        tokens: [
-          ...tokensController.state.tokens,
-          ...tokensController.state.detectedTokens,
-        ],
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({
@@ -1344,7 +1366,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1358,6 +1379,7 @@ export class Engine {
           ],
           allowedEvents: [],
         }),
+        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1639,7 +1661,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
@@ -1730,8 +1751,13 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
+
+        const tokenBalances =
+          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
+            chainId
+          ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -1741,7 +1767,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -1822,19 +1848,20 @@ export class Engine {
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
-      const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+
+      const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
-        if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
-        ) {
-          tokenFound = true;
+      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+        for (const tokens of Object.values(chains)) {
+          for (const balance of Object.values(tokens)) {
+            if (!isZero(balance)) {
+              tokenFound = true;
+              break tokenLoop;
+            }
+          }
         }
-      });
+      }
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
