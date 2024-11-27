@@ -15,4 +15,7 @@ export const ConnectedAccountsSelectorsIDs = {
   NETWORK_PICKER: 'accounts-connected-network-picker',
   DISCONNECT_ALL_BUTTON: 'accounts-connected-revoke-button',
   CONTAINER: 'accounts-connected-modal-container',
+  MANAGE_PERMISSIONS: 'manage_permissions',
+  DISCONNECT: 'disconnect',
+  DISCONNECT_ALL_ACCOUNTS_NETWORKS: 'disconnect_all',
 };

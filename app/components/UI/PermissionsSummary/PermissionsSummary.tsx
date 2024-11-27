@@ -45,6 +45,7 @@ import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selector
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -435,6 +436,9 @@ const PermissionsSummary = ({
               <Button
                 variant={ButtonVariants.Secondary}
                 label={strings('accounts.disconnect_all')}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
+                }
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}
                 isDanger

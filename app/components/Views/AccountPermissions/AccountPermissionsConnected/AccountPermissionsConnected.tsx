@@ -203,6 +203,7 @@ const AccountPermissionsConnected = ({
           style={styles.managePermissionsButton}
           variant={ButtonVariants.Secondary}
           label={strings('permissions.manage_permissions')}
+          testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
           size={ButtonSize.Lg}
           onPress={() => {
             onSetPermissionsScreen(
