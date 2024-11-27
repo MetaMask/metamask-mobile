@@ -277,6 +277,7 @@ const NetworkSelector = () => {
 
         await NetworkController.setActiveNetwork(networkClientId);
       }
+
       setTokenNetworkFilter(chainId);
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
@@ -392,6 +393,7 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
+      setTokenNetworkFilter(networkConfiguration.chainId);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();

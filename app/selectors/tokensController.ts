@@ -46,6 +46,7 @@ export const selectAllTokens = createSelector(
     tokensControllerState?.allTokens,
 );
 
+// @ts-expect-error TODO: Resolve mismatch between base-controller versions.
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,

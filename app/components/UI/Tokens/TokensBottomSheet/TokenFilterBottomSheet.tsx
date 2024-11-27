@@ -63,6 +63,10 @@ const TokenFilterBottomSheet = () => {
   const isCurrentNetwork = Boolean(
     tokenNetworkFilter[chainId] && Object.keys(tokenNetworkFilter).length === 1,
   );
+  console.log('======================================');
+  console.log('isCurrentNetwork:', isCurrentNetwork);
+  console.log('isCurrentNetwork:', isCurrentNetwork);
+  console.log('======================================');
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
       <View style={styles.bottomSheetWrapper}>

@@ -34,6 +34,7 @@ describe('AssetsDetails', () => {
           route={{
             params: {
               address: '0xAddress.',
+              chainId: '0x1',
             },
           }}
         />
