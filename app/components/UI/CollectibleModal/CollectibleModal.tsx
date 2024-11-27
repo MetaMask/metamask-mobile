@@ -33,7 +33,7 @@ import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 const CollectibleModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const chainId = useSelector(selectChainId);
 
   const { contractName, collectible } = useParams<CollectibleModalParams>();
@@ -68,9 +68,11 @@ const CollectibleModal = () => {
   }, [handleUpdateCollectible]);
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED, {
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_DETAILS_OPENED)
+        .addProperties({ chain_id: getDecimalChainId(chainId) })
+        .build(),
+    );
     // The linter wants `trackEvent` to be added as a dependency,
     // But the event fires twice if I do that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
