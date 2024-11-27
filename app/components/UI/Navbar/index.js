@@ -1731,7 +1731,7 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true } = {},
+  { title = null, showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
