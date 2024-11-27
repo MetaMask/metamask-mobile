@@ -1,6 +1,10 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../.';
-import { FEATURE_FLAG_NAME, FeatureFlagType } from './types';
+import {
+  FEATURE_FLAG_NAME,
+  FeatureFlagType,
+  UndefinedFeatureFlagType,
+} from './types';
 
 const featureFlagFallback: FeatureFlagType = {
   [FEATURE_FLAG_NAME]: {
@@ -18,10 +22,11 @@ export const selectMobileMinimumVersions = createSelector(
         featureflag[FEATURE_FLAG_NAME]
     );
 
-    return (
-      remoteFeatureFlag as FeatureFlagType
-      ?? featureFlagFallback
-    )[FEATURE_FLAG_NAME];
+    const featureFlagValues =
+      remoteFeatureFlag as UndefinedFeatureFlagType
+      ?? featureFlagFallback;
+
+    return featureFlagValues[FEATURE_FLAG_NAME];
   }
 );
 

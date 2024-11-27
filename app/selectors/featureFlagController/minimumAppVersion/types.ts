@@ -8,3 +8,4 @@ export interface FeatureFlagType {
   }
 }
 
+export type UndefinedFeatureFlagType = FeatureFlagType | undefined
