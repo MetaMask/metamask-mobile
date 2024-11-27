@@ -1379,6 +1379,7 @@ export class Engine {
           ],
           allowedEvents: [],
         }),
+        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
