@@ -269,7 +269,8 @@ export class Engine {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     // Basic Functionality toggle defaults to true
-    const isBasicFunctionalityEnabled = store.getState().settings?.basicFunctionalityEnabled ?? true;
+    const getBasicFunctionalityToggleState = () =>
+      store.getState().settings?.basicFunctionalityEnabled ?? true;
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -487,7 +488,7 @@ export class Engine {
       initialState,
       controllerMessenger: this.controllerMessenger,
       fetchFunction,
-      disabled: !isBasicFunctionalityEnabled
+      disabled: getBasicFunctionalityToggleState() === false
     });
 
     const phishingController = new PhishingController({
@@ -945,7 +946,7 @@ export class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
       getFeatureFlags: () => ({
-        disableSnaps: !isBasicFunctionalityEnabled,
+        disableSnaps: getBasicFunctionalityToggleState() === false,
       }),
     });
 
