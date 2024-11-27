@@ -25,13 +25,11 @@ class ConnectedAccountsModal {
     );
   }
   get disconnectButton() {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.DISCONNECT,
-    );
+    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
   get disconnectAllAccountsAndNetworksButton() {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
@@ -41,8 +39,8 @@ class ConnectedAccountsModal {
     );
   }
   get managePermissionsButton() {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.MANAGE_PERMISSIONS,
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
