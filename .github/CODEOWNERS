@@ -17,9 +17,7 @@ app/core/Engine/controllers/RemoteFeatureFlagController/    @MetaMask/mobile-pla
 app/core/Analytics/                                         @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
 app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
-app/selectors/featureFlagController/index.ts                @MetaMask/mobile-platform
-app/selectors/featureFlagController/index.test.ts           @MetaMask/mobile-platform
-app/selectors/featureFlagController/mocks.ts                @MetaMask/mobile-platform
+app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
 app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
 app/store/migrations/                                       @MetaMask/mobile-platform
 bitrise.yml                                                 @MetaMask/mobile-platform
