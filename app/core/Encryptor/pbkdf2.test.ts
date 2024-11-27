@@ -114,7 +114,6 @@ describe('pbkdf2Forked', () => {
     ).rejects.toThrow('Native module error');
   });
 
-  // Test with minimum iterations
   it('should work with minimum iterations', async () => {
     NativeModules.AesForked.pbkdf2 = jest
       .fn()
@@ -131,7 +130,6 @@ describe('pbkdf2Forked', () => {
     expect(result).toBeDefined();
   });
 
-  // Test with large iterations
   it('should handle large number of iterations', async () => {
     NativeModules.AesForked.pbkdf2 = jest
       .fn()
