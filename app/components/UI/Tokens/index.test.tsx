@@ -223,6 +223,13 @@ jest.mock('../Stake/hooks/useStakingChain', () => ({
   }),
 }));
 
+const mockIsPortfolioViewEnabled = jest.fn();
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isPortfolioViewEnabled: mockIsPortfolioViewEnabled,
+}));
+
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -242,6 +249,10 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    mockIsPortfolioViewEnabled.mockReturnValue(false);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
@@ -468,6 +479,48 @@ describe('Tokens', () => {
 
     await waitFor(() => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
+    });
+  });
+
+  it('navigates to Stake Input screen only when eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+
+  it('does not navigate to Stake Input screen if not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
+
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).not.toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
     });
   });
 });

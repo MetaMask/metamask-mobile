@@ -64,6 +64,16 @@ const mockInitialState = {
   },
 };
 
+jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
+  getTestNetImageByChainId: jest.fn((chainId) => `testnet-image-${chainId}`),
+}));
+
+jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
+  isPortfolioViewEnabledFunction: jest.fn(),
+}));
+
 describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
@@ -129,6 +139,35 @@ describe('Balance', () => {
     const assetElement = queryByTestId('asset-ETH');
     fireEvent.press(assetElement);
     expect(mockNavigate).toHaveBeenCalledTimes(0);
+  });
+
+  describe('NetworkBadgeSource', () => {
+    it('returns testnet image for a testnet chainId', () => {
+      const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+      expect(result).toBeDefined();
+    });
+
+    it('returns mainnet Ethereum image for mainnet chainId', () => {
+      const result = NetworkBadgeSource('0x1', 'ETH');
+      expect(result).toBeDefined();
+    });
+
+    it('returns Linea Mainnet image for Linea mainnet chainId', () => {
+      const result = NetworkBadgeSource('0xe708', 'LINEA');
+      expect(result).toBeDefined();
+    });
+
+    it('returns undefined if no image is found', () => {
+      const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+      expect(result).toBeUndefined();
+    });
+
+    it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
+      if (isPortfolioViewEnabled) {
+        const result = NetworkBadgeSource('0xe708', 'LINEA');
+        expect(result).toBeDefined();
+      }
+    });
   });
 });
 

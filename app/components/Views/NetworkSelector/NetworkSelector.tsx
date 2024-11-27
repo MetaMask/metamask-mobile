@@ -26,11 +26,11 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import {
-  selectIsAllNetworksTokenFilter,
-  selectShowTestNetworks,
-} from '../../../selectors/preferencesController';
+  selectNetworkConfigurations,
+  selectIsAllNetworks,
+} from '../../../selectors/networkController';
+import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
   getDecimalChainId,
@@ -126,7 +126,7 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 

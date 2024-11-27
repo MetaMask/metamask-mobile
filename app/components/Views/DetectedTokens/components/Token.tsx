@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Token as TokenType } from '@metamask/assets-controllers';
+import {
+  MarketDataDetails,
+  Token as TokenType,
+} from '@metamask/assets-controllers';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
@@ -31,31 +34,6 @@ import Badge, {
 import { NetworkBadgeSource } from '../../../UI/AssetOverview/Balance/Balance';
 import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../constants/network';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { selectIsAllNetworksTokenFilter } from '../../../../selectors/preferencesController';
-
-// Replace this interface by importing from TokenRatesController when it exports it
-interface MarketDataDetails {
-  tokenAddress: `0x${string}`;
-  currency: string;
-  allTimeHigh: number;
-  allTimeLow: number;
-  circulatingSupply: number;
-  dilutedMarketCap: number;
-  high1d: number;
-  low1d: number;
-  marketCap: number;
-  marketCapPercentChange1d: number;
-  price: number;
-  priceChange1d: number;
-  pricePercentChange1d: number;
-  pricePercentChange1h: number;
-  pricePercentChange1y: number;
-  pricePercentChange7d: number;
-  pricePercentChange14d: number;
-  pricePercentChange30d: number;
-  pricePercentChange200d: number;
-  totalVolume: number;
-}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -138,13 +116,13 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenBalances =
     balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
   const conversionRateByChainId = useSelector(selectConversionRateForAllChains);
+  const chainIdToUse = token.chainId ?? currentChainId;
 
   const conversionRate =
     conversionRateByChainId[CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId]]
       ?.conversionRate;
 
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
 
   const tokenMarketData =
     (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
@@ -191,31 +169,20 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 
   return (
     <View style={styles.tokenContainer}>
-      {process.env.PORTFOLIO_VIEW === 'true' && isAllNetworks ? (
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(
-                token.chainId as Hex,
-                token.symbol,
-              )}
-            />
-          }
-        >
-          <TokenImage
-            asset={token}
-            containerStyle={styles.logo}
-            iconStyle={styles.logo}
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource(chainIdToUse, token.symbol)}
           />
-        </BadgeWrapper>
-      ) : (
+        }
+      >
         <TokenImage
           asset={token}
           containerStyle={styles.logo}
           iconStyle={styles.logo}
         />
-      )}
+      </BadgeWrapper>
 
       <View style={styles.tokenInfoContainer}>
         <Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>

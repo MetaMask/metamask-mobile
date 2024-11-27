@@ -17,16 +17,16 @@ export const selectTokensBalances = createSelector(
 
 export const selectContractBalances = createSelector(
   selectTokenBalancesControllerState,
-  selectChainId,
   selectSelectedInternalAccountAddress,
+  selectChainId,
   (
     tokenBalancesControllerState: TokenBalancesControllerState,
+    selectedInternalAccountAddress: string | undefined,
     chainId: string,
-    address,
   ) =>
-    tokenBalancesControllerState.tokenBalances?.[address as Hex]?.[
-      chainId as Hex
-    ] ?? {},
+    tokenBalancesControllerState.tokenBalances?.[
+      selectedInternalAccountAddress as Hex
+    ]?.[chainId as Hex] ?? {},
 );
 
 export const selectAllTokenBalances = createSelector(

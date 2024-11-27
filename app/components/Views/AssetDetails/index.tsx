@@ -136,8 +136,9 @@ const AssetDetails = (props: Props) => {
   const selectedChainId = useSelector(selectChainId);
   const chainId = isPortfolioViewEnabled ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
+
   const tokensByChain = useMemo(
-    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? {},
+    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? [],
     [allTokens, chainId, selectedAccountAddress],
   );
 
@@ -161,6 +162,7 @@ const AssetDetails = (props: Props) => {
   );
   const tokenBalancesLegacy = useSelector(selectContractBalances);
   const allTokenBalances = useSelector(selectTokensBalances);
+
   const portfolioToken = useMemo(
     () => tokensByChain.find((rawToken) => rawToken.address === address),
     [tokensByChain, address],
@@ -315,13 +317,18 @@ const AssetDetails = (props: Props) => {
     const tokenBalances = isPortfolioViewEnabled
       ? allTokenBalances
       : tokenBalancesLegacy;
+
     const multiChainTokenBalance =
-      allTokenBalances[selectedAccountAddress as Hex]?.[chainId as Hex]?.[
-        address as Hex
-      ];
+      Object.keys(allTokenBalances).length > 0
+        ? allTokenBalances[selectedAccountAddress as Hex]?.[chainId as Hex]?.[
+            address as Hex
+          ]
+        : undefined;
+
     const tokenBalance = isPortfolioViewEnabled
       ? multiChainTokenBalance
       : tokenBalancesLegacy[address];
+
     const conversionRate = isPortfolioViewEnabled
       ? conversionRateBySymbol
       : conversionRateLegacy;
@@ -330,10 +337,13 @@ const AssetDetails = (props: Props) => {
       tokenExchangeRates && address in tokenExchangeRates
         ? tokenExchangeRates[address]?.price
         : undefined;
-    const balance =
-      address in tokenBalances || isPortfolioViewEnabled
-        ? renderFromTokenMinimalUnit(tokenBalance, decimals)
-        : undefined;
+
+    const balance = tokenBalance
+      ? address in tokenBalances || isPortfolioViewEnabled || !tokenBalance
+        ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
+        : undefined
+      : undefined;
+
     const balanceFiat = balance
       ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
       : undefined;

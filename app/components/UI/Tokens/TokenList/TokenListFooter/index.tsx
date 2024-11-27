@@ -29,12 +29,12 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../../../util/networks';
-import { selectChainId } from '../../../../../selectors/networkController';
-import { TokenI } from '../../types';
 import {
-  selectUseTokenDetection,
-  selectIsAllNetworksTokenFilter,
-} from '../../../../../selectors/preferencesController';
+  selectChainId,
+  selectIsAllNetworks,
+} from '../../../../../selectors/networkController';
+import { TokenI } from '../../types';
+import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
@@ -74,7 +74,7 @@ export const TokenListFooter = ({
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const styles = createStyles(colors);
 

@@ -14,7 +14,7 @@ import {
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
-  isPortfolioViewEnabled,
+  isPortfolioViewEnabledFunction,
 } from '../../../../util/networks';
 import images from '../../../../images/image-icons';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -46,7 +46,7 @@ interface BalanceProps {
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabledFunction()) {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
     if (isMainnet) return images.ETHEREUM;
 
@@ -58,9 +58,13 @@ export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
 
     return ticker ? images[ticker as keyof typeof images] : undefined;
   }
+
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const defaultNetwork = getDefaultNetworkByChainId(chainId) as any;
+  const defaultNetwork = getDefaultNetworkByChainId(chainId) as
+    | {
+        imageSource: string;
+      }
+    | undefined;
 
   if (defaultNetwork) {
     return defaultNetwork.imageSource;
@@ -89,20 +93,16 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkName = useSelector(selectNetworkName);
-  const selectedChainId = useSelector(selectChainId);
-
-  const chainId = isPortfolioViewEnabled
-    ? (asset.chainId as Hex)
-    : selectedChainId;
+  const chainId = useSelector(selectChainId);
 
   const ticker = asset.symbol;
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!isPortfolioViewEnabled && asset.isETH) {
+    if (!isPortfolioViewEnabledFunction() && asset.isETH) {
       return <NetworkMainAssetLogo style={styles.ethLogo} />;
     }
 
-    if (isPortfolioViewEnabled && asset.isNative) {
+    if (isPortfolioViewEnabledFunction() && asset.isNative) {
       return (
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}

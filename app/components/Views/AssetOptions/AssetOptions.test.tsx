@@ -141,7 +141,6 @@ describe('AssetOptions Component', () => {
   it('handles "View on Block Explorer" press', () => {
     const { getByText } = render(
       <AssetOptions
-        // navigation={mockNavigation}
         route={{
           params: {
             address: '0x123',

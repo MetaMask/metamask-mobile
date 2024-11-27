@@ -127,10 +127,3 @@ export const selectPrivacyMode = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.privacyMode,
 );
-
-export const selectIsAllNetworksTokenFilter = createSelector(
-  selectTokenNetworkFilter,
-  selectNetworkConfigurations,
-  (tokenNetworkFilter, allNetworks) =>
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length,
-);

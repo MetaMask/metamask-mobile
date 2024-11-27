@@ -35,6 +35,7 @@ import {
 } from '../../../selectors/tokensController';
 import {
   selectChainId,
+  selectIsAllNetworks,
   selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
@@ -44,7 +45,6 @@ import BottomSheet, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { DetectedTokensSelectorIDs } from '../../../../e2e/selectors/wallet/DetectedTokensView.selectors';
 import { TokenI } from '../../UI/Tokens/types';
-import { selectIsAllNetworksTokenFilter } from '../../../selectors/preferencesController';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,7 +102,7 @@ const DetectedTokens = () => {
     {},
   );
   const allNetworks = useSelector(selectNetworkConfigurations);
-  const isAllNetworks = useSelector(selectIsAllNetworksTokenFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -128,11 +128,11 @@ const DetectedTokens = () => {
       let title = '';
       let description = '';
       let errorMsg = '';
-      const tokensToIgnore: string[] = [];
+      const tokensToIgnore: TokenType[] = [];
       const tokensToImport = currentDetectedTokens.filter((token) => {
         const isIgnored = ignoreAllTokens || ignoredTokens[token.address];
         if (isIgnored) {
-          tokensToIgnore.push(token.address);
+          tokensToIgnore.push(token);
         }
         return !isIgnored;
       });
@@ -159,8 +159,39 @@ const DetectedTokens = () => {
 
       sheetRef.current?.onCloseBottomSheet(async () => {
         try {
-          tokensToIgnore.length > 0 &&
-            (await TokensController.ignoreTokens(tokensToIgnore));
+          if (tokensToIgnore.length > 0) {
+            const tokensToIgnoreByChainId = tokensToIgnore.reduce<
+              Map<Hex, TokenType[]>
+            >((acc, token) => {
+              const tokenChainId: Hex =
+                (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+
+              if (!acc.has(tokenChainId)) {
+                acc.set(tokenChainId, []);
+              }
+
+              acc.get(tokenChainId)?.push(token);
+              return acc;
+            }, new Map());
+
+            const ignorePromises = Array.from(
+              tokensToIgnoreByChainId.entries(),
+            ).map(async ([networkId, tokens]) => {
+              const chainConfig = allNetworks[networkId];
+              const { defaultRpcEndpointIndex } = chainConfig;
+              const { networkClientId: networkInstanceId } =
+                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+              const tokenAddresses = tokens.map((token) => token.address);
+
+              await TokensController.ignoreTokens(
+                tokenAddresses,
+                networkInstanceId,
+              );
+            });
+
+            await Promise.all(ignorePromises);
+          }
           if (tokensToImport.length > 0) {
             if (isPortfolioViewEnabled) {
               const tokensByChainId = tokensToImport.reduce<
@@ -222,12 +253,12 @@ const DetectedTokens = () => {
     },
     [
       chainId,
+      trackEvent,
+      createEventBuilder,
       currentDetectedTokens,
       ignoredTokens,
-      trackEvent,
       selectedNetworkClientId,
       allNetworks,
-      createEventBuilder,
     ],
   );
 

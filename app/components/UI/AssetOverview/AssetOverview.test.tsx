@@ -102,6 +102,8 @@ jest.mock('../../../util/networks', () => ({
   getDefaultNetworkByChainId: jest.fn().mockReturnValue('ETH'),
   getTestNetImageByChainId: jest.fn().mockReturnValue('mockedImageSource'),
   getDecimalChainId: jest.fn().mockReturnValue(18),
+  isPortfolioViewEnabled: false,
+  isPortfolioViewEnabledFunction: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../core/Engine', () => ({
