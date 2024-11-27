@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -7,6 +7,8 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
+import useOriginSource from '../../hooks/useOriginSource';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type
@@ -20,8 +22,10 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
   const totalAccounts = useSelector(selectAccountsLength);
   const isProcessing = useRef<boolean>(false);
 
+  const eventSource = useOriginSource({ origin: approvalRequest?.requestData?.metadata?.origin });
+
   useEffect(() => {
-    if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS) {
+    if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS || !eventSource) {
       isProcessing.current = false;
       return;
     }
@@ -38,11 +42,15 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
+    DevLogger.log(
+      `PermissionApproval::useEffect() totalAccounts=${totalAccounts} source=${eventSource}`,
+    );
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
         .addProperties({
           number_of_accounts: totalAccounts,
-          source: 'PERMISSION SYSTEM',
+          source: eventSource,
         })
         .build(),
     );
@@ -59,6 +67,7 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     props.navigation,
     trackEvent,
     createEventBuilder,
+    eventSource,
   ]);
 
   return null;
