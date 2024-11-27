@@ -52,8 +52,8 @@ function useERC20GasLimitEstimation({
           chainId: `0x${Number(chainId).toString(16)}`,
         };
 
-        const estimatedGasLimit = await getGasLimit(transaction);
-        setEstimatedGasLimit(estimatedGasLimit.gas.toNumber());
+        const gasLimitResponse = await getGasLimit(transaction);
+        setEstimatedGasLimit(gasLimitResponse.gas.toNumber());
       } catch (error) {
         console.error('Failed to estimate ERC20 transfer gas limit:', error);
       }
