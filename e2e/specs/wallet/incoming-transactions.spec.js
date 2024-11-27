@@ -8,6 +8,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import ToastModal from '../../pages/modals/ToastModal';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -189,6 +190,24 @@ describe(SmokeCore('Incoming Transactions'), () => {
                 await ActivitiesView.swipeDown();
                 await TestHelpers.delay(2000);
                 await Assertions.checkIfTextIsNotDisplayed('Received ETH');
+            }
+        );
+    });
+
+    it('displays notification', async () => {
+        await startMockServer({ GET: [mockAccountsApi()] });
+
+        await withFixtures(
+            {
+                fixture: new FixtureBuilder()
+                    .build(),
+                restartDevice: true
+            },
+            async () => {
+                await loginToApp();
+                await TabBarComponent.tapActivity();
+                await ActivitiesView.swipeDown();
+                await Assertions.checkIfElementToHaveText(await ToastModal.notificationTitle, 'You received 1.23 ETH');
             }
         );
     });

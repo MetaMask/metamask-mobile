@@ -225,7 +225,7 @@ const mapStateToProps = (state) => {
   return {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
-    tokens: selectAllTokensFlat(state),
+    tokens: selectTokens(state),
     selectedInternalAccount: selectSelectedInternalAccount(state),
     transactions: [
       ...nonReplacedTransactions,

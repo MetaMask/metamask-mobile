@@ -949,7 +949,7 @@ class FixtureBuilder {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
         [CHAIN_IDS.MAINNET]: {
-          [DEFAULT_FIXTURE_ACCOUNT.toLowerCase()]: tokens,
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         }
       }
     });
