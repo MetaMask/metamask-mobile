@@ -8,7 +8,6 @@ import {
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import { EncryptionLibrary, KeyDerivationOptions } from './types';
-import { bytesToString, hexToBytes } from '@metamask/utils';
 
 // Actual native libraries
 const Aes = NativeModules.Aes;
