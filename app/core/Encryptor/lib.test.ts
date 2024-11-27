@@ -4,16 +4,11 @@ import {
   LEGACY_DERIVATION_OPTIONS,
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
 } from './constants';
-import { stringToBytes } from '@metamask/utils';
-import { NativeModules } from 'react-native';
 
 const mockPassword = 'mockPassword';
 const mockSalt = '00112233445566778899001122334455';
 
 describe('lib', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
   describe('getLib', () => {
     it('returns the original library', () => {
       const lib = AesLib;
@@ -65,55 +60,6 @@ describe('lib', () => {
       ).rejects.toThrow(
         `Invalid number of iterations, should be: ${LEGACY_DERIVATION_OPTIONS.params.iterations}`,
       );
-    });
-
-    it('should use the native implementation of pbkdf2 with main aes', async () => {
-      NativeModules.Aes.pbkdf2 = jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve(
-            'd5217329ae279885bbfe1f25ac3aacc9adabc3c9c0b9bdbaa1c095c8b03dcad0d703f96a4fa453c960a9a3e540c585fd7e6406edae20b995dcef6a0883919457',
-          ),
-        );
-
-      const mockPasswordBytes = stringToBytes(mockPassword);
-      const mockSaltBytes = stringToBytes(mockSalt);
-      const mockIterations = 2048;
-      const mockKeyLength = 64; // 512 bits
-      const lib = getEncryptionLibrary(ENCRYPTION_LIBRARY.original);
-
-      await expect(
-        lib.pbkdf2(
-          mockPasswordBytes,
-          mockSaltBytes,
-          mockIterations,
-          mockKeyLength,
-        ),
-      ).resolves.toBeDefined();
-    });
-    it('should use the native implementation of pbkdf2 with forked aes', async () => {
-      NativeModules.AesForked.pbkdf2 = jest
-        .fn()
-        .mockImplementation(() =>
-          Promise.resolve(
-            'd5217329ae279885bbfe1f25ac3aacc9adabc3c9c0b9bdbaa1c095c8b03dcad0d703f96a4fa453c960a9a3e540c585fd7e6406edae20b995dcef6a0883919457',
-          ),
-        );
-
-      const mockPasswordBytes = stringToBytes(mockPassword);
-      const mockSaltBytes = stringToBytes(mockSalt);
-      const mockIterations = 2048;
-      const mockKeyLength = 64; // 512 bits
-      const lib = getEncryptionLibrary(ENCRYPTION_LIBRARY.original);
-
-      await expect(
-        lib.pbkdf2(
-          mockPasswordBytes,
-          mockSaltBytes,
-          mockIterations,
-          mockKeyLength,
-        ),
-      ).resolves.toBeDefined();
     });
   });
 });
