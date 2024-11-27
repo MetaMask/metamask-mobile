@@ -1705,8 +1705,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
-            ...trade,
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
             responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
           })
           .build(),
       );
@@ -1724,8 +1731,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
-            ...trade,
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
             responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
           })
           .build(),
       );
