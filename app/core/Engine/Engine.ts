@@ -60,7 +60,6 @@ import {
   SnapController,
   SnapsRegistryMessenger,
   SnapInterfaceController,
-  SnapInterfaceControllerState,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -1427,7 +1426,6 @@ export class Engine {
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
       }),
-      snapInterfaceController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: this.snapController,
