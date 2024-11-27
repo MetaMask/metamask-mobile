@@ -5,7 +5,7 @@ import {
   getLocalTestDappPort,
 } from './fixtures/utils';
 import Utilities from './utils/Utilities';
-const { resolveConfig } = require('detox/internals');
+import { resolveConfig } from 'detox/internals';
 
 export default class TestHelpers {
   static async waitAndTap(elementId, timeout, index) {
@@ -285,10 +285,10 @@ export default class TestHelpers {
     const platform = device.getPlatform();
     if (config.configurationName.endsWith('debug')) {
       return this.launchAppForDebugBuild(platform, launchOptions);
-    } else {
-      return device.launchApp(launchOptions);
     }
-  };
+
+    return device.launchApp(launchOptions);
+  }
 
   static async launchAppForDebugBuild(platform, launchOptions) {
     const deepLinkUrl = this.getDeepLinkUrl(this.getDevLauncherPackagerUrl(platform));
@@ -298,12 +298,12 @@ export default class TestHelpers {
       return device.openURL({
         url: deepLinkUrl,
       });
-    } else {
-      return device.launchApp({
-        url: deepLinkUrl,
-        ...launchOptions
-      });
     }
+
+    return device.launchApp({
+      url: deepLinkUrl,
+      ...launchOptions
+    });
   }
 
   static getDeepLinkUrl(url) {
@@ -314,9 +314,4 @@ export default class TestHelpers {
   static getDevLauncherPackagerUrl(platform) {
     return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
   }
-
-  static getAppId() {
-    return appConfig?.expo?.extra?.eas?.projectId ?? '';
-  }
-
 }
