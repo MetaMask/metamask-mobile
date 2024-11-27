@@ -1,19 +1,20 @@
 import { useState, useCallback } from 'react';
-import { getGasLimit } from '../../../../util/custom-gas';
 import { TransactionParams } from '@metamask/transaction-controller';
+import { toHex } from '@metamask/controller-utils';
+import useInterval from '../../../hooks/useInterval';
+import { getGasLimit } from '../../../../util/custom-gas';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { generateTransferData } from '../../../../util/transactions';
-import useInterval from '../../../hooks/useInterval';
 
 const TRANSFER_GAS_LIMIT = 21000;
 const POLLING_INTERVAL = 15000; // 15 seconds
 
 interface Options {
   tokenAddress?: string;
-  fromAddress?: string;
-  chainId?: string;
-  amount?: string;
-  isNativeToken?: boolean;
+  fromAddress: string;
+  chainId: string;
+  amount: string;
+  isNativeToken: boolean;
 }
 
 /**
@@ -24,7 +25,7 @@ interface Options {
  * @param options.fromAddress - The address of the sender. Needs to be provided to estimate gas limit for ERC20 transfer
  * @param options.chainId - The chain ID for the network. Required for accurate ERC20 gas estimation
  * @param options.amount - The amount of the token to transfer. Required for accurate ERC20 gas estimation
- *@returns The estimated gas limit as a number
+ * @returns The estimated gas limit as a number
  */
 function useERC20GasLimitEstimation({
   tokenAddress,
@@ -33,13 +34,12 @@ function useERC20GasLimitEstimation({
   amount,
   isNativeToken,
 }: Options) {
-  const [estimatedGasLimit, setEstimatedGasLimit] = useState<number | null>(
-    null,
-  );
+  const [estimatedGasLimit, setEstimatedGasLimit] =
+    useState(TRANSFER_GAS_LIMIT);
 
   const estimateERC20GasLimit = useCallback(() => {
-    if (!tokenAddress || !fromAddress || !amount || !chainId || isNativeToken) {
-      return TRANSFER_GAS_LIMIT.toString();
+    if (!tokenAddress || isNativeToken) {
+      return;
     }
 
     const estimateGas = async () => {
@@ -52,7 +52,7 @@ function useERC20GasLimitEstimation({
             toAddress: safeToChecksumAddress(fromAddress),
             amount,
           }),
-          chainId: `0x${Number(chainId).toString(16)}`,
+          chainId: toHex(chainId),
         };
 
         const gasLimitResponse = await getGasLimit(transaction);
@@ -65,11 +65,14 @@ function useERC20GasLimitEstimation({
     estimateGas();
   }, [tokenAddress, fromAddress, amount, chainId, isNativeToken]);
 
-  useInterval(() => {
-    estimateERC20GasLimit();
-  }, POLLING_INTERVAL);
+  useInterval(
+    () => {
+      estimateERC20GasLimit();
+    },
+    isNativeToken ? null : POLLING_INTERVAL,
+  );
 
-  return estimatedGasLimit ?? TRANSFER_GAS_LIMIT;
+  return estimatedGasLimit;
 }
 
 export default useERC20GasLimitEstimation;
