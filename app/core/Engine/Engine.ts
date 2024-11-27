@@ -59,8 +59,6 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
-  SnapsRegistryActions,
-  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
