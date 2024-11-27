@@ -4,6 +4,15 @@ import { render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
+    },
+  },
+}));
+
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;

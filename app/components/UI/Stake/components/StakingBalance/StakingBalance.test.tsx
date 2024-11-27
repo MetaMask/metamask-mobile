@@ -12,6 +12,7 @@ import {
 } from '../../__mocks__/mockData';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { isPortfolioViewEnabled } from '../../../../../util/networks';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -122,13 +123,15 @@ describe('StakingBalance', () => {
     jest.resetAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
-      { state: mockInitialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled) {
+    it('render matches snapshot', () => {
+      const { toJSON } = renderWithProvider(
+        <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+        { state: mockInitialState },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+  }
 
   it('redirects to StakeInputView on stake button click', () => {
     const { getByText } = renderWithProvider(

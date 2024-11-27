@@ -27,7 +27,7 @@ export const selectConversionRate = createSelector(
   },
 );
 
-export const selectConversionRateFoAllChains = createSelector(
+export const selectConversionRateForAllChains = createSelector(
   selectCurrencyRateControllerState,
   (currencyRateControllerState: CurrencyRateState) =>
     currencyRateControllerState?.currencyRates,

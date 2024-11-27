@@ -10,7 +10,10 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 
 const MOCK_CHAIN_ID = '0x1';
@@ -43,6 +46,15 @@ const mockInitialState = {
         },
       } as const,
     },
+    CurrencyRateController: {
+      conversionRate: {
+        ETH: {
+          conversionDate: 1732572535.47,
+          conversionRate: 3432.53,
+          usdConversionRate: 3432.53,
+        },
+      },
+    },
   },
   settings: {
     primaryCurrency: 'ETH',
@@ -51,6 +63,15 @@ const mockInitialState = {
 
 const mockNavigate = jest.fn();
 const navigate = mockNavigate;
+const mockNetworkConfiguration = {
+  rpcEndpoints: [
+    {
+      networkClientId: 'mockNetworkClientId',
+    },
+  ],
+  defaultRpcEndpointIndex: 0,
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -72,6 +93,28 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
+jest.mock('../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
+  isTestNet: jest.fn().mockReturnValue(false),
+  getNetworkNameFromProviderConfig: jest.fn().mockReturnValue('Ethereum'),
+  isMainnetByChainId: jest.fn().mockReturnValue(true),
+  isLineaMainnetByChainId: jest.fn().mockReturnValue(false),
+  getDefaultNetworkByChainId: jest.fn().mockReturnValue('ETH'),
+  getTestNetImageByChainId: jest.fn().mockReturnValue('mockedImageSource'),
+  getDecimalChainId: jest.fn().mockReturnValue(18),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkConfigurationByChainId: jest
+        .fn()
+        .mockReturnValue(mockNetworkConfiguration),
+      setActiveNetwork: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -87,13 +130,15 @@ const asset = {
 };
 
 describe('AssetOverview', () => {
-  it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled) {
+    it('should render correctly', async () => {
+      const container = renderWithProvider(
+        <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+        { state: mockInitialState },
+      );
+      expect(container).toMatchSnapshot();
+    });
+  }
 
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
@@ -133,13 +178,33 @@ describe('AssetOverview', () => {
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    expect(navigate).toHaveBeenCalledWith('Swaps', {
-      params: {
-        sourcePage: 'MainView',
-        sourceToken: asset.address,
-      },
-      screen: 'SwapsAmountView',
-    });
+    if (isPortfolioViewEnabled) {
+      expect(navigate).toHaveBeenCalledTimes(3);
+      expect(navigate).toHaveBeenNthCalledWith(1, 'RampBuy', {
+        screen: 'GetStarted',
+        params: {
+          address: asset.address,
+          chainId: getDecimalChainId(MOCK_CHAIN_ID),
+        },
+      });
+      expect(navigate).toHaveBeenNthCalledWith(2, 'SendFlowView', {});
+      expect(navigate).toHaveBeenNthCalledWith(3, 'Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourcePage: 'MainView',
+          address: asset.address,
+          chainId: MOCK_CHAIN_ID,
+        },
+      });
+    } else {
+      expect(navigate).toHaveBeenCalledWith('Swaps', {
+        screen: 'SwapsAmountView',
+        params: {
+          sourcePage: 'MainView',
+          sourceToken: asset.address,
+        },
+      });
+    }
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {

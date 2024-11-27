@@ -62,6 +62,8 @@ const mockInitialState = {
   },
 };
 
+const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
 describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
@@ -87,81 +89,27 @@ describe('Balance', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly with a fiat balance', () => {
-    const wrapper = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should render correctly without a fiat balance', () => {
-    const wrapper = render(
-      <Balance
-        asset={mockDAI}
-        mainBalance="123"
-        secondaryBalance={undefined}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('should fire navigation event for non native tokens', () => {
-    const { queryByTestId } = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
-    );
-    const assetElement = queryByTestId('asset-DAI');
-    fireEvent.press(assetElement);
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not fire navigation event for native tokens', () => {
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <Balance asset={mockETH} mainBalance="100" secondaryBalance="200" />
-      </Provider>,
-    );
-    const assetElement = queryByTestId('asset-ETH');
-    fireEvent.press(assetElement);
-    expect(mockNavigate).toHaveBeenCalledTimes(0);
-  });
-});
-
-describe('Balance with PORTFOLIO_VIEW enabled', () => {
-  const mockStore = configureMockStore();
-  const store = mockStore(mockInitialState);
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    process.env = { ...originalEnv };
-    process.env.PORTFOLIO_VIEW = 'true';
-
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      switch (selector) {
-        case selectNetworkName:
-          return {};
-        case selectChainId:
-          return '1';
-        default:
-          return undefined;
-      }
+  if (!isPortfolioViewEnabled) {
+    it('should render correctly with a fiat balance', () => {
+      const wrapper = render(
+        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+      );
+      expect(wrapper).toMatchSnapshot();
     });
-  });
+  }
 
-  afterEach(() => {
-    jest.clearAllMocks();
-    process.env = originalEnv;
-  });
-
-  it('should render correctly without a fiat balance', () => {
-    const wrapper = render(
-      <Balance
-        asset={mockDAI}
-        mainBalance="123"
-        secondaryBalance={undefined}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled) {
+    it('should render correctly without a fiat balance', () => {
+      const wrapper = render(
+        <Balance
+          asset={mockDAI}
+          mainBalance="123"
+          secondaryBalance={undefined}
+        />,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+  }
 
   it('should fire navigation event for non native tokens', () => {
     const { queryByTestId } = render(

@@ -17,7 +17,7 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectConversionRateFoAllChains,
+  selectConversionRateForAllChains,
 } from '../../../selectors/currencyRateController';
 import {
   selectContractExchangeRates,
@@ -77,7 +77,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const conversionRate = useSelector(selectConversionRate);
-  const conversionRateByTicker = useSelector(selectConversionRateFoAllChains);
+  const conversionRateByTicker = useSelector(selectConversionRateForAllChains);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
@@ -414,7 +414,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
   } else {
     const tickerConversionRate =
-      conversionRateByTicker[nativeCurrency].conversionRate;
+      conversionRateByTicker?.[nativeCurrency]?.conversionRate ?? 0;
     currentPrice =
       exchangeRate && tickerConversionRate
         ? exchangeRate * tickerConversionRate

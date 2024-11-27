@@ -12,7 +12,6 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useTokenDetectionPolling', () => {
-
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -28,8 +27,8 @@ describe('useTokenDetectionPolling', () => {
             selectedAccount: '1',
             accounts: {
               '1': {
-                address: selectedAddress
-              }
+                address: selectedAddress,
+              },
             },
           },
         },
@@ -41,11 +40,12 @@ describe('useTokenDetectionPolling', () => {
           networkConfigurationsByChainId: {
             [selectedChainId]: {
               chainId: selectedChainId,
-              rpcEndpoints: [{
-                networkClientId: 'selectedNetworkClientId',
-              }]
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId',
+                },
+              ],
             },
-            '0x89': {},
           },
         },
       },
@@ -53,40 +53,60 @@ describe('useTokenDetectionPolling', () => {
   };
 
   it('Should poll by current chain ids/address, and stop polling on dismount', async () => {
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling(),
+      { state },
+    );
 
-    const { unmount } = renderHookWithProvider(() => useTokenDetectionPolling(), {state});
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
 
-    const mockedTokenDetectionController = jest.mocked(Engine.context.TokenDetectionController);
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: [selectedChainId],
+      address: selectedAddress,
+    });
 
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(1);
     expect(
-      mockedTokenDetectionController.startPolling
-    ).toHaveBeenCalledWith({chainIds: [selectedChainId], address: selectedAddress});
-
-    expect(mockedTokenDetectionController.stopPollingByPollingToken).toHaveBeenCalledTimes(0);
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(0);
     unmount();
-    expect(mockedTokenDetectionController.stopPollingByPollingToken).toHaveBeenCalledTimes(1);
-
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('Should not poll when token detection is disabled', async () => {
-
-    renderHookWithProvider(() => useTokenDetectionPolling({chainIds: ['0x1']}), {state:{
-      ...state,
-      engine: {
-        ...state.engine,
-        backgroundState: {
-          ...state.engine.backgroundState,
-          PreferencesController: {
-            ...state.engine.backgroundState.PreferencesController,
-            useTokenDetection: false,
+    renderHookWithProvider(
+      () => useTokenDetectionPolling({ chainIds: ['0x1'] }),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              PreferencesController: {
+                ...state.engine.backgroundState.PreferencesController,
+                useTokenDetection: false,
+              },
+            },
           },
         },
       },
-    }});
+    );
 
-    const mockedTokenDetectionController = jest.mocked(Engine.context.TokenDetectionController);
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(0);
-    expect(mockedTokenDetectionController.stopPollingByPollingToken).toHaveBeenCalledTimes(0);
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      0,
+    );
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(0);
   });
 });

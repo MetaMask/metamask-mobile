@@ -17,7 +17,7 @@ import {
 } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
 import {
-  selectConversionRateFoAllChains,
+  selectConversionRateForAllChains,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
@@ -137,7 +137,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
     tokenBalancesAllChains[accountAddress as Hex];
   const tokenBalances =
     balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
-  const conversionRateByChainId = useSelector(selectConversionRateFoAllChains);
+  const conversionRateByChainId = useSelector(selectConversionRateForAllChains);
 
   const conversionRate =
     conversionRateByChainId[CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId]]

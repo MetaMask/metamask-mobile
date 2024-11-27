@@ -14,6 +14,7 @@ import {
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
+  isPortfolioViewEnabled,
 } from '../../../../util/networks';
 import images from '../../../../images/image-icons';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -41,8 +42,6 @@ interface BalanceProps {
   mainBalance: string;
   secondaryBalance?: string;
 }
-
-const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);

@@ -1,6 +1,7 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenListPolling from './useTokenListPolling';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -12,7 +13,6 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useTokenListPolling', () => {
-
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -26,9 +26,11 @@ describe('useTokenListPolling', () => {
           networkConfigurationsByChainId: {
             [selectedChainId]: {
               chainId: selectedChainId,
-              rpcEndpoints: [{
-                networkClientId: 'selectedNetworkClientId',
-              }]
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId',
+                },
+              ],
             },
             '0x89': {},
           },
@@ -38,18 +40,27 @@ describe('useTokenListPolling', () => {
   };
 
   it('Should poll by selected chain id, and stop polling on dismount', async () => {
+    const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
+      state,
+    });
 
-    const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {state});
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+    const calledAmount = isPortfolioViewEnabled ? 2 : 1;
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(
+      calledAmount,
+    );
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+      chainId: selectedChainId,
+    });
 
-    const mockedTokenListController = jest.mocked(Engine.context.TokenListController);
-
-    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(1);
     expect(
-      mockedTokenListController.startPolling
-    ).toHaveBeenCalledWith({chainId: selectedChainId});
-
-    expect(mockedTokenListController.stopPollingByPollingToken).toHaveBeenCalledTimes(0);
+      mockedTokenListController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(0);
     unmount();
-    expect(mockedTokenListController.stopPollingByPollingToken).toHaveBeenCalledTimes(1);
+    expect(
+      mockedTokenListController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(calledAmount);
   });
 });

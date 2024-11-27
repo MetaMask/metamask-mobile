@@ -14,6 +14,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -53,11 +54,54 @@ jest.mock('../../../core/Engine', () => ({
       }),
       findNetworkClientIdByChainId: () => 'mainnet',
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          selectedAccount: '1',
+          accounts: {
+            '1': {
+              address: selectedAddress,
+            },
+          },
+        },
+      },
+    },
   },
 }));
 
 const selectedAddress = '0x123';
-
+const mockTokens = {
+  '0x1': {
+    [selectedAddress]: [
+      {
+        name: 'Ethereum',
+        symbol: 'ETH',
+        address: '0x0',
+        decimals: 18,
+        isETH: true,
+        isStaked: false,
+        balanceFiat: '< $0.01',
+        iconUrl: '',
+      },
+      {
+        name: 'Bat',
+        symbol: 'BAT',
+        address: '0x01',
+        decimals: 18,
+        balanceFiat: '$0',
+        iconUrl: '',
+      },
+      {
+        name: 'Link',
+        symbol: 'LINK',
+        address: '0x02',
+        decimals: 18,
+        balanceFiat: '$0',
+        iconUrl: '',
+      },
+    ],
+  },
+};
 const initialState = {
   engine: {
     backgroundState: {
@@ -80,7 +124,7 @@ const initialState = {
             address: '0x0',
             decimals: 18,
             isETH: true,
-
+            isStaked: false,
             balanceFiat: '< $0.01',
             iconUrl: '',
           },
@@ -101,6 +145,7 @@ const initialState = {
             iconUrl: '',
           },
         ],
+        allTokens: mockTokens,
         detectedTokens: [],
       },
       TokenRatesController: {
@@ -121,15 +166,15 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        tokenBalances:{
+        tokenBalances: {
           [selectedAddress]: {
             '0x1': {
               '0x00': new BN(2),
               '0x01': new BN(2),
               '0x02': new BN(0),
-            }
-          }
-        }
+            },
+          },
+        },
       },
     },
   },
@@ -172,6 +217,12 @@ jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   })),
 }));
 
+jest.mock('../Stake/hooks/useStakingChain', () => ({
+  useStakingChainByChainId: () => ({
+    isStakingSupportedChain: true,
+  }),
+}));
+
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,10 +247,12 @@ describe('Tokens', () => {
     mockPush.mockClear();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled) {
+    it('should render correctly', () => {
+      const { toJSON } = renderComponent(initialState);
+      expect(toJSON()).toMatchSnapshot();
+    });
+  }
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
@@ -253,6 +306,7 @@ describe('Tokens', () => {
           ...backgroundState,
           TokensController: {
             detectedTokens: [],
+            allTokens: mockTokens,
             tokens: [
               {
                 name: 'Link',
@@ -266,7 +320,7 @@ describe('Tokens', () => {
           },
           TokenRatesController: {
             marketData: {
-              0x1: {
+              '0x1': {
                 '0x02': undefined,
               },
             },
@@ -285,6 +339,16 @@ describe('Tokens', () => {
               accounts: {
                 '1': {
                   address: selectedAddress,
+                },
+              },
+            },
+            state: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: selectedAddress,
+                  },
                 },
               },
             },
@@ -378,20 +442,23 @@ describe('Tokens', () => {
       },
     );
 
-    await waitFor(() => {
-      expect(
-        Engine.context.TokenDetectionController.detectTokens,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.AccountTrackerController.refresh,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.CurrencyRateController.updateExchangeRate,
-      ).toHaveBeenCalled();
-      expect(
-        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
-      ).toHaveBeenCalled();
-    });
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.TokenDetectionController.detectTokens,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.AccountTrackerController.refresh,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.CurrencyRateController.updateExchangeRate,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        ).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
+    );
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {

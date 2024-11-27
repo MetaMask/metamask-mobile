@@ -30,6 +30,7 @@ import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
+import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -50,8 +51,6 @@ export interface MarketDetails {
 interface TokenDetailsProps {
   asset: TokenI;
 }
-
-const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
