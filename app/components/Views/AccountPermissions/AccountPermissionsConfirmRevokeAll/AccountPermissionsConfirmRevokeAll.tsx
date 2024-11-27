@@ -99,6 +99,7 @@ const AccountPermissionsConfirmRevokeAll = (
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
             onPress={revokeAllAccounts}
+            testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
             isDanger
           />
         </View>

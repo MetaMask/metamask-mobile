@@ -210,6 +210,7 @@ const AccountPermissionsConnected = ({
               AccountPermissionsScreens.PermissionsSummary,
             );
           }}
+          testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
           width={ButtonWidthTypes.Full}
         />
       )}

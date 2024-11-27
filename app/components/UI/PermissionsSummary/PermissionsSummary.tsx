@@ -435,6 +435,7 @@ const PermissionsSummary = ({
             <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
+                testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS}
                 label={strings('accounts.disconnect_all')}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
