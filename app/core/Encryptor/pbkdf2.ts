@@ -18,7 +18,7 @@ const pbkdf2 = async (
   keyLength: number,
 ): Promise<Uint8Array> => {
   const Aes = NativeModules.Aes;
-  const derivationKey = await Aes.pbkdf2(
+  const derivedKey = await Aes.pbkdf2(
     bytesToString(password),
     bytesToString(salt),
     iterations,
@@ -26,7 +26,7 @@ const pbkdf2 = async (
     ShaAlgorithm.Sha512,
   );
 
-  return hexToBytes(derivationKey);
+  return hexToBytes(derivedKey);
 };
 
 /**
@@ -45,7 +45,7 @@ const pbkdf2Forked = async (
   keyLength: number,
 ): Promise<Uint8Array> => {
   const AesForked = NativeModules.AesForked;
-  const derivationKey = await AesForked.pbkdf2(
+  const derivedKey = await AesForked.pbkdf2(
     bytesToString(password),
     bytesToString(salt),
     iterations,
@@ -53,7 +53,7 @@ const pbkdf2Forked = async (
     ShaAlgorithm.Sha512,
   );
 
-  return hexToBytes(derivationKey);
+  return hexToBytes(derivedKey);
 };
 
 export { pbkdf2, pbkdf2Forked };
