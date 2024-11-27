@@ -78,7 +78,7 @@ function useERC20GasLimitEstimation({
     () => {
       estimateERC20GasLimit();
     },
-    isNativeToken ? null : POLLING_INTERVAL,
+    { delay: isNativeToken ? null : POLLING_INTERVAL, immediate: true },
   );
 
   return estimatedGasLimit;
