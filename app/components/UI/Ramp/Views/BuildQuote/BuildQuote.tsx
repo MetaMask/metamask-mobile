@@ -86,7 +86,6 @@ import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-const TRANSFER_GAS_LIMIT = 21000; // Default gas limit for ETH transfers
 interface BuildQuoteParams {
   showBack?: boolean;
 }
@@ -197,15 +196,13 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
-  const gasLimitEstimation =
-    selectedAsset && selectedAsset.address !== NATIVE_ADDRESS
-      ? useERC20GasLimitEstimation({
-          tokenAddress: selectedAsset.address,
-          fromAddress: selectedAddress,
-          chainId: selectedChainId,
-          amount: amount,
-        })
-      : TRANSFER_GAS_LIMIT;
+  const gasLimitEstimation = useERC20GasLimitEstimation({
+    tokenAddress: selectedAsset?.address,
+    fromAddress: selectedAddress,
+    chainId: selectedChainId,
+    amount,
+    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
+  });
 
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
