@@ -17,18 +17,21 @@ type AuthenticationState =
 type UserStorageState = UserStorageController.UserStorageControllerState;
 
 const selectAuthenticationControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.AuthenticationController;
+  state?.engine?.backgroundState?.AuthenticationController ??
+  AuthenticationController.defaultState;
 
 const selectUserStorageControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.UserStorageController;
+  state?.engine?.backgroundState?.UserStorageController ??
+  UserStorageController.defaultState;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.NotificationServicesController;
+  state?.engine?.backgroundState?.NotificationServicesController ??
+  NotificationServicesController.defaultState;
 
 export const selectIsProfileSyncingEnabled = createSelector(
   selectUserStorageControllerState,
   (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingEnabled,
+    userStorageControllerState?.isProfileSyncingEnabled,
 );
 export const selectIsProfileSyncingUpdateLoading = createSelector(
   selectUserStorageControllerState,
