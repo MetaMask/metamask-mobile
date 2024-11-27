@@ -13,12 +13,11 @@ import {
   fromWei,
 } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
-import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
 
 interface InputHandlerParams {
   balance: BN;
 }
-
+const MAX_DIGITS = 12;
 const useInputHandler = ({ balance }: InputHandlerParams) => {
   const [amountEth, setAmountEth] = useState('0');
   const [amountWei, setAmountWei] = useState<BN>(new BN(0));
@@ -27,8 +26,6 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
-
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
 
@@ -74,6 +71,13 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
 
   const handleKeypadChange = useCallback(
     ({ value }) => {
+      const digitsOnly = value.replace(/[^0-9.]/g, '');
+      const [whole = '', fraction = ''] = digitsOnly.split('.');
+      const totalDigits = whole.length + fraction.length;
+
+      if (totalDigits > MAX_DIGITS) {
+        return;
+      }
       isEth ? handleEthInput(value) : handleFiatInput(value);
     },
     [handleEthInput, handleFiatInput, isEth],
@@ -90,7 +94,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     { value: 1, label: strings('stake.max') },
   ];
 
-  const handleAmountPress = useCallback(
+  const handleQuickAmountPress = useCallback(
     ({ value }: { value: number }) => {
       const percentage = value * 100;
       const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
@@ -110,18 +114,8 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
         2,
       ).toString();
       setFiatAmount(newFiatAmount);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
-        .addProperties({
-          location: 'Stake',
-          amount: value,
-          is_max: value === 1,
-          mode: isEth ? 'native' : 'fiat'
-        })
-        .build()
-      );
     },
-    [balance, conversionRate, createEventBuilder, isEth, trackEvent],
+    [balance, conversionRate],
   );
 
   const handleMaxInput = useCallback(
@@ -142,18 +136,8 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
         2,
       ).toString();
       setFiatAmount(fiatValue);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.STAKE_INPUT_AMOUNT_CLICKED)
-        .addProperties({
-          location: 'Stake',
-          amount: ethValue,
-          is_max: true,
-          mode: isEth ? 'native' : 'fiat'
-        })
-        .build()
-      );
     },
-    [conversionRate, createEventBuilder, isEth, trackEvent],
+    [conversionRate],
   );
 
   const currencyToggleValue = isEth
@@ -173,7 +157,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
     handleKeypadChange,
     handleCurrencySwitch,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     currentCurrency,
     conversionRate,
     handleMaxInput,
