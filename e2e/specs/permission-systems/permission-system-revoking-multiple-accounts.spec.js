@@ -59,9 +59,10 @@ describe(
 
           // should revoke accounts
           await Browser.tapNetworkAvatarButtonOnBrowser();
-          await ConnectedAccountsModal.tapPermissionsButton();
+          await ConnectedAccountsModal.tapManagePermissionsButton(); // replace this by manage permissions button
           await TestHelpers.delay(1500);
-          await ConnectedAccountsModal.tapDisconnectAllButton();
+          await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton(); // replace this by the disconnect all button
+          await ConnectedAccountsModal.tapDisconnectButton(); // replace this by the disconnect all button
           await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
 
           await Browser.tapNetworkAvatarButtonOnBrowser();
