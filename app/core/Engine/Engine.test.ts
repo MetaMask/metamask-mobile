@@ -37,6 +37,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
+    expect(engine.context).toHaveProperty('RemoteFeatureFlagController');
     expect(engine.context).toHaveProperty('SignatureController');
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');

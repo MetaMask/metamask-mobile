@@ -6,7 +6,7 @@ import {
   UndefinedFeatureFlagType,
 } from './types';
 
-const featureFlagFallback: FeatureFlagType = {
+export const featureFlagFallback: FeatureFlagType = {
   [FEATURE_FLAG_NAME]: {
     appMinimumBuild: 1243,
     appleMinimumOS: 6,
