@@ -3,6 +3,7 @@ import { ChainId } from '@metamask/controller-utils';
 import Engine from '../Engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { MetaMetricsEvents, MetaMetrics } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -145,8 +146,7 @@ const wallet_addEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetrics.getInstance()
-        .createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
         .addProperties(analyticsParams)
         .build(),
     );
@@ -172,8 +172,7 @@ const wallet_addEthereumChain = async ({
   requestData.alerts = alerts;
 
   MetaMetrics.getInstance().trackEvent(
-    MetaMetrics.getInstance()
-      .createEventBuilder(MetaMetricsEvents.NETWORK_REQUESTED)
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_REQUESTED)
       .addProperties({
         chain_id: getDecimalChainId(chainId),
         source: 'Custom Network API',
@@ -198,8 +197,9 @@ const wallet_addEthereumChain = async ({
       });
     } catch (error) {
       MetaMetrics.getInstance().trackEvent(
-        MetaMetrics.getInstance()
-          .createEventBuilder(MetaMetricsEvents.NETWORK_REQUEST_REJECTED)
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+        )
           .addProperties({
             chain_id: getDecimalChainId(chainId),
             source: 'Custom Network API',
@@ -227,8 +227,7 @@ const wallet_addEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetrics.getInstance()
-        .createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
           source: 'Custom Network API',
@@ -260,8 +259,7 @@ const wallet_addEthereumChain = async ({
     });
 
     MetaMetrics.getInstance().trackEvent(
-      MetaMetrics.getInstance()
-        .createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
         .addProperties(analyticsParams)
         .build(),
     );
