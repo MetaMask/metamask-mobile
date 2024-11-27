@@ -33,6 +33,12 @@ class ConnectedAccountsModal {
     );
   }
 
+  get navigateToEditNetworksPermissionsButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+    );
+  }
+
   get connectAccountsButton() {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
@@ -70,6 +76,10 @@ class ConnectedAccountsModal {
   }
   async tapDisconnectAllAccountsAndNetworksButton() {
     await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
+  }
+
+  async tapNavigateToEditNetworksPermissionsButton() {
+    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
   }
 
   //async tapToSetAsPrimaryAccount() {

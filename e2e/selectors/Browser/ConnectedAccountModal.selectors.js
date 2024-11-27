@@ -15,4 +15,6 @@ export const ConnectedAccountsSelectorsIDs = {
   MANAGE_PERMISSIONS: 'manage_permissions',
   DISCONNECT: 'disconnect',
   DISCONNECT_ALL_ACCOUNTS_NETWORKS: 'disconnect_all',
+  NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON:
+    'navigate_to_edit_networks_permissions_button',
 };
