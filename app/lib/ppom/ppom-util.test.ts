@@ -13,7 +13,12 @@ import {
   RpcEndpointType,
 } from '@metamask/network-controller';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
-import { SecurityAlertSource } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import {
+  Reason,
+  ResultType,
+  SecurityAlertSource,
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import Logger from '../../util/Logger';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -308,6 +313,22 @@ describe('PPOM Utils', () => {
       });
     });
 
+    it('logs error if normalization fails', async () => {
+      const error = new Error('Test Error');
+      normalizeTransactionParamsMock.mockImplementation(() => {
+        throw error;
+      });
+
+      const spyLogger = jest.spyOn(Logger, 'log');
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(spyLogger).toHaveBeenCalledTimes(1);
+      expect(spyLogger).toHaveBeenCalledWith(
+        `Error validating JSON RPC using PPOM: ${error}`,
+      );
+    });
+
     it('normalizes transaction request origin before validation', async () => {
       const validateMock = jest.fn();
 
@@ -393,7 +414,7 @@ describe('PPOM Utils', () => {
         'setTransactionSecurityAlertResponse',
       );
 
-      const validateMock = () => new Error('Test Error');
+      const validateMock = new Error('Test Error');
 
       const ppomMock = {
         validateJsonRpc: validateMock,
@@ -406,7 +427,14 @@ describe('PPOM Utils', () => {
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {chainId: CHAIN_ID_MOCK, req: { ...mockRequest } , source: SecurityAlertSource.Local});
+      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {
+        chainId: CHAIN_ID_MOCK,
+        req: mockRequest,
+        result_type: ResultType.Failed,
+        reason: Reason.failed,
+        description: 'Validating the confirmation failed by throwing error.',
+        source: SecurityAlertSource.Local,
+      });
     });
   });
 });
