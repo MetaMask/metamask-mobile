@@ -416,6 +416,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'NetworkController:stateChange',
           'TokenListController:stateChange',
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
@@ -446,7 +447,6 @@ export class Engine {
     });
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -1310,16 +1310,20 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
-            'AssetsContractController:getERC20BalanceOf',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'TokensController:getState',
+            'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'PreferencesController:stateChange',
+            'NetworkController:stateChange',
+          ],
         }),
+        // TODO: This is long, can we decrease it?
         interval: 180000,
-        tokens: [
-          ...tokensController.state.tokens,
-          ...tokensController.state.detectedTokens,
-        ],
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({
@@ -1362,7 +1366,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1657,7 +1660,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
@@ -1748,8 +1750,13 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
+
+        const tokenBalances =
+          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
+            chainId
+          ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -1759,7 +1766,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -1840,19 +1847,20 @@ export class Engine {
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
-      const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+
+      const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
-        if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
-        ) {
-          tokenFound = true;
+      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+        for (const tokens of Object.values(chains)) {
+          for (const balance of Object.values(tokens)) {
+            if (!isZero(balance)) {
+              tokenFound = true;
+              break tokenLoop;
+            }
+          }
         }
-      });
+      }
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
