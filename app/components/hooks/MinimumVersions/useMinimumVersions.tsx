@@ -4,9 +4,9 @@ import { createUpdateNeededNavDetails } from '../../UI/UpdateNeeded/UpdateNeeded
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';
-import { SecurityState } from '../../../../app/reducers/security';
-import { RootState } from '../../../../app/reducers';
-import { selectAppMinimumBuild } from '../../../../app/selectors/featureFlagController/minimumAppVersion';
+import { SecurityState } from '../../../reducers/security';
+import { RootState } from '../../../reducers';
+import { selectAppMinimumBuild } from '../../../selectors/featureFlagController/minimumAppVersion';
 
 const useMinimumVersions = () => {
   const { automaticSecurityChecksEnabled }: SecurityState = useSelector(
