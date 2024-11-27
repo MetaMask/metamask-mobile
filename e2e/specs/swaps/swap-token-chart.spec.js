@@ -24,8 +24,7 @@ import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
-import ActivitiesView from '../../pages/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -106,7 +105,7 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
       ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
-    );gi
+    );
     await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
 
     try {
