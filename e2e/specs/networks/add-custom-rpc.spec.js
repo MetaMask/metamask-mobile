@@ -26,7 +26,7 @@ describe(Regression('Custom RPC Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.openApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
