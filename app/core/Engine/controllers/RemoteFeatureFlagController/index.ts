@@ -3,6 +3,7 @@ import {
   ClientConfigApiService,
   ClientType,
 } from '@metamask/remote-feature-flag-controller';
+import Logger from '../../../../util/Logger';
 import { RemoteFeatureFlagInitParamTypes } from './types';
 import {
   getFeatureFlagAppEnvironment,
@@ -37,7 +38,13 @@ const init = ({
     }),
   });
 
-  remoteFeatureFlagController.getRemoteFeatureFlags();
+  if (disabled) {
+    Logger.log('Feature Flags Controller disabled');
+  } else {
+    remoteFeatureFlagController.getRemoteFeatureFlags().then((featFlags) => {
+      Logger.log(`Received feature flags ${JSON.stringify(featFlags)}`);
+    });
+  }
 
   return remoteFeatureFlagController;
 }
