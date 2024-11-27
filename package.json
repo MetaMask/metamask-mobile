@@ -133,7 +133,7 @@
     "**/@metamask/rpc-errors": "7.0.1"
   },
   "dependencies": {
-    "@consensys/on-ramp-sdk": "1.28.5",
+    "@consensys/on-ramp-sdk": "1.28.7",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
     "@keystonehq/ur-decoder": "^0.12.2",
@@ -146,9 +146,9 @@
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
-    "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
+    "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^7.0.2",
     "@metamask/eth-snap-keyring": "^4.3.3",
