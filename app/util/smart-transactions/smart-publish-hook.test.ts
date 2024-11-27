@@ -11,7 +11,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import type { SmartTransaction, ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import {
   AllowedActions,
   AllowedEvents,
@@ -158,6 +158,8 @@ function withRequest<ReturnValue>(
     trackMetaMetricsEvent: jest.fn(),
     getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
+    getTransactions: jest.fn(),
+    updateTransaction: jest.fn(),
   });
 
   const getFeesSpy = jest
