@@ -13,3 +13,13 @@ export default function byteArrayToHex(value: Uint8Array): string {
   }
   return '0x' + result.join('');
 }
+
+/**
+ * Converts bytes to bits
+ *
+ * @param bytes - Number of bytes to convert
+ * @returns Number of bits
+ */
+export function bytesToBits(bytes: number): number {
+  return bytes * 8;
+}
