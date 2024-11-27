@@ -36,6 +36,7 @@ import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/N
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
+import Logger from '../../../../util/Logger';
 
 // Internal dependencies.
 import { NetworkPermissionsConnectedProps } from './NetworkPermissionsConnected.types';
@@ -102,7 +103,7 @@ const AccountPermissionsConnected = ({
         );
       }
     } catch (e) {
-      // noop
+      Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
     // If no permitted chains found, default to current chain
     return providerConfig?.chainId ? [providerConfig.chainId] : [];
@@ -112,10 +113,7 @@ const AccountPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(
-      ([key]) =>
-        permittedChainIds.includes(key) && key !== providerConfig?.chainId,
-    )
+    .filter(([key]) => permittedChainIds.includes(key))
     .map(([key, network]) => ({
       id: key,
       name: network.name,
@@ -186,6 +184,11 @@ const AccountPermissionsConnected = ({
         <NetworkSelectorList
           networks={networks}
           onSelectNetwork={(chainId) => {
+            if (chainId === providerConfig?.chainId) {
+              onDismissSheet();
+              return;
+            }
+
             const theNetworkName = handleNetworkSwitch(
               getDecimalChainId(chainId),
             );
