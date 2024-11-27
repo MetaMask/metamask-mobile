@@ -43,11 +43,15 @@ const attemptUnstakeTransaction =
           'function getShares(address) returns (uint256)',
         ]);
         const data = tempInterface.encodeFunctionData('getShares', [receiver]);
-        const sharesResult = await pooledStakingContract?.contract.provider.call({
-          to: pooledStakingContract?.contract.address,
-          data,
-        });
-        const [sharesBN] = tempInterface.decodeFunctionResult('getShares', sharesResult);
+        const sharesResult =
+          await pooledStakingContract?.contract.provider.call({
+            to: pooledStakingContract?.contract.address,
+            data,
+          });
+        const [sharesBN] = tempInterface.decodeFunctionResult(
+          'getShares',
+          sharesResult,
+        );
         shares = sharesBN.toString();
       } else {
         shares = await pooledStakingContract.convertToShares(valueWei);
@@ -93,7 +97,10 @@ const usePoolStakedUnstake = () => {
   const stakingContract = stakeContext.stakingContract as PooledStakingContract;
 
   return {
-    attemptUnstakeTransaction: attemptUnstakeTransaction(stakingContract, stakedBalanceWei),
+    attemptUnstakeTransaction: attemptUnstakeTransaction(
+      stakingContract,
+      stakedBalanceWei,
+    ),
   };
 };
 
