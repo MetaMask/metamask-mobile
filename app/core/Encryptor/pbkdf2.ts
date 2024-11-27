@@ -8,7 +8,7 @@ import { ShaAlgorithm } from './constants';
  * @param password - The password used to generate the key.
  * @param salt - The salt used during key generation.
  * @param iterations - The number of iterations used during key generation.
- * @param keyLength - The length of the key to generate.
+ * @param keyLength - The length (in bytes) of the key to generate.
  * @returns The generated key.
  */
 const pbkdf2 = async (
