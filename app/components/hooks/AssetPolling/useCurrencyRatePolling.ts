@@ -2,11 +2,13 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { selectConversionRate, selectCurrencyRates } from '../../../selectors/currencyRateController';
+import {
+  selectConversionRate,
+  selectCurrencyRates,
+} from '../../../selectors/currencyRateController';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = () => {
-
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -23,11 +25,14 @@ const useCurrencyRatePolling = () => {
   const { CurrencyRateController } = Engine.context;
 
   usePolling({
-    startPolling:
-      CurrencyRateController.startPolling.bind(CurrencyRateController),
+    startPolling: CurrencyRateController.startPolling.bind(
+      CurrencyRateController,
+    ),
     stopPollingByPollingToken:
-      CurrencyRateController.stopPollingByPollingToken.bind(CurrencyRateController),
-    input: [{nativeCurrencies}],
+      CurrencyRateController.stopPollingByPollingToken.bind(
+        CurrencyRateController,
+      ),
+    input: [{ nativeCurrencies }],
   });
 
   return {
