@@ -904,6 +904,10 @@ export class Engine {
 
     this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      excludedPermissions: {
+        ...ExcludedSnapPermissions,
+        ...ExcludedSnapEndowments,
+      },
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
