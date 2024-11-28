@@ -17,7 +17,7 @@ import {
 import {
   getDecimalChainId,
   isTestNet,
-  isPortfolioViewEnabled,
+  isPortfolioViewEnabledFunction,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -103,6 +103,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
+  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
   const nativeCurrencies = [
     ...new Set(
       Object.values(networkConfigurationsByChainId).map(
@@ -229,6 +230,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // Dependencies for multichain implementation
     selectedAccountTokensChains,
     tokenNetworkFilter,
+    isPortfolioViewEnabled,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {

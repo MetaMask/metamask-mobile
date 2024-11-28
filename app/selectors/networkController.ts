@@ -81,7 +81,7 @@ const createProviderConfig = (
   };
 };
 
-const selectNetworkControllerState = (state: RootState) =>
+export const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(

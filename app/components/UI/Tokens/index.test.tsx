@@ -14,7 +14,8 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -251,7 +252,9 @@ const renderComponent = (state: any = {}) =>
 
 describe('Tokens', () => {
   beforeEach(() => {
-    mockIsPortfolioViewEnabled.mockReturnValue(false);
+    jest
+      .spyOn(networks, 'isPortfolioViewEnabledFunction')
+      .mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -259,12 +262,18 @@ describe('Tokens', () => {
     mockPush.mockClear();
   });
 
-  if (!isPortfolioViewEnabled) {
-    it('should render correctly', () => {
-      const { toJSON } = renderComponent(initialState);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  }
+  it('should render correctly', () => {
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly when portfolio view is enabled', () => {
+    jest
+      .spyOn(networks, 'isPortfolioViewEnabledFunction')
+      .mockReturnValue(true);
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
