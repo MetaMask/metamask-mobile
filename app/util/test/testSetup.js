@@ -283,13 +283,34 @@ const initializeMockClient = () => {
     group: jest.fn(),
     alias: jest.fn(),
     reset: jest.fn(),
+    add: jest.fn(),
   };
   return global.segmentMockClient;
 };
 
-jest.mock('@segment/analytics-react-native', () => ({
-  createClient: jest.fn(() => initializeMockClient()),
-}));
+jest.mock('@segment/analytics-react-native', () => {
+  class Plugin {
+    type = 'utility';
+    analytics = undefined;
+
+    configure(analytics) {
+      this.analytics = analytics;
+    }
+  }
+
+  return {
+    createClient: jest.fn(() => initializeMockClient()),
+    PluginType: {
+      enrichment: 'enrichment',
+      utility: 'utility',
+    },
+    EventType: {
+      TrackEvent: 'track',
+      IdentifyEvent: 'identify',
+    },
+    Plugin,
+  };
+});
 
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
@@ -321,9 +342,8 @@ require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests()
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-jest.mock(
-  '../../core/Engine',
-  () => require('../../core/__mocks__/MockedEngine').default,
+jest.mock('../../core/Engine', () =>
+  require('../../core/__mocks__/MockedEngine'),
 );
 
 afterEach(() => {
@@ -340,3 +360,36 @@ global.crypto = {
     return arr;
   },
 };
+
+jest.mock('@react-native-firebase/messaging', () => {
+
+  const module = () => {
+      return {
+          getToken: jest.fn(() => Promise.resolve('fcmToken')),
+          deleteToken: jest.fn(() => Promise.resolve()),
+          subscribeToTopic: jest.fn(),
+          unsubscribeFromTopic: jest.fn(),
+          hasPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
+          requestPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
+          setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+          isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
+          registerDeviceForRemoteMessages: jest.fn(() =>
+            Promise.resolve('registered'),
+          ),
+          unregisterDeviceForRemoteMessages: jest.fn(() =>
+            Promise.resolve('unregistered'),
+          ),
+          onMessage: jest.fn(),
+          onTokenRefresh: jest.fn(),
+    };
+  };
+
+  module.AuthorizationStatus = {
+      NOT_DETERMINED: -1,
+      DENIED: 0,
+      AUTHORIZED: 1,
+      PROVISIONAL: 2,
+  }
+
+  return module
+});

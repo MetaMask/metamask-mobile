@@ -3,10 +3,10 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS, getDecimalChainId } from '../networks';
 import { store } from '../../store';
 import { selectChainId } from '../../selectors/networkController';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import PPOMUtils from '../../lib/ppom/ppom-util';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;
@@ -15,44 +15,25 @@ interface TransactionSecurityAlertResponseType {
 export type TransactionType = TransactionMeta &
   TransactionSecurityAlertResponseType;
 
-export const isSupportedChainId = (chainId: string) => {
-  /**
-   * Quite a number of our test cases return undefined as chainId from state.
-   * In such cases, the tests don't really care about the chainId.
-   * So, this treats undefined chainId as mainnet for now.
-   * */
-  if (chainId === undefined) {
-    return true;
-  }
-
-  const isSupported = BLOCKAID_SUPPORTED_CHAIN_IDS.some(
-    (id) => getDecimalChainId(id) === getDecimalChainId(chainId),
-  );
-
-  return isSupported;
-};
-
-export const isBlockaidSupportedOnCurrentChain = () => {
+export const isBlockaidSupportedOnCurrentChain = async (): Promise<boolean> => {
   const chainId = selectChainId(store.getState());
-  return isSupportedChainId(chainId);
+  return await PPOMUtils.isChainSupported(chainId);
 };
 
-export const isBlockaidPreferenceEnabled = () => {
+export const isBlockaidPreferenceEnabled = (): boolean => {
   const { PreferencesController } = Engine.context;
   return PreferencesController.state.securityAlertsEnabled;
 };
 
-export const isBlockaidFeatureEnabled = () =>
-  isBlockaidSupportedOnCurrentChain() && isBlockaidPreferenceEnabled();
+export const isBlockaidFeatureEnabled = async (): Promise<boolean> =>
+  (await isBlockaidSupportedOnCurrentChain()) && isBlockaidPreferenceEnabled();
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
-) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const additionalParams: Record<string, any> = {};
+): Record<string, unknown> => {
+  const additionalParams: Record<string, unknown> = {};
 
-  if (securityAlertResponse && isBlockaidFeatureEnabled()) {
+  if (securityAlertResponse) {
     const { result_type, reason, providerRequestsCount, source } =
       securityAlertResponse;
 
@@ -81,7 +62,7 @@ export const getBlockaidMetricsParams = (
 
 export const getBlockaidTransactionMetricsParams = (
   transaction: TransactionType,
-) => {
+): Record<string, unknown> => {
   let blockaidParams = {};
 
   if (!transaction) {

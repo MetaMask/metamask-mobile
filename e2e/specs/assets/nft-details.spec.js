@@ -10,7 +10,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import WalletView from '../../pages/wallet/WalletView';
-import AddCustomTokenView from '../../pages/AddCustomTokenView';
+import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
 
@@ -45,9 +45,9 @@ describe(SmokeAssets('NFT Details page'), () => {
         await WalletView.scrollDownOnNFTsTab();
         // Tap on the add collectibles button
         await WalletView.tapImportNFTButton();
-        await AddCustomTokenView.isVisible();
-        await AddCustomTokenView.typeInNFTAddress(nftsAddress);
-        await AddCustomTokenView.typeInNFTIdentifier('1');
+        await Assertions.checkIfVisible(ImportNFTView.container);
+        await ImportNFTView.typeInNFTAddress(nftsAddress);
+        await ImportNFTView.typeInNFTIdentifier('1');
 
         await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load

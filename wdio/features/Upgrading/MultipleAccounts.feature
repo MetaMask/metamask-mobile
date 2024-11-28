@@ -29,10 +29,8 @@ Feature: Upgrade previous app build with current release while being connected t
     Then version "PRODUCTION_BUILD_STRING" is displayed for app upgrade step
     When I install upgrade the app
     And I relaunch the app
-    And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
-    And I use the back button on Android
     And I am on the wallet view
     Then I am on the "<AccountName>" account
     And I tap on the Settings tab option

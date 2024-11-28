@@ -535,7 +535,12 @@ export default class DeeplinkProtocolService {
       }
     ).NetworkController;
 
-    const hexChainId = networkController.state.providerConfig.chainId ?? '0x'; // default to mainnet
+    const {
+      configuration: { chainId: hexChainId },
+    } =
+      networkController.getNetworkClientById(
+        networkController.state?.selectedNetworkClientId,
+      ) ?? '0x'; // default to mainnet
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected hexChainId`,

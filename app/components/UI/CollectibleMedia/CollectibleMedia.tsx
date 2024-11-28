@@ -97,7 +97,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
               big && styles.bigImage,
               cover && styles.cover,
             ]}
-            //@ts-expect-error - fixed on typescript v5
             testID="fallback-nft-ipfs"
           />
           <View style={styles.imageFallBackTextContainer}>
@@ -166,11 +165,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
       displayNftMedia ||
       (!displayNftMedia && isIpfsGatewayEnabled && isIPFSUri(sourceUri))
     ) {
-      if (
-        renderAnimation &&
-        collectible.animation &&
-        collectible.animation.includes('.mp4')
-      ) {
+      if (renderAnimation && collectible?.animation?.includes('.mp4')) {
         return (
           <MediaPlayer
             onClose={onClose}
@@ -186,7 +181,6 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
         return (
           <RemoteImage
             fadeIn
-            //@ts-expect-error - fixed on typescript v5
             resizeMode={'contain'}
             source={{ uri: sourceUri }}
             style={[

@@ -1,20 +1,41 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { waitFor } from '@testing-library/react-native';
 import OnboardingCarousel from './';
-import { Provider } from 'react-redux';
-import createMockStore from 'redux-mock-store';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
-const mockStore = createMockStore();
-const initialState = {};
-const store = mockStore(initialState);
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
+const mockNavigate: jest.Mock = jest.fn();
+const mockSetOptions: jest.Mock = jest.fn();
+const mockNavigation = {
+  navigate: mockNavigate,
+  setOptions: mockSetOptions,
+} as unknown as NavigationProp<ParamListBase>;
+
 
 describe('OnboardingCarousel', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <OnboardingCarousel />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <OnboardingCarousel navigation={mockNavigation}/>
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+    it('should render the App Start Time text when isTest is true', async () => {
+      const { toJSON, getByTestId } = renderWithProvider(
+        <OnboardingCarousel navigation={mockNavigation}/>
+      );
+      expect(toJSON()).toMatchSnapshot();
+
+    await waitFor(() => {
+      expect(
+        getByTestId(PerformanceRegressionSelectorIDs.APP_START_TIME_ID),
+      ).toBeTruthy();
+    });
   });
 });

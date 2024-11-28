@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CustomNonceModal should render correctly 1`] = `
+exports[`CustomNonceModal renders correctly 1`] = `
 <ReactNativeModal
   animationIn="slideInUp"
   animationInTiming={600}
@@ -18,13 +18,13 @@ exports[`CustomNonceModal should render correctly 1`] = `
   hasBackdrop={true}
   hideModalContentWhileAnimating={false}
   isVisible={true}
-  onBackButtonPress={[Function]}
-  onBackdropPress={[Function]}
+  onBackButtonPress={[MockFunction]}
+  onBackdropPress={[MockFunction]}
   onModalHide={[Function]}
   onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
-  onSwipeComplete={[Function]}
+  onSwipeComplete={[MockFunction]}
   panResponderThreshold={4}
   propagateSwipe={true}
   scrollHorizontal={false}
@@ -128,7 +128,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "width": 80,
               }
             }
-            value="28"
+            value="26"
           />
         </View>
         <Text
@@ -166,6 +166,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "padding": 4,
               }
             }
+            testID="decrement-nonce"
           >
             <Icon
               allowFontScaling={false}
@@ -185,6 +186,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "padding": 4,
               }
             }
+            testID="increment-nonce"
           >
             <Icon
               allowFontScaling={false}
@@ -205,48 +207,6 @@ exports[`CustomNonceModal should render correctly 1`] = `
             }
           }
         >
-          <View
-            style={
-              {
-                "backgroundColor": "#bf52081a",
-                "borderColor": "#bf5208",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "display": "flex",
-                "flexDirection": "row",
-                "marginBottom": 16,
-                "marginTop": 10,
-                "padding": 16,
-              }
-            }
-          >
-            <Icon
-              allowFontScaling={false}
-              color="#bf5208"
-              name="exclamation-circle"
-              size={16}
-              style={
-                {
-                  "flex": 0,
-                  "marginTop": 6,
-                  "paddingRight": 14,
-                }
-              }
-            />
-            <Text
-              style={
-                {
-                  "color": "#141618",
-                  "flex": 1,
-                  "fontSize": 12,
-                  "lineHeight": 16,
-                  "width": "100%",
-                }
-              }
-            >
-              Warning: You may encounter issues with future transactions if you continue. Use with caution.
-            </Text>
-          </View>
           <Text
             bold={true}
             style={
@@ -294,7 +254,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
               "opacity": 0.6,
             }
           }
-          onPress={[Function]}
+          onPress={[MockFunction]}
           styleDisabled={
             {
               "opacity": 0.6,

@@ -26,6 +26,36 @@ const ListItemMeta = {
       },
       defaultValue: SAMPLE_LISTITEM_PROPS.verticalAlignment,
     },
+    topAccessory: {
+      control: { type: 'boolean' },
+      defaultValue: false,
+      mapping: {
+        false: null,
+        true: (
+          <Text variant={TextVariant.BodySMMedium}>Sample Top Accessory</Text>
+        ),
+      },
+    },
+    bottomAccessory: {
+      control: { type: 'boolean' },
+      defaultValue: false,
+      mapping: {
+        false: null,
+        true: (
+          <Text variant={TextVariant.BodySMMedium}>
+            Sample Bottom Accessory
+          </Text>
+        ),
+      },
+    },
+    topAccessoryGap: {
+      control: { type: 'number' },
+      defaultValue: SAMPLE_LISTITEM_PROPS.topAccessoryGap,
+    },
+    bottomAccessoryGap: {
+      control: { type: 'number' },
+      defaultValue: SAMPLE_LISTITEM_PROPS.bottomAccessoryGap,
+    },
   },
 };
 export default ListItemMeta;

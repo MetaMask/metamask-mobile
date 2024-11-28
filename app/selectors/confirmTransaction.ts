@@ -26,11 +26,6 @@ const selectCurrentTransactionGasFeeEstimatesStrict = createSelector(
   (transactionMetadata) => transactionMetadata?.gasFeeEstimates,
 );
 
-const selectCurrentTransactionGasFeeEstimatesLoaded = createSelector(
-  selectCurrentTransactionMetadata,
-  (transactionMetadata) => transactionMetadata?.gasFeeEstimatesLoaded,
-);
-
 export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
   selectCurrentTransactionGasFeeEstimatesStrict,
   (gasFeeEstimates) => gasFeeEstimates,
@@ -51,11 +46,4 @@ export const selectGasFeeEstimates = createSelector(
 
     return gasFeeControllerEstimates;
   },
-);
-
-export const selectTransactionGasFeeEstimates = createSelector(
-  selectCurrentTransactionGasFeeEstimatesLoaded,
-  selectGasFeeEstimates,
-  (transactionGasFeeEstimatesLoaded, gasFeeEstimates) =>
-    transactionGasFeeEstimatesLoaded ? gasFeeEstimates : undefined,
 );

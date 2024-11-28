@@ -4,8 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import styles from './Regions.styles';
 
-import Text from '../../../../Base/Text';
-import BaseListItem from '../../../../Base/ListItem';
 import useModalHandler from '../../../../Base/hooks/useModalHandler';
 
 import ScreenLayout from '../../components/ScreenLayout';
@@ -29,10 +27,13 @@ import { Region } from '../../types';
 import useAnalytics from '../../hooks/useAnalytics';
 import useRegions from '../../hooks/useRegions';
 
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 
 export const createRegionsNavDetails = createNavigationDetails(
   Routes.RAMP.REGION,
@@ -167,28 +168,28 @@ const RegionsView = () => {
             accessibilityRole="button"
             accessible
           >
-            <Box>
-              <ListItem.Content>
-                <ListItem.Body>
+            <Box compact>
+              <ListItem>
+                <ListItemColumn widthType={WidthType.Fill}>
                   {selectedRegion ? (
-                    <Text>
+                    <Text variant={TextVariant.BodyLGMedium}>
                       {selectedRegion.emoji} {'   '}
                       {selectedRegion.name}
                     </Text>
                   ) : (
-                    <Text>
+                    <Text variant={TextVariant.BodyLGMedium}>
                       {strings('fiat_on_ramp_aggregator.region.select_region')}
                     </Text>
                   )}
-                </ListItem.Body>
-                <ListItem.Amounts style={styles.flexZero}>
+                </ListItemColumn>
+                <ListItemColumn style={styles.flexZero}>
                   <FontAwesome
                     name="caret-down"
                     size={15}
                     color={colors.icon.default}
                   />
-                </ListItem.Amounts>
-              </ListItem.Content>
+                </ListItemColumn>
+              </ListItem>
             </Box>
           </TouchableOpacity>
         </ScreenLayout.Content>

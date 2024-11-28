@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomNotificationsRow should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "marginBottom": 24,
+    }
+  }
+>
+  <SvgMock
+    color="#141618"
+    height={24}
+    name="Arrow2Upright"
+    style={
+      {
+        "height": 24,
+        "marginRight": 16,
+        "width": 24,
+      }
+    }
+    width={24}
+  />
+  <View
+    style={
+      {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "flex": 1,
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Assets Sent
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "flex": 1,
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Funds and NFT
+    </Text>
+  </View>
+  <RCTSwitch
+    accessibilityRole="switch"
+    onChange={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onTintColor="#0376c9"
+    style={
+      [
+        {
+          "height": 31,
+          "width": 51,
+        },
+        [
+          {
+            "alignSelf": "flex-start",
+          },
+          {
+            "backgroundColor": "#bbc0c566",
+            "borderRadius": 16,
+          },
+        ],
+      ]
+    }
+    thumbTintColor="#ffffff"
+    tintColor="#bbc0c566"
+    value={false}
+  />
+</View>
+`;

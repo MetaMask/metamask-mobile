@@ -1,15 +1,12 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import React, { Component, RefObject } from 'react';
 import { View, ScrollView, NativeSyntheticEvent } from 'react-native';
-import WebView, { WebViewMessageEvent } from '@metamask/react-native-webview';
+import { WebViewMessageEvent, WebView } from '@metamask/react-native-webview';
 import { createStyles } from './styles';
-import { WebViewInterface } from '@metamask/snaps-controllers/dist/types/services/webview/WebViewMessageStream';
+import { WebViewInterface } from '@metamask/snaps-controllers/react-native';
 import { WebViewError } from '@metamask/react-native-webview/lib/WebViewTypes';
 import { PostMessageEvent } from '@metamask/post-message-stream';
-// @ts-expect-error Can't type a distritibuted html file
+// @ts-expect-error Types are currently broken for this.
 import WebViewHTML from '@metamask/snaps-execution-environments/dist/browserify/webview/index.html';
 
 const styles = createStyles();
@@ -89,7 +86,7 @@ export class SnapsExecutionWebView extends Component {
             ref={
               this.setWebViewRef as unknown as React.RefObject<WebView> | null
             }
-            source={WebViewHTML}
+            source={{ html: WebViewHTML, baseUrl: 'https://localhost' }}
             onMessage={this.onWebViewMessage}
             onError={this.onWebViewError}
             onLoadEnd={this.onWebViewLoad}

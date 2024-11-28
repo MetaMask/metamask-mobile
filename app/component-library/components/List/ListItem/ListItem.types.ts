@@ -19,6 +19,22 @@ export interface ListItemProps extends ViewProps {
    */
   children?: React.ReactNode;
   /**
+   * Optional prop to include content to be displayed above the ListItem.
+   */
+  topAccessory?: React.ReactNode;
+  /**
+   * Optional prop to include content to be displayed below the ListItem.
+   */
+  bottomAccessory?: React.ReactNode;
+  /**
+   * Optional prop to configure the gap between the topAccessory and the ListItem.
+   */
+  topAccessoryGap?: number;
+  /**
+   * Optional prop to configure the gap between the bottomAccessory and the ListItem.
+   */
+  bottomAccessoryGap?: number;
+  /**
    * Optional prop to configure the gap between items inside the ListItem.
    */
   gap?: number | string;
@@ -37,5 +53,5 @@ export interface ListItemProps extends ViewProps {
  */
 export type ListItemStyleSheetVars = Pick<
   ListItemProps,
-  'style' | 'verticalAlignment'
+  'style' | 'verticalAlignment' | 'topAccessoryGap' | 'bottomAccessoryGap'
 >;

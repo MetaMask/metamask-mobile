@@ -95,9 +95,10 @@ describe('WalletConnect2Session', () => {
             provider: {},
             blockTracker: {},
           }),
+          getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x2' }),
         },
         PermissionController: {
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          // eslint-disable-next-line no-empty-function
           createPermissionMiddleware: jest.fn().mockReturnValue(() => {}),
         },
       },

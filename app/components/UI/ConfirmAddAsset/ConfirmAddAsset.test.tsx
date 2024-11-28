@@ -9,6 +9,8 @@ import { toTokenMinimalUnit } from '../../../util/number';
 import { fireEvent } from '@testing-library/react-native';
 import { BN } from 'ethereumjs-util';
 import { RootState } from '../../../reducers';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -42,6 +44,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
     ticker: 'ETH',
     addTokenList: jest.fn(),
   }),
+  createNavigationDetails: jest.fn(),
 }));
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
@@ -73,11 +76,12 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       NetworkController: {
-        providerConfig: {
-          chainId: '0xaa36a7',
-          type: 'sepolia',
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.SEPOLIA,
+          id: 'sepolia',
           nickname: 'Sepolia',
-        },
+          ticker: 'ETH',
+        }),
       },
     },
   },
@@ -98,14 +102,12 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeTruthy();
     expect(getByText('$27.02')).toBeTruthy();
   });
-
   it('handles cancel button click', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
     const cancelButton = getByText('Cancel');
     fireEvent.press(cancelButton);
-
     expect(getByText('Are you sure you want to exit?')).toBeTruthy();
     expect(
       getByText('Your search information will not be saved.'),

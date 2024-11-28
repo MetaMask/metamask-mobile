@@ -18,11 +18,6 @@ const createStyles = (colors: Colors) =>
     accessory: {
       marginTop: 16,
     },
-    transactionsContainer: {
-      marginTop: 24,
-      marginLeft: -16,
-      marginRight: -16,
-    },
     titleContainer: {
       flexDirection: 'row',
       alignItems: 'center',

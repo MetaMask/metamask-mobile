@@ -1,5 +1,5 @@
+import Eth from '@metamask/ethjs-query';
 import { withNavigation } from '@react-navigation/compat';
-import Eth from 'ethjs-query';
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import { Animated, ScrollView, StyleSheet, View } from 'react-native';
@@ -7,7 +7,6 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import AppConstants from '../../../../../core/AppConstants';
 import Engine from '../../../../../core/Engine';
 import { SDKConnect } from '../../../../../core/SDKConnect/SDKConnect';
 import {
@@ -52,19 +51,19 @@ import {
   getTransactionReviewActionKey,
   isApprovalTransaction,
 } from '../../../../../util/transactions';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AccountFromToInfoCard from '../../../../UI/AccountFromToInfoCard';
+import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import SimulationDetails from '../../../../UI/SimulationDetails/SimulationDetails';
 import TransactionHeader from '../../../../UI/TransactionHeader';
-import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 import TransactionBlockaidBanner from '../TransactionBlockaidBanner/TransactionBlockaidBanner';
 import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -86,10 +85,10 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     actionViewWrapper: {
-      height: Device.isMediumDevice() ? 470 : 550,
+      height: Device.isMediumDevice() ? 590 : 670,
     },
     actionViewChildren: {
-      height: Device.isMediumDevice() ? 390 : 470,
+      height: Device.isMediumDevice() ? 510 : 590,
     },
     accountTransactionWrapper: {
       flex: 1,
@@ -109,19 +108,19 @@ const createStyles = (colors) =>
       opacity: 0,
       height: 0,
     },
-    accountWrapper: {
-      marginTop: -24,
-      marginBottom: 24,
-    },
     blockaidWarning: {
-      marginBottom: 10,
-      marginTop: 20,
-      marginHorizontal: 10,
+      marginBottom: 0,
+      marginTop: 0,
+      marginHorizontal: 0,
     },
     transactionSimulations: {
       marginLeft: 24,
       marginRight: 24,
       marginBottom: 24,
+    },
+    blockAidBannerContainer: {
+      marginHorizontal: 16,
+      marginBottom: -8,
     },
   });
 
@@ -276,6 +275,10 @@ class TransactionReview extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Object containing the current transaction metadata
+     */
+    transactionMetadata: PropTypes.object,
   };
 
   state = {
@@ -317,6 +320,7 @@ class TransactionReview extends PureComponent {
     const {
       transaction,
       transaction: { data, to, value },
+      transactionMetadata,
       tokens,
       chainId,
       tokenList,
@@ -328,7 +332,16 @@ class TransactionReview extends PureComponent {
     showHexData = showHexData || data;
     const approveTransaction =
       isApprovalTransaction(data) && (!value || isZeroValue(value));
-    const actionKey = await getTransactionReviewActionKey(transaction, chainId);
+
+    const actionKey = await getTransactionReviewActionKey(
+      {
+        ...transactionMetadata,
+        transaction,
+        txParams: undefined,
+      },
+      chainId,
+    );
+
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
@@ -351,9 +364,14 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
-      is_smart_transaction: shouldUseSmartTransaction,
-    });
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties({
+          is_smart_transaction: shouldUseSmartTransaction,
+        })
+        .build(),
+    );
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -372,8 +390,10 @@ class TransactionReview extends PureComponent {
     };
 
     metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      additionalParams,
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(additionalParams)
+        .build(),
     );
   };
 
@@ -424,7 +444,11 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange, metrics } = this.props;
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
+    );
     onModeChange && onModeChange('edit');
   };
 
@@ -453,20 +477,8 @@ class TransactionReview extends PureComponent {
   };
 
   getUrlFromBrowser() {
-    const { browser, transaction } = this.props;
+    const { browser } = this.props;
     let url;
-    if (
-      transaction.origin &&
-      transaction.origin.startsWith(WALLET_CONNECT_ORIGIN)
-    ) {
-      return transaction.origin.split(WALLET_CONNECT_ORIGIN)[1];
-    } else if (
-      transaction.origin &&
-      transaction.origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)
-    ) {
-      return transaction.origin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
-    }
-
     browser.tabs.forEach((tab) => {
       if (tab.id === browser.activeTab) {
         url = tab.url;
@@ -525,11 +537,21 @@ class TransactionReview extends PureComponent {
       approveTransaction,
       multiLayerL1FeeTotal,
     } = this.state;
-    const url = this.getUrlFromBrowser();
+    const { origin: channelIdOrHostname } = transaction;
+    DevLogger.log(
+      `TransactionReview render channelIdOrHostname=${channelIdOrHostname}`,
+    );
 
     const sdkConnections = SDKConnect.getInstance().getConnections();
 
-    const currentConnection = sdkConnections[origin ?? ''];
+    const currentConnection = sdkConnections[channelIdOrHostname ?? ''];
+
+    let url = '';
+    if (currentConnection) {
+      url = currentConnection.originatorInfo.url;
+    } else {
+      url = this.getUrlFromBrowser();
+    }
 
     const styles = this.getStyles();
 
@@ -547,16 +569,6 @@ class TransactionReview extends PureComponent {
             -Device.getDeviceWidth(),
           ])}
         >
-          {from && (
-            <ApproveTransactionHeader
-              currentEnsName={ensRecipient}
-              origin={origin}
-              url={url}
-              from={from}
-              asset={transaction?.selectedAsset}
-              sdkDappMetadata={sdkDappMetadata}
-            />
-          )}
           <View style={styles.actionViewWrapper}>
             <ActionView
               confirmButtonMode="confirm"
@@ -575,11 +587,28 @@ class TransactionReview extends PureComponent {
                     style={styles.accountTransactionWrapper}
                     onStartShouldSetResponder={() => true}
                   >
-                    <TransactionBlockaidBanner
-                      transactionId={transactionId}
-                      style={styles.blockaidWarning}
-                      onContactUsClicked={this.onContactUsClicked}
+                    <ApprovalTagUrl
+                      currentEnsName={ensRecipient}
+                      from={from}
+                      origin={origin}
+                      sdkDappMetadata={sdkDappMetadata}
+                      url={url}
                     />
+                    <View style={styles.blockAidBannerContainer}>
+                      <TransactionBlockaidBanner
+                        transactionId={transactionId}
+                        style={styles.blockaidWarning}
+                        onContactUsClicked={this.onContactUsClicked}
+                      />
+                    </View>
+                    {to && (
+                      <View style={styles.accountWrapper}>
+                        <AccountFromToInfoCard
+                          transactionState={transaction}
+                          layout="vertical"
+                        />
+                      </View>
+                    )}
                     <TransactionReviewSummary
                       actionKey={actionKey}
                       assetAmount={assetAmount}
@@ -589,15 +618,7 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {to && (
-                      <View style={styles.accountWrapper}>
-                        <AccountFromToInfoCard
-                          transactionState={transaction}
-                          layout="vertical"
-                        />
-                      </View>
-                    )}
-                    {useTransactionSimulations && (
+                    {useTransactionSimulations && transactionSimulationData && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
                           simulationData={transactionSimulationData}
@@ -705,6 +726,7 @@ const mapStateToProps = (state) => ({
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  transactionMetadata: selectCurrentTransactionMetadata(state),
 });
 
 TransactionReview.contextType = ThemeContext;

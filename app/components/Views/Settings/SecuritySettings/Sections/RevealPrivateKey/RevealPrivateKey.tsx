@@ -18,6 +18,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { REVEAL_PRIVATE_KEY_SECTION } from '../../SecuritySettings.constants';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 
 const testIds = {
   section: REVEAL_PRIVATE_KEY_SECTION,
@@ -26,12 +27,16 @@ const testIds = {
 const RevealPrivateKey = () => {
   const styles = createStyles();
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const goToExportPrivateKey = () => {
-    trackEvent(MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED, {});
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.REVEAL_PRIVATE_KEY_INITIATED,
+      ).build(),
+    );
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'private_key',
       shouldUpdateNav: true,
@@ -61,6 +66,7 @@ const RevealPrivateKey = () => {
         width={ButtonWidthTypes.Full}
         onPress={goToExportPrivateKey}
         style={styles.confirm}
+        testID={SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY}
       />
     </View>
   );

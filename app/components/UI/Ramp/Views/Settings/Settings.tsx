@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 
 // External dependencies
 import { useRampSDK, withRampSDK } from '../../sdk';
-import BaseListItem from '../../../../Base/ListItem';
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
 import Text, {
@@ -27,10 +26,8 @@ import ActivationKeys from './ActivationKeys';
 
 import styles from './Settings.styles';
 
-// TODO: Convert into typescript and correctly type optionals
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../../component-library/components/List/ListItem';
+import ListItemColumn from '../../../../../component-library/components/List/ListItemColumn';
 
 function Settings() {
   const navigation = useNavigation();
@@ -69,21 +66,18 @@ function Settings() {
               <Text variant={TextVariant.BodyLGMedium}>
                 {strings('app_settings.fiat_on_ramp.current_region')}
               </Text>
+
               <ListItem>
-                <ListItem.Content>
-                  <ListItem.Icon>
-                    <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
-                  </ListItem.Icon>
-                  <ListItem.Body>
-                    <Text>
-                      {selectedRegion
-                        ? selectedRegion.name
-                        : strings(
-                            'app_settings.fiat_on_ramp.no_region_selected',
-                          )}
-                    </Text>
-                  </ListItem.Body>
-                </ListItem.Content>
+                <ListItemColumn>
+                  <Text>{selectedRegion ? selectedRegion.emoji : '🏳️'}</Text>
+                </ListItemColumn>
+                <ListItemColumn>
+                  <Text>
+                    {selectedRegion
+                      ? selectedRegion.name
+                      : strings('app_settings.fiat_on_ramp.no_region_selected')}
+                  </Text>
+                </ListItemColumn>
               </ListItem>
               {selectedRegion ? (
                 <Button

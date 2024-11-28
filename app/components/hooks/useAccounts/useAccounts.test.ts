@@ -47,16 +47,11 @@ const MOCK_STORE_STATE = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ACCOUNT_1.address]: {
-            balance: '0x0',
+            balance: '0x0', stakedBalance: '0x0',
           },
           [MOCK_ACCOUNT_2.address]: {
             balance: '0x5',
           },
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
         },
       },
     },

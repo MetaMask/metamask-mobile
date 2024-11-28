@@ -35,6 +35,10 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
     },
+    AccountsController: {
+      getAccountByAddress: jest.fn(),
+      setAccountName: jest.fn(),
+    },
   },
 }));
 const MockEngine = jest.mocked(Engine);

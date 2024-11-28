@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useState, useMemo } from 'react';
@@ -88,7 +89,7 @@ const EditGasFee1559Update = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
@@ -132,12 +133,13 @@ const EditGasFee1559Update = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       trackEvent(
-        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        createEventBuilder(MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED)
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     setShowAdvancedOptions(!showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent, createEventBuilder]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
@@ -151,7 +153,11 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -160,7 +166,14 @@ const EditGasFee1559Update = ({
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    onSave,
+    gasTransaction,
+    gasObject,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const changeGas = useCallback(
     (gas, option) => {
@@ -737,9 +750,7 @@ const EditGasFee1559Update = ({
                       )}
                     {modalInfo.value === 'max_fee' &&
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
-                    {modalInfo.value === 'new_gas_fee' &&
-                    updateOption &&
-                    updateOption.isCancel
+                    {modalInfo.value === 'new_gas_fee' && updateOption?.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
                         )

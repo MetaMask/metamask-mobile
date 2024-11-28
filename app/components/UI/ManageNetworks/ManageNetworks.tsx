@@ -7,8 +7,10 @@ import Text, {
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { ProviderConfig } from '@metamask/network-controller';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  ProviderConfig,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import {
   selectNetworkName,
   selectNetworkImageSource,
@@ -18,14 +20,14 @@ import Routes from '../../../constants/navigation/Routes';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import AppConstants from '../../../core/AppConstants';
 import styles from './ManageNetworks.styles';
 
 export default function ManageNetworksComponent() {
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const networkName = useSelector(selectNetworkName);
@@ -35,10 +37,14 @@ export default function ManageNetworksComponent() {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [navigation, trackEvent, providerConfig]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, providerConfig, createEventBuilder]);
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_POLICY_2024);

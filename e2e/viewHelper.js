@@ -1,15 +1,15 @@
 'use strict';
 
-import EnableAutomaticSecurityChecksView from './pages/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from './pages/modals/EnableAutomaticSecurityChecksView';
+import EnableDeviceNotificationsAlert from './pages/EnableDeviceNotificationsAlert';
 import ImportWalletView from './pages/Onboarding/ImportWalletView';
 import MetaMetricsOptIn from './pages/Onboarding/MetaMetricsOptInView';
-import NetworkEducationModal from './pages/modals/NetworkEducationModal';
-import NetworkListModal from './pages/modals/NetworkListModal';
+import NetworkEducationModal from './pages/Network/NetworkEducationModal';
+import NetworkListModal from './pages/Network/NetworkListModal';
 import NetworkView from './pages/Settings/NetworksView';
 import OnboardingView from './pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from './pages/Onboarding/OnboardingCarouselView';
 import OnboardingWizardModal from './pages/modals/OnboardingWizardModal';
-import ExperienceEnhancerModal from './pages/modals/ExperienceEnhancerModal';
 import SettingsView from './pages/Settings/SettingsView';
 import WalletView from './pages/wallet/WalletView';
 import Accounts from '../wdio/helpers/Accounts';
@@ -59,16 +59,6 @@ have to have all these workarounds in the tests
   }
 
   try {
-    // Handle Marketing consent modal
-
-    await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-    await ExperienceEnhancerModal.tapNoThanks();
-    await Assertions.checkIfNotVisible(ExperienceEnhancerModal.container);
-  } catch {
-    console.log('The marketing consent modal is not visible');
-  }
-
-  try {
     await Assertions.checkIfVisible(ToastModal.container);
     await ToastModal.tapToastCloseButton();
     await Assertions.checkIfNotVisible(ToastModal.container);
@@ -79,7 +69,25 @@ have to have all these workarounds in the tests
   }
 };
 
-export const importWalletWithRecoveryPhrase = async () => {
+export const skipNotificationsDeviceSettings = async () => {
+  await TestHelpers.delay(1000);
+
+  try {
+    await Assertions.checkIfVisible(
+      EnableDeviceNotificationsAlert.stepOneContainer,
+    );
+    await EnableDeviceNotificationsAlert.tapOnNotEnableDeviceNotificationsButton();
+    await Assertions.checkIfNotVisible(
+      EnableDeviceNotificationsAlert.stepOneContainer,
+    );
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The notification device alert modal is not visible');
+  }
+};
+
+export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   // tap on import seed phrase button
   await Assertions.checkIfVisible(OnboardingCarouselView.container);
   await OnboardingCarouselView.tapOnGetStartedButton();
@@ -90,16 +98,20 @@ export const importWalletWithRecoveryPhrase = async () => {
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
-  await ImportWalletView.enterSecretRecoveryPhrase(validAccount.seedPhrase);
-  await ImportWalletView.enterPassword(validAccount.password);
-  await ImportWalletView.reEnterPassword(validAccount.password);
+  await ImportWalletView.enterSecretRecoveryPhrase(
+    seedPhrase ?? validAccount.seedPhrase,
+  );
+  await ImportWalletView.enterPassword(password ?? validAccount.password);
+  await ImportWalletView.reEnterPassword(password ?? validAccount.password);
 
-  // Should dismiss Automatic Security checks screen
+  //'Should dismiss Enable device Notifications checks alert'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  await EnableAutomaticSecurityChecksView.isVisible();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  // Should dismiss Automatic Security checks screen
+  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
-
   // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await this.closeOnboardingModals();
@@ -131,10 +143,12 @@ export const CreateNewWallet = async () => {
   await device.enableSynchronization();
   await Assertions.checkIfVisible(WalletView.container);
 
-  //'Should dismiss Automatic Security checks screen'
   await TestHelpers.delay(3500);
   await OnboardingSuccessView.tapDone();
-  await EnableAutomaticSecurityChecksView.isVisible();
+  //'Should dismiss Enable device Notifications checks alert'
+  await this.skipNotificationsDeviceSettings();
+  //'Should dismiss Automatic Security checks screen'
+  await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
   await EnableAutomaticSecurityChecksView.tapNoThanks();
 
   // 'should dismiss the onboarding wizard'
@@ -179,7 +193,9 @@ export const addLocalhostNetwork = async () => {
 
 export const switchToSepoliaNetwork = async () => {
   await WalletView.tapNetworksButtonOnNavBar();
+  await NetworkListModal.scrollToBottomOfNetworkList();
   await NetworkListModal.tapTestNetworkSwitch();
+  await NetworkListModal.scrollToBottomOfNetworkList();
   await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
@@ -202,6 +218,6 @@ export const switchToSepoliaNetwork = async () => {
 
 export const loginToApp = async () => {
   const PASSWORD = '123123123';
-  await LoginView.isVisible();
+  await Assertions.checkIfVisible(LoginView.container);
   await LoginView.enterPassword(PASSWORD);
 };

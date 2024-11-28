@@ -21,6 +21,36 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 32,
       alignItems: 'center',
     },
+    selectorContainer: {
+      flex: 1,
+      flexDirection: 'column',
+    },
+    mainTitle: {
+      fontSize: 24,
+      marginBottom: 10,
+      ...fontStyles.bold,
+      color: colors.text.default,
+    },
+    selectorTitle: {
+      color: colors.text.default,
+      fontSize: 14,
+      ...fontStyles.bold,
+      marginBottom: 10,
+    },
+    selectorDescription: {
+      fontSize: 10,
+      color: colors.text.default,
+      ...fontStyles.normal,
+      marginBottom: 10,
+      width: Device.getDeviceWidth() * 0.85,
+    },
+    pathSelector: {
+      borderColor: colors.border.default,
+      borderRadius: 5,
+      borderWidth: 2,
+      height: 45,
+      width: Device.getDeviceWidth() * 0.85,
+    },
     navbarRightButton: {
       flexDirection: 'row',
       justifyContent: 'flex-end',
@@ -35,7 +65,7 @@ const createStyles = (colors: Colors) =>
     error: {
       ...fontStyles.normal,
       fontSize: 14,
-      color: colors.error,
+      color: colors.error.default,
     },
     text: {
       color: colors.text.default,

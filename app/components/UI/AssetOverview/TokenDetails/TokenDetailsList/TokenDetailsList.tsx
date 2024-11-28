@@ -8,7 +8,6 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Title from '../../../../Base/Title';
 import styleSheet from '../TokenDetails.styles';
 import Icon, {
   IconColor,
@@ -18,6 +17,7 @@ import Icon, {
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { TokenDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
+import { formatAddress } from '../../../../../util/address';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
@@ -48,8 +48,10 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   };
 
   return (
-    <View style={styles.wrapper}>
-      <Title style={styles.title}>{strings('token.token_details')}</Title>
+    <View>
+      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        {strings('token.token_details')}
+      </Text>
       <View style={styles.listWrapper}>
         {tokenDetails.contractAddress && (
           <TokenDetailsListItem
@@ -61,7 +63,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
               onPress={copyAccountToClipboard}
             >
               <Text color={TextColor.Primary} variant={TextVariant.BodySM}>
-                {tokenDetails.contractAddress}
+                {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon
                 name={IconName.Copy}

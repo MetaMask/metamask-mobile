@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { useState, useCallback } from 'react';
 import { ProfileSyncingReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
@@ -6,6 +5,7 @@ import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
 } from '../../../actions/notification/helpers';
+import { isNotificationsFeatureEnabled } from '../constants';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
@@ -18,6 +18,10 @@ export function useProfileSyncing(): ProfileSyncingReturn {
   const [error, setError] = useState<string>();
 
   const enableProfileSyncing = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
@@ -37,6 +41,10 @@ export function useProfileSyncing(): ProfileSyncingReturn {
   }, []);
 
   const disableProfileSyncing = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {

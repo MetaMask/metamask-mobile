@@ -22,6 +22,8 @@ import { RootState } from '../../../reducers';
 
 // Internal dependencies
 import WalletAccount from './WalletAccount';
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const MOCK_CHAIN_ID: Hex = '0x1';
 
@@ -35,6 +37,19 @@ const mockAccount: Account = {
   isSelected: true,
 };
 
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
+    },
+  };
+});
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
@@ -42,29 +57,21 @@ const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      PreferencesController: {
+        privacyMode: false,
+      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
-        },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [
-          {
-            accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
-          },
-        ],
-      },
-    },
-  },
-}));
 
 jest.mock('../../../core/ClipboardManager');
 
@@ -97,26 +104,26 @@ jest.mock('../../../util/ENSUtils', () => ({
     }),
 }));
 
+const mockSelector = jest
+  .fn()
+  .mockImplementation((callback) => callback(mockInitialState));
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (selector: any) => mockSelector(selector),
 }));
 
 describe('WalletAccount', () => {
+  beforeEach(() => {
+    mockSelector.mockImplementation((callback) => callback(mockInitialState));
+  });
+
   it('renders correctly', () => {
     const { toJSON } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('shows the account address', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ADDRESS)).toBeDefined();
   });
 
   it('copies the account address to the clipboard when the copy button is pressed', async () => {
@@ -135,7 +142,9 @@ describe('WalletAccount', () => {
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
     expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({}),
+      ...createAccountSelectorNavDetails({
+        privacyMode: false,
+      }),
     );
   });
   it('displays the correct account name', () => {
@@ -166,5 +175,48 @@ describe('WalletAccount', () => {
     await waitFor(() => {
       expect(getByText(customAccountName)).toBeDefined();
     });
+  });
+
+  it('should navigate to account selector with privacy mode disabled', () => {
+    const { getByTestId } = renderWithProvider(<WalletAccount />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createAccountSelectorNavDetails({
+        privacyMode: false,
+      }),
+    );
+  });
+
+  it('should navigate to account selector with privacy mode enabled', () => {
+    const stateWithPrivacyMode = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          PreferencesController: {
+            privacyMode: true,
+          },
+        },
+      },
+    };
+
+    mockSelector.mockImplementation((callback) =>
+      callback(stateWithPrivacyMode),
+    );
+
+    const { getByTestId } = renderWithProvider(<WalletAccount />, {
+      state: stateWithPrivacyMode,
+    });
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createAccountSelectorNavDetails({
+        privacyMode: true,
+      }),
+    );
   });
 });

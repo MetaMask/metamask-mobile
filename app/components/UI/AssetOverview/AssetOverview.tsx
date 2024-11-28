@@ -1,19 +1,10 @@
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  TOKEN_ASSET_OVERVIEW,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { toggleReceiveModal } from '../../../actions/modals';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -45,28 +36,36 @@ import { createWebviewNavDetails } from '../../Views/SimpleWebview';
 import useTokenHistoricalPrices, {
   TimePeriod,
 } from '../../hooks/useTokenHistoricalPrices';
-import { Asset } from './AssetOverview.types';
 import Balance from './Balance';
 import ChartNavigationButton from './ChartNavigationButton';
 import Price from './Price';
 import styleSheet from './AssetOverview.styles';
 import { useStyles } from '../../../component-library/hooks';
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
+import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
+import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import SwapsController from '@metamask/swaps-controller';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { getDecimalChainId } from '../../../util/networks';
+import { useMetrics } from '../../../components/hooks/useMetrics';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { TokenI } from '../Tokens/types';
+import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
-  navigation: {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    navigate: (route: string, props?: any) => void;
-  };
-  asset: Asset;
+  asset: TokenI;
+  displayBuyButton?: boolean;
+  displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
-  navigation,
   asset,
+  displayBuyButton,
+  displaySwapsButton,
 }: AssetOverviewProps) => {
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
@@ -74,9 +73,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountChecksummedAddress,
   );
+  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -93,12 +94,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsController.fetchTokenWithCache();
+        await SwapsControllerFromEngine.fetchTokenWithCache();
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -112,7 +113,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }, []);
 
   const onReceive = () => {
-    dispatch(toggleReceiveModal(asset));
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+    });
   };
 
   const onSend = async () => {
@@ -121,15 +125,53 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigation.navigate('SendFlowView');
+    navigation.navigate('SendFlowView', {});
+  };
+
+  const goToSwaps = () => {
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: asset.address,
+        sourcePage: 'MainView',
+      },
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Swap',
+          tokenSymbol: '',
+          location: 'TokenDetails',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  };
+  const onBuy = () => {
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const goToBrowserUrl = (url: string) => {
-    navigation.navigate(
-      ...createWebviewNavDetails({
-        url,
-      }),
-    );
+    const [screen, params] = createWebviewNavDetails({
+      url,
+    });
+
+    // TODO: params should not have to be cast here
+    navigation.navigate(screen, params as Record<string, unknown>);
   };
 
   const renderWarning = () => (
@@ -138,7 +180,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <Text style={styles.warning}>
-          {strings('asset_overview.were_unable')} {(asset as Asset).symbol}{' '}
+          {strings('asset_overview.were_unable')} {(asset as TokenI).symbol}{' '}
           {strings('asset_overview.balance')}{' '}
           <Text style={styles.warningLinks}>
             {strings('asset_overview.troubleshooting_missing')}
@@ -226,11 +268,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   return (
-    <View
-      style={styles.wrapper}
-      {...generateTestId(Platform, TOKEN_ASSET_OVERVIEW)}
-    >
-      {asset.balanceError ? (
+    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
+      {asset.hasBalanceError ? (
         renderWarning()
       ) : (
         <View>
@@ -247,27 +286,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <View style={styles.chartNavigationWrapper}>
             {renderChartNavigationButton()}
           </View>
-          <View style={styles.balanceWrapper}>
-            <Balance balance={mainBalance} fiatBalance={secondaryBalance} />
-            <View style={styles.balanceButtons}>
-              <Button
-                style={{ ...styles.footerButton, ...styles.receiveButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.receive_button')}
-                onPress={onReceive}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_RECEIVE_BUTTON)}
-              />
-              <Button
-                style={{ ...styles.footerButton, ...styles.sendButton }}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.send_button')}
-                onPress={onSend}
-                {...generateTestId(Platform, TOKEN_OVERVIEW_SEND_BUTTON)}
-              />
-            </View>
-          </View>
+          <AssetDetailsActions
+            displayBuyButton={displayBuyButton}
+            displaySwapsButton={displaySwapsButton}
+            goToBridge={goToBridge}
+            goToSwaps={goToSwaps}
+            onBuy={onBuy}
+            onReceive={onReceive}
+            onSend={onSend}
+          />
+          <Balance
+            asset={asset}
+            mainBalance={mainBalance}
+            secondaryBalance={secondaryBalance}
+          />
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={asset} />
           </View>

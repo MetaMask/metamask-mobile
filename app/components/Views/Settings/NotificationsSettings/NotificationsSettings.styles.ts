@@ -58,6 +58,17 @@ const styleSheet = (params: { theme: Theme }) =>
       backgroundColor: params.theme.colors.background.default,
       flex: 1,
     },
+    button: {
+      alignSelf: 'stretch',
+      marginBottom: 48,
+    },
+
+  });
+
+  export const styles = StyleSheet.create({
+    headerLeft: {
+      marginHorizontal: 16,
+    },
   });
 
 export default styleSheet;

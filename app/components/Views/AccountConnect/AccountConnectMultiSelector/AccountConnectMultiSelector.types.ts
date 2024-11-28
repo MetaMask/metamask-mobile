@@ -23,6 +23,7 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   onSelectAddress: (addresses: string[]) => void;
   isLoading?: boolean;
   onUserAction: React.Dispatch<React.SetStateAction<USER_INTENT>>;
+  onPrimaryActionButtonPress?: () => void;
   urlWithProtocol: string;
   hostname: string;
   favicon: ImageSourcePropType;
@@ -30,4 +31,7 @@ export interface AccountConnectMultiSelectorProps extends UseAccounts {
   isAutoScrollEnabled?: boolean;
   onBack: () => void;
   connection?: ConnectionProps;
+  screenTitle?: string;
+  isRenderedAsBottomSheet?: boolean;
+  showDisconnectAllButton?: boolean;
 }

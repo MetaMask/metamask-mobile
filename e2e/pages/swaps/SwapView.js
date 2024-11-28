@@ -35,7 +35,12 @@ class SwapView {
   }
 
   async swipeToSwap() {
-    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
+    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.95;
+
+    // Swipe could happen at the same time when gas fees are falshing
+    // and that's when the swipe button becomes disabled
+    // that's the need to retry
+    await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
     await Gestures.swipe(this.swipeToSwapButton, 'right', 'fast', percentage);
   }
 
@@ -47,7 +52,7 @@ class SwapView {
 
   async tapIUnderstandPriceWarning() {
     try {
-      await Gestures.waitAndTap(this.iUnderstandLabel);
+      await Gestures.waitAndTap(this.iUnderstandLabel, 5000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);

@@ -42,12 +42,6 @@ class TestDApp {
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
-  get ethSignButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETH_SIGN,
-    );
-  }
   get increaseAllowanceButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -99,10 +93,6 @@ class TestDApp {
 
   async tapApproveButton() {
     await this.tapButton(this.ApproveButton);
-  }
-
-  async tapEthSignButton() {
-    await this.tapButton(this.ethSignButton);
   }
 
   async tapIncreaseAllowanceButton() {

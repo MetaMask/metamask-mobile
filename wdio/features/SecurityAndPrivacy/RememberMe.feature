@@ -14,7 +14,6 @@ Feature: Security & Privacy Remember Me
     When I kill the app
     And I relaunch the app
     And the app displayed the splash animation
-    And the splash animation disappears
     And I fill my password in the Login screen
     And I toggle Remember Me on Login screen
     And I log into my wallet
@@ -22,5 +21,4 @@ Feature: Security & Privacy Remember Me
     When I kill the app
     And I relaunch the app
     And the app displayed the splash animation
-    And the splash animation disappears
     Then I am on the wallet view

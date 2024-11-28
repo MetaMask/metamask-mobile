@@ -70,9 +70,6 @@ export const SDKSessionItem = ({
     string[]
   >([]);
 
-  DevLogger.log(
-    `Rendering SDKSessionItem connected=${connection.connected} ${connection.id}`,
-  );
   useEffect(() => {
     let _sessionName = connection.id;
 

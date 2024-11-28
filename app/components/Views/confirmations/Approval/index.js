@@ -45,16 +45,23 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getDecimalChainId } from '../../../../util/networks';
+import Routes from '../../../../constants/navigation/Routes';
 
 import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
-import { selectCurrentTransactionSecurityAlertResponse } from '../../../../selectors/confirmTransaction';
+import {
+  selectCurrentTransactionSecurityAlertResponse,
+  selectCurrentTransactionMetadata,
+} from '../../../../selectors/confirmTransaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectShowCustomNonce } from '../../../../selectors/settings';
 import { buildTransactionParams } from '../../../../util/confirmation/transactions';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -136,21 +143,22 @@ class Approval extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+
+    /**
+     * Object containing simulation data
+     */
+    simulationData: PropTypes.object,
   };
 
   state = {
     mode: REVIEW,
     transactionHandled: false,
     transactionConfirmed: false,
+    isChangeInSimulationModalOpen: false,
   };
 
-  originIsWalletConnect = this.props.transaction.origin?.startsWith(
-    WALLET_CONNECT_ORIGIN,
-  );
-
-  originIsMMSDKRemoteConn = this.props.transaction.origin?.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  originIsWalletConnect = false;
+  originIsMMSDKRemoteConn = false;
 
   updateNavBar = () => {
     const colors = this.context.colors || mockTheme.colors;
@@ -249,10 +257,50 @@ class Approval extends PureComponent {
     );
     navigation &&
       navigation.setParams({ mode: REVIEW, dispatch: this.onModeChange });
+    this.initialise();
+  };
+
+  initialise = async () => {
+    // Detect origin: WalletConnect / SDK / InAppBrowser
+    await this.detectOrigin(); // Ensure detectOrigin finishes before proceeding
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_STARTED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_STARTED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
+    );
+  };
+
+  detectOrigin = async () => {
+    const { transaction } = this.props;
+    const { origin } = transaction;
+
+    const connection = SDKConnect.getInstance().getConnection({
+      channelId: origin,
+    });
+    if (connection) {
+      this.originIsMMSDKRemoteConn = true;
+    } else {
+      // Check if origin is WalletConnect
+      const wc2Manager = await WC2Manager.getInstance();
+      const sessions = wc2Manager.getSessions();
+      this.originIsWalletConnect = sessions.some((session) => {
+        // Otherwise, compare the origin with the metadata URL
+        if (
+          session.peer.metadata.url === origin ||
+          origin.startsWith(WALLET_CONNECT_ORIGIN)
+        ) {
+          DevLogger.log(
+            `Approval::detectOrigin Comparing session URL ${session.peer.metadata.url} with origin ${origin}`,
+          );
+          return true;
+        }
+        return false;
+      });
+    }
+    DevLogger.log(
+      `Approval::detectOrigin originIsWalletConnect=${this.originIsWalletConnect} originIsMMSDKRemoteConn=${this.originIsMMSDKRemoteConn}`,
     );
   };
 
@@ -261,8 +309,10 @@ class Approval extends PureComponent {
    */
   trackConfirmScreen = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -270,14 +320,16 @@ class Approval extends PureComponent {
    * Call Analytics to track confirm started event for approval screen
    */
   trackEditScreen = async () => {
-    const { transaction } = this.props;
-    const actionKey = await getTransactionReviewActionKey(transaction);
-    this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
+    const { transaction, metrics } = this.props;
+    const actionKey = await getTransactionReviewActionKey({ transaction });
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .addProperties({
+          ...this.getTrackingParams(),
+          actionKey,
+        })
+        .build(),
     );
   };
 
@@ -286,8 +338,10 @@ class Approval extends PureComponent {
    */
   trackOnCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -319,13 +373,20 @@ class Approval extends PureComponent {
   };
 
   getAnalyticsParams = ({ gasEstimateType, gasSelected } = {}) => {
+    const { chainId, transaction, selectedAddress, shouldUseSmartTransaction } =
+      this.props;
+
+    const baseParams = {
+      dapp_host_name: transaction?.origin || 'N/A',
+      asset_type: { value: transaction?.assetType, anonymous: true },
+      request_source: this.originIsMMSDKRemoteConn
+        ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
+        : this.originIsWalletConnect
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    };
+
     try {
-      const {
-        chainId,
-        transaction,
-        selectedAddress,
-        shouldUseSmartTransaction,
-      } = this.props;
       const { selectedAsset } = transaction;
       const { TransactionController, SmartTransactionsController } =
         Engine.context;
@@ -341,24 +402,22 @@ class Approval extends PureComponent {
         );
 
       return {
+        ...baseParams,
         account_type: getAddressAccountType(selectedAddress),
-        dapp_host_name: transaction?.origin,
         chain_id: getDecimalChainId(chainId),
         active_currency: { value: selectedAsset?.symbol, anonymous: true },
-        asset_type: { value: transaction?.assetType, anonymous: true },
         gas_estimate_type: gasEstimateType,
         gas_mode: gasSelected ? 'Basic' : 'Advanced',
         speed_set: gasSelected || undefined,
-        request_source: this.originIsMMSDKRemoteConn
-          ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
-          : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
         is_smart_transaction: shouldUseSmartTransaction,
         ...smartTransactionMetricsProperties,
       };
     } catch (error) {
-      return {};
+      Logger.error(
+        error,
+        'Error while getting analytics params for approval screen',
+      );
+      return baseParams;
     }
   };
 
@@ -390,12 +449,14 @@ class Approval extends PureComponent {
     this.state.mode === REVIEW && this.trackOnCancel();
     this.showWalletConnectNotification();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-      {
-        ...this.getAnalyticsParams(),
-        ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
+        .addProperties({
+          ...this.getAnalyticsParams(),
+          ...this.getBlockaidMetricsParams(),
+          ...this.getTransactionMetrics(),
+        })
+        .build(),
     );
   };
 
@@ -416,16 +477,20 @@ class Approval extends PureComponent {
         this.showWalletConnectNotification();
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED,
-          gaParams,
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_CANCELLED)
+            .addProperties(gaParams)
+            .build(),
         );
       } else {
         this.showWalletConnectNotification(true);
       }
     } finally {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-        gaParams,
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED)
+          .addProperties(gaParams)
+          .build(),
       );
     }
   };
@@ -435,7 +500,13 @@ class Approval extends PureComponent {
    */
   onConfirm = async ({ gasEstimateType, EIP1559GasData, gasSelected }) => {
     const { KeyringController, ApprovalController } = Engine.context;
-    const { transactions, chainId, shouldUseSmartTransaction } = this.props;
+    const {
+      transactions,
+      chainId,
+      shouldUseSmartTransaction,
+      simulationData: { isUpdatedAfterSecurityCheck },
+      navigation,
+    } = this.props;
     let { transaction } = this.props;
     const { transactionConfirmed } = this.state;
     if (transactionConfirmed) return;
@@ -443,6 +514,25 @@ class Approval extends PureComponent {
     const isLedgerAccount = isHardwareAccount(transaction.from, [
       ExtendedKeyringTypes.ledger,
     ]);
+
+    if (isUpdatedAfterSecurityCheck) {
+      this.setState({ isChangeInSimulationModalOpen: true });
+
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.CHANGE_IN_SIMULATION_MODAL,
+        params: {
+          onProceed: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.setState({ transactionConfirmed: false });
+          },
+          onReject: () => {
+            this.setState({ isChangeInSimulationModalOpen: false });
+            this.onCancel();
+          },
+        },
+      });
+      return;
+    }
 
     this.setState({ transactionConfirmed: true });
 
@@ -537,22 +627,28 @@ class Approval extends PureComponent {
         this.props.hideModal();
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       this.setState({ transactionHandled: false });
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED,
-      {
-        ...this.getAnalyticsParams({
-          gasEstimateType,
-          gasSelected,
-        }),
-        ...this.getBlockaidMetricsParams(),
-        ...this.getTransactionMetrics(),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_TRANSACTION_COMPLETED)
+        .addProperties({
+          ...this.getAnalyticsParams({
+            gasEstimateType,
+            gasSelected,
+          }),
+          ...this.getBlockaidMetricsParams(),
+          ...this.getTransactionMetrics(),
+        })
+        .build(),
     );
     this.setState({ transactionConfirmed: false });
   };
@@ -617,12 +713,15 @@ class Approval extends PureComponent {
 
   render = () => {
     const { dappTransactionModalVisible } = this.props;
-    const { mode, transactionConfirmed } = this.state;
+    const { mode, transactionConfirmed, isChangeInSimulationModalOpen } =
+      this.state;
     const colors = this.context.colors || mockTheme.colors;
 
     return (
       <Modal
-        isVisible={dappTransactionModalVisible}
+        isVisible={
+          dappTransactionModalVisible && !isChangeInSimulationModalOpen
+        }
         animationIn="slideInUp"
         animationOut="slideOutDown"
         style={styles.bottomModal}
@@ -653,6 +752,7 @@ class Approval extends PureComponent {
 const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: selectTransactions(state),
+  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: selectShowCustomNonce(state),

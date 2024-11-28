@@ -274,5 +274,4 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   };
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export { Encryptor };

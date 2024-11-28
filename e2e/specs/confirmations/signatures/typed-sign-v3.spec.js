@@ -2,7 +2,7 @@
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
-import SigningModal from '../../../pages/modals/SigningModal';
+import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
@@ -37,17 +37,15 @@ describe(SmokeConfirmations('Typed Sign V3'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapTypedV3SignButton();
-        await Assertions.checkIfVisible(SigningModal.typedRequest);
-        await SigningModal.tapCancelButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await SigningBottomSheet.tapCancelButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
         await TestDApp.tapTypedV3SignButton();
 
-        await SigningModal.tapSignButton();
-        await Assertions.checkIfNotVisible(SigningModal.typedRequest);
-        await Assertions.checkIfNotVisible(SigningModal.ethRequest);
-        await Assertions.checkIfNotVisible(SigningModal.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
       },
     );
   });

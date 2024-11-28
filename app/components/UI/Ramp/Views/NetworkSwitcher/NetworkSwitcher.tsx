@@ -153,17 +153,18 @@ function NetworkSwitcher() {
 
   const switchNetwork = useCallback(
     (networkConfiguration) => {
-      const { CurrencyRateController, NetworkController } = Engine.context;
-      const entry = Object.entries(networkConfigurations).find(
-        ([_a, { chainId }]) => chainId === networkConfiguration.chainId,
+      const { NetworkController } = Engine.context;
+      const config = Object.values(networkConfigurations).find(
+        ({ chainId }) => chainId === networkConfiguration.chainId,
       );
 
-      if (entry) {
-        const [networkConfigurationId] = entry;
-        const { ticker } = networkConfiguration;
+      if (config) {
+        const { rpcEndpoints, defaultRpcEndpointIndex } = config;
 
-        CurrencyRateController.updateExchangeRate(ticker);
-        NetworkController.setActiveNetwork(networkConfigurationId);
+        const { networkClientId } =
+          rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
+
+        NetworkController.setActiveNetwork(networkClientId);
         navigateToGetStarted();
       }
     },
@@ -375,6 +376,7 @@ function NetworkSwitcher() {
                   shouldNetworkSwitchPopToWallet={false}
                   customNetworksList={rampNetworksDetails}
                   showCompletionMessage={false}
+                  showPopularNetworkModal
                   displayContinue
                 />
               </>

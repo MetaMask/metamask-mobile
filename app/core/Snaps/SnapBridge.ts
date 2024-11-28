@@ -11,7 +11,7 @@ import {
   createEventEmitterProxy,
 } from '@metamask/swappable-obj-proxy';
 import { JsonRpcEngine } from 'json-rpc-engine';
-import { createEngineStream } from 'json-rpc-middleware-stream';
+import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
 import { NetworksChainId } from '@metamask/controller-utils';
 
 import Engine from '../Engine';
@@ -22,9 +22,9 @@ import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 
 const ObjectMultiplex = require('@metamask/object-multiplex');
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
+const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
+const { providerAsMiddleware } = require('@metamask/eth-json-rpc-middleware');
 const pump = require('pump');
 
 interface ISnapBridgeProps {
@@ -162,9 +162,7 @@ export default class SnapBridge {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { context, controllerMessenger } = Engine as any;
+    const { context, controllerMessenger } = Engine;
     const { PermissionController } = context;
 
     engine.push(

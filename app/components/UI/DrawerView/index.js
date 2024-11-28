@@ -30,7 +30,6 @@ import Modal from 'react-native-modal';
 import {
   toggleInfoNetworkModal,
   toggleNetworkModal,
-  toggleReceiveModal,
 } from '../../../actions/modals';
 import { showAlert } from '../../../actions/alert';
 import {
@@ -40,7 +39,6 @@ import {
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
-import ReceiveRequest from '../ReceiveRequest';
 import AppConstants from '../../../core/AppConstants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import URL from 'url-parse';
@@ -83,6 +81,7 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
@@ -361,10 +360,6 @@ class DrawerView extends PureComponent {
      */
     toggleNetworkModal: PropTypes.func,
     /**
-     * Action that toggles the receive modal
-     */
-    toggleReceiveModal: PropTypes.func,
-    /**
      * Action that shows the global alert
      */
     showAlert: PropTypes.func.isRequired,
@@ -372,10 +367,6 @@ class DrawerView extends PureComponent {
      * Boolean that determines the status of the networks modal
      */
     networkModalVisible: PropTypes.bool.isRequired,
-    /**
-     * Boolean that determines the status of the receive modal
-     */
-    receiveModalVisible: PropTypes.bool.isRequired,
     /**
      * Start transaction with asset
      */
@@ -499,7 +490,7 @@ class DrawerView extends PureComponent {
     return label ? (
       <View style={[styles.importedWrapper]}>
         <Text numberOfLines={1} style={styles.importedText}>
-          {strings(label)}
+          {label}
         </Text>
       </View>
     ) : null;
@@ -548,11 +539,15 @@ class DrawerView extends PureComponent {
         this.setState({ showProtectWalletModal: true });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
-          {
-            wallet_protection_required: false,
-            source: 'Backup Alert',
-          },
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.WALLET_SECURITY_PROTECT_VIEWED,
+            )
+            .addProperties({
+              wallet_protection_required: false,
+              source: 'Backup Alert',
+            })
+            .build(),
         );
       } else {
         // eslint-disable-next-line react/no-did-update-set-state
@@ -611,41 +606,48 @@ class DrawerView extends PureComponent {
         onSelectAccount: this.hideDrawer,
       }),
     );
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME);
-  };
-
-  toggleReceiveModal = () => {
-    this.props.toggleReceiveModal();
-  };
-
-  showReceiveModal = () => {
-    this.toggleReceiveModal();
-  };
-
-  trackEvent = (event) => {
-    this.props.metrics.trackEvent(event);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_ACCOUNT_NAME)
+        .build(),
+    );
   };
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
     const { providerConfig } = this.props;
-    this.props.metrics.trackEvent(MetaMetricsEvents.BROWSER_OPENED, {
-      source: 'In-app Navigation',
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
+        .addProperties({
+          source: 'In-app Navigation',
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
   };
 
   onReceive = () => {
-    this.toggleReceiveModal();
-    this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE);
+    this.props.navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_RECEIVE)
+        .build(),
+    );
   };
 
   onSend = async () => {
     this.props.newAssetTransaction(getEther(this.props.ticker));
     this.props.navigation.navigate('SendFlowView');
     this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SEND)
+        .build(),
+    );
   };
 
   goToBrowser = () => {
@@ -653,13 +655,21 @@ class DrawerView extends PureComponent {
     this.hideDrawer();
     // Q: duplicated analytic event?
     this.trackOpenBrowserEvent();
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_BROWSER)
+        .build(),
+    );
   };
 
   showWallet = () => {
     this.props.navigation.navigate('WalletTabHome');
     this.hideDrawer();
-    this.trackEvent(MetaMetricsEvents.WALLET_OPENED);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
+        .build(),
+    );
   };
 
   onPressLock = async () => {
@@ -692,7 +702,11 @@ class DrawerView extends PureComponent {
       ],
       { cancelable: false },
     );
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT)
+        .build(),
+    );
   };
 
   viewInEtherscan = () => {
@@ -716,11 +730,19 @@ class DrawerView extends PureComponent {
       );
       this.goToBrowserUrl(url, etherscan_url);
     }
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN)
+        .build(),
+    );
   };
 
   submitFeedback = () => {
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK)
+        .build(),
+    );
     this.goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('drawer.request_feature'),
@@ -735,7 +757,11 @@ class DrawerView extends PureComponent {
         timestamp: Date.now(),
       },
     });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP)
+        .build(),
+    );
     this.hideDrawer();
   };
 
@@ -915,7 +941,13 @@ class DrawerView extends PureComponent {
       .catch((err) => {
         Logger.log('Error while trying to share address', err);
       });
-    this.trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
+        )
+        .build(),
+    );
   };
 
   onSecureWalletModalAction = () => {
@@ -926,11 +958,13 @@ class DrawerView extends PureComponent {
     );
     InteractionManager.runAfterInteractions(() => {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED,
-        {
-          wallet_protection_required: true,
-          source: 'Modal',
-        },
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+          .addProperties({
+            wallet_protection_required: true,
+            source: 'Modal',
+          })
+          .build(),
       );
     });
   };
@@ -1213,23 +1247,6 @@ class DrawerView extends PureComponent {
           />
         </Modal>
 
-        <Modal
-          isVisible={this.props.receiveModalVisible}
-          onBackdropPress={this.toggleReceiveModal}
-          onBackButtonPress={this.toggleReceiveModal}
-          onSwipeComplete={this.toggleReceiveModal}
-          swipeDirection={'down'}
-          propagateSwipe
-          style={styles.bottomModal}
-          backdropColor={colors.overlay.default}
-          backdropOpacity={1}
-        >
-          <ReceiveRequest
-            navigation={this.props.navigation}
-            hideModal={this.toggleReceiveModal}
-            showReceiveModal={this.showReceiveModal}
-          />
-        </Modal>
         {this.renderProtectModal()}
       </View>
     );
@@ -1244,7 +1261,6 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   keyrings: state.engine.backgroundState.KeyringController.keyrings,
   networkModalVisible: state.modals.networkModalVisible,
-  receiveModalVisible: state.modals.receiveModalVisible,
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
@@ -1259,7 +1275,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   toggleNetworkModal: () => dispatch(toggleNetworkModal()),
-  toggleReceiveModal: () => dispatch(toggleReceiveModal()),
   showAlert: (config) => dispatch(showAlert(config)),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),

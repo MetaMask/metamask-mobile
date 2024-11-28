@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet, Platform, Linking } from 'react-native';
 import { openSettings } from 'react-native-permissions';
 import { strings } from '../../../../locales/i18n';
-import SelectComponent from '../../UI/SelectComponent';
 import { mockTheme, useAppThemeFromContext } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import Device from '../../../util/device';
@@ -16,6 +15,7 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
+import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -86,12 +86,12 @@ const Scan = ({
   ]);
 
   useEffect(() => {
-    // first device is selected by default
-    if (devices?.length > 0) {
+    // first device is selected by default if not selectedDevice is set
+    if (devices?.length > 0 && !selectedDevice) {
+      setSelectedDevice(devices[0]);
       onDeviceSelected(devices[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devices]);
+  }, [devices, onDeviceSelected, selectedDevice]);
 
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {
@@ -180,7 +180,7 @@ const Scan = ({
     }
   }, [hasBluetoothPermissions]);
 
-  const options = devices?.map(
+  const options: ISelectOption[] = devices?.map(
     ({ id, name, ...rest }: Partial<BluetoothDevice>) => ({
       key: id,
       label: name,
@@ -196,7 +196,7 @@ const Scan = ({
     <View style={styles.container}>
       {displayDevices ? (
         <View style={styles.picker}>
-          <SelectComponent
+          <SelectOptionSheet
             options={options}
             label={strings('ledger.available_devices')}
             defaultValue={options[0]?.label}

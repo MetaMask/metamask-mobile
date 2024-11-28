@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   Text,
   StyleSheet,
@@ -74,6 +80,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ADD_FAVORITES_OPTION,
+  OPEN_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
   OPEN_IN_BROWSER_OPTION,
@@ -103,8 +110,15 @@ import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
+import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
+import { useIsFocused } from '@react-navigation/native';
 
-const { HOMEPAGE_URL, NOTIFICATION_NAMES } = AppConstants;
+const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
+  AppConstants;
 const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
 const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
 
@@ -290,13 +304,16 @@ export const BrowserTab = (props) => {
   const { colors, shadows } = useTheme();
   const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
-  const { trackEvent, isEnabled, getMetaMetricsId } = useMetrics();
+  const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
+    useMetrics();
   /**
    * Is the current tab the active tab
    */
   const isTabActive = useSelector(
     (state) => state.browser.activeTab === props.id,
   );
+
+  const isFocused = useIsFocused();
 
   /**
    * Gets the url to be displayed to the user
@@ -352,7 +369,9 @@ export const BrowserTab = (props) => {
     const currentPage = checkUrl || url.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
-    return currentHost === HOMEPAGE_HOST;
+    return (
+      currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
+    );
   }, []);
 
   const notifyAllConnections = useCallback((payload, restricted = true) => {
@@ -387,8 +406,15 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
 
-    trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
-  }, [dismissTextSelectionIfNeeded, showOptions, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_BROWSER_OPTIONS).build(),
+    );
+  }, [
+    dismissTextSelectionIfNeeded,
+    showOptions,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Show the options menu
@@ -422,9 +448,9 @@ export const BrowserTab = (props) => {
   };
 
   /**
-   * Check if a hostname is allowed
+   * Check if an origin is allowed
    */
-  const isAllowedUrl = useCallback((hostname) => {
+  const isAllowedOrigin = useCallback((origin) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -432,14 +458,14 @@ export const BrowserTab = (props) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(hostname);
+    const phishingControllerTestResult = PhishingController.test(origin);
 
     // Only assign the if the hostname is on the block list
     if (phishingControllerTestResult.result)
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      (allowList.current && allowList.current.includes(hostname)) ||
+      (allowList.current && allowList.current.includes(origin)) ||
       !phishingControllerTestResult.result
     );
   }, []);
@@ -559,7 +585,7 @@ export const BrowserTab = (props) => {
     async (url, initialCall) => {
       setIsResolvedIpfsUrl(false);
       const prefixedUrl = prefixUrlWithProtocol(url);
-      const { hostname, query, pathname } = new URL(prefixedUrl);
+      const { hostname, query, pathname, origin } = new URL(prefixedUrl);
       let urlToGo = prefixedUrl;
       const isEnsUrl = isENSUrl(url);
       const { current } = webviewRef;
@@ -581,7 +607,7 @@ export const BrowserTab = (props) => {
         }
       }
 
-      if (isAllowedUrl(hostname)) {
+      if (isAllowedOrigin(origin)) {
         if (initialCall || !firstUrlLoaded) {
           setInitialUrl(urlToGo);
           setFirstUrlLoaded(true);
@@ -605,7 +631,7 @@ export const BrowserTab = (props) => {
       handleNotAllowedUrl(urlToGo);
       return null;
     },
-    [firstUrlLoaded, handleIpfsContent, isAllowedUrl],
+    [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
   );
 
   /**
@@ -840,18 +866,22 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-      option_chosen: 'Search on URL',
-      number_of_tabs: undefined,
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
+        .addProperties({
+          option_chosen: 'Search on URL',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /**
    *  Function that allows custom handling of any web view requests.
    *  Return `true` to continue loading the request and `false` to stop loading.
    */
   const onShouldStartLoadWithRequest = ({ url }) => {
-    const { hostname } = new URL(url);
+    const { origin } = new URL(url);
 
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(url)) {
@@ -860,7 +890,7 @@ export const BrowserTab = (props) => {
     }
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -965,7 +995,19 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    trackEvent(MetaMetricsEvents.DAPP_HOME);
+    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
+  };
+
+  /**
+   * Go to favorites page
+   */
+  const goToFavorites = async () => {
+    toggleOptionsIfNeeded();
+    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    await go(OLD_HOMEPAGE_URL_HOST);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
+    );
   };
 
   /**
@@ -1060,19 +1102,14 @@ export const BrowserTab = (props) => {
    */
   const onLoadStart = async ({ nativeEvent }) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const {
-      origin,
-      pathname = '',
-      query = '',
-      hostname,
-    } = new URL(nativeEvent.url);
+    const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedUrl(hostname)) {
+    if (!isAllowedOrigin(origin)) {
       handleNotAllowedUrl(url);
       return false;
     }
@@ -1110,9 +1147,13 @@ export const BrowserTab = (props) => {
           error,
           setAccountsPermissionsVisible: () => {
             // Track Event: "Opened Acount Switcher"
-            trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
-              number_of_accounts: accounts?.length,
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+                .addProperties({
+                  number_of_accounts: accounts?.length,
+                })
+                .build(),
+            );
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
@@ -1183,33 +1224,43 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
-      option_chosen: 'Browser Options',
-      number_of_tabs: undefined,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+        .addProperties({
+          option_chosen: 'Browser Options',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
   };
 
   /**
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
-      dapp_name: title.current || '',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_ADD_FAVORITES)
+        .addProperties({
+          dapp_name: title.current || '',
+        })
+        .build(),
+    );
   };
 
   /**
    * Track share site event
    */
   const trackShareEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SHARE_SITE).build(),
+    );
   };
 
   /**
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
+    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
   };
 
   /**
@@ -1244,7 +1295,9 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+    );
   };
 
   /**
@@ -1271,7 +1324,9 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
+    );
   };
 
   /**
@@ -1284,10 +1339,28 @@ export const BrowserTab = (props) => {
   };
 
   /**
+   * Renders Go to Favorites option
+   */
+  const renderGoToFavorites = () => (
+    <Button onPress={goToFavorites} style={styles.option}>
+      <View style={styles.optionIconWrapper}>
+        <Icon name="star" size={16} style={styles.optionIcon} />
+      </View>
+      <Text
+        style={styles.optionText}
+        numberOfLines={2}
+        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
+      >
+        {strings('browser.go_to_favorites')}
+      </Text>
+    </Button>
+  );
+
+  /**
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return null;
+    if (isHomepage()) return renderGoToFavorites();
 
     return (
       <React.Fragment>
@@ -1306,7 +1379,7 @@ export const BrowserTab = (props) => {
         {!isBookmark() && (
           <Button onPress={addBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
-              <Icon name="star" size={16} style={styles.optionIcon} />
+              <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
             <Text
               style={styles.optionText}
@@ -1317,6 +1390,7 @@ export const BrowserTab = (props) => {
             </Text>
           </Button>
         )}
+        {renderGoToFavorites()}
         <Button onPress={share} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="share" size={15} style={styles.optionIcon} />
@@ -1490,6 +1564,73 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const isExternalLink = useMemo(
+    () => props.linkType === EXTERNAL_LINK_TYPE,
+    [props.linkType],
+  );
+
+  const checkTabPermissions = useCallback(() => {
+    if (!url.current) return;
+
+    const hostname = new URL(url.current).hostname;
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    const isConnected = permittedAccounts.length > 0;
+
+    if (isConnected) {
+      let permittedChains = [];
+      try {
+        const caveat = Engine.context.PermissionController.getCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+        const currentChainId = props.chainId;
+        const isCurrentChainIdAlreadyPermitted =
+          permittedChains.includes(currentChainId);
+
+        if (!isCurrentChainIdAlreadyPermitted) {
+          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+            params: {
+              isNonDappNetworkSwitch: true,
+              hostInfo: {
+                metadata: {
+                  origin: hostname,
+                },
+              },
+              isRenderedAsBottomSheet: true,
+              initialScreen: AccountPermissionsScreens.Connected,
+            },
+          });
+        }
+      } catch (e) {
+        Logger.error(e, 'Error in checkTabPermissions');
+      }
+    }
+  }, [props.chainId, props.navigation]);
+
+  const urlRef = useRef(url.current);
+  useEffect(() => {
+    urlRef.current = url.current;
+    if (
+      isMultichainVersion1Enabled &&
+      urlRef.current &&
+      isFocused &&
+      !props.isInTabsView &&
+      isTabActive
+    ) {
+      checkTabPermissions();
+    }
+  }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
+
   /**
    * Main render
    */
@@ -1511,13 +1652,18 @@ export const BrowserTab = (props) => {
                   'wc://',
                   'ethereum://',
                   'file://',
+                  // Needed for Recaptcha
+                  'about:srcdoc',
                 ]}
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
                   <WebviewError error={error} returnHome={returnHome} />
                 )}
-                source={{ uri: initialUrl }}
+                source={{
+                  uri: initialUrl,
+                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
@@ -1562,6 +1708,10 @@ BrowserTab.propTypes = {
    * InitialUrl
    */
   initialUrl: PropTypes.string,
+  /**
+   * linkType - type of link to open
+   */
+  linkType: PropTypes.string,
   /**
    * Protocol string to append to URLs that have none
    */
@@ -1643,6 +1793,10 @@ BrowserTab.propTypes = {
    * Represents the current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * Boolean indicating if browser is in tabs view
+   */
+  isInTabsView: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {

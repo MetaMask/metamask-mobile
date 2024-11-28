@@ -51,7 +51,14 @@ const browserReducer = (state = initialState, action) => {
     case 'CREATE_NEW_TAB':
       return {
         ...state,
-        tabs: [...state.tabs, { url: action.url, id: action.id }],
+        tabs: [
+          ...state.tabs,
+          {
+            url: action.url,
+            ...(action.linkType && { linkType: action.linkType }),
+            id: action.id,
+          },
+        ],
       };
     case 'CLOSE_TAB':
       return {

@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  ignore: [/ses\.cjs/],
+  ignore: [/\/ses\.cjs/],
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
     'transform-inline-environment-variables',
@@ -18,6 +18,10 @@ module.exports = {
     {
       test: './node_modules/@metamask/notification-services-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/lib/snaps',
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
   ],
   env: {

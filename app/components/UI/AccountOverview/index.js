@@ -12,7 +12,6 @@ import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { showAlert } from '../../../actions/alert';
-import { toggleReceiveModal } from '../../../actions/modals';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
@@ -290,7 +289,11 @@ class AccountOverview extends PureComponent {
     });
     setTimeout(() => this.props.protectWalletModalVisible(), 2000);
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS)
+        .build(),
+    );
   };
 
   doENSLookup = async () => {
@@ -323,9 +326,12 @@ class AccountOverview extends PureComponent {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    this.props.metrics.trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({ portfolioUrl: AppConstants.PORTFOLIO.URL })
+        .build(),
+    );
   };
 
   render() {
@@ -418,7 +424,7 @@ class AccountOverview extends PureComponent {
                         variant={TextVariant.BodySMBold}
                         style={styles.tagText}
                       >
-                        {strings(accountLabelTag)}
+                        {accountLabelTag}
                       </Text>
                     </View>
                   )}
@@ -456,7 +462,6 @@ const mapDispatchToProps = (dispatch) => ({
   protectWalletModalVisible: () => dispatch(protectWalletModalVisible()),
   newAssetTransaction: (selectedAsset) =>
     dispatch(newAssetTransaction(selectedAsset)),
-  toggleReceiveModal: (asset) => dispatch(toggleReceiveModal(asset)),
 });
 
 AccountOverview.contextType = ThemeContext;

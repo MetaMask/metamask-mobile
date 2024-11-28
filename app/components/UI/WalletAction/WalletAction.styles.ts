@@ -26,6 +26,9 @@ const styleSheet = (params: { theme: Theme }) => {
     descriptionLabel: {
       color: colors.text.alternative,
     },
+    disabled: {
+      opacity: 0.5,
+    },
   });
 };
 

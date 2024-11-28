@@ -7,11 +7,14 @@ import renderWithProvider, {
 
 import WalletActions from './WalletActions';
 import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
-import Engine from '../../../core/Engine';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-
-const mockEngine = Engine;
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  expectedUuid2,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -29,15 +32,17 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -115,11 +120,12 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1asdscxds',
-              ticker: 'eth',
-            },
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+            }),
           },
         },
       },
@@ -155,7 +161,9 @@ describe('WalletActions', () => {
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<WalletActions />);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
 
     fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
 
@@ -178,5 +186,49 @@ describe('WalletActions', () => {
     fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
+  });
+  it('disables action buttons when the account cannot sign transactions', () => {
+    const mockStateWithoutSigning: DeepPartial<RootState> = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [expectedUuid2]: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                    expectedUuid2
+                  ],
+                  methods: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockStateWithoutSigning,
+    });
+
+    const buyButton = getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON);
+    const sellButton = getByTestId(WalletActionsModalSelectorsIDs.SELL_BUTTON);
+    const sendButton = getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON);
+    const swapButton = getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
+    const bridgeButton = getByTestId(
+      WalletActionsModalSelectorsIDs.BRIDGE_BUTTON,
+    );
+
+    expect(buyButton.props.disabled).toBe(true);
+    expect(sellButton.props.disabled).toBe(true);
+    expect(sendButton.props.disabled).toBe(true);
+    expect(swapButton.props.disabled).toBe(true);
+    expect(bridgeButton.props.disabled).toBe(true);
   });
 });

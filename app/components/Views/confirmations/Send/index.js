@@ -331,7 +331,6 @@ class Send extends PureComponent {
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
-          type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
           ...txRecipient,
@@ -637,7 +636,11 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       this.setState({ transactionConfirmed: false });
@@ -653,8 +656,10 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -663,13 +668,15 @@ class Send extends PureComponent {
    */
   trackEditScreen = async () => {
     const { transaction } = this.props;
-    const actionKey = await getTransactionReviewActionKey(transaction);
+    const actionKey = await getTransactionReviewActionKey({ transaction });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .addProperties({
+          ...this.getTrackingParams(),
+          actionKey,
+        })
+        .build(),
     );
   };
 
@@ -678,8 +685,10 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -688,8 +697,12 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
+        )
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 

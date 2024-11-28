@@ -42,6 +42,8 @@ describe('extractURLParams', () => {
       channelId: '123',
       comm: 'test',
       v: '2',
+      attributionId: '',
+      utm: '',
     };
 
     mockUrlParser.mockImplementation(
@@ -81,6 +83,8 @@ describe('extractURLParams', () => {
       comm: '',
       pubkey: '',
       v: '',
+      attributionId: '',
+      utm: '',
     });
   });
 
@@ -113,6 +117,8 @@ describe('extractURLParams', () => {
       comm: '',
       pubkey: '',
       v: '',
+      attributionId: '',
+      utm: '',
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -133,6 +139,8 @@ describe('extractURLParams', () => {
       rpc: '',
       sdkVersion: '',
       pubkey: 'xyz',
+      attributionId: '',
+      utm: '',
     };
 
     mockUrlParser.mockImplementation(

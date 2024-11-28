@@ -14,7 +14,7 @@ const initialState = {
   browser: { history: [] },
   settings: {
     lockTime: 1000,
-    searchEngine: 'DuckDuckGo',
+    searchEngine: 'Google',
     useBlockieIcon: true,
   },
   engine: {

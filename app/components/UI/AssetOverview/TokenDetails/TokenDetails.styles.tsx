@@ -3,17 +3,16 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
-  const { typography, colors } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
-    wrapper: {
-      marginTop: 20,
+    tokenDetailsContainer: {
+      marginTop: 24,
+      gap: 24,
     },
     contentWrapper: {
       paddingVertical: 4,
     },
     title: {
-      ...typography.sHeadingSM,
-      marginVertical: 0,
       paddingVertical: 8,
     } as TextStyle,
     icon: { marginLeft: 4 },

@@ -3,30 +3,35 @@ import { StyleSheet } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { isMutichainVersion1Enabled } from '../../../../util/networks';
+import { isMultichainVersion1Enabled } from '../../../../util/networks';
+import Device from '../../../../util/device';
 
 /**
  * Style sheet function for AccountConnectMultiSelector screen.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
-  const { colors } = params.theme;
 
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isRenderedAsBottomSheet: boolean | undefined };
+}) => {
+  const { colors } = params.theme;
+  const { vars } = params;
   return StyleSheet.create({
     container: {
-      height: '100%',
+      height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     body: {
       paddingHorizontal: 16,
     },
     description: {
       textAlign: 'center',
-      marginVertical: isMutichainVersion1Enabled ? 8 : 16,
+      marginVertical: isMultichainVersion1Enabled ? 8 : 16,
       color: colors.text.alternative,
     },
     ctaButtonsContainer: {
-      marginTop: isMutichainVersion1Enabled ? 0 : 24,
-      marginBottom: 16,
+      marginTop: isMultichainVersion1Enabled ? 0 : 24,
+      marginBottom: vars.isRenderedAsBottomSheet ? 0 : 16,
     },
     connectOrUpdateButtonContainer: { flexDirection: 'row' },
     button: { flex: 1 },
@@ -55,7 +60,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     addAccountButtonContainer: {
       marginHorizontal: 16,
-      marginTop: 16,
+      marginBottom: 16,
     },
     selectAll: {
       marginLeft: 0,

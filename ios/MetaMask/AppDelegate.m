@@ -1,4 +1,5 @@
 #import "AppDelegate.h"
+#import <Firebase.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -19,7 +20,7 @@
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions{
-
+  [FIRApp configure];
   NSString *foxCodeFromBundle = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"fox_code"];
 
   NSString *foxCode;
@@ -51,7 +52,15 @@
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
 
+  //Keep splash screen while loading the bundle
+  UIView* launchScreenView = [[[NSBundle mainBundle] loadNibNamed:@"LaunchScreen" owner:self options:nil] objectAtIndex:0];
+  launchScreenView.frame = self.window.bounds;
+  rootView.loadingView = launchScreenView;
+
   [self initializeFlipper:application];
+
+  //Uncomment the following line to enable the splashscreen on ios
+  //[RNSplashScreen show];
 
   return YES;
 }

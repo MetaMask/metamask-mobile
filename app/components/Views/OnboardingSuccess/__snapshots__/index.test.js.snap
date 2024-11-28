@@ -35,7 +35,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
         style={
           {
             "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -120,6 +120,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "flexDirection": "row",
+                "marginTop": 16,
               },
               {
                 "paddingTop": 10,

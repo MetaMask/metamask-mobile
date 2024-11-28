@@ -8,11 +8,6 @@ import {
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
-import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
 import {
   TX_CONFIRMED,
@@ -21,7 +16,6 @@ import {
   TX_SUBMITTED,
   TX_UNAPPROVED,
 } from '../../../constants/transaction';
-import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
@@ -47,7 +41,10 @@ import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import Transactions from '../../UI/Transactions';
 import ActivityHeader from './ActivityHeader';
-import { isNetworkRampNativeTokenSupported } from '../../UI/Ramp/utils';
+import {
+  isNetworkRampNativeTokenSupported,
+  isNetworkRampSupported,
+} from '../../UI/Ramp/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
 import Device from '../../../util/device';
 import {
@@ -55,14 +52,9 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import {
-  TOKEN_OVERVIEW_BUY_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
-import { createBuyNavigationDetails } from '../../UI/Ramp/routes/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 
@@ -165,13 +157,13 @@ class Asset extends PureComponent {
     rpcUrl: PropTypes.string,
     networkConfigurations: PropTypes.object,
     /**
+     * Boolean that indicates if network is supported to buy
+     */
+    isNetworkRampSupported: PropTypes.bool,
+    /**
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   state = {
@@ -473,39 +465,15 @@ class Asset extends PureComponent {
     const isAssetAllowed =
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
-    const onBuy = () => {
-      navigation.navigate(...createBuyNavigationDetails());
-
-      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy',
-        location: 'Token Screen',
-        chain_id_destination: chainId,
-      });
-    };
-
-    const goToSwaps = () => {
-      // Pop asset screen first as it's very slow when trying to load the STX status modal if we don't
-      navigation.pop();
-
-      navigation.navigate(Routes.SWAPS, {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: asset.isETH
-            ? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS
-            : asset.address,
-          sourcePage: 'TokenView',
-        },
-      });
-    };
-
     const displaySwapsButton =
       isSwapsFeatureLive &&
       isNetworkAllowed &&
       isAssetAllowed &&
       AppConstants.SWAPS.ACTIVE;
 
-    const displayBuyButton =
-      asset.isETH && this.props.isNetworkBuyNativeTokenSupported;
+    const displayBuyButton = asset.isETH
+      ? this.props.isNetworkBuyNativeTokenSupported
+      : this.props.isNetworkRampSupported;
 
     return (
       <View style={styles.wrapper}>
@@ -515,7 +483,11 @@ class Asset extends PureComponent {
           <Transactions
             header={
               <>
-                <AssetOverview navigation={navigation} asset={asset} />
+                <AssetOverview
+                  asset={asset}
+                  displayBuyButton={displayBuyButton}
+                  displaySwapsButton={displaySwapsButton}
+                />
                 <ActivityHeader asset={asset} />
               </>
             }
@@ -532,41 +504,6 @@ class Asset extends PureComponent {
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
           />
-        )}
-        {!asset.balanceError && (displayBuyButton || displaySwapsButton) && (
-          <View style={{ ...styles.footer, ...styles.footerBorder }}>
-            {displayBuyButton && (
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.buy_button')}
-                style={{
-                  ...styles.footerButton,
-                  ...styles.buyButton,
-                  ...(!AppConstants.SWAPS.ACTIVE ? styles.singleButton : {}),
-                }}
-                onPress={onBuy}
-                testID={TOKEN_OVERVIEW_BUY_BUTTON}
-              />
-            )}
-            {displaySwapsButton && (
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                label={strings('asset_overview.swap')}
-                style={{
-                  ...styles.footerButton,
-                  ...styles.swapButton,
-                  ...(!asset.isETH &&
-                  this.props.isNetworkBuyNativeTokenSupported
-                    ? styles.singleButton
-                    : {}),
-                }}
-                onPress={goToSwaps}
-                testID={TOKEN_OVERVIEW_SWAP_BUTTON}
-              />
-            )}
-          </View>
         )}
       </View>
     );
@@ -587,6 +524,10 @@ const mapStateToProps = (state) => ({
   transactions: state.engine.backgroundState.TransactionController.transactions,
   rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
+  isNetworkRampSupported: isNetworkRampSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
   isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
     selectChainId(state),
     getRampNetworks(state),

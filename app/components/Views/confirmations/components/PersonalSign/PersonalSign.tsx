@@ -20,7 +20,7 @@ import ExpandedMessage from '../SignatureRequest/ExpandedMessage';
 import createStyles from './styles';
 import { PersonalSignProps } from './types';
 
-import { SigningModalSelectorsIDs } from '../../../../../../e2e/selectors/Modals/SigningModal.selectors';
+import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectChainId } from '../../../../../selectors/networkController';
@@ -61,7 +61,7 @@ const PersonalSign = ({
   showExpandedMessage,
 }: PersonalSignProps) => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [truncateMessage, setTruncateMessage] = useState<boolean>(false);
   const { securityAlertResponse } = useSelector(
     // TODO: Replace "any" with type
@@ -83,38 +83,45 @@ const PersonalSign = ({
   }
 
   const getAnalyticsParams = useCallback((): AnalyticsParams => {
-    try {
-      const chainId = selectChainId(store.getState());
-      const pageInfo = currentPageInformation || messageParams.meta;
-      const url = new URL(pageInfo.url);
+    const pageInfo = currentPageInformation || messageParams.meta || {};
 
-      let blockaidParams = {};
+    const chainId = selectChainId(store.getState());
+    const fallbackUrl = 'N/A';
 
-      if (securityAlertResponse) {
-        blockaidParams = getBlockaidMetricsParams(
-          securityAlertResponse as SecurityAlertResponse,
-        );
+    let urlHost = fallbackUrl;
+    if (pageInfo.url) {
+      try {
+        const url = new URL(pageInfo.url);
+        urlHost = url.host || fallbackUrl;
+      } catch (error) {
+        Logger.error(error as Error, 'Error parsing URL in signature request');
       }
-
-      return {
-        account_type: getAddressAccountType(messageParams.from),
-        dapp_host_name: url?.host,
-        chain_id: getDecimalChainId(chainId),
-        signature_type: 'personal_sign',
-        ...pageInfo?.analytics,
-        ...blockaidParams,
-      };
-    } catch (error) {
-      return {};
     }
+
+    let blockaidParams: Record<string, unknown> = {};
+    if (securityAlertResponse) {
+      blockaidParams = getBlockaidMetricsParams(
+        securityAlertResponse as SecurityAlertResponse,
+      );
+    }
+
+    return {
+      account_type: getAddressAccountType(messageParams.from),
+      dapp_host_name: urlHost,
+      chain_id: chainId ? getDecimalChainId(chainId) : 'N/A',
+      signature_type: 'personal_sign',
+      ...pageInfo.analytics,
+      ...blockaidParams,
+    };
   }, [currentPageInformation, messageParams, securityAlertResponse]);
 
   useEffect(() => {
     const onSignatureError = ({ error }: { error: Error }) => {
       if (error?.message.startsWith(KEYSTONE_TX_CANCELED)) {
         trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
-          getAnalyticsParams(),
+          createEventBuilder(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED)
+            .addProperties(getAnalyticsParams())
+            .build(),
         );
       }
     };
@@ -128,7 +135,12 @@ const PersonalSign = ({
         onSignatureError,
       );
     };
-  }, [getAnalyticsParams, messageParams.metamaskId, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    messageParams.metamaskId,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const showWalletConnectNotification = (confirmation = false) => {
     InteractionManager.runAfterInteractions(() => {
@@ -151,14 +163,22 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-    trackEvent(MetaMetricsEvents.SIGNATURE_REJECTED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SIGNATURE_REJECTED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const confirmSignature = async () => {
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-      trackEvent(MetaMetricsEvents.SIGNATURE_APPROVED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SIGNATURE_APPROVED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
     } else {
       navigation.navigate(
         ...(await createExternalSignModelNav(
@@ -238,7 +258,7 @@ const PersonalSign = ({
       type="personal_sign"
       fromAddress={messageParams.from}
       origin={messageParams.origin}
-      testID={SigningModalSelectorsIDs.PERSONAL_REQUEST}
+      testID={SigningBottomSheetSelectorsIDs.PERSONAL_REQUEST}
     >
       <View style={styles.messageWrapper}>{renderMessageText()}</View>
     </SignatureRequest>

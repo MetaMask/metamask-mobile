@@ -27,7 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
 const APPROVAL_REQUEST = {
   id: 'testId1',
   origin: 'testOrigin1',
-  type: 'eth_sign',
+  type: 'eth_signTypedData',
   time: 123456789,
   expectsResult: false,
   requestData: {
@@ -40,7 +40,7 @@ const APPROVAL_REQUEST = {
 const APPROVAL_REQUEST_2 = {
   id: 'testId2',
   origin: 'testOrigin2',
-  type: 'eth_sign',
+  type: 'eth_signTypedData',
   time: 123456780,
   expectsResult: true,
   requestData: {

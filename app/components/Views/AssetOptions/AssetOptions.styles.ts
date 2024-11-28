@@ -31,6 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     optionLabel: {
       ...typography.sBodyLGMedium,
+      color: colors.text.default,
     } as TextStyle,
   });
 };

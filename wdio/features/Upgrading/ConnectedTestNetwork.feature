@@ -17,9 +17,6 @@ Feature: Upgrade previous app build with current release
     When I tap the Test Network toggle
     And I tap on the "<Network>" button
     Then "<Network>" should be displayed in network educational modal
-    And I close the Whats New modal
-    And I use the back button on Android
-    And I am on the wallet view
     And I should see the added network name "<Network>" in the top navigation bar
     And tokens <TOKEN> in account should be displayed
     When I tap on the Settings tab option
@@ -28,7 +25,6 @@ Feature: Upgrade previous app build with current release
     Then version "PRODUCTION_BUILD_STRING" is displayed for app upgrade step
     When I install upgrade the app
     And I relaunch the app
-    And the splash animation completes
     And I fill my password in the Login screen
     And I log into my wallet
     Then I should see the added network name "Sepolia" in the top navigation bar

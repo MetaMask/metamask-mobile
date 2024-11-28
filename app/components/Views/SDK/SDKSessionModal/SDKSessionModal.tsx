@@ -111,12 +111,6 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
     [accounts, permittedAccountsAddresses],
   );
 
-  DevLogger.log(`permittedAccountsAddresses`, permittedAccountsAddresses);
-  DevLogger.log(
-    `permittedAccounts state`,
-    JSON.stringify(permittedAccountsList, null, 2),
-  );
-
   useEffect(() => {
     if (channelId) {
       const origin = channelId;

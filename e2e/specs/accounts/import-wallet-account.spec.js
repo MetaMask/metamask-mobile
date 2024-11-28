@@ -3,8 +3,11 @@ import { SmokeAccounts } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListView from '../../pages/AccountListView';
-import ImportAccountView from '../../pages/ImportAccountView';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
+import CommonView from '../../pages/CommonView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 
 describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -18,22 +21,22 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
   });
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
+    await Assertions.checkIfVisible(AccountListView.accountList);
     await AccountListView.tapAddAccountButton();
-    await AccountListView.tapImportAccountButton();
-    await ImportAccountView.isVisible();
+    await AddAccountModal.tapImportAccount();
+    await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
-    await AccountListView.swipeToDimssAccountsModal();
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
+    await AccountListView.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
     await Assertions.checkIfElementNotToHaveText(
       WalletView.accountName,

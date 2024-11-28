@@ -5,9 +5,12 @@ import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import StorageWrapper from '../../store/storage-wrapper';
 import { regex } from '../regex';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import { isTest } from '../test/utils';
+import { isE2E } from '../test/utils';
 import { store } from '../../store';
-
+import { Performance } from '../../core/Performance';
+import Device from '../device';
+import { TraceName } from '../trace';
+import { getTraceTags } from './tags';
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -77,7 +80,6 @@ export const sentryStateMask = {
       },
       PhishingController: {},
       PreferencesController: {
-        disabledRpcMethodPreferences: true,
         featureFlags: true,
         isIpfsGatewayEnabled: true,
         displayNftMedia: true,
@@ -86,7 +88,6 @@ export const sentryStateMask = {
         useTransactionSimulations: true,
       },
       SignatureController: {
-        unapprovedMsgCount: true,
         unapprovedPersonalMsgCount: true,
         unapprovedTypedMessagesCount: true,
       },
@@ -224,11 +225,6 @@ const ERROR_URL_ALLOWLIST = [
   'codefi.network',
   'segment.io',
 ];
-/**\
- * Required instrumentation for Sentry Performance to work with React Navigation
- */
-export const routingInstrumentation =
-  new Sentry.ReactNavigationV5Instrumentation();
 
 /**
  * Capture Sentry user feedback and associate ID of captured exception
@@ -406,6 +402,22 @@ function rewriteReport(report) {
  * @returns {(event|null)}
  */
 export function excludeEvents(event) {
+  // This is needed because store starts to initialise before performance observers completes to measure app start time
+  if (event?.transaction === TraceName.UIStartup) {
+    event.tags = getTraceTags(store.getState());
+
+    if (Device.isAndroid()) {
+      const appLaunchTime = Performance.appLaunchTime;
+      const formattedAppLaunchTime = (event.start_timestamp = Number(
+        `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
+          .toString()
+          .slice(10)}`,
+      ));
+      if (event.start_timestamp !== formattedAppLaunchTime) {
+        event.start_timestamp = formattedAppLaunchTime;
+      }
+    }
+  }
   //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.
@@ -472,14 +484,17 @@ export function deriveSentryEnvironment(
 
 // Setup sentry remote error reporting
 export function setupSentry() {
-  // Disable Sentry for E2E tests
-  if (isTest) {
+  const dsn = process.env.MM_SENTRY_DSN;
+
+  // Disable Sentry for E2E tests or when DSN is not provided
+  if (isE2E || !dsn) {
     return;
   }
 
-  const init = async () => {
-    const dsn = process.env.MM_SENTRY_DSN;
+  const isQa = METAMASK_ENVIRONMENT === 'qa';
+  const isDev = __DEV__;
 
+  const init = async () => {
     const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
 
     const integrations = [new Dedupe(), new ExtraErrorData()];
@@ -491,21 +506,18 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: __DEV__,
+      debug: isDev,
       environment,
-      integrations:
-        metricsOptIn === AGREED
-          ? [
-              ...integrations,
-              new Sentry.ReactNativeTracing({
-                routingInstrumentation,
-              }),
-            ]
-          : integrations,
-      tracesSampleRate: 0.04,
+      integrations,
+      // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
+      tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
+      profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
+      enabled: metricsOptIn === AGREED,
+      // We need to deactivate this to have the same output consistently on IOS and Android
+      enableAutoPerformanceTracing: false,
     });
   };
   init();

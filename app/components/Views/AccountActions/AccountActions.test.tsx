@@ -28,7 +28,6 @@ const initialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  ...jest.requireActual('../../../core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
@@ -65,6 +64,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+    }),
+    useRoute: () => ({
+      params: {
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      },
     }),
   };
 });
@@ -130,7 +141,7 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
         title: 'etherscan.io',
       },
     });
@@ -144,7 +155,7 @@ describe('AccountActions', () => {
     fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+      message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
     });
   });
 
@@ -162,6 +173,14 @@ describe('AccountActions', () => {
       {
         credentialName: 'private_key',
         shouldUpdateNav: true,
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
       },
     );
   });
@@ -173,7 +192,16 @@ describe('AccountActions', () => {
 
     fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT));
 
-    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName');
+    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
+      selectedAccount: {
+        address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+        metadata: {
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+    });
   });
 
   describe('clicks remove account', () => {
