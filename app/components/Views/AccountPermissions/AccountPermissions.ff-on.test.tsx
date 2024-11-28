@@ -1,3 +1,5 @@
+// Mock the networks module before any imports
+
 import React from 'react';
 import renderWithProvider, {
   DeepPartial,
@@ -10,6 +12,7 @@ const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
 const mockedTrackEvent = jest.fn();
 
+// Mock navigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -17,22 +20,12 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+      setOptions: jest.fn(),
     }),
   };
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockedTrackEvent,
-  }),
-}));
-
-jest.mock('../../../util/networks/index.js', () => ({
-  ...jest.requireActual('../../../util/networks/index.js'),
-  isMultichainVersion1Enabled: false,
-  isChainPermissionsFeatureEnabled: false,
-}));
-
+// Mock safe area context
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
@@ -46,6 +39,19 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
+// Mock metrics
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockedTrackEvent,
+  }),
+}));
+
+jest.mock('../../../util/networks/index.js', () => ({
+  ...jest.requireActual('../../../util/networks/index.js'),
+  isMultichainVersion1Enabled: true,
+  isChainPermissionsFeatureEnabled: true,
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -55,8 +61,8 @@ const mockInitialState: DeepPartial<RootState> = {
   },
 };
 
-describe('AccountPermissions', () => {
-  it('renders correctly', () => {
+describe('AccountPermissions with feature flags ON', () => {
+  it('should render AccountPermissions with multichain and chain permissions enabled', () => {
     const { toJSON } = renderWithProvider(
       <AccountPermissions
         route={{
@@ -68,6 +74,6 @@ describe('AccountPermissions', () => {
       { state: mockInitialState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot('AccountPermissions-FeatureFlagsOn');
   });
 });
