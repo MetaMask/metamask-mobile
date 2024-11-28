@@ -225,13 +225,6 @@ jest.mock('../Stake/hooks/useStakingChain', () => ({
   }),
 }));
 
-const mockIsPortfolioViewEnabled = jest.fn();
-
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPortfolioViewEnabled: mockIsPortfolioViewEnabled,
-}));
-
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -274,7 +267,7 @@ describe('Tokens', () => {
 
     const { toJSON, getByText } = renderComponent(initialState);
 
-    expect(getByText('Ethereum')).toBeDefined();
+    expect(getByText('Ethereum Main Network')).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
