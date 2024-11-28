@@ -24,10 +24,14 @@ import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
+import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
 interface Option {
   label: string;
   onPress: () => void;
@@ -150,7 +154,16 @@ const AssetOptions = (props: Props) => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(async () => {
             try {
-              await TokensController.ignoreTokens([address]);
+              const { NetworkController } = Engine.context;
+
+              const chainIdToUse = isPortfolioViewEnabled ? networkId : chainId;
+
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(
+                  chainIdToUse as Hex,
+                );
+
+              await TokensController.ignoreTokens([address], networkClientId);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,

@@ -288,11 +288,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   };
 
   const removeToken = async () => {
-    const { TokensController } = Engine.context;
+    const { TokensController, NetworkController } = Engine.context;
+    const chainId = isPortfolioViewEnabled
+      ? tokenToRemove?.chainId
+      : selectedChainId;
+    const networkClientId = NetworkController.findNetworkClientIdByChainId(
+      chainId as Hex,
+    );
     const tokenAddress = tokenToRemove?.address || '';
+
     const symbol = tokenToRemove?.symbol;
     try {
-      await TokensController.ignoreTokens([tokenAddress]);
+      await TokensController.ignoreTokens([tokenAddress], networkClientId);
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,
