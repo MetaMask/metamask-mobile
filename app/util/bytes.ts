@@ -15,11 +15,11 @@ export default function byteArrayToHex(value: Uint8Array): string {
 }
 
 /**
- * Converts bytes to bits
+ * Converts bytes length to bits length
  *
- * @param bytes - Number of bytes to convert
- * @returns Number of bits
+ * @param bytesLength - Bytes length to convert
+ * @returns Bits length
  */
-export function bytesToBits(bytes: number): number {
-  return bytes * 8;
+export function bytesLengthToBitsLength(bytesLength: number): number {
+  return bytesLength * 8;
 }

@@ -1,7 +1,7 @@
 import { bytesToString, hexToBytes } from '@metamask/utils';
 import { NativeModules } from 'react-native';
 import { ShaAlgorithm } from './constants';
-import { bytesToBits } from '../../util/bytes';
+import { bytesLengthToBitsLength } from '../../util/bytes';
 
 /**
  * Derives a key using PBKDF2.
@@ -23,7 +23,7 @@ const pbkdf2 = async (
     bytesToString(password),
     bytesToString(salt),
     iterations,
-    bytesToBits(keyLength),
+    bytesLengthToBitsLength(keyLength),
     ShaAlgorithm.Sha512,
   );
 
