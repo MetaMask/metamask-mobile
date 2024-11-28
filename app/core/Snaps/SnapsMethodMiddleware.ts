@@ -102,6 +102,10 @@ const snapMethodMiddlewareBuilder = (
         request: request.request,
       });
     },
+    requestUserApproval:
+      engineContext.ApprovalController.addAndShowApprovalRequest.bind(
+        engineContext.ApprovalController,
+      ),
   });
 
 export default snapMethodMiddlewareBuilder;

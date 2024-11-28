@@ -650,6 +650,8 @@ export class Engine {
         this.controllerMessenger,
         'SnapInterfaceController:getInterface',
       ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
