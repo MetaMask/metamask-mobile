@@ -33,13 +33,13 @@ const StakingButtons = ({
     });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Unstake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
+        .addProperties({
+          location: 'Token Details',
+          text: 'Unstake',
+          token_symbol: 'ETH',
+          chain_id: chainId,
+        })
+        .build(),
     );
   };
 
@@ -47,13 +47,13 @@ const StakingButtons = ({
     navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
-      .addProperties({
-        location: 'Token Details',
-        text: 'Stake',
-        token_symbol: 'ETH',
-        chain_id: chainId,
-      })
-      .build()
+        .addProperties({
+          location: 'Token Details',
+          text: 'Stake',
+          token_symbol: 'ETH',
+          chain_id: chainId,
+        })
+        .build(),
     );
   };
 
