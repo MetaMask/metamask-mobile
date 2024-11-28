@@ -58,7 +58,7 @@ describe('pbkdf2', () => {
     expect(result).toBeDefined();
   });
 
-  it('should handle empty salt', async () => {
+  it('does not fail when empty salt', async () => {
     NativeModules.Aes.pbkdf2 = jest
       .fn()
       .mockImplementation(() =>
