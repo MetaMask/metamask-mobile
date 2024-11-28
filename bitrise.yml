@@ -1733,5 +1733,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: test-multichain-e2e-ci-workflow-tests
+  - push_branch: create-multichain-e2e-remove-network-while-connected-to-dapp
     pipeline: multichain_e2e_pipeline

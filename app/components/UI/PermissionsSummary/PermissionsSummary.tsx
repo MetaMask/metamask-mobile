@@ -46,7 +46,7 @@ import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-
+import { PermissionSummaryBottomSheetSelectorsIDs} from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors'
 const PermissionsSummary = ({
   currentPageInformation,
   customNetworkInformation,
@@ -406,7 +406,7 @@ const PermissionsSummary = ({
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
-          <View style={styles.title}>
+          <View style={styles.title} testID={PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER}>
             <TextComponent variant={TextVariant.HeadingSM}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
