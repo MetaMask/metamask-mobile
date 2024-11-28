@@ -31,7 +31,7 @@ import {
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-api';
 import { BigNumber } from 'ethers';
-import { getFormattedAddressFromInternalAccount } from '../../../core/MultiChain/utils';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.

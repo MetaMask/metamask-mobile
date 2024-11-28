@@ -61,7 +61,7 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBtcAccount } from '../../../core/MultiChain/utils';
+import { isBtcAccount } from '../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 
 const trackEvent = (event, params = {}) => {

@@ -12,7 +12,7 @@ import {
   isBtcMainnetAddress,
   isBtcTestnetAddress,
   ///: END:ONLY_INCLUDE_IF
-} from '../core/MultiChain/utils';
+} from '../core/Multichain/utils';
 
 /**
  *
@@ -99,7 +99,7 @@ export const selectCanSignTransactions = createSelector(
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /**
- * A selector that returns whether the the user has already created a Bitcoin mainnet account
+ * A selector that returns whether the user has already created a Bitcoin mainnet account
  */
 export function hasCreatedBtcMainnetAccount(state: RootState): boolean {
   const accounts = selectInternalAccounts(state);
@@ -109,7 +109,7 @@ export function hasCreatedBtcMainnetAccount(state: RootState): boolean {
 }
 
 /**
- * A selector that returns whether the the user has already created a Bitcoin testnet account
+ * A selector that returns whether the user has already created a Bitcoin testnet account
  */
 export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
   const accounts = selectInternalAccounts(state);
