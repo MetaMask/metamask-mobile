@@ -1,5 +1,5 @@
 import { hasProperty } from '@metamask/utils';
-import { ensureValidState } from "./util";
+import { ensureValidState } from './util';
 
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, 61)) {

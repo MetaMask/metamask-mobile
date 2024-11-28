@@ -1,8 +1,8 @@
-import { ControllerMessenger, EngineState } from '../../types';
+import { RemoteFeatureFlagControllerMessenger, RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 export interface RemoteFeatureFlagInitParamTypes {
-  initialState: Partial<EngineState>;
-  controllerMessenger: ControllerMessenger,
+  state?: RemoteFeatureFlagControllerState;
+  messenger: RemoteFeatureFlagControllerMessenger,
   fetchFunction: typeof fetch,
   disabled: boolean
 }

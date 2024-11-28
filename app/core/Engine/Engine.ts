@@ -80,7 +80,6 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import RemoteFeatureFlagController from './controllers/RemoteFeatureFlagController';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
 import {
   isMainnetByChainId,
@@ -157,6 +156,7 @@ import {
 } from './controllers/accounts/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { createAccountsController } from './controllers/accounts/utils';
+import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -484,9 +484,13 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
-    const remoteFeatureFlagController = RemoteFeatureFlagController.init({
-      initialState,
-      controllerMessenger: this.controllerMessenger,
+    const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RemoteFeatureFlagController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
       fetchFunction,
       disabled: getBasicFunctionalityToggleState() === false
     });

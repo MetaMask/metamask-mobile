@@ -1,9 +1,16 @@
 import {
+  RemoteFeatureFlagController,
+  ClientConfigApiService,
+  ClientType,
   DistributionType,
   EnvironmentType,
 } from '@metamask/remote-feature-flag-controller';
 
-export const getFeatureFlagAppEnvironment = () => {
+import Logger from '../../../../util/Logger';
+
+import { RemoteFeatureFlagInitParamTypes } from './types';
+
+const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
     case 'local': return EnvironmentType.Development;
@@ -13,12 +20,49 @@ export const getFeatureFlagAppEnvironment = () => {
   }
 };
 
-export const getFeatureFlagAppDistribution = () => {
+const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
   switch (dist) {
     case 'main': return DistributionType.Main;
     case 'flask': return DistributionType.Flask;
     default: return DistributionType.Main;
+  }
+};
+
+export const createRemoteFeatureFlagController = ({
+  state,
+  messenger,
+  fetchFunction,
+  disabled,
+}: RemoteFeatureFlagInitParamTypes) => {
+
+  try {
+    const remoteFeatureFlagController = new RemoteFeatureFlagController({
+      messenger,
+      state,
+      disabled,
+      clientConfigApiService: new ClientConfigApiService({
+        fetch: fetchFunction,
+        config: {
+          client: ClientType.Mobile,
+          environment: getFeatureFlagAppEnvironment(),
+          distribution: getFeatureFlagAppDistribution(),
+        },
+      }),
+    });
+
+    if (disabled) {
+      Logger.log('Feature flag controller disabled');
+    } else {
+      remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
+        Logger.log('Feature flags updated');
+      });
+    }
+    return remoteFeatureFlagController;
+
+  } catch (error) {
+    Logger.log(error, 'Failed to initialize RemoteFeatureFlagController');
+    throw error;
   }
 };
 
