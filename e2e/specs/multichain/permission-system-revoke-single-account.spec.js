@@ -9,15 +9,14 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import ToastModal from '../../pages/modals/ToastModal';
 
-describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
+describe(SmokeCore('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should no longer be connected to the dapp after deleting and creating a new wallet', async () => {
+  it('should revoke single account dapp permisions', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -33,11 +32,10 @@ describe(SmokeCore('Revoke Single Account after connecting to a dapp'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
-        await ConnectedAccountsModal.tapPermissionsButton();
-        await TestHelpers.delay(5500); // this is because the toast is delayed.
+        await ConnectedAccountsModal.tapManagePermissionsButton();
 
-        await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+        await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

@@ -52,7 +52,7 @@ describe(Regression('Connect account to Portfolio'), () => {
     }
     await device.disableSynchronization();
     await PortfolioHomePage.tapConnectMetaMask();
-    await ConnectBottomSheet.tapConnectButton();
+    await ConnectBottomSheet.tapConnectButton(); // TODO: Tapping connect is failing
     await device.enableSynchronization();
   });
 

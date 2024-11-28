@@ -12,6 +12,7 @@ import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
+import PermissionSummaryBottomSheet from '../pages/Browser/PermissionSummaryBottomSheet';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
@@ -59,9 +60,13 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(ConnectBottomSheet.container);
+            await Assertions.checkIfVisible(
+              PermissionSummaryBottomSheet.container,
+            );
             await ConnectBottomSheet.tapConnectButton();
-            await Assertions.checkIfNotVisible(ConnectBottomSheet.container);
+            await Assertions.checkIfNotVisible(
+              PermissionSummaryBottomSheet.container,
+            );
             await TestHelpers.delay(3000);
 
             try {
