@@ -1639,10 +1639,10 @@ app:
       PORTFOLIO_VIEW: false
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: true
+      MM_MULTICHAIN_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_CHAIN_PERMISSIONS: true
+      MM_CHAIN_PERMISSIONS: false
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
@@ -1733,5 +1733,3 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: enable-mc-flag-off-regression
-    pipeline: pr_smoke_e2e_pipeline
