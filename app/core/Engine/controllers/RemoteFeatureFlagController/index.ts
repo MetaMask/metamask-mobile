@@ -39,10 +39,10 @@ const init = ({
   });
 
   if (disabled) {
-    Logger.log('Feature Flags Controller disabled');
+    Logger.log('Feature flag controller disabled');
   } else {
-    remoteFeatureFlagController.getRemoteFeatureFlags().then((featFlags) => {
-      Logger.log(`Received feature flags ${JSON.stringify(featFlags)}`);
+    remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
+      Logger.log('Feature flags updated');
     });
   }
 

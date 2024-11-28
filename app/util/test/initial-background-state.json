@@ -317,7 +317,7 @@
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
-    "remoteFeatureFlags": []
+    "remoteFeatureFlags": {}
   },
   "SelectedNetworkController": {
     "domains": {}

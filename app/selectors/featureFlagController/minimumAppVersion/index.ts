@@ -3,50 +3,50 @@ import { selectRemoteFeatureFlags } from '../.';
 import {
   FEATURE_FLAG_NAME,
   FeatureFlagType,
-  UndefinedFeatureFlagType,
 } from './types';
 
-export const featureFlagFallback: FeatureFlagType = {
-  [FEATURE_FLAG_NAME]: {
-    appMinimumBuild: 1243,
-    appleMinimumOS: 6,
-    androidMinimumAPIVersion: 21,
-  },
+export const defaultValues: FeatureFlagType = {
+  appMinimumBuild: 1243,
+  appleMinimumOS: 6,
+  androidMinimumAPIVersion: 21,
 };
 
 export const selectMobileMinimumVersions = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFeatureFlag = remoteFeatureFlags.find(
-      (featureflag) =>
-        featureflag[FEATURE_FLAG_NAME]
-    );
+    const remoteFeatureFlag = remoteFeatureFlags[FEATURE_FLAG_NAME];
 
     const featureFlagValues =
-      remoteFeatureFlag as UndefinedFeatureFlagType
-      ?? featureFlagFallback;
+      remoteFeatureFlag
+      ?? defaultValues;
 
-    return featureFlagValues[FEATURE_FLAG_NAME];
+    return featureFlagValues as FeatureFlagType;
   }
 );
 
 export const selectAppMinimumBuild = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) =>
-    mobileVersions?.appMinimumBuild
-    ?? featureFlagFallback[FEATURE_FLAG_NAME].appMinimumBuild,
+  (mobileVersions) => {
+    const { appMinimumBuild } = mobileVersions ?? defaultValues;
+
+    return appMinimumBuild;
+  }
 );
 
 export const selectAppleMinimumOS = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) =>
-    mobileVersions?.appleMinimumOS
-    ?? featureFlagFallback[FEATURE_FLAG_NAME].appleMinimumOS,
+  (mobileVersions) => {
+    const { appleMinimumOS } = mobileVersions ?? defaultValues;
+
+    return appleMinimumOS;
+  }
 );
 
 export const selectAndroidMinimumAPI = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) =>
-    mobileVersions?.androidMinimumAPIVersion
-    ?? featureFlagFallback[FEATURE_FLAG_NAME].androidMinimumAPIVersion,
+  (mobileVersions) => {
+    const { androidMinimumAPIVersion } = mobileVersions ?? defaultValues;
+
+    return androidMinimumAPIVersion;
+  }
 );

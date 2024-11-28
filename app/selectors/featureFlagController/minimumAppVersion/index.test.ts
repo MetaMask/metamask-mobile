@@ -1,9 +1,8 @@
 import { RootState } from '../../../reducers';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedState, mockedEmptyFlagsState } from '../mocks';
-import { FEATURE_FLAG_NAME } from './types';
 import {
-  featureFlagFallback,
+  defaultValues,
   selectMobileMinimumVersions
 } from '.';
 
@@ -32,8 +31,8 @@ describe('Feature flag: minimumAppVersion', () => {
       appleMinimumOS,
       androidMinimumAPIVersion,
     } = selectMobileMinimumVersions(mockedEmptyFlagsState as RootState);
-    expect(appMinimumBuild).toEqual(featureFlagFallback[FEATURE_FLAG_NAME].appMinimumBuild);
-    expect(appleMinimumOS).toEqual(featureFlagFallback[FEATURE_FLAG_NAME].appleMinimumOS);
-    expect(androidMinimumAPIVersion).toEqual(featureFlagFallback[FEATURE_FLAG_NAME].androidMinimumAPIVersion);
+    expect(appMinimumBuild).toEqual(defaultValues.appMinimumBuild);
+    expect(appleMinimumOS).toEqual(defaultValues.appleMinimumOS);
+    expect(androidMinimumAPIVersion).toEqual(defaultValues.androidMinimumAPIVersion);
   });
 });
