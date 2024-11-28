@@ -20,6 +20,8 @@ jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
 
+const selectedAddress = '0x123';
+
 jest.mock('./TokensBottomSheet', () => ({
   createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
 }));
@@ -69,7 +71,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-const selectedAddress = '0x123';
 const mockTokens = {
   '0x1': {
     [selectedAddress]: [

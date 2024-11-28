@@ -8,10 +8,7 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { showAlert } from '../../../../actions/alert';
-import {
-  selectConversionRateFoAllChains,
-  selectCurrentCurrency,
-} from '../../../../selectors/currencyRateController';
+import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
 // Mock dependencies
@@ -47,7 +44,6 @@ describe('Token Component', () => {
         return {
           '0xAccount': { '1': '1000000000000000000' }, // 1 token
         };
-      if (selector === selectConversionRateFoAllChains) return {};
       if (selector === selectCurrentCurrency) return 'USD';
       return {};
     });
