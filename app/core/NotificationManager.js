@@ -147,11 +147,6 @@ class NotificationManager {
       'TransactionController:speedupTransactionAdded',
       this._transactionSpeedupListener,
     );
-
-    Engine.controllerMessenger.tryUnsubscribe(
-      'SmartTransactionsController:smartTransaction',
-      this._smartTransactionListener,
-    );
   };
 
   _showNotification = async (data) => {
