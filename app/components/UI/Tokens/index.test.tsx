@@ -16,7 +16,6 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import NotificationManager from '../../../core/NotificationManager';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),

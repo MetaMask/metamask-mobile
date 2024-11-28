@@ -148,4 +148,8 @@ describe('networkSelectors', () => {
       type: 'rpc',
     });
   });
+
+  it('selectNetworkConfigurationByChainId should return null if the chainId does not exist', () => {
+    expect(selectNetworkConfigurationByChainId(mockState, '0x9999')).toBeNull();
+  });
 });
