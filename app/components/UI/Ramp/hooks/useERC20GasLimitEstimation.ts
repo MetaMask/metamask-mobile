@@ -53,12 +53,14 @@ function useERC20GasLimitEstimation({
           new BN(amountInMinimalUnit.toString()).toString('hex'),
         );
 
+        const dummyToAddress = '0x1234567890123456789012345678901234567890';
+
         const transaction: TransactionParams = {
           from: safeToChecksumAddress(fromAddress) as string,
           to: safeToChecksumAddress(tokenAddress),
           value: '0x0',
           data: generateTransferData('transfer', {
-            toAddress: safeToChecksumAddress(fromAddress),
+            toAddress: safeToChecksumAddress(dummyToAddress),
             amount: amountHex,
           }),
           chainId: toHex(chainId),
