@@ -272,7 +272,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            testID="disconnect"
+            testID="confirm_disconnect_networks"
           >
             <Text
               accessibilityRole="text"
