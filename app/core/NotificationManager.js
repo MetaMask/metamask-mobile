@@ -401,26 +401,35 @@ class NotificationManager {
         (transactionMeta) => transactionMeta.id === transaction.id,
       );
 
-    this._smartTransactionListener = Engine.controllerMessenger.subscribe(
+    const smartTransactionListener = async (smartTransaction) => {
+      if (smartTransaction.status === SmartTransactionStatuses.PENDING) {
+        return;
+      }
+      Engine.controllerMessenger.unsubscribe(
+        'SmartTransactionsController:smartTransaction',
+        smartTransactionListener,
+      );
+      if (smartTransaction.status !== SmartTransactionStatuses.CANCELLED) {
+        // If the smart transaction is not cancelled, notifications are already handled.
+        return;
+      }
+      const transactions = TransactionController.getTransactions({
+        filterToCurrentNetwork: false,
+      });
+      const foundTransaction = transactions.find(
+        (tx) => tx.id === smartTransaction.transactionId,
+      );
+      this._showNotification({
+        type: 'cancelled',
+        autoHide: true,
+        transaction: { id: foundTransaction?.id },
+        duration: 5000,
+      });
+    };
+
+    Engine.controllerMessenger.subscribe(
       'SmartTransactionsController:smartTransaction',
-      async (smartTransaction) => {
-        if (smartTransaction.status !== SmartTransactionStatuses.CANCELLED) {
-          // If the smart transaction is not cancelled, notifications are already handled.
-          return;
-        }
-        const transactions = TransactionController.getTransactions({
-          filterToCurrentNetwork: false,
-        });
-        const foundTransaction = transactions.find(
-          (tx) => tx.id === smartTransaction.transactionId,
-        );
-        this._showNotification({
-          type: 'cancelled',
-          autoHide: true,
-          transaction: { id: foundTransaction?.id },
-          duration: 5000,
-        });
-      },
+      smartTransactionListener,
     );
   }
 
