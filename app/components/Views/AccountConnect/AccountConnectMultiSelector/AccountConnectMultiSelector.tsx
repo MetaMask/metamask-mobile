@@ -36,6 +36,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -266,6 +267,7 @@ const AccountConnectMultiSelector = ({
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('accounts.disconnect')}
+                  testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
                   onPress={toggleRevokeAllAccountPermissionsModal}
                   isDanger
                   size={ButtonSize.Lg}

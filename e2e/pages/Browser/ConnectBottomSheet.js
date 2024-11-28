@@ -8,11 +8,14 @@ import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
 
 class ConnectBottomSheet {
   get container() {
-    return Matchers.getElementByID(ConnectAccountBottomSheetSelectorsIDs.CONTAINER);
+    return Matchers.getElementByID(
+      ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
+    );
   }
-
   get connectButton() {
-    return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
+    return device.getPlatform() === 'android'
+      ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
+      : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
   get connectAccountsButton() {
