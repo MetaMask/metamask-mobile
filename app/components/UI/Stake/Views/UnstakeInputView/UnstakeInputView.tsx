@@ -25,6 +25,7 @@ const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
@@ -38,7 +39,7 @@ const UnstakeInputView = () => {
     handleCurrencySwitch,
     currencyToggleValue,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     handleKeypadChange,
     stakedBalanceValue,
   } = useUnstakingInputHandlers();
@@ -111,7 +112,17 @@ const UnstakeInputView = () => {
       <UnstakeInputViewBanner style={styles.unstakeBanner} />
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={handleAmountPress}
+        onAmountPress={({ value }: { value: number }) =>
+          withMetaMetrics(handleQuickAmountPress, {
+            event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
+            properties: {
+              location: 'UnstakeInputView',
+              amount: value,
+              is_max: value === 1,
+              mode: isEth ? 'native' : 'fiat',
+            },
+          })({ value })
+        }
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}
