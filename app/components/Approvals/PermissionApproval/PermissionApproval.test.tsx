@@ -10,6 +10,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useOriginSource from '../../hooks/useOriginSource';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useMetrics');
@@ -17,6 +18,8 @@ jest.mock('../../../components/hooks/useMetrics');
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
 }));
+
+jest.mock('../../hooks/useOriginSource');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -86,6 +89,7 @@ const mockTrackEvent = jest.fn();
 describe('PermissionApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
   });
 
   it('navigates', async () => {
@@ -121,7 +125,13 @@ describe('PermissionApproval', () => {
 
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: HOST_INFO_MOCK,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: {
+          ...HOST_INFO_MOCK.metadata,
+          origin: 'test-origin'
+        }
+      },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
@@ -150,7 +160,7 @@ describe('PermissionApproval', () => {
     )
       .addProperties({
         number_of_accounts: 3,
-        source: 'PERMISSION SYSTEM',
+        source: 'IN_APP_BROWSER',
       })
       .build();
 
