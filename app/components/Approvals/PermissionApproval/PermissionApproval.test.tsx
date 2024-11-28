@@ -129,8 +129,7 @@ describe('PermissionApproval', () => {
         ...HOST_INFO_MOCK,
         metadata: {
           ...HOST_INFO_MOCK.metadata,
-          origin: 'test-origin'
-        }
+        },
       },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
