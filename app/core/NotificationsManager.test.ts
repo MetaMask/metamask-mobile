@@ -128,45 +128,34 @@ describe('NotificationManager', () => {
   });
   
   describe('smartTransactionListener', () => {
-    let mockTransactionController: {
-      getTransactions: jest.Mock;
+    const mockTransactionController = {
+      getTransactions: jest.fn(),
       state: {
-        transactions: TransactionMeta[];
-      };
+        transactions: [{
+          id: '0x123',
+          txParams: {
+            nonce: '0x1',
+            from: '0x123'
+          },
+          chainId: '0x1',
+          time: 123,
+          status: 'failed' as TransactionMeta['status'],
+          error: { message: 'test error', rpc: { code: 0 }, name: 'Error' }
+        }]
+      }
     };
-    let mockControllerMessenger: {
-      subscribe: jest.Mock;
-      unsubscribe: jest.Mock;
-      subscribeOnceIf: jest.Mock;
-      tryUnsubscribe: jest.Mock;
+
+    const mockControllerMessenger = {
+      subscribe: jest.fn(),
+      unsubscribe: jest.fn(),
+      subscribeOnceIf: jest.fn(),
+      tryUnsubscribe: jest.fn()
     };
+
     let showNotificationSpy: jest.SpyInstance;
 
-    beforeEach(() => {
-      mockTransactionController = {
-        getTransactions: jest.fn(),
-        state: {
-          transactions: [{
-            id: '0x123',
-            txParams: {
-              nonce: '0x1',
-              from: '0x123'
-            },
-            chainId: '0x1',
-            time: 123,
-            status: 'failed' as TransactionMeta['status'],
-            error: { message: 'test error', rpc: { code: 0 }, name: 'Error' }
-          }]
-        }
-      };
-
-      mockControllerMessenger = {
-        subscribe: jest.fn(),
-        unsubscribe: jest.fn(),
-        subscribeOnceIf: jest.fn(),
-        tryUnsubscribe: jest.fn()
-      };
-
+    beforeAll(() => {
+      // Set up spies and mocks once before all tests
       Object.defineProperty(Engine, 'context', {
         value: {
           TransactionController: mockTransactionController,
@@ -178,7 +167,12 @@ describe('NotificationManager', () => {
         value: mockControllerMessenger,
         writable: true
       });
+    });
 
+    beforeEach(() => {
+      // Clear all mock interactions before each test
+      jest.clearAllMocks();
+      
       // Reset the notification manager before each test
       notificationManager = NotificationManager.init({
         navigation: mockNavigation,
@@ -188,11 +182,12 @@ describe('NotificationManager', () => {
         removeNotificationById,
       });
 
-      // Create spy for _showNotification
+      // Create spy on the instance method
       showNotificationSpy = jest.spyOn(notificationManager, '_showNotification');
     });
 
-    afterEach(() => {
+    afterAll(() => {
+      // Clean up spy after all tests are done
       showNotificationSpy.mockRestore();
     });
 
