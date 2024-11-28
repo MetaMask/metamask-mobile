@@ -58,7 +58,8 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
         await ConnectedAccountsModal.tapManagePermissionsButton();
 
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
-        await ConnectedAccountsModal.tapDisconnectButton();
+        // await ConnectedAccountsModal.tapDisconnectButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

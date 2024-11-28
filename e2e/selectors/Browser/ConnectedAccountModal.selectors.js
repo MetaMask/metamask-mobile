@@ -22,4 +22,7 @@ export const ConnectedAccountsSelectorsIDs = {
   DESELECT_ALL_NETWORKS_BUTTON: 'deselect_all',
   DISCONNECT_NETWORKS_BUTTON: 'disconnect',
   CONFIRM_DISCONNECT_NETWORKS_BUTTON: 'confirm_disconnect_networks',
+  MANAGE_PERMISSIONS: 'manage_permissions',
+  DISCONNECT: 'disconnect',
+  DISCONNECT_ALL_ACCOUNTS_NETWORKS: 'disconnect_all',
 };

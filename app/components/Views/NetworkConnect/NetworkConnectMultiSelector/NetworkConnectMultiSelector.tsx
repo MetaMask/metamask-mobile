@@ -29,14 +29,15 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectNetworkConfigurations,
   selectChainId,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -49,7 +50,6 @@ const NetworkConnectMultiSelector = ({
   initialChainId,
   selectedChainIds: propSelectedChainIds,
   isInitializedWithPermittedChains = true,
-  hideActiveNetwork = false,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -81,7 +81,7 @@ const NetworkConnectMultiSelector = ({
         );
       }
     } catch (e) {
-      // noop
+      Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
 
     if (currentlyPermittedChains.length === 0 && initialChainId) {
@@ -122,8 +122,8 @@ const NetworkConnectMultiSelector = ({
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
         );
-      } catch {
-        // noop
+      } catch (e) {
+        Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
 
       if (hasPermittedChains) {
@@ -161,8 +161,8 @@ const NetworkConnectMultiSelector = ({
     networkConfigurations,
   ]);
 
-  const networks = Object.entries(networkConfigurations)
-    .map(([key, network]: [string, NetworkConfiguration]) => ({
+  const networks = Object.entries(networkConfigurations).map(
+    ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -171,11 +171,8 @@ const NetworkConnectMultiSelector = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }))
-    .filter((network) => {
-      if (!hideActiveNetwork) return true;
-      return network.id !== currentChainId;
-    });
+    }),
+  );
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {

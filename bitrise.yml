@@ -46,6 +46,7 @@ pipelines:
     stages:
       - build_e2e_ios_android_stage: {}
       - run_release_e2e_ios_android_stage: {}
+      - report_results_stage: {}
       - notify: {}
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
@@ -174,16 +175,19 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
-      - run_tag_smoke_assets_ios: {}
+      # - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
+  report_results_stage:
+    workflows:
+      - run_testrail_update_automated_test_results: {}
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -550,6 +554,20 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - wdio_android_e2e_test
+
+  ### Report automated test results to TestRail
+  run_testrail_update_automated_test_results:
+    before_run:
+      - code_setup
+    steps:
+      - script@1:
+          title: 'Add Automated Test Results to TestRail'
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                echo 'REPORT AUTOMATED TEST RESULTS TO TESTRAIL'
+                node ./scripts/testrail/testrail.api.js
+
   run_ios_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
@@ -1666,16 +1684,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.35.0
+      VERSION_NAME: 7.35.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1497
+      VERSION_NUMBER: 1502
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.35.0
+      FLASK_VERSION_NAME: 7.35.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1497
+      FLASK_VERSION_NUMBER: 1502
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

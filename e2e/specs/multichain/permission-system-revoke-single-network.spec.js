@@ -9,9 +9,6 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import AccountListView from '../../pages/AccountListView';
-import ToastModal from '../../pages/modals/ToastModal';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
 
 describe(SmokeCore('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
@@ -41,18 +38,11 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
         await ConnectedAccountsModal.tapManagePermissionsButton();
-
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        // tap select all
         await ConnectedAccountsModal.tapSelectAllNetworksButton();
-        // tap deselect all
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();
-        // tap disconnect
         await ConnectedAccountsModal.tapDisconnectNetworksButton();
-        // await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
-        // await ConnectedAccountsModal.tapTheDisconnectButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
-        // await ConnectedAccountsModal.tapDisconnectButton();
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

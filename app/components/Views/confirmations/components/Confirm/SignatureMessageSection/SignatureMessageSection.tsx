@@ -5,10 +5,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import CopyButton from '../../UI/CopyButton';
 import ExpandableSection from '../../UI/ExpandableSection';
+import { IconVerticalPosition } from '../../UI/ExpandableSection/ExpandableSection';
 import styleSheet from './SignatureMessageSection.styles';
 
 interface SignatureMessageSectionProps {
-  messageCollapsed: string;
+  messageCollapsed: ReactNode | string;
   messageExpanded: ReactNode;
   copyMessageText: string;
 }
@@ -25,9 +26,15 @@ const SignatureMessageSection = ({
       collapsedContent={
         <View style={styles.container}>
           <Text style={styles.title}>{strings('confirm.message')}</Text>
-          <Text style={styles.description} numberOfLines={1}>
-            {messageCollapsed}
-          </Text>
+          <View style={styles.message}>
+            {typeof messageCollapsed === 'string' ? (
+              <Text style={styles.description} numberOfLines={1}>
+                {messageCollapsed}
+              </Text>
+            ) : (
+              messageCollapsed
+            )}
+          </View>
         </View>
       }
       expandedContent={
@@ -39,6 +46,7 @@ const SignatureMessageSection = ({
         </View>
       }
       expandedContentTitle={strings('confirm.message')}
+      iconVerticalPosition={IconVerticalPosition.Top}
     />
   );
 };
