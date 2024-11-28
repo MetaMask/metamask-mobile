@@ -26,7 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import {
   getDecimalChainId,
-  isPortfolioViewEnabled,
+  isPortfolioViewEnabledFunction,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
@@ -65,6 +65,8 @@ const AssetOptions = (props: Props) => {
   );
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
+
+  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {

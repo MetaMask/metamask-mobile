@@ -3,6 +3,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -119,6 +121,25 @@ describe('AssetOptions Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should match the snapshot when portfolio view is enabled  ', () => {
+    jest
+      .spyOn(networks, 'isPortfolioViewEnabledFunction')
+      .mockReturnValue(true);
+    const { toJSON } = render(
+      <AssetOptions
+        route={{
+          params: {
+            address: '0x123',
+            chainId: '0x1',
+            isNativeCurrency: false,
+          },
+        }}
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
   it('renders correctly and displays options', () => {
     const { getByText } = render(
       <AssetOptions
@@ -161,40 +182,40 @@ describe('AssetOptions Component', () => {
     });
   });
 
-  //   it('handles "Remove Token" press', () => {
-  //     const { getByText } = render(
-  //       <AssetOptions
-  //         route={{
-  //           params: {
-  //             address: '0x123',
-  //             chainId: '0x1',
-  //             isNativeCurrency: false,
-  //           },
-  //         }}
-  //       />,
-  //     );
+  it('handles "Remove Token" press', () => {
+    const { getByText } = render(
+      <AssetOptions
+        route={{
+          params: {
+            address: '0x123',
+            chainId: '0x1',
+            isNativeCurrency: false,
+          },
+        }}
+      />,
+    );
 
-  //     fireEvent.press(getByText('Remove token'));
-  //     expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
-  //       screen: 'AssetHideConfirmation',
-  //       params: expect.anything(),
-  //     });
-  //   });
+    fireEvent.press(getByText('Remove token'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'AssetHideConfirmation',
+      params: expect.anything(),
+    });
+  });
 
-  //   it('handles "Token Details" press', () => {
-  //     const mockParams = {
-  //       params: {
-  //         address: '0x123',
-  //         chainId: '0x1',
-  //         isNativeCurrency: false,
-  //       },
-  //     };
-  //     const { getByText } = render(<AssetOptions route={mockParams} />);
+  it('handles "Token Details" press', () => {
+    const mockParams = {
+      params: {
+        address: '0x123',
+        chainId: '0x1',
+        isNativeCurrency: false,
+      },
+    };
+    const { getByText } = render(<AssetOptions route={mockParams} />);
 
-  //     fireEvent.press(getByText('Token details'));
-  //     expect(mockNavigation.navigate).toHaveBeenCalledWith(
-  //       'AssetDetails',
-  //       expect.anything(),
-  //     );
-  //   });
+    fireEvent.press(getByText('Token details'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      'AssetDetails',
+      expect.anything(),
+    );
+  });
 });
