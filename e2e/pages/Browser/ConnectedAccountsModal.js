@@ -23,10 +23,23 @@ class ConnectedAccountsModal {
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
+  get disconnectButton() {
+    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
+  }
+  get disconnectAllAccountsAndNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+    );
+  }
 
   get connectAccountsButton() {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
+    );
+  }
+  get managePermissionsButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
@@ -44,6 +57,17 @@ class ConnectedAccountsModal {
 
   async tapDisconnectAllButton() {
     await Gestures.waitAndTap(this.disconnectAllButton);
+  }
+
+  async tapManagePermissionsButton() {
+    await Gestures.waitAndTap(this.managePermissionsButton);
+  }
+
+  async tapDisconnectButton() {
+    await Gestures.waitAndTap(this.disconnectButton);
+  }
+  async tapDisconnectAllAccountsAndNetworksButton() {
+    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
   }
 
   //async tapToSetAsPrimaryAccount() {
