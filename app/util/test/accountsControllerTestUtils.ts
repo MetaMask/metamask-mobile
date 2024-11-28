@@ -1,9 +1,9 @@
 import { v4 as uuidV4 } from 'uuid';
 import {
-  BtcAccountType,
   EthAccountType,
   EthMethod,
   InternalAccount,
+  KeyringAccountType,
 } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -28,7 +28,7 @@ export function createMockInternalAccount(
   address: string,
   nickname: string,
   keyringType: KeyringTypes = KeyringTypes.hd,
-  accountType: BtcAccountType | EthAccountType = EthAccountType.Eoa,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
 ): InternalAccount {
   const genericMetadata = {
     name: nickname,
