@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
-index a12a342..5223515 100644
+index 8529ba1..77871be 100644
 --- a/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
 +++ b/node_modules/@metamask/keyring-controller/dist/KeyringController.cjs
-@@ -1395,7 +1395,8 @@ async function _KeyringController_newKeyring(type, data) {
+@@ -1379,7 +1379,8 @@ async function _KeyringController_newKeyring(type, data) {
          if (!keyring.generateRandomMnemonic) {
              throw new Error(constants_1.KeyringControllerError.UnsupportedGenerateRandomMnemonic);
          }
