@@ -7,7 +7,6 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 import useOriginSource from '../../hooks/useOriginSource';
 
 export interface PermissionApprovalProps {
@@ -41,10 +40,6 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
     if (isProcessing.current) return;
 
     isProcessing.current = true;
-
-    DevLogger.log(
-      `PermissionApproval::useEffect() totalAccounts=${totalAccounts} source=${eventSource}`,
-    );
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
