@@ -4833,13 +4833,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^13.3.0":
-  version "13.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-13.3.0.tgz#5c10001148dc335d8dcc3e3118154961b1a2f377"
-  integrity sha512-USPwqvCxk9C4GlpZRrd9hYhpZz2vpBl8S6TyJQeX0maY2m+vrbahhUukq/6zPWJEjkthqKe8Ndu5KKKCXv1Fyg==
+"@metamask/preferences-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-14.0.0.tgz#1ec10cf7d2091962345dfc99fa050339a997e467"
+  integrity sha512-rh0kWWIDCa1V/zAfC3pA+0I3JSiQp23kpi838uMqCDMBIB0ifFbWX+qjnZlxZp77R1bvJiSqtHGlYLl60/Y7FA==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/controller-utils" "^11.4.3"
 
 "@metamask/profile-sync-controller@^0.9.7":
   version "0.9.7"
@@ -4990,13 +4990,13 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/signature-controller@^21.0.0":
-  version "21.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.1.0.tgz#04b164dc0dfaeee0bf77d1be50b5f9be39c8c334"
-  integrity sha512-WD99N98DUio/Ya21tQtRV8IXAvdoakXL0icFoBir8Dnv4ZuAwFkb5TbalhWfhyAA2rwED2amTbAmIrzcvXMagw==
+"@metamask/signature-controller@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-22.0.0.tgz#a52c79881aae4b47fecfc2c2b1f2d0e1e649e240"
+  integrity sha512-k4Kvq4tdFDWLiFiNijUeOGVQj10PfNp5R6DCPXwMgQnJqmUBXM14i/kMN4lU7rRsieYhQdXRVOQZ3/5r3wCstg==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/controller-utils" "^11.4.3"
     "@metamask/eth-sig-util" "^8.0.0"
     "@metamask/utils" "^10.0.0"
     jsonschema "^1.2.4"
