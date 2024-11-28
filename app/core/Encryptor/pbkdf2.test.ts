@@ -10,7 +10,7 @@ describe('pbkdf2', () => {
     jest.restoreAllMocks();
   });
   
-  it('should use the native implementation of pbkdf2 with main aes', async () => {
+  it('uses the native implementation of pbkdf2 with main aes', async () => {
     NativeModules.Aes.pbkdf2 = jest
       .fn()
       .mockImplementation(() =>
