@@ -42,7 +42,7 @@ describe('pbkdf2', () => {
     ).rejects.toThrow('Native module error');
   });
 
-  it('should handle empty password', async () => {
+  it('does not fail when empty password', async () => {
     NativeModules.Aes.pbkdf2 = jest
       .fn()
       .mockImplementation(() =>
