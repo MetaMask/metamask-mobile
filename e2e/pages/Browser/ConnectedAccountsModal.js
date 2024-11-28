@@ -27,6 +27,7 @@ class ConnectedAccountsModal {
   get disconnectButton() {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
+
   get disconnectAllAccountsAndNetworksButton() {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
@@ -52,6 +53,27 @@ class ConnectedAccountsModal {
 
   get title() {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
+  }
+
+  get selectAllNetworksButton() {
+    return Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.SELECT_ALL,
+    );
+    // return Matchers.getElementByID(
+    //   ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+    // );
+  }
+
+  get disconnectNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
+    );
+  }
+
+  get confirmDisconnectNetworksButton() {
+    return Matchers.getElementByID(
+      ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
+    );
   }
 
   async tapPermissionsButton() {
@@ -80,6 +102,22 @@ class ConnectedAccountsModal {
 
   async tapNavigateToEditNetworksPermissionsButton() {
     await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
+  }
+
+  async tapSelectAllNetworksButton() {
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
+  }
+
+  async tapDeselectAllNetworksButton() {
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
+  }
+
+  async tapDisconnectNetworksButton() {
+    await Gestures.waitAndTap(this.disconnectNetworksButton);
+  }
+
+  async tapConfirmDisconnectNetworksButton() {
+    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton);
   }
 
   //async tapToSetAsPrimaryAccount() {

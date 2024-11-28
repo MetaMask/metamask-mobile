@@ -39,32 +39,26 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
 
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        await TestHelpers.delay(2000);
 
-        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
-        await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await AccountListView.tapAddAccountButton();
-        await AddAccountModal.tapCreateAccount();
-        if (device.getPlatform() === 'android') {
-          await Assertions.checkIfTextIsDisplayed(AccountTwoText);
-        }
-        await AccountListView.tapAccountIndex(0);
-        await AccountListView.tapConnectAccountsButton();
-
-        // should revoke accounts
-        await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
 
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        // tap select all
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
+        // tap deselect all
+        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+        // tap disconnect
+        await ConnectedAccountsModal.tapDisconnectNetworksButton();
         // await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
+        // await ConnectedAccountsModal.tapTheDisconnectButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
         // await ConnectedAccountsModal.tapDisconnectButton();
 
-        // await Browser.tapNetworkAvatarButtonOnBrowser();
-        // await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-        // await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        // await NetworkListModal.swipeToDismissModal();
-        // await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+        await NetworkListModal.swipeToDismissModal();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
   });
