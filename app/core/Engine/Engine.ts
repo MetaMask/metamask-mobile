@@ -62,7 +62,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
+import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -109,8 +109,6 @@ import {
   ExcludedSnapPermissions,
   EndowmentPermissions,
   detectSnapLocation,
-  fetchFunction,
-  DetectSnapLocationOptions,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
@@ -906,6 +904,10 @@ export class Engine {
 
     this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      excludedPermissions: {
+        ...ExcludedSnapPermissions,
+        ...ExcludedSnapEndowments,
+      },
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
@@ -915,14 +917,7 @@ export class Engine {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
-      detectSnapLocation: (
-        location: string | URL,
-        options?: DetectSnapLocationOptions,
-      ) =>
-        detectSnapLocation(location, {
-          ...options,
-          fetch: fetchFunction,
-        }),
+      detectSnapLocation,
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
