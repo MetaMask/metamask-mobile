@@ -232,10 +232,14 @@ const LedgerSelectAccount = () => {
 
         await updateNewLegacyAccountsLabel();
 
-        trackEvent(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS, {
-          device_type: HardwareDeviceTypes.LEDGER,
-          hd_path: getPathString(selectedOption.value),
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER_SUCCESS)
+            .addProperties({
+              device_type: HardwareDeviceTypes.LEDGER,
+              hd_path: getPathString(selectedOption.value),
+            })
+            .build(),
+        );
         navigation.pop(2);
 
       } catch (err) {
