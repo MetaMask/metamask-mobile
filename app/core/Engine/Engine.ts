@@ -63,7 +63,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
+import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -641,7 +641,7 @@ export class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationParameters) => {
+      showInAppNotification: (origin: string, args: NotificationArgs) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -704,7 +704,6 @@ export class Engine {
       includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -796,7 +795,6 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.subjectMetadataController = new SubjectMetadataController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
@@ -846,7 +844,6 @@ export class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -866,7 +863,6 @@ export class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
