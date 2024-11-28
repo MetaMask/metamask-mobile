@@ -10,9 +10,3 @@ export const selectRemoteFeatureFlags = createSelector(
     remoteFeatureFlagControllerState.remoteFeatureFlags
 );
 
-export const selectRemoteFeatureFlagsCacheTimestamp = createSelector(
-  selectRemoteFeatureFlagControllerState,
-  (remoteFeatureFlagControllerState) =>
-    remoteFeatureFlagControllerState.cacheTimestamp
-);
-
