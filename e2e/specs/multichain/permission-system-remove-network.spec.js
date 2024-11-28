@@ -29,7 +29,6 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
-
           .withNetworkController(PopularNetworksList.Polygon)
           .build(),
         restartDevice: true,
