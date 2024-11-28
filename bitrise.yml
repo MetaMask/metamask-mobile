@@ -159,6 +159,8 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_multichain_ios: {}
+      - run_tag_multichain_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_e2e_build: {}
@@ -488,6 +490,8 @@ workflows:
   ios_build_regression_tests:
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
@@ -502,6 +506,8 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
@@ -529,9 +535,6 @@ workflows:
     after_run:
       - wdio_android_e2e_test
   build_ios_multichain_e2e:
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: true
-      - MM_CHAIN_PERMISSIONS: true
     after_run:
       - ios_e2e_build
       # - android_e2e_build
@@ -540,9 +543,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-    envs:
-      - MM_MULTICHAIN_V1_ENABLED: true
-      - MM_CHAIN_PERMISSIONS: true
     after_run:
       - android_e2e_build
   run_android_app_launch_times_appium_test:
@@ -1639,10 +1639,10 @@ app:
       PORTFOLIO_VIEW: false
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: false
+      MM_MULTICHAIN_V1_ENABLED: true
     - opts:
         is_expand: false
-      MM_CHAIN_PERMISSIONS: false
+      MM_CHAIN_PERMISSIONS: true
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false

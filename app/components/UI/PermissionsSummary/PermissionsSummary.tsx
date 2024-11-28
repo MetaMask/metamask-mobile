@@ -46,7 +46,8 @@ import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { PermissionSummaryBottomSheetSelectorsIDs} from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors'
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+
 const PermissionsSummary = ({
   currentPageInformation,
   customNetworkInformation,
@@ -271,7 +272,7 @@ const PermissionsSummary = ({
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
-        <View style={styles.accountPermissionRequestInfoCard}>
+        <View style={styles.accountPermissionRequestInfoCard} testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}>
           <Avatar
             variant={AvatarVariant.Icon}
             style={styles.walletIcon}
