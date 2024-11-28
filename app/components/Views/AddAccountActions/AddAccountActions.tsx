@@ -81,7 +81,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-
   const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
 
   const isBitcoinTestnetSupportEnabled = useSelector(
@@ -128,7 +127,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             disabled={isLoading}
             testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
           />
-          {/* ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps) */}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          }
           {isBitcoinSupportEnabled && (
             <AccountAction
               actionTitle={strings(
@@ -153,7 +154,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
             />
           )}
-          {/* ///: END:ONLY_INCLUDE_IF */}
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
           <AccountAction
             actionTitle={strings('account_actions.import_account')}
             iconName={IconName.Import}
