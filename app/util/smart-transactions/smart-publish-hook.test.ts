@@ -102,17 +102,6 @@ const defaultTransactionMeta: TransactionMeta = {
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
   time: 1624408066355,
-  // defaultGasEstimates: {
-  //   gas: '0x7b0d',
-  //   gasPrice: '0x77359400',
-  // },
-  // error: {
-  //   name: 'Error',
-  //   message: 'Details of the error',
-  // },
-  // securityProviderResponse: {
-  //   flagAsDangerous: 0,
-  // },
 };
 
 type WithRequestOptions = {
