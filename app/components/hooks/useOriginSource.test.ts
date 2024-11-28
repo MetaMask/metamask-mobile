@@ -17,7 +17,7 @@ jest.mock('react-redux', () => ({
   ),
 }));
 
-jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+jest.mock('../../core/SDKConnect/SDKConnect', () => ({
   getInstance: jest.fn(() => ({
     getConnection: jest.fn(({ channelId }) => {
       if (channelId === '123e4567-e89b-12d3-a456-426614174000') {
