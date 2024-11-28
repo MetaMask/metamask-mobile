@@ -16,6 +16,7 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import NotificationManager from '../../../core/NotificationManager';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -267,11 +268,14 @@ describe('Tokens', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should render correctly when portfolio view is enabled', () => {
+  it('renders correctly when portfolio view is enabled', () => {
     jest
       .spyOn(networks, 'isPortfolioViewEnabledFunction')
       .mockReturnValue(true);
-    const { toJSON } = renderComponent(initialState);
+
+    const { toJSON, getByText } = renderComponent(initialState);
+
+    expect(getByText('Ethereum')).toBeDefined();
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -531,6 +535,49 @@ describe('Tokens', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE,
       });
+    });
+  });
+
+  it('calls onRefresh and updates state', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.TokenDetectionController.detectTokens,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTrackerController.refresh,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.CurrencyRateController.updateExchangeRate,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it('hides zero balance tokens when hideZeroBalanceTokens is enabled', () => {
+    const { queryByText } = renderComponent(initialState);
+
+    expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
+  });
+
+  it('triggers sort controls when sort button is pressed', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
     });
   });
 });
