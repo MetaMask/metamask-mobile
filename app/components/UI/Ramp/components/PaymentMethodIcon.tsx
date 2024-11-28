@@ -88,7 +88,7 @@ function getIconComponent(icon: PaymentIcon) {
 * With the integration of Expo, it introduced a compatibility layer (https://github.com/expo/vector-icons) 
 * around react-native-vector-icons which doesn't expose hasIcon anymore so we need to build our own
 */
-const hasIcon = (IconComponent: { glyphMap: {[key: string]: number} }, name: string) => {
+function hasIcon(IconComponent: { glyphMap: { [key: string]: number } }, name: string) {
   return IconComponent && Object.prototype.hasOwnProperty.call(IconComponent.glyphMap, name)
 }
 
