@@ -119,6 +119,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             "marginTop": 8,
           }
         }
+        testID="permission-network-permissions-container"
       >
         <Text
           accessibilityRole="text"
@@ -897,6 +898,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             "marginTop": 8,
           }
         }
+        testID="permission-network-permissions-container"
       >
         <Text
           accessibilityRole="text"

@@ -712,7 +712,6 @@ class FixtureBuilder {
       ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
-      defaultBlockExplorerUrlIndex: 0,
       name: providerConfig.nickname,
       nativeCurrency: providerConfig.ticker,
     };

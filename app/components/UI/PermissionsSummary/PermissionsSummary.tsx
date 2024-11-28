@@ -408,7 +408,7 @@ const PermissionsSummary = ({
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
-          <View style={styles.title}>
+          <View style={styles.title} testID={PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER}>
             <TextComponent variant={TextVariant.HeadingSM}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
