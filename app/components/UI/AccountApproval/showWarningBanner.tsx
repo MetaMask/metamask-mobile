@@ -18,7 +18,8 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
 import { AccordionHeaderHorizontalAlignment } from '../../../component-library/components/Accordions/Accordion';
-import { MetaMetrics } from '../../../core/Analytics';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const descriptionArray = [
   strings('accounts.fake_metamask'),
@@ -29,12 +30,15 @@ const descriptionArray = [
 const goToLearnMore = () => {
   Linking.openURL(CONNECTING_TO_A_DECEPTIVE_SITE);
   MetaMetrics.getInstance().trackEvent(
-    { category: 'EXTERNAL_LINK_CLICKED' },
-    {
-      location: 'dapp_connection_request',
-      text: 'Learn More',
-      url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
-    },
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+    )
+      .addProperties({
+        location: 'dapp_connection_request',
+        text: 'Learn More',
+        url_domain: CONNECTING_TO_A_DECEPTIVE_SITE,
+      })
+      .build(),
   );
 };
 

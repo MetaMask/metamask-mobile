@@ -15,7 +15,7 @@ export interface PermissionApprovalProps {
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
   const isProcessing = useRef<boolean>(false);
@@ -38,10 +38,14 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
-    trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-      number_of_accounts: totalAccounts,
-      source: 'PERMISSION SYSTEM',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
+        .addProperties({
+          number_of_accounts: totalAccounts,
+          source: 'PERMISSION SYSTEM',
+        })
+        .build(),
+    );
 
     props.navigation.navigate(
       ...createAccountConnectNavDetails({
@@ -49,7 +53,13 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
         permissionRequestId: id,
       }),
     );
-  }, [approvalRequest, totalAccounts, props.navigation, trackEvent]);
+  }, [
+    approvalRequest,
+    totalAccounts,
+    props.navigation,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return null;
 };
