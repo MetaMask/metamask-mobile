@@ -178,13 +178,9 @@ const PermissionsSummary = ({
   }
 
   const renderEndAccessory = () => (
-    <View>
+    <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
-        <Icon
-          size={IconSize.Md}
-          name={IconName.ArrowRight}
-          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        />
+        <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       ) : (
         <View style={styles.editTextContainer}>
           <TextComponent
@@ -326,7 +322,12 @@ const PermissionsSummary = ({
 
   function renderNetworkPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditNetworksButtonPress}>
+      <TouchableOpacity
+        onPress={handleEditNetworksButtonPress}
+        testID={
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
+        }
+      >
         <View style={styles.networkPermissionRequestInfoCard}>
           <Avatar
             style={styles.dataIcon}
@@ -436,7 +437,9 @@ const PermissionsSummary = ({
             <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
-                testID={ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
+                }
                 label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}
