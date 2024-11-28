@@ -6,6 +6,7 @@ import NotificationManager, {
 import { strings } from '../../locales/i18n';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import Engine from './Engine';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 interface NavigationMock {
   navigate: jest.Mock;
@@ -130,7 +131,7 @@ describe('NotificationManager', () => {
     let mockTransactionController: {
       getTransactions: jest.Mock;
       state: {
-        transactions: any[];
+        transactions: TransactionMeta[];
       };
     };
     let mockControllerMessenger: {
@@ -149,7 +150,12 @@ describe('NotificationManager', () => {
             id: '0x123',
             txParams: {
               nonce: '0x1',
-            }
+              from: '0x123'
+            },
+            chainId: '0x1',
+            time: 123,
+            status: 'failed' as TransactionMeta['status'],
+            error: { message: 'test error', rpc: { code: 0 }, name: 'Error' }
           }]
         }
       };
