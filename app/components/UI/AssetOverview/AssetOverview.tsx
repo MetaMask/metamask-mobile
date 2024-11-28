@@ -56,7 +56,7 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getDecimalChainId,
-  isPortfolioViewEnabled,
+  isPortfolioViewEnabledFunction,
 } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
@@ -99,6 +99,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
+
+  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
 
   const chainId = isPortfolioViewEnabled
     ? (asset.chainId as Hex)
@@ -257,6 +259,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     trackEvent,
     asset.address,
     createEventBuilder,
+    isPortfolioViewEnabled,
   ]);
 
   const onBuy = () => {

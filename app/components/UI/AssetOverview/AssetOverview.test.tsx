@@ -15,6 +15,8 @@ import {
   isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -93,18 +95,20 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
-  isTestNet: jest.fn().mockReturnValue(false),
-  getNetworkNameFromProviderConfig: jest.fn().mockReturnValue('Ethereum'),
-  isMainnetByChainId: jest.fn().mockReturnValue(true),
-  isLineaMainnetByChainId: jest.fn().mockReturnValue(false),
-  getDefaultNetworkByChainId: jest.fn().mockReturnValue('ETH'),
-  getTestNetImageByChainId: jest.fn().mockReturnValue('mockedImageSource'),
-  getDecimalChainId: jest.fn().mockReturnValue(18),
-  isPortfolioViewEnabled: false,
-  isPortfolioViewEnabledFunction: jest.fn().mockReturnValue(false),
-}));
+// const mockIsPortfolioViewEnabled = jest.fn();
+
+// jest.mock('../../../util/networks', () => ({
+//   getNetworkImageSource: jest.fn().mockReturnValue('mockedImageSource'),
+//   isTestNet: jest.fn().mockReturnValue(false),
+//   getNetworkNameFromProviderConfig: jest.fn().mockReturnValue('Ethereum'),
+//   isMainnetByChainId: jest.fn().mockReturnValue(true),
+//   isLineaMainnetByChainId: jest.fn().mockReturnValue(false),
+//   getDefaultNetworkByChainId: jest.fn().mockReturnValue('ETH'),
+//   getTestNetImageByChainId: jest.fn().mockReturnValue('mockedImageSource'),
+//   getDecimalChainId: jest.fn().mockReturnValue(18),
+//   isPortfolioViewEnabled: false,
+//   isPortfolioViewEnabledFunction: mockIsPortfolioViewEnabled,
+// }));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -132,15 +136,31 @@ const asset = {
 };
 
 describe('AssetOverview', () => {
-  if (!isPortfolioViewEnabled) {
-    it('should render correctly', async () => {
-      const container = renderWithProvider(
-        <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
-        { state: mockInitialState },
-      );
-      expect(container).toMatchSnapshot();
-    });
-  }
+  beforeEach(() => {
+    jest
+      .spyOn(networks, 'isPortfolioViewEnabledFunction')
+      .mockReturnValue(false);
+  });
+
+  it('should render correctly', async () => {
+    const container = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      { state: mockInitialState },
+    );
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render correctly when portfolio view is enabled', async () => {
+    jest
+      .spyOn(networks, 'isPortfolioViewEnabledFunction')
+      .mockReturnValue(true);
+
+    const container = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      { state: mockInitialState },
+    );
+    expect(container).toMatchSnapshot();
+  });
 
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
