@@ -148,10 +148,15 @@ describe('usePoolStakedUnstake', () => {
     });
 
     it('attempts to create and submit an unstake all transaction', async () => {
-      jest.spyOn(ethers.utils, 'Interface').mockImplementation(() => ({
-        encodeFunctionData: jest.fn(),
-        decodeFunctionResult: jest.fn().mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
-      } as unknown as ethers.utils.Interface));
+      jest.spyOn(ethers.utils, 'Interface').mockImplementation(
+        () =>
+          ({
+            encodeFunctionData: jest.fn(),
+            decodeFunctionResult: jest
+              .fn()
+              .mockReturnValue([BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI)]),
+          } as unknown as ethers.utils.Interface),
+      );
 
       const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
         state: mockInitialState,
@@ -165,7 +170,11 @@ describe('usePoolStakedUnstake', () => {
       expect(mockConvertToShares).toHaveBeenCalledTimes(0);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI).toString(), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
+        BigNumber.from(MOCK_UNSTAKE_ALL_VALUE_WEI).toString(),
+        MOCK_RECEIVER_ADDRESS,
+        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
+      );
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });
