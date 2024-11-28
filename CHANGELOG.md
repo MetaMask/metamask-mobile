@@ -2,7 +2,7 @@
 
 ## Current Main Branch
 
-## release/7.37.0 - <Date>
+## 7.37.0 - Nov 28, 2024
 
 ### Added
 - [#12091](https://github.com/MetaMask/metamask-mobile/pull/12091): feat: 2020 Add a performance test for iOS in Bitrise (#12091)
