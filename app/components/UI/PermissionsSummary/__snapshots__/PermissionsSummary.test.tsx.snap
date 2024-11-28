@@ -149,6 +149,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "marginTop": 8,
             }
           }
+          testID="permission-summary-container"
         >
           <View
             style={
@@ -400,7 +401,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
               </View>
             </View>
           </View>
-          <View>
+          <View
+            testID="connection-details-button"
+          >
             <SvgMock
               color="#141618"
               height={20}
@@ -411,7 +414,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "width": 20,
                 }
               }
-              testID="back-arrow-button"
               width={20}
             />
           </View>
@@ -419,6 +421,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
       </TouchableOpacity>
       <TouchableOpacity
         onPress={[Function]}
+        testID="navigate_to_edit_networks_permissions_button"
       >
         <View
           style={
@@ -549,7 +552,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
               </View>
             </View>
           </View>
-          <View>
+          <View
+            testID="connection-details-button"
+          >
             <SvgMock
               color="#141618"
               height={20}
@@ -560,7 +565,6 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "width": 20,
                 }
               }
-              testID="back-arrow-button"
               width={20}
             />
           </View>
@@ -912,6 +916,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
       </View>
       <TouchableOpacity
         onPress={[Function]}
+        testID="navigate_to_edit_networks_permissions_button"
       >
         <View
           style={
