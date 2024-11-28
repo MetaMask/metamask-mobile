@@ -19,6 +19,7 @@ import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 
 const SnapDialogApproval = () => {
   const { approvalRequest } = useApprovalRequest();
+  console.log('approvalRequest', approvalRequest);
   const { styles } = useStyles(stylesheet, {});
 
   const onConfirm = useCallback(async () => {
@@ -33,11 +34,11 @@ const SnapDialogApproval = () => {
     await Engine.acceptPendingApproval(approvalRequest.id, false as any);
   }, [approvalRequest]);
 
-  if (
-    approvalRequest?.type !== ApprovalTypes.SNAP_DIALOG ||
-    !approvalRequest?.requestData?.content
-  )
-    return null;
+  // if (
+  //   approvalRequest?.type !== 'snap_dialog:alert' ||
+  //   !approvalRequest?.requestData?.content
+  // )
+  //   return null;
 
   const buttons = [
     {
@@ -54,11 +55,14 @@ const SnapDialogApproval = () => {
     },
   ];
 
-  const snapId = approvalRequest.origin;
-  const interfaceId = approvalRequest.requestData.content;
+  const snapId = approvalRequest?.origin;
+  const interfaceId = approvalRequest?.requestData.content;
 
   return (
-    <ApprovalModal isVisible onCancel={onReject}>
+    <ApprovalModal
+      isVisible={approvalRequest?.type === 'snap_dialog:alert'}
+      onCancel={onReject}
+    >
       <View style={styles.root}>
         <SnapUIRenderer snapId={snapId} interfaceId={interfaceId} />
         <View style={styles.actionContainer}>
