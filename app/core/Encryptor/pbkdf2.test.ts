@@ -29,7 +29,7 @@ describe('pbkdf2', () => {
     ).resolves.toBeDefined();
   });
 
-  it('should handle native module errors', async () => {
+  it('throws on native module errors', async () => {
     NativeModules.Aes.pbkdf2 = jest
       .fn()
       .mockRejectedValue(new Error('Native module error'));
