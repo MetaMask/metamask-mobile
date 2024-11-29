@@ -221,7 +221,11 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      this.#cleanup();
+      const mobileReturnTxHashAsap =
+        this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
+      if (!mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
     }
   }
 
@@ -331,7 +335,6 @@ class SmartTransactionHook {
       signedTransactions,
       signedCanceledTransactions,
       txParams: this.#txParams,
-      // @ts-expect-error version mismatch between smart-transactions-controller and transaction-controller breaking type safety
       transactionMeta: this.#transactionMeta,
     });
   };
@@ -401,6 +404,7 @@ class SmartTransactionHook {
               smartTransaction,
             });
           }
+          this.#cleanup();
         }
       },
     );

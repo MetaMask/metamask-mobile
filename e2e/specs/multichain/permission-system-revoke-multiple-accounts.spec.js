@@ -11,11 +11,11 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(Regression('Permission System:'), () => {
+describe(SmokeCore('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -55,10 +55,11 @@ describe(Regression('Permission System:'), () => {
 
         // should revoke accounts
         await Browser.tapNetworkAvatarButtonOnBrowser();
-        await ConnectedAccountsModal.tapPermissionsButton();
-        await TestHelpers.delay(1500);
-        await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+
+        await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
+        // await ConnectedAccountsModal.tapDisconnectButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);

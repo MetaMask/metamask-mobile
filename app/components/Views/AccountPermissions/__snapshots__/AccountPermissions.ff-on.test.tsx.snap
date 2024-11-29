@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
+exports[`AccountPermissions with feature flags ON should render AccountPermissions with multichain and chain permissions enabled: AccountPermissions-FeatureFlagsOn 1`] = `
 <View
   onLayout={[Function]}
   style={
@@ -119,100 +119,112 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "paddingHorizontal": 16,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "margin": 16,
           }
         }
       >
         <View
           style={
             {
-              "alignItems": "center",
               "backgroundColor": "#ffffff",
-              "flexDirection": "row",
-              "padding": 16,
+              "borderRadius": 16,
+              "height": 16,
+              "marginRight": 8,
+              "overflow": "hidden",
+              "width": 16,
             }
           }
-          testID="header"
         >
-          <View
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={{}}
             style={
               {
-                "width": undefined,
-              }
-            }
-          >
-            <View
-              onLayout={[Function]}
-            />
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 18,
-                  "fontWeight": "700",
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                }
-              }
-            >
-              Disconnect all
-            </Text>
-          </View>
-          <View
-            style={
-              {
+                "height": undefined,
                 "width": undefined,
               }
             }
-          >
-            <View
-              onLayout={[Function]}
-            />
-          </View>
+            testID="favicon-avatar-image"
+          />
         </View>
-        <View
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "marginBottom": 16,
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
             }
           }
         >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            If you disconnect from test, you’ll need to reconnect your accounts and networks to use this site again.
-          </Text>
-        </View>
-        <View
+          test
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
           style={
             {
-              "flexDirection": "row",
-              "gap": 16,
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginVertical": 16,
             }
           }
         >
+          Connected accounts
+        </Text>
+      </View>
+      <RCTScrollView
+        collapsable={false}
+        data={[]}
+        getItem={[Function]}
+        getItemCount={[Function]}
+        initialNumToRender={999}
+        keyExtractor={[Function]}
+        onContentSizeChange={[Function]}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        onMomentumScrollBegin={[Function]}
+        onMomentumScrollEnd={[Function]}
+        onScroll={[Function]}
+        onScrollBeginDrag={[Function]}
+        onScrollEndDrag={[Function]}
+        removeClippedSubviews={false}
+        renderItem={[Function]}
+        renderScrollComponent={[Function]}
+        scrollEventThrottle={50}
+        stickyHeaderIndices={[]}
+        viewabilityConfigCallbackPairs={[]}
+      >
+        <View />
+      </RCTScrollView>
+      <View
+        style={
+          {
+            "marginVertical": 16,
+          }
+        }
+        testID="connect-accounts-buttons"
+      >
+        <View>
           <TouchableOpacity
             accessibilityRole="button"
             accessible={true}
@@ -223,15 +235,13 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "alignSelf": "flex-start",
+                "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
                 "borderRadius": 24,
-                "borderWidth": 1,
-                "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
+                "opacity": 1,
                 "paddingHorizontal": 16,
               }
             }
@@ -249,49 +259,51 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 }
               }
             >
-              Cancel
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
-            style={
-              {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#d73847",
-                "borderRadius": 24,
-                "flex": 1,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
-                "paddingHorizontal": 16,
-              }
-            }
-            testID="confirm_disconnect_networks"
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Disconnect
+              Connect more accounts
             </Text>
           </TouchableOpacity>
         </View>
       </View>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "transparent",
+            "borderColor": "#0376c9",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="manage_permissions"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Manage Permissions
+        </Text>
+      </TouchableOpacity>
     </View>
   </View>
 </View>
