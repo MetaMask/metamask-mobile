@@ -2,51 +2,45 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../.';
 import {
   FEATURE_FLAG_NAME,
-  FeatureFlagType,
+  MinimumAppVersionType,
 } from './types';
+import { Json, hasProperty, isObject } from '@metamask/utils';
 
-export const defaultValues: FeatureFlagType = {
+export const defaultValues: MinimumAppVersionType = {
   appMinimumBuild: 1243,
   appleMinimumOS: 6,
   androidMinimumAPIVersion: 21,
 };
+
+const isMinimumAppVersionType = (obj: Json):
+  obj is MinimumAppVersionType =>
+  isObject(obj) &&
+  hasProperty(obj, 'appMinimumBuild') &&
+  hasProperty(obj, 'appleMinimumOS') &&
+  hasProperty(obj, 'androidMinimumAPIVersion');
 
 export const selectMobileMinimumVersions = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const remoteFeatureFlag = remoteFeatureFlags[FEATURE_FLAG_NAME];
 
-    const featureFlagValues =
-      remoteFeatureFlag
-      ?? defaultValues;
-
-    return featureFlagValues as FeatureFlagType;
+    return isMinimumAppVersionType(remoteFeatureFlag)
+      ? remoteFeatureFlag
+      : defaultValues;
   }
 );
 
 export const selectAppMinimumBuild = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) => {
-    const { appMinimumBuild } = mobileVersions ?? defaultValues;
-
-    return appMinimumBuild;
-  }
+  ({ appMinimumBuild }) => appMinimumBuild,
 );
 
 export const selectAppleMinimumOS = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) => {
-    const { appleMinimumOS } = mobileVersions ?? defaultValues;
-
-    return appleMinimumOS;
-  }
+  ({ appleMinimumOS }) => appleMinimumOS,
 );
 
 export const selectAndroidMinimumAPI = createSelector(
   selectMobileMinimumVersions,
-  (mobileVersions) => {
-    const { androidMinimumAPIVersion } = mobileVersions ?? defaultValues;
-
-    return androidMinimumAPIVersion;
-  }
+  ({ androidMinimumAPIVersion }) => androidMinimumAPIVersion,
 );

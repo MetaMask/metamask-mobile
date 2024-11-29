@@ -20,7 +20,7 @@ describe('Feature flag: minimumAppVersion', () => {
       appMinimumBuild,
       appleMinimumOS,
       androidMinimumAPIVersion,
-    } = selectMobileMinimumVersions(mockedState as RootState);
+    } = selectMobileMinimumVersions(mockedState);
     expect(appleMinimumOS).toBeDefined();
     expect(appMinimumBuild).toBeDefined();
     expect(androidMinimumAPIVersion).toBeDefined();
