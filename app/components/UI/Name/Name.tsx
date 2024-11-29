@@ -57,7 +57,7 @@ const Name: React.FC<NameProperties> = ({
     throw new Error('Unsupported NameType: ' + type);
   }
 
-  const displayName = useDisplayName({
+  const { image, name, variant } = useDisplayName({
     preferContractSymbol,
     type,
     value,
@@ -65,18 +65,23 @@ const Name: React.FC<NameProperties> = ({
   });
 
   const { styles } = useStyles(styleSheet, {
-    displayNameVariant: displayName.variant,
+    displayNameVariant: variant,
   });
 
-  if (displayName.variant === DisplayNameVariant.Unknown) {
+  if (variant === DisplayNameVariant.Unknown) {
     return <UnknownEthereumAddress address={value} />;
   }
 
   return (
     <View style={styles.base}>
-      <Identicon address={value} diameter={16} imageUri={displayName.image} />
-      <NameLabel displayNameVariant={displayName.variant} ellipsizeMode="tail">
-        {displayName.name}
+      <Identicon
+        address={value}
+        diameter={16}
+        imageUri={image}
+        customStyle={styles.image}
+      />
+      <NameLabel displayNameVariant={variant} ellipsizeMode="tail">
+        {name}
       </NameLabel>
     </View>
   );

@@ -29,10 +29,10 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import smartTransactionsReducer from '../core/redux/slices/smartTransactions';
 import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import stakingReducer from '../core/redux/slices/staking';
 /**
  * Infer state from a reducer
  *
@@ -80,7 +80,6 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any;
-  smartTransactions: StateFromReducer<typeof smartTransactionsReducer>;
   user: IUserReducer;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -125,6 +124,7 @@ export interface RootState {
   transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
+  staking: StateFromReducer<typeof stakingReducer>;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -145,7 +145,6 @@ const rootReducer = combineReducers<RootState, any>({
   settings: settingsReducer,
   alert: alertReducer,
   transaction: transactionReducer,
-  smartTransactions: smartTransactionsReducer,
   user: userReducer,
   wizard: wizardReducer,
   onboarding: onboardingReducer,
@@ -165,6 +164,7 @@ const rootReducer = combineReducers<RootState, any>({
   transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
+  staking: stakingReducer,
 });
 
 export default rootReducer;
