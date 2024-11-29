@@ -32,7 +32,6 @@ const getFeatureFlagAppDistribution = () => {
 export const createRemoteFeatureFlagController = ({
   state,
   messenger,
-  fetch,
   disabled,
 }: RemoteFeatureFlagInitParamTypes) => {
 
