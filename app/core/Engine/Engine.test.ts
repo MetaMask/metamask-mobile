@@ -21,7 +21,9 @@ jest.mock('../../store', () => ({
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
-
+jest.mock('../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
+}));
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
