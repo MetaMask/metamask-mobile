@@ -1,4 +1,4 @@
-import React, { useRef, useState, LegacyRef, useMemo } from 'react';
+import React, { useRef, useState, LegacyRef, useMemo, useEffect } from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -49,6 +49,7 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
+import { isTest } from '../../../util/test/utils';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -103,6 +104,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
+  const currentChainId = useSelector(selectChainId);
   const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
   const nativeCurrencies = [
     ...new Set(
@@ -157,7 +159,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           acc: { nativeTokens: TokenI[]; nonNativeTokens: TokenI[] },
           currToken: unknown,
         ) => {
-          if (isTestNet((currToken as TokenI & { chainId: string }).chainId)) {
+          if (
+            isTestNet((currToken as TokenI & { chainId: string }).chainId) &&
+            !isTestNet(currentChainId)
+          ) {
             return acc;
           }
           if ((currToken as TokenI).isNative) {
@@ -347,6 +352,15 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     Object.keys(tokenNetworkFilter).length !==
     Object.keys(allNetworksEnabled).length;
 
+  useEffect(() => {
+    const { PreferencesController } = Engine.context;
+    if (isTestNet(currentChainId)) {
+      PreferencesController.setTokenNetworkFilter({
+        [currentChainId]: true,
+      });
+    }
+  }, [currentChainId]);
+
   return (
     <View
       style={styles.wrapper}
@@ -363,9 +377,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
                     : strings('wallet.all_networks')}
                 </Text>
               }
+              isDisabled={isTestNet(currentChainId)}
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
-              style={styles.controlButton}
+              style={
+                isTestNet(currentChainId)
+                  ? styles.controlButtonDisabled
+                  : styles.controlButton
+              }
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon

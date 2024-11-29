@@ -513,6 +513,7 @@ class Asset extends PureComponent {
             loading={!transactionsUpdated}
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
+            tokenChainId={asset.chainId}
           />
         )}
       </View>

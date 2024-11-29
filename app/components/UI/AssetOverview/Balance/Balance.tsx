@@ -95,6 +95,10 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkName = useSelector(selectNetworkName);
   const chainId = useSelector(selectChainId);
 
+  const tokenChainId = isPortfolioViewEnabledFunction()
+    ? asset.chainId
+    : chainId;
+
   const ticker = asset.symbol;
 
   const renderNetworkAvatar = useCallback(() => {
@@ -154,8 +158,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(chainId, ticker)}
-              name={networkName}
+              imageSource={NetworkBadgeSource(tokenChainId as Hex, ticker)}
+              name={networkName || ''}
             />
           }
         >

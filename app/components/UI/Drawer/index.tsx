@@ -28,7 +28,10 @@ import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { selectChainId } from '../../../selectors/networkController';
-import { getIsNetworkOnboarded } from '../../../util/networks';
+import {
+  getIsNetworkOnboarded,
+  isPortfolioViewEnabledFunction,
+} from '../../../util/networks';
 import Animated, {
   interpolate,
   useAnimatedGestureHandler,
@@ -93,7 +96,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
           chainId,
           networkOnboardingState,
         );
-        if (!networkOnboarded) {
+        if (!networkOnboarded && !isPortfolioViewEnabledFunction()) {
           InteractionManager.runAfterInteractions(() => {
             dispatch(toggleInfoNetworkModal(true));
           });
