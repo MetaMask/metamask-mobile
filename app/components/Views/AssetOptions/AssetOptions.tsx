@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
+  createProviderConfig,
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -63,7 +64,33 @@ const AssetOptions = (props: Props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+
+  // Memoize the provider config for the token explorer
+  const { providerConfigTokenExplorer } = useMemo(() => {
+    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
+    const tokenRpcEndpoint =
+      networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
+        networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
+      ];
+
+    const providerConfigToken = createProviderConfig(
+      tokenNetworkConfig,
+      tokenRpcEndpoint,
+    );
+
+    const providerConfigTokenExplorerToken = isPortfolioViewEnabledFunction()
+      ? providerConfigToken
+      : providerConfig;
+
+    return {
+      providerConfigTokenExplorer: providerConfigTokenExplorerToken,
+    };
+  }, [networkId, networkConfigurations, providerConfig]);
+
+  const explorer = useBlockExplorer(
+    providerConfigTokenExplorer,
+    networkConfigurations,
+  );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();

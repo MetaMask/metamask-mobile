@@ -51,7 +51,7 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
 });
 
 // Helper function to create the provider config based on the network and endpoint
-const createProviderConfig = (
+export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
   rpcEndpoint: RpcEndpoint,
 ): ProviderConfig => {
