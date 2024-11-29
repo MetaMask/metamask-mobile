@@ -22,10 +22,7 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder()
-          .withPermissionController()
-          // .withChainPermission()
-          .build(),
+        fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
       },
       async () => {
