@@ -5,7 +5,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 const mockedEngine = Engine;
 
-jest.mock('../../../core/Engine.ts', () => ({
+jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init({}),
   context: {
     KeyringController: {

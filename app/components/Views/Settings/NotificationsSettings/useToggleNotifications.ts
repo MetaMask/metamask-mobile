@@ -24,7 +24,7 @@ export function useToggleNotifications({
   enableNotifications,
   setUiNotificationStatus,
 }: Props) {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const toggleNotificationsEnabled = useCallback(async () => {
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -47,14 +47,18 @@ export function useToggleNotifications({
       enableNotifications();
       setUiNotificationStatus(true);
     }
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED, {
-      settings_type: 'notifications',
-      old_value: isMetamaskNotificationsEnabled,
-      new_value: !isMetamaskNotificationsEnabled,
-      was_profile_syncing_on: isMetamaskNotificationsEnabled
-        ? true
-        : isProfileSyncingEnabled,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'notifications',
+          old_value: isMetamaskNotificationsEnabled,
+          new_value: !isMetamaskNotificationsEnabled,
+          was_profile_syncing_on: isMetamaskNotificationsEnabled
+            ? true
+            : isProfileSyncingEnabled,
+        })
+        .build(),
+    );
   }, [
     basicFunctionalityEnabled,
     isMetamaskNotificationsEnabled,
@@ -64,6 +68,7 @@ export function useToggleNotifications({
     disableNotifications,
     setUiNotificationStatus,
     enableNotifications,
+    createEventBuilder,
   ]);
 
   return { toggleNotificationsEnabled };

@@ -16,7 +16,7 @@ class TrackingEvent implements ITrackingEvent {
 
   constructor(event: IMetaMetricsEvent) {
     this.#name = event.category;
-    this.#properties = {};
+    this.#properties = event.properties || {};
     this.#sensitiveProperties = {};
     this.#saveDataRecording = true;
   }
@@ -83,7 +83,7 @@ class TrackingEvent implements ITrackingEvent {
 class MetricsEventBuilder {
   readonly #trackingEvent: ITrackingEvent;
 
-  constructor(event: IMetaMetricsEvent | ITrackingEvent) {
+  protected constructor(event: IMetaMetricsEvent | ITrackingEvent) {
     if (isTrackingEvent(event)) {
       this.#trackingEvent = event;
       return;

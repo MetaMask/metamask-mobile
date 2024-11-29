@@ -36,24 +36,32 @@ interface Step3Props {
 
 const Step3 = ({ coachmarkRef, onClose }: Step3Props) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const { coachmarkTop } = useHandleLayout(coachmarkRef);
 
   const onNext = () => {
     dispatch(setOnboardingWizardStep?.(4));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 3,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED)
+        .addProperties({
+          tutorial_step_count: 3,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+        })
+        .build(),
+    );
   };
 
   const onBack = () => {
     dispatch(setOnboardingWizardStep?.(2));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 3,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED)
+        .addProperties({
+          tutorial_step_count: 3,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[3],
+        })
+        .build(),
+    );
   };
 
   const getOnboardingStyles = () => onboardingStyles(colors);
