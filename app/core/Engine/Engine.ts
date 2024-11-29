@@ -63,7 +63,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
+import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -110,8 +110,6 @@ import {
   ExcludedSnapPermissions,
   EndowmentPermissions,
   detectSnapLocation,
-  fetchFunction,
-  DetectSnapLocationOptions,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
@@ -168,7 +166,7 @@ import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smar
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -649,7 +647,7 @@ export class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationParameters) => {
+      showInAppNotification: (origin: string, args: NotificationArgs) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -712,7 +710,6 @@ export class Engine {
       includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -804,7 +801,6 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.subjectMetadataController = new SubjectMetadataController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
@@ -854,7 +850,6 @@ export class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -874,7 +869,6 @@ export class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -926,6 +920,10 @@ export class Engine {
 
     this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      excludedPermissions: {
+        ...ExcludedSnapPermissions,
+        ...ExcludedSnapEndowments,
+      },
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
@@ -935,14 +933,7 @@ export class Engine {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
-      detectSnapLocation: (
-        location: string | URL,
-        options?: DetectSnapLocationOptions,
-      ) =>
-        detectSnapLocation(location, {
-          ...options,
-          fetch: fetchFunction,
-        }),
+      detectSnapLocation,
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
@@ -1213,6 +1204,7 @@ export class Engine {
     this.smartTransactionsController = new SmartTransactionsController({
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      clientId: ClientId.Mobile,
       getNonceLock: this.transactionController.getNonceLock.bind(
         this.transactionController,
       ),
@@ -1227,10 +1219,13 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
+      updateTransaction: this.transactionController.updateTransaction.bind(
+        this.transactionController,
+      ),
+      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
@@ -1394,6 +1389,7 @@ export class Engine {
           ],
           allowedEvents: [],
         }),
+        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
