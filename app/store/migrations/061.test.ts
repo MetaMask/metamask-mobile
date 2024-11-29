@@ -26,7 +26,7 @@ describe('Migration #61 - remove featureFlags property from redux state', () => 
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
+    it(`captures exception if ${scenario}`, async () => {
       const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
@@ -37,7 +37,7 @@ describe('Migration #61 - remove featureFlags property from redux state', () => 
     });
   }
 
-  it('remove featureFlags property from redux state', async () => {
+  it('removes featureFlags property from redux state', async () => {
     const oldState = {
       engine: {
         backgroundState: {},

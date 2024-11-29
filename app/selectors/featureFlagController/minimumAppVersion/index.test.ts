@@ -1,9 +1,8 @@
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedState, mockedUndefinedFlagsState } from '../mocks';
-import { mockedMinimumAppVersion } from './mocks';
+import { mockedMinimumAppVersion, defaultValues } from './constants';
 import { MinimumAppVersionType } from './types';
 import {
-  defaultValues,
   selectAndroidMinimumAPI,
   selectAppMinimumBuild,
   selectAppleMinimumOS,

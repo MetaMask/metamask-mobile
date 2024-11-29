@@ -5,12 +5,7 @@ import {
   MinimumAppVersionType,
 } from './types';
 import { Json, hasProperty, isObject } from '@metamask/utils';
-
-export const defaultValues: MinimumAppVersionType = {
-  appMinimumBuild: 1243,
-  appleMinimumOS: 6,
-  androidMinimumAPIVersion: 21,
-};
+import { defaultValues } from './constants';
 
 const isMinimumAppVersionType = (obj: Json):
   obj is MinimumAppVersionType =>
