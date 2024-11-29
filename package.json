@@ -190,7 +190,7 @@
     "@metamask/snaps-utils": "^8.6.0",
     "@metamask/stake-sdk": "^0.2.13",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^11.0.0",
+    "@metamask-previews/swaps-controller": "11.0.0-preview-40be04506cf92f5e6a271eb90c96b4ddcf57dd5d",
     "@metamask/transaction-controller": "^39.1.0",
     "@metamask/utils": "^10.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
@@ -576,7 +576,7 @@
       "ganache>@trufflesuite/uws-js-unofficial>utf-8-validate": false,
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "appium": false,
-      "appium>@appium/support>sharp": false
+      "appium>@appium/support>sharp": true
     }
   },
   "packageManager": "yarn@1.22.22"

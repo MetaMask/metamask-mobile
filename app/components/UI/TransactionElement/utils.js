@@ -28,7 +28,7 @@ import {
   calculateEIP1559GasFeeHexes,
 } from '../../../util/transactions';
 import { toChecksumAddress } from 'ethereumjs-util';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import { toLowerCaseEquals } from '../../../util/general';
 import Engine from '../../../core/Engine';

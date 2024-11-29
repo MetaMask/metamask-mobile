@@ -101,7 +101,7 @@ import {
 } from '@metamask/permission-controller';
 import SwapsController, {
   SwapsControllerState,
-} from '@metamask/swaps-controller';
+} from '@metamask-previews/swaps-controller';
 import {
   PPOMController,
   PPOMControllerActions,

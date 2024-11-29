@@ -95,7 +95,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import { swapsLivenessSelector } from '../../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../UI/Swaps/utils';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { regex } from '../../../../../util/regex';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';

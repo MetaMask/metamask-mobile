@@ -9,7 +9,7 @@ import {
   ERC1155,
 } from '@metamask/controller-utils';
 import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
 import { safeToChecksumAddress } from '../address';

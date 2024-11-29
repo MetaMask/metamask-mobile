@@ -28,7 +28,7 @@ import {
 import { BN } from 'ethereumjs-util';
 import Logger from '../../../util/Logger';
 import TransactionTypes from '../../../core/TransactionTypes';
-import { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask-previews/swaps-controller';
 import { query } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import { toLowerCaseEquals } from '../../../util/general';
