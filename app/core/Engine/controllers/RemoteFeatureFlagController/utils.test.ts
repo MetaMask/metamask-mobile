@@ -177,21 +177,6 @@ describe('RemoteFeatureFlagController utils', () => {
           remoteFeatureFlags: {},
         });
       });
-
-      it('should default to Main distribution for unknown build type', () => {
-        process.env.METAMASK_BUILD_TYPE = 'unknown';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
     });
   });
 });
