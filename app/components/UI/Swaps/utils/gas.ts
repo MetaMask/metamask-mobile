@@ -27,10 +27,6 @@ export async function getTransaction1559GasFeeEstimates(
   const { maxFeePerGas } = transactionGasFeeEstimates?.high ?? {};
   const { maxPriorityFeePerGas } = transactionGasFeeEstimates?.high ?? {};
 
-  console.log("estimatedBaseFee", estimatedBaseFee)
-  console.log("estimatedBaseFeeGwei", estimatedBaseFeeGwei)
-  console.log("maxPriorityFeePerGas", maxPriorityFeePerGas)
-
   const baseAndPriorityFeePerGas = maxPriorityFeePerGas
     ? (addHexes(estimatedBaseFee, maxPriorityFeePerGas) as Hex)
     : undefined;

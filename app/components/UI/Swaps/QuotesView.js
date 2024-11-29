@@ -969,6 +969,9 @@ function SwapsQuotesView({
       selectedAddress,
       setRecipient,
       resetTransaction,
+      chainId,
+      gasFeeEstimates,
+      isEIP1559Network,
     ],
   );
 
