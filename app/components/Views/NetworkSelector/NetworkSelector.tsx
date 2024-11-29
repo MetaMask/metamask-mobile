@@ -118,7 +118,7 @@ const NetworkSelector = () => {
   const [searchString, setSearchString] = useState('');
   const { navigate } = useNavigation();
   const theme = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = theme;
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -265,11 +265,15 @@ const NetworkSelector = () => {
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
-      trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-        chain_id: getDecimalChainId(chainId),
-        from_network: selectedNetworkName,
-        to_network: nickname,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+          .addProperties({
+            chain_id: getDecimalChainId(chainId),
+            from_network: selectedNetworkName,
+            to_network: nickname,
+          })
+          .build(),
+      );
     }
   };
 
@@ -384,11 +388,15 @@ const NetworkSelector = () => {
     sheetRef.current?.onCloseBottomSheet();
     endTrace({ name: TraceName.SwitchBuiltInNetwork });
     endTrace({ name: TraceName.NetworkSwitch });
-    trackEvent(MetaMetricsEvents.NETWORK_SWITCHED, {
-      chain_id: getDecimalChainId(selectedChainId),
-      from_network: selectedNetworkName,
-      to_network: type,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
+        .addProperties({
+          chain_id: getDecimalChainId(selectedChainId),
+          from_network: selectedNetworkName,
+          to_network: type,
+        })
+        .build(),
+    );
   };
 
   const filterNetworksByName = (

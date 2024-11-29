@@ -41,6 +41,10 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '90%',
       textAlign: 'center',
     },
+    expandIcon: {
+      position: 'absolute',
+      right: 16,
+    },
   });
 };
 
