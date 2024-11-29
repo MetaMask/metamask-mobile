@@ -28,7 +28,7 @@ const AddressCopy = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleShowAlert = (config: {
     isVisible: boolean;
@@ -59,7 +59,9 @@ const AddressCopy = () => {
     });
     setTimeout(() => handleProtectWalletModalVisible(), 2000);
 
-    trackEvent(MetaMetricsEvents.WALLET_COPIED_ADDRESS);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS).build(),
+    );
   };
   return (
     <View style={styles.address}>
