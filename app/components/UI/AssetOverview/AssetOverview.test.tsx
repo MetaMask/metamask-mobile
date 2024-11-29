@@ -1,14 +1,17 @@
 import React from 'react';
-import AssetOverview from './AssetOverview';
+import { fireEvent } from '@testing-library/react-native';
 import { zeroAddress } from 'ethereumjs-util';
+import { NetworkController } from '@metamask/network-controller';
+import AssetOverview from './AssetOverview';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { NetworkController } from '@metamask/network-controller';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
-import { fireEvent } from '@testing-library/react-native';
+import { createBuyNavigationDetails } from '../Ramp/routes/utils';
+import { getDecimalChainId } from '../../../util/networks';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -46,12 +49,14 @@ const mockInitialState = {
   },
 };
 
+const mockNavigate = jest.fn();
+const navigate = mockNavigate;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -67,10 +72,6 @@ jest.mock('../../hooks/useStyles', () => ({
   }),
 }));
 
-// Mock the navigation object.
-const navigation = {
-  navigate: jest.fn(),
-};
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -88,49 +89,51 @@ const asset = {
 describe('AssetOverview', () => {
   it('should render correctly', async () => {
     const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        navigation={navigation}
-        displayBuyButton
-        displaySwapsButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
     expect(container).toMatchSnapshot();
   });
 
+  it('should handle buy button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    fireEvent.press(buyButton);
+
+    expect(navigate).toHaveBeenCalledWith(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(MOCK_CHAIN_ID),
+      }),
+    );
+  });
+
   it('should handle send button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        navigation={navigation}
-        displayBuyButton
-        displaySwapsButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
     const sendButton = getByTestId('token-send-button');
     fireEvent.press(sendButton);
 
-    expect(navigation.navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
   });
 
   it('should handle swap button press', async () => {
     const { getByTestId } = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        navigation={navigation}
-        displayBuyButton
-        displaySwapsButton
-      />,
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
     );
 
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    expect(navigation.navigate).toHaveBeenCalledWith('Swaps', {
+    expect(navigate).toHaveBeenCalledWith('Swaps', {
       params: {
         sourcePage: 'MainView',
         sourceToken: asset.address,
@@ -143,7 +146,6 @@ describe('AssetOverview', () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
         asset={asset}
-        navigation={navigation}
         displayBuyButton
         displaySwapsButton={false}
       />,
@@ -152,5 +154,19 @@ describe('AssetOverview', () => {
 
     const swapButton = queryByTestId('token-swap-button');
     expect(swapButton).toBeNull();
+  });
+
+  it('should not render buy button if displayBuyButton is false', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton={false}
+        displaySwapsButton
+      />,
+      { state: mockInitialState },
+    );
+
+    const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+    expect(buyButton).toBeNull();
   });
 });

@@ -500,12 +500,12 @@ export const getIsNetworkOnboarded = (chainId, networkOnboardedState) =>
   networkOnboardedState[chainId];
 
 export const isMultichainVersion1Enabled =
-  process.env.MM_MULTICHAIN_V1_ENABLED === '1';
+  process.env.MM_MULTICHAIN_V1_ENABLED === 'true';
 
 export const isChainPermissionsFeatureEnabled =
-  process.env.MM_CHAIN_PERMISSIONS === '1';
+  process.env.MM_CHAIN_PERMISSIONS === 'true';
 
 export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === '1';
+  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
