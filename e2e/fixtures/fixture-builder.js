@@ -735,31 +735,72 @@ class FixtureBuilder {
   }
 
   /**
-   * Connects the PermissionController to a test dapp with specific permissions and origins.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * Private helper method to create permission controller configuration
+   * @private
+   * @param {Object} additionalPermissions - Additional permissions to merge with eth_accounts
+   * @returns {Object} Permission controller configuration object
    */
-  withPermissionControllerConnectedToTestDapp() {
-    return this.withPermissionController({
+  createPermissionControllerConfig(additionalPermissions = {}) {
+    const basePermissions = {
+      eth_accounts: {
+        id: 'ZaqPEWxyhNCJYACFw93jE',
+        parentCapability: 'eth_accounts',
+        invoker: DAPP_URL,
+        caveats: [
+          {
+            type: 'restrictReturnedAccounts',
+            value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+          },
+        ],
+        date: 1664388714636,
+      },
+      ...additionalPermissions,
+    };
+
+    return {
       subjects: {
         [DAPP_URL]: {
           origin: DAPP_URL,
-          permissions: {
-            eth_accounts: {
-              id: 'ZaqPEWxyhNCJYACFw93jE',
-              parentCapability: 'eth_accounts',
-              invoker: DAPP_URL,
-              caveats: [
-                {
-                  type: 'restrictReturnedAccounts',
-                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
-                },
-              ],
-              date: 1664388714636,
-            },
-          },
+          permissions: basePermissions,
         },
       },
-    });
+    };
+  }
+
+  /**
+   * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withPermissionControllerConnectedToTestDapp() {
+    this.withPermissionController(this.createPermissionControllerConfig());
+    return this;
+  }
+
+  /**
+   * Adds chain switching permission for specific chains.
+   * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withChainPermission(chainIds = ['0x1']) {
+    const chainPermission = {
+      'endowment:permitted-chains': {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: 'endowment:permitted-chains',
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: 'restrictNetworkSwitching',
+            value: chainIds,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(chainPermission),
+    );
+    return this;
   }
 
   /**
