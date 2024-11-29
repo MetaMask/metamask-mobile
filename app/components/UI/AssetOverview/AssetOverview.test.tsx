@@ -109,6 +109,7 @@ jest.mock('../../../core/Engine', () => ({
 const asset = {
   balance: '400',
   balanceFiat: '1500',
+  chainId: MOCK_CHAIN_ID,
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   symbol: 'ETH',
   name: 'Ethereum',
@@ -205,6 +206,7 @@ describe('AssetOverview', () => {
         params: {
           sourcePage: 'MainView',
           sourceToken: asset.address,
+          chainId: '0x1',
         },
       });
     }
