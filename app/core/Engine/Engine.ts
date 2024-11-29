@@ -491,7 +491,7 @@ export class Engine {
         allowedActions: [],
         allowedEvents: [],
       }),
-      fetchFunction,
+      fetch: fetchFunction,
       disabled: getBasicFunctionalityToggleState() === false
     });
 

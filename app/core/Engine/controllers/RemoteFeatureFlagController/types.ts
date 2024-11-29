@@ -3,7 +3,7 @@ import { RemoteFeatureFlagControllerMessenger, RemoteFeatureFlagControllerState 
 export interface RemoteFeatureFlagInitParamTypes {
   state?: RemoteFeatureFlagControllerState;
   messenger: RemoteFeatureFlagControllerMessenger,
-  fetchFunction: typeof fetch,
+  fetch: typeof fetch,
   disabled: boolean
 }
 

@@ -32,7 +32,7 @@ const getFeatureFlagAppDistribution = () => {
 export const createRemoteFeatureFlagController = ({
   state,
   messenger,
-  fetchFunction,
+  fetch,
   disabled,
 }: RemoteFeatureFlagInitParamTypes) => {
 
@@ -41,7 +41,7 @@ export const createRemoteFeatureFlagController = ({
     state,
     disabled,
     clientConfigApiService: new ClientConfigApiService({
-      fetch: fetchFunction,
+      fetch,
       config: {
         client: ClientType.Mobile,
         environment: getFeatureFlagAppEnvironment(),
