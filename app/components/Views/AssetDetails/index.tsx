@@ -134,7 +134,7 @@ const AssetDetails = (props: Props) => {
     selectSelectedInternalAccountAddress,
   );
   const selectedChainId = useSelector(selectChainId);
-  const chainId = isPortfolioViewEnabled ? networkId : selectedChainId;
+  const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
 
   const tokensByChain = useMemo(
@@ -173,7 +173,7 @@ const AssetDetails = (props: Props) => {
     [tokens, address],
   );
 
-  const token: TokenType | undefined = isPortfolioViewEnabled
+  const token: TokenType | undefined = isPortfolioViewEnabled()
     ? portfolioToken
     : legacyToken;
 
@@ -314,10 +314,10 @@ const AssetDetails = (props: Props) => {
 
   const renderTokenBalance = () => {
     let balanceDisplay = '';
-    const tokenExchangeRates = isPortfolioViewEnabled
+    const tokenExchangeRates = isPortfolioViewEnabled()
       ? tokenExchangeRatesByChainId
       : tokenExchangeRatesLegacy;
-    const tokenBalances = isPortfolioViewEnabled
+    const tokenBalances = isPortfolioViewEnabled()
       ? allTokenBalances
       : tokenBalancesLegacy;
 
@@ -328,11 +328,11 @@ const AssetDetails = (props: Props) => {
           ]
         : undefined;
 
-    const tokenBalance = isPortfolioViewEnabled
+    const tokenBalance = isPortfolioViewEnabled()
       ? multiChainTokenBalance
       : tokenBalancesLegacy[address];
 
-    const conversionRate = isPortfolioViewEnabled
+    const conversionRate = isPortfolioViewEnabled()
       ? conversionRateBySymbol
       : conversionRateLegacy;
 
@@ -342,7 +342,7 @@ const AssetDetails = (props: Props) => {
         : undefined;
 
     const balance = tokenBalance
-      ? address in tokenBalances || isPortfolioViewEnabled || !tokenBalance
+      ? address in tokenBalances || isPortfolioViewEnabled() || !tokenBalance
         ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
         : undefined
       : undefined;

@@ -27,7 +27,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import {
   getDecimalChainId,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
@@ -78,7 +78,7 @@ const AssetOptions = (props: Props) => {
       tokenRpcEndpoint,
     );
 
-    const providerConfigTokenExplorerToken = isPortfolioViewEnabledFunction()
+    const providerConfigTokenExplorerToken = isPortfolioViewEnabled()
       ? providerConfigToken
       : providerConfig;
 
@@ -92,8 +92,6 @@ const AssetOptions = (props: Props) => {
     networkConfigurations,
   );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
-
-  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
 
   const goToBrowserUrl = (url: string, title: string) => {
     modalRef.current?.dismissModal(() => {
@@ -185,7 +183,9 @@ const AssetOptions = (props: Props) => {
             try {
               const { NetworkController } = Engine.context;
 
-              const chainIdToUse = isPortfolioViewEnabled ? networkId : chainId;
+              const chainIdToUse = isPortfolioViewEnabled()
+                ? networkId
+                : chainId;
 
               const networkClientId =
                 NetworkController.findNetworkClientIdByChainId(

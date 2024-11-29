@@ -123,7 +123,7 @@ describe('StakingBalance', () => {
     jest.resetAllMocks();
   });
 
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     it('render matches snapshot', () => {
       const { toJSON } = renderWithProvider(
         <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,

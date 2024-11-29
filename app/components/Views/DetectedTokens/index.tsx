@@ -108,7 +108,7 @@ const DetectedTokens = () => {
   const styles = createStyles(colors);
 
   const currentDetectedTokens =
-    isPortfolioViewEnabled && isAllNetworks
+    isPortfolioViewEnabled() && isAllNetworks
       ? allDetectedTokens
       : detectedTokens;
 
@@ -193,7 +193,7 @@ const DetectedTokens = () => {
             await Promise.all(ignorePromises);
           }
           if (tokensToImport.length > 0) {
-            if (isPortfolioViewEnabled) {
+            if (isPortfolioViewEnabled()) {
               const tokensByChainId = tokensToImport.reduce<
                 Map<Hex, TokenType[]>
               >((acc, token) => {

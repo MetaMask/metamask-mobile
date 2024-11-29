@@ -245,9 +245,7 @@ const renderComponent = (state: any = {}) =>
 
 describe('Tokens', () => {
   beforeEach(() => {
-    jest
-      .spyOn(networks, 'isPortfolioViewEnabledFunction')
-      .mockReturnValue(false);
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -261,9 +259,7 @@ describe('Tokens', () => {
   });
 
   it('renders correctly when portfolio view is enabled', () => {
-    jest
-      .spyOn(networks, 'isPortfolioViewEnabledFunction')
-      .mockReturnValue(true);
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
 
     const { toJSON, getByText } = renderComponent(initialState);
 

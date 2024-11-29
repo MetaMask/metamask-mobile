@@ -51,7 +51,7 @@ describe('useTokenBalancesPolling', () => {
     const mockedTokenBalancesController = jest.mocked(
       Engine.context.TokenBalancesController,
     );
-    const calledAmount = isPortfolioViewEnabled ? 2 : 1;
+    const calledAmount = isPortfolioViewEnabled() ? 2 : 1;
     expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
       calledAmount,
     );

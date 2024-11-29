@@ -17,7 +17,7 @@ import {
 import {
   getDecimalChainId,
   isTestNet,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -104,7 +104,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const currentChainId = useSelector(selectChainId);
-  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
   const nativeCurrencies = [
     ...new Set(
       Object.values(networkConfigurationsByChainId).map(
@@ -129,7 +128,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const styles = createStyles(colors);
 
   const tokensList = useMemo(() => {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       // MultiChain implementation
       const allTokens = Object.values(selectedAccountTokensChains).flat();
 
@@ -234,7 +233,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // Dependencies for multichain implementation
     selectedAccountTokensChains,
     tokenNetworkFilter,
-    isPortfolioViewEnabled,
     currentChainId,
   ]);
 
@@ -270,14 +268,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       const actions = [
         TokenDetectionController.detectTokens({
-          chainIds: isPortfolioViewEnabled
+          chainIds: isPortfolioViewEnabled()
             ? (Object.keys(networkConfigurationsByChainId) as Hex[])
             : [selectedChainId],
           selectedAddress,
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
-        ...(isPortfolioViewEnabled
+        ...(isPortfolioViewEnabled()
           ? Object.values(networkConfigurationsByChainId)
           : [networkConfigurationsByChainId[selectedChainId]]
         ).map((network) =>
@@ -296,7 +294,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const removeToken = async () => {
     const { TokensController, NetworkController } = Engine.context;
-    const chainId = isPortfolioViewEnabled
+    const chainId = isPortfolioViewEnabled()
       ? tokenToRemove?.chainId
       : selectedChainId;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
@@ -367,7 +365,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
     >
       <View style={styles.actionBarWrapper}>
-        {isPortfolioViewEnabled ? (
+        {isPortfolioViewEnabled() ? (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
               label={

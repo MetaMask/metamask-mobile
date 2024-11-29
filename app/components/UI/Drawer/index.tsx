@@ -30,7 +30,7 @@ import { toggleInfoNetworkModal } from '../../../actions/modals';
 import { selectChainId } from '../../../selectors/networkController';
 import {
   getIsNetworkOnboarded,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import Animated, {
   interpolate,
@@ -96,7 +96,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
           chainId,
           networkOnboardingState,
         );
-        if (!networkOnboarded && !isPortfolioViewEnabledFunction()) {
+        if (!networkOnboarded && !isPortfolioViewEnabled()) {
           InteractionManager.runAfterInteractions(() => {
             dispatch(toggleInfoNetworkModal(true));
           });

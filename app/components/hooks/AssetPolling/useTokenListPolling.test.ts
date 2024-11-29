@@ -47,7 +47,7 @@ describe('useTokenListPolling', () => {
     const mockedTokenListController = jest.mocked(
       Engine.context.TokenListController,
     );
-    const calledAmount = isPortfolioViewEnabled ? 2 : 1;
+    const calledAmount = isPortfolioViewEnabled() ? 2 : 1;
     expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(
       calledAmount,
     );

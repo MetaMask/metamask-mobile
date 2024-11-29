@@ -14,7 +14,7 @@ import {
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../../util/networks';
 import images from '../../../../images/image-icons';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -46,7 +46,7 @@ interface BalanceProps {
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
-  if (!isPortfolioViewEnabledFunction()) {
+  if (!isPortfolioViewEnabled()) {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
     if (isMainnet) return images.ETHEREUM;
 
@@ -95,18 +95,16 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkName = useSelector(selectNetworkName);
   const chainId = useSelector(selectChainId);
 
-  const tokenChainId = isPortfolioViewEnabledFunction()
-    ? asset.chainId
-    : chainId;
+  const tokenChainId = isPortfolioViewEnabled() ? asset.chainId : chainId;
 
   const ticker = asset.symbol;
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!isPortfolioViewEnabledFunction() && asset.isETH) {
+    if (!isPortfolioViewEnabled() && asset.isETH) {
       return <NetworkMainAssetLogo style={styles.ethLogo} />;
     }
 
-    if (isPortfolioViewEnabledFunction() && asset.isNative) {
+    if (isPortfolioViewEnabled() && asset.isNative) {
       return (
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}

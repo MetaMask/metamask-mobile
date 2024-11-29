@@ -132,9 +132,7 @@ describe('AssetOptions Component', () => {
   });
 
   it('should match the snapshot when portfolio view is enabled  ', () => {
-    jest
-      .spyOn(networks, 'isPortfolioViewEnabledFunction')
-      .mockReturnValue(true);
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     const { toJSON } = render(
       <AssetOptions
         route={{

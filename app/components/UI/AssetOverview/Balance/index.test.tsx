@@ -71,7 +71,7 @@ jest.mock('../../../../util/networks', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  isPortfolioViewEnabledFunction: jest.fn(),
+  isPortfolioViewEnabled: jest.fn(),
 }));
 
 describe('Balance', () => {
@@ -99,7 +99,7 @@ describe('Balance', () => {
     jest.clearAllMocks();
   });
 
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     it('should render correctly with a fiat balance', () => {
       const wrapper = render(
         <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
@@ -108,7 +108,7 @@ describe('Balance', () => {
     });
   }
 
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     it('should render correctly without a fiat balance', () => {
       const wrapper = render(
         <Balance
@@ -163,7 +163,7 @@ describe('Balance', () => {
     });
 
     it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-      if (isPortfolioViewEnabled) {
+      if (isPortfolioViewEnabled()) {
         const result = NetworkBadgeSource('0xe708', 'LINEA');
         expect(result).toBeDefined();
       }
@@ -193,7 +193,7 @@ describe('NetworkBadgeSource', () => {
   });
 
   it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       const result = NetworkBadgeSource('0xe708', 'LINEA');
       expect(result).toBeDefined();
     }

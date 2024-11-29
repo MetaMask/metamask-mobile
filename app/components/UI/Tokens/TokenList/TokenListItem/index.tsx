@@ -81,7 +81,7 @@ export const TokenListItem = ({
 
   const { type } = useSelector(selectProviderConfig);
   const selectedChainId = useSelector(selectChainId);
-  const chainId = isPortfolioViewEnabled
+  const chainId = isPortfolioViewEnabled()
     ? (asset.chainId as Hex)
     : selectedChainId;
   const ticker = useSelector(selectTicker);
@@ -114,7 +114,7 @@ export const TokenListItem = ({
 
   let pricePercentChange1d: number;
 
-  if (isPortfolioViewEnabled) {
+  if (isPortfolioViewEnabled()) {
     const tokenPercentageChange = asset.address
       ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
           ?.pricePercentChange1d
@@ -134,7 +134,7 @@ export const TokenListItem = ({
   let mainBalance;
   let secondaryBalance;
 
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     // Set main and secondary balances based on the primary currency and asset type.
     if (primaryCurrency === 'ETH') {
       // Default to displaying the formatted balance value and its fiat equivalent.
@@ -193,7 +193,7 @@ export const TokenListItem = ({
 
   const networkBadgeSource = useCallback(
     (currentChainId: Hex) => {
-      if (!isPortfolioViewEnabled) {
+      if (!isPortfolioViewEnabled()) {
         if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
         if (isMainnet) return images.ETHEREUM;
 
@@ -248,11 +248,11 @@ export const TokenListItem = ({
   };
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!isPortfolioViewEnabled && asset.isETH) {
+    if (!isPortfolioViewEnabled() && asset.isETH) {
       return <NetworkMainAssetLogo style={styles.ethLogo} />;
     }
 
-    if (isPortfolioViewEnabled && asset.isNative) {
+    if (isPortfolioViewEnabled() && asset.isNative) {
       return (
         <NetworkAssetLogo
           chainId={chainId as Hex}

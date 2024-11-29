@@ -56,7 +56,7 @@ import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getDecimalChainId,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
@@ -100,16 +100,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
-  const isPortfolioViewEnabled = isPortfolioViewEnabledFunction();
-
-  const chainId = isPortfolioViewEnabled
+  const chainId = isPortfolioViewEnabled()
     ? (asset.chainId as Hex)
     : selectedChainId;
-  const ticker = isPortfolioViewEnabled ? nativeCurrency : selectedTicker;
+  const ticker = isPortfolioViewEnabled() ? nativeCurrency : selectedTicker;
 
   let currentAddress: Hex;
 
-  if (isPortfolioViewEnabled) {
+  if (isPortfolioViewEnabled()) {
     currentAddress = asset.address as Hex;
   } else {
     currentAddress = asset.isETH
@@ -156,7 +154,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const onSend = async () => {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -188,7 +186,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   };
 
   const goToSwaps = useCallback(() => {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       navigation.navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -259,7 +257,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     trackEvent,
     asset.address,
     createEventBuilder,
-    isPortfolioViewEnabled,
   ]);
 
   const onBuy = () => {
@@ -327,7 +324,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const itemAddress = safeToChecksumAddress(asset.address);
 
   let exchangeRate: number | undefined;
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     exchangeRate = itemAddress
       ? tokenExchangeRates?.[itemAddress as Hex]?.price
       : undefined;
@@ -356,7 +353,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   let balance, balanceFiat;
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     if (asset.isETH) {
       balance = renderFromWei(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
@@ -391,7 +388,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   let mainBalance, secondaryBalance;
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     if (primaryCurrency === 'ETH') {
       mainBalance = `${balance} ${asset.symbol}`;
       secondaryBalance = balanceFiat;
@@ -409,7 +406,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   let currentPrice = 0;
   let priceDiff = 0;
 
-  if (!isPortfolioViewEnabled) {
+  if (!isPortfolioViewEnabled()) {
     if (asset.isETH) {
       currentPrice = conversionRate || 0;
     } else if (exchangeRate && conversionRate) {

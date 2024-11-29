@@ -99,7 +99,7 @@ export const TokenListFooter = ({
   };
 
   const tokenCount = getDetectedTokensCount(
-    isPortfolioViewEnabled,
+    isPortfolioViewEnabled(),
     isAllNetworks,
     allDetectedTokens,
     detectedTokens,
