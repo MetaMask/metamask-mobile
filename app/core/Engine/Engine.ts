@@ -165,6 +165,7 @@ import {
 } from '../../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
@@ -268,9 +269,8 @@ export class Engine {
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
-    // Basic Functionality toggle defaults to true
-    const getBasicFunctionalityToggleState = () =>
-      store.getState().settings?.basicFunctionalityEnabled ?? true;
+    const isBasicFunctionalityToggleEnabled = () =>
+     selectBasicFunctionalityEnabled(store.getState());
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -491,7 +491,7 @@ export class Engine {
         allowedActions: [],
         allowedEvents: [],
       }),
-      disabled: getBasicFunctionalityToggleState() === false
+      disabled: !isBasicFunctionalityToggleEnabled(),
     });
 
     const phishingController = new PhishingController({
@@ -949,7 +949,7 @@ export class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
       getFeatureFlags: () => ({
-        disableSnaps: getBasicFunctionalityToggleState() === false,
+        disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
     });
 
