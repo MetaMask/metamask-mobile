@@ -362,9 +362,14 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
-      is_smart_transaction: shouldUseSmartTransaction,
-    });
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties({
+          is_smart_transaction: shouldUseSmartTransaction,
+        })
+        .build(),
+    );
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -383,8 +388,10 @@ class TransactionReview extends PureComponent {
     };
 
     metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      additionalParams,
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(additionalParams)
+        .build(),
     );
   };
 
@@ -435,7 +442,11 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange, metrics } = this.props;
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
+    );
     onModeChange && onModeChange('edit');
   };
 
