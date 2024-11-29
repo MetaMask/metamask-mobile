@@ -70,6 +70,16 @@ jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(() => '1'),
   selectProviderConfig: jest.fn(() => ({})),
   selectNetworkConfigurations: jest.fn(() => ({})),
+  createProviderConfig: jest.fn(() => ({
+    chainId: '1',
+    rpcUrl: 'https://example.com',
+    chainName: 'Example Chain',
+    nativeCurrency: {
+      name: 'Example Token',
+      symbol: 'EXAMPLE',
+      decimals: 18,
+    },
+  })),
 }));
 
 jest.mock('../../../selectors/tokenListController', () => ({

@@ -62,7 +62,6 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
-import { toggleInfoNetworkModal } from '../../../actions/modals';
 
 interface AssetOverviewProps {
   asset: TokenI;

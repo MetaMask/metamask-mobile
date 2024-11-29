@@ -49,7 +49,6 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
-import { isTest } from '../../../util/test/utils';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -236,6 +235,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     selectedAccountTokensChains,
     tokenNetworkFilter,
     isPortfolioViewEnabled,
+    currentChainId,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {
@@ -390,7 +390,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               <ButtonIcon
                 testID={WalletViewSelectorsIDs.SORT_BY}
                 onPress={showSortControls}
-                iconName={IconName.SwapVertical}
+                iconName={IconName.Filter}
                 style={styles.controlIconButton}
               />
               <ButtonIcon
