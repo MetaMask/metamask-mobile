@@ -95,6 +95,7 @@ import {
 } from '../../../util/address';
 import {
   selectChainId,
+  selectIsEIP1559Network,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -114,6 +115,10 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
+import {
+  getSwap1559ApprovalGasFeeEstimates,
+  getTransaction1559GasFeeEstimates,
+} from './utils/gas';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -330,31 +335,7 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
-function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
-  if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-    return {
-      maxFeePerGas: addHexPrefix(
-        decGWEIToHexWEI(
-          estimates.maxFeePerGas ||
-            estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].suggestedMaxFeePerGas,
-        ),
-      ),
-      maxPriorityFeePerGas: addHexPrefix(
-        decGWEIToHexWEI(
-          estimates.maxPriorityFeePerGas ||
-            estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET]
-              .suggestedMaxPriorityFeePerGas,
-        ),
-      ),
-      estimatedBaseFee: addHexPrefix(
-        decGWEIToHexWEI(
-          estimates.estimatedBaseFee ||
-            estimates[DEFAULT_GAS_FEE_OPTION_FEE_MARKET].estimatedBaseFee,
-        ),
-      ),
-    };
-  }
-
+function getTransactionPropertiesFromGasEstimates(estimates) {
   return {
     gasPrice: addHexPrefix(
       decGWEIToHexWEI(
@@ -404,6 +385,7 @@ function SwapsQuotesView({
   setRecipient,
   resetTransaction,
   shouldUseSmartTransaction,
+  isEIP1559Network,
 }) {
   const navigation = useNavigation();
   /* Get params from navigation */
@@ -929,14 +911,27 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
+
+        let tradeGasFeeEstimates;
+        const tradeTransaction = selectedQuote.trade;
+
+        if (isEIP1559Network) {
+          const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
+          tradeGasFeeEstimates = await getTransaction1559GasFeeEstimates(
+            selectedQuote.trade,
+            estimatedBaseFeeGwei,
+            chainId,
+          );
+          delete tradeTransaction.gasPrice;
+        } else {
+          tradeGasFeeEstimates =
+            getTransactionPropertiesFromGasEstimates(gasEstimates);
+        }
+
         const { transactionMeta, result } = await addTransaction(
           {
-            ...selectedQuote.trade,
-            ...getTransactionPropertiesFromGasEstimates(
-              gasEstimateType,
-              gasEstimates,
-            ),
-            gas: toHex(gasLimit),
+            ...tradeTransaction,
+            ...tradeGasFeeEstimates,
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -981,13 +976,26 @@ function SwapsQuotesView({
     async (isHardwareAddress) => {
       try {
         resetTransaction();
+
+        let approvalGasFeeEstimates;
+
+        if (isEIP1559Network) {
+          const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
+          approvalGasFeeEstimates = await getTransaction1559GasFeeEstimates(
+            approvalTransaction,
+            estimatedBaseFeeGwei,
+            chainId,
+          );
+          delete approvalTransaction.gasPrice;
+        } else {
+          approvalGasFeeEstimates =
+            getTransactionPropertiesFromGasEstimates(gasEstimates);
+        }
+
         const { transactionMeta, result } = await addTransaction(
           {
             ...approvalTransaction,
-            ...getTransactionPropertiesFromGasEstimates(
-              gasEstimateType,
-              gasEstimates,
-            ),
+            ...approvalGasFeeEstimates,
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -2398,6 +2406,7 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
   swapsTokens: swapsTokensSelector(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  isEIP1559Network: selectIsEIP1559Network(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
