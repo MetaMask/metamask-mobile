@@ -35,7 +35,6 @@ describe('useMinimumVersions', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
   });
-
   it('requires update only if automaticSecurityChecksEnabled', () => {
     (useSelector as jest.Mock).mockImplementation(() => ({
       security: { automaticSecurityChecksEnabled: false },
@@ -43,9 +42,9 @@ describe('useMinimumVersions', () => {
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             mobileMinimumVersions: {
-              appMinimumBuild: 1000,
-              appleMinimumOS: 1000,
-              androidMinimumAPIVersion: 1000,
+              appMinimumBuild: 100,
+              appleMinimumOS: 100,
+              androidMinimumAPIVersion: 100,
             },
           },
         },
