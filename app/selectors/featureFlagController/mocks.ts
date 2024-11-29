@@ -44,4 +44,5 @@ export const getInvalidMockedFeatureFlag = (invalidFeatureFlag: FeatureFlags) =>
       },
     },
   },
-})
+});
+

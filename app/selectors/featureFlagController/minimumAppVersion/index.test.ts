@@ -20,12 +20,12 @@ describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector',
     jest.clearAllMocks();
   });
 
-  const testFlagValues = (result: any, expected: MinimumAppVersionType) => {
+  const testFlagValues = (result: unknown, expected: MinimumAppVersionType) => {
     const {
       appMinimumBuild,
       appleMinimumOS,
       androidMinimumAPIVersion,
-    } = result;
+    } = result as MinimumAppVersionType;
 
     const {
       appMinimumBuild: mockedAppMinimumBuild,
