@@ -164,7 +164,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -1197,6 +1197,7 @@ export class Engine {
     this.smartTransactionsController = new SmartTransactionsController({
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      clientId: ClientId.Mobile,
       getNonceLock: this.transactionController.getNonceLock.bind(
         this.transactionController,
       ),
@@ -1211,10 +1212,13 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
+      updateTransaction: this.transactionController.updateTransaction.bind(
+        this.transactionController,
+      ),
+      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 

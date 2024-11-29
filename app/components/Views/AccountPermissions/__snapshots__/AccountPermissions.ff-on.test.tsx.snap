@@ -286,6 +286,7 @@ exports[`AccountPermissions with feature flags ON should render AccountPermissio
             "paddingHorizontal": 16,
           }
         }
+        testID="manage_permissions"
       >
         <Text
           accessibilityRole="text"
