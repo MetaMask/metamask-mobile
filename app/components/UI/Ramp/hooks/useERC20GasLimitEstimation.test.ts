@@ -27,7 +27,7 @@ describe('useERC20GasLimitEstimation', () => {
     }));
   });
 
-  it('should return default transfer gas limit for native token', () => {
+  it('returns default transfer gas limit for native token', () => {
     const { result } = renderHook(() =>
       useERC20GasLimitEstimation({
         ...defaultParams,
@@ -39,7 +39,7 @@ describe('useERC20GasLimitEstimation', () => {
     expect(mockGetGasLimit).not.toHaveBeenCalled();
   });
 
-  it('should return default transfer gas limit when no token address is provided', () => {
+  it('returns default transfer gas limit when no token address is provided', () => {
     const { result } = renderHook(() =>
       useERC20GasLimitEstimation({
         ...defaultParams,
@@ -51,7 +51,7 @@ describe('useERC20GasLimitEstimation', () => {
     expect(mockGetGasLimit).not.toHaveBeenCalled();
   });
 
-  it('should estimate gas limit for ERC20 transfer', async () => {
+  it('estimates gas limit for ERC20 transfer', async () => {
     const expectedGasLimit = 100000;
     mockGetGasLimit.mockImplementation(async () => ({
       gas: { toNumber: () => expectedGasLimit },
@@ -69,7 +69,7 @@ describe('useERC20GasLimitEstimation', () => {
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
   });
 
-  it('should handle gas estimation error and maintain default gas limit', async () => {
+  it('handles gas estimation error and maintain default gas limit', async () => {
     mockGetGasLimit.mockRejectedValue(new Error('Gas estimation failed'));
     const consoleSpy = jest
       .spyOn(console, 'error')
@@ -92,7 +92,7 @@ describe('useERC20GasLimitEstimation', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should poll for gas estimation at regular intervals', async () => {
+  it('polls for gas estimation at regular intervals', async () => {
     jest.useFakeTimers();
     const expectedGasLimit = 100000;
 
