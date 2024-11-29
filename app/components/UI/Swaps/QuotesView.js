@@ -960,9 +960,7 @@ function SwapsQuotesView({
     },
     [
       destinationToken,
-      gasEstimateType,
       gasEstimates,
-      gasLimit,
       selectedQuote,
       sourceToken,
       updateSwapsTransactions,
@@ -1077,6 +1075,8 @@ function SwapsQuotesView({
       approvalTransaction,
       gasEstimateType,
       gasEstimates,
+      gasFeeEstimates,
+      isEIP1559Network,
       handleSwapTransaction,
       sourceToken.address,
       sourceToken.decimals,
@@ -2382,6 +2382,7 @@ SwapsQuotesView.propTypes = {
   setRecipient: PropTypes.func,
   resetTransaction: PropTypes.func,
   shouldUseSmartTransaction: PropTypes.bool,
+  isEIP1559Network: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
