@@ -39,8 +39,16 @@ describe('useMinimumVersions', () => {
   it('requires update only if automaticSecurityChecksEnabled', () => {
     (useSelector as jest.Mock).mockImplementation(() => ({
       security: { automaticSecurityChecksEnabled: false },
-      featureFlags: {
-        featureFlags: { mobileMinimumVersions: { appMinimumBuild: 100 } },
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            mobileMinimumVersions: {
+              appMinimumBuild: 1000,
+              appleMinimumOS: 1000,
+              androidMinimumAPIVersion: 1000,
+            },
+          },
+        },
       },
     }));
 
@@ -54,8 +62,16 @@ describe('useMinimumVersions', () => {
   it('requires update only if currentBuildNumber is lower than appMinimumBuild', () => {
     (useSelector as jest.Mock).mockImplementation(() => ({
       security: { automaticSecurityChecksEnabled: true },
-      featureFlags: {
-        featureFlags: { mobileMinimumVersions: { appMinimumBuild: 100 } },
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            mobileMinimumVersions: {
+              appMinimumBuild: 100,
+              appleMinimumOS: 100,
+              androidMinimumAPIVersion: 100,
+            },
+          },
+        },
       },
     }));
 
