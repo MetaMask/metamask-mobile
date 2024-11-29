@@ -1,3 +1,4 @@
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { mockedMinimumAppVersion } from './minimumAppVersion/mocks';
 
 export const mockedState = {
@@ -5,7 +6,7 @@ export const mockedState = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          mockedMinimumAppVersion
+          ...mockedMinimumAppVersion
         },
         cacheTimestamp: 0,
       },
@@ -23,3 +24,24 @@ export const mockedEmptyFlagsState = {
     },
   },
 };
+
+export const mockedUndefinedFlagsState = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: undefined,
+    },
+  },
+};
+
+export const getInvalidMockedFeatureFlag = (invalidFeatureFlag: FeatureFlags) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...invalidFeatureFlag,
+        },
+        cacheTimestamp: 0,
+      },
+    },
+  },
+})
