@@ -1,5 +1,5 @@
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
-import { mockedMinimumAppVersion } from './minimumAppVersion/mocks';
+import { mockedMinimumAppVersion } from './minimumAppVersion/constants';
 
 export const mockedState = {
   engine: {
