@@ -117,6 +117,10 @@ import {
   SnapControllerActions,
   SnapsRegistryState,
   PersistedSnapControllerState,
+  SnapInterfaceControllerState,
+  SnapInterfaceControllerEvents,
+  SnapInterfaceControllerActions,
+  SnapInterfaceController,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -202,6 +206,7 @@ type GlobalActions =
   | AuthenticationControllerActions
   | UserStorageControllerActions
   | NotificationsServicesControllerActions
+  | SnapInterfaceControllerActions
   ///: END:ONLY_INCLUDE_IF
   | KeyringControllerActions
   | AccountsControllerActions
@@ -230,6 +235,7 @@ type GlobalEvents =
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
+  | SnapInterfaceControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -298,6 +304,7 @@ export interface Controllers {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
+  SnapInterfaceController: SnapInterfaceController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 }
@@ -338,6 +345,7 @@ export interface EngineState {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  SnapInterfaceController: SnapInterfaceControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;

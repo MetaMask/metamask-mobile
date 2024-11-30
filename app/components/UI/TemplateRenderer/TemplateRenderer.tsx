@@ -16,7 +16,7 @@ function getElement(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): React.ComponentType<any> {
   const component = section?.element;
-  if (!component && !isValidElementName(component)) {
+  if (!component || !isValidElementName(component)) {
     throw new Error(
       `${component} is not in the safe component list for template renderer`,
     );

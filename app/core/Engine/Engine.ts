@@ -59,6 +59,7 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -639,6 +640,16 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -927,6 +938,22 @@ export class Engine {
         disableSnaps:
           store.getState().settings.basicFunctionalityEnabled === false,
       }),
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+        ],
+        allowedEvents: [],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+      messenger: snapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1408,6 +1435,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -1706,6 +1734,20 @@ export class Engine {
       const { tokens } = TokensController.state;
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
+
+      const balanceBN = hexToBN(
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].balance,
+      );
+      const stakedBalanceBN = hexToBN(
+        accountsByChainId[toHexadecimal(chainId)][
+          selectSelectedInternalAccountChecksummedAddress
+        ].stakedBalance || '0x00',
+      );
+      const totalAccountBalance = balanceBN
+        .add(stakedBalanceBN)
+        .toString('hex');
 
       let ethFiat = 0;
       let ethFiat1dAgo = 0;
@@ -2050,6 +2092,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2096,6 +2139,7 @@ export default {
       AccountTrackerController,
       AddressBookController,
       AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
