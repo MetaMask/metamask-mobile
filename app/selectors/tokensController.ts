@@ -4,6 +4,7 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { Hex } from '@metamask/utils';
+import { selectChainId } from './networkController';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -12,6 +13,17 @@ export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.tokens,
+);
+
+export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
+  selectTokensControllerState,
+  selectChainId,
+  selectSelectedInternalAccountAddress,
+  (
+    tokensControllerState: TokensControllerState,
+    chainId: Hex,
+    selectedAddress: string | undefined,
+  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
 );
 
 export const selectTokensByAddress = createSelector(
