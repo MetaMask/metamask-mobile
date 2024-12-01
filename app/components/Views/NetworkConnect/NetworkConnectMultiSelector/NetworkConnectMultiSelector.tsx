@@ -36,6 +36,7 @@ import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
@@ -239,6 +240,10 @@ const NetworkConnectMultiSelector = ({
         <Checkbox
           style={styles.selectAllContainer}
           label={strings('networks.select_all')}
+          testID={ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON}
+          accessibilityLabel={
+            ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON
+          }
           isIndeterminate={areSomeNetworksSelectedButNotAll}
           isChecked={areAllNetworksSelected}
           onPress={onPress}
@@ -294,6 +299,9 @@ const NetworkConnectMultiSelector = ({
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('common.disconnect')}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON
+                }
                 onPress={toggleRevokeAllNetworkPermissionsModal}
                 isDanger
                 size={ButtonSize.Lg}

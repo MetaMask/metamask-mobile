@@ -62,7 +62,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
+import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -109,8 +109,6 @@ import {
   ExcludedSnapPermissions,
   EndowmentPermissions,
   detectSnapLocation,
-  fetchFunction,
-  DetectSnapLocationOptions,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
@@ -165,7 +163,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -906,6 +904,10 @@ export class Engine {
 
     this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      excludedPermissions: {
+        ...ExcludedSnapPermissions,
+        ...ExcludedSnapEndowments,
+      },
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
@@ -915,14 +917,7 @@ export class Engine {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
-      detectSnapLocation: (
-        location: string | URL,
-        options?: DetectSnapLocationOptions,
-      ) =>
-        detectSnapLocation(location, {
-          ...options,
-          fetch: fetchFunction,
-        }),
+      detectSnapLocation,
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
@@ -1194,6 +1189,7 @@ export class Engine {
     this.smartTransactionsController = new SmartTransactionsController({
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      clientId: ClientId.Mobile,
       getNonceLock: this.transactionController.getNonceLock.bind(
         this.transactionController,
       ),
@@ -1208,10 +1204,13 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
+      updateTransaction: this.transactionController.updateTransaction.bind(
+        this.transactionController,
+      ),
+      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
@@ -1404,6 +1403,7 @@ export class Engine {
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: this.snapController,
+      SnapsRegistry: snapsRegistry,
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
@@ -2050,7 +2050,6 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2066,8 +2065,6 @@ export default {
       SwapsController,
       GasFeeController,
       TokensController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
@@ -2096,7 +2093,6 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       NftController,
       TokenListController,
       CurrencyRateController: modifiedCurrencyRateControllerState,
@@ -2112,8 +2108,6 @@ export default {
       SmartTransactionsController,
       SwapsController,
       GasFeeController,
-      TokenDetectionController,
-      NftDetectionController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController,
       SubjectMetadataController,
