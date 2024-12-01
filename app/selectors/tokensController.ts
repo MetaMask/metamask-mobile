@@ -93,22 +93,23 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
-    // Updated type here
     if (Object.keys(detectedTokensByChain).length === 0) {
       return [];
     }
 
-    return Object.entries(detectedTokensByChain).reduce<Token[]>(
-      (acc, [chainId, addressTokens]) => {
-        const tokensForChain = Object.values(addressTokens)
-          .flat()
-          .map((token) => ({
-            ...token,
-            chainId,
-          }));
-        return acc.concat(tokensForChain);
-      },
-      [],
-    );
+    const flattenedTokens: (Token & { chainId: Hex })[] = [];
+
+    for (const [chainId, addressTokens] of Object.entries(
+      detectedTokensByChain,
+    )) {
+      for (const token of addressTokens) {
+        flattenedTokens.push({
+          ...token,
+          chainId: chainId as Hex,
+        });
+      }
+    }
+
+    return flattenedTokens;
   },
 );

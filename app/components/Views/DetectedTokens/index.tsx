@@ -159,60 +159,63 @@ const DetectedTokens = () => {
       sheetRef.current?.onCloseBottomSheet(async () => {
         try {
           if (tokensToIgnore.length > 0) {
-            const tokensToIgnoreByChainId = tokensToIgnore.reduce<
-              Map<Hex, TokenType[]>
-            >((acc, token) => {
+            // Group tokens by their `chainId` using a plain object
+            const tokensToIgnoreByChainId: Record<Hex, TokenType[]> = {};
+
+            for (const token of tokensToIgnore) {
               const tokenChainId: Hex =
                 (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-              if (!acc.has(tokenChainId)) {
-                acc.set(tokenChainId, []);
+              if (!tokensToIgnoreByChainId[tokenChainId]) {
+                tokensToIgnoreByChainId[tokenChainId] = [];
               }
 
-              acc.get(tokenChainId)?.push(token);
-              return acc;
-            }, new Map());
+              tokensToIgnoreByChainId[tokenChainId].push(token);
+            }
 
-            const ignorePromises = Array.from(
-              tokensToIgnoreByChainId.entries(),
-            ).map(async ([networkId, tokens]) => {
-              const chainConfig = allNetworks[networkId];
-              const { defaultRpcEndpointIndex } = chainConfig;
-              const { networkClientId: networkInstanceId } =
-                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+            // Process all grouped tokens in parallel
+            const ignorePromises = Object.entries(tokensToIgnoreByChainId).map(
+              async ([networkId, tokens]) => {
+                const chainConfig = allNetworks[networkId as Hex];
+                const { defaultRpcEndpointIndex } = chainConfig;
+                const { networkClientId: networkInstanceId } =
+                  chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
 
-              const tokenAddresses = tokens.map((token) => token.address);
+                const tokenAddresses = tokens.map((token) => token.address);
 
-              await TokensController.ignoreTokens(
-                tokenAddresses,
-                networkInstanceId,
-              );
-            });
+                await TokensController.ignoreTokens(
+                  tokenAddresses,
+                  networkInstanceId,
+                );
+              },
+            );
 
             await Promise.all(ignorePromises);
           }
           if (tokensToImport.length > 0) {
             if (isPortfolioViewEnabled) {
-              const tokensByChainId = tokensToImport.reduce<
-                Map<Hex, TokenType[]>
-              >((acc, token) => {
+              // Group tokens by their `chainId` using a plain object
+              const tokensByChainId: Record<Hex, TokenType[]> = {};
+
+              for (const token of tokensToImport) {
                 const tokenChainId: Hex =
                   (token as TokenI & { chainId: Hex }).chainId ?? chainId;
 
-                if (!acc.has(tokenChainId)) {
-                  acc.set(tokenChainId, []);
+                if (!tokensByChainId[tokenChainId]) {
+                  tokensByChainId[tokenChainId] = [];
                 }
 
-                acc.get(tokenChainId)?.push(token);
-                return acc;
-              }, new Map());
+                tokensByChainId[tokenChainId].push(token);
+              }
 
-              const importPromises = Array.from(tokensByChainId.entries()).map(
+              // Process grouped tokens in parallel
+              const importPromises = Object.entries(tokensByChainId).map(
                 async ([networkId, tokens]) => {
-                  const chainConfig = allNetworks[networkId];
+                  const chainConfig = allNetworks[networkId as Hex];
                   const { defaultRpcEndpointIndex } = chainConfig;
                   const { networkClientId: networkInstanceId } =
                     chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
                   await TokensController.addTokens(tokens, networkInstanceId);
                 },
               );

@@ -3,7 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import AssetOptions from './AssetOptions';
-// import { strings } from '../../../../locales/i18n';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
