@@ -11,7 +11,8 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import { type SmartTransaction, ClientId } from '@metamask/smart-transactions-controller/dist/types';
+
 import {
   AllowedActions,
   AllowedEvents,
@@ -101,17 +102,6 @@ const defaultTransactionMeta: TransactionMeta = {
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
   time: 1624408066355,
-  // defaultGasEstimates: {
-  //   gas: '0x7b0d',
-  //   gasPrice: '0x77359400',
-  // },
-  // error: {
-  //   name: 'Error',
-  //   message: 'Details of the error',
-  // },
-  // securityProviderResponse: {
-  //   flagAsDangerous: 0,
-  // },
 };
 
 type WithRequestOptions = {
@@ -158,6 +148,9 @@ function withRequest<ReturnValue>(
     trackMetaMetricsEvent: jest.fn(),
     getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
+    getFeatureFlags: jest.fn(),
+    updateTransaction: jest.fn(),
+    clientId: ClientId.Mobile,
   });
 
   const getFeesSpy = jest
