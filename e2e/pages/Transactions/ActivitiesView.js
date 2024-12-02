@@ -50,7 +50,7 @@ class ActivitiesView {
   }
 
   async tapOnSwapActivity(sourceToken, destinationToken) {
-    const element = this.swapActivity(sourceToken, destinationToken);
+    const element = this.swapActivityTitle(sourceToken, destinationToken);
     await Gestures.waitAndTap(element);
   }
 

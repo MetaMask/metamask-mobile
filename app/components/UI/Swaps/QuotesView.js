@@ -2189,6 +2189,7 @@ function SwapsQuotesView({
           type="confirm"
           onPress={handleCompleteSwap}
           disabled={unableToSwap || isHandlingSwap || isAnimating}
+          testID={SwapsViewSelectors.SWAP_BUTTON}
         >
           {strings('swaps.swap')}
         </StyledButton>

@@ -48,7 +48,7 @@ class SwapView {
   async swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
     try {
       await TestHelpers.checkIfElementByTextIsVisible(
-        this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 90000
+        this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 30000
       );
     } catch (e) {
       // eslint-disable-next-line no-console
