@@ -16,7 +16,7 @@ export interface PickerNetworkProps extends TouchableOpacityProps {
   /**
    * Optional Boolean to determine if the picker is pressable. Defaults to `false`.
    */
-  disabled?: boolean;
+  isDisabled?: boolean;
   /**
    * Callback to trigger when picker is pressed.
    */

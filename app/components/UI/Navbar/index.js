@@ -1078,7 +1078,7 @@ export function getWalletNavbarOptions(
           imageSource={require('../../../images/bitcoin-logo.png')}
           testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
           hideNetworkName
-          disabled
+          isDisabled
         />
       );
     }
