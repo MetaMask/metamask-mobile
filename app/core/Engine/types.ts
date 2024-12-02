@@ -160,6 +160,7 @@ import {
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import { ComposableControllerEvents } from '@metamask/composable-controller';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 
 /**
  * Controllers that area always instantiated
@@ -170,16 +171,6 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  * Controllers that are sometimes not instantiated
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
-
-/**
- * Messageable modules that are part of the Engine's context, but are not defined with state.
- * TODO: Replace with type guard once consistent inheritance for non-controllers is implemented. See: https://github.com/MetaMask/decisions/pull/41
- */
-export const STATELESS_NON_CONTROLLER_NAMES = [
-  'AssetsContractController',
-  'NftDetectionController',
-  'TokenDetectionController',
-] as const;
 
 /**
  * Controllers that are defined with state.
