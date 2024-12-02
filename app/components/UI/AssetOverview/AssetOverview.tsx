@@ -116,7 +116,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
-      origin: 'Token details',
+      origin: AppConstants.DEEPLINKS.ORIGIN_TOKEN_DETAILS,
     });
   };
 

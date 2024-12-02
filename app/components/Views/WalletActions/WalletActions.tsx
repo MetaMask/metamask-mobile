@@ -68,7 +68,7 @@ const WalletActions = () => {
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.QR_TAB_SWITCHER, {
         initialScreen: QRTabSwitcherScreens.Receive,
-        origin: 'Action menu',
+        origin: AppConstants.DEEPLINKS.ORIGIN_ACTION_MENU,
       });
     });
 

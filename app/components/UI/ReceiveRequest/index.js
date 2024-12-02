@@ -236,10 +236,15 @@ class ReceiveRequest extends PureComponent {
       params: { receiveAsset: this.props.receiveAsset },
     });
 
-    this.props.metrics.trackEvent(MetaMetricsEventName.ReceiveRequest, {
-      category: MetaMetricsEventCategory.Navigation,
-      location: this.props.origin,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEventName.ReceiveRequest)
+        .addProperties({
+          category: MetaMetricsEventCategory.Navigation,
+          location: this.props.origin,
+        })
+        .build(),
+    );
 
     this.props.metrics.trackEvent(
       this.props.metrics
