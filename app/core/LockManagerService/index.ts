@@ -8,26 +8,19 @@ import BackgroundTimer from 'react-native-background-timer';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { lockApp, interruptBiometrics } from '../../actions/user';
-import { Store } from 'redux';
+import ReduxService from '../redux';
 
 class LockManagerService {
   #appState?: AppStateStatus;
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
-  #store?: Store;
-
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  init = (store: any) => {
-    this.#store = store;
-  };
 
   #lockApp = async () => {
     if (!SecureKeychain.getInstance().isAuthenticating) {
       const { KeyringController } = Engine.context;
       try {
         await KeyringController.setLocked();
-        this.#store?.dispatch(lockApp());
+        ReduxService.store.dispatch(lockApp());
       } catch (error) {
         Logger.log('Failed to lock KeyringController', error);
       }
@@ -47,7 +40,8 @@ class LockManagerService {
 
   #handleAppStateChange = async (nextAppState: AppStateStatus) => {
     // Don't auto-lock.
-    const lockTime = this.#store?.getState().settings.lockTime;
+    const lockTime = ReduxService.store.getState().settings.lockTime;
+    console.log('lockTime', lockTime);
     if (
       lockTime === -1 || // Lock timer isn't set.
       nextAppState === 'inactive' || // Ignore inactive state.
@@ -61,7 +55,7 @@ class LockManagerService {
     // Handles interruptions in the middle of authentication while lock timer is a non-zero value
     // This is most likely called when the background timer fails to be called while backgrounding the app
     if (!this.#lockTimer && lockTime !== 0 && nextAppState !== 'active') {
-      this.#store?.dispatch(interruptBiometrics());
+      ReduxService.store.dispatch(interruptBiometrics());
     }
 
     // Handle lock logic on background.
@@ -92,10 +86,6 @@ class LockManagerService {
    * Listen to AppState events to control lock state.
    */
   startListening = () => {
-    if (!this.#store) {
-      Logger.log('Failed to start listener since store is undefined.');
-      return;
-    }
     if (this.#appStateListener) {
       Logger.log('Already subscribed to app state listener.');
       return;
