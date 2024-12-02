@@ -20,6 +20,7 @@ const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 
+const SmokeMultiChain = (testName) => `${tags.smokeNotifications} ${testName}`;
 export {
   Regression,
   SmokeAccounts,
@@ -28,4 +29,5 @@ export {
   SmokeSwaps,
   SmokeAssets,
   SmokeNotifications,
+  SmokeMultiChain,
 };

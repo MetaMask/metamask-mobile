@@ -664,7 +664,7 @@ workflows:
       - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/*/**/*'
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -674,7 +674,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/*/**/*'
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
