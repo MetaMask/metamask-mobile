@@ -56,8 +56,8 @@ jest.mock('./components/LoadingAnimation', () => ({
 }));
 
 const destinationToken = '0x987654321';
-const sourceToken = '0x123456'; // DAI
-const accountBalance = '0x654321'; // USDC
+const sourceToken = '0x123456';
+const accountBalance = '0x654321';
 const selectedAddress = MOCK_ADDRESS_2;
 const normalizedSelectedAddress = selectedAddress.toLowerCase();
 const mockChainId = '0x1';

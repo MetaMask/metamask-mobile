@@ -1,4 +1,3 @@
-// app/components/UI/Swaps/utils/gas.test.ts
 import { getTransaction1559GasFeeEstimates } from './gas';
 import {
   TransactionParams,
