@@ -12,6 +12,7 @@ import {
   LEDGER_LIVE_PATH,
 } from './constants';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
+import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
 
 /**
@@ -131,7 +132,7 @@ export const setHDPath = async (path: string) => {
     if (isValidPath(path)) {
       keyring.setHdPath(path);
     } else {
-      throw new Error(`HD Path is invalid: ${path}`);
+      throw new Error(strings('ledger.hd_path_error', { path }));
     }
   });
 };
@@ -179,7 +180,7 @@ export const getLedgerAccountsByOperation = async (
     }));
   } catch (e) {
     /* istanbul ignore next */
-    throw new Error(`Unspecified error when connect Ledger Hardware, ${e}`);
+    throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
 
@@ -234,7 +235,7 @@ export const unlockLedgerWalletAccount = async (index: number) => {
     const accountName = `${keyringName} ${existingAccounts.length + 1}`;
 
     if(await checkAccountNameExists(accountName)) {
-      throw new Error(`Account ${accountName} already exists`);
+      throw new Error(strings('ledger.account_name_existed', { accountName }));
     }
 
     keyring.setAccountToUnlock(index);
