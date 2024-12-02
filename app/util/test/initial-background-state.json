@@ -245,6 +245,11 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
