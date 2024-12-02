@@ -19,7 +19,7 @@ import {
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { query, toHex } from '@metamask/controller-utils';
+import { query } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 
 import {
@@ -115,10 +115,7 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
-import {
-  getSwap1559ApprovalGasFeeEstimates,
-  getTransaction1559GasFeeEstimates,
-} from './utils/gas';
+import { getTransaction1559GasFeeEstimates } from './utils/gas';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -1073,7 +1070,6 @@ function SwapsQuotesView({
     },
     [
       approvalTransaction,
-      gasEstimateType,
       gasEstimates,
       gasFeeEstimates,
       isEIP1559Network,
@@ -2200,6 +2196,7 @@ function SwapsQuotesView({
           type="confirm"
           onPress={handleCompleteSwap}
           disabled={unableToSwap || isHandlingSwap || isAnimating}
+          testID={SwapsViewSelectors.SWAP_BUTTON}
         >
           {strings('swaps.swap')}
         </StyledButton>

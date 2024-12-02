@@ -58,7 +58,14 @@
   },
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
-    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networksMetadata": {
+      "mainnet": {
+        "status": "unknown",
+        "EIPS": {
+          "1559": true
+        }
+      }
+    },
     "networkConfigurationsByChainId": {
       "0x1": {
         "blockExplorerUrls": [],
