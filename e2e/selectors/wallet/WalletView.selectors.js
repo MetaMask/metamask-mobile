@@ -12,6 +12,7 @@ export const WalletViewSelectorsIDs = {
   STAKE_BUTTON: 'stake-button',
   IMPORT_NFT_BUTTON: 'import-collectible-button',
   IMPORT_TOKEN_BUTTON: 'import-token-button',
+  IMPORT_TOKEN_BUTTON_LINK: 'import-token-button-link',
   NAVBAR_NETWORK_BUTTON: 'open-networks-button',
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
@@ -19,12 +20,18 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
   ACCOUNT_NAME_LABEL_TEXT: 'account-label',
   TOKENS_CONTAINER: 'tokens',
+  TOKENS_CONTAINER_LIST: 'token-list',
   ACCOUNT_OVERVIEW: 'account-overview',
   ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
-  ACCOUNT_ADDRESS: 'wallet-account-address',
   TEST_COLLECTIBLE: 'collectible-Test Dapp NFTs #1-1',
   COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
+  NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
+  IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
+  SORT_DECLINING_BALANCE: 'sort-declining-balance',
+  SORT_ALPHABETICAL: 'sort-alphabetical',
+  SORT_BY: 'sort-by',
+  NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
 };
 
 export const WalletViewSelectorsText = {

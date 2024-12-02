@@ -194,8 +194,8 @@ const createStyles = (colors) =>
     },
     showMatchingPasswords: {
       position: 'absolute',
-      top: 52,
-      right: 17,
+      top: 36,
+      right: 10,
       alignSelf: 'flex-end',
     },
   });

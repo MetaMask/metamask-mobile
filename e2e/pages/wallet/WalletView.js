@@ -2,7 +2,6 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -21,10 +20,6 @@ class WalletView {
     );
   }
 
-  get okAlertButton() {
-    return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
-  }
-
   get accountIcon() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
@@ -36,6 +31,12 @@ class WalletView {
   get navbarNetworkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON,
+    );
+  }
+
+  async getNavbarNetworkPicker() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
   }
 
@@ -52,9 +53,13 @@ class WalletView {
   }
 
   get importTokensButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+  }
+
+  get importTokensFooterLink() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
+    );
   }
 
   get networkName() {
@@ -75,16 +80,14 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get mainWalletAccountActions() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  get currentMainWalletAccountActions() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+    );
   }
 
-  async tapMainWalletAccountActions() {
-    await Gestures.waitAndTap(this.mainWalletAccountActions);
-  }
-
-  async tapOKAlertButton() {
-    await Gestures.waitAndTap(this.okAlertButton);
+  async tapCurrentMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
   async tapOnToken(token) {
@@ -130,6 +133,10 @@ class WalletView {
 
   async tapImportTokensButton() {
     await Gestures.waitAndTap(this.importTokensButton);
+  }
+
+  async tapImportTokensFooterLink() {
+    await Gestures.waitAndTap(this.importTokensFooterLink);
   }
 
   async tapOnNFTInWallet(nftName) {

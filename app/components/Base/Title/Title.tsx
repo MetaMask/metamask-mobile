@@ -18,12 +18,12 @@ const Title: React.FC<TitleProps> = ({
 
   return (
     <Text
-      style={[
-        style.text,
-        centered && style.centered,
-        hero && style.hero,
-        externalStyle,
-      ]}
+      style={{
+        ...style.text,
+        ...(centered ? style.centered : {}),
+        ...(hero ? style.hero : {}),
+        ...(typeof externalStyle === 'object' ? externalStyle : {}),
+      }}
       {...props}
     />
   );

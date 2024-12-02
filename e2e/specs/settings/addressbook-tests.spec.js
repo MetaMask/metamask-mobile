@@ -19,7 +19,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
-import DeleteContactModal from '../../pages/modals/DeleteContactModal';
+import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../utils/Assertions';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -128,8 +128,8 @@ describe(SmokeCore('Addressbook Tests'), () => {
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
-    await Assertions.checkIfVisible(DeleteContactModal.title);
-    await DeleteContactModal.tapDeleteButton();
+    await Assertions.checkIfVisible(DeleteContactBottomSheet.title);
+    await DeleteContactBottomSheet.tapDeleteButton();
     await ContactsView.isContactAliasNotVisible('Moon');
   });
 

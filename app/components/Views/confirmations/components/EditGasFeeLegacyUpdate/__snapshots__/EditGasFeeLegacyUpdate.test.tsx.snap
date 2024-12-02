@@ -13,6 +13,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
       "paddingTop": 24,
     }
   }
+  testID="edit-priority-legacy-screen"
 >
   <RCTScrollView
     style={

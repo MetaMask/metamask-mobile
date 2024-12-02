@@ -35,11 +35,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
-  const { onSelectAccount, checkBalanceError } = route.params || {};
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { onSelectAccount, checkBalanceError, privacyMode } =
+    route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   // TODO: Replace "any" with type
@@ -53,7 +55,9 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     AccountSelectorScreens.AccountSelector,
   );
-
+  useEffect(() => {
+    endTrace({ name: TraceName.AccountList });
+  }, []);
   useEffect(() => {
     if (reloadAccounts) {
       dispatch(setReloadAccounts(false));
@@ -67,12 +71,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onSelectAccount?.(address);
 
       // Track Event: "Switched Account"
-      trackEvent(MetaMetricsEvents.SWITCHED_ACCOUNT, {
-        source: 'Wallet Tab',
-        number_of_accounts: accounts?.length,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+          .addProperties({
+            source: 'Wallet Tab',
+            number_of_accounts: accounts?.length,
+          })
+          .build(),
+      );
     },
-    [Engine, accounts?.length, onSelectAccount, trackEvent],
+    [Engine, accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
   const onRemoveImportedAccount = useCallback(
@@ -92,6 +100,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           accounts={accounts}
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled
+          privacyMode={privacyMode}
           testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ID}
         />
         <View style={styles.sheet}>
@@ -106,7 +115,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </View>
       </Fragment>
     ),
-    [accounts, _onSelectAccount, ensByAccountAddress, onRemoveImportedAccount],
+    [
+      accounts,
+      _onSelectAccount,
+      ensByAccountAddress,
+      onRemoveImportedAccount,
+      privacyMode,
+    ],
   );
 
   const renderAddAccountActions = useCallback(

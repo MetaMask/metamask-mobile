@@ -11,7 +11,7 @@ import {
   SMART_CONTRACTS,
   contractConfiguration,
 } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';

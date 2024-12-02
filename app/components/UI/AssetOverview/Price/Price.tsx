@@ -17,7 +17,7 @@ import Text, {
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TOKEN_PRICE } from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
 import { TokenI } from '../../Tokens/types';
 
 interface PriceProps {
@@ -90,7 +90,7 @@ const Price = ({
           <Text variant={TextVariant.BodyMDMedium}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
-          <Text testID={TOKEN_PRICE} variant={TextVariant.HeadingLG}>
+          <Text testID={TokenOverviewSelectorsIDs.TOKEN_PRICE} variant={TextVariant.HeadingLG}>
             {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder>

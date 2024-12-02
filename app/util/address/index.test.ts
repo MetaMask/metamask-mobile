@@ -1,4 +1,4 @@
-import { NetworkState } from '@metamask/network-controller';
+import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -14,34 +14,33 @@ import {
   resemblesAddress,
   getKeyringByAddress,
   getLabelTextByAddress,
+  isSnapAccount,
 } from '.';
 import {
   mockHDKeyringAddress,
   mockQrKeyringAddress,
   mockSimpleKeyringAddress,
+  mockSnapAddress1,
+  mockSnapAddress2,
 } from '../test/keyringControllerTestUtils';
 
-const snapAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-
 jest.mock('../../core/Engine', () => {
-  const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
   const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
     '../test/keyringControllerTestUtils',
   );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES } =
+    jest.requireActual('../test/accountsControllerTestUtils');
   return {
     context: {
       KeyringController: {
         ...MOCK_KEYRING_CONTROLLER_STATE,
         state: {
-          keyrings: [
-            ...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings,
-            {
-              accounts: [snapAddress],
-              index: 0,
-              type: KeyringTypes.snap,
-            },
-          ],
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
         },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
       },
     },
   };
@@ -200,19 +199,30 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const networkConfigurations: NetworkState['networkConfigurations'] = {
-    networkId1: {
-      id: 'networkId1',
-      chainId: '0x1',
-      nickname: 'Main Ethereum Network',
-      ticker: 'USD',
-      rpcUrl: 'https://mainnet.infura.io/v3/123',
-    },
-  };
+  const networkConfigurations: NetworkState['networkConfigurationsByChainId'] =
+    {
+      '0x1': {
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Main Ethereum Network',
+        nativeCurrency: 'USD',
+        rpcEndpoints: [
+          {
+            networkClientId: 'networkId1',
+            type: RpcEndpointType.Custom,
+            url: 'https://mainnet.infura.io/v3/123',
+          },
+        ],
+      },
+    };
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -225,9 +235,14 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
     const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
-    networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
+
+    networkConfigurations['0x1'].blockExplorerUrls = [blockExplorerUrl];
+    networkConfigurations['0x1'].defaultBlockExplorerUrlIndex = 0;
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -240,8 +255,12 @@ describe('shouldShowBlockExplorer', () => {
 
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
-    networkConfigurations.networkId1.rpcPrefs = undefined;
+
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
+    networkConfigurations['0x1'].blockExplorerUrls = [];
 
     const result = shouldShowBlockExplorer(
       providerType,
@@ -302,25 +321,21 @@ describe('isHardwareAccount,', () => {
   });
 });
 describe('getLabelTextByAddress,', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe(
-      'accounts.qr_hardware',
-    );
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe(
-      'accounts.imported',
-    );
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
   });
 
-  it('returns "Snaps (beta)" if account is a Snap keyring', () => {
-    expect(getLabelTextByAddress(snapAddress)).toBe(
-      'accounts.snap_account_tag',
+  it('returns "Snaps (Beta)" if account is a Snap keyring and there is no snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
+  });
+
+  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
+      'MetaMask Simple Snap Keyring',
     );
   });
 
@@ -363,5 +378,16 @@ describe('resemblesAddress', () => {
   });
   it('should return true if address resemble an eth address', () => {
     expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+  });
+});
+describe('isSnapAccount,', () => {
+  it('should return true if account is of type Snap Keyring', () => {
+    expect(isSnapAccount(mockSnapAddress1)).toBeTruthy();
+  });
+
+  it('should return false if account is not of type Snap Keyring', () => {
+    expect(
+      isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBeFalsy();
   });
 });

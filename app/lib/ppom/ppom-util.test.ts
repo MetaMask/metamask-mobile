@@ -8,7 +8,17 @@ import PPOMUtil from './ppom-util';
 import * as securityAlertAPI from './security-alerts-api';
 import { isBlockaidFeatureEnabled } from '../../util/blockaid';
 import { Hex } from '@metamask/utils';
-import { NetworkClientType } from '@metamask/network-controller';
+import {
+  NetworkClientType,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import {
+  Reason,
+  ResultType,
+  SecurityAlertSource,
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import Logger from '../../util/Logger';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -31,24 +41,6 @@ jest.mock('../../core/Engine', () => ({
     PPOMController: {
       usePPOM: jest.fn(),
     },
-    // NetworkController: {
-    //   state: {
-    //     selectedNetworkClientId: 'mainnet',
-    //     networksMetadata: {},
-    //     networkConfigurations: {
-    //       mainnet: {
-    //         id: 'mainnet',
-    //         rpcUrl: 'https://mainnet.infura.io/v3',
-    //         chainId: CHAIN_ID_MOCK,
-    //         ticker: 'ETH',
-    //         nickname: 'Sepolia network',
-    //         rpcPrefs: {
-    //           blockExplorerUrl: 'https://etherscan.com',
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
     AccountsController: {
       state: {
         internalAccounts: { accounts: [] },
@@ -149,20 +141,26 @@ describe('PPOM Utils', () => {
         },
       }),
       state: {
-        networkConfigurations: {
-          mainnet: {
-            id: '673a4523-3c49-47cd-8d48-68dfc8a47a9c',
-            rpcUrl: 'https://mainnet.infura.io/v3',
-            chainId: CHAIN_ID_MOCK,
-            ticker: 'ETH',
-            nickname: 'Ethereum mainnet',
-            rpcPrefs: {
-              blockExplorerUrl: 'https://etherscan.com',
-            },
+        networkConfigurationsByChainId: {
+          [NETWORKS_CHAIN_ID.MAINNET]: {
+            blockExplorerUrls: ['http://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Mainnet',
+            nativeCurrency: 'ETH',
+            defaultBlockExplorerUrlIndex: 0,
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: RpcEndpointType.Custom,
+                name: 'ethereum',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
           },
         },
-        selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
+        selectedNetworkClientId: 'mainnet',
       },
     };
 
@@ -184,8 +182,8 @@ describe('PPOM Utils', () => {
       MockEngine.context.PreferencesController.state.securityAlertsEnabled =
         false;
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toBeCalledTimes(0);
-      expect(spyTransactionAction).toBeCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(0);
+      expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
     it('should not validate if request is send to users own account ', async () => {
@@ -315,6 +313,22 @@ describe('PPOM Utils', () => {
       });
     });
 
+    it('logs error if normalization fails', async () => {
+      const error = new Error('Test Error');
+      normalizeTransactionParamsMock.mockImplementation(() => {
+        throw error;
+      });
+
+      const spyLogger = jest.spyOn(Logger, 'log');
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(spyLogger).toHaveBeenCalledTimes(1);
+      expect(spyLogger).toHaveBeenCalledWith(
+        `Error validating JSON RPC using PPOM: ${error}`,
+      );
+    });
+
     it('normalizes transaction request origin before validation', async () => {
       const validateMock = jest.fn();
 
@@ -392,6 +406,35 @@ describe('PPOM Utils', () => {
         .mockRejectedValue(new Error('Test Error'));
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('sets security alerts response to failed when security alerts API and controller PPOM throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+
+      const validateMock = new Error('Test Error');
+
+      const ppomMock = {
+        validateJsonRpc: validateMock,
+      };
+
+      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (callback: any) => callback(ppomMock),
+      );
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {
+        chainId: CHAIN_ID_MOCK,
+        req: mockRequest,
+        result_type: ResultType.Failed,
+        reason: Reason.failed,
+        description: 'Validating the confirmation failed by throwing error.',
+        source: SecurityAlertSource.Local,
+      });
     });
   });
 });

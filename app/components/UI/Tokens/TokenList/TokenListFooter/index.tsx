@@ -25,26 +25,28 @@ import {
 import { getDecimalChainId } from '../../../../../util/networks';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
+import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 
 interface TokenListFooterProps {
   tokens: TokenI[];
-  isAddTokenEnabled: boolean;
   goToAddToken: () => void;
   showDetectedTokens: () => void;
+  isAddTokenEnabled: boolean;
 }
 
 export const TokenListFooter = ({
   tokens,
-  isAddTokenEnabled,
   goToAddToken,
   showDetectedTokens,
+  isAddTokenEnabled,
 }: TokenListFooterProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isNetworkRampSupported, isNativeTokenRampSupported] = useRampNetwork();
 
   const detectedTokens = useSelector(selectDetectedTokens);
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
 
   const styles = createStyles(colors);
@@ -58,17 +60,21 @@ export const TokenListFooter = ({
 
   const goToBuy = () => {
     navigation.navigate(...createBuyNavigationDetails());
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy Native Token',
-      location: 'Home Screen',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy Native Token',
+          location: 'Home Screen',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   return (
     <>
       {/* renderTokensDetectedSection */}
-      {detectedTokens && (
+      {detectedTokens?.length !== 0 && isTokenDetectionEnabled && (
         <TouchableOpacity
           style={styles.tokensDetectedButton}
           onPress={showDetectedTokens}
@@ -88,7 +94,9 @@ export const TokenListFooter = ({
       {isBuyableToken && (
         <View style={styles.buy}>
           <Text variant={TextVariant.HeadingSM} style={styles.buyTitle}>
-            {strings('wallet.add_to_get_started')}
+            {strings('wallet.token_is_needed_to_continue', {
+              tokenSymbol: mainToken.symbol,
+            })}
           </Text>
           <Button
             variant={ButtonVariants.Primary}
@@ -96,7 +104,7 @@ export const TokenListFooter = ({
             width={ButtonWidthTypes.Full}
             style={styles.buyButton}
             onPress={goToBuy}
-            label={strings('wallet.buy_asset', { asset: mainToken.symbol })}
+            label={strings('wallet.next')}
           />
         </View>
       )}
@@ -106,7 +114,7 @@ export const TokenListFooter = ({
           style={styles.add}
           onPress={goToAddToken}
           disabled={!isAddTokenEnabled}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK}
         >
           <Text style={styles.centered}>
             <Text style={styles.emptyText}>

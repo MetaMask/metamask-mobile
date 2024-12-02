@@ -192,7 +192,6 @@ describe('captureSentryFeedback', () => {
             pendingApprovalCount: 0,
             pendingApprovals: {},
           },
-          AssetsContractController: {},
           CurrencyRateController: {
             currencyRates: {
               ETH: {
@@ -224,7 +223,7 @@ describe('captureSentryFeedback', () => {
             logs: {},
           },
           NetworkController: {
-            networkConfigurations: {},
+            networkConfigurationsByChainId: {},
             networksMetadata: {
               mainnet: {
                 EIPS: {
@@ -240,7 +239,6 @@ describe('captureSentryFeedback', () => {
             allNfts: {},
             ignoredNfts: [],
           },
-          NftDetectionController: {},
           PermissionController: undefined,
           PreferencesController: {
             displayNftMedia: true,
@@ -252,7 +250,7 @@ describe('captureSentryFeedback', () => {
                 name: 'Account 1',
               },
             },
-            ipfsGateway: 'https://gateway.pinata.cloud/ipfs/',
+            ipfsGateway: 'https://dweb.link/ipfs/',
             isIpfsGatewayEnabled: true,
             isMultiAccountBalancesEnabled: true,
             lostIdentities: {},
@@ -330,7 +328,7 @@ describe('captureSentryFeedback', () => {
         hideZeroBalanceTokens: false,
         lockTime: 30000,
         primaryCurrency: 'ETH',
-        searchEngine: 'DuckDuckGo',
+        searchEngine: 'Google',
         useBlockieIcon: true,
       },
       alert: {
@@ -365,9 +363,6 @@ describe('captureSentryFeedback', () => {
         transactionValue: undefined,
         type: undefined,
         warningGasPriceHigh: undefined,
-      },
-      smartTransactions: {
-        optInModalAppVersionSeen: null,
       },
       user: {
         ambiguousAddressEntries: {},
@@ -500,7 +495,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -540,7 +534,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',
@@ -577,7 +570,6 @@ describe('captureSentryFeedback', () => {
         security: 'object',
         settings: 'object',
         signatureRequest: 'object',
-        smartTransactions: 'object',
         swaps: 'object',
         transaction: 'object',
         transactionMetrics: 'object',

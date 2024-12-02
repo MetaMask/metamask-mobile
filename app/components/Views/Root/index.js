@@ -12,6 +12,7 @@ import { useAppTheme, ThemeContext } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { isTest } from '../../../util/test/utils';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 /**
  * Top level of the component hierarchy
@@ -85,9 +86,11 @@ const ConnectedRoot = () => {
     <SafeAreaProvider>
       <ThemeContext.Provider value={theme}>
         <ToastContextWrapper>
-          <ErrorBoundary view="Root">
-            <App />
-          </ErrorBoundary>
+          <AssetPollingProvider>
+            <ErrorBoundary view="Root">
+              <App />
+            </ErrorBoundary>
+          </AssetPollingProvider>
         </ToastContextWrapper>
       </ThemeContext.Provider>
     </SafeAreaProvider>

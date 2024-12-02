@@ -8,6 +8,7 @@ exports[`InfoSection should match snapshot for simple text value 1`] = `
       "borderColor": "#bbc0c566",
       "borderRadius": 8,
       "borderWidth": 1,
+      "marginBottom": 8,
       "padding": 8,
     }
   }

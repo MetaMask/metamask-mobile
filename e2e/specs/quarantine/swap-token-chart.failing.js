@@ -18,8 +18,8 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import Assertions from '../../utils/Assertions';
-import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
 
 const fixtureServer = new FixtureServer();
 const sourceTokenSymbol = 'USDT';
@@ -53,8 +53,8 @@ describe(Regression('Swap from Token view'), () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
+    await Assertions.checkIfVisible(TokenOverview.container);
     await TokenOverview.scrollOnScreen();
-    await TokenOverview.isVisible();
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await Assertions.checkIfVisible(QuoteView.getQuotes);
@@ -95,22 +95,22 @@ describe(Regression('Swap from Token view'), () => {
     await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
 
     try {
-      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfVisible(DetailsBottomSheet.title);
     } catch (e) {
       await ActivitiesView.tapOnSwapActivity(
         sourceTokenSymbol,
         destTokenSymbol,
       );
-      await Assertions.checkIfVisible(DetailsModal.title);
+      await Assertions.checkIfVisible(DetailsBottomSheet.title);
     }
 
-    await Assertions.checkIfVisible(DetailsModal.title);
+    await Assertions.checkIfVisible(DetailsBottomSheet.title);
     await Assertions.checkIfElementToHaveText(
-      DetailsModal.title,
-      DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      DetailsBottomSheet.title,
+      DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-    await DetailsModal.tapOnCloseIcon();
-    await Assertions.checkIfNotVisible(DetailsModal.title);
+    await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
+    await DetailsBottomSheet.tapOnCloseIcon();
+    await Assertions.checkIfNotVisible(DetailsBottomSheet.title);
   });
 });

@@ -1,11 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  InteractionManager,
-  Platform,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { InteractionManager, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
@@ -21,8 +16,7 @@ import { shuffle } from 'lodash';
 import URL from 'url-parse';
 import AppConstants from '../../../../app/core/AppConstants';
 import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -40,7 +34,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
-import { SourceType } from '../../../components/hooks/useMetrics/useMetrics.types';
+import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * Account access approval component
@@ -167,8 +162,11 @@ class AccountApproval extends PureComponent {
     this.checkUrlFlaggedAsPhishing(hostname);
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -204,8 +202,11 @@ class AccountApproval extends PureComponent {
       this.props.onCancel();
 
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
-        this.getAnalyticsParams(),
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
+        )
+          .addProperties(this.getAnalyticsParams())
+          .build(),
       );
 
       // Navigate to feedback modal
@@ -225,8 +226,11 @@ class AccountApproval extends PureComponent {
 
     this.props.onConfirm();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
     this.showWalletConnectNotification(true);
   };
@@ -236,10 +240,12 @@ class AccountApproval extends PureComponent {
    */
   onCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
-
     if (this.props.currentPageInformation.channelId) {
       SDKConnect.getInstance().removeChannel(
         this.props.currentPageInformation.channelId,
@@ -302,7 +308,7 @@ class AccountApproval extends PureComponent {
     return (
       <View
         style={styles.root}
-        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
+        testID={ConnectAccountBottomSheetSelectorsIDs.CONTAINER}
       >
         <TransactionHeader currentPageInformation={currentPageInformation} />
 

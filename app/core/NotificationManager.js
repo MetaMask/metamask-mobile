@@ -3,21 +3,19 @@
 import Engine from './Engine';
 import { hexToBN, renderFromWei } from '../util/number';
 import Device from '../util/device';
-import notifee from '@notifee/react-native';
-import { STORAGE_IDS } from '../util/notifications/settings/storage/constants';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
-
-import {
-  NotificationTransactionTypes,
-  isNotificationsFeatureEnabled,
-
-} from '../util/notifications';
-
-import { safeToChecksumAddress } from '../util/address';
+import NotificationsService from '../util/notifications/services/NotificationService';
+import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
+import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId } from '../selectors/networkController';
+import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
+import { useSelector } from 'react-redux';
+import { getTicker } from '../../app/util/transactions';
+import { updateTransaction } from '../../app/util/transaction-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -74,9 +72,21 @@ export const constructTitleAndMessage = (notification) => {
         amount: notification.transaction.amount,
       });
       break;
+    case NotificationTransactionTypes.eth_received:
+      title = strings('notifications.default_message_title');
+      message = strings('notifications.eth_received_message', {
+        amount: notification.transaction.amount.usd,
+        ticker: 'USD',
+        address: formatAddress(notification.transaction.from, 'short'),
+      });
+      break;
     default:
-      title = notification.data.title || strings('notifications.default_message_title');
-      message = notification.data.shortDescription || strings('notifications.default_message_description');
+      title =
+        notification?.data?.title ||
+        strings('notifications.default_message_title');
+      message =
+        notification?.data?.shortDescription ||
+        strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -139,8 +149,7 @@ class NotificationManager {
     );
   };
 
-  // TODO: Refactor this method to use notifee's channels in combination with MM auth
-  _showNotification(data, channelId = STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID) {
+  _showNotification = async (data) => {
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
       const id = data?.transaction?.id || '';
@@ -149,26 +158,13 @@ class NotificationManager {
       }
 
       const pushData = {
+        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         title,
         body: message,
-        android: {
-          lightUpScreen: true,
-          channelId,
-          smallIcon: 'ic_notification_small',
-          largeIcon: 'ic_notification',
-          pressAction: {
-            id: 'default',
-            launchActivity: 'com.metamask.ui.MainActivity',
-          },
-        },
-        ios: {
-          foregroundPresentationOptions: {
-            alert: true,
-            sound: true,
-            badge: true,
-            banner: true,
-            list: true,
-          },
+        data: {
+          ...data?.transaction,
+          action: 'tx',
+          id,
         },
       };
 
@@ -177,9 +173,9 @@ class NotificationManager {
       if (Device.isAndroid()) {
         pushData.tag = JSON.stringify(extraData);
       } else {
-        pushData.userInfo = extraData; // check if is still needed
+        pushData.userInfo = extraData;
       }
-      isNotificationsFeatureEnabled() && notifee.displayNotification(pushData);
+      await NotificationsService.displayNotification(pushData);
     } else {
       this._showTransactionNotification({
         autodismiss: data.duration,
@@ -187,7 +183,7 @@ class NotificationManager {
         status: data.type,
       });
     }
-  }
+  };
 
   _failedCallback = (transactionMeta) => {
     // If it fails we hide the pending tx notification
@@ -243,8 +239,12 @@ class NotificationManager {
           case 'ERC20': {
             pollPromises.push(
               ...[
-                TokenBalancesController.poll(),
-                TokenDetectionController.start(),
+                TokenBalancesController.updateBalancesByChainId({
+                  chainId: transactionMeta.chainId,
+                }),
+                TokenDetectionController.detectTokens({
+                  chainIds: [transactionMeta.chainId],
+                }),
               ],
             );
             break;
@@ -395,6 +395,37 @@ class NotificationManager {
         },
         (transactionMeta) => transactionMeta.id === transaction.id,
       );
+
+    const smartTransactionListener = async (smartTransaction) => {
+      if (smartTransaction.status === SmartTransactionStatuses.PENDING) {
+        return;
+      }
+      Engine.controllerMessenger.unsubscribe(
+        'SmartTransactionsController:smartTransaction',
+        smartTransactionListener,
+      );
+      if (smartTransaction.status !== SmartTransactionStatuses.CANCELLED) {
+        // If the smart transaction is not cancelled, notifications are already handled.
+        return;
+      }
+      const transactions = TransactionController.getTransactions({
+        filterToCurrentNetwork: false,
+      });
+      const foundTransaction = transactions.find(
+        (tx) => tx.id === smartTransaction.transactionId,
+      );
+      this._showNotification({
+        type: 'cancelled',
+        autoHide: true,
+        transaction: { id: foundTransaction?.id },
+        duration: 5000,
+      });
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransaction',
+      smartTransactionListener,
+    );
   }
 
   /**
@@ -412,6 +443,7 @@ class NotificationManager {
     );
 
     const chainId = selectChainId(store.getState());
+    const ticker = useSelector(selectTicker);
 
     /// Find the incoming TX
     const transactions = TransactionController.getTransactions({
@@ -427,9 +459,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&
@@ -442,7 +474,7 @@ class NotificationManager {
             nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
             amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
             id: txs[0]?.id,
-            assetType: strings('unit.eth'),
+            assetType: getTicker(ticker),
           },
           autoHide: true,
           duration: 7000,

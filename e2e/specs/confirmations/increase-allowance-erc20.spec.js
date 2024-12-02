@@ -11,9 +11,9 @@ import {
 import TabBarComponent from '../../pages/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -51,21 +51,21 @@ describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
 
         //Input custom token amount
         await Assertions.checkIfVisible(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
         );
-        await ContractApprovalModal.clearInput();
-        await ContractApprovalModal.inputCustomAmount('2');
+        await ContractApprovalBottomSheet.clearInput();
+        await ContractApprovalBottomSheet.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
         await Assertions.checkIfElementToHaveText(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
           '2',
         );
         // Tap next button
-        await ContractApprovalModal.tapNextButton();
+        await ContractApprovalBottomSheet.tapNextButton();
 
         // Tap approve button
-        await ContractApprovalModal.tapApproveButton();
+        await ContractApprovalBottomSheet.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

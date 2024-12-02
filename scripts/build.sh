@@ -135,6 +135,7 @@ remapEnvVariableQA() {
   	remapEnvVariable "SEGMENT_PROXY_URL_QA" "SEGMENT_PROXY_URL"
   	remapEnvVariable "SEGMENT_DELETE_API_SOURCE_ID_QA" "SEGMENT_DELETE_API_SOURCE_ID"
   	remapEnvVariable "SEGMENT_REGULATIONS_ENDPOINT_QA" "SEGMENT_REGULATIONS_ENDPOINT"
+  	remapEnvVariable "MM_SENTRY_DSN_TEST" "MM_SENTRY_DSN"
 }
 
 remapEnvVariableRelease() {
@@ -180,6 +181,17 @@ prebuild_ios(){
 	# Required to install mixpanel dep
 	git submodule update --init --recursive
 	unset PREFIX
+  # Create GoogleService-Info.plist file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64_IOS is set
+  if [ ! -z "$GOOGLE_SERVICES_B64_IOS" ]; then
+    echo -n $GOOGLE_SERVICES_B64_IOS | base64 -d > ./ios/GoogleServices/GoogleService-Info.plist
+    echo "GoogleService-Info.plist has been created successfully."
+    # Ensure the file has read and write permissions
+    chmod 664 ./ios/GoogleServices/GoogleService-Info.plist
+  else
+    echo "GOOGLE_SERVICES_B64_IOS is not set in the .env file."
+    exit 1
+  fi
 }
 
 prebuild_android(){
@@ -189,13 +201,15 @@ prebuild_android(){
 	# Copy fonts with iconset
 	yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf
 
- #Create google-services.json file to be used by the Firebase services.
-  # Check if GOOGLE_SERVICES_B64 is set
-  if [ ! -z "$GOOGLE_SERVICES_B64" ]; then
-    echo -n $GOOGLE_SERVICES_B64 | base64 -d > ./android/app/google-services.json
+  #Create google-services.json file to be used by the Firebase services.
+  # Check if GOOGLE_SERVICES_B64_ANDROID is set
+  if [ ! -z "$GOOGLE_SERVICES_B64_ANDROID" ]; then
+    echo -n $GOOGLE_SERVICES_B64_ANDROID | base64 -d > ./android/app/google-services.json
     echo "google-services.json has been created successfully."
+    # Ensure the file has read and write permissions
+    chmod 664 ./android/app/google-services.json
   else
-    echo "GOOGLE_SERVICES_B64 is not set in the .env file."
+    echo "GOOGLE_SERVICES_B64_ANDROID is not set in the .env file."
     exit 1
   fi
 
@@ -214,6 +228,7 @@ buildAndroidRun(){
 }
 
 buildAndroidRunQA(){
+	remapEnvVariableLocal
 	prebuild_android
 	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
@@ -298,7 +313,7 @@ buildIosRelease(){
   	remapEnvVariableRelease
 
 	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 
 	prebuild_ios
 
@@ -361,16 +376,16 @@ buildIosReleaseE2E(){
 }
 
 buildIosQA(){
+  	echo "Start iOS QA build..."
+
   	remapEnvVariableQA
 
 	prebuild_ios
 
-  	echo "Start QA build..."
-
 	# Replace release.xcconfig with ENV vars
 	if [ "$PRE_RELEASE" = true ] ; then
 		echo "Setting up env vars...";
-    echo "$IOS_ENV"
+    	echo "$IOS_ENV"
 		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
 		echo "Build started..."
 		brew install watchman
@@ -380,22 +395,25 @@ buildIosQA(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme MetaMask-QA--configuration Release --simulator "iPhone 13 Pro"
+		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Release -sdk iphonesimulator -derivedDataPath build
+		# ./node_modules/.bin/react-native run-ios --scheme MetaMask-QA- -configuration Release --simulator "iPhone 13 Pro"
 	fi
 }
 
 
 buildAndroidQA(){
+	echo "Start Android QA build..."
+
   	remapEnvVariableQA
 
-	if [ "$PRE_RELEASE" = false ] ; then
-		adb uninstall io.metamask.qa
-	fi
+	# if [ "$PRE_RELEASE" = false ] ; then
+	# 	adb uninstall io.metamask.qa
+	# fi
 
 	prebuild_android
 
 	# Generate APK
-	cd android && ./gradlew assembleQaRelease --no-daemon --max-workers 2
+	cd android && ./gradlew assembleQaRelease app:assembleQaReleaseAndroidTest -PminSdkVersion=26 -DtestBuildType=release
 
 	# GENERATE BUNDLE
 	if [ "$GENERATE_BUNDLE" = true ] ; then
@@ -407,9 +425,9 @@ buildAndroidQA(){
 		yarn build:android:checksum:qa
 	fi
 
-	 if [ "$PRE_RELEASE" = false ] ; then
-	 	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
-	 fi
+	#  if [ "$PRE_RELEASE" = false ] ; then
+	#  	adb install app/build/outputs/apk/qa/release/app-qa-release.apk
+	#  fi
 }
 
 buildAndroidRelease(){
@@ -421,7 +439,7 @@ buildAndroidRelease(){
 	fi
 
 	# Enable Sentry to auto upload source maps and debug symbols
-	export SENTRY_DISABLE_AUTO_UPLOAD="false"
+	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 	prebuild_android
 
 	# GENERATE APK
@@ -547,6 +565,7 @@ buildIos() {
 
 startWatcher() {
 	source $JS_ENV_FILE
+	remapEnvVariableLocal
   	WATCHER_PORT=${WATCHER_PORT:-8081}
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all

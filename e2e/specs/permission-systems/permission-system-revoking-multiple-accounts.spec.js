@@ -4,8 +4,8 @@ import Browser from '../../pages/Browser/BrowserView';
 import AccountListView from '../../pages/AccountListView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import ToastModal from '../../pages/modals/ToastModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -15,7 +15,7 @@ import { Regression } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(Regression('Connecting to multiple dapps and revoking permission on one but staying connected to the other'), () => {
+describe(Regression('Permission System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

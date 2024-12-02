@@ -1,5 +1,3 @@
-import { ImageSourcePropType } from 'react-native';
-
 export interface GatewayWithAvailability {
   key: string;
   value: string;
@@ -18,16 +16,4 @@ export interface SecuritySettingsParams {
 
 export interface EtherscanNetworksType {
   [key: string]: { domain: string; subdomain: string; networkId: string };
-}
-
-export interface NetworksI {
-  [key: string]: {
-    name: string;
-    imageSource?: ImageSourcePropType;
-    shortName: string;
-    networkId?: number;
-    chainId?: string;
-    color: string;
-    networkType: string;
-  };
 }

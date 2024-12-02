@@ -7,8 +7,8 @@ import InfoRow from '../InfoRow';
 import ExpandableSection from './ExpandableSection';
 
 describe('ExpandableSection', () => {
-  it('should match snapshot for simple ExpandableSection', async () => {
-    const container = render(
+  it('should render correctly for simple ExpandableSection', async () => {
+    const { getByText } = render(
       <ExpandableSection
         collapsedContent={
           <View>
@@ -20,10 +20,10 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
-    expect(container).toMatchSnapshot();
+    expect(getByText('Open')).toBeDefined();
   });
 
   it('should display default content', async () => {
@@ -39,7 +39,7 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
@@ -58,11 +58,11 @@ describe('ExpandableSection', () => {
             <InfoRow label="label-Key">Value-Text</InfoRow>
           </InfoSection>
         }
-        modalTitle={'Title'}
+        expandedContentTitle={'Title'}
       />,
     );
     expect(getByText('Open')).toBeDefined();
-    fireEvent.press(getByTestId('openButtonTestId'));
+    fireEvent.press(getByText('Open'));
     expect(getByText('Value-Text')).toBeDefined();
     fireEvent.press(getByTestId('closeButtonTestId'));
     expect(getByText('Open')).toBeDefined();

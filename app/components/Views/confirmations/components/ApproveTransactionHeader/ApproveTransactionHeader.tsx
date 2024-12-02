@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck - Confirmations team or Transactions team
 import { toChecksumAddress } from 'ethereumjs-util';
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
@@ -27,6 +25,8 @@ import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
 import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
+import { RootState } from '../../../../../reducers';
+import { INTERNAL_ORIGINS } from '../../../../../constants/transaction';
 
 const ApproveTransactionHeader = ({
   from,
@@ -51,9 +51,7 @@ const ApproveTransactionHeader = ({
   const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.useBlockieIcon,
+    (state: RootState) => state.settings.useBlockieIcon,
   );
 
   useEffect(() => {
@@ -70,11 +68,13 @@ const ApproveTransactionHeader = ({
 
   const networkImage = useSelector(selectNetworkImageSource);
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
+
+  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   return (
     <View style={styles.transactionHeader}>
-      {origin && !isOriginDeepLink ? (
+      { showOrigin ? (
         <ApprovalTagUrl
           from={from}
           origin={origin}

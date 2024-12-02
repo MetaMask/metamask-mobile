@@ -309,7 +309,9 @@ class TransactionReviewInformation extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -666,7 +668,7 @@ class TransactionReviewInformation extends PureComponent {
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       (!gasEstimateType ||

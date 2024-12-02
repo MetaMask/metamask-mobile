@@ -11,6 +11,7 @@ import {
   disableProfileSyncing,
   signIn,
 } from '../../../actions/notification/helpers';
+import { isNotificationsFeatureEnabled } from '../constants';
 
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
@@ -31,6 +32,10 @@ function useCreateSession(): UseCreateSessionReturn {
   const [error, setError] = useState<string | undefined>(undefined);
 
   const createSession = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     // If the user is already signed in, no need to create a new session
     if (isSignedIn) {
       return;

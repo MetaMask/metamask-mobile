@@ -181,6 +181,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -192,7 +193,6 @@ exports[`PaymentMethods View renders correctly 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -1644,6 +1644,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1655,7 +1656,6 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -3107,6 +3107,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3118,7 +3119,6 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -4348,6 +4348,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4359,7 +4360,6 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -4697,24 +4697,14 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -5032,6 +5022,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5043,7 +5034,6 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -5381,24 +5371,14 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -5716,6 +5696,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5727,7 +5708,6 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -6065,24 +6045,14 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -6398,6 +6368,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6409,7 +6380,6 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -7639,6 +7609,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -7650,7 +7621,6 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -9160,6 +9130,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -9171,7 +9142,6 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -9509,24 +9479,14 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "0": {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 18,
-                                        "fontWeight": "600",
-                                        "marginVertical": 3,
-                                      },
-                                      "1": {
-                                        "textAlign": "center",
-                                      },
-                                      "2": undefined,
-                                      "3": undefined,
                                       "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
+                                      "marginVertical": 3,
+                                      "textAlign": "center",
                                     }
                                   }
                                 >
@@ -9819,6 +9779,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -9830,7 +9791,6 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {

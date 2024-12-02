@@ -4,7 +4,6 @@ import { regex } from '../../../app/util/regex';
 
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
-import { NetworkState } from '@metamask/network-controller';
 import { TransactionParams } from '@metamask/transaction-controller';
 import { captureException } from '@sentry/react-native';
 import {
@@ -16,9 +15,26 @@ import {
   NftContract,
   NftControllerState,
   TokenListState,
-  TokenRatesState,
+  TokenRatesControllerState,
   TokensControllerState,
 } from '@metamask/assets-controllers';
+
+interface NetworkState {
+  selectedNetworkClientId: string;
+  networkConfigurations: Record<
+    string,
+    {
+      id: string;
+      rpcUrl: string;
+      chainId: string;
+      ticker: string;
+      nickname: string;
+      rpcPrefs: {
+        blockExplorerUrl: string;
+      };
+    }
+  >;
+}
 
 /**
  * Converting chain id on decimal format to hexadecimal format
@@ -514,7 +530,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokenRatesControllerState =
     state?.engine?.backgroundState?.TokenRatesController;
   const newTokenRatesControllerState = state?.engine?.backgroundState
-    ?.TokenRatesController as TokenRatesState;
+    ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
     captureException(

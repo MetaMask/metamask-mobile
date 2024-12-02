@@ -90,7 +90,7 @@ function render(Component: React.ComponentType, chainId?: `0x${string}`) {
                   chainId: '0x89',
                   id: 'networkId1',
                   nickname: 'Polygon Mainnet',
-                  ticker: 'MATIC',
+                  ticker: 'POL',
                 },
               ),
             },
@@ -300,16 +300,6 @@ describe('NetworkSwitcher View', () => {
       [
         [
           "networkId1",
-        ],
-      ]
-    `);
-    expect(
-      (Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock)
-        .mock.calls,
-    ).toMatchInlineSnapshot(`
-      [
-        [
-          "POL",
         ],
       ]
     `);

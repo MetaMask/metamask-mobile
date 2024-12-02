@@ -4,14 +4,15 @@ import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
 import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
-import ConnectModal from '../pages/modals/ConnectModal';
-import AssetWatchModal from '../pages/modals/AssetWatchModal';
-import SpamFilterModal from '../pages/modals/SpamFilterModal';
+import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
+import AssetWatchBottomSheet from '../pages/Transactions/AssetWatchBottomSheet';
+import SpamFilterModal from '../pages/Browser/SpamFilterModal';
 
 // eslint-disable-next-line import/no-nodejs-modules
 import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
+import PermissionSummaryBottomSheet from '../pages/Browser/PermissionSummaryBottomSheet';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
@@ -59,9 +60,13 @@ export default class ConfirmationsRejectRule {
              */
 
             // Connect accounts modal
-            await Assertions.checkIfVisible(ConnectModal.container);
-            await ConnectModal.tapConnectButton();
-            await Assertions.checkIfNotVisible(ConnectModal.container);
+            await Assertions.checkIfVisible(
+              PermissionSummaryBottomSheet.container,
+            );
+            await ConnectBottomSheet.tapConnectButton();
+            await Assertions.checkIfNotVisible(
+              PermissionSummaryBottomSheet.container,
+            );
             await TestHelpers.delay(3000);
 
             try {
@@ -147,7 +152,7 @@ export default class ConfirmationsRejectRule {
           let cancelButton;
           await TestHelpers.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
-            await AssetWatchModal.tapCancelButton();
+            await AssetWatchBottomSheet.tapCancelButton();
           } else {
             cancelButton = await Matchers.getElementByText('Cancel');
             await Gestures.waitAndTap(cancelButton);

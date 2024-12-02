@@ -683,9 +683,12 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT)
+        .addProperties({ network: providerType })
+        .build(),
+    );
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
@@ -1243,6 +1246,7 @@ class Amount extends PureComponent {
       isNetworkBuyNativeTokenSupported,
       swapsIsLive,
       chainId,
+      ticker,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -1267,16 +1271,26 @@ class Amount extends PureComponent {
 
     const navigateToBuyOrSwaps = () => {
       if (isSwappable) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'swap_tokens',
-        });
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'swap_tokens',
+            })
+            .build(),
+        );
         navigateToSwap();
       } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'buy_more',
-        });
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'buy_more',
+            })
+            .build(),
+        );
         navigation.navigate(...createBuyNavigationDetails());
       }
     };
@@ -1346,11 +1360,20 @@ class Amount extends PureComponent {
               onPress={navigateToBuyOrSwaps}
               style={styles.errorBuyWrapper}
             >
-              <Text style={styles.error}>{amountError}</Text>
-              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH && (
-                <Text style={[styles.error, styles.underline]}>
-                  {strings('transaction.buy_more')}
+              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH ? (
+                <Text style={[styles.error]}>
+                  {strings('transaction.more_to_continue', {
+                    ticker: getTicker(ticker),
+                  })}
+                  {'\n'}
+                  <Text style={[styles.error, styles.underline]}>
+                    {strings('transaction.token_Marketplace')}
+                  </Text>
+                  {'\n'}
+                  {strings('transaction.you_can_also_send_funds')}
                 </Text>
+              ) : (
+                <Text style={styles.error}>{amountError}</Text>
               )}
 
               {isSwappable && (

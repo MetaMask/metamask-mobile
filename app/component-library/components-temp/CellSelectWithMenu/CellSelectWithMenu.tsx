@@ -6,6 +6,7 @@ import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
+import Tag from '../../../component-library/components/Tags/Tag';
 
 // Internal dependencies.
 import styleSheet from './CellSelectWithMenu.styles';
@@ -33,6 +34,8 @@ const CellSelectWithMenu = ({
   tagLabel,
   isSelected = false,
   children,
+  withAvatar = true,
+  showSecondaryTextIcon = true,
   ...props
 }: CellSelectWithMenuProps) => {
   const { styles } = useStyles(styleSheet, { style });
@@ -46,12 +49,15 @@ const CellSelectWithMenu = ({
     >
       <View style={styles.cellBase}>
         {/* DEV Note: Account Avatar should be replaced with Avatar with Badge whenever available */}
-        <Avatar
-          style={styles.avatar}
-          testID={CellModalSelectorsIDs.BASE_AVATAR}
-          size={DEFAULT_CELLBASE_AVATAR_SIZE}
-          {...avatarProps}
-        />
+        {withAvatar ? (
+          <Avatar
+            style={styles.avatar}
+            testID={CellModalSelectorsIDs.BASE_AVATAR}
+            size={DEFAULT_CELLBASE_AVATAR_SIZE}
+            {...avatarProps}
+          />
+        ) : null}
+
         <View style={styles.cellBaseInfo}>
           <Text
             numberOfLines={1}
@@ -73,13 +79,26 @@ const CellSelectWithMenu = ({
                 >
                   {secondaryText}
                 </Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Xss}
-                  style={styles.arrowStyle}
-                />
+                {showSecondaryTextIcon && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xss}
+                    style={styles.arrowStyle}
+                  />
+                )}
               </TouchableOpacity>
             </TouchableWithoutFeedback>
+          )}
+          {!!tagLabel && (
+            <Tag
+              testID={CellModalSelectorsIDs.TAG_LABEL}
+              label={tagLabel}
+              style={
+                isSelected
+                  ? [styles.tagLabel, styles.selectedTag]
+                  : styles.tagLabel
+              }
+            />
           )}
         </View>
         {children && <View style={styles.optionalAccessory}>{children}</View>}

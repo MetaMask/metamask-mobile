@@ -8,6 +8,7 @@ import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
 } from '../../selectors/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -40,7 +41,7 @@ class TransactionConfirmationView {
 
   get transactionAmount() {
     return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
@@ -71,9 +72,21 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
-  get editPriorityModal() {
-    return Matchers.getElementByText(
-      TransactionConfirmViewSelectorsText.EDIT_PRIORITY_MODAL,
+  get editPriorityLegacyModal() {
+    return Matchers.getElementByID(
+      EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+    );
+  }
+
+  get securityAlertBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+    );
+  }
+
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );
   }
 

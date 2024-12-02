@@ -1,30 +1,35 @@
-import TestHelpers from '../helpers';
-import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
-import { RevealSeedViewSelectorsIDs } from '../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { LoginViewSelectors } from '../selectors/LoginView.selectors';
 import Matchers from '../utils/Matchers';
+import Gestures from '../utils/Gestures';
 
-export default class LoginView {
-  static async getContainer() {
+class LoginView {
+  get container() {
     return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
-  static async enterPassword(password) {
-    await TestHelpers.typeTextAndHideKeyboard(
-      RevealSeedViewSelectorsIDs.PASSWORD_INPUT,
-      password,
-    );
+  get passwordInput() {
+    return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  static async tapResetWalletButton() {
-    await TestHelpers.tap(LoginViewSelectors.RESET_WALLET);
+  get resetWalletButton() {
+    return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  static async toggleRememberMe() {
-    await TestHelpers.tap(LOGIN_WITH_REMEMBER_ME_SWITCH);
+  get rememberMeSwitch() {
+    return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  static async isVisible() {
-    await TestHelpers.checkIfVisible(LoginViewSelectors.CONTAINER);
+  async enterPassword(password) {
+    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
+  }
+
+  async tapResetWalletButton() {
+    await Gestures.waitAndTap(this.resetWalletButton);
+  }
+
+  async toggleRememberMeSwitch() {
+    await Gestures.waitAndTap(this.rememberMeSwitch);
   }
 }
+
+export default new LoginView();

@@ -68,14 +68,9 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const {
-      TokenListController,
-      SwapsController,
-      PhishingController,
-      ...controllers
-    } = inboundState.backgroundState || {};
-    const { tokenList, tokensChainsCache, ...persistedTokenListController } =
-      TokenListController;
+    const { SwapsController, ...controllers } =
+      inboundState.backgroundState || {};
+
     const {
       aggregatorMetadata,
       aggregatorMetadataLastFetched,
@@ -87,16 +82,11 @@ const persistTransform = createTransform(
       ...persistedSwapsController
     } = SwapsController;
 
-    const { phishingLists, whitelist, ...persistedPhishingController } =
-      PhishingController;
-
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
         ...controllers,
-        TokenListController: persistedTokenListController,
         SwapsController: persistedSwapsController,
-        PhishingController: persistedPhishingController,
       },
     };
     return newState;

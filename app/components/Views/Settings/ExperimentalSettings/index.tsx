@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, Switch, View } from 'react-native';
 
 import { MMKV } from 'react-native-mmkv';
@@ -57,13 +57,13 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     [colors],
   );
 
-  const goToWalletConnectSessions = useCallback(() => {
+  const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
-  }, [navigation]);
+  };
 
   const openSesLink = () => Linking.openURL(SES_URL);
 
-  const WalletConnectSettings: FC = () => (
+  const renderWalletConnectSettings = () => (
     <>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
         {strings('experimental_settings.wallet_connect_dapps')}
@@ -86,7 +86,7 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </>
   );
 
-  const SesSettings: FC = () => (
+  const renderSesSettings = () => (
     <>
       <Text
         color={TextColor.Default}
@@ -131,8 +131,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
 
   return (
     <ScrollView style={styles.wrapper}>
-      <WalletConnectSettings />
-      {Device.isIos() && <SesSettings />}
+      {renderWalletConnectSettings()}
+      {Device.isIos() && renderSesSettings()}
     </ScrollView>
   );
 };

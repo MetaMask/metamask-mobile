@@ -1,45 +1,102 @@
 import React from 'react';
-import Approval from '.';
+import { render } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+import { Store } from 'redux';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
+import Approval from './index';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import initialRootState from '../../../../util/test/initial-root-state';
+
+const TRANSACTION_ID_MOCK = '123';
+jest.mock('../../../../selectors/smartTransactionsController', () => ({
+  selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../../util/dappTransactions', () => ({
+  handleGetGasLimit: jest.fn(),
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  rejectPendingApproval: jest.fn(),
+  context: {
+    KeyringController: {
+      resetQRKeyringState: jest.fn(),
+      getOrAddQRKeyring: jest.fn(),
+    },
+    GasFeeController: {
+      getGasFeeEstimatesAndStartPolling: jest.fn().mockResolvedValue(null),
+      stopPolling: jest.fn(),
+    },
+  },
+  controllerMessenger: {
+    tryUnsubscribe: jest.fn(),
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
+}));
+
+const Stack = createStackNavigator();
 const mockStore = configureMockStore();
-const initialState = {
-  settings: {
-    showCustomNonce: false,
-  },
-  transaction: {
-    value: '',
-    data: '',
-    from: '0x1',
-    gas: '',
-    gasPrice: '',
-    to: '0x2',
-    selectedAsset: { symbol: 'ETH' },
-    assetType: undefined,
-  },
-  engine: {
-    backgroundState,
-  },
+const navigationPropMock = {
+  setOptions: jest.fn(),
+  setParams: jest.fn(),
+  navigate: jest.fn(),
 };
-const store = mockStore(initialState);
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const navigation = { state: { params: { address: '0x1' } } } as any;
-// noop
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-navigation.setParams = (params: any) => ({ ...params });
+const routeMock = {
+  params: {},
+};
+
+const renderComponent = ({ store }: { store: Store }) => render(
+    <Provider store={store}>
+      <ThemeContext.Provider value={mockTheme}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen name="Approval">
+              {() => (
+                <Approval
+                  dappTransactionModalVisible
+                  navigation={navigationPropMock}
+                  route={routeMock}
+                />
+              )}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </ThemeContext.Provider>
+    </Provider>,
+  );
 
 describe('Approval', () => {
-  it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <Approval navigation={navigation} />
-      </Provider>,
-    );
+  let store: Store;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    store = mockStore({
+      ...initialRootState,
+      settings: {
+        showCustomNonce: false,
+      },
+      transaction: {
+        id: TRANSACTION_ID_MOCK,
+        from: '0x1234',
+        transaction: {
+          data: '0x1',
+        },
+      },
+      browser: {
+        tabs: [],
+      },
+      alert: {
+        isVisible: false,
+      },
+    });
+  });
+
+  it('render matches snapshot', () => {
+    const wrapper = renderComponent({ store });
     expect(wrapper).toMatchSnapshot();
   });
 });

@@ -1,14 +1,15 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import AssetDetailsActions from './AssetDetailsActions';
 import { strings } from '../../../../../locales/i18n';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
 import {
-  TOKEN_OVERVIEW_BRIDGE_BUTTON,
-  TOKEN_OVERVIEW_BUY_BUTTON,
-  TOKEN_OVERVIEW_RECEIVE_BUTTON,
-  TOKEN_OVERVIEW_SEND_BUTTON,
-  TOKEN_OVERVIEW_SWAP_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Screens/TokenOverviewScreen.testIds';
+  expectedUuid2,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../../util/test/accountsControllerTestUtils';
+import { EthMethod } from '@metamask/keyring-api';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../util/test/initial-root-state';
 
 describe('AssetDetailsActions', () => {
   const mockOnBuy = jest.fn();
@@ -32,12 +33,18 @@ describe('AssetDetailsActions', () => {
   });
 
   it('should render correctly', () => {
-    const { toJSON } = render(<AssetDetailsActions {...defaultProps} />);
+    const { toJSON } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with all buttons displayed', () => {
-    const { getByText } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByText } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
     expect(getByText(strings('asset_overview.buy_button'))).toBeTruthy();
     expect(getByText(strings('asset_overview.swap'))).toBeTruthy();
@@ -47,53 +54,111 @@ describe('AssetDetailsActions', () => {
   });
 
   it('calls onBuy when the buy button is pressed', () => {
-    const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BUY_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockOnBuy).toHaveBeenCalled();
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {
-    const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SWAP_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
     expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('calls goToBridge when the bridge button is pressed', () => {
-    const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_BRIDGE_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON));
     expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('calls onSend when the send button is pressed', () => {
-    const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_SEND_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON));
     expect(mockOnSend).toHaveBeenCalled();
   });
 
   it('calls onReceive when the receive button is pressed', () => {
-    const { getByTestId } = render(<AssetDetailsActions {...defaultProps} />);
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      { state: initialRootState },
+    );
 
-    fireEvent.press(getByTestId(TOKEN_OVERVIEW_RECEIVE_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON));
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
   it('does not render the buy button when displayBuyButton is false', () => {
-    const { queryByText } = render(
+    const { queryByText } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} displayBuyButton={false} />,
+      { state: initialRootState },
     );
 
     expect(queryByText(strings('asset_overview.buy_button'))).toBeNull();
   });
 
   it('does not render the swap button when displaySwapsButton is false', () => {
-    const { queryByText } = render(
+    const { queryByText } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} displaySwapsButton={false} />,
+      { state: initialRootState },
     );
 
     expect(queryByText(strings('asset_overview.swap'))).toBeNull();
+  });
+
+  it('disables buttons when the account cannot sign transactions', () => {
+    const mockState = { ...MOCK_ACCOUNTS_CONTROLLER_STATE };
+    mockState.internalAccounts.accounts[expectedUuid2].methods = Object.values(
+      EthMethod,
+    ).filter((method) => method !== EthMethod.SignTransaction);
+
+    const initialState = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: mockState,
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} />,
+      {
+        state: initialState,
+      },
+    );
+
+    const buttons = [
+      TokenOverviewSelectorsIDs.BUY_BUTTON,
+      TokenOverviewSelectorsIDs.SWAP_BUTTON,
+      TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
+      TokenOverviewSelectorsIDs.SEND_BUTTON,
+    ];
+
+    buttons.forEach((buttonTestId) => {
+      expect(getByTestId(buttonTestId).props.disabled).toBe(true);
+    });
+
+    // The receive button should always be enabled
+    expect(
+      getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON).props.disabled,
+    ).toBe(false);
   });
 });

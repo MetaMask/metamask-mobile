@@ -1,4 +1,7 @@
-import { TRIGGER_TYPES } from '../constants';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 import { Notification } from '../types';
 
 /**
@@ -21,4 +24,4 @@ export type ExtractedNotification<NodeType extends TRIGGER_TYPES> =
 export const isOfTypeNodeGuard =
   <NodeType extends Notification['type']>(types: NodeType[]) =>
   (n: Notification): n is ExtractedNotification<NodeType> =>
-    types.includes(n.type as NodeType);
+    n?.type && types.includes(n.type as NodeType);

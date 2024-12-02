@@ -12,6 +12,7 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 8,
       borderWidth: 1,
       padding: 8,
+      marginBottom: 8,
     },
   });
 };

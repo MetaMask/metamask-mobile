@@ -21,16 +21,29 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-buy-button"
     >
@@ -116,16 +129,29 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-swap-button"
     >
@@ -211,16 +237,29 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-bridge-button"
     >
@@ -306,16 +345,29 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={true}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
       }
       testID="token-send-button"
     >
@@ -401,16 +453,27 @@ exports[`AssetDetailsActions should render correctly 1`] = `
     }
   >
     <TouchableOpacity
+      disabled={false}
       onPress={[MockFunction]}
       style={
-        {
-          "alignItems": "flex-start",
-          "flexDirection": "row",
-          "justifyContent": "flex-start",
-          "paddingTop": 16,
-          "paddingVertical": 2,
-          "width": "100%",
-        }
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          false,
+        ]
       }
       testID="token-receive-button"
     >

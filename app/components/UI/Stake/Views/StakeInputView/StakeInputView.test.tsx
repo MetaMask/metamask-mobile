@@ -4,7 +4,14 @@ import StakeInputView from './StakeInputView';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { BN } from 'ethereumjs-util';
+import { Stake } from '../../sdk/stakeSdkProvider';
+import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import { Contract } from 'ethers';
+import { MOCK_GET_VAULT_RESPONSE } from '../../__mocks__/mockData';
+import { toWei } from '../../../../../util/number';
+import { strings } from '../../../../../../locales/i18n';
+// eslint-disable-next-line import/no-namespace
+import * as useStakingGasFee from '../../hooks/useStakingGasFee';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -50,13 +57,76 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
-const mockBalanceBN = new BN('1500000000000000000');
+const mockBalanceBN = toWei('1.5'); // 1.5 ETH
+
+const mockPooledStakingContractService: PooledStakingContract = {
+  chainId: ChainId.ETHEREUM,
+  connectSignerOrProvider: jest.fn(),
+  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  convertToShares: jest.fn(),
+  encodeClaimExitedAssetsTransactionData: jest.fn(),
+  encodeDepositTransactionData: jest.fn(),
+  encodeEnterExitQueueTransactionData: jest.fn(),
+  encodeMulticallTransactionData: jest.fn(),
+  estimateClaimExitedAssetsGas: jest.fn(),
+  estimateDepositGas: jest.fn(),
+  estimateEnterExitQueueGas: jest.fn(),
+  estimateMulticallGas: jest.fn(),
+};
+
+jest.mock('../../hooks/useStakeContext.ts', () => ({
+  useStakeContext: jest.fn(() => {
+    const stakeContext: Stake = {
+      setSdkType: jest.fn(),
+      stakingContract: mockPooledStakingContractService,
+    };
+    return stakeContext;
+  }),
+}));
+
 jest.mock('../../hooks/useBalance', () => ({
   __esModule: true,
   default: () => ({
-    balance: '1.5',
+    balanceETH: '1.5',
     balanceWei: mockBalanceBN,
     balanceFiatNumber: '3000',
+  }),
+}));
+
+const mockGasFee = toWei('0.0001');
+
+jest.mock('../../hooks/useStakingGasFee', () => ({
+  __esModule: true,
+  default: () => ({
+    estimatedGasFeeWei: mockGasFee,
+    isLoadingStakingGasFee: false,
+    isStakingGasFeeError: false,
+    refreshGasValues: jest.fn(),
+  }),
+}));
+
+const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+// Mock hooks
+
+jest.mock('../../hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+    loading: false,
+    error: null,
+    refreshPooledStakingEligibility: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: mockVaultData,
+    loading: false,
+    error: null,
+    refreshVaultData: jest.fn(),
+    annualRewardRate: '2.5%',
+    annualRewardRateDecimal: 0.025,
   }),
 }));
 
@@ -93,7 +163,7 @@ describe('StakeInputView', () => {
 
       fireEvent.press(screen.getByText('2'));
 
-      expect(screen.getByText('0.052 ETH')).toBeTruthy();
+      expect(screen.getByText('0.05 ETH')).toBeTruthy();
     });
   });
 
@@ -133,6 +203,32 @@ describe('StakeInputView', () => {
       fireEvent.press(screen.getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
+      });
+    });
+
+    it('navigates to gas impact modal when gas cost is 30% or more of deposit amount', () => {
+      jest.spyOn(useStakingGasFee, 'default').mockReturnValue({
+        estimatedGasFeeWei: toWei('0.25'),
+        isLoadingStakingGasFee: false,
+        isStakingGasFeeError: false,
+        refreshGasValues: jest.fn(),
+      });
+
+      render(StakeInputView);
+
+      fireEvent.press(screen.getByText('25%'));
+
+      fireEvent.press(screen.getByText(strings('stake.review')));
+
+      expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
+        screen: Routes.STAKING.MODALS.GAS_IMPACT,
+        params: {
+          amountFiat: '750',
+          amountWei: '375000000000000000',
+          annualRewardRate: '2.5%',
+          annualRewardsETH: '0.00938 ETH',
+          annualRewardsFiat: '18.75 USD',
+        },
       });
     });
   });

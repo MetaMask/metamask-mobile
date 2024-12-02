@@ -18,7 +18,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../util/transactions';
 import { isEqual } from 'lodash';
-import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Modals/AssetWatcher.selectors';
+import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Transactions/AssetWatcher.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
@@ -104,7 +104,7 @@ const WatchAssetRequest = ({
   const { asset, interactingAddress } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const chainId = useSelector(selectChainId);
@@ -133,7 +133,11 @@ const WatchAssetRequest = ({
   const onConfirmPress = async () => {
     await onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

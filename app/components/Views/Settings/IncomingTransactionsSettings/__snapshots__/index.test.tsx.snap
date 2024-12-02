@@ -53,9 +53,11 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       avatarProps={
         {
           "imageSource": {
-            "uri": "MockImage",
+            "default": {
+              "uri": "MockImage",
+            },
           },
-          "name": "Ethereum Main Network",
+          "name": "Mainnet",
           "variant": "Network",
         }
       }
@@ -70,7 +72,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
         }
       }
       testID="celldisplay"
-      title="Ethereum Main Network"
+      title="Mainnet"
     >
       <View
         style={
@@ -99,7 +101,9 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             resizeMode="contain"
             source={
               {
-                "uri": "MockImage",
+                "default": {
+                  "uri": "MockImage",
+                },
               }
             }
             style={
@@ -134,7 +138,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             }
             testID="cellbase-avatar-title"
           >
-            Ethereum Main Network
+            Mainnet
           </Text>
           <Text
             accessibilityRole="text"
@@ -195,9 +199,11 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       avatarProps={
         {
           "imageSource": {
-            "uri": "MockImage",
+            "default": {
+              "uri": "MockImage",
+            },
           },
-          "name": "Linea Main Network",
+          "name": "Linea Mainnet",
           "variant": "Network",
         }
       }
@@ -212,7 +218,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
         }
       }
       testID="celldisplay"
-      title="Linea Main Network"
+      title="Linea Mainnet"
     >
       <View
         style={
@@ -241,7 +247,9 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             resizeMode="contain"
             source={
               {
-                "uri": "MockImage",
+                "default": {
+                  "uri": "MockImage",
+                },
               }
             }
             style={
@@ -276,7 +284,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             }
             testID="cellbase-avatar-title"
           >
-            Linea Main Network
+            Linea Mainnet
           </Text>
           <Text
             accessibilityRole="text"

@@ -17,6 +17,8 @@ import {
   selectNickname,
   selectProviderType,
 } from '../../../selectors/networkController';
+import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { TransactionReviewSelectorsIDs } from '../../../../e2e/selectors/TransactionReview.selectors';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 
@@ -195,7 +197,7 @@ const TransactionHeader = (props) => {
   };
 
   const renderDomainUrlContainer = () => (
-    <View style={styles.domanUrlContainer}>
+    <View style={styles.domanUrlContainer} testID={TransactionReviewSelectorsIDs.TRANSACTION_HEADER_ORIGIN}>
       {renderSecureIcon()}
       {renderTitle()}
     </View>
@@ -209,11 +211,12 @@ const TransactionHeader = (props) => {
       </Text>
     </View>
   );
+  const showOrigin = !INTERNAL_ORIGINS.includes(props.currentPageInformation.origin);
 
   return (
     <View style={styles.transactionHeader}>
       {renderTopIcon()}
-      {isMultichainVersion1Enabled ? null : renderDomainUrlContainer()}
+      {isMultichainVersion1Enabled || !showOrigin ? null : renderDomainUrlContainer()}
       {isMultichainVersion1Enabled ? null : renderNetworkContainer()}
     </View>
   );

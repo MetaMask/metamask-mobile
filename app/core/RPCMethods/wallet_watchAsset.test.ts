@@ -1,3 +1,4 @@
+import { RpcEndpointType } from '@metamask/network-controller';
 import Engine from '../Engine';
 import wallet_watchAsset from './wallet_watchAsset';
 // eslint-disable-next-line import/no-namespace
@@ -6,6 +7,8 @@ import {
   TOKEN_NOT_SUPPORTED_FOR_NETWORK,
   TOKEN_NOT_VALID,
 } from '../../constants/error';
+
+import { mockNetworkState } from '../../util/test/network';
 
 jest.mock('../Engine', () => {
   const {
@@ -57,20 +60,13 @@ jest.mock('../../store', () => ({
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networksMetadata: {},
-            networkConfigurations: {
-              mainnet: {
-                id: 'mainnet',
-                rpcUrl: 'https://mainnet.infura.io/v3',
-                chainId: '0x1',
-                ticker: 'ETH',
-                nickname: 'Sepolia network',
-                rpcPrefs: {
-                  blockExplorerUrl: 'https://etherscan.com',
-                },
-              },
-            },
+            ...mockNetworkState({
+              chainId: '0x1',
+              id: '0x1',
+              nickname: 'mainnet',
+              ticker: 'ETH',
+              type: 'infura' as RpcEndpointType,
+            }),
           },
         },
       },

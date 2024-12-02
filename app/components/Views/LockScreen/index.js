@@ -138,6 +138,7 @@ class LockScreen extends PureComponent {
         bioStateMachineId,
         disableAutoLogout: true,
       });
+
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
     } catch (error) {

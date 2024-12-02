@@ -375,6 +375,10 @@
     "accept": "Я согласен(-на)",
     "cancel": "Нет, спасибо"
   },
+  "multi_rpc_migration_modal": {
+    "description": "Теперь мы поддерживаем несколько RPC для одной сети. Ваш последний RPC был выбран в качестве RPC по умолчанию для разрешения проблемы с противоречивой информацией",
+    "accept": "Согласиться"
+  },
   "nft_details": {
     "bought_for": "Куплено за",
     "highest_floor_price": "Самая высокая минимальная цена",
@@ -433,7 +437,16 @@
       "cancel_cta": "Отмена",
       "confirm_cta": "Подтвердить"
     },
+    "import": "Импорт",
+    "sort_by": "Сортировать по",
+    "filter_by": "Filter by",
+    "current_network": "Current Network",
+    "all_networks": "All Networks",
+    "declining_balance": "Уменьшающийся баланс (максимум-минимум {{currency}})",
+    "alphabetically": "По алфавиту (A-Z/А-Я)",
     "add_to_get_started": "Добавьте криптовалюту, чтобы начать",
+    "token_is_needed_to_continue": "{{tokenSymbol}} необходимый для продолжения",
+    "next": "Далее",
     "buy_asset": "Купить {{asset}}",
     "no_tokens": "У вас нет токенов!",
     "no_nfts_yet": "Пока нет NFT",
@@ -497,7 +510,7 @@
     "address": "Адрес контракта токена",
     "decimal": "Число десятичных знаков токена",
     "network": "Сеть",
-    "network_fee": "Network fee",
+    "network_fee": "Комиссия сети",
     "lists": "Списки токенов",
     "hide_cta": "Скрыть токен",
     "options": {
@@ -650,6 +663,7 @@
     "receive": "ПОЛУЧИТЬ"
   },
   "accounts": {
+    "snap_account_tag": "Snaps (бета-версия)",
     "create_new_account": "Создать новый счет",
     "import_account": "Импортировать счет",
     "connect_hardware": "Подключить аппаратный кошелек",
@@ -661,6 +675,8 @@
     "yes_remove_it": "Да, удалить",
     "remove_hardware_account": "Удалить аппаратный счет",
     "remove_hw_account_alert_description": "Уверены, что хотите удалить этот счет аппаратного кошелька? Вам придется повторно синхронизировать свой аппаратный кошелек, если вы захотите снова использовать этот счет с MetaMask Mobile.",
+    "remove_snap_account": "Удалить счет snap",
+    "remove_snap_account_alert_description": "Этот счет будет удален из вашего кошелька. Прежде чем продолжить, убедитесь, что у вас есть исходная секретная фраза для восстановления или закрытый ключ для этого импортированного счета. Вы можете импортировать или создать счета снова из раскрывающегося списка счетов.",
     "remove_account_alert_remove_btn": "Удалить",
     "remove_account_alert_cancel_btn": "Неважно",
     "accounts_title": "Счета",
@@ -684,9 +700,13 @@
     "site_permission_to": "У этого сайта есть следующие разрешения:",
     "address_balance_activity_permission": "Просмотр адреса, баланса счета и активности",
     "suggest_transactions": "Предлагать транзакции для одобрения",
+    "accounts_connected": "счета подключены",
+    "account_connected": "счет подключен",
+    "accounts_disconnected": "счета отключены.",
+    "account_disconnected": "счет отключен.",
     "disconnect": "Отключиться",
     "disconnect_all": "Отключить все",
-    "reconnect_notice": "If you disconnect from {{dappUrl}}, you’ll need to reconnect your accounts and networks to use this site again.",
+    "reconnect_notice": "Если вы отключитесь от {{dappUrl}}, вам придется повторно подключить свои счета и сети, чтобы снова использовать этот сайт.",
     "disconnect_all_accounts": "Отключить все счета",
     "deceptive_site_ahead": "Впереди моешеннический сайт",
     "deceptive_site_desc": "Сайт, который вы пытаетесь посетить, небезопасен. Злоумышленники могут обманом заставить вас сделать что-то опасное.",
@@ -700,12 +720,20 @@
   "toast": {
     "connected_and_active": "подключен и активен.",
     "now_active": "сейчас активен.",
+    "network_added": "успешно добавлена",
+    "network_deleted": "успешно удален",
+    "network_permissions_updated": "Network permissions updated",
     "revoked": "отозван.",
     "revoked_all": "Все счета отозваны.",
     "accounts_connected": "счета подключены.",
+    "account_connected": "счет подключен.",
+    "accounts_permissions_updated": "Accounts permissions updated",
+    "accounts_disconnected": "счета отключены.",
+    "account_disconnected": "счет отключен.",
     "disconnected": "отключен.",
     "disconnected_all": "Все счета отключены.",
     "disconnected_from": "Отключен(-а) от {{dappHostName}}",
+    "permissions_updated": "Permissions updated",
     "nft_detection_enabled": "Автоопределение NFT включено"
   },
   "connect_qr_hardware": {
@@ -740,6 +768,10 @@
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
     "disabling_notifications": "Отключение уведомлений...",
+    "reset_notifications_title": "Сбросить уведомления",
+    "reset_notifications_description": "Сброс уведомлений приведет к удалению ключей хранения уведомлений и сбросу всей истории уведомлений. Уверены, что хотите это сделать?",
+    "reset_notifications": "Сбросить уведомления",
+    "reset_notifications_success": "Ключ хранения уведомлений удален и/или создан заново, а история уведомлений сброшена.",
     "enabling_profile_sync": "Включение синхронизации профиля...",
     "disabling_profile_sync": "Отключение синхронизации профиля...",
     "notifications_dismiss_modal": "Отклонить",
@@ -780,6 +812,7 @@
     "save_rpc_url": "СОХРАНИТЬ",
     "invalid_rpc_prefix": "Для URI требуется соответствующий префикс HTTPS",
     "invalid_rpc_url": "Недействительный RPC URL",
+    "invalid_block_explorer_url": "Недействительный URL-адрес обозревателя блоков",
     "sync": "СИНХРОНИЗИРОВАТЬ",
     "clear_approved_dapps": "ОЧИСТИТЬ ОДОБРЕННЫЕ DAPPS",
     "clear_browser_history": "ОЧИСТИТЬ ИСТОРИЮ БРАУЗЕРА",
@@ -855,10 +888,13 @@
     "networks_default_title": "Сеть по умолчанию",
     "network_delete": "Если вы удалите эту сеть, вам нужно будет добавить ее снова, чтобы просмотреть свои активы в этой сети",
     "networks_default_cta": "Использовать эту сеть",
+    "add_rpc_url": "Добавить URL-адрес RPC",
+    "add_block_explorer_url": "Добавить URL-адрес обозревателя блоков",
     "networks_desc": "Добавляйте и редактируйте пользовательские сети RPC",
     "network_name_label": "Имя сети",
     "network_name_placeholder": "Имя сети (необязательно)",
     "network_rpc_url_label": "URL RPC",
+    "network_rpc_name_label": "Имя RPC",
     "network_rpc_placeholder": "Новая сеть RPC",
     "network_chain_id_label": "ID блокчейна",
     "network_chain_id_placeholder": "ID блокчейна",
@@ -900,7 +936,7 @@
     "data_collection_title": "Сбор данных для маркетинга",
     "data_collection_description": "Мы будем использовать MetaMetrics, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем делиться соответствующими новостями (например, новостями о функциях продукта и другими материалами).",
     "batch_balance_requests_title": "Пакетные запросы баланса счета",
-    "batch_balance_requests_description": "Мы создаем пакет счетов и запрашиваем Infura, чтобы оперативно отображать ваши балансы. Если вы отключите это, запрос будет отправляться только в отношении активных счетов. Некоторые dApps не будут работать, пока вы не подключите свой кошелек.",
+    "batch_balance_requests_description": "Получайте обновления баланса всех ваших счетов одновременно. Отключение этой функции приведет к тому, что другие с меньшей вероятностью будут связывать один счет с другим.",
     "third_party_title": "Получить входящие транзакции",
     "third_party_description": "Сторонние API (Etherscan) используются для отображения входящих транзакций в истории. Отключите, если не хотите, чтобы мы извлекали данные из этих служб.",
     "metametrics_opt_out": "Отказ от MetaMetrics",
@@ -924,7 +960,7 @@
     "invalid_number_range": "Недействительное число. Введите число между 1 и %{maxSafeChainId}",
     "hide_zero_balance_tokens_title": "Скрыть токены без баланса",
     "hide_zero_balance_tokens_desc": "Предотвращает отображение токенов без баланса в вашем списке токенов.",
-    "token_detection_title": "Улучшенное определение токенов",
+    "token_detection_title": "Автоопределение токенов",
     "token_detection_description": "Мы используем сторонние API для обнаружения и отображения новых токенов, отправленных в ваш кошелек. Отключите, если не хотите, чтобы приложение извлекало данные из этих служб.",
     "theme_button_text": "Сменить тему",
     "theme_title": "Тема ({{theme}})",
@@ -1008,13 +1044,29 @@
       "snap_settings": {
         "remove_snap_section_title": "Удалить snap",
         "remove_snap_section_description": "Это действие приведет к удалению snap, его данных и предоставленных ему разрешений.",
-        "remove_button_label": "Удалить {{snapName}}"
+        "remove_button_label": "Удалить {{snapName}}",
+        "remove_account_snap_warning": {
+          "title": "Удалить snap",
+          "description": "Удаление этого Snap удаляет эти счета из MetaMask:",
+          "remove_account_snap_alert_description_1": "Тип",
+          "remove_account_snap_alert_description_2": "чтобы подтвердить, что вы хотите удалить этот snap:",
+          "banner_title": "Прежде чем удалять его, убедитесь, что у вас есть доступ к любым счетам, созданным с помощью этого Snap",
+          "cancel_button": "Отмена",
+          "continue_button": "Продолжить",
+          "remove_snap_button": "Удалить Snap",
+          "remove_snap_error": "Не удалось удалить {{snapName}}",
+          "remove_snap_success": "{{snapName}} удален"
+        }
       },
       "snap_details": {
         "install_date": "Установлен {{date}}",
         "install_origin": "Источник установки",
         "enabled": "Включен",
         "version": "Версия"
+      },
+      "keyring_account_list_item": {
+        "account_name": "Имя счета",
+        "public_address": "Публичный адрес"
       },
       "snap_permissions": {
         "approved_date": "Одобрен {{date}}",
@@ -1036,7 +1088,7 @@
           "snap_getBip32PublicKey": "Просмотр вашего открытого ключа для {{protocol}}",
           "snap_getBip44Entropy": "Управление вашими счетами и активами {{protocol}}",
           "snap_getEntropy": "Извлекайте произвольные ключи, уникальные для этого snap",
-          "endowment:keyring": "назначение:брелок",
+          "endowment:keyring": "Одобрять запросы на добавление счетов Ethereum и управление ими",
           "wallet_snap": "Подключиться к {{otherSnapName}}",
           "endowment:webassembly": "Поддержка WebAssembly",
           "endowment:ethereum-provider": "Доступ к поставщику Ethereum",
@@ -1044,7 +1096,8 @@
           "snap_getLocale": "Просмотр вашего предпочитаемого языка",
           "endowment:caveat:transaction-origin": "Просмотр происхождения сайтов, которые предлагают транзакции",
           "endowment:extend-runtime": "Продление времени работы",
-          "snap_dialog": "Отображение пользовательских диалогов"
+          "snap_dialog": "Отображение пользовательских диалогов",
+          "snap_manageAccounts": "Добавлять счета Ethereum и управлять ими"
         }
       }
     },
@@ -1067,9 +1120,9 @@
     "aes_crypto_test_form_title": "Криптовалюта AES — тестовая форма",
     "aes_crypto_test_form_description": "Раздел разработан исключительно для тестирования E2E. Если его видно в вашем приложении, сообщите об этом в службу поддержки MetaMask.",
     "developer_options": {
-      "title": "Developer Options",
-      "generate_trace_test": "Generate Trace Test",
-      "generate_trace_test_desc": "Generate a Developer Test Sentry trace."
+      "title": "Параметры разработчика",
+      "generate_trace_test": "Создать тест трассировки",
+      "generate_trace_test_desc": "Создать трассировку Sentry для теста разработчика."
     }
   },
   "aes_crypto_test_form": {
@@ -1206,6 +1259,7 @@
   "asset_overview": {
     "send_button": "Отправить",
     "buy_button": "Купить",
+    "token_marketplace": "Торговая площадка токенов",
     "sell_button": "Продать",
     "receive_button": "Получить",
     "portfolio_button": "Portfolio",
@@ -1213,6 +1267,14 @@
     "info": "Информация",
     "swap": "Своп",
     "bridge": "Мост",
+    "disabled_button": {
+      "buy": "Buying not supported for this account",
+      "sell": "Selling not supported for this account",
+      "swap": "Swapping not supported for this account",
+      "bridge": "Bridging not supported for this account",
+      "send": "Sending not supported for this account",
+      "action": "This action is not supported for this account"
+    },
     "description": "Описание",
     "totalSupply": "Общий объем предложения",
     "address": "Адрес",
@@ -1327,7 +1389,7 @@
     "transaction_id": "ID транзакции",
     "alert": "ВНИМАНИЕ",
     "amount": "Сумма",
-    "details": "Details",
+    "details": "Подробности",
     "next": "Далее",
     "back": "Назад",
     "confirm": "Подтвердить",
@@ -1361,6 +1423,10 @@
     "insufficient_amount": "Вам нужно еще {{amount}} {{tokenSymbol}} для выполнения этой транзакции.",
     "buy_more_eth": "Купите больше ETH",
     "buy_more": "Купить еще",
+    "more_to_continue": "Для продолжения нужно больше {{ticker}}",
+    "you_can_also_send_funds": "Вы также можете отправить средства с другого счета.",
+    "token_marketplace": "Торговая площадка токенов",
+    "token_Marketplace": "Торговая площадка токенов",
     "go_to_faucet": "Перейти к крану",
     "get_ether": "Получите эфир для сети {{networkName}}.",
     "insufficient_tokens": "Недостаточно {{token}}",
@@ -1408,7 +1474,7 @@
     "asset": "Актив",
     "balance": "Баланс",
     "token_id": "ID токена",
-    "not_enough_for_gas": "На вашем счете 0 {{ticker}} для оплаты комиссии за транзакцию. Купите немного {{ticker}} или внесите депозит с другого счета.",
+    "not_enough_for_gas": "В вашем счете есть {{ticker}} для оплаты комиссий за транзакцию.",
     "send": "Отправить",
     "confirm_with_qr_hardware": "Подтвердить с помощью аппаратного кошелька",
     "confirm_with_ledger_hardware": "Подтвердить с помощь Ledger",
@@ -1449,7 +1515,7 @@
     "invalid_recipient": "Недействительный получатель",
     "invalid_recipient_description": "Проверьте адрес и убедитесь, что он действителен",
     "swap_tokens": "Обменять токены",
-    "fromWithColon": "From:"
+    "fromWithColon": "От:"
   },
   "custom_gas": {
     "total": "Итого",
@@ -1520,6 +1586,7 @@
     "share": "Поделиться",
     "bookmark": "Закладка",
     "add_to_favorites": "Добавить в Избранное",
+    "go_to_favorites": "Go to Favorites",
     "error": "Ошибка",
     "cancel": "Отмена",
     "go_back": "Назад",
@@ -1589,6 +1656,9 @@
     "tx_review_approve": "Одобрить",
     "tx_review_increase_allowance": "Увеличить допуск",
     "tx_review_set_approval_for_all": "Одобрить все",
+    "tx_review_staking_claim": "Staking Claim",
+    "tx_review_staking_deposit": "Staking Deposit",
+    "tx_review_staking_unstake": "Unstake",
     "sent_ether": "Отправлен эфир",
     "self_sent_ether": "Отправил(-а) себе эфир",
     "received_ether": "Получен эфир",
@@ -1736,7 +1806,7 @@
     "continue": "Продолжить",
     "cancel": "Отмена",
     "approve": "Одобрить",
-    "update": "Update",
+    "update": "Обновить",
     "edit_network_details": "Изменить сведения о сети",
     "malicious_network_warning": "Вредоносный сетевой провайдер может дезинформировать о состоянии блокчейна и записывать ваши действия в сети. Добавляйте только те пользовательские сети, которым доверяете.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -1744,12 +1814,12 @@
     "additional_network_information_title": "Дополнительная информация о сетях",
     "network_warning_desc": "Это сетевое подключение зависит от третьих сторон. Оно может быть менее надежным или позволять третьим лицам отслеживать активность.",
     "additonial_network_information_desc": "Некоторые из этих сетей являются зависимыми от третьих сторон. Соединения могут быть менее надежными или позволять третьим сторонам отслеживать активность.",
-    "connect_more_networks": "Connect more networks",
+    "connect_more_networks": "Подключить больше сетей",
     "learn_more": "Подробнее",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/the-risks-of-connecting-to-an-unknown-network/",
     "switch_network": "Переключиться на сеть",
     "switch": "Сменить",
-    "select_all": "Select all",
+    "select_all": "Выбрать все",
     "new_network": "Добавлена новая сеть",
     "network_name": "Сеть {{networkName}}",
     "network_added": " теперь доступна в селекторе сети.",
@@ -1767,18 +1837,27 @@
     "deprecated_goerli": "Из-за изменений протокола Ethereum: тестовая сеть Goerli может работать ненадежно и скоро будет выведена из эксплуатации.",
     "network_deprecated_title": "Эта сеть устарела",
     "network_deprecated_description": "Сеть, к которой вы пытаетесь подключиться, больше не поддерживается в Metamask.",
-    "edit_networks_title": "Edit networks"
+    "edit_networks_title": "Изменить сети"
   },
   "permissions": {
-    "title_this_site_wants_to": "This site wants to:",
-    "title_dapp_url_wants_to": "{{dappUrl}} wants to:",
-    "title_dapp_url_has_approval_to": "{{dappUrl}} has approval to:",
-    "use_enabled_networks": "Use your enabled networks",
-    "wants_to_see_your_accounts": "See your accounts and suggest transactions",
-    "requesting_for": "Requesting for ",
-    "manage_permissions": "Manage Permissions",
-    "edit": "Edit",
-    "cancel": "Cancel"
+    "title_this_site_wants_to": "Этот сайт хочет:",
+    "title_dapp_url_wants_to": "{{dappUrl}} хочет:",
+    "title_dapp_url_has_approval_to": "{{dappUrl}} разрешено:",
+    "use_enabled_networks": "Использовать ваши активные сети",
+    "wants_to_see_your_accounts": "Просматривать ваши счета и предлагать транзакции",
+    "requesting_for": "Запрашивается для ",
+    "requesting_for_accounts": "Запрос {{numberOfAccounts}} счетов",
+    "requesting_for_networks": "Requesting for {{numberOfNetworks}} networks",
+    "n_networks_connect": "{{numberOfNetworks}} networks connected ",
+    "network_connected": "network connected ",
+    "see_your_accounts": "Просматривать ваши счета и предлагать транзакции",
+    "connected_to": "Подключен к ",
+    "manage_permissions": "Управление разрешениями",
+    "edit": "Изменить",
+    "cancel": "Отмена",
+    "got_it": "Got it",
+    "connection_details_title": "Connection Details",
+    "connection_details_description": "You connected to this site using the MetaMask browser on {{connectionDateTime}}"
   },
   "select": {
     "cancel": "Отмена",
@@ -2042,8 +2121,9 @@
     "back_to_safety": "Назад в безопасное место"
   },
   "notifications": {
-    "no_date": "Unknown",
-    "yesterday": "Yesterday",
+    "timeout": "Время истекло",
+    "no_date": "Неизвестно",
+    "yesterday": "Вчера",
     "staked": "В стейкинге",
     "received": "Получено",
     "unstaked": "Стейкинг отменен",
@@ -2102,7 +2182,7 @@
       "label_swapped": "Обмен выполнен",
       "label_to": "В"
     },
-    "received_from": "Получено от {{address}}",
+    "received_from": "Received {{amount}} {{ticker}} from {{address}}",
     "nft_sent": "Отправил(-а) NFT на {{address}}",
     "erc721_sent": "Отправил(-а) NFT на {{address}}",
     "erc1155_sent": "Отправил(-а) NFT на {{address}}",
@@ -2119,8 +2199,23 @@
     "success_withdrawal_title": "Вывод средств завершен!",
     "error_title": "Ой, что-то пошло не так :/",
     "received_title": "Вы получили {{amount}} {{assetType}}",
-    "default_message_title": "New transaction notification",
-    "default_message_description": "Tap to view this transaction",
+    "metamask_swap_completed_title": "Swap completed",
+    "erc20_sent_title": "Funds sent",
+    "erc20_received_title": "Funds received",
+    "eth_sent_title": "Funds sent",
+    "eth_received_title": "Funds received",
+    "rocketpool_stake_completed_title": "Stake complete",
+    "rocketpool_unstake_completed_title": "Unstake complete",
+    "lido_stake_completed_title": "Stake complete",
+    "lido_withdrawal_requested_title": "Withdrawal requested",
+    "lido_withdrawal_completed_title": "Withdrawal completed",
+    "lido_stake_ready_to_be_withdrawn_title": "Stake ready for withdrawal ",
+    "erc721_sent_title": "NFT sent",
+    "erc721_received_title": "NFT received",
+    "erc1155_sent_title": "NFT sent",
+    "erc1155_received_title": "NFT received",
+    "default_message_title": "MetaMask",
+    "default_message_description": "Tap to view",
     "received_payment_title": "Получен мгновенный платеж",
     "pending_message": "Ожидает подтверждения",
     "pending_deposit_message": "Ожидание завершения внесения депозита",
@@ -2136,12 +2231,55 @@
     "cancelled_message": "Нажмите для просмотра этой транзакции",
     "received_message": "Нажмите для просмотра этой транзакции",
     "received_payment_message": "Вы получили {{amount}} DAI",
-    "prompt_title": "Receive Push Notifications",
+    "eth_received_message": "You received some ETH",
+    "metamask_swap_completed_message": "Swapped {{symbolIn}} for {{symbolOut}}",
+    "erc20_sent_message": "Sent to {{address}}",
+    "erc20_received_message": "Received from {{address}}",
+    "eth_sent_message": "Sent to {{address}}",
+    "rocketpool_stake_completed_message": "Staked",
+    "rocketpool_unstake_completed_message": "Unstaking complete",
+    "lido_stake_completed_message": "Staked",
+    "lido_withdrawal_requested_message": "Unstaking requested",
+    "lido_withdrawal_completed_message": "Unstaking complete",
+    "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
+    "push_notification_content": {
+      "metamask_swap_completed_title": "Своп выполнен",
+      "metamask_swap_completed_description": "Ваш своп MetaMask успешно выполнен",
+      "erc20_sent_title": "Средства отправлены",
+      "erc20_sent_description": "Вы успешно отправили {{amount}} {{token}}",
+      "erc20_received_title": "Средства получены",
+      "erc20_received_description": "Вы получили {{amount}} {{token}}",
+      "eth_sent_title": "Средства отправлены",
+      "eth_sent_description": "Вы успешно отправили {{amount}} ETH",
+      "eth_received_title": "Средства получены",
+      "eth_received_description": "Вы получили {{amount}} {{token}}",
+      "rocketpool_stake_completed_title": "Стейкинг завершен",
+      "rocketpool_stake_completed_description": "Ваш стейкинг RocketPool успешно выполнен",
+      "rocketpool_unstake_completed_title": "Отмена стейкинга завершена",
+      "rocketpool_unstake_completed_description": "Ваш стейкинг RocketPool успешно отменен",
+      "lido_stake_completed_title": "Стейкинг завершен",
+      "lido_stake_completed_description": "Ваш стейкинг Lido успешно выполнен",
+      "lido_withdrawal_requested_title": "Запрошен вывод средств",
+      "lido_withdrawal_requested_description": "Ваш запрос на вывод средств из Lido отправлен",
+      "lido_withdrawal_completed_title": "Вывод средств завершен",
+      "lido_withdrawal_completed_description": "Ваш вывод средств из Lido успешно выполнен",
+      "lido_stake_ready_to_be_withdrawn_title": "Стейкинг готов к выводу ",
+      "lido_stake_ready_to_be_withdrawn_description": "Ваш стейкинг Lido готов к выводу",
+      "erc721_sent_title": "NFT отправлен",
+      "erc721_sent_description": "Вы успешно отправили NFT",
+      "erc721_received_title": "NFT получен",
+      "erc721_received_description": "Вы получили новый NFT",
+      "erc1155_sent_title": "NFT отправлен",
+      "erc1155_sent_description": "Вы успешно отправили NFT",
+      "erc1155_received_title": "NFT получен",
+      "erc1155_received_description": "Вы получили новый NFT"
+    },
+    "prompt_title": "Получать push-уведомления",
     "notifications_enabled_error_title": "Что-то пошло не так",
     "notifications_enabled_error_desc": "Нам не удалось включить уведомления. Повторите попытку позже.",
-    "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
-    "prompt_ok": "Turn on",
-    "prompt_cancel": "Maybe later",
+    "prompt_desc": "Включите уведомления в Настройках, чтобы получать важные оповещения об активности кошелька и многом другом.",
+    "prompt_ok": "Включить",
+    "prompt_cancel": "Может быть, позже",
     "wc_connected_title": "Подключен к {{title}}",
     "wc_signed_title": "Подписано",
     "wc_sent_tx_title": "Отправленная транзакция",
@@ -2154,6 +2292,7 @@
     "wallet": "Кошелек",
     "web3": "Web3",
     "staking_provider": "Поставщик услуг стейкинга",
+    "network_fee_not_available": "Комиссия сети недоступна",
     "empty": {
       "title": "Здесь не на что смотреть",
       "message": "Здесь вы можете найти уведомления, когда в вашем кошельке выполняются действия. "
@@ -2373,6 +2512,7 @@
     "All": "Все",
     "Buy": "Купить",
     "Sell": "Продать",
+    "token_marketplace": "Торговая площадка токенов",
     "Purchased": "Куплено",
     "Sold": "Продано",
     "empty_buy_orders_list": "У вас нет ордеров на покупку",
@@ -2639,8 +2779,7 @@
     "you_need": "Вам необходимо больше",
     "more_to_complete": "для выполнения этого свопа.",
     "more_gas_to_complete": "больше для газа для выполнения этого свопа.",
-    "buy_more_eth": "Купите больше ETH.",
-    "buy_more": "Купите больше {{ticker}}.",
+    "token_marketplace": "Торговая площадка токенов",
     "market_price_unavailable_title": "Проверьте свой тариф, прежде чем продолжить",
     "market_price_unavailable": "Рыночная цена недоступна, поэтому влияние на цену неизвестно. Перед свопом убедитесь, что вас устраивает количество токенов, которое вы получите.",
     "price_difference": "Разница в цене {{amount}}",
@@ -2665,7 +2804,7 @@
     "tap_to_swap": "Нажмите для свопа",
     "swipe_to_swap": "Проведите для свопа",
     "swipe_to": "Проведите, чтобы",
-    "swap": "своп",
+    "swap": "Своп",
     "completed_swap": "Выполнить своп!",
     "metamask_swap_fee": "Комиссия за своп на MetaMask",
     "fee_text": {
@@ -2771,13 +2910,21 @@
     "bug_report_prompt_title": "Расскажите нам, что случилось",
     "bug_report_prompt_description": "Добавьте детали, чтобы мы могли понять, что пошло не так.",
     "bug_report_thanks": "Спасибо! Мы скоро рассмотрим этот вопрос.",
-    "save_seedphrase_1": "Если эта ошибка сохраняется,",
+    "save_seedphrase_1": "If you keep getting this error,",
     "save_seedphrase_2": "сохраните свою секретную фразу для восстановления",
-    "save_seedphrase_3": "и переустановите приложение. Примечание: вы НЕ сможете восстановить свой кошелек без секретной фразы для восстановления.",
+    "save_seedphrase_3": "and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.",
     "copied_clipboard": "Скопирована в буфер обмена",
     "ok": "ОК",
     "cancel": "Отмена",
-    "send": "Отправить"
+    "send": "Отправить",
+    "submit": "Submit",
+    "modal_title": "Describe what happened",
+    "modal_placeholder": "Sharing details like how we can reproduce the bug will help us fix the problem.",
+    "error_message": "Error message:",
+    "copy": "Copy",
+    "describe": "Describe what happened",
+    "try_again": "Try again",
+    "contact_support": "Contact support"
   },
   "whats_new": {
     "title": "Что нового",
@@ -2792,20 +2939,6 @@
       "title": "Вывод средств стал проще",
       "description": "Продавайте свою криптовалюту прямо в MetaMask! Мы поможем вам найти котировки от надежных поставщиков, чтобы вы всегда могли продавать свою криптовалюту доступным, быстрым и безопасным способом.",
       "action_text": "Попробовать"
-    },
-    "stx": {
-      "header": "Улучшенная защита транзакций",
-      "description_1": "Откройте для себя более высокие коэффициенты успеха, передовую защиту и лучшую прозрачность с помощью смарт-транзакций.",
-      "description_2": "Доступно только на Ethereum. Включайте или отключайте в любое время в настройках.",
-      "no_thanks": "Нет, спасибо",
-      "primary_button": "Включить",
-      "learn_more": "Подробнее.",
-      "benefit_1_1": "Показатель успеха:",
-      "benefit_1_2": "99,5 %",
-      "benefit_2_1": "Экономит вам",
-      "benefit_2_2": "деньги",
-      "benefit_3_1": "Статус",
-      "benefit_3_2": "в реальном времени"
     },
     "transaction_simulation": {
       "title": "Предполагаемые изменения баланса",
@@ -2915,7 +3048,7 @@
   },
   "transaction_review_eip1559": {
     "estimated_gas_fee": "Примерная плата за газ",
-    "network_fee": "Network fee",
+    "network_fee": "Комиссия сети",
     "max_fee": "Максимальная комиссия",
     "total": "Итого",
     "max_amount": "Maкс. сумма",
@@ -3155,7 +3288,7 @@
     "ledger_reminder_message_step_four": "4. Включена опция «Местоположение» с использованием точных данных",
     "ledger_reminder_message_step_four_Androidv12plus": "4. Включена опция «устройства поблизости»",
     "ledger_reminder_message_step_five": "5. Режим «Не беспокоить» должен быть выключен",
-    "blind_signing_message": "6. Enable \"blind signing\" on your Ledger device.",
+    "blind_signing_message": "6. Включите «слепое подписание» на своем устройстве Ledger.",
     "available_devices": "Доступные устройства",
     "retry": "Повтор",
     "continue": "Продолжить",
@@ -3186,15 +3319,17 @@
     "how_to_install_eth_webview_title": "Как установить приложение Ethereum",
     "nonce_too_low": "Одноразовый код слишком короткий",
     "nonce_too_low_error": "Установлен слишком короткий одноразовый код",
-    "select_accounts": "Select an account",
-    "select_hd_path": "Select HD Path",
-    "select_hd_path_description": "If you don't see the accounts you expect, try switching the HD path or current selected network.",
+    "select_accounts": "Выбрать счет",
+    "select_hd_path": "Выбрать путь HD",
+    "select_hd_path_description": "Если вы не видите ожидаемые счета, попробуйте переключиться на путь HD или текущую выбранную сеть.",
     "ledger_live_path": "Ledger Live",
-    "ledger_legacy_path": "Legacy(MEW/MyCrypto)",
-    "ledger_bip44_path": "BIP44(e.g. MetaMask, Trezor)",
-    "ledger_legacy_label": " (legacy)",
-    "blind_sign_error": "Blind signing error",
-    "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings."
+    "ledger_legacy_path": "Устаревшие (MEW/MyCrypto)",
+    "ledger_bip44_path": "BIP44 (например, MetaMask, Trezor)",
+    "ledger_legacy_label": " (устаревшие)",
+    "blind_sign_error": "Ошибка слепого подписания",
+    "blind_sign_error_message": "Слепое подписание не включено на вашем устройстве Ledger. Включите его в настройках.",
+    "user_reject_transaction": "Пользователь отклонил транзакцию",
+    "user_reject_transaction_message": "Пользователь отклонил транзакцию на устройстве Ledger."
   },
   "account_actions": {
     "edit_name": "Изменить имя счета",
@@ -3249,20 +3384,92 @@
   },
   "stake": {
     "stake": "Выполнить стейкинг",
-    "stake_eth": "Stake ETH",
-    "your_earnings": "Your earnings",
-    "annual_rate": "Annual rate",
-    "lifetime_rewards": "Lifetime rewards",
-    "estimated_annual_earnings": "Estimated annual earnings",
+    "earn": "Заработать",
+    "stake_eth": "Выполнить стейкинг ETH",
+    "unstake_eth": "Отменить стейкинг ETH",
+    "staked_balance": "Баланс стейкинга",
+    "staked_ethereum": "Ethereum в стейкинге",
+    "unstake": "Отменить стейкинг",
+    "stake_more": "Добавить в стейкинг",
+    "claim": "Востребовать",
+    "your_earnings": "Ваши доходы",
+    "annual_rate": "Годовая ставка",
+    "lifetime_rewards": "Пожизненные вознаграждения",
+    "estimated_annual_earnings": "Предполагаемый годовой доход",
     "accessibility_labels": {
-      "stake_annual_rate_tooltip": "Annual rate tooltip"
+      "stake_annual_rate_tooltip": "Подсказка по годовой ставке"
     },
-    "estimated_annual_rewards": "Estimated annual rewards",
-    "metamask_pool": "MetaMask Pool",
-    "enter_amount": "Enter amount",
-    "review": "Review",
-    "not_enough_eth": "Not enough ETH",
-    "balance": "Balance"
+    "estimated_annual_rewards": "Предполагаемые вознаграждения за год",
+    "metamask_pool": "Пул MetaMask",
+    "enter_amount": "Укажите сумму",
+    "review": "Проверить",
+    "not_enough_eth": "Недостаточно ETH",
+    "balance": "Баланс",
+    "stake_eth_and_earn": "Выполняйте стейкинг ETH и зарабатывайте",
+    "stake_any_amount_of_eth": "Выполняйте стейкинг любой суммы ETH",
+    "no_minimum_required": "Минимум не установлен.",
+    "earn_eth_rewards": "Зарабатывайте вознаграждения в ETH",
+    "earn_eth_rewards_description": "Начните зарабатывать сразу же после начала стейкинга. Вознаграждения суммируются автоматически.",
+    "flexible_unstaking": "Гибкая отмена стейкинга",
+    "flexible_unstaking_description": "Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "disclaimer": "Стейкинг не гарантирует вознаграждение и сопряжен с рисками, включая потерю средств.",
+    "learn_more": "Подробнее",
+    "got_it": "Понятно",
+    "your_balance": "Ваш баланс",
+    "stake_your_eth_cta": {
+      "base": "Выполняйте стейкинг своих ETH с помощью Пула MetaMask и зарабатывайте",
+      "annually": "каждый год.",
+      "learn_more_with_period": "Подробнее."
+    },
+    "day": {
+      "zero": "",
+      "one": "день",
+      "other": "дни"
+    },
+    "hour": {
+      "zero": "",
+      "one": "час",
+      "other": "часы"
+    },
+    "minute": {
+      "zero": "",
+      "one": "минута",
+      "other": "минуты"
+    },
+    "banner_text": {
+      "has_claimable_eth": "Вы можете востребовать {{amountEth}} ETH. После востребования вы получите ETH обратно в свой кошелек.",
+      "unstaking_in_progress": {
+        "base": "Выполняется отмена стейкинга {{amountEth}}. Возвращайтесь через",
+        "and": "и",
+        "to_claim_it": "для востребования.",
+        "default": "Unstaking {{amountEth}} ETH in progress. Come back in a few days to claim it."
+      },
+      "geo_blocked": "Вы находитесь в регионе, где отмена стейкинга или стейкинг запрещен(-а).",
+      "approximately": "примерно"
+    },
+    "unstake_input_banner_description": "В среднем выведенный из стейкинга ETH становится доступным менее чем через 3 дня, но может потребоваться и до 11 дней.",
+    "max": "Максимум",
+    "staking_from": "Стейкинг от",
+    "interacting_with": "Взаимодействие с",
+    "12_hours": "12 часов",
+    "terms_of_service": "Условия обслуживания",
+    "risk_disclosure": "Заявление о рисках",
+    "cancel": "Отмена",
+    "confirm": "Подтвердить",
+    "continue": "Продолжить",
+    "estimated_changes": "Прогнозируемые изменения",
+    "you_receive": "Вы получаете",
+    "up_to_n": "До {{count}}",
+    "unstaking_to": "Отмена стейкинга в",
+    "max_modal": {
+      "title": "Max",
+      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+    },
+    "use_max": "Use max",
+    "estimated_unstaking_time": "1 to 11 days",
+    "proceed_anyway": "Proceed anyway",
+    "gas_cost_impact": "Gas cost impact",
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
   },
   "default_settings": {
     "title": "Ваш кошелек готов",
@@ -3272,7 +3479,7 @@
     "default_settings": "Настройки по умолчанию",
     "done": "Готово",
     "basic_functionality": "Базовый функционал",
-    "manage_networks": "Управление сетями",
+    "manage_networks": "Выберите свою сеть",
     "manage_networks_body": "Мы используем Infura в качестве нашего поставщика удаленного вызова процедур (RPC), чтобы предложить наиболее надежный и конфиденциальный доступ к данным Ethereum из возможных. Вы можете выбрать свой собственного RPC, но помните, что любой RPC получит ваш IP-адрес и номер кошелька Ethereum для совершения транзакций. См. наши ",
     "manage_networks_body2": " чтобы узнать больше о том, как Infura обрабатывает данные.",
     "functionality_body": "MetaMask предлагает базовые функции, такие как сведения о токенах и настройки газа, через интернет-службы. Когда вы пользуетесь интернет-службами, ваш IP-адрес передается, в данном случае MetaMask. Это похоже на посещение любого веб-сайта. MetaMask временно использует ваши данные и никогда не продает их. Вы можете использовать VPN или отключить эти службы, но это может негативно повлиять на вашу работу с MetaMask. Прочитайте нашу ",
@@ -3286,9 +3493,17 @@
       "buttons": {
         "cancel": "Отмена",
         "turn_on": "Включить",
-        "turn_off": "Выключить"
+        "turn_off": "Выключить",
+        "reset": "Сброс"
       }
-    }
+    },
+    "drawer_general_title": "Общие",
+    "drawer_general_title_desc": "Синхронизируйте настройки между устройствами, выбирайте настройки сети и отслеживайте данные токенов",
+    "drawer_assets_title": "Активы",
+    "drawer_assets_desc": "Автоматически обнаруживайте токены в своем кошельке, отображайте NFT и получайте пакетные обновления баланса счета",
+    "drawer_security_title": "Безопасность",
+    "drawer_security_desc": "Уменьшите свои шансы присоединиться к небезопасным сетям и защитите свои счета",
+    "network_details_check_desc": "MetaMask использует сторонний сервис под названием chainid.network для отображения точных и стандартизированных сведений о сети. Это снижает ваши шансы подключиться к вредоносной или неправильной сети. При использовании этой функции chainid.network может просматривать ваш IP-адрес."
   },
   "simulation_details": {
     "failed": "Не удалось загрузить прогноз.",
@@ -3312,13 +3527,53 @@
   },
   "common": {
     "please_wait": "Пожалуйста, подождите",
-    "disconnect_you_from": "This will disconnect you from {{dappUrl}}",
-    "disconnect": "Disconnect"
+    "disconnect_you_from": "Это отключит вас от {{dappUrl}}",
+    "disconnect": "Отключить"
   },
   "tooltip_modal": {
     "reward_rate": {
-      "title": "Reward rate",
-      "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
+      "title": "Ставка вознаграждения",
+      "tooltip": "Ожидаемое ежегодное увеличение стоимости ваших активов в стейкинге, основанное на размере вознаграждения за последнюю неделю."
+    },
+    "estimated_gas_fee": {
+      "title": "Примерная плата за газ",
+      "gas_recipient": "Плата за газ переводится криптомайнерам, которые обрабатывают транзакции в сети Ethereum. MetaMask не получает прибыли от платы за газ.",
+      "gas_fluctuation": "Плата за газ является примерной и будет меняться в зависимости от сетевого трафика и сложности транзакции.",
+      "gas_learn_more": "Подробнее о плате за газ"
+    },
+    "reward_frequency": {
+      "title": "Частота вознаграждений",
+      "tooltip": "Ваш баланс стейкинга обновляется каждые 12 часов для учета новых вознаграждений."
+    },
+    "unstaking_time": {
+      "title": "Время отмены стейкинга",
+      "tooltip": "It typically takes less than 3 days to unstake your ETH, but it can take up to 11 days to process. The exact duration depends on the amount you unstake and ETH staking activity"
     }
+  },
+  "confirm": {
+    "reject": "Отклонить",
+    "confirm": "Подтвердить",
+    "title": {
+      "signature": "Запрос подписи"
+    },
+    "request_from": "Запрос от",
+    "message": "Сообщение",
+    "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
+    "details": "Подробности",
+    "account": "Счет",
+    "balance": "Баланс",
+    "network": "Сеть",
+    "rpc_url": "URL-адрес RPC",
+    "simulation": {
+      "title": "Прогнозируемые изменения",
+      "personal_sign_info": "Вы входите на сайт, и в вашем счете не происходит никаких прогнозируемых изменений.",
+      "tooltip": "Прогнозируемые изменения — это то, что может произойти, если вы завершите эту транзакцию. Это всего лишь прогноз, а не гарантия."
+    }
+  },
+  "change_in_simulation_modal": {
+    "title": "Results have changed",
+    "description": "Estimated changes for this transaction have been updated. Review them closely before proceeding.",
+    "proceed": "Proceed",
+    "reject": "Reject the transaction"
   }
 }

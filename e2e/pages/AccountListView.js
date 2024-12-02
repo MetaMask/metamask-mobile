@@ -3,9 +3,11 @@ import {
   AccountListViewSelectorsIDs,
   AccountListViewSelectorsText,
 } from '../selectors/AccountListView.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../selectors/Modals/ConnectAccountModal.selectors';
+import { WalletViewSelectorsIDs } from '../selectors/wallet/WalletView.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
+import TestHelpers from '../helpers';
 
 class AccountListView {
   get accountList() {
@@ -16,6 +18,10 @@ class AccountListView {
     return Matchers.getElementByID(
       AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
+  }
+
+  get accountTagLabel() {
+    return Matchers.getElementByID(CellModalSelectorsIDs.TAG_LABEL);
   }
 
   get title() {
@@ -38,7 +44,7 @@ class AccountListView {
 
   get connectAccountsButton() {
     return Matchers.getElementByID(
-      ConnectAccountModalSelectorsIDs.SELECT_MULTI_BUTTON,
+      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
@@ -46,11 +52,33 @@ class AccountListView {
     return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
   }
 
+  getAccountElementByAccountName(accountName) {
+    return Matchers.getElementByIDAndLabel(
+      CellModalSelectorsIDs.BASE_TITLE,
+      accountName,
+    );
+  }
+
   getSelectElement(index) {
     return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
   }
+
   getMultiselectElement(index) {
     return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+  }
+
+  getSelectWithMenuElement(index) {
+    return Matchers.getElementByID(
+      CellModalSelectorsIDs.SELECT_WITH_MENU,
+      index,
+    );
+  }
+
+  async tapEditAccountActionsAtIndex(index) {
+    const accountActionsButton = Matchers.getElementByID(
+      `${WalletViewSelectorsIDs.ACCOUNT_ACTIONS}-${index}`,
+    );
+    await Gestures.waitAndTap(accountActionsButton);
   }
 
   async accountNameInList(accountName) {
@@ -61,7 +89,11 @@ class AccountListView {
   }
 
   async tapToSelectActiveAccountAtIndex(index) {
-    await Gestures.tap(this.getSelectElement(index));
+    await Gestures.tap(this.getSelectWithMenuElement(index));
+  }
+
+  async longPressAccountAtIndex(index) {
+    await Gestures.tapAndLongPress(this.getSelectWithMenuElement(index));
   }
 
   async tapAddAccountButton() {
@@ -74,6 +106,7 @@ class AccountListView {
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);
+    await TestHelpers.delay(2000);
   }
 
   async tapYesToRemoveImportedAccountAlertButton() {
