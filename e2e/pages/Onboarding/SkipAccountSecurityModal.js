@@ -1,4 +1,4 @@
-import { SkipAccountSecurityModalSelectorsIDs } from '../../selectors/Modals/SkipAccountSecurityModal.selectors';
+import { SkipAccountSecurityModalSelectorsIDs } from '../../selectors/Onboarding/SkipAccountSecurityModal.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 

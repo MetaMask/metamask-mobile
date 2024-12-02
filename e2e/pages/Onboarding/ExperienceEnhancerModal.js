@@ -1,4 +1,4 @@
-import { ExperienceEnhancerModalSelectorsIDs } from '../../selectors/Modals/ExperienceEnhancerModal.selectors';
+import { ExperienceEnhancerModalSelectorsIDs } from '../../selectors/Onboarding/ExperienceEnhancerModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
@@ -21,12 +21,8 @@ class ExperienceEnhancerModal {
     );
   }
 
-  async tapIagree() {
+  async tapIAgree() {
     await Gestures.waitAndTap(this.iAgree);
-  }
-
-  async tapNoThanks() {
-    await Gestures.waitAndTap(this.noThanks);
   }
 }
 

@@ -24,7 +24,7 @@ import {
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
-import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
+import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
 
 const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();

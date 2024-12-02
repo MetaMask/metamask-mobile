@@ -8,18 +8,18 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/wallet/WalletView';
-import EnableAutomaticSecurityChecksView from '../../pages/modals/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
 import LoginView from '../../pages/LoginView';
-import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
+import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
+import ExperienceEnhancerModal from '../../pages/Onboarding/ExperienceEnhancerModal';
 
 const PASSWORD = '12345678';
 
@@ -81,7 +81,7 @@ describe(
       await TestHelpers.delay(1000);
       try {
         await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-        await ExperienceEnhancerModal.tapIagree();
+        await ExperienceEnhancerModal.tapIAgree();
       } catch {
         /* eslint-disable no-console */
 
