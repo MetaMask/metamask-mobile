@@ -12,6 +12,9 @@ import {
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+import Routes from '../../../constants/navigation/Routes';
+import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
+import AppConstants from '../../../core/AppConstants';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -110,6 +113,22 @@ describe('AssetOverview', () => {
         chainId: getDecimalChainId(MOCK_CHAIN_ID),
       }),
     );
+  });
+
+  it('should handle receive button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Receive,
+      disableTabber: true,
+      origin: AppConstants.DEEPLINKS.ORIGIN_TOKEN_DETAILS,
+    });
   });
 
   it('should handle send button press', async () => {
