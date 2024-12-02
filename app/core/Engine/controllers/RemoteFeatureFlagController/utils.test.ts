@@ -64,7 +64,7 @@ describe('RemoteFeatureFlagController utils', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('do not call updateRemoteFeatureFlagscontroller when controller is disabled', () => {
+    it('does not call updateRemoteFeatureFlagscontroller when controller is disabled', () => {
       const spy = jest.spyOn(
         RemoteFeatureFlagController.prototype,
         'updateRemoteFeatureFlags',
