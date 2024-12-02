@@ -74,6 +74,7 @@ describe(Regression('Swap from Token view'), () => {
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
+    const sourceTokenSymbol ='ETH', destTokenSymbol = 'DAI'
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
@@ -85,9 +86,9 @@ describe(Regression('Swap from Token view'), () => {
     await QuoteView.enterSwapAmount('.5');
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken('DAI');
+    await QuoteView.typeSearchToken(destTokenSymbol);
     await TestHelpers.delay(1000);
-    await QuoteView.selectToken('DAI');
+    await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);
     await Assertions.checkIfVisible(SwapView.quoteSummary);
@@ -95,7 +96,7 @@ describe(Regression('Swap from Token view'), () => {
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.tapSwapButton();
     //Wait for Swap to complete
-    await SwapView.swapCompleteLabel('ETH', 'DAI');
+    await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
     await device.enableSynchronization();
     await TestHelpers.delay(10000);
     await CommonView.tapBackButton();
@@ -104,7 +105,7 @@ describe(Regression('Swap from Token view'), () => {
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
-      ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+      ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
     await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
 

@@ -82,9 +82,10 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.5'}     | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unapproved'}$ |${'50'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'non-native'}$ |${'5.555'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'wrapped'}$    |${'.2'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
@@ -146,7 +147,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       //Wait for Swap to complete
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
-      await TestHelpers.delay(10000);
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();
