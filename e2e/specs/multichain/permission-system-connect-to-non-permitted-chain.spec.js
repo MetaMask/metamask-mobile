@@ -43,7 +43,6 @@ describe(Regression('Connect to a Test Network'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
-        // TODO 1: connect to test dapp
         await Browser.navigateToTestDApp();
 
         await TabBarComponent.tapWallet();
@@ -78,9 +77,31 @@ describe(Regression('Connect to a Test Network'), () => {
         );
 
         await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
-        // two steps that might come in handy
-        // await Assertions.checkIfVisible(WalletView.container);
-        // const networkPicker = await WalletView.getNavbarNetworkPicker();
+
+        // Verify network permission was added by switching networks
+        await TabBarComponent.tapWallet();
+        await Assertions.checkIfVisible(WalletView.container);
+
+        // Switch to Ethereum
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToTopOfNetworkList();
+        await NetworkListModal.changeNetworkTo(ETHEREUM);
+        await NetworkEducationModal.tapGotItButton();
+
+        // Switch back to Sepolia
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
+        await NetworkListModal.changeNetworkTo(
+          CustomNetworks.Sepolia.providerConfig.nickname,
+        );
+        // await NetworkEducationModal.tapGotItButton();
+
+        // Verify permission was granted by checking browser
+        await TabBarComponent.tapBrowser();
+        // await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(
+          NetworkNonPemittedBottomSheet.addThisNetworkTitle,
+        );
       },
     );
   });
