@@ -49,15 +49,16 @@ const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
 /**
- * Returns full checksummed address
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - String corresponding to full checksummed address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function renderFullAddress(address: string) {
-  return address
-    ? toChecksumAddress(address)
-    : strings('transactions.tx_details_not_available');
+  if (address) {
+    return toFormattedAddress(address);
+  }
+  return strings('transactions.tx_details_not_available');
 }
 
 /**
@@ -69,10 +70,6 @@ export function renderFullAddress(address: string) {
 type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
-
-  if (!isValidAddress(rawAddress)) {
-    return rawAddress;
-  }
 
   if (type && type === 'short') {
     formattedAddress = renderShortAddress(rawAddress);
@@ -86,6 +83,16 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
 };
 
 /**
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ */
+export function toFormattedAddress(address: string) {
+  return isEthAddress(address) ? toChecksumAddress(address) : address;
+}
+
+/**
  * Returns short address format
  *
  * @param {String} address - String corresponding to an address
@@ -95,11 +102,10 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  */
 export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.substr(
-    0,
-    chars + 2,
-  )}...${checksummedAddress.substr(-chars)}`;
+  const formattedAddress = toFormattedAddress(address);
+  return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
+    -chars,
+  )}`;
 }
 
 export function renderSlightlyLongAddress(
@@ -107,11 +113,11 @@ export function renderSlightlyLongAddress(
   chars = 4,
   initialChars = 20,
 ) {
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.slice(
+  const formattedAddress = toFormattedAddress(address);
+  return `${formattedAddress.slice(
     0,
     chars + initialChars,
-  )}...${checksummedAddress.slice(-chars)}`;
+  )}...${formattedAddress.slice(-chars)}`;
 }
 
 /**
@@ -241,6 +247,16 @@ export function isSnapAccount(address: string) {
  */
 export function isExternalHardwareAccount(address: string) {
   return isHardwareAccount(address, [ExtendedKeyringTypes.ledger]);
+}
+
+/**
+ * Checks if an address is an ethereum one.
+ *
+ * @param address - An address.
+ * @returns True if the address is an ethereum one, false otherwise.
+ */
+export function isEthAddress(address: string): boolean {
+  return isValidHexAddress(address as Hex);
 }
 
 /**
