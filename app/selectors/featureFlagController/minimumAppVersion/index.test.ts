@@ -104,7 +104,7 @@ describe('minimumAppVersion Feature flag: appleMinimumOS selector', () => {
     ).toEqual(mockedValue);
   });
 
-  it('returns default value empty feature flag state', () => {
+  it('returns default value when empty feature flag state', () => {
     const { appleMinimumOS: mockedValue } =
       mockedMinimumAppVersion.mobileMinimumVersions;
 
