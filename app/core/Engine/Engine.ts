@@ -62,7 +62,7 @@ import {
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { NotificationParameters } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
+import type { NotificationArgs } from '@metamask/snaps-rpc-methods/dist/restricted/notify.cjs';
 import { getSnapsWebViewPromise } from '../../lib/snaps';
 import {
   buildSnapEndowmentSpecifications,
@@ -109,8 +109,6 @@ import {
   ExcludedSnapPermissions,
   EndowmentPermissions,
   detectSnapLocation,
-  fetchFunction,
-  DetectSnapLocationOptions,
 } from '../Snaps';
 import { getRpcMethodMiddleware } from '../RPCMethods/RPCMethodMiddleware';
 
@@ -165,7 +163,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -415,6 +413,7 @@ export class Engine {
         allowedEvents: [
           'PreferencesController:stateChange',
           'NetworkController:networkDidChange',
+          'NetworkController:stateChange',
           'TokenListController:stateChange',
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
@@ -463,7 +462,6 @@ export class Engine {
     });
 
     const gasFeeController = new GasFeeController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'GasFeeController',
         allowedActions: [
@@ -650,7 +648,7 @@ export class Engine {
           type,
           requestData: { content, placeholder },
         }),
-      showInAppNotification: (origin: string, args: NotificationParameters) => {
+      showInAppNotification: (origin: string, args: NotificationArgs) => {
         Logger.log(
           'Snaps/ showInAppNotification called with args: ',
           args,
@@ -713,7 +711,6 @@ export class Engine {
       includeStakedAssets: isPooledStakingFeatureEnabled(),
     });
     const permissionController = new PermissionController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PermissionController',
         allowedActions: [
@@ -805,7 +802,6 @@ export class Engine {
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     this.subjectMetadataController = new SubjectMetadataController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SubjectMetadataController',
         allowedActions: [`${permissionController.name}:hasPermissions`],
@@ -855,7 +851,6 @@ export class Engine {
     const requireAllowlist = process.env.METAMASK_BUILD_TYPE === 'main';
     const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE === 'main';
     const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     const snapsRegistryMessenger: SnapsRegistryMessenger =
       this.controllerMessenger.getRestricted({
         name: 'SnapsRegistry',
@@ -875,7 +870,6 @@ export class Engine {
     });
 
     this.snapExecutionService = new WebViewExecutionService({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'ExecutionService',
         allowedActions: [],
@@ -927,6 +921,10 @@ export class Engine {
 
     this.snapController = new SnapController({
       environmentEndowmentPermissions: Object.values(EndowmentPermissions),
+      excludedPermissions: {
+        ...ExcludedSnapPermissions,
+        ...ExcludedSnapEndowments,
+      },
       featureFlags: {
         requireAllowlist,
         allowLocalSnaps,
@@ -936,14 +934,7 @@ export class Engine {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messenger: snapControllerMessenger as any,
-      detectSnapLocation: (
-        location: string | URL,
-        options?: DetectSnapLocationOptions,
-      ) =>
-        detectSnapLocation(location, {
-          ...options,
-          fetch: fetchFunction,
-        }),
+      detectSnapLocation,
       //@ts-expect-error types need to be aligned with snaps-controllers
       preinstalledSnaps: PREINSTALLED_SNAPS,
       //@ts-expect-error types need to be aligned between new encryptor and snaps-controllers
@@ -1215,6 +1206,7 @@ export class Engine {
     this.smartTransactionsController = new SmartTransactionsController({
       // @ts-expect-error TODO: resolve types
       supportedChainIds: getAllowedSmartTransactionsChainIds(),
+      clientId: ClientId.Mobile,
       getNonceLock: this.transactionController.getNonceLock.bind(
         this.transactionController,
       ),
@@ -1229,10 +1221,13 @@ export class Engine {
         allowedActions: ['NetworkController:getNetworkClientById'],
         allowedEvents: ['NetworkController:stateChange'],
       }),
-      // @ts-expect-error TODO: Resolve mismatch between smart-transactions-controller and transaction-controller
       getTransactions: this.transactionController.getTransactions.bind(
         this.transactionController,
       ),
+      updateTransaction: this.transactionController.updateTransaction.bind(
+        this.transactionController,
+      ),
+      getFeatureFlags: () => selectSwapsChainFeatureFlags(store.getState()),
       getMetaMetricsProps: () => Promise.resolve({}), // Return MetaMetrics props once we enable HW wallets for smart transactions.
     });
 
@@ -1327,16 +1322,20 @@ export class Engine {
         messenger: this.controllerMessenger.getRestricted({
           name: 'TokenBalancesController',
           allowedActions: [
-            AccountsControllerGetSelectedAccountAction,
-            'AssetsContractController:getERC20BalanceOf',
+            'NetworkController:getNetworkClientById',
+            'NetworkController:getState',
+            'TokensController:getState',
+            'PreferencesController:getState',
+            'AccountsController:getSelectedAccount',
           ],
-          allowedEvents: ['TokensController:stateChange'],
+          allowedEvents: [
+            'TokensController:stateChange',
+            'PreferencesController:stateChange',
+            'NetworkController:stateChange',
+          ],
         }),
+        // TODO: This is long, can we decrease it?
         interval: 180000,
-        tokens: [
-          ...tokensController.state.tokens,
-          ...tokensController.state.detectedTokens,
-        ],
         state: initialState.TokenBalancesController,
       }),
       TokenRatesController: new TokenRatesController({
@@ -1379,7 +1378,6 @@ export class Engine {
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
         ],
-        // @ts-expect-error TODO: Resolve new typing for restricted controller messenger
         messenger: this.controllerMessenger.getRestricted({
           name: 'SwapsController',
           // TODO: allow these internal calls once GasFeeController
@@ -1393,6 +1391,7 @@ export class Engine {
           ],
           allowedEvents: [],
         }),
+        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
@@ -1705,7 +1704,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     SwapsController.setProvider(provider, {
       chainId: NetworkController.getNetworkClientById(
         NetworkController?.state.selectedNetworkClientId,
@@ -1796,8 +1794,13 @@ export class Engine {
           : ethFiat;
 
       if (tokens.length > 0) {
-        const { contractBalances: tokenBalances } =
+        const { tokenBalances: allTokenBalances } =
           TokenBalancesController.state;
+
+        const tokenBalances =
+          allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
+            chainId
+          ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
             const exchangeRate =
@@ -1807,7 +1810,7 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address],
+                    tokenBalances[item.address as Hex],
                     item.decimals,
                   )
                 : undefined);
@@ -1888,19 +1891,20 @@ export class Engine {
       // TODO: Check `allNfts[currentChainId]` property instead
       // @ts-expect-error This property does not exist
       const nfts = backgroundState.NftController.nfts;
-      const tokens = backgroundState.TokensController.tokens;
-      const tokenBalances =
-        backgroundState.TokenBalancesController.contractBalances;
+
+      const { tokenBalances } = backgroundState.TokenBalancesController;
 
       let tokenFound = false;
-      tokens.forEach((token: { address: string | number }) => {
-        if (
-          tokenBalances[token.address] &&
-          !isZero(tokenBalances[token.address])
-        ) {
-          tokenFound = true;
+      tokenLoop: for (const chains of Object.values(tokenBalances)) {
+        for (const tokens of Object.values(chains)) {
+          for (const balance of Object.values(tokens)) {
+            if (!isZero(balance)) {
+              tokenFound = true;
+              break tokenLoop;
+            }
+          }
         }
-      });
+      }
 
       const fiatBalance = this.getTotalFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
