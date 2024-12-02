@@ -12,6 +12,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 
 const fixtureServer = new FixtureServer();
 const ETHEREUM = 'Ethereum Main Network';
@@ -70,38 +71,32 @@ describe(Regression('Connect to a Test Network'), () => {
         );
 
         await TabBarComponent.tapBrowser();
-        // await Assertions.checkIfVisible(Browser.browserScreenID);
-
         await Assertions.checkIfVisible(
           NetworkNonPemittedBottomSheet.addThisNetworkTitle,
         );
-
         await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
-        // Verify network permission was added by switching networks
-        await TabBarComponent.tapWallet();
-        await Assertions.checkIfVisible(WalletView.container);
-
-        // Switch to Ethereum
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToTopOfNetworkList();
-        await NetworkListModal.changeNetworkTo(ETHEREUM);
-        await NetworkEducationModal.tapGotItButton();
-
-        // Switch back to Sepolia
-        await WalletView.tapNetworksButtonOnNavBar();
-        await NetworkListModal.scrollToBottomOfNetworkList();
-        await NetworkListModal.changeNetworkTo(
-          CustomNetworks.Sepolia.providerConfig.nickname,
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await Assertions.checkIfVisible(
+          NetworkNonPemittedBottomSheet.sepoliaNetworkName,
         );
-        // await NetworkEducationModal.tapGotItButton();
 
-        // Verify permission was granted by checking browser
-        await TabBarComponent.tapBrowser();
-        // await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(
-          NetworkNonPemittedBottomSheet.addThisNetworkTitle,
-        );
+        // Check the permission was added
+        // TODO: add isCheckboxChecked to test helpers,
+        // Until then, find a workaround to confirm the perm was indeed added
+        // For example, if we uncheck Sepolia, and mainnet, we expect no networks permissions to be checked, and the disconnect all button should show
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await ConnectedAccountsModal.tapDisconnectNetworksButton();
+        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
+
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
+        await NetworkListModal.swipeToDismissModal();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
   });
