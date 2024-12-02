@@ -159,6 +159,10 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import {
+  RemoteFeatureFlagController,
+  RemoteFeatureFlagControllerState
+} from '@metamask/remote-feature-flag-controller';
 
 /**
  * Controllers that area always instantiated
@@ -292,6 +296,7 @@ export interface Controllers {
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
+  RemoteFeatureFlagController: RemoteFeatureFlagController;
   PPOMController: PPOMController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
@@ -330,6 +335,7 @@ export interface EngineState {
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
+  RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
