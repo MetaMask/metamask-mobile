@@ -23,8 +23,5 @@ class EnableAutomaticSecurityChecksScreen {
   async isVisible() {
     await expect(this.enableAutomaticSecurityChecksScreen).toBeDisplayed();
   }
-  async notVisible() {
-    await expect(this.enableAutomaticSecurityChecksScreen).not.toBeDisplayed();
-  }
 }
 export default new EnableAutomaticSecurityChecksScreen();

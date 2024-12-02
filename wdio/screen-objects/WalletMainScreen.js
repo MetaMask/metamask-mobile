@@ -10,12 +10,6 @@ import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.t
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
 
 class WalletMainScreen {
-  get noThanks() {
-    return Selectors.getElementByPlatform(
-      OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
-    );
-  }
-
   get ImportToken() {
     return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
@@ -80,10 +74,6 @@ class WalletMainScreen {
 
   get networkModal() {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
-  }
-
-  async tapNoThanks() {
-    await Gestures.waitAndTap(this.noThanks);
   }
 
   async tapImportTokensButton() {

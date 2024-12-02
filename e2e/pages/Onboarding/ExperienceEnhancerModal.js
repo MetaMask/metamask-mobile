@@ -15,12 +15,6 @@ class ExperienceEnhancerModal {
     );
   }
 
-  get noThanks() {
-    return Matchers.getElementByID(
-      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
-    );
-  }
-
   async tapIAgree() {
     await Gestures.waitAndTap(this.iAgree);
   }

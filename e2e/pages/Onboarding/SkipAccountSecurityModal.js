@@ -3,11 +3,6 @@ import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
 class SkipAccountSecurityModal {
-  get container() {
-    return Matchers.getElementByID(
-      SkipAccountSecurityModalSelectorsIDs.CONTAINER,
-    );
-  }
   get iUnderstandCheckbox() {
     return device.getPlatform() === 'android'
       ? Matchers.getElementByID(
