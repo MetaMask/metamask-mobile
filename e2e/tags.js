@@ -7,6 +7,7 @@ const tags = {
   SmokeRest: 'SmokeRest',
   smokeAssets: 'smokeAssets',
   smokeNotifications: 'smokeNotifications',
+  SmokeMultiChain: 'SmokeMultiChain',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
