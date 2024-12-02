@@ -31,6 +31,7 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
     await Browser.navigateToTestDApp();
     await TestDApp.tapTypedSignButton();
     await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+    await TestHelpers.delay(1000);
   };
 
   const runTest = async (testSpecificMock, alertAssertion) => {
@@ -73,6 +74,7 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
 
     await runTest(testSpecificMock, async () => {
       try {
+        await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
         await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -100,6 +102,7 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
+      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
       await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
     });
   });
@@ -125,6 +128,7 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
+      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
       await Assertions.checkIfVisible(ConfirmationView.securityAlertResponseFailedBanner);
     });
   });

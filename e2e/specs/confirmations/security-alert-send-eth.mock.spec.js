@@ -34,6 +34,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0');
     await AmountView.tapNextButton();
+    await TestHelpers.delay(1000);
   };
 
   const runTest = async (testSpecificMock, alertAssertion) => {
@@ -60,6 +61,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
     await runTest(testSpecificMock, async () => {
       try {
+        await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
         await Assertions.checkIfNotVisible(
           TransactionConfirmationView.securityAlertBanner,
         );
@@ -88,6 +90,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
+      await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
       await Assertions.checkIfVisible(
         TransactionConfirmationView.securityAlertBanner,
       );
@@ -114,6 +117,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
+      await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
       await Assertions.checkIfVisible(
         TransactionConfirmationView.securityAlertResponseFailedBanner,
       );

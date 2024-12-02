@@ -10,6 +10,12 @@ class ConfirmationView {
     return Matchers.getElementByID(ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER);
   }
 
+  get securityAlertLoader() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_LOADER,
+    );
+  }
+
 }
 
 export default new ConfirmationView();

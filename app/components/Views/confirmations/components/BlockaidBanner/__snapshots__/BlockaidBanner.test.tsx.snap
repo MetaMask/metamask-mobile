@@ -478,6 +478,7 @@ exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] 
       "marginTop": 10,
     }
   }
+  testID="blockaid-banner-loading"
 />
 `;
 

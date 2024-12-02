@@ -106,6 +106,7 @@ const BlockaidBanner = (bannerProps: BlockaidBannerProps) => {
         style={styles.bannerSectionSmall}
         size="small"
         color={theme.colors.warning.default}
+        testID={ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_LOADER}
       />
     );
   }

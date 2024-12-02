@@ -90,6 +90,12 @@ class TransactionConfirmationView {
     );
   }
 
+  get securityAlertLoader() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_LOADER,
+    );
+  }
+
   async tapConfirmButton() {
     await Gestures.waitAndTap(this.confirmButton);
   }
