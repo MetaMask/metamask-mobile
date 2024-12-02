@@ -69,14 +69,6 @@ class EngineService {
         key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
-        name: 'TokenDetectionController',
-        key: `${engine.context.TokenDetectionController.name}:stateChange`,
-      },
-      {
-        name: 'NftDetectionController',
-        key: 'NftDetectionController:stateChange',
-      },
-      {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
