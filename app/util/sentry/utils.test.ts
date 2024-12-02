@@ -192,7 +192,6 @@ describe('captureSentryFeedback', () => {
             pendingApprovalCount: 0,
             pendingApprovals: {},
           },
-          AssetsContractController: {},
           CurrencyRateController: {
             currencyRates: {
               ETH: {
@@ -240,7 +239,6 @@ describe('captureSentryFeedback', () => {
             allNfts: {},
             ignoredNfts: [],
           },
-          NftDetectionController: {},
           PermissionController: undefined,
           PreferencesController: {
             displayNftMedia: true,
