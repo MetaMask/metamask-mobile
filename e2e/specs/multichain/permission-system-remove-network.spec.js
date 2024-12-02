@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeMultiChain } from '../../tags';
+import { SmokeCore } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 
@@ -18,7 +18,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeCore('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
