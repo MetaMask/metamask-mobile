@@ -320,6 +320,10 @@
   "PermissionController": {
     "subjects": {}
   },
+  "RemoteFeatureFlagController": {
+    "cacheTimestamp": 0,
+    "remoteFeatureFlags": {}
+  },
   "SelectedNetworkController": {
     "domains": {}
   },
