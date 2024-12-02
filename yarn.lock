@@ -4903,6 +4903,15 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
+"@metamask/remote-feature-flag-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.0.0.tgz#048162eaa6fa34401cfbabfa0eb33f0255bb2945"
+  integrity sha512-jrjEQhW/RdHQ/GQbgXH97N6YqDUW7nGA40lEr0TUSIhJVVaHDX0gCiNmJZcQ89yLY4DZ0bisEwjrCu8LycYiQQ==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/utils" "^10.0.0"
+    cockatiel "^3.1.2"
+
 "@metamask/rpc-errors@7.0.1", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^6.3.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.1":
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/rpc-errors/-/rpc-errors-7.0.1.tgz#0eb2231a1d5e6bb102df5ac07f365c695bf70055"
