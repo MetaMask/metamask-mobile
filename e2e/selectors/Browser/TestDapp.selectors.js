@@ -10,4 +10,6 @@ export const TestDappSelectorsWebIDs = {
   SIGN_TYPE_DATA_V3: 'signTypedDataV3',
   SIGN_TYPE_DATA_V4: 'signTypedDataV4',
   SIWE: 'siwe',
+  SIGN_MALICIOUS_PERMIT: 'maliciousPermit',
+  TRANSFER_ETH_MALICIOUS: 'maliciousRawEthButton',
 };

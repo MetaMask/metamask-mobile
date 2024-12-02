@@ -36,7 +36,7 @@ export const startMockServer = async (events, port) => {
       console.log(`Response status: ${responseCode}`);
       console.log('Response:', response);
       if (requestBody) {
-        console.log(`POST request body ${requestBody}`);
+        console.log(`POST request body:`, requestBody);
       }
 
       if (method === 'GET') {

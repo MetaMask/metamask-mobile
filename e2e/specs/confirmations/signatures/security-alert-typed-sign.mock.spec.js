@@ -14,7 +14,7 @@ import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 
-describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
+describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -29,24 +29,6 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
     await loginToApp();
     await TabBarComponent.tapBrowser();
     await Browser.navigateToTestDApp();
-    await TestDApp.tapTypedSignButton();
-    await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
-    await TestHelpers.delay(2000);
-  };
-
-  const runTest = async (testSpecificMock, alertAssertion) => {
-    await withFixtures(
-      {
-        dapp: true,
-        fixture: defaultFixture,
-        restartDevice: true,
-        testSpecificMock,
-      },
-      async () => {
-        await navigateToTestDApp();
-        await alertAssertion();
-      },
-    );
   };
 
   const typedSignRequestBody = {
@@ -61,7 +43,7 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
     origin: 'localhost',
   };
 
-  it('should sign typed message', async () => {
+  it('should sign message', async () => {
     const testSpecificMock = {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
@@ -72,14 +54,26 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
       }]
     };
 
-    await runTest(testSpecificMock, async () => {
-      try {
-        await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log('The banner alert is not visible');
-      }
-    });
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToTestDApp();
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await TestHelpers.delay(2000);
+        try {
+          await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('The banner alert is not visible');
+        }
+      },
+    );
   });
 
   it('should show security alert for malicious request', async () => {
@@ -100,10 +94,22 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
       }]
     };
 
-    await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
-      await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
-    });
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToTestDApp();
+        await TestDApp.tapMaliciousPermitSignButton();
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await TestHelpers.delay(2000);
+        await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
+        await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
+      },
+    );
   });
 
   it('should show security alert for error when validating request fails', async () => {
@@ -125,10 +131,21 @@ describe(SmokeConfirmations('Security Alert API - Typed Sign'), () => {
         responseCode: 500
       }]
     };
-
-    await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
-      await Assertions.checkIfVisible(ConfirmationView.securityAlertResponseFailedBanner);
-    });
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToTestDApp();
+        await TestDApp.tapTypedSignButton();
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
+        await TestHelpers.delay(2000);
+        await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
+        await Assertions.checkIfVisible(ConfirmationView.securityAlertResponseFailedBanner);
+      },
+    );
   });
 });

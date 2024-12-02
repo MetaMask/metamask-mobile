@@ -34,7 +34,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0');
     await AmountView.tapNextButton();
-    await TestHelpers.delay(1000);
+    await TestHelpers.delay(2000);
   };
 
   const runTest = async (testSpecificMock, alertAssertion) => {
@@ -58,18 +58,25 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       ],
       POST: [mockEvents.POST.securityAlertApiValidate,]
     };
-
-    await runTest(testSpecificMock, async () => {
-      try {
-        await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
-        await Assertions.checkIfNotVisible(
-          TransactionConfirmationView.securityAlertBanner,
-        );
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.log('The banner alert is not visible');
-      }
-    });
+    await withFixtures(
+      {
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToSendConfirmation();
+        try {
+          await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
+          await Assertions.checkIfNotVisible(
+            TransactionConfirmationView.securityAlertBanner,
+          );
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.log('The banner alert is not visible');
+        }
+      },
+    );
   });
 
   it('should show security alerts for malicious request', async () => {
@@ -89,19 +96,27 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       }]
     };
 
-    await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
-      await Assertions.checkIfVisible(
-        TransactionConfirmationView.securityAlertBanner,
-      );
-    });
+    await withFixtures(
+      {
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToSendConfirmation();
+        await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
+        await Assertions.checkIfVisible(
+          TransactionConfirmationView.securityAlertBanner,
+        );
+      },
+    );
   });
 
   it('should show security alerts for error when validating request fails', async () => {
     const testSpecificMock = {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
-        { 
+        {
           urlEndpoint: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
           responseCode: 500
         }
@@ -115,12 +130,19 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
         responseCode: 500
       }]
     };
-
-    await runTest(testSpecificMock, async () => {
-      await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
-      await Assertions.checkIfVisible(
-        TransactionConfirmationView.securityAlertResponseFailedBanner,
-      );
-    });
+    await withFixtures(
+      {
+        fixture: defaultFixture,
+        restartDevice: true,
+        testSpecificMock,
+      },
+      async () => {
+        await navigateToSendConfirmation();
+        await Assertions.checkIfNotVisible(TransactionConfirmationView.securityAlertLoader);
+        await Assertions.checkIfVisible(
+          TransactionConfirmationView.securityAlertResponseFailedBanner,
+        );
+      },
+    );
   });
 });

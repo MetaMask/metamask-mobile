@@ -72,6 +72,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
+  get signMaliciousPermitButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SIGN_MALICIOUS_PERMIT,
+    );
+  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -105,6 +111,10 @@ class TestDApp {
 
   async tapTypedSignButton() {
     await this.tapButton(this.signTypedDataButton);
+  }
+
+  async tapMaliciousPermitSignButton() {
+    await this.tapButton(this.signMaliciousPermitButton);
   }
 
   async tapTypedV3SignButton() {
