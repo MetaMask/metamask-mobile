@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
+
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -153,6 +154,7 @@ import {
 } from './controllers/accounts/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { createAccountsController } from './controllers/accounts/utils';
+import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -161,6 +163,7 @@ import {
 } from '../../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
@@ -265,6 +268,9 @@ export class Engine {
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
+
+    const isBasicFunctionalityToggleEnabled = () =>
+     selectBasicFunctionalityEnabled(store.getState());
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -494,6 +500,16 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
       EIP1559APIEndpoint:
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
+    });
+
+    const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RemoteFeatureFlagController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      disabled: !isBasicFunctionalityToggleEnabled(),
     });
 
     const phishingController = new PhishingController({
@@ -944,8 +960,7 @@ export class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
       getFeatureFlags: () => ({
-        disableSnaps:
-          store.getState().settings.basicFunctionalityEnabled === false,
+        disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
     });
 
@@ -1146,7 +1161,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1403,6 +1418,7 @@ export class Engine {
       GasFeeController: gasFeeController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
+      RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: new SignatureController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1502,7 +1518,7 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
+          NetworkStatus.Available &&
           networkController.getNetworkClientById(
             networkController?.state.selectedNetworkClientId,
           ).configuration.chainId !== currentChainId
@@ -1527,10 +1543,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${
-              networkController.getNetworkClientById(
-                networkController?.state.selectedNetworkClientId,
-              ).configuration.chainId
+            `Network ID not changed, current chainId: ${networkController.getNetworkClientById(
+              networkController?.state.selectedNetworkClientId,
+            ).configuration.chainId
             }`,
           );
         }
@@ -1732,7 +1747,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountChecksummedAddress
+        selectSelectedInternalAccountChecksummedAddress
         ]
       ) {
         const balanceBN = hexToBN(
@@ -1769,7 +1784,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1780,9 +1795,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2074,6 +2089,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      RemoteFeatureFlagController,
       PPOMController,
       TokenBalancesController,
       TokenRatesController,
@@ -2106,6 +2122,7 @@ export default {
       KeyringController,
       NetworkController,
       PhishingController,
+      RemoteFeatureFlagController,
       PPOMController,
       PreferencesController,
       TokenBalancesController,
