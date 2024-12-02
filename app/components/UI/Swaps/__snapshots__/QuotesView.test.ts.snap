@@ -194,7 +194,9 @@ exports[`QuotesView should render quote screen 1`] = `
                           "width": 5,
                         },
                         {
-                          "backgroundColor": "#3cc29e",
+                          "backgroundColor": "transparent",
+                          "borderColor": "#bbc0c5",
+                          "borderWidth": 1,
                         },
                       ]
                     }
@@ -213,7 +215,7 @@ exports[`QuotesView should render quote screen 1`] = `
                       }
                     }
                   >
-                    Ethereum Main Network
+                    Private Network
                   </Text>
                 </View>
               </TouchableOpacity>

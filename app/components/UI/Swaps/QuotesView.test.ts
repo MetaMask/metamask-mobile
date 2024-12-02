@@ -187,6 +187,26 @@ const mockInitialState: DeepPartial<RootState> = {
           data: '0x123456',
         },
       },
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            EIPS: {
+              1559: true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: [],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [],
+          },
+        },
+      },
     },
   },
   settings: {},
