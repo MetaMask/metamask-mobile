@@ -15,9 +15,7 @@ describe('RemoteFeatureFlagController utils', () => {
   });
 
   describe('createRemoteFeatureFlagController', () => {
-    it('should create controller with correct config when enabled', () => {
-      process.env.METAMASK_ENVIRONMENT = 'production';
-      process.env.METAMASK_BUILD_TYPE = 'main';
+    it('creates controller with initial undefined state', () => {
 
       const controller = createRemoteFeatureFlagController({
         state: undefined,
@@ -34,7 +32,7 @@ describe('RemoteFeatureFlagController utils', () => {
       });
     });
 
-    it('should handle initial state correctly', () => {
+    it('internal state matches initial state', () => {
       const initialState = {
         remoteFeatureFlags: {
           testFlag: true,
@@ -51,7 +49,7 @@ describe('RemoteFeatureFlagController utils', () => {
       expect(controller.state).toStrictEqual(initialState);
     });
 
-    it('should call updateRemoteFeatureFlags when enabled', () => {
+    it('calls updateRemoteFeatureFlags when enabled', () => {
       const spy = jest.spyOn(
         RemoteFeatureFlagController.prototype,
         'updateRemoteFeatureFlags',
@@ -66,9 +64,24 @@ describe('RemoteFeatureFlagController utils', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should not throw when receive corrupted data', () => {
+    it('do not call updateRemoteFeatureFlagscontroller when controller is disabled', () => {
+      const spy = jest.spyOn(
+        RemoteFeatureFlagController.prototype,
+        'updateRemoteFeatureFlags',
+      );
+
+      createRemoteFeatureFlagController({
+        state: undefined,
+        messenger,
+        disabled: true,
+      });
+
+      expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('controller keeps initial extra data into its state', () => {
       const initialState = {
-        corruptedData: true,
+        extraData: true,
       };
 
       const controller = createRemoteFeatureFlagController({
@@ -80,102 +93,8 @@ describe('RemoteFeatureFlagController utils', () => {
 
       expect(controller.state).toStrictEqual({
         cacheTimestamp: 0,
-        corruptedData: true,
+        extraData: true,
         remoteFeatureFlags: {},
-      });
-    });
-
-    describe('environment handling', () => {
-      it('should use Development environment for local', () => {
-        process.env.METAMASK_ENVIRONMENT = 'local';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
-
-      it('should use ReleaseCandidate environment for pre-release', () => {
-        process.env.METAMASK_ENVIRONMENT = 'pre-release';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
-
-      it('should use Production environment for production', () => {
-        process.env.METAMASK_ENVIRONMENT = 'production';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
-
-      it('should default to Development environment for unknown values', () => {
-        process.env.METAMASK_ENVIRONMENT = 'unknown';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
-    });
-
-    describe('build type handling', () => {
-      it('should use Main distribution for main build type', () => {
-        process.env.METAMASK_BUILD_TYPE = 'main';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
-      });
-
-      it('should use Flask distribution for flask build type', () => {
-        process.env.METAMASK_BUILD_TYPE = 'flask';
-        const controller = createRemoteFeatureFlagController({
-          state: undefined,
-          messenger,
-          disabled: false,
-        });
-
-        expect(controller).toBeDefined();
-        expect(controller.state).toStrictEqual({
-          cacheTimestamp: 0,
-          remoteFeatureFlags: {},
-        });
       });
     });
   });
