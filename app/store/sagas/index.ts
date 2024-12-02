@@ -23,9 +23,12 @@ import {
   getFeatureFlagsSuccess,
   getFeatureFlagsError,
   FeatureFlagsState,
-} from '../../../app/core/redux/slices/featureFlags';
+} from '../../core/redux/slices/featureFlags';
 
 import launchDarklyURL from '../../../app/util/featureFlags';
+import { ON_NAVIGATION_READY } from '../../actions/navigation/constants';
+import EngineService from '../../core/EngineService';
+import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -165,8 +168,18 @@ function* fetchFeatureFlags(): Generator {
   }
 }
 
+/**
+ * Handles initializing app services on start up
+ */
+function* initializeAppServices() {
+  yield take(ON_NAVIGATION_READY);
+  EngineService.start();
+  AppStateEventProcessor.start();
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
+  yield fork(initializeAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(fetchFeatureFlags);
