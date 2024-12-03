@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -103,7 +103,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
