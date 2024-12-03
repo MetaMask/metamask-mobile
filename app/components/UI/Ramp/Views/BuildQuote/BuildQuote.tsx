@@ -253,7 +253,7 @@ const BuildQuote = () => {
         },
   );
 
-  let maxSellAmount: BN | null = null;
+  let maxSellAmount = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
     maxSellAmount =
       balanceBN && gasPriceEstimation
