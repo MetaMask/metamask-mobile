@@ -1,21 +1,10 @@
+import { UserAction, UserActionType } from '../../actions/user/types';
 import { AppThemeKey } from '../../util/theme/models';
+import { UserState } from './types';
 
-export interface IUserReducer {
-  loadingMsg: string;
-  loadingSet: boolean;
-  passwordSet: boolean;
-  seedphraseBackedUp: boolean;
-  backUpSeedphraseVisible: boolean;
-  protectWalletModalVisible: boolean;
-  gasEducationCarouselSeen: boolean;
-  userLoggedIn: boolean;
-  isAuthChecked: boolean;
-  initialScreen: string;
-  appTheme: AppThemeKey;
-  ambiguousAddressEntries: Record<string, unknown>;
-}
+export * from './types';
 
-export const userInitialState = {
+export const userInitialState: UserState = {
   loadingMsg: '',
   loadingSet: false,
   passwordSet: false,
@@ -30,83 +19,66 @@ export const userInitialState = {
   ambiguousAddressEntries: {},
 };
 
-// Define action types
-type UserAction =
-  | { type: 'LOGIN' }
-  | { type: 'LOGOUT' }
-  | { type: 'LOADING_SET'; loadingMsg: string }
-  | { type: 'LOADING_UNSET' }
-  | { type: 'PASSWORD_SET' }
-  | { type: 'PASSWORD_UNSET' }
-  | { type: 'SEEDPHRASE_NOT_BACKED_UP' }
-  | { type: 'SEEDPHRASE_BACKED_UP' }
-  | { type: 'BACK_UP_SEEDPHRASE_VISIBLE' }
-  | { type: 'BACK_UP_SEEDPHRASE_NOT_VISIBLE' }
-  | { type: 'PROTECT_MODAL_VISIBLE' }
-  | { type: 'PROTECT_MODAL_NOT_VISIBLE' }
-  | { type: 'SET_GAS_EDUCATION_CAROUSEL_SEEN' }
-  | { type: 'SET_APP_THEME'; payload: { theme: AppThemeKey } };
-
 const userReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
-  state: IUserReducer = userInitialState,
+  state: UserState = userInitialState,
   action: UserAction,
 ) => {
   switch (action.type) {
-    case 'LOGIN':
+    case UserActionType.LOGIN:
       return {
         ...state,
         userLoggedIn: true,
       };
-    case 'LOGOUT':
+    case UserActionType.LOGOUT:
       return {
         ...state,
         userLoggedIn: false,
       };
-    case 'LOADING_SET':
+    case UserActionType.LOADING_SET:
       return {
         ...state,
         loadingSet: true,
         loadingMsg: action.loadingMsg,
       };
-    case 'LOADING_UNSET':
+    case UserActionType.LOADING_UNSET:
       return {
         ...state,
         loadingSet: false,
       };
-    case 'PASSWORD_SET':
+    case UserActionType.PASSWORD_SET:
       return {
         ...state,
         passwordSet: true,
       };
-    case 'PASSWORD_UNSET':
+    case UserActionType.PASSWORD_UNSET:
       return {
         ...state,
         passwordSet: false,
       };
-    case 'SEEDPHRASE_NOT_BACKED_UP':
+    case UserActionType.SEEDPHRASE_NOT_BACKED_UP:
       return {
         ...state,
         seedphraseBackedUp: false,
         backUpSeedphraseVisible: true,
       };
-    case 'SEEDPHRASE_BACKED_UP':
+    case UserActionType.SEEDPHRASE_BACKED_UP:
       return {
         ...state,
         seedphraseBackedUp: true,
         backUpSeedphraseVisible: false,
       };
-    case 'BACK_UP_SEEDPHRASE_VISIBLE':
+    case UserActionType.BACK_UP_SEEDPHRASE_VISIBLE:
       return {
         ...state,
         backUpSeedphraseVisible: true,
       };
-    case 'BACK_UP_SEEDPHRASE_NOT_VISIBLE':
+    case UserActionType.BACK_UP_SEEDPHRASE_NOT_VISIBLE:
       return {
         ...state,
         backUpSeedphraseVisible: false,
       };
-    case 'PROTECT_MODAL_VISIBLE':
+    case UserActionType.PROTECT_MODAL_VISIBLE:
       if (!state.seedphraseBackedUp) {
         return {
           ...state,
@@ -114,17 +86,17 @@ const userReducer = (
         };
       }
       return state;
-    case 'PROTECT_MODAL_NOT_VISIBLE':
+    case UserActionType.PROTECT_MODAL_NOT_VISIBLE:
       return {
         ...state,
         protectWalletModalVisible: false,
       };
-    case 'SET_GAS_EDUCATION_CAROUSEL_SEEN':
+    case UserActionType.SET_GAS_EDUCATION_CAROUSEL_SEEN:
       return {
         ...state,
         gasEducationCarouselSeen: true,
       };
-    case 'SET_APP_THEME':
+    case UserActionType.SET_APP_THEME:
       return {
         ...state,
         appTheme: action.payload.theme,

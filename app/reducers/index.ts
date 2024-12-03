@@ -10,7 +10,7 @@ import settingsReducer from './settings';
 import alertReducer from './alert';
 import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
-import userReducer, { IUserReducer } from './user';
+import userReducer, { UserState } from './user';
 import wizardReducer from './wizard';
 import onboardingReducer from './onboarding';
 import fiatOrders from './fiatOrders';
@@ -80,7 +80,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transaction: any;
-  user: IUserReducer;
+  user: UserState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wizard: any;

@@ -13,6 +13,7 @@ import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import Redux from '../core/redux';
+import { onPersistedDataLoaded } from '../actions/user';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -65,6 +66,8 @@ const createStoreAndPersistor = async () => {
   const onPersistComplete = () => {
     // Set the store in the Redux class
     Redux.store = store;
+    // Signal that persisted data has been loaded
+    store.dispatch(onPersistedDataLoaded());
     endTrace({ name: TraceName.StoreInit });
   };
 
