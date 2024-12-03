@@ -115,7 +115,7 @@ describe('AssetOverview', () => {
     );
   });
 
-  it('should handle receive button press', async () => {
+  it('navigates to "Your QR code" screen on receive button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
