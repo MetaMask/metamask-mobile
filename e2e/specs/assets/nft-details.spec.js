@@ -13,6 +13,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
+import LoginView from '../../pages/LoginView';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -62,6 +63,51 @@ describe(SmokeAssets('NFT Details page'), () => {
         );
         await Assertions.checkIfTextIsDisplayed(
           enContent.nft_details.token_standard,
+        );
+      },
+    );
+  });
+
+  it('show imported NFT after killing app', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withGanacheNetwork()
+          .withPermissionControllerConnectedToTestDapp()
+          .build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
+      },
+      async ({ contractRegistry }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
+          NFT_CONTRACT,
+        );
+
+        await loginToApp();
+
+        await WalletView.tapNftTab();
+        await WalletView.scrollDownOnNFTsTab();
+        // Tap on the add collectibles button
+        await WalletView.tapImportNFTButton();
+        await Assertions.checkIfVisible(ImportNFTView.container);
+        await ImportNFTView.typeInNFTAddress(nftsAddress);
+        await ImportNFTView.typeInNFTIdentifier('1');
+
+        await Assertions.checkIfVisible(WalletView.container);
+        // Wait for asset to load
+        await Assertions.checkIfVisible(
+          WalletView.nftInWallet(TEST_DAPP_CONTRACT),
+        );
+
+        await TestHelpers.relaunchApp();
+        await LoginView.enterPassword('123123123');
+        await Assertions.checkIfVisible(WalletView.container);
+        await WalletView.tapNftTab();
+        // check NFT is there
+        await Assertions.checkIfVisible(
+          WalletView.nftInWallet(TEST_DAPP_CONTRACT),
         );
       },
     );
