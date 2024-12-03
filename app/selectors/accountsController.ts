@@ -48,6 +48,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
+
     if (!account) {
       const err = new Error(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,

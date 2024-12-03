@@ -39,7 +39,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
-  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -51,10 +50,7 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import {
-  selectTokens,
-  selectTokensByChainIdAndAddress,
-} from '../../../selectors/tokensController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
@@ -188,12 +184,6 @@ const Wallet = ({
    * An array that represents the user tokens
    */
   const tokens = useSelector(selectTokens);
-  /**
-   * An array that represents the user tokens by chainId and address
-   */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
   /**
    * Current provider ticker
    */
@@ -502,9 +492,7 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = isPortfolioViewEnabled()
-      ? [...(tokensByChainIdAndAddress || [])]
-      : [...(tokens || [])];
+    const assets = [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);

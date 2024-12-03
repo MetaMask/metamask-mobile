@@ -147,7 +147,38 @@ const initialState = {
             iconUrl: '',
           },
         ],
-        allTokens: mockTokens,
+        allTokens: {
+          '0x1': {
+            [selectedAddress]: [
+              {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                address: '0x0',
+                decimals: 18,
+                isETH: true,
+
+                balanceFiat: '< $0.01',
+                iconUrl: '',
+              },
+              {
+                name: 'Bat',
+                symbol: 'BAT',
+                address: '0x01',
+                decimals: 18,
+                balanceFiat: '$0',
+                iconUrl: '',
+              },
+              {
+                name: 'Link',
+                symbol: 'LINK',
+                address: '0x02',
+                decimals: 18,
+                balanceFiat: '$0',
+                iconUrl: '',
+              },
+            ],
+          },
+        },
         detectedTokens: [],
       },
       TokenRatesController: {

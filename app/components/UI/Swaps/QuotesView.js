@@ -365,11 +365,17 @@ function getTransactionPropertiesFromGasEstimates(gasEstimateType, estimates) {
 }
 
 async function addTokenToAssetsController(newToken) {
-  const { TokensController } = Engine.context;
+  const { TokensController, AccountsController, NetworkController } =
+    Engine.context;
+  const selectedAccount = AccountsController.getSelectedAccount().address;
+  const networkClientId = NetworkController.getSelectedNetworkClient();
+  const chainId =
+    NetworkController.getNetworkClientById(networkClientId).chainId;
+
   if (
     !isSwapsNativeAsset(newToken) &&
-    !TokensController.state.tokens.includes((token) =>
-      toLowerCaseEquals(token.address, newToken.address),
+    !TokensController.state.allTokens[chainId]?.[selectedAccount]?.includes(
+      (token) => toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;

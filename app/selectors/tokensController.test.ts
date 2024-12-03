@@ -20,8 +20,8 @@ describe('TokensController Selectors', () => {
     ignoredTokens: ['0xToken2'],
     detectedTokens: [mockToken],
     allTokens: {
-      '0xAddress1': {
-        '1': [mockToken],
+      '0x1': {
+        '0xAddress1': [mockToken],
       },
     },
     allDetectedTokens: {
@@ -38,6 +38,16 @@ describe('TokensController Selectors', () => {
     engine: {
       backgroundState: {
         TokensController: mockTokensControllerState,
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: '0xAddress1',
+            accounts: {
+              '0xAddress1': {
+                address: '0xAddress1',
+              },
+            },
+          },
+        },
       },
     },
   } as unknown as RootState;
@@ -54,7 +64,22 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
               tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -78,7 +103,22 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
               tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -101,6 +141,21 @@ describe('TokensController Selectors', () => {
             TokensController: {
               ...mockTokensControllerState,
               tokens: [],
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },

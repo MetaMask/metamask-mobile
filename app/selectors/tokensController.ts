@@ -6,16 +6,15 @@ import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectChainId } from './networkController';
 
-const selectTokensControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.TokensController;
+const selectTokensControllerState = (state: RootState) => {
+  console.log(
+    'IM HERE .....',
+    state?.engine?.backgroundState?.TokensController,
+  );
+  return state?.engine?.backgroundState?.TokensController;
+};
 
 export const selectTokens = createDeepEqualSelector(
-  selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.tokens,
-);
-
-export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
   selectChainId,
   selectSelectedInternalAccountAddress,
