@@ -11,12 +11,6 @@ import {
   performSignIn,
 } from '../../../actions/identity';
 
-interface UseCreateSessionReturn {
-  createSession: () => Promise<void>;
-  loading: boolean;
-  error?: string;
-}
-
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
  * profile syncing preference, and participation in MetaMetrics.
@@ -29,7 +23,7 @@ interface UseCreateSessionReturn {
  * - `createSession`: A function to initiate the session creation process.
  * - `error`: The error message, if any.
  */
-function useCreateSession(): UseCreateSessionReturn {
+function useCreateSession() {
   const isSignedIn = useSelector(selectIsSignedIn);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const [loading, setLoading] = useState<boolean>(false);

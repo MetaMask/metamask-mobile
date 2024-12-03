@@ -6,20 +6,13 @@ import {
 } from '../../../actions/identity';
 import { isNotificationsFeatureEnabled } from '../../notifications/constants';
 
-interface UseProfilSyncingReturn {
-  enableProfileSyncing: () => Promise<string | undefined>;
-  disableProfileSyncing: () => Promise<string | undefined>;
-  loading: boolean;
-  error?: string;
-}
-
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
  * and enabling profile syncing via dispatch actions.
  *
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
-export function useProfileSyncing(): UseProfilSyncingReturn {
+export function useProfileSyncing() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 
