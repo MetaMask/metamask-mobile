@@ -11,6 +11,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { BN } from 'ethereumjs-util';
 
@@ -62,6 +63,7 @@ import { formatAmount } from '../../utils';
 import { createQuotesNavDetails } from '../Quotes/Quotes';
 import { QuickAmount, Region, ScreenLocation } from '../../types';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectTicker } from '../../../../../selectors/networkController';
 
 import styleSheet from './BuildQuote.styles';
 import {
@@ -70,6 +72,7 @@ import {
 } from '../../../../../util/number';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
@@ -80,7 +83,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
-import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,6 +130,8 @@ const BuildQuote = () => {
   ] = useModalHandler(false);
   const [isRegionModalVisible, toggleRegionModal, , hideRegionModal] =
     useModalHandler(false);
+
+  const nativeSymbol = useSelector(selectTicker);
 
   /**
    * Grab the current state of the SDK via the context.
@@ -228,6 +232,7 @@ const BuildQuote = () => {
   const { addressBalance } = useAddressBalance(
     assetForBalance as Asset,
     selectedAddress,
+    true,
   );
 
   const { balanceFiat, balanceBN } = useBalance(
@@ -239,10 +244,28 @@ const BuildQuote = () => {
       : undefined,
   );
 
-  const maxSellAmount =
-    balanceBN && gasPriceEstimation
-      ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
-      : null;
+  const { balanceBN: nativeTokenBalanceBN } = useBalance(
+    isBuy || !selectedAsset || selectedAsset.address === NATIVE_ADDRESS
+      ? undefined
+      : {
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+        },
+  );
+
+  let maxSellAmount: BN | null = null;
+  if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    maxSellAmount =
+      balanceBN && gasPriceEstimation
+        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+        : null;
+  } else if (
+    selectedAsset &&
+    selectedAsset.address !== NATIVE_ADDRESS &&
+    balanceBN
+  ) {
+    maxSellAmount = balanceBN;
+  }
 
   const amountIsBelowMinimum = useMemo(
     () => isAmountBelowMinimum(amountNumber),
@@ -272,6 +295,18 @@ const BuildQuote = () => {
     }
     return balanceBN.lt(amountBNMinimalUnit);
   }, [balanceBN, amountBNMinimalUnit]);
+
+  const hasInsufficientNativeBalanceForGas = useMemo(() => {
+    if (isBuy || (selectedAsset && selectedAsset.address === NATIVE_ADDRESS)) {
+      return false;
+    }
+
+    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+      return false;
+    }
+
+    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+  }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const isFetching =
     isFetchingCryptoCurrencies ||
@@ -839,6 +874,16 @@ const BuildQuote = () => {
               <Row>
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
+                </Text>
+              </Row>
+            )}
+            {!hasInsufficientBalance && hasInsufficientNativeBalanceForGas && (
+              <Row>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings(
+                    'fiat_on_ramp_aggregator.insufficient_native_balance',
+                    { currency: nativeSymbol },
+                  )}
                 </Text>
               </Row>
             )}
