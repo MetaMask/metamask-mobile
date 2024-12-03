@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 import TabBarComponent from '../../pages/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -17,7 +17,8 @@ import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 const fixtureServer = new FixtureServer();
-describe(Regression('Connect account to Portfolio'), () => {
+
+describe(SmokeCore('Connect account to Portfolio'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
@@ -52,6 +53,7 @@ describe(Regression('Connect account to Portfolio'), () => {
     }
     await device.disableSynchronization();
     await PortfolioHomePage.tapConnectMetaMask();
+    await TestHelpers.delay(2000);
     await ConnectBottomSheet.tapConnectButton();
     await device.enableSynchronization();
   });

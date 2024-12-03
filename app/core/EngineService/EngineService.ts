@@ -69,14 +69,6 @@ class EngineService {
         key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
-        name: 'TokenDetectionController',
-        key: `${engine.context.TokenDetectionController.name}:stateChange`,
-      },
-      {
-        name: 'NftDetectionController',
-        key: 'NftDetectionController:stateChange',
-      },
-      {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
@@ -95,6 +87,10 @@ class EngineService {
       {
         name: 'PreferencesController',
         key: `${engine.context.PreferencesController.name}:stateChange`,
+      },
+      {
+        name: 'RemoteFeatureFlagController',
+        key: `${engine.context.RemoteFeatureFlagController.name}:stateChange`,
       },
       {
         name: 'SelectedNetworkController',

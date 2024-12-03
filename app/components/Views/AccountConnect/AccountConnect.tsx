@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -63,7 +63,6 @@ import { RootState } from '../../../reducers';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -83,6 +82,8 @@ import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
+import useOriginSource from '../../hooks/useOriginSource';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -97,12 +98,12 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
@@ -142,12 +143,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
-  };
-
-  const isUUID = (str: string) => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(str);
   };
 
   const isChannelId = isUUID(channelIdOrHostname);
@@ -320,20 +315,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
-  const eventSource = useMemo(() => {
-    // walletconnect channelId format: app.name.org
-    // sdk channelId format: uuid
-    // inappbrowser channelId format: app.name.org but origin is set
-    if (isOriginWalletConnect) {
-      return SourceType.WALLET_CONNECT;
-    }
-
-    if (sdkConnection) {
-      return SourceType.SDK;
-    }
-
-    return SourceType.IN_APP_BROWSER;
-  }, [isOriginWalletConnect, sdkConnection]);
+  const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -366,12 +348,16 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        number_of_accounts: accountsLength,
-        source: SourceType.PERMISSION_SYSTEM,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            source: eventSource,
+          })
+          .build(),
+      );
     },
-    [accountsLength, channelIdOrHostname, trackEvent],
+    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder, eventSource],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -444,12 +430,16 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: connectedAccountLength,
-        account_type: getAddressAccountType(activeAddress),
-        source: eventSource,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: connectedAccountLength,
+            account_type: getAddressAccountType(activeAddress),
+            source: eventSource,
+          })
+          .build(),
+      );
       let labelOptions: ToastOptions['labelOptions'] = [];
 
       if (connectedAccountLength >= 1) {
@@ -479,6 +469,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     triggerDappViewedEvent,
     trackEvent,
     faviconSource,
+    createEventBuilder,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -491,7 +482,11 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
       } catch (e) {
         if (e instanceof Error) {
           Logger.error(e, 'error while trying to add a new account');
@@ -500,7 +495,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         setIsLoading(false);
       }
     },
-    [trackEvent],
+    [trackEvent, createEventBuilder],
   );
 
   const handleNetworksSelected = useCallback(
@@ -562,13 +557,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -588,6 +591,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleConnect,
     trackEvent,
     handleUpdateNetworkPermissions,
+    createEventBuilder,
   ]);
 
   const handleSheetDismiss = () => {
