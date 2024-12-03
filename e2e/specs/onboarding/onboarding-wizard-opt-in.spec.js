@@ -19,7 +19,7 @@ import { acceptTermOfUse } from '../../viewHelper';
 import TabBarComponent from '../../pages/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import ExperienceEnhancerModal from '../../pages/Onboarding/ExperienceEnhancerModal';
+import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
 
 const PASSWORD = '12345678';
 
@@ -80,8 +80,8 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-        await ExperienceEnhancerModal.tapIAgree();
+        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await ExperienceEnhancerBottomSheet.tapIAgree();
       } catch {
         /* eslint-disable no-console */
 

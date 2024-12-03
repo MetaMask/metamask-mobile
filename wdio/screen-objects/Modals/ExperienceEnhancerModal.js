@@ -1,5 +1,5 @@
 
-import { ExperienceEnhancerModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors';
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 
@@ -7,13 +7,13 @@ import Gestures from '../../helpers/Gestures';
 class ExperienceEnhancerModal {
   get container() {
     return Selectors.getXpathElementByResourceId(
-      ExperienceEnhancerModalSelectorsIDs.BOTTOM_SHEET,
+      ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );
   }
 
   get noThanks() {
     return Selectors.getXpathElementByResourceId(
-      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
+      ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
