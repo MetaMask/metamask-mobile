@@ -31,7 +31,7 @@ import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
@@ -522,7 +522,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });

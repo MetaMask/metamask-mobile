@@ -1393,7 +1393,7 @@ class Confirm extends PureComponent {
               </Text>
               <Text
                 style={styles.textAmount}
-                testID={TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT}
+                testID={TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT}
               >
                 {transactionValue}
               </Text>

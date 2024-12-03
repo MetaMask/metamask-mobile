@@ -38,7 +38,7 @@ const StakeInputView = () => {
     handleCurrencySwitch,
     currencyToggleValue,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     handleKeypadChange,
     calculateEstimatedAnnualRewards,
     estimatedAnnualRewards,
@@ -174,8 +174,26 @@ const StakeInputView = () => {
       </View>
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={handleAmountPress}
-        onMaxPress={handleMaxButtonPress}
+        onAmountPress={({ value }: { value: number }) =>
+          withMetaMetrics(handleQuickAmountPress, {
+            event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+            properties: {
+              location: 'StakeInputView',
+              amount: value,
+              // onMaxPress is called instead when it's defined and the max is clicked.
+              is_max: false,
+              mode: isEth ? 'native' : 'fiat',
+            },
+          })({ value })
+        }
+        onMaxPress={withMetaMetrics(handleMaxButtonPress, {
+          event: MetaMetricsEvents.STAKE_INPUT_QUICK_AMOUNT_CLICKED,
+          properties: {
+            location: 'StakeInputView',
+            is_max: true,
+            mode: isEth ? 'native' : 'fiat',
+          },
+        })}
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}

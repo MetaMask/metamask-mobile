@@ -38,7 +38,7 @@ import {
   selectChainId,
   selectProviderType,
 } from '../../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
@@ -754,7 +754,7 @@ const mapStateToProps = (state) => ({
   transaction: getNormalizedTxState(state),
   transactions: selectTransactions(state),
   simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkType: selectProviderType(state),
   showCustomNonce: selectShowCustomNonce(state),
   chainId: selectChainId(state),

@@ -6,18 +6,16 @@ import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 import NotificationsService from '../util/notifications/services/NotificationService';
-
-import {
-  NotificationTransactionTypes,
-  ChannelId,
-} from '../util/notifications';
-
+import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
 import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectChainId, selectTicker } from '../selectors/networkController';
 import { store } from '../store';
 import { useSelector } from 'react-redux';
 import { getTicker } from '../../app/util/transactions';
+import { updateTransaction } from '../../app/util/transaction-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -83,8 +81,12 @@ export const constructTitleAndMessage = (notification) => {
       });
       break;
     default:
-      title = notification?.data?.title || strings('notifications.default_message_title');
-      message = notification?.data?.shortDescription || strings('notifications.default_message_description');
+      title =
+        notification?.data?.title ||
+        strings('notifications.default_message_title');
+      message =
+        notification?.data?.shortDescription ||
+        strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -237,8 +239,12 @@ class NotificationManager {
           case 'ERC20': {
             pollPromises.push(
               ...[
-                TokenBalancesController.updateBalancesByChainId({ chainId: transactionMeta.chainId }),
-                TokenDetectionController.detectTokens({ chainIds: [transactionMeta.chainId] }),
+                TokenBalancesController.updateBalancesByChainId({
+                  chainId: transactionMeta.chainId,
+                }),
+                TokenDetectionController.detectTokens({
+                  chainIds: [transactionMeta.chainId],
+                }),
               ],
             );
             break;
@@ -389,6 +395,37 @@ class NotificationManager {
         },
         (transactionMeta) => transactionMeta.id === transaction.id,
       );
+
+    const smartTransactionListener = async (smartTransaction) => {
+      if (smartTransaction.status === SmartTransactionStatuses.PENDING) {
+        return;
+      }
+      Engine.controllerMessenger.unsubscribe(
+        'SmartTransactionsController:smartTransaction',
+        smartTransactionListener,
+      );
+      if (smartTransaction.status !== SmartTransactionStatuses.CANCELLED) {
+        // If the smart transaction is not cancelled, notifications are already handled.
+        return;
+      }
+      const transactions = TransactionController.getTransactions({
+        filterToCurrentNetwork: false,
+      });
+      const foundTransaction = transactions.find(
+        (tx) => tx.id === smartTransaction.transactionId,
+      );
+      this._showNotification({
+        type: 'cancelled',
+        autoHide: true,
+        transaction: { id: foundTransaction?.id },
+        duration: 5000,
+      });
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransaction',
+      smartTransactionListener,
+    );
   }
 
   /**
@@ -420,9 +457,9 @@ class NotificationManager {
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.chainId === chainId &&
             tx.status === 'confirmed' &&
             lastBlock <= parseInt(tx.blockNumber, 10) &&

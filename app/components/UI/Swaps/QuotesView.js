@@ -104,7 +104,7 @@ import {
 } from '../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { resetTransaction, setRecipient } from '../../../actions/transaction';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { SwapsViewSelectors } from '../../../../e2e/selectors/swaps/SwapsView.selectors';
@@ -2385,7 +2385,7 @@ const mapStateToProps = (state) => ({
   networkClientId: selectNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   isInPolling: selectSwapsIsInPolling(state),
