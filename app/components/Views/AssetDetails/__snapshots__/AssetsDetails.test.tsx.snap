@@ -153,7 +153,7 @@ exports[`AssetDetails renders correctly 1`] = `
           }
         }
       >
-        0xAddress
+        0xAddr...ress
       </Text>
       <Text
         allowFontScaling={false}

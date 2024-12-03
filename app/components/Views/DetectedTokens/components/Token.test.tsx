@@ -102,7 +102,7 @@ describe('Token Component', () => {
 
   it('copies address to clipboard and triggers alert', async () => {
     const { getByText } = renderComponent();
-    const copyButton = getByText('0xTokenAddress');
+    const copyButton = getByText('0xToke...ress');
 
     ClipboardManager.setString = jest.fn(() => Promise.resolve());
 

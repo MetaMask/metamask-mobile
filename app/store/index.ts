@@ -87,11 +87,6 @@ const createStoreAndPersistor = async () => {
       basicFunctionalityEnabled:
         store.getState().settings.basicFunctionalityEnabled,
     });
-    // Fetch feature flags only if basic functionality is enabled
-    store.getState().settings.basicFunctionalityEnabled &&
-      store.dispatch({
-        type: 'FETCH_FEATURE_FLAGS',
-      });
 
     EngineService.initalizeEngine(store);
 

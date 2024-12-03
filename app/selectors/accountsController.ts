@@ -1,11 +1,18 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
 import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import {
+  getFormattedAddressFromInternalAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  isBtcAccount,
+  isBtcMainnetAddress,
+  isBtcTestnetAddress,
+  ///: END:ONLY_INCLUDE_IF
+} from '../core/Multichain/utils';
 
 /**
  *
@@ -63,12 +70,12 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 /**
  * A memoized selector that returns the selected internal account address in checksum format
  */
-export const selectSelectedInternalAccountChecksummedAddress = createSelector(
+export const selectSelectedInternalAccountFormattedAddress = createSelector(
   selectSelectedInternalAccount,
-  (account) => {
-    const selectedAddress = account?.address;
-    return selectedAddress ? toChecksumHexAddress(selectedAddress) : undefined;
-  },
+  (account) =>
+    account?.address
+      ? getFormattedAddressFromInternalAccount(account)
+      : undefined,
 );
 
 /**
@@ -90,3 +97,25 @@ export const selectCanSignTransactions = createSelector(
   (selectedAccount) =>
     selectedAccount?.methods?.includes(EthMethod.SignTransaction) ?? false,
 );
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+/**
+ * A selector that returns whether the user has already created a Bitcoin mainnet account
+ */
+export function hasCreatedBtcMainnetAccount(state: RootState): boolean {
+  const accounts = selectInternalAccounts(state);
+  return accounts.some(
+    (account) => isBtcAccount(account) && isBtcMainnetAddress(account.address),
+  );
+}
+
+/**
+ * A selector that returns whether the user has already created a Bitcoin testnet account
+ */
+export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
+  const accounts = selectInternalAccounts(state);
+  return accounts.some(
+    (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
+  );
+}
+///: END:ONLY_INCLUDE_IF

@@ -21,7 +21,9 @@ jest.mock('../../store', () => ({
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
-
+jest.mock('../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
+}));
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
@@ -37,6 +39,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
+    expect(engine.context).toHaveProperty('RemoteFeatureFlagController');
     expect(engine.context).toHaveProperty('SignatureController');
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');
