@@ -1,6 +1,6 @@
 'use strict';
 
-import { Regression } from '../../tags.js';
+import { SmokeAccounts } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
 import { loginToApp } from '../../viewHelper.js';
 import TabBarComponent from '../../pages/TabBarComponent.js';
@@ -30,7 +30,7 @@ const INCORRECT_PASSWORD = 'wrongpassword';
 const QUIZ_QUESTION_1 = 1;
 const QUIZ_QUESTION_2 = 2;
 
-describe(Regression('Secret Recovery Phrase Reveal from Settings'), () => {
+describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withDefaultFixture().build();

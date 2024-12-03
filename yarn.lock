@@ -4563,25 +4563,6 @@
     bech32 "^2.0.0"
     uuid "^9.0.1"
 
-"@metamask/keyring-controller@^17.2.2":
-  version "17.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.3.1.tgz#1a498dd165df5b908761e62fc9e194b8a4f9a074"
-  integrity sha512-+R4tD0KtXjjAts5xOo+CKETPQVa+RJDC98L2qU2iGHyFKN05gFYt4M8HMcK4gq2GhGxm+0r6SYOUw2jK/wjD5g==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^7.0.2"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^7.0.4"
-    "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/eth-simple-keyring" "^6.0.5"
-    "@metamask/keyring-api" "^8.1.3"
-    "@metamask/message-manager" "^11.0.1"
-    "@metamask/utils" "^10.0.0"
-    async-mutex "^0.5.0"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-
 "@metamask/keyring-controller@^18.0.0":
   version "18.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-18.0.0.tgz#48d5a441cd798cef840c5bf6334d53b6e37dc938"
@@ -4662,6 +4643,29 @@
     "@metamask/rpc-errors" "^7.0.0"
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^9.1.0"
+    async-mutex "^0.5.0"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    reselect "^5.1.1"
+    uri-js "^4.4.1"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^22.0.2":
+  version "22.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.0.2.tgz#d6f5464d26bc9b68731cc5c7ec32845f63d1fcf0"
+  integrity sha512-DfcDdmtVRp7TrtbvaSFX+98jE/KSorhTy/znWOpe1zt60q6v3+SVttT2LJlZpvpk0hyiDPNBO4lmk3AOovR2/w==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/eth-block-tracker" "^11.0.2"
+    "@metamask/eth-json-rpc-infura" "^10.0.0"
+    "@metamask/eth-json-rpc-middleware" "^15.0.0"
+    "@metamask/eth-json-rpc-provider" "^4.1.6"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/swappable-obj-proxy" "^2.2.0"
+    "@metamask/utils" "^10.0.0"
     async-mutex "^0.5.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
@@ -4815,14 +4819,15 @@
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.3"
 
-"@metamask/profile-sync-controller@^0.9.7":
-  version "0.9.7"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.9.7.tgz#d5e78cb8004f0dcb8637410bb8b54911e8f2c0a7"
-  integrity sha512-1R4P1/9VdGEHGPb68gc2oNM9/95xc84hNqIlZDL/OISSRgvW3wJguXwEVLfW6GE91gHmzHtMe4MxDM3pXQWc9w==
+"@metamask/profile-sync-controller@^1.0.0":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-1.0.2.tgz#877a04cdcda2441bd30ac996581f520b4b4f3c53"
+  integrity sha512-mFZtnmMR040QxnZx8U7hs/UVToBZxPxJCB+QWnUkkSUZ/rk2Yq1nWepxJEgxxrdyb4goHGzFGFUId+Fr0ezBjg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
+    "@metamask/base-controller" "^7.0.2"
     "@metamask/keyring-api" "^8.1.3"
-    "@metamask/keyring-controller" "^17.2.2"
+    "@metamask/keyring-controller" "^18.0.0"
+    "@metamask/network-controller" "^22.0.2"
     "@metamask/snaps-sdk" "^6.5.0"
     "@metamask/snaps-utils" "^8.1.1"
     "@noble/ciphers" "^0.5.2"
