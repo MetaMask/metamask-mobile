@@ -42,7 +42,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
       ],
-      // POST: [mockEvents.POST.securityAlertApiValidate,]
+      POST: [mockEvents.POST.securityAlertApiValidate,]
     };
     await withFixtures(
       {
@@ -72,13 +72,13 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       ],
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
-        response: {
+        response: JSON.stringify({
           block: 20733277,
           result_type: 'Malicious',
           reason: 'transfer_farming',
           description: '',
           features: ['Interaction with a known malicious address'],
-        },
+        }),
       }]
     };
 
@@ -109,10 +109,10 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
       ],
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
-        response: {
+        response: JSON.stringify({
           error: 'Internal Server Error',
           message: 'An unexpected error occurred on the server.'
-        },
+        }),
         responseCode: 500
       }]
     };

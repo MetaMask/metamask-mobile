@@ -32,14 +32,15 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   };
 
   const typedSignRequestBody = {
+    jsonrpc: '2.0',
     method: 'eth_signTypedData',
-    params: [
-      [
-        { type: 'string', name: 'Message', value: 'Hi, Alice!' },
-        { type: 'uint32', name: 'A number', value: '1337' }
-      ],
-      '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3'
-    ],
+    // params: [
+    //   [
+    //     { type: 'string', name: 'Message', value: 'Hi, Alice!' },
+    //     { type: 'uint32', name: 'A number', value: '1337' }
+    //   ],
+    //   '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3'
+    // ],
     origin: 'localhost',
   };
 
@@ -48,10 +49,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
       ],
-      // POST: [{
-      //   ...mockEvents.POST.securityAlertApiValidate,
-      //   requestBody: typedSignRequestBody,
-      // }]
+      POST: [{
+        ...mockEvents.POST.securityAlertApiValidate,
+        requestBody: typedSignRequestBody,
+      }]
     };
 
     await withFixtures(
@@ -65,7 +66,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
         await navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
-        await TestHelpers.delay(2000);
         try {
           await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
         } catch (e) {
@@ -84,13 +84,13 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
         requestBody: typedSignRequestBody,
-        response: {
+        response: JSON.stringify({
           block: 20733277,
           result_type: 'Malicious',
           reason: 'malicious_domain',
           description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
           features: [],
-        },
+        }),
       }]
     };
 
@@ -105,7 +105,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
         await navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
-        await TestHelpers.delay(2000);
         await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
         await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
       },
@@ -124,10 +123,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
         requestBody: typedSignRequestBody,
-        response: {
+        response: JSON.stringify({
           error: 'Internal Server Error',
           message: 'An unexpected error occurred on the server.'
-        },
+        }),
         responseCode: 500
       }]
     };
@@ -142,7 +141,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
         await navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
-        await TestHelpers.delay(2000);
         await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);
         await Assertions.checkIfVisible(ConfirmationView.securityAlertResponseFailedBanner);
       },
