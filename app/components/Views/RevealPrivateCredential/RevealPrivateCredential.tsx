@@ -59,7 +59,7 @@ import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
@@ -105,7 +105,7 @@ const RevealPrivateCredential = ({
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
   const checkSummedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
 
   // TODO: Replace "any" with type
