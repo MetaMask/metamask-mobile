@@ -15,6 +15,7 @@ export const startMockServer = async (events, port) => {
   port = port || (await portfinder.getPortPromise());
 
   await mockServer.start(port);
+  await mockServer.enableDebug();
   console.log(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
@@ -55,6 +56,26 @@ export const startMockServer = async (events, port) => {
       }
     }
   }
+
+  // Log unmatched POST requests that contain urlEndpoint
+  mockServer.on('request', async (req) => {
+    if (req.method === 'POST') {
+      const body = await req.body.getJson();
+      const url = new URL(req.url).searchParams.get('url') || req.url;
+
+      // Check if the URL contains any of the urlEndpoints
+      for (const method in events) {
+        const methodEvents = events[method];
+        for (const { urlEndpoint } of methodEvents) {
+          if (url.includes(urlEndpoint)) {
+            console.log(`Unmatched POST request to >>>> ${url}`);
+            console.log(`Request body >>>>`, body);
+            break;
+          }
+        }
+      }
+    }
+  });
 
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method }) => {

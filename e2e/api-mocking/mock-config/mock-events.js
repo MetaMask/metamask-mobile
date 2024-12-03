@@ -78,13 +78,13 @@ export const mockEvents = {
 
     securityAlertApiValidate: {
       urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
-      response: JSON.stringify({
+      response: {
         block: 20733513,
         result_type: 'Benign',
         reason: '',
         description: '',
         features: [],
-      }),
+      },
       requestBody: {
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',

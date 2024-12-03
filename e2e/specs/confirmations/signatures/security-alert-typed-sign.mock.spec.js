@@ -84,13 +84,13 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
         requestBody: typedSignRequestBody,
-        response: JSON.stringify({
+        response:{
           block: 20733277,
           result_type: 'Malicious',
           reason: 'malicious_domain',
           description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
           features: [],
-        }),
+        },
       }]
     };
 
@@ -123,10 +123,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
         requestBody: typedSignRequestBody,
-        response: JSON.stringify({
+        response:{
           error: 'Internal Server Error',
           message: 'An unexpected error occurred on the server.'
-        }),
+        },
         responseCode: 500
       }]
     };
