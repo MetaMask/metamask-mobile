@@ -4,22 +4,22 @@ import { createUpdateNeededNavDetails } from '../../UI/UpdateNeeded/UpdateNeeded
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InteractionManager } from 'react-native';
-import { FeatureFlagsState } from '../../../core/redux/slices/featureFlags';
-import { SecurityState } from '../../../../app/reducers/security';
-import { RootState } from '../../../../app/reducers';
+import { SecurityState } from '../../../reducers/security';
+import { RootState } from '../../../reducers';
+import { selectAppMinimumBuild } from '../../../selectors/featureFlagController/minimumAppVersion';
 
 const useMinimumVersions = () => {
   const { automaticSecurityChecksEnabled }: SecurityState = useSelector(
     (state: RootState) => state.security,
   );
-  const { featureFlags }: FeatureFlagsState = useSelector(
-    (state: RootState) => state.featureFlags,
+
+  const appMinimumBuild = useSelector((state: RootState) =>
+    selectAppMinimumBuild(state),
   );
   const currentBuildNumber = Number(getBuildNumber());
   const navigation = useNavigation();
   const shouldTriggerUpdateFlow =
-    automaticSecurityChecksEnabled &&
-    featureFlags?.mobileMinimumVersions?.appMinimumBuild > currentBuildNumber;
+    automaticSecurityChecksEnabled && appMinimumBuild > currentBuildNumber;
 
   useEffect(() => {
     if (shouldTriggerUpdateFlow) {
