@@ -12,7 +12,7 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
-import Redux from '../core/redux';
+import ReduxService from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 
 // TODO: Improve type safety by using real Action types instead of `any`
@@ -58,7 +58,7 @@ const createStoreAndPersistor = async () => {
     preloadedState: initialState,
   });
   // Set the store in the Redux class
-  Redux.store = store;
+  ReduxService.store = store;
 
   sagaMiddleware.run(rootSaga);
 
@@ -66,9 +66,9 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+    endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
-    endTrace({ name: TraceName.StoreInit });
   };
 
   persistor = persistStore(store, null, onPersistComplete);
