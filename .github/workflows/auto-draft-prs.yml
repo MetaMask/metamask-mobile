@@ -1,0 +1,39 @@
+name: Auto Draft
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+    - main
+
+permissions:
+    pull-requests: write
+    contents: read
+    issues: write
+
+jobs:
+  process_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert PR to Draft and Add Label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            // Convert PR to draft
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              draft: true
+            });
+
+            // Check if the PR title includes "docs:" or if it's from a fork
+            if (context.payload.pull_request.title.includes('docs:') || context.payload.pull_request.head.repo.fork) {
+              // Add label "No E2E Smoke Needed"
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                labels: ['No E2E Smoke Needed']
+              });
+            }
