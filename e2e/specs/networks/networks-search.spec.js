@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -12,7 +12,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 const SHORT_HAND_NETWORK_TEXT = 'Ava';
 const INVALID_NETWORK_TEXT = 'cccM';
-describe(Regression('Networks Search'), () => {
+describe(SmokeCore('Networks Search'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
