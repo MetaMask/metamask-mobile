@@ -2,9 +2,9 @@ import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
 import { OnboardingWizardModalSelectorsIDs } from '../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
 import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Modals/ProtectWalletModal.selectors';
-import { AccountActionsModalSelectorsIDs } from '../../e2e/selectors/Modals/AccountActionsModal.selectors';
-import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
-import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
+import { ToastSelectorsIDs } from '../../e2e/selectors/wallet/ToastModal.selectors';
+import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
@@ -25,7 +25,7 @@ class WalletMainScreen {
   }
 
   get TokenNotificationTitle() {
-    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
+    return Selectors.getElementByPlatform(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
   get accountIcon() {
@@ -59,15 +59,15 @@ class WalletMainScreen {
   }
 
   get privateKeyActionButton() {
-    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY);
+    return Selectors.getElementByPlatform(AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY);
   }
 
   get shareAddressActionButton() {
-    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.SHARE_ADDRESS);
+    return Selectors.getElementByPlatform(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS);
   }
 
   get viewEtherscanActionButton() {
-    return Selectors.getElementByPlatform(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN);
+    return Selectors.getElementByPlatform(AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN);
   }
 
   get walletButton() {

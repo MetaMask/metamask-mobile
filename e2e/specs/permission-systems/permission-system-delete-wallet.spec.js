@@ -7,11 +7,11 @@ import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import WalletView from '../../pages/wallet/WalletView';
 import Browser from '../../pages/Browser/BrowserView';
 import SettingsView from '../../pages/Settings/SettingsView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import DeleteWalletModal from '../../pages/Settings/SecurityAndPrivacy/DeleteWalletModal';
-import LoginView from '../../pages/LoginView';
+import LoginView from '../../pages/wallet/LoginView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -20,7 +20,7 @@ import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
-import ToastModal from '../../pages/modals/ToastModal';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 const PASSWORD = '12345678';
 

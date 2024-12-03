@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
-import ToastModal from '../../pages/modals/ToastModal';
+import ToastModal from '../../pages/wallet/ToastModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { loginToApp } from '../../viewHelper';

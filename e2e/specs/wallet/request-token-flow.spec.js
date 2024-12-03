@@ -4,8 +4,8 @@ import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
 import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
 import {
@@ -47,7 +47,7 @@ describe(SmokeCore('Request Token Flow with Unprotected Wallet'), () => {
     await loginToApp();
     await Assertions.checkIfVisible(WalletView.container);
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapReceiveButton();
+    await WalletActionsBottomSheet.tapReceiveButton();
     await RequestPaymentModal.tapRequestPaymentButton();
     await Assertions.checkIfVisible(RequestPaymentView.requestPaymentContainer);
   });

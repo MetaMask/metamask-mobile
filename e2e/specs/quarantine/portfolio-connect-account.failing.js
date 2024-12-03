@@ -1,6 +1,6 @@
 'use strict';
 import { Regression } from '../../tags';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import {
   loadFixture,

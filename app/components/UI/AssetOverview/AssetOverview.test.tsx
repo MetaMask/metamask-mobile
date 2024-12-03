@@ -11,7 +11,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { getDecimalChainId } from '../../../util/networks';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 
 const MOCK_CHAIN_ID = '0x1';
 

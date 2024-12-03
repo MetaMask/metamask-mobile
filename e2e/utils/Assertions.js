@@ -10,7 +10,7 @@ const TIMEOUT = 15000;
 class Assertions {
   /**
    * Check if an element with the specified ID is visible.
-   * @param {Promise<Detox.IndexableNativeElement>} elementId - The ID of the element to check.
+   * @param {Promise<Detox.IndexableNativeElement | Detox.NativeElement>} elementId - The ID of the element to check.
    * @param timeout
    */
   static async checkIfVisible(elementId, timeout = TIMEOUT) {

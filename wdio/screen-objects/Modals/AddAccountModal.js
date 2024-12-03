@@ -1,17 +1,14 @@
 import Selectors from '../../helpers/Selectors';
-import {
-  ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON,
-  ADD_ACCOUNT_NEW_ACCOUNT_BUTTON,
-} from '../testIDs/Components/AddAccountModal.testIds';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
 
 class AddAccountModal {
   get newAccountButton() {
-    return Selectors.getXpathElementByResourceId(ADD_ACCOUNT_NEW_ACCOUNT_BUTTON);
+    return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
   }
 
   get importAccountButton() {
-    return Selectors.getXpathElementByResourceId(ADD_ACCOUNT_IMPORT_ACCOUNT_BUTTON);
+    return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
   }
 
   async tapNewAccountButton() {
