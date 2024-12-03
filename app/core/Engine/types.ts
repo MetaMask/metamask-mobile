@@ -163,8 +163,12 @@ import { ComposableControllerEvents } from '@metamask/composable-controller';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
-  RemoteFeatureFlagControllerState
+  RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
+import {
+  RemoteFeatureFlagControllerActions,
+  RemoteFeatureFlagControllerEvents,
+} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -233,7 +237,8 @@ type GlobalActions =
   | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerActions;
+  | AssetsContractControllerActions
+  | RemoteFeatureFlagControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -266,7 +271,8 @@ type GlobalEvents =
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
-  | AssetsContractControllerEvents;
+  | AssetsContractControllerEvents
+  | RemoteFeatureFlagControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {

@@ -23,6 +23,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PhishingController:stateChange',
   'PPOMController:stateChange',
   'PreferencesController:stateChange',
+  'RemoteFeatureFlagController:stateChange',
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
