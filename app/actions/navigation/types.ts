@@ -1,3 +1,5 @@
+import { Action } from 'redux';
+
 /**
  * Navigation action type enum
  */
@@ -7,16 +9,23 @@ export enum NavigationActionType {
   SET_CURRENT_BOTTOM_NAV_ROUTE = 'SET_CURRENT_BOTTOM_NAV_ROUTE',
 }
 
+export type OnNavigationReadyAction =
+  Action<NavigationActionType.ON_NAVIGATION_READY>;
+
+export type SetCurrentRouteAction =
+  Action<NavigationActionType.SET_CURRENT_ROUTE> & {
+    payload: { route: string };
+  };
+
+export type SetCurrentBottomNavRouteAction =
+  Action<NavigationActionType.SET_CURRENT_BOTTOM_NAV_ROUTE> & {
+    payload: { route: string };
+  };
+
 /**
  * Navigation action
  */
 export type NavigationAction =
-  | { type: NavigationActionType.ON_NAVIGATION_READY }
-  | {
-      type: NavigationActionType.SET_CURRENT_ROUTE;
-      payload: { route: string };
-    }
-  | {
-      type: NavigationActionType.SET_CURRENT_BOTTOM_NAV_ROUTE;
-      payload: { route: string };
-    };
+  | OnNavigationReadyAction
+  | SetCurrentRouteAction
+  | SetCurrentBottomNavRouteAction;

@@ -1,26 +1,28 @@
 /* eslint-disable import/prefer-default-export */
-import { NavigationActionType, NavigationAction } from './types';
+import { NavigationActionType } from './types';
+import type {
+  OnNavigationReadyAction,
+  SetCurrentRouteAction,
+  SetCurrentBottomNavRouteAction,
+} from './types';
 
 export * from './types';
 
-/**
- * Action creators
- */
-export const setCurrentRoute = (route: string): NavigationAction => ({
+export const setCurrentRoute = (route: string): SetCurrentRouteAction => ({
   type: NavigationActionType.SET_CURRENT_ROUTE,
   payload: { route },
 });
 
-export const setCurrentBottomNavRoute = (route: string): NavigationAction => ({
+export const setCurrentBottomNavRoute = (
+  route: string,
+): SetCurrentBottomNavRouteAction => ({
   type: NavigationActionType.SET_CURRENT_BOTTOM_NAV_ROUTE,
   payload: { route },
 });
 
 /**
  * Action that is called when navigation is ready
- *
- * @returns - On navigation ready action
  */
-export const setOnNavigationReady = (): NavigationAction => ({
+export const onNavigationReady = (): OnNavigationReadyAction => ({
   type: NavigationActionType.ON_NAVIGATION_READY,
 });

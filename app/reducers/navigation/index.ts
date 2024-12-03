@@ -18,7 +18,10 @@ const initialState: NavigationState = {
  */
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const navigationReducer = (state = initialState, action: any = {}) => {
+const navigationReducer = (
+  state = initialState,
+  action: any = {},
+): NavigationState => {
   switch (action.type) {
     case NavigationActionType.SET_CURRENT_ROUTE:
       return {
