@@ -125,7 +125,7 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
+export const SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
   NETWORKS_CHAIN_ID.BASE,
@@ -594,3 +594,6 @@ export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
+export const isPortfolioViewEnabledFunction = () =>
+  process.env.PORTFOLIO_VIEW === 'true';
