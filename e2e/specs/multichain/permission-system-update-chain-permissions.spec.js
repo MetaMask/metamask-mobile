@@ -16,7 +16,7 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('should update chain permissions by switching between test networks', async () => {
+  it('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
     await withFixtures(
       {
         dapp: true,
