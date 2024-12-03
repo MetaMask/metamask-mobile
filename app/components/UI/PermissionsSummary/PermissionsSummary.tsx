@@ -45,6 +45,8 @@ import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selector
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -176,13 +178,9 @@ const PermissionsSummary = ({
   }
 
   const renderEndAccessory = () => (
-    <View>
+    <View testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}>
       {isAlreadyConnected ? (
-        <Icon
-          size={IconSize.Md}
-          name={IconName.ArrowRight}
-          testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        />
+        <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       ) : (
         <View style={styles.editTextContainer}>
           <TextComponent
@@ -274,7 +272,7 @@ const PermissionsSummary = ({
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
-        <View style={styles.accountPermissionRequestInfoCard}>
+        <View style={styles.accountPermissionRequestInfoCard} testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}>
           <Avatar
             variant={AvatarVariant.Icon}
             style={styles.walletIcon}
@@ -324,7 +322,12 @@ const PermissionsSummary = ({
 
   function renderNetworkPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditNetworksButtonPress}>
+      <TouchableOpacity
+        onPress={handleEditNetworksButtonPress}
+        testID={
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
+        }
+      >
         <View style={styles.networkPermissionRequestInfoCard}>
           <Avatar
             style={styles.dataIcon}
@@ -405,7 +408,7 @@ const PermissionsSummary = ({
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
-          <View style={styles.title}>
+          <View style={styles.title} testID={PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER}>
             <TextComponent variant={TextVariant.HeadingSM}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -434,6 +437,9 @@ const PermissionsSummary = ({
             <View style={styles.disconnectAllContainer}>
               <Button
                 variant={ButtonVariants.Secondary}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
+                }
                 label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
                 startIconName={IconName.Logout}

@@ -201,7 +201,7 @@
     "privacyMode": false
   },
   "TokenBalancesController": {
-    "contractBalances": {}
+    "tokenBalances": {}
   },
   "TokenRatesController": {
     "marketData": {}
@@ -244,6 +244,11 @@
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
+  },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -314,6 +319,10 @@
   },
   "PermissionController": {
     "subjects": {}
+  },
+  "RemoteFeatureFlagController": {
+    "cacheTimestamp": 0,
+    "remoteFeatureFlags": {}
   },
   "SelectedNetworkController": {
     "domains": {}

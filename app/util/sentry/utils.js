@@ -41,7 +41,6 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      AssetsContractController: {},
       CurrencyRateController: {
         currencyRates: true,
         currentCurrency: true,
@@ -136,9 +135,6 @@ export const sentryStateMask = {
           swapsStxMaxFeeMultiplier: true,
           swapsUserFeeLevel: true,
         },
-      },
-      TokenDetectionController: {
-        [AllProperties]: false,
       },
       TokenListController: {
         preventPollingOnNetworkRestart: true,
