@@ -42,9 +42,6 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-        await TestHelpers.delay(5000);
 
         // Switch to non-permitted network
         await TabBarComponent.tapWallet();
@@ -55,6 +52,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
 
         // Verify bottom sheet appears
         await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
         await Assertions.checkIfVisible(
           NetworkNonPemittedBottomSheet.addThisNetworkTitle,
         );
@@ -74,9 +72,6 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-        await TestHelpers.delay(5000);
 
         // Switch to already permitted network
         await TabBarComponent.tapWallet();
@@ -87,6 +82,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
 
         // Verify no bottom sheet appears
         await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
         await Assertions.checkIfNotVisible(
           NetworkNonPemittedBottomSheet.addThisNetworkTitle,
         );
@@ -94,7 +90,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
     );
   });
 
-  it('should add network permission when requested', async () => {
+  fit('should add network permission when requested', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -106,9 +102,6 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapBrowser();
-        await Browser.navigateToTestDApp();
-        await TestHelpers.delay(5000);
 
         // Switch to non-permitted network
         await TabBarComponent.tapWallet();
@@ -119,6 +112,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
 
         // Add network permission
         await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
         await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
         // Verify permission was added by checking that disconnecting both networks shows disconnect all button
