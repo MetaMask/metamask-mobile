@@ -884,6 +884,7 @@ const App = (props) => {
    * Triggers when the navigation is ready
    */
   const onNavigationReady = () => dispatch(setOnNavigationReady());
+
   return supressRender ? null : (
     <>
       {
