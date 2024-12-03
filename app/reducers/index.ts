@@ -19,7 +19,7 @@ import signatureRequestReducer from './signatureRequest';
 import notificationReducer from './notification';
 import infuraAvailabilityReducer from './infuraAvailability';
 import collectiblesReducer from './collectibles';
-import navigationReducer from './navigation';
+import navigationReducer, { NavigationState } from './navigation';
 import networkOnboardReducer from './networkSelector';
 import securityReducer, { SecurityState } from './security';
 import { combineReducers, Reducer } from 'redux';
@@ -100,7 +100,7 @@ export interface RootState {
   // The navigation reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  navigation: any;
+  navigation: NavigationState;
   // The networkOnboarded reducer is TypeScript but not yet a valid reducer
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
