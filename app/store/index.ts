@@ -1,4 +1,4 @@
-import { Store } from 'redux';
+import { AnyAction } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
@@ -16,17 +16,18 @@ import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore';
 
 // TODO: Improve type safety by using real Action types instead of `any`
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
+const pReducer = persistReducer<RootState, AnyAction>(
+  persistConfig,
+  rootReducer,
+);
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
-let store: Store<RootState, any>, persistor;
+// eslint-disable-next-line import/no-mutable-exports
+let store: ReduxStore, persistor;
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
@@ -104,3 +105,11 @@ const createStoreAndPersistor = async () => {
 })();
 
 export { store, persistor };
+
+export type ReduxState = ReturnType<typeof pReducer>;
+
+export type ReduxStore = ToolkitStore<
+  ReduxState,
+  AnyAction,
+  [ReturnType<typeof createSagaMiddleware<typeof rootSaga>>, typeof thunk]
+>;
