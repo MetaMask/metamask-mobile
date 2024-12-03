@@ -1,3 +1,4 @@
+import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -9,7 +10,6 @@ import { store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
 import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '../../components/UI/Tokens';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
@@ -21,7 +21,9 @@ jest.mock('../../store', () => ({
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
 }));
-
+jest.mock('../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
+}));
 describe('Engine', () => {
   it('should expose an API', () => {
     const engine = Engine.init({});
@@ -37,6 +39,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
+    expect(engine.context).toHaveProperty('RemoteFeatureFlagController');
     expect(engine.context).toHaveProperty('SignatureController');
     expect(engine.context).toHaveProperty('TokenBalancesController');
     expect(engine.context).toHaveProperty('TokenRatesController');
