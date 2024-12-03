@@ -67,7 +67,7 @@ describe('ReceiveRequest', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('should track metrics when onReceive is called', () => {
+  it('tracks metrics when onReceive is called', () => {
     const mockTrackEvent = jest.fn();
     const mockCreateEventBuilder = jest.fn().mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
