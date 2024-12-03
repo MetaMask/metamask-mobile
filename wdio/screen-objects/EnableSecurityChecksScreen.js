@@ -1,6 +1,6 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import { EnableAutomaticSecurityChecksIDs } from '../../e2e/selectors/Modals/EnableAutomaticSecurityChecks.selectors';
+import { EnableAutomaticSecurityChecksIDs } from '../../e2e/selectors/Onboarding/EnableAutomaticSecurityChecks.selectors';
 
 class EnableAutomaticSecurityChecksScreen {
   get noThanksButton() {
@@ -22,9 +22,6 @@ class EnableAutomaticSecurityChecksScreen {
 
   async isVisible() {
     await expect(this.enableAutomaticSecurityChecksScreen).toBeDisplayed();
-  }
-  async notVisible() {
-    await expect(this.enableAutomaticSecurityChecksScreen).not.toBeDisplayed();
   }
 }
 export default new EnableAutomaticSecurityChecksScreen();
