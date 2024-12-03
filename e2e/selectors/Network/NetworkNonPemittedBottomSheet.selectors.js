@@ -4,6 +4,7 @@ export const NetworkNonPemittedBottomSheetSelectorsText = {
   ADD_THIS_NETWORK_TITLE: enContent.permissions.title_add_network_permission,
   SEPOLIA_NETWORK_NAME: 'Sepolia',
   ETHEREUM_MAIN_NET_NETWORK_NAME: 'Ethereum Main Network',
+  LINEA_SEPOLIA_NETWORK_NAME: 'Linea Sepolia',
 };
 
 export const NetworkNonPemittedBottomSheetSelectorsIDs = {
