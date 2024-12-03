@@ -4,7 +4,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import { RootState } from '../reducers';
 import I18n from '../../locales/i18n';
 import {
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
 } from './accountsController';
 import { selectAllTokens } from './tokensController';
@@ -60,8 +60,7 @@ type ChainBalances = Record<string, NativeTokenBalance>;
 export function getSelectedAccountNativeTokenCachedBalanceByChainId(
   state: RootState,
 ): ChainBalances {
-  const selectedAddress =
-    selectSelectedInternalAccountChecksummedAddress(state);
+  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
   const accountsByChainId = selectAccountsByChainId(state);
 
   if (!selectedAddress || !accountsByChainId) {
