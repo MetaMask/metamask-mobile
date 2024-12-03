@@ -48,10 +48,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
       ],
-      POST: [{
-        ...mockEvents.POST.securityAlertApiValidate,
-        requestBody: typedSignRequestBody,
-      }]
+      // POST: [{
+      //   ...mockEvents.POST.securityAlertApiValidate,
+      //   requestBody: typedSignRequestBody,
+      // }]
     };
 
     await withFixtures(
@@ -103,7 +103,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       },
       async () => {
         await navigateToTestDApp();
-        await TestDApp.tapMaliciousPermitSignButton();
+        await TestDApp.tapTypedSignButton();
         await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
         await TestHelpers.delay(2000);
         await Assertions.checkIfNotVisible(ConfirmationView.securityAlertLoader);

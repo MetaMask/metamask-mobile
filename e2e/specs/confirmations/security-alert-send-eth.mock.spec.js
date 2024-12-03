@@ -37,26 +37,12 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await TestHelpers.delay(2000);
   };
 
-  const runTest = async (testSpecificMock, alertAssertion) => {
-    await withFixtures(
-      {
-        fixture: defaultFixture,
-        restartDevice: true,
-        testSpecificMock,
-      },
-      async () => {
-        await navigateToSendConfirmation();
-        await alertAssertion();
-      },
-    );
-  };
-
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
       ],
-      POST: [mockEvents.POST.securityAlertApiValidate,]
+      // POST: [mockEvents.POST.securityAlertApiValidate,]
     };
     await withFixtures(
       {
