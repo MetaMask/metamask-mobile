@@ -1,16 +1,21 @@
 import { NavigationActionType } from '../../actions/navigation/types';
 import { NavigationState } from './types';
+
 export * from './types';
 
-/**
- * Reducers
- */
+export * from './selectors';
 
+/**
+ * Initial navigation state
+ */
 const initialState: NavigationState = {
   currentRoute: 'WalletView',
   currentBottomNavRoute: 'Wallet',
 };
 
+/**
+ * Navigation reducer
+ */
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const navigationReducer = (state = initialState, action: any = {}) => {

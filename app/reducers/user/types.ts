@@ -1,5 +1,8 @@
 import { AppThemeKey } from '../../util/theme/models';
 
+/**
+ * User state
+ */
 export interface UserState {
   loadingMsg: string;
   loadingSet: boolean;

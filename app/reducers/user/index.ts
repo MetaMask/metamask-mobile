@@ -4,6 +4,11 @@ import { UserState } from './types';
 
 export * from './types';
 
+export * from './selectors';
+
+/**
+ * Initial user state
+ */
 export const userInitialState: UserState = {
   loadingMsg: '',
   loadingSet: false,
@@ -19,6 +24,9 @@ export const userInitialState: UserState = {
   ambiguousAddressEntries: {},
 };
 
+/**
+ * User reducer
+ */
 const userReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
   state: UserState = userInitialState,
