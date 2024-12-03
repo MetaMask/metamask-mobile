@@ -130,4 +130,46 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
       },
     );
   });
+
+  it('should allow switching to permitted network when attempting to use non-permitted network', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
+          .withChainPermission(['0x1', '0xaa36a7']) // Initialize with Ethereum mainnet and Sepolia
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Switch to non-permitted network (Linea Sepolia)
+        await TabBarComponent.tapWallet();
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
+        await NetworkListModal.changeNetworkTo('Linea Sepolia');
+        await NetworkEducationModal.tapGotItButton();
+
+        // Verify bottom sheet appears and choose from permitted networks
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(
+          NetworkNonPemittedBottomSheet.addThisNetworkTitle,
+        );
+        await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
+
+        // Select Sepolia from permitted networks
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await NetworkEducationModal.tapGotItButton();
+
+        // Verify network switched to Sepolia
+        await TabBarComponent.tapWallet();
+        await Assertions.checkIfVisible(WalletView.container);
+        const networkPicker = await WalletView.getNavbarNetworkPicker();
+        await Assertions.checkIfElementHasLabel(networkPicker, SEPOLIA);
+      },
+    );
+  });
 });

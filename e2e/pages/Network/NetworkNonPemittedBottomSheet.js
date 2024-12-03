@@ -41,6 +41,12 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
+  get chooseFromPermittedNetworksButton() {
+    return Matchers.getElementByID(
+      NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
+    );
+  }
+
   async tapAddThisNetworkButton() {
     await Gestures.waitAndTap(this.addThisNetworkButton);
   }
@@ -55,6 +61,10 @@ class NetworkNonPemittedBottomSheet {
 
   async tapLineaSepoliaNetworkName() {
     await Gestures.waitAndTap(this.lineaSepoliaNetworkName);
+  }
+
+  async tapChooseFromPermittedNetworksButton() {
+    await Gestures.waitAndTap(this.chooseFromPermittedNetworksButton);
   }
 }
 
