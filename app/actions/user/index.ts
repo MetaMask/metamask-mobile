@@ -1,114 +1,136 @@
 import { AppThemeKey } from '../../util/theme/models';
-import { UserActionType, UserAction } from './types';
+import { UserActionType } from './types';
+import type {
+  InterruptBiometricsAction,
+  LockAppAction,
+  AuthSuccessAction,
+  AuthErrorAction,
+  PasswordSetAction,
+  PasswordUnsetAction,
+  SeedphraseBackedUpAction,
+  SeedphraseNotBackedUpAction,
+  BackUpSeedphraseVisibleAction,
+  BackUpSeedphraseNotVisibleAction,
+  ProtectModalVisibleAction,
+  ProtectModalNotVisibleAction,
+  LoadingSetAction,
+  LoadingUnsetAction,
+  SetGasEducationCarouselSeenAction,
+  LoginAction,
+  LogoutAction,
+  SetAppThemeAction,
+  CheckedAuthAction,
+  PersistedDataLoadedAction,
+} from './types';
 
 export * from './types';
 
-export function interruptBiometrics(): UserAction {
+export function interruptBiometrics(): InterruptBiometricsAction {
   return {
     type: UserActionType.INTERRUPT_BIOMETRICS,
   };
 }
 
-export function lockApp(): UserAction {
+export function lockApp(): LockAppAction {
   return {
     type: UserActionType.LOCKED_APP,
   };
 }
 
-export function authSuccess(bioStateMachineId: string): UserAction {
+export function authSuccess(bioStateMachineId: string): AuthSuccessAction {
   return {
     type: UserActionType.AUTH_SUCCESS,
     payload: { bioStateMachineId },
   };
 }
 
-export function authError(bioStateMachineId: string): UserAction {
+export function authError(bioStateMachineId: string): AuthErrorAction {
   return {
     type: UserActionType.AUTH_ERROR,
     payload: { bioStateMachineId },
   };
 }
 
-export function passwordSet(): UserAction {
+export function passwordSet(): PasswordSetAction {
   return {
     type: UserActionType.PASSWORD_SET,
   };
 }
 
-export function passwordUnset(): UserAction {
+export function passwordUnset(): PasswordUnsetAction {
   return {
     type: UserActionType.PASSWORD_UNSET,
   };
 }
 
-export function seedphraseBackedUp(): UserAction {
+export function seedphraseBackedUp(): SeedphraseBackedUpAction {
   return {
     type: UserActionType.SEEDPHRASE_BACKED_UP,
   };
 }
 
-export function seedphraseNotBackedUp(): UserAction {
+export function seedphraseNotBackedUp(): SeedphraseNotBackedUpAction {
   return {
     type: UserActionType.SEEDPHRASE_NOT_BACKED_UP,
   };
 }
 
-export function backUpSeedphraseAlertVisible(): UserAction {
+export function backUpSeedphraseAlertVisible(): BackUpSeedphraseVisibleAction {
   return {
     type: UserActionType.BACK_UP_SEEDPHRASE_VISIBLE,
   };
 }
 
-export function backUpSeedphraseAlertNotVisible(): UserAction {
+export function backUpSeedphraseAlertNotVisible(): BackUpSeedphraseNotVisibleAction {
   return {
     type: UserActionType.BACK_UP_SEEDPHRASE_NOT_VISIBLE,
   };
 }
 
-export function protectWalletModalVisible(): UserAction {
+export function protectWalletModalVisible(): ProtectModalVisibleAction {
   return {
     type: UserActionType.PROTECT_MODAL_VISIBLE,
   };
 }
 
-export function protectWalletModalNotVisible(): UserAction {
+export function protectWalletModalNotVisible(): ProtectModalNotVisibleAction {
   return {
     type: UserActionType.PROTECT_MODAL_NOT_VISIBLE,
   };
 }
 
-export function loadingSet(loadingMsg: string): UserAction {
+export function loadingSet(loadingMsg: string): LoadingSetAction {
   return {
     type: UserActionType.LOADING_SET,
     loadingMsg,
   };
 }
 
-export function loadingUnset(): UserAction {
+export function loadingUnset(): LoadingUnsetAction {
   return {
     type: UserActionType.LOADING_UNSET,
   };
 }
 
-export function setGasEducationCarouselSeen(): UserAction {
+export function setGasEducationCarouselSeen(): SetGasEducationCarouselSeenAction {
   return {
     type: UserActionType.SET_GAS_EDUCATION_CAROUSEL_SEEN,
   };
 }
 
-export function logIn(): UserAction {
+export function logIn(): LoginAction {
   return {
     type: UserActionType.LOGIN,
   };
 }
 
-export function logOut(): UserAction {
+export function logOut(): LogoutAction {
   return {
     type: UserActionType.LOGOUT,
   };
 }
 
-export function setAppTheme(theme: AppThemeKey): UserAction {
+export function setAppTheme(theme: AppThemeKey): SetAppThemeAction {
   return {
     type: UserActionType.SET_APP_THEME,
     payload: { theme },
@@ -120,7 +142,7 @@ export function setAppTheme(theme: AppThemeKey): UserAction {
  *
  * @param initialScreen - "login" or "onboarding"
  */
-export function checkedAuth(initialScreen: string): UserAction {
+export function checkedAuth(initialScreen: string): CheckedAuthAction {
   return {
     type: UserActionType.CHECKED_AUTH,
     payload: {
@@ -132,7 +154,7 @@ export function checkedAuth(initialScreen: string): UserAction {
 /**
  * Action to signal that persisted data has been loaded
  */
-export function onPersistedDataLoaded(): UserAction {
+export function onPersistedDataLoaded(): PersistedDataLoadedAction {
   return {
     type: UserActionType.ON_PERSISTED_DATA_LOADED,
   };

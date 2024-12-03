@@ -31,7 +31,7 @@ const userReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
   state: UserState = userInitialState,
   action: UserAction,
-) => {
+): UserState => {
   switch (action.type) {
     case UserActionType.LOGIN:
       return {
