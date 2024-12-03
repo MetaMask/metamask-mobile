@@ -21,7 +21,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   });
 
   const defaultFixture = new FixtureBuilder()
-    .withSepoliaNetwork()
+    // .withSepoliaNetwork()
     .withPermissionControllerConnectedToTestDapp()
     .build();
 
@@ -52,6 +52,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
       POST: [{
         ...mockEvents.POST.securityAlertApiValidate,
         requestBody: typedSignRequestBody,
+        urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
       }]
     };
 
@@ -91,6 +92,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
           description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
           features: [],
         },
+        urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
       }]
     };
 
@@ -127,7 +129,8 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
           error: 'Internal Server Error',
           message: 'An unexpected error occurred on the server.'
         },
-        responseCode: 500
+        responseCode: 500,
+        urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
       }]
     };
     await withFixtures(

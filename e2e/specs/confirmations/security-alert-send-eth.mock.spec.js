@@ -34,7 +34,6 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0');
     await AmountView.tapNextButton();
-    await TestHelpers.delay(2000);
   };
 
   it('should not show security alerts for benign requests', async () => {
