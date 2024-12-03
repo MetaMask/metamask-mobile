@@ -34,6 +34,27 @@ export const mockEvents = {
       response: suggestedGasFeesApiGanache,
       responseCode: 200,
     },
+
+    securityAlertApiSupportedChains: {
+      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/supportedChains',
+      response: [
+          '0xa4b1',
+          '0xa86a',
+          '0x2105',
+          '0x138d5',
+          '0x38',
+          '0xe708',
+          '0x1',
+          '0x1b6e6',
+          '0xcc',
+          '0xa',
+          '0x89',
+          '0x82750',
+          '0xaa36a7',
+          '0x144'
+        ],
+      responseCode: 200,
+    },
   },
 
   /**
@@ -53,6 +74,30 @@ export const mockEvents = {
         priorityFee: '2',
         maxFee: '2.000855333',
       },
+    },
+
+    securityAlertApiValidate: {
+      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
+      response: {
+        block: 20733513,
+        result_type: 'Benign',
+        reason: '',
+        description: '',
+        features: [],
+      },
+      requestBody: {
+        jsonrpc: '2.0',
+        method: 'eth_sendTransaction',
+        origin: 'metamask',
+        params: [
+          {
+            from: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+            to: '0x50587e46c5b96a3f6f9792922ec647f13e6efae4',
+            value: '0x0'
+          }
+        ]
+      },
+      responseCode: 201,
     },
   },
 };
