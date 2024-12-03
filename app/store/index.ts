@@ -57,6 +57,8 @@ const createStoreAndPersistor = async () => {
     middleware: middlewares,
     preloadedState: initialState,
   });
+  // Set the store in the Redux class
+  Redux.store = store;
 
   sagaMiddleware.run(rootSaga);
 
@@ -64,8 +66,6 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
-    // Set the store in the Redux class
-    Redux.store = store;
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
     endTrace({ name: TraceName.StoreInit });
