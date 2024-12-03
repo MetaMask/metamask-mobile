@@ -131,7 +131,7 @@ describe('AssetOverview', () => {
     });
   });
 
-  it('should handle send button press', async () => {
+  it('navigates to send screen on send button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview asset={asset} displayBuyButton displaySwapsButton />,
       { state: mockInitialState },
