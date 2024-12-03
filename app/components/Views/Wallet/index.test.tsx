@@ -61,6 +61,9 @@ jest.mock('../../../core/Engine', () => {
         ...mockAccountsControllerState,
         state: mockAccountsControllerState,
       },
+      PreferencesController: {
+        setTokenNetworkFilter: jest.fn(),
+      },
     },
   };
 });
