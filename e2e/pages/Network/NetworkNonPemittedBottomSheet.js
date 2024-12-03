@@ -47,6 +47,18 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
+  get editPermissionsButton() {
+    return Matchers.getElementByID(
+      NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
+    );
+  }
+
+  get updateButton() {
+    return Matchers.getElementByID(
+      NetworkNonPemittedBottomSheetSelectorsIDs.UPDATE_BUTTON,
+    );
+  }
+
   async tapAddThisNetworkButton() {
     await Gestures.waitAndTap(this.addThisNetworkButton);
   }
@@ -65,6 +77,14 @@ class NetworkNonPemittedBottomSheet {
 
   async tapChooseFromPermittedNetworksButton() {
     await Gestures.waitAndTap(this.chooseFromPermittedNetworksButton);
+  }
+
+  async tapEditPermissionsButton() {
+    await Gestures.waitAndTap(this.editPermissionsButton);
+  }
+
+  async tapUpdateButton() {
+    await Gestures.waitAndTap(this.updateButton);
   }
 }
 

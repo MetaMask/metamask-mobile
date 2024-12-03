@@ -13,6 +13,7 @@ import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 
 const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
@@ -169,6 +170,54 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         await Assertions.checkIfVisible(WalletView.container);
         const networkPicker = await WalletView.getNavbarNetworkPicker();
         await Assertions.checkIfElementHasLabel(networkPicker, SEPOLIA);
+      },
+    );
+  });
+
+  it('should allow adding new network permission through edit permissions', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
+          .withChainPermission(['0x1']) // Initialize with only Ethereum mainnet
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Switch to non-permitted network (Sepolia)
+        await TabBarComponent.tapWallet();
+        await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
+        await NetworkListModal.changeNetworkTo(SEPOLIA);
+        await NetworkEducationModal.tapGotItButton();
+
+        // Verify bottom sheet appears and navigate to edit permissions
+        await TabBarComponent.tapBrowser();
+        await Assertions.checkIfVisible(
+          NetworkNonPemittedBottomSheet.addThisNetworkTitle,
+        );
+        await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
+        await NetworkNonPemittedBottomSheet.tapEditPermissionsButton();
+
+        // Select Linea Sepolia from network selector and update permissions
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+        await NetworkConnectMultiSelector.tapUpdateButton();
+        await NetworkEducationModal.tapGotItButton();
+
+        // Select Linea Sepolia from permitted networks
+        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
+        await NetworkEducationModal.tapGotItButton();
+
+        // Verify network switched to Linea Sepolia
+        await TabBarComponent.tapWallet();
+        await Assertions.checkIfVisible(WalletView.container);
+        const networkPicker = await WalletView.getNavbarNetworkPicker();
+        await Assertions.checkIfElementHasLabel(networkPicker, 'Linea Sepolia');
       },
     );
   });

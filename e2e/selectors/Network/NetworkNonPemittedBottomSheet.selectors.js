@@ -11,4 +11,6 @@ export const NetworkNonPemittedBottomSheetSelectorsIDs = {
   ADD_THIS_NETWORK_BUTTON: 'add-this-network-button',
   CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON:
     'choose-from-permitted-networks-button',
+  EDIT_PERMISSIONS_BUTTON: 'edit-permissions-button',
+  UPDATE_BUTTON: 'multiconnect-connect-network-button',
 };
