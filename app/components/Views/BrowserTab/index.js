@@ -71,6 +71,9 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import {
+  MAX_MESSAGE_LENGTH,
+} from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getPermittedAccounts,
@@ -91,7 +94,7 @@ import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -971,6 +974,15 @@ export const BrowserTab = (props) => {
   const onMessage = ({ nativeEvent }) => {
     let data = nativeEvent.data;
     try {
+      if (data.length > MAX_MESSAGE_LENGTH) {
+        console.warn(
+          `message exceeded size limit and will be dropped: ${data.slice(
+            0,
+            1000,
+          )}...`,
+        );
+        return;
+      }
       data = typeof data === 'string' ? JSON.parse(data) : data;
       if (!data || (!data.type && !data.name)) {
         return;
@@ -1807,7 +1819,7 @@ const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress:
-    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
+    selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

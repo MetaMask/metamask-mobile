@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
@@ -63,7 +63,6 @@ import { RootState } from '../../../reducers';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -83,6 +82,8 @@ import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
+import useOriginSource from '../../hooks/useOriginSource';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -102,7 +103,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
@@ -142,12 +143,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
-  };
-
-  const isUUID = (str: string) => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(str);
   };
 
   const isChannelId = isUUID(channelIdOrHostname);
@@ -320,20 +315,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
-  const eventSource = useMemo(() => {
-    // walletconnect channelId format: app.name.org
-    // sdk channelId format: uuid
-    // inappbrowser channelId format: app.name.org but origin is set
-    if (isOriginWalletConnect) {
-      return SourceType.WALLET_CONNECT;
-    }
-
-    if (sdkConnection) {
-      return SourceType.SDK;
-    }
-
-    return SourceType.IN_APP_BROWSER;
-  }, [isOriginWalletConnect, sdkConnection]);
+  const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -370,12 +352,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
           .addProperties({
             number_of_accounts: accountsLength,
-            source: SourceType.PERMISSION_SYSTEM,
+            source: eventSource,
           })
           .build(),
       );
     },
-    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder],
+    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder, eventSource],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
