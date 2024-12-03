@@ -18,10 +18,6 @@ export function useProfileSyncing(): ProfileSyncingReturn {
   const [error, setError] = useState<string>();
 
   const enableProfileSyncing = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
     setLoading(true);
     setError(undefined);
     try {
@@ -41,10 +37,6 @@ export function useProfileSyncing(): ProfileSyncingReturn {
   }, []);
 
   const disableProfileSyncing = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
     setLoading(true);
     setError(undefined);
     try {
