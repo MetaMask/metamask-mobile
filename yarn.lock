@@ -4182,10 +4182,10 @@
     "@metamask/utils" "^8.2.0"
     "@types/eslint" "^8.44.7"
 
-"@metamask/composable-controller@npm:@metamask-previews/composable-controller@9.0.1-preview-2b9717c":
-  version "9.0.1-preview-2b9717c"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/composable-controller/-/composable-controller-9.0.1-preview-2b9717c.tgz#cf94f0b0e7c31beaec090e087bbc381fa1e10be5"
-  integrity sha512-GpREjmVET4naK7tPY3z1WADOU1GPrmEqinmTQeoz7rky4btCPDYpvP+RHlZ/+Ip+7/NQtlWmnVQNcq98w3nOMg==
+"@metamask/composable-controller@npm:@metamask-previews/composable-controller@9.0.1-preview-a0b32c13":
+  version "9.0.1-preview-a0b32c13"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/composable-controller/-/composable-controller-9.0.1-preview-a0b32c13.tgz#ca584429ec7d9f201bbef5c903151859847b9d3b"
+  integrity sha512-I4VDy89zJob4OAQG0Ip5IKcTnQP4Yuz+oZiJKbb1qLwAuJJdazPESbsPcH3Aed7ACbyDwOkhBRNDNM4JkL/IXA==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
 
