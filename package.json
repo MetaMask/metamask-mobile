@@ -130,7 +130,10 @@
     "send": "0.19.0",
     "ethereumjs-util/**/secp256k1": "3.8.1",
     "**/secp256k1": "4.0.4",
-    "**/@metamask/rpc-errors": "7.0.1"
+    "**/@metamask/rpc-errors": "7.0.1",
+    "base58-js": "1.0.0",
+    "bech32": "2.0.0",
+    "sha256-uint8array": "0.10.3"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.7",
@@ -143,6 +146,7 @@
     "@metamask/approval-controller": "^7.1.0",
     "@metamask/assets-controllers": "^44.1.0",
     "@metamask/base-controller": "^7.0.1",
+    "@metamask/bitcoin-wallet-snap": "^0.8.2",
     "@metamask/composable-controller": "npm:@metamask-previews/composable-controller@9.0.1-preview-2b9717c",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
@@ -230,6 +234,7 @@
     "axios": "^1.6.8",
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
+    "bitcoin-address-validation": "2.2.3",
     "buffer": "6.0.3",
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
