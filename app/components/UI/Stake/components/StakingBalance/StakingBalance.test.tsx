@@ -123,15 +123,13 @@ describe('StakingBalance', () => {
     jest.resetAllMocks();
   });
 
-  if (!isPortfolioViewEnabled()) {
-    it('render matches snapshot', () => {
-      const { toJSON } = renderWithProvider(
-        <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
-        { state: mockInitialState },
-      );
-      expect(toJSON()).toMatchSnapshot();
-    });
-  }
+  (isPortfolioViewEnabled() ? it.skip : it)('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      { state: mockInitialState },
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
 
   it('redirects to StakeInputView on stake button click', () => {
     const { getByText } = renderWithProvider(

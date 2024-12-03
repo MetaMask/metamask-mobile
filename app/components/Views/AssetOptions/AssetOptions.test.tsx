@@ -103,11 +103,14 @@ describe('AssetOptions Component', () => {
     });
     jest.clearAllMocks();
     jest.useRealTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
+    jest.runAllTimers();
     jest.clearAllTimers();
-    jest.useRealTimers();
+    jest.clearAllMocks();
+    jest.clearAllTimers();
   });
 
   afterAll(() => {
@@ -181,6 +184,7 @@ describe('AssetOptions Component', () => {
     );
 
     fireEvent.press(getByText('View on block explorer'));
+    jest.runAllTimers();
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -204,6 +208,7 @@ describe('AssetOptions Component', () => {
     );
 
     fireEvent.press(getByText('Remove token'));
+    jest.runAllTimers();
     expect(mockNavigation.navigate).toHaveBeenCalledWith('RootModalFlow', {
       screen: 'AssetHideConfirmation',
       params: expect.anything(),
@@ -221,6 +226,7 @@ describe('AssetOptions Component', () => {
     const { getByText } = render(<AssetOptions route={mockParams} />);
 
     fireEvent.press(getByText('Token details'));
+    jest.runAllTimers();
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       'AssetDetails',
       expect.anything(),
