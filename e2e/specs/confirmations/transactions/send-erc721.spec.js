@@ -1,19 +1,19 @@
 'use strict';
 
-import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
+import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
+import { loginToApp } from '../../../viewHelper';
 
-import TabBarComponent from '../../pages/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../utils/Assertions';
+} from '../../../fixtures/fixture-helper';
+import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
+import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
+import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;

@@ -1,27 +1,27 @@
 /* eslint-disable no-console */
 'use strict';
-import { loginToApp } from '../../viewHelper.js';
-import { Regression } from '../../tags.js';
-import TabBarComponent from '../../pages/TabBarComponent.js';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
-import SendView from '../../pages/Send/SendView.js';
-import AmountView from '../../pages/Send/AmountView.js';
-import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
+import { loginToApp } from '../../../viewHelper.js';
+import { Regression } from '../../../tags.js';
+import TabBarComponent from '../../../pages/TabBarComponent.js';
+import WalletActionsModal from '../../../pages/modals/WalletActionsModal.js';
+import SendView from '../../../pages/Send/SendView.js';
+import AmountView from '../../../pages/Send/AmountView.js';
+import TransactionConfirmView from '../../../pages/Send/TransactionConfirmView.js';
 import {
   startMockServer,
   stopMockServer,
-} from '../../api-mocking/mock-server.js';
-import WalletView from '../../pages/wallet/WalletView.js';
-import Assertions from '../../utils/Assertions.js';
-import AccountListView from '../../pages/AccountListView.js';
-import AddAccountModal from '../../pages/modals/AddAccountModal.js';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
-import Accounts from '../../../wdio/helpers/Accounts.js';
-import { withFixtures } from '../../fixtures/fixture-helper.js';
-import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import TestHelpers from '../../helpers.js';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+} from '../../../api-mocking/mock-server.js';
+import WalletView from '../../../pages/wallet/WalletView.js';
+import Assertions from '../../../utils/Assertions.js';
+import AccountListView from '../../../pages/AccountListView.js';
+import AddAccountModal from '../../../pages/modals/AddAccountModal.js';
+import ImportAccountView from '../../../pages/importAccount/ImportAccountView.js';
+import Accounts from '../../../../wdio/helpers/Accounts.js';
+import { withFixtures } from '../../../fixtures/fixture-helper.js';
+import FixtureBuilder from '../../../fixtures/fixture-builder.js';
+import TestHelpers from '../../../helpers.js';
+import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
 
 describe(
   Regression(

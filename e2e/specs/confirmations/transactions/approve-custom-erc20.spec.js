@@ -1,19 +1,19 @@
 'use strict';
-import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+} from '../../../fixtures/fixture-helper';
 
-import TabBarComponent from '../../pages/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import Assertions from '../../utils/Assertions';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
+import ContractApprovalBottomSheet from '../../../pages/Browser/ContractApprovalBottomSheet';
+import Assertions from '../../../utils/Assertions';
+import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

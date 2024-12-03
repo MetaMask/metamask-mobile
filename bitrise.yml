@@ -633,7 +633,7 @@ workflows:
       - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/transactions/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - ios_e2e_test
@@ -643,7 +643,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/transactions/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test

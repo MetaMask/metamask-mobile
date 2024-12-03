@@ -1,24 +1,24 @@
 'use strict';
-import { SmokeConfirmations } from '../../tags';
-import WalletView from '../../pages/wallet/WalletView';
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { SmokeConfirmations } from '../../../tags';
+import WalletView from '../../../pages/wallet/WalletView';
+import AmountView from '../../../pages/Send/AmountView';
+import SendView from '../../../pages/Send/SendView';
+import TransactionConfirmationView from '../../../pages/Send/TransactionConfirmView';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import TestHelpers from '../../helpers';
-import Assertions from '../../utils/Assertions';
+} from '../../../fixtures/fixture-helper';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import WalletActionsModal from '../../../pages/modals/WalletActionsModal';
+import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 import {
   startMockServer,
   stopMockServer
-} from '../../api-mocking/mock-server';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+} from '../../../api-mocking/mock-server';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 

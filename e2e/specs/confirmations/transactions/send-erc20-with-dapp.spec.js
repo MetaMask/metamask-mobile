@@ -1,21 +1,21 @@
 'use strict';
-import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
+import { loginToApp } from '../../../viewHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+} from '../../../fixtures/fixture-helper';
 import {
   SMART_CONTRACTS,
   contractConfiguration,
-} from '../../../app/util/test/smart-contracts';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+} from '../../../../app/util/test/smart-contracts';
+import { ActivitiesViewSelectorsText } from '../../../selectors/Transactions/ActivitiesView.selectors';
 
-import TabBarComponent from '../../pages/TabBarComponent';
-import TestDApp from '../../pages/Browser/TestDApp';
-import Assertions from '../../utils/Assertions';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import Assertions from '../../../utils/Assertions';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 

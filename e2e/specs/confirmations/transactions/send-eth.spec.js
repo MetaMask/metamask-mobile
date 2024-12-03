@@ -1,21 +1,21 @@
 'use strict';
 
-import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
+import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
 
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import enContent from '../../../locales/languages/en.json';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import AmountView from '../../../pages/Send/AmountView';
+import SendView from '../../../pages/Send/SendView';
+import TransactionConfirmationView from '../../../pages/Send/TransactionConfirmView';
+import { loginToApp } from '../../../viewHelper';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import WalletActionsModal from '../../../pages/modals/WalletActionsModal';
+import enContent from '../../../../locales/languages/en.json';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+} from '../../../fixtures/fixture-helper';
+import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
 
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;

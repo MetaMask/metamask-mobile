@@ -1,20 +1,20 @@
 'use strict';
 
-import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
+import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
 
-import AmountView from '../../pages/Send/AmountView';
-import SendView from '../../pages/Send/SendView';
-import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import AmountView from '../../../pages/Send/AmountView';
+import SendView from '../../../pages/Send/SendView';
+import TransactionConfirmationView from '../../../pages/Send/TransactionConfirmView';
+import { loginToApp } from '../../../viewHelper';
+import TabBarComponent from '../../../pages/TabBarComponent';
+import WalletActionsModal from '../../../pages/modals/WalletActionsModal';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
-} from '../../fixtures/fixture-helper';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import Assertions from '../../utils/Assertions';
+} from '../../../fixtures/fixture-helper';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
