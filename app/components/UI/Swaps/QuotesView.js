@@ -1223,7 +1223,7 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
-    const sensitiveParameters = { 
+    const sensitiveParameters = {
       token_from_amount: fromTokenMinimalUnitString(
         sourceAmount,
         sourceToken.decimals,
@@ -1275,7 +1275,7 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
-    const sensitiveParameters = { 
+    const sensitiveParameters = {
       token_from_amount: fromTokenMinimalUnitString(
         sourceAmount,
         sourceToken.decimals,
