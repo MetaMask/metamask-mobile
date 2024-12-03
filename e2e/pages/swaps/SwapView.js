@@ -21,7 +21,9 @@ class SwapView {
   }
 
   get swapButton() {
-    return Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON);
+    return device.getPlatform() === 'ios'
+    ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
+    : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
   }
 
   get iUnderstandLabel() {
