@@ -36,7 +36,7 @@ class EngineService {
       tags: getTraceTags(store.getState()),
     });
     const reduxState = store.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
+    const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     Engine.init(state);
     // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
@@ -95,7 +95,7 @@ class EngineService {
   async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
     const keyringState = await getVaultFromBackup();
     const reduxState = importedStore.getState?.();
-    const state = reduxState?.engine?.backgroundState || {};
+    const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
