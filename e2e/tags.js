@@ -3,6 +3,7 @@ const tags = {
   smokeAccounts: 'SmokeAccounts',
   smokeCore: 'SmokeCore',
   smokeConfirmations: 'SmokeConfirmations',
+  smokeConfirmations2: 'SmokeConfirmations2',
   SmokeSwaps: 'SmokeSwaps',
   SmokeRest: 'SmokeRest',
   smokeAssets: 'smokeAssets',
@@ -14,6 +15,8 @@ const SmokeAccounts = (testName) => `${tags.smokeAccounts} ${testName}`;
 const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
 const SmokeConfirmations = (testName) =>
   `${tags.smokeConfirmations} ${testName}`;
+const SmokeConfirmations2 = (testName) =>
+  `${tags.smokeConfirmations2} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeNotifications = (testName) =>
@@ -24,6 +27,7 @@ export {
   SmokeAccounts,
   SmokeCore,
   SmokeConfirmations,
+  SmokeConfirmations2,
   SmokeSwaps,
   SmokeAssets,
   SmokeNotifications,

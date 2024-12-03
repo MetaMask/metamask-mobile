@@ -9,11 +9,11 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper';
-import { SmokeConfirmations } from '../../../tags';
+import { SmokeConfirmations2 } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
-describe(SmokeConfirmations('Typed Sign'), () => {
+describe(SmokeConfirmations2('Typed Sign'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();

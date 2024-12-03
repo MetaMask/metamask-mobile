@@ -155,6 +155,8 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_2_ios: {}
+      - run_tag_smoke_confirmations_2_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -175,6 +177,8 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_2_ios: {}
+      - run_tag_smoke_confirmations_2_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_notifications_ios: {}
@@ -641,6 +645,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_confirmations_2_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/signatures/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmations2.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_confirmations_2_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/signatures/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmations2.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_swaps_ios:
