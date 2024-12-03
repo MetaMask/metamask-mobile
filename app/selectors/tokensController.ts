@@ -6,15 +6,21 @@ import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectChainId } from './networkController';
 
-const selectTokensControllerState = (state: RootState) => {
-  console.log(
-    'IM HERE .....',
-    state?.engine?.backgroundState?.TokensController,
-  );
-  return state?.engine?.backgroundState?.TokensController;
-};
+const selectTokensControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.TokensController;
 
 export const selectTokens = createDeepEqualSelector(
+  selectTokensControllerState,
+  selectChainId,
+  selectSelectedInternalAccountAddress,
+  (
+    tokensControllerState: TokensControllerState,
+    chainId: Hex,
+    selectedAddress: string | undefined,
+  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+);
+
+export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
   selectTokensControllerState,
   selectChainId,
   selectSelectedInternalAccountAddress,
@@ -28,7 +34,7 @@ export const selectTokens = createDeepEqualSelector(
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>
-    tokens.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
+    tokens?.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
       tokensMap[token.address] = token;
       return tokensMap;
     }, {}),
@@ -57,14 +63,27 @@ export const selectAllTokens = createSelector(
     tokensControllerState?.allTokens,
 );
 
-// @ts-expect-error TODO: Resolve mismatch between base-controller versions.
+export const selectAllTokensFlat = createSelector(
+  selectAllTokens,
+  (tokensByAccountByChain: {
+    [account: string]: { [chainId: string]: Token[] };
+  }): Token[] => {
+    if (Object.values(tokensByAccountByChain).length === 0) {
+      return [];
+    }
+    const tokensByAccountArray = Object.values(tokensByAccountByChain);
+
+    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
+      const tokensArray = Object.values(tokensByAccount).flat();
+      return acc.concat(...tokensArray);
+    }, []);
+  },
+);
+
 export const selectAllDetectedTokensForSelectedAddress = createSelector(
   selectTokensControllerState,
   selectSelectedInternalAccountAddress,
-  (
-    tokensControllerState: TokensControllerState,
-    selectedAddress: Hex | null,
-  ) => {
+  (tokensControllerState, selectedAddress) => {
     // Updated return type to specify the structure more clearly
     if (!selectedAddress) {
       return {} as { [chainId: Hex]: Token[] }; // Specify return type
@@ -73,11 +92,11 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
     return Object.entries(
       tokensControllerState?.allDetectedTokens || {},
     ).reduce<{
-      [chainId: Hex]: Token[];
+      [chainId: string]: Token[];
     }>((acc, [chainId, chainTokens]) => {
       const tokensForAddress = chainTokens[selectedAddress] || [];
       if (tokensForAddress.length > 0) {
-        acc[chainId as Hex] = tokensForAddress.map((token: Token) => ({
+        acc[chainId] = tokensForAddress.map((token: Token) => ({
           ...token,
           chainId,
         }));
@@ -111,22 +130,5 @@ export const selectAllDetectedTokensFlat = createSelector(
     }
 
     return flattenedTokens;
-  },
-);
-
-export const selectAllTokensFlat = createSelector(
-  selectAllTokens,
-  (tokensByAccountByChain: {
-    [account: string]: { [chainId: string]: Token[] };
-  }): Token[] => {
-    if (Object.values(tokensByAccountByChain).length === 0) {
-      return [];
-    }
-    const tokensByAccountArray = Object.values(tokensByAccountByChain);
-
-    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
-      const tokensArray = Object.values(tokensByAccount).flat();
-      return acc.concat(...tokensArray);
-    }, []);
   },
 );

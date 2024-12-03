@@ -96,12 +96,12 @@ const DetectedTokens = () => {
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
   ) as TokenI[];
+  const allNetworks = useSelector(selectNetworkConfigurations);
   const chainId = useSelector(selectChainId);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
-  const allNetworks = useSelector(selectNetworkConfigurations);
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();

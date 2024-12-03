@@ -50,3 +50,9 @@ export const selectConversionRateBySymbol = createSelector(
         0
       : 0,
 );
+
+export const selectConversionRateFoAllChains = createSelector(
+  selectCurrencyRateControllerState,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currencyRates,
+);

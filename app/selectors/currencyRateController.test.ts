@@ -1,6 +1,7 @@
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectConversionRateForAllChains,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
@@ -76,6 +77,22 @@ describe('CurrencyRateController Selectors', () => {
       const result = selectCurrentCurrency.resultFunc(
         {} as unknown as CurrencyRateState,
         '',
+      );
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectConversionRateFoAllChains', () => {
+    it('returns all conversion rates from the state', () => {
+      const result = selectConversionRateForAllChains.resultFunc(
+        mockCurrencyRateState as unknown as CurrencyRateState,
+      );
+      expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
+    });
+
+    it('returns undefined if conversion rates are not set', () => {
+      const result = selectConversionRateForAllChains.resultFunc(
+        {} as unknown as CurrencyRateState,
       );
       expect(result).toBeUndefined();
     });

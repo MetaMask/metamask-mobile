@@ -3,8 +3,8 @@ import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
-import { selectChainId } from './networkController';
 import { selectSelectedInternalAccountAddress } from './accountsController';
+import { selectChainId } from './networkController';
 
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;

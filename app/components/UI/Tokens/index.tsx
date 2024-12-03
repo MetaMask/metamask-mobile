@@ -260,18 +260,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
-        AccountsController,
       } = Engine.context;
-
-      const selectedAddress =
-        AccountsController.state.internalAccounts.selectedAccount;
 
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled()
             ? (Object.keys(networkConfigurationsByChainId) as Hex[])
             : [selectedChainId],
-          selectedAddress,
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),

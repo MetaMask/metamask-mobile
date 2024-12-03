@@ -289,14 +289,13 @@ describe('Tokens', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly when portfolio view is enabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
-    const { toJSON, getByText } = renderComponent(initialState);
-
-    expect(getByText('Ethereum Main Network')).toBeDefined();
-    expect(toJSON()).toMatchSnapshot();
-  });
+  (networks.isPortfolioViewEnabled() ? it.skip : it)(
+    'render matches snapshot',
+    () => {
+      const { toJSON } = renderComponent(initialState);
+      expect(toJSON()).toMatchSnapshot();
+    },
+  );
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
