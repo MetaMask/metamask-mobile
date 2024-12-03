@@ -89,6 +89,10 @@ class EngineService {
         key: `${engine.context.PreferencesController.name}:stateChange`,
       },
       {
+        name: 'RemoteFeatureFlagController',
+        key: `${engine.context.RemoteFeatureFlagController.name}:stateChange`,
+      },
+      {
         name: 'SelectedNetworkController',
         key: `${engine.context.SelectedNetworkController.name}:stateChange`,
       },
