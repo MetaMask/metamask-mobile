@@ -160,7 +160,7 @@ export const selectNetworkClientId = createSelector(
 
 export const selectIsAllNetworks = createSelector(
   selectNetworkConfigurations,
-  selectTokenNetworkFilter,
+  (state: RootState) => selectTokenNetworkFilter(state),
   (networkConfigurations, tokenNetworkFilter) =>
     Object.keys(tokenNetworkFilter).length ===
     Object.keys(networkConfigurations).length,
