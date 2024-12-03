@@ -404,7 +404,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     }
                   }
                 >
-                  0xToken1
+                  0xToke...ken1
                 </Text>
                 <Text
                   allowFontScaling={false}
@@ -662,7 +662,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                     }
                   }
                 >
-                  0xToken2
+                  0xToke...ken2
                 </Text>
                 <Text
                   allowFontScaling={false}
