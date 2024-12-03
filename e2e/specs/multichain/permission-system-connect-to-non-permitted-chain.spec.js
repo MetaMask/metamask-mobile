@@ -44,6 +44,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+        await TestHelpers.delay(5000);
 
         // Switch to non-permitted network
         await TabBarComponent.tapWallet();
@@ -75,6 +76,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+        await TestHelpers.delay(5000);
 
         // Switch to already permitted network
         await TabBarComponent.tapWallet();
@@ -106,6 +108,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
+        await TestHelpers.delay(5000);
 
         // Switch to non-permitted network
         await TabBarComponent.tapWallet();
