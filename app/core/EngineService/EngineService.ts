@@ -1,4 +1,5 @@
 import UntypedEngine from '../Engine';
+import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
@@ -9,8 +10,6 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
-import { isBaseController } from '@metamask/base-controller';
-import { Controllers } from '../Engine/types';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -59,38 +58,143 @@ class EngineService {
       return;
     }
 
-    // TODO: Optimize to only trigger on datamodel initialization instead of on every `ComposableController:stateChange` event, which will trigger every time any child controller's state is updated.
-    engine.controllerMessenger.subscribe(
+    const controllers = [
+      {
+        name: 'AddressBookController',
+        key: `${engine.context.AddressBookController.name}:stateChange`,
+      },
+      { name: 'NftController', key: 'NftController:stateChange' },
+      {
+        name: 'TokensController',
+        key: `${engine.context.TokensController.name}:stateChange`,
+      },
+      {
+        name: 'KeyringController',
+        key: `${engine.context.KeyringController.name}:stateChange`,
+      },
+      {
+        name: 'AccountTrackerController',
+        key: 'AccountTrackerController:stateChange',
+      },
+      {
+        name: 'NetworkController',
+        key: AppConstants.NETWORK_STATE_CHANGE_EVENT,
+      },
+      {
+        name: 'PhishingController',
+        key: `${engine.context.PhishingController.name}:stateChange`,
+      },
+      {
+        name: 'PreferencesController',
+        key: `${engine.context.PreferencesController.name}:stateChange`,
+      },
+      {
+        name: 'RemoteFeatureFlagController',
+        key: `${engine.context.RemoteFeatureFlagController.name}:stateChange`,
+      },
+      {
+        name: 'SelectedNetworkController',
+        key: `${engine.context.SelectedNetworkController.name}:stateChange`,
+      },
+      {
+        name: 'TokenBalancesController',
+        key: `${engine.context.TokenBalancesController.name}:stateChange`,
+      },
+      { name: 'TokenRatesController', key: 'TokenRatesController:stateChange' },
+      {
+        name: 'TransactionController',
+        key: `${engine.context.TransactionController.name}:stateChange`,
+      },
+      {
+        name: 'SmartTransactionsController',
+        key: `${engine.context.SmartTransactionsController.name}:stateChange`,
+      },
+      {
+        name: 'SwapsController',
+        key: `${engine.context.SwapsController.name}:stateChange`,
+      },
+      {
+        name: 'TokenListController',
+        key: `${engine.context.TokenListController.name}:stateChange`,
+      },
+      {
+        name: 'CurrencyRateController',
+        key: `${engine.context.CurrencyRateController.name}:stateChange`,
+      },
+      {
+        name: 'GasFeeController',
+        key: `${engine.context.GasFeeController.name}:stateChange`,
+      },
+      {
+        name: 'ApprovalController',
+        key: `${engine.context.ApprovalController.name}:stateChange`,
+      },
+      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+      {
+        name: 'SnapController',
+        key: `${engine.context.SnapController.name}:stateChange`,
+      },
+      {
+        name: 'SubjectMetadataController',
+        key: `${engine.context.SubjectMetadataController.name}:stateChange`,
+      },
+      {
+        name: 'AuthenticationController',
+        key: 'AuthenticationController:stateChange',
+      },
+      {
+        name: 'UserStorageController',
+        key: 'UserStorageController:stateChange',
+      },
+      {
+        name: 'NotificationServicesController',
+        key: 'NotificationServicesController:stateChange',
+      },
+      {
+        name: 'NotificationServicesPushController',
+        key: 'NotificationServicesPushController:stateChange',
+      },
+      ///: END:ONLY_INCLUDE_IF
+      {
+        name: 'PermissionController',
+        key: `${engine.context.PermissionController.name}:stateChange`,
+      },
+      {
+        name: 'LoggingController',
+        key: `${engine.context.LoggingController.name}:stateChange`,
+      },
+      {
+        name: 'AccountsController',
+        key: `${engine.context.AccountsController.name}:stateChange`,
+      },
+      {
+        name: 'PPOMController',
+        key: `${engine.context.PPOMController.name}:stateChange`,
+      },
+    ];
+
+    engine.controllerMessenger.subscribeOnceIf(
       'ComposableController:stateChange',
       () => {
         if (!engine.context.KeyringController.metadata.vault) {
           Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
         }
-        if (!this.engineInitialized) {
-          store.dispatch({ type: INIT_BG_STATE_KEY });
-          this.engineInitialized = true;
-        }
+        store.dispatch({ type: INIT_BG_STATE_KEY });
+        this.engineInitialized = true;
       },
+      () => !this.engineInitialized,
     );
 
-    const update_bg_state_cb = (name: string) => {
-      if (!engine.context.KeyringController.metadata.vault) {
-        Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
-      }
-      store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
-    };
-
-    (Object.values(engine.context) as Controllers[keyof Controllers][]).forEach(
-      (controller) => {
-        // @ts-expect-error - TODO: remove this directive once `@metamask/base-controller` updates `isBaseController` input type to `unknown`
-        if (isBaseController(controller)) {
-          engine.controllerMessenger.subscribe(
-            `${controller.name}:stateChange`,
-            () => update_bg_state_cb(controller.name),
-          );
+    controllers.forEach((controller) => {
+      const { name, key } = controller;
+      const update_bg_state_cb = () => {
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
         }
-      },
-    );
+        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
+      };
+      engine.controllerMessenger.subscribe(key, update_bg_state_cb);
+    });
   };
 
   /**
