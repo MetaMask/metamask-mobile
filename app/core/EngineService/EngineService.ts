@@ -1,6 +1,7 @@
 import UntypedEngine from '../Engine';
+import { Engine as TypedEngine } from '../Engine/Engine';
 import { getVaultFromBackup } from '../BackupVault';
-import { store as importedStore } from '../../store';
+import { store as importedStore, ReduxStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
@@ -27,9 +28,7 @@ class EngineService {
    * @param store - Redux store
    */
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initalizeEngine = (store: any) => {
+  initalizeEngine = (store: ReduxStore) => {
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
@@ -38,17 +37,14 @@ class EngineService {
     });
     const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
+    const Engine = UntypedEngine;
     Engine.init(state);
-    this.updateControllers(store, Engine);
+    // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
+    this.updateControllers(store, Engine as unknown as TypedEngine);
     endTrace({ name: TraceName.EngineInitialization });
   };
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private updateControllers = (store: any, engine: any) => {
+  private updateControllers = (store: ReduxStore, engine: TypedEngine) => {
     if (!engine.context) {
       Logger.error(
         new Error(
@@ -100,9 +96,7 @@ class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = importedStore.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
+    const Engine = UntypedEngine;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
@@ -111,7 +105,11 @@ class EngineService {
         keyrings: [],
         vault: keyringState.vault,
       };
-      const instance = Engine.init(state, newKeyringState);
+      // `Engine.init()` call mutates `typeof UntypedEngine` to `Engine`
+      const instance = Engine.init(
+        state,
+        newKeyringState,
+      ) as unknown as TypedEngine;
       if (instance) {
         this.updateControllers(importedStore, instance);
         // this is a hack to give the engine time to reinitialize

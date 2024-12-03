@@ -6,12 +6,11 @@ import { zeroAddress } from 'ethereumjs-util';
 import { createMockAccountsControllerState } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
-import { store } from '../../store';
+import { ReduxState, store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
 import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 
 jest.unmock('./Engine');
@@ -369,7 +368,7 @@ describe('Transaction event handlers', () => {
   beforeEach(() => {
     engine = Engine.init({});
     jest.spyOn(MetaMetrics.getInstance(), 'trackEvent').mockImplementation();
-    jest.spyOn(store, 'getState').mockReturnValue({} as RootState);
+    jest.spyOn(store, 'getState').mockReturnValue({} as ReduxState);
   });
 
   afterEach(() => {
