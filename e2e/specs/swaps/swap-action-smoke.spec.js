@@ -79,7 +79,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
@@ -136,10 +136,12 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
+      await Assertions.checkIfVisible(SwapView.swapButton);
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
+      await TestHelpers.delay(10000);
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();
@@ -160,7 +162,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await TabBarComponent.tapWallet();
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListView.accountList);
-      // THis is need to update the token balance
+      // This needs to be updated with the token balance
       await AccountListView.tapToSelectActiveAccountAtIndex(1);
 
     },

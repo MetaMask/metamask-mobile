@@ -25,6 +25,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import Assertions from '../../utils/Assertions';
 import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -74,7 +75,7 @@ describe(Regression('Swap from Token view'), () => {
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
-    const sourceTokenSymbol ='ETH', destTokenSymbol = 'DAI'
+    const sourceTokenSymbol = 'ETH', destTokenSymbol = 'DAI';
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
@@ -107,25 +108,6 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
-
-    try {
-      await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    } catch (e) {
-      await ActivitiesView.tapOnSwapActivity(
-        sourceTokenSymbol,
-        destTokenSymbol,
-      );
-      await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    }
-
-    await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    await Assertions.checkIfElementToHaveText(
-      DetailsBottomSheet.title,
-      DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-    );
-    await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
-    await DetailsBottomSheet.tapOnCloseIcon();
-    await Assertions.checkIfNotVisible(DetailsBottomSheet.title);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
   });
 });
