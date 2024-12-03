@@ -1,6 +1,8 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -108,5 +110,157 @@ describe('useTokenDetectionPolling', () => {
     expect(
       mockedTokenDetectionController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(0);
+  });
+
+  it('Should poll with specific chainIds when provided', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const specificChainIds = ['0x5' as const];
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling({ chainIds: specificChainIds }),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              NetworkController: {
+                selectedNetworkClientId: 'selectedNetworkClientId',
+                networkConfigurationsByChainId: {
+                  '0x5': {
+                    chainId: '0x5',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'selectedNetworkClientId',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: ['0x5'],
+      address: selectedAddress,
+    });
+
+    unmount();
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should poll with network configurations when no chainIds provided', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
+    const currentChainId = '0x1';
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling(),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              NetworkController: {
+                selectedNetworkClientId: 'selectedNetworkClientId',
+                networkConfigurationsByChainId: {
+                  [currentChainId]: {
+                    chainId: currentChainId,
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'selectedNetworkClientId',
+                      },
+                    ],
+                  },
+                  '0x89': {
+                    chainId: '0x89',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'otherNetworkClientId',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: [currentChainId],
+      address: selectedAddress,
+    });
+
+    unmount();
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should handle missing account address gracefully', async () => {
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling(),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: '1',
+                  accounts: {
+                    '1': {
+                      address: undefined,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: [selectedChainId],
+      address: undefined,
+    });
+
+    unmount();
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
   });
 });

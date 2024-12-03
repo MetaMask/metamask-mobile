@@ -329,27 +329,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       ? tokenExchangeRates?.[itemAddress as Hex]?.price
       : undefined;
   } else {
-    // TODO: Our token rates controller does not have any market data for Holesky
-    // we will use the price of the same token. I also will use the same market
-    // data for all other chains that are not mainnet. I do not like this solution
-    // so much, but it is a quick fix
-    const relatedEthChainIds: Hex[] = [
-      '0x1',
-      '0x2105',
-      '0x38',
-      '0x4268',
-      '0x5',
-      '0x89',
-    ];
     const currentChainId = chainId as Hex;
-    if (!relatedEthChainIds.includes(currentChainId) && !asset.isETH) {
-      exchangeRate =
-        allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
-    } else {
-      exchangeRate =
-        allTokenMarketData?.[relatedEthChainIds[0]]?.[itemAddress as Hex]
-          ?.price;
-    }
+    exchangeRate =
+      allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
   }
 
   let balance, balanceFiat;
