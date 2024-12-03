@@ -9,7 +9,6 @@ import TransactionTypes from '../../../../../core/TransactionTypes';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockTransactionTypes = TransactionTypes;
 
