@@ -1,10 +1,9 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps)
-import React, { useCallback } from 'react';
+import React, { useState } from 'react';
 import { useStyles } from '../../../hooks/useStyles';
 import { strings } from '../../../../../locales/i18n';
 import stylesheet from './SnapDialogApproval.styles';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import { View } from 'react-native-animatable';
 import ApprovalModal from '../../ApprovalModal';
 import BottomSheetFooter, {
@@ -17,54 +16,162 @@ import {
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 
+enum SnapDialogTypes {
+  ALERT = 'snap_dialog:alert',
+  CONFIRM = 'snap_dialog:confirmation',
+  PROMPT = 'snap_dialog:prompt',
+  CUSTOM = 'snap_dialog',
+}
+
+enum TemplateConfirmation {
+  Ok = 'template_confirmation.ok',
+  CANCEL = 'template_confirmation.cancel',
+}
+
 const SnapDialogApproval = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const { approvalRequest } = useApprovalRequest();
   console.log('approvalRequest', approvalRequest);
   const { styles } = useStyles(stylesheet, {});
 
-  const onConfirm = useCallback(async () => {
+  const onCancel = async () => {
+    if (!approvalRequest) return;
+
+    await Engine.acceptPendingApproval(approvalRequest.id, null as any);
+  };
+
+  const onConfirm = async () => {
     if (!approvalRequest) return;
 
     await Engine.acceptPendingApproval(approvalRequest.id, true as any);
-  }, [approvalRequest]);
+  };
 
-  const onReject = useCallback(async () => {
+  const onReject = async () => {
     if (!approvalRequest) return;
 
     await Engine.acceptPendingApproval(approvalRequest.id, false as any);
-  }, [approvalRequest]);
+  };
 
-  // if (
-  //   approvalRequest?.type !== 'snap_dialog:alert' ||
-  //   !approvalRequest?.requestData?.content
-  // )
-  //   return null;
+  if (
+    approvalRequest?.type !== SnapDialogTypes.ALERT &&
+    approvalRequest?.type !== SnapDialogTypes.CONFIRM &&
+    approvalRequest?.type !== SnapDialogTypes.PROMPT &&
+    approvalRequest?.type !== SnapDialogTypes.CUSTOM
+  )
+    return null;
 
-  const buttons = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('template_confirmation.cancel'),
-      size: ButtonSize.Lg,
-      onPress: onReject,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      label: strings('template_confirmation.ok'),
-      size: ButtonSize.Lg,
-      onPress: onConfirm,
-    },
-  ];
+  const getDialogButtons = (type: SnapDialogTypes | undefined) => {
+    switch (type) {
+      case SnapDialogTypes.ALERT:
+        return [
+          {
+            variant: ButtonVariants.Primary,
+            label: strings(TemplateConfirmation.Ok),
+            size: ButtonSize.Lg,
+            onPress: onCancel,
+          },
+        ];
 
+      case SnapDialogTypes.CONFIRM:
+        return [
+          {
+            variant: ButtonVariants.Secondary,
+            label: strings(TemplateConfirmation.CANCEL),
+            size: ButtonSize.Lg,
+            onPress: onReject,
+          },
+          {
+            variant: ButtonVariants.Primary,
+            label: strings(TemplateConfirmation.Ok),
+            size: ButtonSize.Lg,
+            onPress: onConfirm,
+          },
+        ];
+      case SnapDialogTypes.PROMPT:
+      case SnapDialogTypes.CUSTOM:
+        return [
+          {
+            variant: ButtonVariants.Secondary,
+            label: strings(TemplateConfirmation.CANCEL),
+            size: ButtonSize.Lg,
+            onPress: onCancel,
+          },
+          {
+            variant: ButtonVariants.Primary,
+            label: strings(TemplateConfirmation.Ok),
+            size: ButtonSize.Lg,
+            onPress: onConfirm,
+          },
+        ];
+
+      default:
+        return [];
+    }
+  };
+
+  const buttons = getDialogButtons(approvalRequest?.type);
+
+  // snapId = npm:@metamask/dialog-example-snap
   const snapId = approvalRequest?.origin;
-  const interfaceId = approvalRequest?.requestData.content;
+
+  // requestData = {
+  //   "expectsResult": false,
+  //   "id": "pbjOGZG-883AvwnwxB-mk",
+  //   "origin": "npm:@metamask/dialog-example-snap",
+  //   "requestData": {"id": "_ZoCyKMys8j6iK9740CJn", "placeholder": undefined},
+  //   "requestState": null,
+  //   "time": 1732873517298,
+  //   "type": "snap_dialog:alert"
+  // }
+
+  //  approvalRequest {
+  //   "expectsResult": false,
+  //   "id": "8BToRoVRwmqq_Aq7hUexx",
+  //   "origin": "npm:@metamask/dialog-example-snap",
+  //   "requestData": {"id": "N0SPlni3gnHS878mC5ozF", "placeholder": undefined},
+  //   "requestState": null,
+  //   "time": 1732896611884,
+  //   "type": "snap_dialog:confirmation"
+  // }
+
+  //  approvalRequest {
+  //   "expectsResult": false,
+  //   "id": "5B4zPSmELsWAEyZ3ZO0ks",
+  //   "origin": "npm:@metamask/dialog-example-snap",
+  //   "requestData": {"id": "Tg79EdkJkZV0LQynItocD", "placeholder": "This is shown in the input."},
+  //   "requestState": null,
+  //   "time": 1732896778870,
+  //   "type": "snap_dialog:prompt"
+  // }
+
+  //  approvalRequest {
+  //   "expectsResult": false,
+  //   "id": "5B4zPSmELsWAEyZ3ZO0ks",
+  //   "origin": "npm:@metamask/dialog-example-snap",
+  //   "requestData": {"id": "Tg79EdkJkZV0LQynItocD", "placeholder": "This is shown in the input."},
+  //   "requestState": null,
+  //   "time": 1732896778870,
+  //   "type": "snap_dialog"
+  // }
+
+  const interfaceId = approvalRequest?.requestData?.id;
 
   return (
     <ApprovalModal
-      isVisible={approvalRequest?.type === 'snap_dialog:alert'}
-      onCancel={onReject}
+      isVisible={
+        approvalRequest?.type === SnapDialogTypes.ALERT ||
+        approvalRequest?.type === SnapDialogTypes.CONFIRM ||
+        approvalRequest?.type === SnapDialogTypes.PROMPT ||
+        approvalRequest?.type === SnapDialogTypes.CUSTOM
+      }
+      onCancel={onCancel}
     >
       <View style={styles.root}>
-        <SnapUIRenderer snapId={snapId} interfaceId={interfaceId} />
+        <SnapUIRenderer
+          snapId={snapId}
+          interfaceId={interfaceId}
+          isLoading={isLoading}
+        />
         <View style={styles.actionContainer}>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Horizontal}

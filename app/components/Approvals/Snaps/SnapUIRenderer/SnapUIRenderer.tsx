@@ -1,5 +1,4 @@
 import React, { memo, useMemo } from 'react';
-import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import { Box } from '../../../../components/UI/Box';
 import { isEqual } from 'lodash';
@@ -9,18 +8,25 @@ import { SnapInterfaceContextProvider } from './SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../../UI/TemplateRenderer';
 
+interface SnapUIRendererProps {
+  snapId: string;
+  isLoading: boolean;
+  interfaceId: string;
+}
+
 // Component that maps Snaps UI JSON format to MetaMask Template Renderer format
 const SnapUIRendererComponent = ({
   snapId,
   isLoading = false,
   interfaceId,
-}) => {
+}: SnapUIRendererProps) => {
   const interfaceState = useSelector(
     (state) => getMemoizedInterface(state, interfaceId),
     // We only want to update the state if the content has changed.
     // We do this to avoid useless re-renders.
-    // (oldState, newState) =>
-    //   isEqual(oldState?.content ?? null, newState.content),
+    // oldState {"content": {"key": null, "props": {"children": [Array]}, "type": "Box"}, "context": null, "snapId": "npm:@metamask/dialog-example-snap", "state": {}} newState undefined
+    (oldState, newState) =>
+      isEqual(oldState?.content ?? null, newState?.content ?? null),
   );
 
   const content = interfaceState?.content;
@@ -61,9 +67,3 @@ export const SnapUIRenderer = memo(
   SnapUIRendererComponent,
   (prevProps, nextProps) => isEqual(prevProps, nextProps),
 );
-
-SnapUIRendererComponent.propTypes = {
-  snapId: PropTypes.string,
-  isLoading: PropTypes.bool,
-  interfaceId: PropTypes.string,
-};

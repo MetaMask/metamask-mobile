@@ -13,6 +13,7 @@ import AddressElement from '../../../components/Views/confirmations/SendFlow/Add
 import { Box } from '../../UI/Box';
 import { SnapUICard } from '../../Approvals/Snaps/SnapUICard';
 import { SnapUILink } from '../Snaps/SnapUILink';
+import { SnapUIInput } from '../Snaps/SnapUIInput/Index';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -29,6 +30,7 @@ export const safeComponentList = {
   SnapUILink,
   AddressElement,
   Box,
+  SnapUIInput,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

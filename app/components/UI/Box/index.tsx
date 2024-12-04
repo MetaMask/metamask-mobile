@@ -1,14 +1,14 @@
 import { JSXElement } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
+import { TextColor } from '../../../component-library/components/Texts/Text';
 import {
   AlignItems,
   Display,
   FlexDirection,
   JustifyContent,
   TextAlign,
-} from '../Snaps/SnapUIRenderer/utils';
-import { TextColor } from '../../../component-library/components/Texts/Text';
+} from '../../Approvals/Snaps/SnapUIRenderer/utils';
 
 const styles = StyleSheet.create({
   container: {

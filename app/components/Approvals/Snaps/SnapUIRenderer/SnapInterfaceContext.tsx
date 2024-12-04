@@ -84,8 +84,8 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   const rawSnapRequestFunction = (
     event: UserInputEventType,
-    name?: string,
-    value?: string,
+    name?: string | null,
+    value?: string | null,
   ) =>
     handleSnapRequest({
       snapId,

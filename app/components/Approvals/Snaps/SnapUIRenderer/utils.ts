@@ -7,7 +7,8 @@ import { unescape as unescapeEntities } from 'he';
 import { COMPONENT_MAPPING } from './components';
 import { UIComponent } from './components/types';
 
-const colors = Theme.colors;
+// TODO: Theme isn't properly setup yet
+// const colors = Theme.colors;
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
@@ -224,28 +225,28 @@ export enum BlockSize {
   Full = 'full',
 }
 
-export enum BorderColor {
-  borderDefault = colors.border.default,
-  borderMuted = colors.border.muted,
-  primaryDefault = colors.primary.default,
-  primaryAlternative = colors.primary.alternative,
-  primaryMuted = colors.primary.muted,
-  errorDefault = colors.error.default,
-  errorAlternative = colors.error.alternative,
-  errorMuted = colors.error.muted,
-  warningDefault = colors.warning.default,
-  warningMuted = colors.warning.muted,
-  successDefault = colors.success.default,
-  successMuted = colors.success.muted,
-  infoDefault = colors.info.default,
-  infoMuted = colors.info.muted,
-  mainnet = colors.network.mainnet,
-  goerli = colors.network.goerli,
-  sepolia = colors.network.sepolia,
-  lineaGoerli = colors.network.lineaGoerli,
-  lineaSepolia = colors.network.lineaSepolia,
-  lineaMainnet = colors.network.lineaMainnet,
-  transparent = 'transparent',
-  localhost = colors.network.localhost,
-  backgroundDefault = colors.background.default,
-}
+// export enum BorderColor {
+//   borderDefault = colors.border.default,
+//   borderMuted = colors.border.muted,
+//   primaryDefault = colors.primary.default,
+//   primaryAlternative = colors.primary.alternative,
+//   primaryMuted = colors.primary.muted,
+//   errorDefault = colors.error.default,
+//   errorAlternative = colors.error.alternative,
+//   errorMuted = colors.error.muted,
+//   warningDefault = colors.warning.default,
+//   warningMuted = colors.warning.muted,
+//   successDefault = colors.success.default,
+//   successMuted = colors.success.muted,
+//   infoDefault = colors.info.default,
+//   infoMuted = colors.info.muted,
+//   mainnet = colors.network.mainnet,
+//   goerli = colors.network.goerli,
+//   sepolia = colors.network.sepolia,
+//   lineaGoerli = colors.network.lineaGoerli,
+//   lineaSepolia = colors.network.lineaSepolia,
+//   lineaMainnet = colors.network.lineaMainnet,
+//   transparent = 'transparent',
+//   localhost = colors.network.localhost,
+//   backgroundDefault = colors.background.default,
+// }
