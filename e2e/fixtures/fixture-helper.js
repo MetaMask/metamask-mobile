@@ -104,9 +104,9 @@ export async function withFixtures(options, testSuite) {
   } = options;
 
   const fixtureServer = new FixtureServer();
-
+  let mockServer;
   if (testSpecificMock) {
-    await startMockServer(testSpecificMock);
+    mockServer = await startMockServer(testSpecificMock);
   }
 
   let ganacheServer;
@@ -197,11 +197,12 @@ export async function withFixtures(options, testSuite) {
         }
       }
     }
-    await stopFixtureServer(fixtureServer);
 
     if (testSpecificMock) {
-      await stopMockServer();
+      await stopMockServer(mockServer);
     }
+
+    await stopFixtureServer(fixtureServer);
   }
 }
 

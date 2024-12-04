@@ -37,7 +37,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
 
   afterAll(async () => {
     try {
-      await stopMockServer();
+      await stopMockServer(mockServer);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log('Mock server already stopped or encountered an error:', error);

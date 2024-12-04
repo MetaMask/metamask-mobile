@@ -10,15 +10,15 @@ import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
+import { SmokeConfirmations } from '../../../tags';
 
-describe('Security Alert API - Typed Sign', () => {
+describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
   });
 
   const defaultFixture = new FixtureBuilder()
-    .withSepoliaNetwork()
     .withPermissionControllerConnectedToTestDapp()
     .build();
 
@@ -47,13 +47,6 @@ describe('Security Alert API - Typed Sign', () => {
 
   const typedSignRequestBody = {
     method: 'eth_signTypedData',
-    params: [
-      [
-        { type: 'string', name: 'Message', value: 'Hi, Alice!' },
-        { type: 'uint32', name: 'A number', value: '1337' },
-      ],
-      '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-    ],
     origin: 'localhost',
   };
 
@@ -64,6 +57,7 @@ describe('Security Alert API - Typed Sign', () => {
         {
           ...mockEvents.POST.securityAlertApiValidate,
           requestBody: typedSignRequestBody,
+          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };
@@ -94,6 +88,7 @@ describe('Security Alert API - Typed Sign', () => {
             description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
             features: [],
           },
+          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };
@@ -122,6 +117,7 @@ describe('Security Alert API - Typed Sign', () => {
             message: 'An unexpected error occurred on the server.',
           },
           responseCode: 500,
+          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };
