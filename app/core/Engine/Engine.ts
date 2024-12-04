@@ -84,11 +84,13 @@ import {
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
-  fetchEstimatedMultiLayerL1Fee,
   isTestNet,
-  deprecatedGetNetworkId,
   getDecimalChainId,
 } from '../../util/networks';
+import {
+  fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
+} from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
