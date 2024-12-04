@@ -1,11 +1,7 @@
 import React, { useMemo } from 'react';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import SensitiveText from '../../../../component-library/components/Texts/SensitiveText';
 import { View } from 'react-native';
-import { renderFiat } from '../../../../util/number';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import styleSheet from './AggregatedPercentage.styles';
@@ -20,6 +16,7 @@ import {
   MarketDataMapping,
   TokensWithBalances,
 } from '../../../../components/hooks/useGetFormattedTokensPerChain';
+import { getFormattedAmountChange, getPercentageTextColor } from './utils';
 
 export interface AggregatedPercentageProps {
   ethFiat: number;
@@ -130,30 +127,21 @@ const AggregatedPercentageCrossChains = ({
     ? validFormattedPercentChange
     : '';
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const DECIMALS_TO_SHOW = 2;
 
-  const validFormattedAmountChange = `${
-    amountChangeCrossChains >= 0 ? '+' : ''
-  }${renderFiat(amountChangeCrossChains, currentCurrency, DECIMALS_TO_SHOW)} `;
+  const validFormattedAmountChange = getFormattedAmountChange(
+    amountChangeCrossChains,
+    currentCurrency,
+  );
   const formattedAmountChangeCrossChains = isValidAmount(
     amountChangeCrossChains,
   )
     ? validFormattedAmountChange
     : '';
 
-  let percentageTextColor;
-
-  if (!privacyMode) {
-    if (percentageChangeCrossChains === 0) {
-      percentageTextColor = TextColor.Default;
-    } else if (percentageChangeCrossChains > 0) {
-      percentageTextColor = TextColor.Success;
-    } else {
-      percentageTextColor = TextColor.Error;
-    }
-  } else {
-    percentageTextColor = TextColor.Alternative;
-  }
+  const percentageTextColor = getPercentageTextColor(
+    privacyMode,
+    percentageChangeCrossChains,
+  );
   const { styles } = useStyles(styleSheet, {});
 
   return (
