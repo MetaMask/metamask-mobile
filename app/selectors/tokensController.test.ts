@@ -9,7 +9,11 @@ import {
   selectAllTokensFlat,
   selectAllDetectedTokensForSelectedAddress,
   selectAllDetectedTokensFlat,
+  selectTokensByChainIdAndAddress,
+  getChainIdsToPoll,
 } from './tokensController';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../util/networks';
 
 describe('TokensController Selectors', () => {
   const mockToken = { address: '0xToken1', symbol: 'TOKEN1' };
@@ -268,6 +272,63 @@ describe('TokensController Selectors', () => {
     it('returns an empty array if no detected tokens are present', () => {
       const detectedTokens = selectAllDetectedTokensFlat.resultFunc({});
       expect(detectedTokens).toStrictEqual([]);
+    });
+
+    it('preserves chain ID in detected tokens', () => {
+      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({
+        '0x1': [mockToken as Token],
+        '0x2': [mockToken2 as Token],
+      });
+      expect(detectedTokens).toStrictEqual([
+        { ...mockToken, chainId: '0x1' },
+        { ...mockToken2, chainId: '0x2' },
+      ]);
+    });
+
+    it('handles empty detected tokens gracefully', () => {
+      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({});
+      expect(detectedTokens).toStrictEqual([]);
+    });
+  });
+
+  describe('selectTokensByChainIdAndAddress', () => {
+    it('returns undefined if no tokens exist for chain ID and address', () => {
+      const tokensByChainAndAddress =
+        selectTokensByChainIdAndAddress.resultFunc(
+          mockTokensControllerState as unknown as TokensControllerState,
+          '0x1',
+          '0xNonExistentAddress',
+        );
+      expect(tokensByChainAndAddress).toBeUndefined();
+    });
+  });
+
+  describe('getChainIdsToPoll', () => {
+    const mockNetworkConfigurations = {
+      '1': { chainId: '1' },
+      '2': { chainId: '2' },
+    };
+
+    it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
+      jest
+        .spyOn(networks, 'isPortfolioViewEnabledFunction')
+        .mockReturnValue(false);
+      const chainIds = getChainIdsToPoll.resultFunc(
+        mockNetworkConfigurations,
+        '0x1',
+      );
+      expect(chainIds).toStrictEqual(['0x1']);
+    });
+
+    it('returns only the current chain ID if PORTFOLIO_VIEW is set', () => {
+      jest
+        .spyOn(networks, 'isPortfolioViewEnabledFunction')
+        .mockReturnValue(true);
+      const chainIds = getChainIdsToPoll.resultFunc(
+        mockNetworkConfigurations,
+        '0x1',
+      );
+      expect(chainIds).toStrictEqual(['1', '2']);
     });
   });
 });

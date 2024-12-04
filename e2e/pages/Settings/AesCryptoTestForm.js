@@ -3,6 +3,7 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
+  accountAddress,
 } from '../../selectors/AesCrypto.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
@@ -10,6 +11,11 @@ import Gestures from '../../utils/Gestures';
 class AesCryptoTestForm {
   get scrollViewIdentifier() {
     return Matchers.getIdentifier(aesCryptoFormScrollIdentifier);
+  }
+
+  // Get account address
+  get accountAddress() {
+    return Matchers.getElementByID(accountAddress);
   }
 
   // Generate salt getters

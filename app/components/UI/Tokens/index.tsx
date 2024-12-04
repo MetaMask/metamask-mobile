@@ -378,6 +378,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
                   ? styles.controlButtonDisabled
                   : styles.controlButton
               }
+              disabled={isTestNet(currentChainId)}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon
