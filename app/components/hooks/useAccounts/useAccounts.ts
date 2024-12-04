@@ -5,12 +5,6 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import {
-  hexToBN,
-  renderFiat,
-  renderFromWei,
-  weiToFiat,
-} from '../../../util/number';
 import { getTicker } from '../../../util/transactions';
 import {
   selectChainId,
@@ -38,11 +32,11 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-api';
-import { BigNumber } from 'ethers';
 import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { getAccountBalances } from './utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -161,32 +155,19 @@ const useAccounts = ({
           if (isSelected) {
             selectedIndex = index;
           }
+
           // TODO - Improve UI to either include loading and/or balance load failures.
           // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
-          const balanceWeiHex =
-            accountInfoByAddress?.[formattedAddress]?.balance || '0x0';
-          const stakedBalanceWeiHex =
-            accountInfoByAddress?.[formattedAddress]?.stakedBalance || '0x0';
-          const totalBalanceWeiHex = BigNumber.from(balanceWeiHex)
-            .add(BigNumber.from(stakedBalanceWeiHex))
-            .toHexString();
-          const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
-          // IF portfolio view is active, display aggregated fiat balance cross chains
-          let balanceFiat;
-          if (process.env.PORTFOLIO_VIEW) {
-            const { totalFiatBalance } =
-              totalFiatBalancesCrossChain[internalAccount.address];
-            balanceFiat = `${renderFiat(totalFiatBalance, currentCurrency)}`;
-          } else {
-            balanceFiat =
-              weiToFiat(
-                // TODO: Replace "any" with type
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                hexToBN(totalBalanceWeiHex) as any,
-                conversionRate,
-                currentCurrency,
-              ) || '';
-          }
+          const { balanceETH, balanceFiat, balanceWeiHex } = getAccountBalances(
+            {
+              internalAccount,
+              accountInfoByAddress,
+              totalFiatBalancesCrossChain,
+              conversionRate,
+              currentCurrency,
+            },
+          );
+
           const balanceTicker = getTicker(ticker);
           const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
           const balanceError = checkBalanceError?.(balanceWeiHex);
