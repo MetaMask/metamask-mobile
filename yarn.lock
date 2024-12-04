@@ -4635,18 +4635,10 @@
     jsonschema "^1.2.4"
     uuid "^8.3.2"
 
-"@metamask/message-signing-snap@^0.3.3":
-  version "0.3.3"
-  resolved "https://registry.yarnpkg.com/@metamask/message-signing-snap/-/message-signing-snap-0.3.3.tgz#0c37814baa7bb58c2b8bc84caa08b247ba78067b"
-  integrity sha512-SXti71T79io4siBxgI1xBtQ1UTC3h6dpCcuip9ap/vXDpUhzPIBPMipPv5anLMR9jK2+lk+TgYCz9LZEee5Rqg==
-  dependencies:
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/snaps-sdk" "^3.1.1"
-    "@metamask/utils" "^8.3.0"
-    "@noble/ciphers" "^0.5.1"
-    "@noble/curves" "^1.4.0"
-    "@noble/hashes" "^1.4.0"
-    zod "^3.22.4"
+"@metamask/message-signing-snap@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/message-signing-snap/-/message-signing-snap-0.6.0.tgz#50711fb19effceceb872c351343333032e22d7ae"
+  integrity sha512-NPi44jTbmMNmZu9iRhGfsbuMXKhQhvTwSnpepn7Ney+NPeXt8OzpcpA2oVxG+jL151FMEJBBnpeg7ZnByfsncA==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
@@ -4867,7 +4859,7 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
+"@metamask/providers@^16.1.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -5106,18 +5098,6 @@
     "@metamask/utils" "^10.0.0"
     "@noble/hashes" "^1.3.1"
 
-"@metamask/snaps-sdk@^3.1.1":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-3.2.0.tgz#66d60869697a479a3484adc9532d82c3b568fc19"
-  integrity sha512-Xfsc6seyucs7TP2JLXoKYrWm5FbrttdHnMOTfuzTb4T+qmdmoc3wdw83RAGjRFiOOaHGFc6JJSCdP33fBmw4Hg==
-  dependencies:
-    "@metamask/key-tree" "^9.0.0"
-    "@metamask/providers" "^16.0.0"
-    "@metamask/rpc-errors" "^6.2.1"
-    "@metamask/utils" "^8.3.0"
-    fast-xml-parser "^4.3.4"
-    superstruct "^1.0.3"
-
 "@metamask/snaps-sdk@^6.11.0", "@metamask/snaps-sdk@^6.12.0", "@metamask/snaps-sdk@^6.5.0", "@metamask/snaps-sdk@^6.5.1", "@metamask/snaps-sdk@^6.7.0":
   version "6.12.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.12.0.tgz#e609dd98b14bb33b55c6327fa94d9d1e768fe40d"
@@ -5327,7 +5307,7 @@
   dependencies:
     eslint-scope "5.1.1"
 
-"@noble/ciphers@^0.5.1", "@noble/ciphers@^0.5.2":
+"@noble/ciphers@^0.5.2":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
   integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
@@ -5339,7 +5319,7 @@
   dependencies:
     "@noble/hashes" "1.3.3"
 
-"@noble/curves@^1.2.0", "@noble/curves@^1.4.0":
+"@noble/curves@^1.2.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.0.tgz#f05771ef64da724997f69ee1261b2417a49522d6"
   integrity sha512-p+4cb332SFCrReJkCYe8Xzm0OWi4Jji5jVdIZRL/PmacmDkFNw6MrrV+gGpiPxLHbV+zKFRywUWbaseT+tZRXg==
@@ -16603,7 +16583,7 @@ fast-url-parser@1.1.3:
   dependencies:
     punycode "^1.3.2"
 
-fast-xml-parser@^4.0.12, fast-xml-parser@^4.3.4, fast-xml-parser@^4.4.1:
+fast-xml-parser@^4.0.12, fast-xml-parser@^4.4.1:
   version "4.4.1"
   resolved "https://registry.yarnpkg.com/fast-xml-parser/-/fast-xml-parser-4.4.1.tgz#86dbf3f18edf8739326447bcaac31b4ae7f6514f"
   integrity sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==
@@ -28329,11 +28309,6 @@ zip-stream@^6.0.1:
     archiver-utils "^5.0.0"
     compress-commons "^6.0.2"
     readable-stream "^4.0.0"
-
-zod@^3.22.4:
-  version "3.23.8"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
-  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
 
 zstd-codec@^0.1.5:
   version "0.1.5"
