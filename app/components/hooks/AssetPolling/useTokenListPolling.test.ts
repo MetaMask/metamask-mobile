@@ -1,7 +1,8 @@
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useTokenListPolling from './useTokenListPolling';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -47,7 +48,7 @@ describe('useTokenListPolling', () => {
     const mockedTokenListController = jest.mocked(
       Engine.context.TokenListController,
     );
-    const calledAmount = isPortfolioViewEnabled() ? 2 : 1;
+    const calledAmount = networks.isPortfolioViewEnabled() ? 2 : 1;
     expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(
       calledAmount,
     );
@@ -62,5 +63,30 @@ describe('useTokenListPolling', () => {
     expect(
       mockedTokenListController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(calledAmount);
+  });
+
+  it('Should poll all networks when portfolio view is enabled', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
+      state,
+    });
+
+    const mockedTokenListController = jest.mocked(
+      Engine.context.TokenListController,
+    );
+
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+      chainId: selectedChainId,
+    });
+    expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
+      chainId: '0x89',
+    });
+
+    unmount();
+    expect(
+      mockedTokenListController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(2);
   });
 });

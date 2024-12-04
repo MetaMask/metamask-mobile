@@ -5,10 +5,12 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { selectChainId } from './networkController';
+import { isPortfolioViewEnabled } from '../util/networks';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
+// TODO: Double check this make sure this allTokens change plays nice with original view
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
   selectChainId,
@@ -17,7 +19,14 @@ export const selectTokens = createDeepEqualSelector(
     tokensControllerState: TokensControllerState,
     chainId: Hex,
     selectedAddress: string | undefined,
-  ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+  ) => {
+    if (isPortfolioViewEnabled()) {
+      return tokensControllerState?.allTokens[chainId]?.[
+        selectedAddress as Hex
+      ];
+    }
+    return tokensControllerState?.tokens;
+  },
 );
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
