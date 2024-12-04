@@ -969,7 +969,6 @@ function SwapsQuotesView({
       setRecipient,
       resetTransaction,
       chainId,
-      gasFeeEstimates,
       isEIP1559Network,
     ],
   );
@@ -1066,7 +1065,6 @@ function SwapsQuotesView({
     [
       approvalTransaction,
       gasEstimates,
-      gasFeeEstimates,
       isEIP1559Network,
       handleSwapTransaction,
       sourceToken.address,
