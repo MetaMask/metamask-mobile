@@ -26,8 +26,8 @@ import {
   selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotificationsAccount,
-  selectIsProfileSyncingEnabled,
 } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 
 import Routes from '../../../../constants/navigation/Routes';
 
