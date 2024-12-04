@@ -90,7 +90,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
     );
   });
 
-  fit('should add network permission when requested', async () => {
+  it('should add network permission when requested', async () => {
     await withFixtures(
       {
         dapp: true,
