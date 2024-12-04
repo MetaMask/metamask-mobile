@@ -46,6 +46,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
+import HDKeyring from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -80,7 +81,7 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
   fetchEstimatedMultiLayerL1Fee,
@@ -521,6 +522,13 @@ export class Engine {
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     additionalKeyrings.push(ledgerKeyringBuilder);
+
+    const hdKeyringBuilder = () =>
+      new HDKeyring({
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+      });
+    hdKeyringBuilder.type = HDKeyring.type;
+    additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
