@@ -1,7 +1,14 @@
 import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { lockApp, UserActionType } from '../../actions/user';
+import {
+  AuthSuccessAction,
+  AuthErrorAction,
+  InterruptBiometricsAction,
+  lockApp,
+  UserActionType,
+} from '../../actions/user';
+import { NavigationActionType } from '../../actions/navigation';
 import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
@@ -10,15 +17,8 @@ import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
-import {
-  getFeatureFlagsSuccess,
-  getFeatureFlagsError,
-  FeatureFlagsState,
-} from '../../core/redux/slices/featureFlags';
-import launchDarklyURL from '../../../app/util/featureFlags';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
-import { NavigationActionType } from '../../actions/navigation';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -79,13 +79,9 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   // Handle next three possible states.
   let shouldHandleAction = false;
   let action:
-    | {
-        type:
-          | UserActionType.AUTH_SUCCESS
-          | UserActionType.AUTH_ERROR
-          | UserActionType.INTERRUPT_BIOMETRICS;
-        payload?: { bioStateMachineId: string };
-      }
+    | AuthSuccessAction
+    | AuthErrorAction
+    | InterruptBiometricsAction
     | undefined;
 
   // Only continue on INTERRUPT_BIOMETRICS action or when actions originated from corresponding state machine.
@@ -129,39 +125,6 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-function arrayToObject(data: []): FeatureFlagsState['featureFlags'] {
-  return data.reduce((obj, current) => {
-    Object.assign(obj, current);
-    return obj;
-  }, {} as FeatureFlagsState['featureFlags']);
-}
-
-function* fetchFeatureFlags(): Generator {
-  try {
-    const response: Response = (yield fetch(
-      launchDarklyURL(
-        process.env.METAMASK_BUILD_TYPE,
-        process.env.METAMASK_ENVIRONMENT,
-      ),
-    )) as Response;
-    const jsonData = (yield response.json()) as { message: string } | [];
-
-    if (!response.ok) {
-      if (jsonData && typeof jsonData === 'object' && 'message' in jsonData) {
-        yield put(getFeatureFlagsError(jsonData.message));
-      } else {
-        yield put(getFeatureFlagsError('Unknown error'));
-      }
-      return;
-    }
-
-    yield put(getFeatureFlagsSuccess(arrayToObject(jsonData as [])));
-  } catch (error) {
-    Logger.log(error);
-    yield put(getFeatureFlagsError(error as string));
-  }
-}
-
 /**
  * Handles initializing app services on start up
  */
@@ -181,5 +144,4 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  yield fork(fetchFeatureFlags);
 }

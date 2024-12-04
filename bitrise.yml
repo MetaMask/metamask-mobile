@@ -72,6 +72,10 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
+  multichain_e2e_pipeline:
+    stages:
+      - build_multichain_e2e_ios_android_stage: {}
+      - run_multichain_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -131,6 +135,15 @@ stages:
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
+  build_multichain_e2e_ios_android_stage:
+    abort_on_fail: true
+    workflows:
+      - build_ios_multichain_e2e: {}
+      - build_android_multichain_e2e: {}
+  run_multichain_e2e_ios_android_stage:
+    workflows:
+      - run_tag_multichain_ios: {}
+      - run_tag_multichain_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -146,10 +159,12 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_multichain_ios: {}
+      - run_tag_multichain_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
+      - ios_build_regression_tests: {}
+      - android_build_regression_tests: {}
   run_regression_e2e_ios_android_stage:
     workflows:
       - ios_run_regression_tests: {}
@@ -475,6 +490,8 @@ workflows:
   ios_build_regression_tests:
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
@@ -489,6 +506,8 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
+      - MM_MULTICHAIN_V1_ENABLED: false
+      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
@@ -515,6 +534,17 @@ workflows:
       - TEST_TYPE: 'upgrade'
     after_run:
       - wdio_android_e2e_test
+  build_ios_multichain_e2e:
+    after_run:
+      - ios_e2e_build
+      # - android_e2e_build
+  build_android_multichain_e2e:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
@@ -645,6 +675,22 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+    after_run:
+      - android_e2e_test
+  run_tag_multichain_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
+      - TEST_SUITE_TAG: '.*SmokeCore.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_multichain_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
@@ -945,11 +991,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
@@ -1598,10 +1639,10 @@ app:
       PORTFOLIO_VIEW: false
     - opts:
         is_expand: false
-      MM_MULTICHAIN_V1_ENABLED: false
+      MM_MULTICHAIN_V1_ENABLED: true
     - opts:
         is_expand: false
-      MM_CHAIN_PERMISSIONS: false
+      MM_CHAIN_PERMISSIONS: true
     - opts:
         is_expand: false
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
@@ -1692,3 +1733,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
+  - push_branch: detox/address-regression-tests-slowdown
+    pipeline: multichain_e2e_pipeline
