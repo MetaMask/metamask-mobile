@@ -19,6 +19,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   });
 
   const defaultFixture = new FixtureBuilder()
+    .withSepoliaNetwork()
     .withPermissionControllerConnectedToTestDapp()
     .build();
 
@@ -47,6 +48,13 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   const typedSignRequestBody = {
     method: 'eth_signTypedData',
+    params: [
+      [
+        { type: 'string', name: 'Message', value: 'Hi, Alice!' },
+        { type: 'uint32', name: 'A number', value: '1337' },
+      ],
+      '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    ],
     origin: 'localhost',
   };
 
@@ -57,7 +65,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
         {
           ...mockEvents.POST.securityAlertApiValidate,
           requestBody: typedSignRequestBody,
-          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };
@@ -88,7 +95,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
             description: `You're interacting with a malicious domain. If you approve this request, you might lose your assets.`,
             features: [],
           },
-          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };
@@ -117,7 +123,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
             message: 'An unexpected error occurred on the server.',
           },
           responseCode: 500,
-          urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate/0x1',
         },
       ],
     };

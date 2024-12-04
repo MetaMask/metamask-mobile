@@ -12,7 +12,7 @@ import portfinder from 'portfinder';
 export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
-  await mockServer.enableDebug();
+
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
 
@@ -66,8 +66,6 @@ export const startMockServer = async (events, port) => {
       return { url: updatedUrl };
     },
   });
-
-
 
   return mockServer;
 };
