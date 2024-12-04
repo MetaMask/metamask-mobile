@@ -12,7 +12,7 @@ import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
-import AccountListView from '../../../pages/AccountListView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockNotificationServices } from '../utils/mocks';
 import { SmokeNotifications } from '../../../tags';
@@ -60,11 +60,11 @@ describe(SmokeNotifications('Account syncing'), () => {
     );
 
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
-        await AccountListView.getAccountElementByAccountName(accountName),
+        AccountListBottomSheet.getAccountElementByAccountName(accountName),
       );
     }
   });
