@@ -1,22 +1,22 @@
-import { CellComponentSelectorsIDs } from '../selectors/wallet/CellComponent.selectors';
+import { CellComponentSelectorsIDs } from '../../selectors/wallet/CellComponent.selectors';
 import {
-  AccountListViewSelectorsIDs,
-  AccountListViewSelectorsText,
-} from '../selectors/AccountListView.selectors';
-import { WalletViewSelectorsIDs } from '../selectors/wallet/WalletView.selectors';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../selectors/Browser/ConnectAccountBottomSheet.selectors';
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import TestHelpers from '../helpers';
+  AccountListBottomSheetSelectorsIDs,
+  AccountListBottomSheetSelectorsText,
+} from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 
-class AccountListView {
+class AccountListBottomSheet {
   get accountList() {
-    return Matchers.getElementByID(AccountListViewSelectorsIDs.ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
   }
 
   get accountTypeLabel() {
     return Matchers.getElementByID(
-      AccountListViewSelectorsIDs.ACCOUNT_TYPE_LABEL,
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
@@ -26,19 +26,19 @@ class AccountListView {
 
   get title() {
     return Matchers.getElementByText(
-      AccountListViewSelectorsText.ACCOUNTS_LIST_TITLE,
+      AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
   }
 
   get addAccountButton() {
     return Matchers.getElementByID(
-      AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
   }
 
   get removeAccountAlertText() {
     return Matchers.getElementByText(
-      AccountListViewSelectorsText.REMOVE_IMPORTED_ACCOUNT,
+      AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
@@ -48,11 +48,7 @@ class AccountListView {
     );
   }
 
-  getAccountElementAtIndex(index) {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
-  }
-
-  getAccountElementByAccountName(accountName) {
+  async getAccountElementByAccountName(accountName) {
     return Matchers.getElementByIDAndLabel(
       CellComponentSelectorsIDs.BASE_TITLE,
       accountName,
@@ -118,4 +114,4 @@ class AccountListView {
   }
 }
 
-export default new AccountListView();
+export default new AccountListBottomSheet();

@@ -2,9 +2,9 @@
 import { SmokeAccounts } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import AccountListView from '../../pages/AccountListView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../utils/Assertions';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 
 const AccountTwoText = 'Account 2';
 
@@ -20,13 +20,13 @@ describe(SmokeAccounts('Create wallet account'), () => {
 
   it('should be able to add new accounts', async () => {
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
-    await AccountListView.tapAddAccountButton();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
     // Tap on Create New Account
-    await AddAccountModal.tapCreateAccount();
+    await AddAccountBottomSheet.tapCreateAccount();
 
     await Assertions.checkIfVisible(
-      AccountListView.accountNameInList(AccountTwoText),
+      AccountListBottomSheet.accountNameInList(AccountTwoText),
     );
   });
 });

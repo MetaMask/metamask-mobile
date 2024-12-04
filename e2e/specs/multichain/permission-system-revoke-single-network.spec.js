@@ -2,7 +2,7 @@
 import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
