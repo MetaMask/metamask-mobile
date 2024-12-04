@@ -37,14 +37,14 @@ export function lockApp(): LockAppAction {
   };
 }
 
-export function authSuccess(bioStateMachineId: string): AuthSuccessAction {
+export function authSuccess(bioStateMachineId?: string): AuthSuccessAction {
   return {
     type: UserActionType.AUTH_SUCCESS,
     payload: { bioStateMachineId },
   };
 }
 
-export function authError(bioStateMachineId: string): AuthErrorAction {
+export function authError(bioStateMachineId?: string): AuthErrorAction {
   return {
     type: UserActionType.AUTH_ERROR,
     payload: { bioStateMachineId },

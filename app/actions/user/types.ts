@@ -29,11 +29,11 @@ export enum UserActionType {
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
 
 export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
-  payload: { bioStateMachineId: string };
+  payload: { bioStateMachineId?: string };
 };
 
 export type AuthErrorAction = Action<UserActionType.AUTH_ERROR> & {
-  payload: { bioStateMachineId: string };
+  payload: { bioStateMachineId?: string };
 };
 
 export type InterruptBiometricsAction =
