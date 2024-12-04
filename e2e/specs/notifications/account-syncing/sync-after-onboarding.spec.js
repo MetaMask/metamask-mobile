@@ -19,6 +19,9 @@ import { SmokeNotifications } from '../../../tags';
 
 describe(SmokeNotifications('Account syncing'), () => {
   beforeAll(async () => {
+    jest.setTimeout(200000);
+    await TestHelpers.reverseServerPort();
+
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
     });
@@ -29,9 +32,6 @@ describe(SmokeNotifications('Account syncing'), () => {
     userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
       getResponse: accountsSyncMockResponse,
     });
-
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
 
     await device.launchApp({
       newInstance: true,
@@ -44,6 +44,14 @@ describe(SmokeNotifications('Account syncing'), () => {
   });
 
   it('retrieves all previously synced accounts', async () => {
+    await importWalletWithRecoveryPhrase(
+      NOTIFICATIONS_TEAM_SEED_PHRASE,
+      NOTIFICATIONS_TEAM_PASSWORD,
+    );
+
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+
     const decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(
@@ -53,14 +61,6 @@ describe(SmokeNotifications('Account syncing'), () => {
         return JSON.parse(decryptedAccountName).n;
       }),
     );
-
-    await importWalletWithRecoveryPhrase(
-      NOTIFICATIONS_TEAM_SEED_PHRASE,
-      NOTIFICATIONS_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
