@@ -5,7 +5,7 @@ import Engine from '../Engine';
 import {
   LedgerKeyring,
   LedgerMobileBridge,
-} from '@metamask/eth-ledger-bridge-keyring';
+} from '@metamask-previews/eth-ledger-bridge-keyring';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
