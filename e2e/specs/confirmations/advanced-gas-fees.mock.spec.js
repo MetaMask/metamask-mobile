@@ -14,10 +14,6 @@ import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
-import {
-  startMockServer,
-  stopMockServer
-} from '../../api-mocking/mock-server';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -27,29 +23,21 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
-    mockServer = await startMockServer({
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    });
-
-  });
-
-  afterAll(async () => {
-    try {
-      await stopMockServer(mockServer);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Mock server already stopped or encountered an error:', error);
-    }
   });
 
   it('should edit priority gas settings and send ETH', async () => {
+
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
