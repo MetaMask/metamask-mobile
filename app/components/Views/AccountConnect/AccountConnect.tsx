@@ -231,33 +231,37 @@ const AccountConnect = (props: AccountConnectProps) => {
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
-    } catch {
-      // noop
+    } catch (e) {
+      Logger.error(e as Error, 'Error while checking permitted chains');
     }
 
-    if (hasPermittedChains) {
-      Engine.context.PermissionController.updateCaveat(
-        new URL(hostname).hostname,
-        PermissionKeys.permittedChains,
-        CaveatTypes.restrictNetworkSwitching,
-        chainsToPermit,
-      );
-    } else {
-      Engine.context.PermissionController.grantPermissionsIncremental({
-        subject: {
-          origin: new URL(hostname).hostname,
-        },
-        approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
-            caveats: [
-              {
-                type: CaveatTypes.restrictNetworkSwitching,
-                value: chainsToPermit,
-              },
-            ],
+    try {
+      if (hasPermittedChains) {
+        Engine.context.PermissionController.updateCaveat(
+          new URL(hostname).hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+          chainsToPermit,
+        );
+      } else {
+        Engine.context.PermissionController.grantPermissionsIncremental({
+          subject: {
+            origin: new URL(hostname).hostname,
           },
-        },
-      });
+          approvedPermissions: {
+            [PermissionKeys.permittedChains]: {
+              caveats: [
+                {
+                  type: CaveatTypes.restrictNetworkSwitching,
+                  value: chainsToPermit,
+                },
+              ],
+            },
+          },
+        });
+      }
+    } catch (e) {
+      Logger.error(e as Error, 'Error while updating network permissions');
     }
   }, [selectedChainIds, chainId, hostname]);
 
@@ -357,7 +361,13 @@ const AccountConnect = (props: AccountConnectProps) => {
           .build(),
       );
     },
-    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder, eventSource],
+    [
+      accountsLength,
+      channelIdOrHostname,
+      trackEvent,
+      createEventBuilder,
+      eventSource,
+    ],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
