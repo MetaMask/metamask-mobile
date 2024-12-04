@@ -67,7 +67,10 @@ describe('Transaction Controller Util', () => {
 
       expect(
         Engine.context.TransactionController.estimateGasFee,
-      ).toHaveBeenCalledWith(TRANSACTION_MOCK);
+      ).toHaveBeenCalledWith({
+        transactionParams: TRANSACTION_MOCK,
+        chainId: '0x1',
+      });
     });
   });
 
