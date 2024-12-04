@@ -1,39 +1,24 @@
-import EngineService from './EngineService';
+import { EngineService } from './EngineService';
+import type { ReduxStore } from '../redux';
+import ReduxService from '../redux';
 import Engine from '../Engine';
-import { store } from '../../store';
 
+jest.mock('../BackupVault', () => {
+  return {
+    getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
+  };
+});
 jest.mock('../../util/test/network-store.js', () => jest.fn());
-jest.mock('../../store', () => ({
-  store: {
-    getState: jest.fn(() => ({
-      engine: {
-        backgroundState: {},
-      },
-    })),
-    dispatch: jest.fn(),
-  },
-}));
-
+// Unmock global Engine
+jest.unmock('../Engine');
 jest.mock('../Engine', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let instance: any;
-  return {
-    get context() {
-      if (!instance) {
-        throw new Error('Engine does not exist');
-      }
-      return instance.context;
-    },
-    get controllerMessenger() {
-      if (!instance) {
-        throw new Error('Engine does not exist');
-      }
-      return instance.controllerMessenger;
-    },
-    destroyEngine: jest.fn(),
-    init: jest.fn((_, keyringState) => {
+
+  const mockEngine = {
+    init: (_: any, keyringState: any) => {
       instance = {
         controllerMessenger: { subscribe: jest.fn() },
         context: {
@@ -74,17 +59,50 @@ jest.mock('../Engine', () => {
         },
       };
       return instance;
+    },
+    get context() {
+      if (!instance) {
+        throw new Error('Engine does not exist');
+      }
+      return instance.context;
+    },
+    get controllerMessenger() {
+      if (!instance) {
+        throw new Error('Engine does not exist');
+      }
+      return instance.controllerMessenger;
+    },
+    destroyEngine: jest.fn(async () => {
+      instance = null;
     }),
+  };
+
+  return {
+    __esModule: true,
+    default: mockEngine,
   };
 });
 
 describe('EngineService', () => {
-  EngineService.initalizeEngine(store);
+  let engineService: EngineService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+      getState: () => ({ engine: { backgroundState: {} } }),
+    } as unknown as ReduxStore);
+
+    engineService = new EngineService();
+  });
+
   it('should have Engine initialized', () => {
+    engineService.start();
     expect(Engine.context).toBeDefined();
   });
   it('should have recovered vault on redux store ', async () => {
-    const { success } = await EngineService.initializeVaultFromBackup();
+    engineService.start();
+    const { success } = await engineService.initializeVaultFromBackup();
     expect(success).toBeTruthy();
     expect(Engine.context.KeyringController.state.vault).toBeDefined();
   });

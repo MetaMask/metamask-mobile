@@ -18,7 +18,7 @@ interface InitializeEngineResult {
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
-class EngineService {
+export class EngineService {
   private engineInitialized = false;
 
   /**
@@ -38,8 +38,6 @@ class EngineService {
    * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
    * - V8: SES_UNHANDLED_REJECTION
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   start = () => {
     const reduxState = ReduxService.store.getState();
     trace({
