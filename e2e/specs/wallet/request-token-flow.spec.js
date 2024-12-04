@@ -6,7 +6,7 @@ import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBot
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
 import TabBarComponent from '../../pages/TabBarComponent';
 import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
 import {
   loadFixture,

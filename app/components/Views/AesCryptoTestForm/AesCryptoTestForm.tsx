@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import {
@@ -19,7 +19,13 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
+  accountAddress,
 } from '../../../../e2e/selectors/Settings/AesCrypto.selectors';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { useSelector } from 'react-redux';
 
 const AesCryptoTestForm = () => {
   const navigation = useNavigation();
@@ -34,6 +40,10 @@ const AesCryptoTestForm = () => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [keyEncryptedData, setKeyEncryptedData] = useState<any>();
+
+  const selectedFormattedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
 
   useEffect(() => {
     const encryptorInstance = new Encryptor({
@@ -136,6 +146,14 @@ const AesCryptoTestForm = () => {
   return (
     <ScrollView testID={aesCryptoFormScrollIdentifier}>
       <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
+          <Text variant={TextVariant.HeadingSM} style={styles.formTitle}>
+            Current selected address
+          </Text>
+          <Text variant={TextVariant.HeadingSM} testID={accountAddress}>
+            {selectedFormattedAddress}
+          </Text>
+        </View>
         <TestForm
           title={strings('aes_crypto_test_form.generate_random_salt')}
           buttonLabel={strings('aes_crypto_test_form.generate')}

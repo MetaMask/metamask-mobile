@@ -1,4 +1,4 @@
-import { ProtectWalletModalSelectorsIDs } from '../../selectors/Modals/ProtectWalletModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../selectors/Onboarding/ProtectWalletModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
