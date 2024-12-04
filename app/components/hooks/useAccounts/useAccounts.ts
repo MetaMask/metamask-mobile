@@ -43,6 +43,7 @@ import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -173,7 +174,7 @@ const useAccounts = ({
           const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
           // IF portfolio view is active, display aggregated fiat balance cross chains
           let balanceFiat;
-          if (process.env.PORTFOLIO_VIEW) {
+          if (isPortfolioViewEnabled()) {
             const { totalFiatBalance } =
               totalFiatBalancesCrossChain[internalAccount.address];
             balanceFiat = `${renderFiat(totalFiatBalance, currentCurrency)}`;

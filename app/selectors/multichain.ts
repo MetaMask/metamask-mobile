@@ -183,10 +183,7 @@ export const selectAccountTokensAcrossChains = createSelector(
 
       // Add native token if it exists for this chain
       const nativeTokenInfoByChainId = nativeTokenBalancesByChainId[chainId];
-      if (
-        nativeTokenInfoByChainId &&
-        nativeTokenInfoByChainId.balance !== toHex(0)
-      ) {
+      if (nativeTokenInfoByChainId) {
         const nativeTokenInfo = getNativeTokenInfo(state, chainId as Hex);
 
         // Calculate native token balance
