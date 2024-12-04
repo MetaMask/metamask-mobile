@@ -4080,17 +4080,17 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.0.0"
 
-"@metamask/accounts-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-19.0.0.tgz#33c01259c6a8009b8286f21ff92b49c041fb8f78"
-  integrity sha512-gAgrbW1OauEZw/aCX2W5lYjaoUP55/V/oNBYQC51WJr/J9ehpqxCmquJM3HgBvmVZfMp8koLNzKFwKm0E/jzlg==
+"@metamask/accounts-controller@^20.0.1":
+  version "20.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-20.0.1.tgz#6f3dc905418ad75e44fce830b0363a585cce2ea8"
+  integrity sha512-zjAzkA3Okxy9aptBAHtFKCaTq5VNE8EHV48ETzxl8Jhdl8wpaTGWcacbqdkmOooC1lPLe2oXGglHSdBP73JDMQ==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/eth-snap-keyring" "^4.3.6"
-    "@metamask/keyring-api" "^8.1.3"
-    "@metamask/snaps-sdk" "^6.5.0"
-    "@metamask/snaps-utils" "^8.1.1"
+    "@metamask/eth-snap-keyring" "^5.0.1"
+    "@metamask/keyring-api" "^10.1.0"
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/snaps-utils" "^8.3.0"
     "@metamask/utils" "^10.0.0"
     deepmerge "^4.2.2"
     ethereum-cryptography "^2.1.2"
@@ -4408,13 +4408,28 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^4.3.3", "@metamask/eth-snap-keyring@^4.3.6":
+"@metamask/eth-snap-keyring@^4.4.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-4.4.0.tgz#118f292523bc7717b2782776b6728bcd2b862730"
   integrity sha512-N9+RMYrzwBvQER5aGc6kDjUNJi2m2A5LNUNC51v9oSvpQ2igooHQa+SHAdTpuh/OZ/oL3gvQ5dqz3ugS50kXmQ==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/eth-sig-util" "^7.0.3"
+    "@metamask/snaps-controllers" "^9.10.0"
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/snaps-utils" "^8.3.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.2.1"
+    "@types/uuid" "^9.0.8"
+    uuid "^9.0.1"
+
+"@metamask/eth-snap-keyring@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-5.0.1.tgz#aa16a5d623a4c68b44afaa9cd47f45a409f922d1"
+  integrity sha512-XP/gmuLyI8jYItpFiqQUGB5/d+Qft6dCqs9vCcbMzTEvyatJtP0bkk2ZWmpfnrVGQIlepY/nhOD25NDE7mgwEg==
+  dependencies:
+    "@ethereumjs/tx" "^4.2.0"
+    "@metamask/eth-sig-util" "^8.0.0"
     "@metamask/snaps-controllers" "^9.10.0"
     "@metamask/snaps-sdk" "^6.7.0"
     "@metamask/snaps-utils" "^8.3.0"
@@ -4582,7 +4597,20 @@
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-api@^8.1.0", "@metamask/keyring-api@^8.1.3":
+"@metamask/keyring-api@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-10.1.0.tgz#22bb96886b9dbf9a6d6f48e5975cb16499209959"
+  integrity sha512-T1/4oQKJ4+V8gsXusVF515B+kpHSMiSbCpxZunJDjvnXEheT2NjbdvjtoIK5AT+Fe6JBWDzeZGpt6gv2vHX2SA==
+  dependencies:
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.2.1"
+    "@types/uuid" "^9.0.8"
+    bech32 "^2.0.0"
+    uuid "^9.0.1"
+    webextension-polyfill "^0.12.0"
+
+"@metamask/keyring-api@^8.1.3":
   version "8.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.3.tgz#53e6a68236b88592db5bd43cf7e0d7e97dfad818"
   integrity sha512-Ztm4G/U5hc+GKS/VOnqLWYVh2O26lFQ03bNpeufrfKq7regydIqYuHFcSowbQyj7xCZqKPsvl9jxhKdYIxvCXQ==
@@ -4867,7 +4895,7 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
+"@metamask/providers@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -4884,6 +4912,23 @@
     is-stream "^2.0.0"
     readable-stream "^3.6.2"
     webextension-polyfill "^0.10.0"
+
+"@metamask/providers@^18.1.0":
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.2.0.tgz#557ca488a58966e288e50d629f104b061f8a76d2"
+  integrity sha512-GYgweLy6N1/aNNAg4CLhtfu9XwNNG+MZNlPCAl6Ai92+GKCUFRp8RTTBN81EzTLJvJu7NKIrw99AApJACJ8KRA==
+  dependencies:
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/json-rpc-middleware-stream" "^8.0.5"
+    "@metamask/object-multiplex" "^2.0.0"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/safe-event-emitter" "^3.1.1"
+    "@metamask/utils" "^10.0.0"
+    detect-browser "^5.2.0"
+    extension-port-stream "^4.1.0"
+    fast-deep-equal "^3.1.3"
+    is-stream "^2.0.0"
+    readable-stream "^3.6.2"
 
 "@metamask/providers@^18.1.1":
   version "18.1.1"
@@ -27639,6 +27684,11 @@ webdriverio@~7.16.13:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.10.0.tgz#ccb28101c910ba8cf955f7e6a263e662d744dbb8"
   integrity sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==
+
+webextension-polyfill@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.12.0.tgz#f62c57d2cd42524e9fbdcee494c034cae34a3d69"
+  integrity sha512-97TBmpoWJEE+3nFBQ4VocyCdLKfw54rFaJ6EVQYLBCXqCIpLSZkwGgASpv4oPt9gdKCJ80RJlcmNzNn008Ag6Q==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
