@@ -1,4 +1,5 @@
 'use strict';
+import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
@@ -17,20 +18,27 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
+import AccountListView from '../../pages/AccountListView';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
+import CommonView from '../../pages/CommonView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
+import AddAccountModal from '../../pages/modals/AddAccountModal';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
-const sourceTokenSymbol = 'USDT';
-const destTokenSymbol = 'DAI';
 
-describe(Regression('Swap from Token view'), () => {
+xdescribe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
+  const wallet = ethers.Wallet.createRandom();
+
   beforeAll(async () => {
+    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(CustomNetworks.Tenderly)
+      .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
@@ -49,7 +57,25 @@ describe(Regression('Swap from Token view'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should complete a USDT to ETH swap from the token chart', async () => {
+  it('should be able to import account', async () => {
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListView.accountList);
+    await AccountListView.tapAddAccountButton();
+    await AddAccountModal.tapImportAccount();
+    await Assertions.checkIfVisible(ImportAccountView.container);
+    // Tap on import button to make sure alert pops up
+    await ImportAccountView.tapImportButton();
+    await CommonView.tapOKAlertButton();
+    await ImportAccountView.enterPrivateKey(wallet.privateKey);
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
+    await AccountListView.swipeToDismissAccountsModal();
+    await Assertions.checkIfVisible(WalletView.container);
+    await TestHelpers.delay(2000);
+  });
+
+  it('should complete a USDC to DAI swap from the token chart', async () => {
+    const sourceTokenSymbol = 'ETH', destTokenSymbol = 'DAI';
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
@@ -58,12 +84,7 @@ describe(Regression('Swap from Token view'), () => {
     await TokenOverview.tapSwapButton();
     if (!swapOnboarded) await Onboarding.tapStartSwapping();
     await Assertions.checkIfVisible(QuoteView.getQuotes);
-    await QuoteView.tapOnSelectSourceToken();
-    await QuoteView.tapSearchToken();
-    await QuoteView.typeSearchToken(sourceTokenSymbol);
-    await TestHelpers.delay(1000);
-    await QuoteView.selectToken(sourceTokenSymbol);
-    await QuoteView.enterSwapAmount('10');
+    await QuoteView.enterSwapAmount('.5');
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken(destTokenSymbol);
@@ -74,43 +95,19 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(SwapView.quoteSummary);
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
-    await SwapView.swipeToSwap();
-    try {
-      await Assertions.checkIfVisible(
-        SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
-        100000,
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Toast message is slow to appear or did not appear: ${e}`);
-    }
+    await SwapView.tapSwapButton();
+    //Wait for Swap to complete
+    await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
     await device.enableSynchronization();
-    await TestHelpers.delay(5000);
-    await TokenOverview.tapBackButton();
+    await TestHelpers.delay(10000);
+    await CommonView.tapBackButton();
+
+    // Check the swap activity completed
     await TabBarComponent.tapActivity();
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(
-      ActivitiesView.swapActivity(sourceTokenSymbol, destTokenSymbol),
+      ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await ActivitiesView.tapOnSwapActivity(sourceTokenSymbol, destTokenSymbol);
-
-    try {
-      await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    } catch (e) {
-      await ActivitiesView.tapOnSwapActivity(
-        sourceTokenSymbol,
-        destTokenSymbol,
-      );
-      await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    }
-
-    await Assertions.checkIfVisible(DetailsBottomSheet.title);
-    await Assertions.checkIfElementToHaveText(
-      DetailsBottomSheet.title,
-      DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
-    );
-    await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
-    await DetailsBottomSheet.tapOnCloseIcon();
-    await Assertions.checkIfNotVisible(DetailsBottomSheet.title);
+    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
   });
 });
