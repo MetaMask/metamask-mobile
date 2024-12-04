@@ -227,7 +227,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     try {
       hasPermittedChains = Engine.context.PermissionController.hasCaveat(
-        new URL(hostname).hostname,
+        channelIdOrHostname,
         PermissionKeys.permittedChains,
         CaveatTypes.restrictNetworkSwitching,
       );
@@ -238,7 +238,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     try {
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
-          new URL(hostname).hostname,
+          channelIdOrHostname,
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
           chainsToPermit,
@@ -246,7 +246,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       } else {
         Engine.context.PermissionController.grantPermissionsIncremental({
           subject: {
-            origin: new URL(hostname).hostname,
+            origin: channelIdOrHostname,
           },
           approvedPermissions: {
             [PermissionKeys.permittedChains]: {
@@ -263,7 +263,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     } catch (e) {
       Logger.error(e as Error, 'Error while updating network permissions');
     }
-  }, [selectedChainIds, chainId, hostname]);
+  }, [selectedChainIds, chainId, channelIdOrHostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
