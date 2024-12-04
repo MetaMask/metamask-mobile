@@ -3,8 +3,54 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenFilterBottomSheet } from './TokenFilterBottomSheet';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
+import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
+import { Hex } from '@metamask/utils';
+import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
+
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+
+const mockNetworks: Record<Hex, NetworkConfiguration> = {
+  [NETWORK_CHAIN_ID.MAINNET]: {
+    blockExplorerUrls: ['https://etherscan.io'],
+    chainId: NETWORK_CHAIN_ID.MAINNET,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [
+      {
+        url: 'https://mainnet.infura.io/v3',
+        networkClientId: NETWORK_CHAIN_ID.MAINNET,
+        type: RpcEndpointType.Custom,
+        name: 'Ethereum',
+      },
+    ],
+  },
+  [NETWORK_CHAIN_ID.POLYGON]: {
+    blockExplorerUrls: ['https://polygonscan.com'],
+    chainId: NETWORK_CHAIN_ID.POLYGON,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Polygon Mainnet',
+    nativeCurrency: 'MATIC',
+    rpcEndpoints: [
+      {
+        url: 'https://polygon-rpc.com',
+        name: 'Polygon',
+        networkClientId: NETWORK_CHAIN_ID.POLYGON,
+        type: RpcEndpointType.Custom,
+      },
+    ],
+  },
+};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -54,6 +100,8 @@ describe('TokenFilterBottomSheet', () => {
         return '0x1'; // default chain ID
       } else if (selector === selectTokenNetworkFilter) {
         return {}; // default to show all networks
+      } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks; // default to show all networks
       }
       return null;
     });
@@ -78,7 +126,7 @@ describe('TokenFilterBottomSheet', () => {
     await waitFor(() => {
       expect(
         Engine.context.PreferencesController.setTokenNetworkFilter,
-      ).toHaveBeenCalledWith({});
+      ).toHaveBeenCalledWith(enableAllNetworksFilter(mockNetworks));
     });
   });
 
@@ -102,6 +150,8 @@ describe('TokenFilterBottomSheet', () => {
         return '0x1';
       } else if (selector === selectTokenNetworkFilter) {
         return { '0x1': true }; // filter by current network
+      } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks;
       }
       return null;
     });

@@ -27,7 +27,7 @@ import renderWithProvider from '../util/test/renderWithProvider';
 import Engine, { EngineState } from '../core/Engine';
 import {
   selectSelectedInternalAccount,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from './accountsController';
 import { selectChainId } from './networkController';
 
@@ -305,7 +305,7 @@ describe('selectAccountBalanceByChainId', () => {
       // Clear memoized selectors for each test
       selectAccountBalanceByChainId.memoizedResultFunc.clearCache();
       selectAccountsByChainId.memoizedResultFunc.clearCache();
-      selectSelectedInternalAccountChecksummedAddress.memoizedResultFunc.clearCache();
+      selectSelectedInternalAccountFormattedAddress.memoizedResultFunc.clearCache();
       selectChainId.memoizedResultFunc.clearCache();
       selectSelectedInternalAccount.memoizedResultFunc.clearCache();
       const MockComponent = () => {

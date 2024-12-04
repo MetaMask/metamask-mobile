@@ -1,5 +1,11 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+} from 'react';
 import { Dimensions, Platform, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -36,9 +42,14 @@ import BrowserTab from '../BrowserTab';
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../selectors/networkController';
 import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
+import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -60,10 +71,11 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
     accountsLength,
+    chainId,
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
@@ -93,11 +105,15 @@ export const Browser = (props) => {
   }, isEqual);
 
   const handleRightTopButtonAnalyticsEvent = () => {
-    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
-      number_of_accounts: accountsLength,
-      number_of_accounts_connected: permittedAccountsList.length,
-      number_of_networks: nonTestnetNetworks,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
+        .addProperties({
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAccountsList.length,
+          number_of_networks: nonTestnetNetworks,
+        })
+        .build(),
+    );
   };
 
   useEffect(
@@ -133,7 +149,9 @@ export const Browser = (props) => {
   };
 
   const switchToTab = (tab) => {
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
+    );
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
@@ -146,6 +164,7 @@ export const Browser = (props) => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
+
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
@@ -363,6 +382,7 @@ export const Browser = (props) => {
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
+        isInTabsView={route.params?.showTabs}
       />
     ));
 
@@ -382,6 +402,7 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
+  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -431,6 +452,10 @@ Browser.propTypes = {
   route: PropTypes.object,
   accountsLength: PropTypes.number,
   networkConfigurations: PropTypes.object,
+  /**
+   * Current network chainId
+   */
+  chainId: PropTypes.string,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

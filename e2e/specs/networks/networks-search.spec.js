@@ -1,23 +1,18 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
-import NetworkView from '../../pages/Settings/NetworksView';
-import SettingsView from '../../pages/Settings/SettingsView';
+import { SmokeCore } from '../../tags';
 
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 
 const SHORT_HAND_NETWORK_TEXT = 'Ava';
 const INVALID_NETWORK_TEXT = 'cccM';
-describe(Regression('Networks Search'), () => {
+describe(SmokeCore('Networks Search'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

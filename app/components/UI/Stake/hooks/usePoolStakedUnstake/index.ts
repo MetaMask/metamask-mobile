@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { PooledStakingContract, ChainId } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import {
@@ -8,6 +9,7 @@ import {
 import { addTransaction } from '../../../../../util/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import trackErrorAsAnalytics from '../../../../../util/metrics/TrackError/trackErrorAsAnalytics';
+import useBalance from '../useBalance';
 
 const generateUnstakeTxParams = (
   activeAccountAddress: string,
@@ -23,11 +25,37 @@ const generateUnstakeTxParams = (
 });
 
 const attemptUnstakeTransaction =
-  (pooledStakingContract: PooledStakingContract) =>
+  (pooledStakingContract: PooledStakingContract, stakedBalanceWei: string) =>
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
-      const shares = await pooledStakingContract.convertToShares(valueWei);
+      // STAKE-867: This is temporary logic for the unstake all action
+      // if we are unstaking the total assets we send the total shares
+      // the user has in the vault through getShares contract method
+      // this is a quick fix for mobile only and will be refactored to cover
+      // portfolio in the future. We avoid the case where contract level rounding
+      // error causes 1 wei dust to be left when converting assets to shares
+      // and attempting to unstake all assets
+      let shares;
+      if (valueWei === stakedBalanceWei) {
+        // create the interface for the getShares method and call getShares to get user shares
+        const tempInterface = new ethers.utils.Interface([
+          'function getShares(address) returns (uint256)',
+        ]);
+        const data = tempInterface.encodeFunctionData('getShares', [receiver]);
+        const sharesResult =
+          await pooledStakingContract?.contract.provider.call({
+            to: pooledStakingContract?.contract.address,
+            data,
+          });
+        const [sharesBN] = tempInterface.decodeFunctionResult(
+          'getShares',
+          sharesResult,
+        );
+        shares = sharesBN.toString();
+      } else {
+        shares = await pooledStakingContract.convertToShares(valueWei);
+      }
 
       const gasLimit = await pooledStakingContract.estimateEnterExitQueueGas(
         shares.toString(),
@@ -64,11 +92,15 @@ const attemptUnstakeTransaction =
 
 const usePoolStakedUnstake = () => {
   const stakeContext = useStakeContext();
+  const { stakedBalanceWei } = useBalance();
 
   const stakingContract = stakeContext.stakingContract as PooledStakingContract;
 
   return {
-    attemptUnstakeTransaction: attemptUnstakeTransaction(stakingContract),
+    attemptUnstakeTransaction: attemptUnstakeTransaction(
+      stakingContract,
+      stakedBalanceWei,
+    ),
   };
 };
 

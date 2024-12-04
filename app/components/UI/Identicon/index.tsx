@@ -4,10 +4,9 @@ import { Image, ImageStyle, View } from 'react-native';
 import { toDataUrl } from '../../../util/blockies';
 import FadeIn from 'react-native-fade-in-image';
 import Jazzicon from 'react-native-jazzicon';
-import { connect } from 'react-redux';
 import { useTheme } from '../../../util/theme';
-import { useTokenListEntry } from '../../../components/hooks/DisplayName/useTokenListEntry';
-import { NameType } from '../../UI/Name/Name.types';
+import { RootState } from '../../../reducers';
+import { useSelector } from 'react-redux';
 
 interface IdenticonProps {
   /**
@@ -27,9 +26,10 @@ interface IdenticonProps {
    */
   noFadeIn?: boolean;
   /**
-   * Show a BlockieIcon instead of JazzIcon
+   * URI of the image to render
+   * Overrides the address if also provided
    */
-  useBlockieIcon?: boolean;
+  imageUri?: string;
 }
 
 /**
@@ -42,17 +42,15 @@ const Identicon: React.FC<IdenticonProps> = ({
   address,
   customStyle,
   noFadeIn,
-  useBlockieIcon = true,
+  imageUri,
 }) => {
   const { colors } = useTheme();
-  const tokenListIcon = useTokenListEntry(
-    address || '',
-    NameType.EthereumAddress,
-  )?.iconUrl;
 
-  if (!address) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const useBlockieIcon =
+    useSelector((state: RootState) => state.settings.useBlockieIcon) ?? true;
 
-  const uri = useBlockieIcon && toDataUrl(address);
+  if (!address && !imageUri) return null;
 
   const styleForBlockieAndTokenIcon = [
     {
@@ -63,17 +61,13 @@ const Identicon: React.FC<IdenticonProps> = ({
     customStyle,
   ];
 
-  if (tokenListIcon) {
-    return (
-      <Image
-        source={{ uri: tokenListIcon }}
-        style={styleForBlockieAndTokenIcon}
-      />
-    );
-  }
-
-  const image = useBlockieIcon ? (
-    <Image source={{ uri }} style={styleForBlockieAndTokenIcon} />
+  const image = imageUri ? (
+    <Image source={{ uri: imageUri }} style={styleForBlockieAndTokenIcon} />
+  ) : useBlockieIcon ? (
+    <Image
+      source={{ uri: toDataUrl(address) }}
+      style={styleForBlockieAndTokenIcon}
+    />
   ) : (
     <View style={customStyle}>
       <Jazzicon size={diameter} address={address} />
@@ -93,10 +87,4 @@ const Identicon: React.FC<IdenticonProps> = ({
   );
 };
 
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapStateToProps = (state: any) => ({
-  useBlockieIcon: state.settings.useBlockieIcon,
-});
-
-export default connect(mapStateToProps)(memo(Identicon));
+export default memo(Identicon);

@@ -71,7 +71,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         }
       }
     >
-      http://metamask.github.io
+      https://metamask.github.io
     </Text>
   </View>
   <TouchableOpacity

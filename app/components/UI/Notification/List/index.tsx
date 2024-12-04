@@ -59,7 +59,7 @@ function Loading() {
 export function NotificationsListItem(props: NotificationsListItemProps) {
   const { styles } = useStyles();
   const { markNotificationAsRead } = useMarkNotificationAsRead();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const onNotificationClick = useCallback(
     (item: Notification) => {
       markNotificationAsRead([
@@ -83,23 +83,26 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
         }
       });
 
-      trackEvent(MetaMetricsEvents.NOTIFICATION_CLICKED, {
-        notification_id: item.id,
-        notification_type: item.type,
-        ...('chain_id' in item && {
-          chain_id: item.chain_id,
-        }),
-        previously_read: item.isRead,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATION_CLICKED)
+          .addProperties({
+            notification_id: item.id,
+            notification_type: item.type,
+            previously_read: item.isRead,
+            ...('chain_id' in item && { chain_id: item.chain_id }),
+          })
+          .build(),
+      );
     },
-    [markNotificationAsRead, props.navigation, trackEvent],
+    [markNotificationAsRead, props.navigation, trackEvent, createEventBuilder],
   );
 
   const menuItemState = useMemo(() => {
     const notificationState =
-      props.notification?.type && hasNotificationComponents(props.notification.type)
-      ? NotificationComponentState[props.notification.type]
-      : undefined;
+      props.notification?.type &&
+      hasNotificationComponents(props.notification.type)
+        ? NotificationComponentState[props.notification.type]
+        : undefined;
 
     return notificationState?.createMenuItem(props.notification);
   }, [props.notification]);
@@ -172,7 +175,7 @@ function TabbedNotificationList(props: NotificationsListProps) {
     theme: { colors },
     styles,
   } = useStyles();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const getListProps = useNotificationListProps(props);
 
@@ -180,19 +183,25 @@ function TabbedNotificationList(props: NotificationsListProps) {
     (tabLabel: string) => {
       switch (tabLabel) {
         case strings('notifications.list.0'):
-          trackEvent(MetaMetricsEvents.ALL_NOTIFICATIONS);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.ALL_NOTIFICATIONS).build(),
+          );
           break;
         case strings('notifications.list.1'):
-          trackEvent(MetaMetricsEvents.WALLET_NOTIFICATIONS);
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WALLET_NOTIFICATIONS).build(),
+          );
           break;
         case strings('notifications.list.2'):
-          // trackEvent(MetaMetricsEvents.WEB3_NOTIFICATIONS);
+          // trackEvent(
+          //   createEventBuilder(MetaMetricsEvents.WEB3_NOTIFICATIONS).build(),
+          // );
           break;
         default:
           break;
       }
     },
-    [trackEvent],
+    [trackEvent, createEventBuilder],
   );
 
   return (

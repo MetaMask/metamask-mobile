@@ -58,7 +58,7 @@ const initialState: DeepPartial<RootState> = {
         addressBook: {},
       },
       TokenBalancesController: {
-        contractBalances: {},
+        tokenBalances: {},
       },
       TokenListController: {
         tokenList: { '0x1': {} },

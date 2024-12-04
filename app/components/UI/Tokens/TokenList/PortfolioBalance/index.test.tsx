@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AppConstants from '../../../../../../app/core/AppConstants';
@@ -76,11 +75,7 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN(2),
-          '0x01': new BN(2),
-          '0x02': new BN(0),
-        },
+        tokenBalances: { },
       },
     },
   },

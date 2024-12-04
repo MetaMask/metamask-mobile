@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { backUpSeedphraseAlertNotVisible } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
 import styleSheet from './BackupAlert.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
@@ -41,7 +41,7 @@ const BLOCKED_LIST = [
 
 const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [inBrowserView, setInBrowserView] = useState(false);
   const [inBlockedView, setInBlockedView] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
@@ -77,19 +77,27 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
       screen: 'AccountBackupStep1',
     });
 
-    trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED, {
-      wallet_protection_required: false,
-      source: 'Backup Alert',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_ENGAGED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Backup Alert',
+        })
+        .build(),
+    );
   };
 
   const onDismissAlert = () => {
     dispatch(backUpSeedphraseAlertNotVisible());
 
-    trackEvent(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED, {
-      wallet_protection_required: false,
-      source: 'Backup Alert',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_SECURITY_PROTECT_DISMISSED)
+        .addProperties({
+          wallet_protection_required: false,
+          source: 'Backup Alert',
+        })
+        .build(),
+    );
 
     if (onDismiss) onDismiss();
   };

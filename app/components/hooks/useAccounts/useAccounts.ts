@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -31,8 +30,8 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
 import { BigNumber } from 'ethers';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -127,25 +126,22 @@ const useAccounts = ({
     let selectedIndex = 0;
     const flattenedAccounts: Account[] = internalAccounts.map(
       (internalAccount: InternalAccount, index: number) => {
-        const {
-          address,
-          metadata: {
-            name,
-            keyring: { type },
-          },
-        } = internalAccount;
-        // This should be changed at controller-utils core package
-        const checksummedAddress = toChecksumHexAddress(address) as Hex;
-        const isSelected = selectedInternalAccount?.address === address;
+        const formattedAddress =
+          getFormattedAddressFromInternalAccount(internalAccount);
+        const isSelected =
+          selectedInternalAccount?.address === internalAccount.address;
         if (isSelected) {
           selectedIndex = index;
         }
         // TODO - Improve UI to either include loading and/or balance load failures.
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
         const balanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.balance || '0x0';
+          accountInfoByAddress?.[formattedAddress]?.balance || '0x0';
         const stakedBalanceWeiHex =
-          accountInfoByAddress?.[checksummedAddress]?.stakedBalance || '0x0';
-        const totalBalanceWeiHex = BigNumber.from(balanceWeiHex).add(BigNumber.from(stakedBalanceWeiHex)).toHexString();
+          accountInfoByAddress?.[formattedAddress]?.stakedBalance || '0x0';
+        const totalBalanceWeiHex = BigNumber.from(balanceWeiHex)
+          .add(BigNumber.from(stakedBalanceWeiHex))
+          .toHexString();
         const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
         const balanceFiat =
           weiToFiat(
@@ -160,9 +156,9 @@ const useAccounts = ({
         const balanceError = checkBalanceError?.(balanceWeiHex);
         const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
         const mappedAccount: Account = {
-          name,
-          address: checksummedAddress,
-          type: type as KeyringTypes,
+          name: internalAccount.metadata.name,
+          address: formattedAddress,
+          type: internalAccount.metadata.keyring.type as KeyringTypes,
           yOffset,
           isSelected,
           // TODO - Also fetch assets. Reference AccountList component.
@@ -177,7 +173,7 @@ const useAccounts = ({
         if (balanceError) {
           yOffset += 22;
         }
-        if (type !== KeyringTypes.hd) {
+        if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
           yOffset += 24;
         }
         return mappedAccount;

@@ -1,3 +1,4 @@
+import { MarketDataDetails } from '@metamask/assets-controllers';
 import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
@@ -7,7 +8,6 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '..';
 
 export const deriveBalanceFromAssetMarketDetails = (
   asset: TokenI,

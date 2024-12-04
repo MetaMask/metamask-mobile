@@ -133,7 +133,7 @@ async function initiateQRHardwareConnection(
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
@@ -215,9 +215,13 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     >();
 
   const onConnectHardware = useCallback(async () => {
-    trackEvent(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET, {
-      device_type: HardwareDeviceTypes.QR,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONTINUE_QR_HARDWARE_WALLET)
+        .addProperties({
+          device_type: HardwareDeviceTypes.QR,
+        })
+        .build(),
+    );
     resetError();
     const [qrInteractions, connectQRHardwarePromise] =
       await initiateQRHardwareConnection(PAGINATION_OPERATIONS.GET_FIRST_PAGE);
@@ -227,14 +231,18 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
     delete qrInteractionsRef.current;
 
     setAccounts(firstPageAccounts);
-  }, [resetError, trackEvent]);
+  }, [resetError, trackEvent, createEventBuilder]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
       hideScanner();
-      trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS, {
-        device_type: HardwareDeviceTypes.QR,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET_SUCCESS)
+          .addProperties({
+            device_type: HardwareDeviceTypes.QR,
+          })
+          .build(),
+      );
       if (!qrInteractionsRef.current) {
         const errorMessage = 'Missing QR keyring interactions';
         setErrorMsg(errorMessage);
@@ -247,7 +255,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
       }
       resetError();
     },
-    [hideScanner, resetError, trackEvent],
+    [hideScanner, resetError, trackEvent, createEventBuilder],
   );
 
   const onScanError = useCallback(

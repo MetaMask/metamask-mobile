@@ -225,5 +225,130 @@ describe('Tags Utils', () => {
 
       expect(tags?.['wallet.transaction_count']).toStrictEqual(3);
     });
+
+    it('returns undefined if ApprovalController is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: undefined,
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('handles undefined pendingApprovals in ApprovalController', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: {
+              ...backgroundState.ApprovalController,
+              pendingApprovals: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags?.['wallet.pending_approval']).toBeUndefined();
+    });
+
+    it('handles ApprovalController as an empty object', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            ApprovalController: {},
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeDefined();
+      expect(tags?.['wallet.pending_approval']).toBeUndefined();
+    });
+
+    it('returns undefined if NftController.allNfts is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NftController: {
+              ...backgroundState.NftController,
+              allNfts: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if NotificationServicesController.metamaskNotificationsList is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            NotificationServicesController: {
+              metamaskNotificationsList: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if TokensController.allTokens is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            TokensController: {
+              allTokens: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
+
+    it('returns undefined if TransactionController.transactions is not defined', () => {
+      const state = {
+        ...initialRootState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            TransactionController: {
+              transactions: undefined,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      const tags = getTraceTags(state);
+
+      expect(tags).toBeUndefined();
+    });
   });
 });

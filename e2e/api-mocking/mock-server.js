@@ -50,7 +50,7 @@ export const startMockServer = async (events, port) => {
         await mockServer
           .forPost('/proxy')
           .withQuery({ url: urlEndpoint })
-          .withJsonBody(requestBody || {})
+          .withJsonBodyIncluding(requestBody || {})
           .thenReply(responseCode, JSON.stringify(response));
       }
     }

@@ -6,7 +6,7 @@ import {
 } from '../../../actions/notification/helpers';
 import { mmStorage } from '../settings';
 import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
-
+import { isNotificationsFeatureEnabled } from '../constants';
 
 export function usePushNotifications() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -18,6 +18,10 @@ export function usePushNotifications() {
 
   const switchPushNotifications = useCallback(
     async (state: boolean) => {
+      if (!isNotificationsFeatureEnabled()) {
+        return;
+      }
+
       resetStates();
       setLoading(true);
       let errorMessage: string | undefined;
@@ -26,7 +30,10 @@ export function usePushNotifications() {
         const userStorage: UserStorage = mmStorage.getLocal('pnUserStorage');
         if (state) {
           const fcmToken = mmStorage.getLocal('metaMaskFcmToken');
-          errorMessage = await enablePushNotifications(userStorage, fcmToken?.data);
+          errorMessage = await enablePushNotifications(
+            userStorage,
+            fcmToken?.data,
+          );
         } else {
           errorMessage = await disablePushNotifications(userStorage);
         }
@@ -42,7 +49,6 @@ export function usePushNotifications() {
     },
     [resetStates],
   );
-
 
   return {
     switchPushNotifications,

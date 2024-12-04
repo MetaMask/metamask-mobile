@@ -26,6 +26,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
@@ -205,17 +206,17 @@ const AccountBackupStep1B = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const track = (event, properties) => {
-    trackOnboarding(event, properties);
-  };
-
   useEffect(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [navigation, route, colors]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
-    track(MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_MANUAL_BACKUP_INITIATED,
+      ).build(),
+    );
   };
 
   const learnMore = () => {

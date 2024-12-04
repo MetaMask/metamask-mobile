@@ -104,7 +104,7 @@ const WatchAssetRequest = ({
   const { asset, interactingAddress } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const chainId = useSelector(selectChainId);
@@ -133,7 +133,11 @@ const WatchAssetRequest = ({
   const onConfirmPress = async () => {
     await onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

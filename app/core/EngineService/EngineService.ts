@@ -69,14 +69,6 @@ class EngineService {
         key: `${engine.context.TokensController.name}:stateChange`,
       },
       {
-        name: 'TokenDetectionController',
-        key: `${engine.context.TokenDetectionController.name}:stateChange`,
-      },
-      {
-        name: 'NftDetectionController',
-        key: 'NftDetectionController:stateChange',
-      },
-      {
         name: 'KeyringController',
         key: `${engine.context.KeyringController.name}:stateChange`,
       },
@@ -97,6 +89,10 @@ class EngineService {
         key: `${engine.context.PreferencesController.name}:stateChange`,
       },
       {
+        name: 'RemoteFeatureFlagController',
+        key: `${engine.context.RemoteFeatureFlagController.name}:stateChange`,
+      },
+      {
         name: 'SelectedNetworkController',
         key: `${engine.context.SelectedNetworkController.name}:stateChange`,
       },
@@ -113,7 +109,10 @@ class EngineService {
         name: 'SmartTransactionsController',
         key: `${engine.context.SmartTransactionsController.name}:stateChange`,
       },
-      { name: 'SwapsController' },
+      {
+        name: 'SwapsController',
+        key: `${engine.context.SwapsController.name}:stateChange`,
+      },
       {
         name: 'TokenListController',
         key: `${engine.context.TokenListController.name}:stateChange`,
@@ -171,18 +170,6 @@ class EngineService {
       {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
-      },
-      {
-        name: 'AuthenticationController',
-        key: `AuthenticationController:stateChange`,
-      },
-      {
-        name: 'UserStorageController',
-        key: `UserStorageController:stateChange`,
-      },
-      {
-        name: 'NotificationServicesController',
-        key: `NotificationServicesController:stateChange`,
       },
     ];
 

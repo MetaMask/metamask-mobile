@@ -5,7 +5,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Hex } from '@metamask/utils';
 
 // External dependencies.
 import { selectInternalAccounts } from '../../../selectors/accountsController';
@@ -120,7 +119,7 @@ const AccountSelectorList = ({
       isSelected,
       index,
     }: {
-      address: Hex;
+      address: string;
       imported: boolean;
       isSelected: boolean;
       index: number;

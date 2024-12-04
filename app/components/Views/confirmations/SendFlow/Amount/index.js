@@ -89,7 +89,7 @@ import {
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -683,9 +683,12 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT)
+        .addProperties({ network: providerType })
+        .build(),
+    );
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
@@ -1268,16 +1271,26 @@ class Amount extends PureComponent {
 
     const navigateToBuyOrSwaps = () => {
       if (isSwappable) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'swap_tokens',
-        });
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'swap_tokens',
+            })
+            .build(),
+        );
         navigateToSwap();
       } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'buy_more',
-        });
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'buy_more',
+            })
+            .build(),
+        );
         navigation.navigate(...createBuyNavigationDetails());
       }
     };
@@ -1532,7 +1545,7 @@ const mapStateToProps = (state, ownProps) => ({
   gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,

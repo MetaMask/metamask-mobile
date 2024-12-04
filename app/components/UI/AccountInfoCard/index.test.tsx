@@ -67,7 +67,7 @@ const mockInitialState: DeepPartial<RootState> = {
         }),
       },
       TokenBalancesController: {
-        contractBalances: {},
+        tokenBalances: {},
       },
     },
   },

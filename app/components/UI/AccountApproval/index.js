@@ -1,10 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  InteractionManager,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { InteractionManager, TouchableOpacity, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
@@ -26,7 +22,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
   selectChainId,
   selectProviderType,
@@ -38,7 +34,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
-import { SourceType } from '../../../components/hooks/useMetrics/useMetrics.types';
+import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * Account access approval component
@@ -165,8 +162,11 @@ class AccountApproval extends PureComponent {
     this.checkUrlFlaggedAsPhishing(hostname);
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_STARTED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -202,8 +202,11 @@ class AccountApproval extends PureComponent {
       this.props.onCancel();
 
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
-        this.getAnalyticsParams(),
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.CONNECT_REQUEST_OTPFAILURE,
+        )
+          .addProperties(this.getAnalyticsParams())
+          .build(),
       );
 
       // Navigate to feedback modal
@@ -223,8 +226,11 @@ class AccountApproval extends PureComponent {
 
     this.props.onConfirm();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_COMPLETED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
     this.showWalletConnectNotification(true);
   };
@@ -234,10 +240,12 @@ class AccountApproval extends PureComponent {
    */
   onCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
-      this.getAnalyticsParams(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CONNECT_REQUEST_CANCELLED,
+      )
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
-
     if (this.props.currentPageInformation.channelId) {
       SDKConnect.getInstance().removeChannel(
         this.props.currentPageInformation.channelId,
@@ -403,7 +411,7 @@ class AccountApproval extends PureComponent {
 const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   tokensLength: selectTokensLength(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
 });

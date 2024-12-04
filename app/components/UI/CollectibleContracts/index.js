@@ -38,7 +38,7 @@ import {
   selectIsIpfsGatewayEnabled,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
@@ -116,7 +116,7 @@ const CollectibleContracts = ({
     (singleCollectible) => singleCollectible.isCurrentlyOwned === true,
   );
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -218,9 +218,11 @@ const CollectibleContracts = ({
   const goToAddCollectible = useCallback(() => {
     setIsAddNFTEnabled(false);
     navigation.push('AddAsset', { assetType: 'collectible' });
-    trackEvent(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+    );
     setIsAddNFTEnabled(true);
-  }, [navigation, trackEvent]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const renderFooter = useCallback(
     () => (
@@ -439,7 +441,7 @@ CollectibleContracts.propTypes = {
 const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   useNftDetection: selectUseNftDetection(state),
   collectibleContracts: collectibleContractsSelector(state),
   collectibles: collectiblesSelector(state),

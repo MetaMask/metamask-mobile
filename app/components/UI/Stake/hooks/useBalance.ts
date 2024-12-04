@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
@@ -18,7 +18,7 @@ const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -62,13 +62,14 @@ const useBalance = () => {
   );
 
   const formattedStakedBalanceFiat = useMemo(
-    () => weiToFiat(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    hexToBN(stakedBalance) as any,
-    conversionRate,
-    currentCurrency,
-  ),
+    () =>
+      weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(stakedBalance) as any,
+        conversionRate,
+        currentCurrency,
+      ),
     [currentCurrency, stakedBalance, conversionRate],
   );
 

@@ -8,7 +8,7 @@ import { useTheme } from '../../../../util/theme';
 import { Colors } from '../../../../util/theme/models';
 import { colors as importedColors } from '../../../../styles/common';
 import {
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
   selectInternalAccounts,
 } from '../../../../selectors/accountsController';
 import { toLowerCaseEquals } from '../../../../util/general';
@@ -52,7 +52,7 @@ const Account = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
 
   const internalAccounts = useSelector(selectInternalAccounts);

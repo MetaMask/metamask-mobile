@@ -19,7 +19,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
 
   const dismissModal = (): void => {
@@ -28,11 +28,15 @@ const DeprecatedNetworkModal = () => {
 
   const goToLearnMore = () => {
     Linking.openURL(CONNECTING_TO_DEPRECATED_NETWORK);
-    trackEvent(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
-      location: 'dapp_connection_request',
-      text: 'Learn More',
-      url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+        .addProperties({
+          location: 'dapp_connection_request',
+          text: 'Learn More',
+          url_domain: CONNECTING_TO_DEPRECATED_NETWORK,
+        })
+        .build(),
+    );
   };
 
   const sheetRef = useRef(null);

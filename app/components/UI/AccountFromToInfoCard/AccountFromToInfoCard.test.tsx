@@ -38,9 +38,7 @@ const mockInitialState: DeepPartial<RootState> = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': '0x5',
-        },
+        tokenBalances: { },
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },

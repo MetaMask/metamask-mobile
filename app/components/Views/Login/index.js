@@ -265,7 +265,11 @@ class Login extends PureComponent {
       parentContext: this.parentSpan,
     });
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_SCREEN_VIEWED);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED)
+        .build(),
+    );
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
@@ -533,7 +537,11 @@ class Login extends PureComponent {
 
   handleDownloadStateLogs = () => {
     const { fullState } = this.props;
-    this.props.metrics.trackEvent(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS);
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS)
+        .build(),
+    );
     downloadStateLogs(fullState, false);
   };
 

@@ -190,7 +190,7 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false,
+    "smartTransactionsOptInStatus": true,
     "useTransactionSimulations": true,
     "tokenSortConfig": {
       "key": "tokenFiatAmount",
@@ -201,7 +201,7 @@
     "privacyMode": false
   },
   "TokenBalancesController": {
-    "contractBalances": {}
+    "tokenBalances": {}
   },
   "TokenRatesController": {
     "marketData": {}
@@ -244,6 +244,11 @@
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
+  },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -315,6 +320,10 @@
   "PermissionController": {
     "subjects": {}
   },
+  "RemoteFeatureFlagController": {
+    "cacheTimestamp": 0,
+    "remoteFeatureFlags": {}
+  },
   "SelectedNetworkController": {
     "domains": {}
   },
@@ -344,6 +353,8 @@
     "fcmToken": ""
   },
   "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   }

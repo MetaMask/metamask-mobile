@@ -1,4 +1,4 @@
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle, ImageStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { DisplayNameVariant } from '../../hooks/DisplayName/useDisplayName';
 
@@ -45,9 +45,16 @@ const styleSheet = (params: {
     flexShrink: 1,
   };
 
+  const imageStyle: ImageStyle = {
+    borderRadius: 8,
+    height: 16,
+    width: 16,
+  };
+
   return StyleSheet.create({
     base: baseStyle,
     label: labelStyle,
+    image: imageStyle,
   });
 };
 

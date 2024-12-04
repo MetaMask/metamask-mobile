@@ -31,10 +31,11 @@ const aesCryptoFormButtons = {
 };
 
 const aesCryptoFormScrollIdentifier = 'aes-crypto-form-scroll';
-
+const accountAddress = 'account-address';
 export {
   aesCryptoFormInputs,
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
+  accountAddress,
 };

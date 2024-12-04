@@ -39,44 +39,36 @@ git clone git@github.com:MetaMask/metamask-mobile.git && \
 cd metamask-mobile
 ```
 
-### **Firebase Messaging Setup**
+#### Firebase Messaging Setup
 
 MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you’ll need configuration files for both iOS and Android platforms.
 
-#### **Configuration Files Required**
+##### Internal Contributor instructions
+
+1. Grab the `.js.env` file from 1Password, ask around for the correct vault. This file contains the `GOOGLE_SERVICES_B64_ANDROID` and `GOOGLE_SERVICES_B64_IOS` secrets that will be used to generate the relevant configuration files for IOS/Android.
+2. [Install](./README.md#install-dependencies) and [run & start](./README.md#running-the-app) the application as documented below.
+
+##### External Contributor instructions
+
+As an external contributor, you need to provide your own Firebase project configuration files:
 - **`GoogleService-Info.plist`** (iOS)
 - **`google-services.json`** (Android)
 
-These files are essential for FCM integration and are automatically generated when running: `yarn start:ios` or `yarn start:android`
-
-**External Contributors**
-
-As an external contributor, you need to provide your own Firebase project configuration files:
-
 1.	Create a Free Firebase Project
-    * Set up a Firebase project in the Firebase Console.
-	* Configure the project with a client package name matching `io.metamask`.
+    - Set up a Firebase project in the Firebase Console.
+    - Configure the project with a client package name matching `io.metamask` (IMPORTANT). 
 2.	Add Configuration Files
-	* Update the `google-services.json` and `GoogleService-Info.plist` files in:
-	* `android/app` (for Android)
-	* `ios` directory (for iOS)
-
-In case you don't have FCM account, you can reference the instructions below. These instructions will generate the required `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` environment variables found in: `.ios.env`, `.js.env`, `.android.env`. They can be locally generated from examples files.
-
-**Internal Contributors**
-
-As an internal contributor, you can access the shared Firebase project config file from 1Password. Ask around for the correct vault.
-
-The values you should provide to `GOOGLE_SERVICES_B64_ANDROID` or `GOOGLE_SERVICES_B64_IOS` are the base64 encoded versions of the example Firebase project config files. These can also be generated locally:
-
-**For Android**
+    - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
+    - `android/app/google-services.json` (for Android)
+    - `ios/GoogleServices/GoogleService-Info.plist` directory (for iOS)
+3. Create the correct base64 environments variables.
+  
 ```bash
-export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services-example.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env .ios.env
-```
+# Generate Android Base64 Version of Google Services
+export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env
 
-**For iOS**
-```bash
-export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info-example.plist)" && echo "export GOOGLE_SERVICES_B64_IOS=\"$GOOGLE_SERVICES_B64_IOS\"" | tee -a .js.env .ios.env
+# Generate IOS Base64 Version of Google Services
+export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info-example.plist)" && echo "export GOOGLE_SERVICES_B64_IOS=\"$GOOGLE_SERVICES_B64_IOS\"" | tee -a .js.env
 ```
 
 [!CAUTION]
@@ -85,7 +77,7 @@ export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleServi
 In case of any doubt, please follow the instructions in the link below to get your Firebase project config file.
 [Firebase Project Quickstart](https://firebaseopensource.com/projects/firebase/quickstart-js/messaging/readme/#getting_started)
 
-**Install dependencies**
+#### Install dependencies
 
 ```bash
 yarn setup

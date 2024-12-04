@@ -1,8 +1,9 @@
 import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
-import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import StorageWrapper from '../../store/storage-wrapper';
 import termsOfUse from './termsOfUseContent';
 
@@ -28,11 +29,19 @@ interface TermsOfUseParamsI {
 
 const onConfirmUseTerms = async () => {
   await StorageWrapper.setItem(USE_TERMS, TRUE);
-  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_ACCEPTED);
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.USER_TERMS_ACCEPTED,
+    ).build(),
+  );
 };
 
 const useTermsDisplayed = () => {
-  MetaMetrics.getInstance().trackEvent(MetaMetricsEvents.USER_TERMS_SHOWN);
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.USER_TERMS_SHOWN,
+    ).build(),
+  );
 };
 
 export default async function navigateTermsOfUse(

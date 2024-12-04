@@ -54,7 +54,7 @@ const AccountPermissionsRevoke = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Engine = UntypedEngine as any;
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const activeAddress = permittedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
@@ -72,11 +72,15 @@ const AccountPermissionsRevoke = ({
         await Engine.context.PermissionController.revokeAllPermissions(
           hostname,
         );
-        trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
-          number_of_accounts: accountsLength,
-          number_of_accounts_connected: permittedAddresses.length,
-          number_of_networks: nonTestnetNetworks,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS)
+            .addProperties({
+              number_of_accounts: accountsLength,
+              number_of_accounts_connected: permittedAddresses.length,
+              number_of_networks: nonTestnetNetworks,
+            })
+            .build(),
+        );
       } catch (e) {
         Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
       }
@@ -182,11 +186,17 @@ const AccountPermissionsRevoke = ({
                     hasNoTimeout: false,
                   });
                 }
-                trackEvent(MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS, {
-                  number_of_accounts: accountsLength,
-                  number_of_accounts_connected: permittedAddresses.length,
-                  number_of_networks: nonTestnetNetworks,
-                });
+                trackEvent(
+                  createEventBuilder(
+                    MetaMetricsEvents.REVOKE_ACCOUNT_DAPP_PERMISSIONS,
+                  )
+                    .addProperties({
+                      number_of_accounts: accountsLength,
+                      number_of_accounts_connected: permittedAddresses.length,
+                      number_of_networks: nonTestnetNetworks,
+                    })
+                    .build(),
+                );
               }
             }}
             label={strings('accounts.disconnect')}

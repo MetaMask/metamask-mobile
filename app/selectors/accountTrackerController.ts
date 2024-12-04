@@ -6,7 +6,7 @@ import {
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectChainId } from './networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from './accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 
 const selectAccountTrackerControllerState = (state: RootState) =>
   state.engine.backgroundState.AccountTrackerController;
@@ -29,7 +29,7 @@ export const selectAccountsLength = createSelector(
 export const selectAccountBalanceByChainId = createDeepEqualSelector(
   selectAccountsByChainId,
   selectChainId,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
   (accountsByChainId, chainId, selectedInternalAccountChecksummedAddress) => {
     const accountsBalance = selectedInternalAccountChecksummedAddress
       ? accountsByChainId?.[chainId]?.[

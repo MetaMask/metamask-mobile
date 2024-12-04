@@ -1,19 +1,20 @@
-import { Hex } from '@metamask/utils';
 import { NameType } from '../../UI/Name/Name.types';
-import { useFirstPartyContractNames } from './useFirstPartyContractName';
-import { useWatchedNFTNames } from './useWatchedNFTName';
-import { useTokenListEntries } from './useTokenListEntry';
+import { useFirstPartyContractNames } from './useFirstPartyContractNames';
+import { useWatchedNFTNames } from './useWatchedNFTNames';
+import { useERC20Tokens } from './useERC20Tokens';
+import { useNftNames } from './useNftName';
 
 export interface UseDisplayNameRequest {
-  value: string;
-  type: NameType;
-  chainId?: Hex;
   preferContractSymbol?: boolean;
+  type: NameType;
+  value: string;
+  variation: string;
 }
 
 export interface UseDisplayNameResponse {
-  name: string | null | undefined;
   contractDisplayName?: string;
+  image?: string;
+  name?: string;
   variant: DisplayNameVariant;
 }
 
@@ -60,44 +61,42 @@ export type DisplayName =
  * @param type The NameType to get the display name for.
  * @param value The value to get the display name for.
  */
-const useDisplayName: (
-  type: NameType,
-  value: string,
-  chainId?: Hex,
-  preferContractSymbol?: boolean,
-) => UseDisplayNameResponse = (type, value, chainId, preferContractSymbol) =>
-  useDisplayNames([{ value, type, chainId, preferContractSymbol }])[0];
+export function useDisplayName(
+  request: UseDisplayNameRequest,
+): UseDisplayNameResponse {
+  return useDisplayNames([request])[0];
+}
 
 export function useDisplayNames(
   requests: UseDisplayNameRequest[],
 ): UseDisplayNameResponse[] {
   const firstPartyContractNames = useFirstPartyContractNames(requests);
   const watchedNftNames = useWatchedNFTNames(requests);
-  const tokenListNames = useTokenListEntries(requests);
+  const erc20Tokens = useERC20Tokens(requests);
+  const nftNames = useNftNames(requests);
 
-  return requests.map(({ preferContractSymbol }, index) => {
+  return requests.map((_request, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
-    const tokenListName = tokenListNames[index];
-    const contractDisplayName =
-      preferContractSymbol && tokenListName?.symbol
-        ? tokenListName.symbol
-        : tokenListName?.name;
+    const erc20Token = erc20Tokens[index];
+    const { name: nftCollectionName, image: nftCollectionImage } =
+      nftNames[index] || {};
 
-    const recognizedName =
-      watchedNftName || firstPartyContractName || contractDisplayName;
+    const name =
+      watchedNftName ||
+      firstPartyContractName ||
+      erc20Token?.name ||
+      nftCollectionName;
 
-    if (recognizedName) {
-      return {
-        variant: DisplayNameVariant.Recognized,
-        contractDisplayName,
-        name: recognizedName,
-      };
-    }
+    const image = erc20Token?.image || nftCollectionImage;
 
     return {
-      variant: DisplayNameVariant.Unknown,
-      name: null,
+      contractDisplayName: erc20Token?.name,
+      image,
+      name,
+      variant: name
+        ? DisplayNameVariant.Recognized
+        : DisplayNameVariant.Unknown,
     };
   });
 }

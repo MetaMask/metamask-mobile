@@ -116,9 +116,8 @@ export const getSmartTransactionMetricsProperties = async (
   if (!smartTransaction?.statusMetadata) {
     return {};
   }
-  const { duplicated, timedOut, proxied } = smartTransaction.statusMetadata;
+  const { timedOut, proxied } = smartTransaction.statusMetadata;
   return {
-    smart_transaction_duplicated: duplicated,
     smart_transaction_timed_out: timedOut,
     smart_transaction_proxied: proxied,
   };

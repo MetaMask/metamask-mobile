@@ -21,6 +21,8 @@ import {
 } from '../../../actions/notification/helpers';
 import { getNotificationsList } from '../../../selectors/notifications';
 import { usePushNotifications } from './usePushNotifications';
+import { isNotificationsFeatureEnabled } from '../constants';
+
 /**
  * Custom hook to fetch and update the list of notifications.
  * Manages loading and error states internally.
@@ -33,6 +35,10 @@ export function useListNotifications(): ListNotificationsReturn {
   const [error, setError] = useState<string>();
 
   const listNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
@@ -68,6 +74,10 @@ export function useCreateNotifications(): CreateNotificationsReturn {
   const [error, setError] = useState<string>();
 
   const createNotifications = useCallback(async (accounts: string[]) => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
@@ -106,12 +116,19 @@ export function useEnableNotifications(): EnableNotificationsReturn {
   const [error, setError] = useState<string>();
   const { switchPushNotifications } = usePushNotifications();
   const enableNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
       const errorEnablingNotifications = await enableNotificationServices();
-      const errorEnablingPushNotifications = await switchPushNotifications(true);
-      const errorMessage = errorEnablingNotifications || errorEnablingPushNotifications;
+      const errorEnablingPushNotifications = await switchPushNotifications(
+        true,
+      );
+      const errorMessage =
+        errorEnablingNotifications || errorEnablingPushNotifications;
 
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
@@ -143,12 +160,19 @@ export function useDisableNotifications(): DisableNotificationsReturn {
   const [error, setError] = useState<string>();
   const { switchPushNotifications } = usePushNotifications();
   const disableNotifications = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {
       const errorDisablingNotifications = await disableNotificationServices();
-      const errorDisablingPushNotifications = await switchPushNotifications(false);
-      const errorMessage = errorDisablingNotifications || errorDisablingPushNotifications;
+      const errorDisablingPushNotifications = await switchPushNotifications(
+        false,
+      );
+      const errorMessage =
+        errorDisablingNotifications || errorDisablingPushNotifications;
 
       if (errorMessage) {
         setError(getErrorMessage(errorMessage));
@@ -182,6 +206,10 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
 
   const markNotificationAsRead = useCallback(
     async (notifications: MarkAsReadNotificationsParam) => {
+      if (!isNotificationsFeatureEnabled()) {
+        return;
+      }
+
       setLoading(true);
       setError(undefined);
       try {
@@ -221,6 +249,10 @@ export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKe
   const [error, setError] = useState<string>();
 
   const deleteNotificationsStorageKey = useCallback(async () => {
+    if (!isNotificationsFeatureEnabled()) {
+      return;
+    }
+
     setLoading(true);
     setError(undefined);
     try {

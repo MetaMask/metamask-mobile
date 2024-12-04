@@ -5,16 +5,9 @@ import Engine from '../Engine';
 import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
 import { CaveatTypes } from '../Permissions/constants';
 import { mockNetworkState } from '../../util/test/network';
+import MetaMetrics from '../Analytics/MetaMetrics';
 
 const mockEngine = Engine;
-
-const correctParams = {
-  chainId: '0x64',
-  chainName: 'xDai',
-  blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
-  nativeCurrency: { symbol: 'xDai', decimals: 18 },
-  rpcUrls: ['https://rpc.gnosischain.com'],
-};
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
@@ -77,6 +70,27 @@ jest.mock('../../store', () => ({
     })),
   },
 }));
+
+jest.mock('../Analytics/MetaMetrics');
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnThis(),
+});
+
+MetaMetrics.getInstance = jest.fn().mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: mockCreateEventBuilder,
+});
+
+const correctParams = {
+  chainId: '0x64',
+  chainName: 'xDai',
+  blockExplorerUrls: ['https://blockscout.com/xdai/mainnet'],
+  nativeCurrency: { symbol: 'xDai', decimals: 18 },
+  rpcUrls: ['https://rpc.gnosischain.com'],
+};
 
 describe('RPC Method - wallet_addEthereumChain', () => {
   let mockFetch;
@@ -291,6 +305,44 @@ describe('RPC Method - wallet_addEthereumChain', () => {
     }
   });
 
+  it('should report native currency symbol length being too long', async () => {
+    const symbol = 'aaaaaaaaaaaaaaa';
+    await expect(
+      wallet_addEthereumChain({
+        req: {
+          params: [
+            {
+              ...correctParams,
+              nativeCurrency: { symbol, decimals: 18 },
+            },
+          ],
+        },
+        ...otherOptions,
+      }),
+    ).rejects.toThrow(
+      `Expected 1-6 character string 'nativeCurrency.symbol'. Received:\n${symbol}`,
+    );
+  });
+
+  it('should allow 1 letter native currency symbols', async () => {
+    jest.mock('./networkChecker.util');
+    jest
+      .spyOn(Engine.context.NetworkController, 'addNetwork')
+      .mockResolvedValue({ rpcEndpoints: [] });
+
+    await wallet_addEthereumChain({
+      req: {
+        params: [
+          {
+            ...correctParams,
+            nativeCurrency: { symbol: 'a', decimals: 18 },
+          },
+        ],
+      },
+      ...otherOptions,
+    });
+  });
+
   describe('Approval Flow', () => {
     it('should start and end a new approval flow if chain does not already exist', async () => {
       jest
@@ -393,7 +445,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       }),
     );
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
-    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   it('should not add a networkConfiguration that has a chainId that already exists in wallet state, and should switch to the existing network', async () => {
@@ -432,15 +483,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
     expect(spyOnAddNetwork).not.toHaveBeenCalled();
     expect(spyOnSetActiveNetwork).toHaveBeenCalledTimes(1);
-    expect(spyOnUpdateExchangeRate).toHaveBeenCalledTimes(1);
   });
 
   describe('MM_CHAIN_PERMISSIONS is enabled', () => {
     beforeAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 1;
+      process.env.MM_CHAIN_PERMISSIONS = 'true';
     });
     afterAll(() => {
-      process.env.MM_CHAIN_PERMISSIONS = 0;
+      process.env.MM_CHAIN_PERMISSIONS = 'false';
     });
     afterEach(() => {
       jest.clearAllMocks();

@@ -19,15 +19,15 @@ import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
 import useStakingChain from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import useStakingEarnings from '../../hooks/useStakingEarnings';
-import usePooledStakes from '../../hooks/usePooledStakes';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 
 const StakingEarningsContent = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { openTooltipModal } = useTooltipModal();
-
-  const { hasStakedPositions } = usePooledStakes();
 
   const {
     annualRewardRate,
@@ -36,9 +36,10 @@ const StakingEarningsContent = () => {
     estimatedAnnualEarningsETH,
     estimatedAnnualEarningsFiat,
     isLoadingEarningsData,
+    hasStakedPositions,
   } = useStakingEarnings();
 
-  const onNavigateToTooltipModal = () =>
+  const onDisplayAnnualRateTooltip = () =>
     openTooltipModal(
       strings('stake.annual_rate'),
       strings('tooltip_modal.reward_rate.tooltip'),
@@ -76,7 +77,13 @@ const StakingEarningsContent = () => {
               accessibilityLabel={strings(
                 'stake.accessibility_labels.stake_annual_rate_tooltip',
               )}
-              onPress={onNavigateToTooltipModal}
+              onPress={withMetaMetrics(onDisplayAnnualRateTooltip, {
+                event: MetaMetricsEvents.TOOLTIP_OPENED,
+                properties: getTooltipMetricProperties(
+                  'Staking Earnings',
+                  'Annual Rate',
+                ),
+              })}
             />
           </View>
           {isLoadingEarningsData ? (

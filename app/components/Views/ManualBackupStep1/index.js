@@ -37,6 +37,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * View that's shown during the second step of
@@ -68,10 +69,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       password,
     );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
-  };
-
-  const track = (event, properties) => {
-    trackOnboarding(event, properties);
   };
 
   useEffect(() => {
@@ -117,7 +114,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
+      ).build(),
+    );
   };
 
   const tryUnlockWithPassword = async (password) => {

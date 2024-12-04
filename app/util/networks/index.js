@@ -125,7 +125,7 @@ export const NetworkList = {
 
 const NetworkListKeys = Object.keys(NetworkList);
 
-export const BLOCKAID_SUPPORTED_CHAIN_IDS = [
+export const SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST = [
   NETWORKS_CHAIN_ID.MAINNET,
   NETWORKS_CHAIN_ID.BSC,
   NETWORKS_CHAIN_ID.BASE,
@@ -585,10 +585,15 @@ export const deprecatedGetNetworkId = async () => {
 };
 
 export const isMultichainVersion1Enabled =
-  process.env.MM_MULTICHAIN_V1_ENABLED === '1';
+  process.env.MM_MULTICHAIN_V1_ENABLED === 'true';
 
 export const isChainPermissionsFeatureEnabled =
-  process.env.MM_CHAIN_PERMISSIONS === '1';
+  process.env.MM_CHAIN_PERMISSIONS === 'true';
 
 export const isPermissionsSettingsV1Enabled =
-  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === '1';
+  process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
+
+export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
+export const isPortfolioViewEnabledFunction = () =>
+  process.env.PORTFOLIO_VIEW === 'true';

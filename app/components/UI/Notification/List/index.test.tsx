@@ -21,6 +21,11 @@ const mockNavigation = createNavigationProps({});
 
 const mockTrackEvent = jest.fn();
 
+jest.mock('../../../../util/notifications/constants', () => ({
+  ...jest.requireActual('../../../../util/notifications/constants'),
+  isNotificationsFeatureEnabled: () => true,
+}));
+
 jest.mock('../../../../util/notifications/services/NotificationService', () => ({
   ...jest.requireActual('../../../../util/notifications/services/NotificationService'),
   getBadgeCount: jest.fn(),

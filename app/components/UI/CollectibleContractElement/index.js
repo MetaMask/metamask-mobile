@@ -13,7 +13,7 @@ import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import { selectChainId } from '../../../selectors/networkController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Icon, {
   IconName,
   IconColor,
@@ -106,7 +106,7 @@ function CollectibleContractElement({
   const longPressedCollectible = useRef(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const toggleCollectibles = useCallback(() => {
     setCollectiblesVisible(!collectiblesVisible);
@@ -138,9 +138,13 @@ function CollectibleContractElement({
       longPressedCollectible.current.address,
       longPressedCollectible.current.tokenId,
     );
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),
@@ -316,7 +320,7 @@ CollectibleContractElement.propTypes = {
 const mapStateToProps = (state) => ({
   collectibleContracts: collectibleContractsSelector(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

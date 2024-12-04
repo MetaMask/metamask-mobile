@@ -51,6 +51,7 @@ jest.mock('../Engine', () => {
           NetworkController: { subscribe: jest.fn() },
           PhishingController: { subscribe: jest.fn() },
           PreferencesController: { subscribe: jest.fn() },
+          RemoteFeatureFlagController: { subscribe: jest.fn() },
           TokenBalancesController: { subscribe: jest.fn() },
           TokenRatesController: { subscribe: jest.fn() },
           TransactionController: { subscribe: jest.fn() },

@@ -115,9 +115,17 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function formatAmount(amount: number) {
+export function formatAmount(amount: number, useParts = false) {
   try {
-    if (Intl?.NumberFormat) return new Intl.NumberFormat().format(amount);
+    if (Intl?.NumberFormat) {
+      if (useParts) {
+        return new Intl.NumberFormat()
+          .formatToParts(amount)
+          .map(({ type, value }) => (type === 'integer' ? value : ''))
+          .join(' ');
+      }
+      return new Intl.NumberFormat().format(amount);
+    }
     return String(amount);
   } catch (e) {
     return String(amount);

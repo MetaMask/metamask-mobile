@@ -22,7 +22,7 @@ import {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import Button from '../../../../component-library/components/Buttons/Button/Button';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({

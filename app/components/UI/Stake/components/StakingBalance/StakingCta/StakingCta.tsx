@@ -12,7 +12,7 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 
 interface StakingCtaProps extends Pick<ViewProps, 'style'> {
   estimatedRewardRate: string;
@@ -20,9 +20,8 @@ interface StakingCtaProps extends Pick<ViewProps, 'style'> {
 
 const StakingCta = ({ estimatedRewardRate, style }: StakingCtaProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
-
   const { navigate } = useNavigation();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const navigateToLearnMoreModal = () => {
     navigate('StakeModals', {

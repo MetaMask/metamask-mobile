@@ -6,7 +6,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -34,7 +34,7 @@ export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);

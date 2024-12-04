@@ -1,5 +1,10 @@
 import { v4 as uuidV4 } from 'uuid';
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  EthMethod,
+  InternalAccount,
+  KeyringAccountType,
+} from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
@@ -23,6 +28,7 @@ export function createMockInternalAccount(
   address: string,
   nickname: string,
   keyringType: KeyringTypes = KeyringTypes.hd,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
 ): InternalAccount {
   const genericMetadata = {
     name: nickname,
@@ -55,7 +61,7 @@ export function createMockInternalAccount(
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: 'eip155:eoa',
+    type: accountType,
   };
 }
 

@@ -11,7 +11,8 @@ const styleSheet = (params: {
       height: Device.isAndroid() || Device.isMediumDevice() ? '99%' : '100%',
     },
     bodyContainer: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 22,
+      paddingBottom: 4,
     },
     buttonsContainer: {
       marginTop: isMultichainVersion1Enabled ? 0 : 24,

@@ -187,8 +187,10 @@ class AddCustomToken extends PureComponent {
     await TokensController.addToken({ address, symbol, decimals, name });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TOKEN_ADDED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
 
     // Clear state before closing

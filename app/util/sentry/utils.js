@@ -10,6 +10,7 @@ import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName } from '../trace';
+import { getTraceTags } from './tags';
 /**
  * This symbol matches all object properties when used in a mask
  */
@@ -40,7 +41,6 @@ export const sentryStateMask = {
       ApprovalController: {
         [AllProperties]: false,
       },
-      AssetsContractController: {},
       CurrencyRateController: {
         currencyRates: true,
         currentCurrency: true,
@@ -135,9 +135,6 @@ export const sentryStateMask = {
           swapsStxMaxFeeMultiplier: true,
           swapsUserFeeLevel: true,
         },
-      },
-      TokenDetectionController: {
-        [AllProperties]: false,
       },
       TokenListController: {
         preventPollingOnNetworkRestart: true,
@@ -402,15 +399,19 @@ function rewriteReport(report) {
  */
 export function excludeEvents(event) {
   // This is needed because store starts to initialise before performance observers completes to measure app start time
-  if (event?.transaction === TraceName.UIStartup && Device.isAndroid()) {
-    const appLaunchTime = Performance.appLaunchTime;
-    const formattedAppLaunchTime = (event.start_timestamp = Number(
-      `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
-        .toString()
-        .slice(10)}`,
-    ));
-    if (event.start_timestamp !== formattedAppLaunchTime) {
-      event.start_timestamp = formattedAppLaunchTime;
+  if (event?.transaction === TraceName.UIStartup) {
+    event.tags = getTraceTags(store.getState());
+
+    if (Device.isAndroid()) {
+      const appLaunchTime = Performance.appLaunchTime;
+      const formattedAppLaunchTime = (event.start_timestamp = Number(
+        `${appLaunchTime.toString().slice(0, 10)}.${appLaunchTime
+          .toString()
+          .slice(10)}`,
+      ));
+      if (event.start_timestamp !== formattedAppLaunchTime) {
+        event.start_timestamp = formattedAppLaunchTime;
+      }
     }
   }
   //Modify or drop event here

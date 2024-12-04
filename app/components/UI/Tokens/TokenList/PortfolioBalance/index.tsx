@@ -46,7 +46,7 @@ export const PortfolioBalance = () => {
   const styles = createStyles(colors);
   const balance = Engine.getTotalFiatAccountBalance();
   const navigation = useNavigation();
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const { type } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
@@ -111,9 +111,13 @@ export const PortfolioBalance = () => {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
   };
 
   const renderAggregatedPercentage = () => {

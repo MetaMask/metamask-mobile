@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useStakeContext } from './useStakeContext';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { BN } from 'ethereumjs-util';
@@ -23,7 +23,7 @@ const GAS_LIMIT_BUFFER = 1.3;
 const useStakingGasFee = (depositValueWei: string): StakingGasFee => {
   const { stakingContract } = useStakeContext();
   const selectedAddress =
-    useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
+    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const [isLoadingStakingGasFee, setIsLoadingStakingGasFee] =
     useState<boolean>(true);
   const [isStakingGasFeeError, setIsStakingGasFeeError] =

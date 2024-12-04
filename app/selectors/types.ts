@@ -1,9 +1,7 @@
 import {
   AccountTrackerControllerState,
   CurrencyRateState,
-  NftDetectionController,
   NftControllerState,
-  TokenDetectionController,
   TokenListState,
   TokenRatesControllerState,
   TokensControllerState,
@@ -12,7 +10,6 @@ import {
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
@@ -29,7 +26,6 @@ export interface EngineState {
     backgroundState: {
       AccountTrackerController: AccountTrackerControllerState;
       AddressBookController: AddressBookControllerState;
-      AssetsContractController: BaseState;
       NftController: NftControllerState;
       TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
@@ -47,8 +43,6 @@ export interface EngineState {
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;
       TokensController: TokensControllerState;
-      TokenDetectionController: TokenDetectionController;
-      NftDetectionController: NftDetectionController;
       ApprovalController: ApprovalControllerState;
       AccountsController: AccountsControllerState;
     };

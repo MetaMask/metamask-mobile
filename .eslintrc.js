@@ -73,6 +73,33 @@ module.exports = {
         '@metamask/design-tokens/color-no-hex': 'off',
       },
     },
+    {
+      files: [
+        'app/components/UI/Name/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: `ImportSpecifier[imported.name=/${[
+              'selectChainId',
+              'selectNetworkClientId',
+              'selectNetworkStatus',
+              'selectNickname',
+              'selectProviderConfig',
+              'selectProviderType',
+              'selectRpcUrl',
+              'selectSelectedNetworkClientId',
+              'selectTicker'
+            ]
+              .map((method) => `(${method})`)
+              .join('|')}/]`,
+            message: 'Avoid using global network selectors in confirmations',
+          },
+        ],
+      },
+    },
   ],
 
   globals: {

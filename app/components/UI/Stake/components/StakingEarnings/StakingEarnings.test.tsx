@@ -19,16 +19,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/useStakingEligibility', () => ({
-  __esModule: true,
-  default: () => ({
-    isEligible: true,
-    loading: false,
-    error: null,
-    refreshPooledStakingEligibility: jest.fn(),
-  }),
-}));
-
 jest.mock('../../hooks/useStakingEarnings', () => ({
   __esModule: true,
   default: () => ({
@@ -38,6 +28,7 @@ jest.mock('../../hooks/useStakingEarnings', () => ({
     estimatedAnnualEarningsETH: '2.5 ETH',
     estimatedAnnualEarningsFiat: '$5000',
     isLoadingEarningsData: false,
+    hasStakedPositions: true,
   }),
 }));
 

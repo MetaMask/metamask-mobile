@@ -1,7 +1,7 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures.js';
-import { OnboardingWizardModalSelectorsIDs } from '../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
-import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Modals/ProtectWalletModal.selectors';
+import { OnboardingWizardModalSelectorsIDs } from '../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
+import { ProtectWalletModalSelectorsIDs } from '../../e2e/selectors/Onboarding/ProtectWalletModal.selectors';
 import { AccountActionsModalSelectorsIDs } from '../../e2e/selectors/Modals/AccountActionsModal.selectors';
 import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 import { TabBarSelectorIDs } from '../../e2e/selectors/TabBar.selectors';
@@ -10,12 +10,6 @@ import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.t
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors.js';
 
 class WalletMainScreen {
-  get noThanks() {
-    return Selectors.getElementByPlatform(
-      OnboardingWizardModalSelectorsIDs.NO_THANKS_BUTTON,
-    );
-  }
-
   get ImportToken() {
     return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
@@ -80,10 +74,6 @@ class WalletMainScreen {
 
   get networkModal() {
     return Selectors.getXpathElementByText('Localhost 8545 now active.');
-  }
-
-  async tapNoThanks() {
-    await Gestures.waitAndTap(this.noThanks);
   }
 
   async tapImportTokensButton() {
