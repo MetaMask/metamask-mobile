@@ -4913,27 +4913,10 @@
     readable-stream "^3.6.2"
     webextension-polyfill "^0.10.0"
 
-"@metamask/providers@^18.1.0":
+"@metamask/providers@^18.1.0", "@metamask/providers@^18.1.1":
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.2.0.tgz#557ca488a58966e288e50d629f104b061f8a76d2"
   integrity sha512-GYgweLy6N1/aNNAg4CLhtfu9XwNNG+MZNlPCAl6Ai92+GKCUFRp8RTTBN81EzTLJvJu7NKIrw99AApJACJ8KRA==
-  dependencies:
-    "@metamask/json-rpc-engine" "^10.0.1"
-    "@metamask/json-rpc-middleware-stream" "^8.0.5"
-    "@metamask/object-multiplex" "^2.0.0"
-    "@metamask/rpc-errors" "^7.0.1"
-    "@metamask/safe-event-emitter" "^3.1.1"
-    "@metamask/utils" "^10.0.0"
-    detect-browser "^5.2.0"
-    extension-port-stream "^4.1.0"
-    fast-deep-equal "^3.1.3"
-    is-stream "^2.0.0"
-    readable-stream "^3.6.2"
-
-"@metamask/providers@^18.1.1":
-  version "18.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.1.1.tgz#f43aa71d9d936f31fc1dc3b343b0d24867129678"
-  integrity sha512-q2i4hsE87LhoTe62Zz81roFgelcr+SpHJwqDzEf/xFdObGUYcZ/HS6PG/lNywohMflaIM1DQ5GCW7V6JlZoEqw==
   dependencies:
     "@metamask/json-rpc-engine" "^10.0.1"
     "@metamask/json-rpc-middleware-stream" "^8.0.5"
@@ -27680,15 +27663,15 @@ webdriverio@~7.16.13:
     serialize-error "^8.0.0"
     webdriver "7.16.16"
 
-"webextension-polyfill@>=0.10.0 <1.0", webextension-polyfill@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.10.0.tgz#ccb28101c910ba8cf955f7e6a263e662d744dbb8"
-  integrity sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==
-
-webextension-polyfill@^0.12.0:
+"webextension-polyfill@>=0.10.0 <1.0", webextension-polyfill@^0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.12.0.tgz#f62c57d2cd42524e9fbdcee494c034cae34a3d69"
   integrity sha512-97TBmpoWJEE+3nFBQ4VocyCdLKfw54rFaJ6EVQYLBCXqCIpLSZkwGgASpv4oPt9gdKCJ80RJlcmNzNn008Ag6Q==
+
+webextension-polyfill@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.10.0.tgz#ccb28101c910ba8cf955f7e6a263e662d744dbb8"
+  integrity sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==
 
 webidl-conversions@^3.0.0:
   version "3.0.1"
