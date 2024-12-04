@@ -1,28 +1,28 @@
-import { WalletActionsModalSelectorsIDs } from '../../selectors/Modals/WalletActionsModal.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class WalletActionsModal {
+class WalletActionsBottomSheet {
   get sendButton() {
-    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SEND_BUTTON);
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
   }
 
   get receiveButton() {
     return Matchers.getElementByID(
-      WalletActionsModalSelectorsIDs.RECEIVE_BUTTON,
+      WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
     );
   }
 
   get swapButton() {
-    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
   }
 
   get buyButton() {
-    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.BUY_BUTTON);
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON);
   }
 
   get sellButton() {
-    return Matchers.getElementByID(WalletActionsModalSelectorsIDs.SELL_BUTTON);
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
   }
 
   async tapSendButton() {
@@ -46,4 +46,4 @@ class WalletActionsModal {
   }
 }
 
-export default new WalletActionsModal();
+export default new WalletActionsBottomSheet();
