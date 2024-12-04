@@ -18,6 +18,10 @@ export class AppStateEventListener {
   }
 
   start() {
+    if (this.appStateSubscription) {
+      // Already started
+      return;
+    }
     this.appStateSubscription = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
@@ -66,6 +70,7 @@ export class AppStateEventListener {
 
   public cleanup() {
     this.appStateSubscription?.remove();
+    this.appStateSubscription = undefined;
   }
 }
 

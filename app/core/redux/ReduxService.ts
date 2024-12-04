@@ -4,7 +4,7 @@ import { ReduxStore } from './types';
  * ReduxService class that manages the Redux store
  */
 class ReduxService {
-  static reduxStore: ReduxStore;
+  static #reduxStore: ReduxStore;
 
   static #assertReduxStoreType(store: ReduxStore) {
     if (
@@ -13,14 +13,14 @@ class ReduxService {
     ) {
       throw new Error('Redux store is not a valid store!');
     }
-    return this.reduxStore;
+    return this.#reduxStore;
   }
 
   static #assertReduxStoreExists() {
-    if (!this.reduxStore) {
+    if (!this.#reduxStore) {
       throw new Error('Redux store does not exist!');
     }
-    return this.reduxStore;
+    return this.#reduxStore;
   }
 
   /**
@@ -29,7 +29,7 @@ class ReduxService {
    */
   static set store(store: ReduxStore) {
     this.#assertReduxStoreType(store);
-    this.reduxStore = store;
+    this.#reduxStore = store;
   }
 
   /**
@@ -37,7 +37,7 @@ class ReduxService {
    */
   static get store() {
     this.#assertReduxStoreExists();
-    return this.reduxStore;
+    return this.#reduxStore;
   }
 }
 
