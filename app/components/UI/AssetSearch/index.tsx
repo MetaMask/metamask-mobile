@@ -14,7 +14,6 @@ import { useSelector } from 'react-redux';
 import { TokenListToken } from '@metamask/assets-controllers';
 import { useTheme } from '../../../util/theme';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import { TokenViewSelectors } from '../../../../e2e/selectors/AddTokenView.selectors';
 import { selectTokenListArray } from '../../../selectors/tokenListController';
 import Icon, {
   IconName,
@@ -140,7 +139,6 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
   return (
     <View
       style={[isFocus ? styles.searchSectionFocused : styles.searchSection]}
-      testID={TokenViewSelectors.ASSET_SEARCH_SCREEN_CONTAINER}
     >
       <View style={styles.icon}>
         <Icon name={IconName.Search} size={IconSize.Sm} />

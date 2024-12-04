@@ -111,7 +111,7 @@ const AssetList = ({
   );
 
   return (
-    <View testID={'add-searched-token-screen'}>
+    <View>
       {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

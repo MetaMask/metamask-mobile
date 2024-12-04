@@ -3,7 +3,7 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
-} from '../../selectors/AesCrypto.selectors';
+} from '../../selectors/Settings/AesCrypto.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 

@@ -19,7 +19,7 @@ import {
   aesCryptoFormResponses,
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
-} from '../../../../e2e/selectors/AesCrypto.selectors';
+} from '../../../../e2e/selectors/Settings/AesCrypto.selectors';
 
 const AesCryptoTestForm = () => {
   const navigation = useNavigation();

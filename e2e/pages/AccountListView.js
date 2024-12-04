@@ -1,4 +1,4 @@
-import { CellModalSelectorsIDs } from '../selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../selectors/wallet/CellComponent.selectors';
 import {
   AccountListViewSelectorsIDs,
   AccountListViewSelectorsText,
@@ -21,7 +21,7 @@ class AccountListView {
   }
 
   get accountTagLabel() {
-    return Matchers.getElementByID(CellModalSelectorsIDs.TAG_LABEL);
+    return Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL);
   }
 
   get title() {
@@ -49,27 +49,27 @@ class AccountListView {
   }
 
   getAccountElementAtIndex(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.BASE_TITLE, index);
+    return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
   getAccountElementByAccountName(accountName) {
     return Matchers.getElementByIDAndLabel(
-      CellModalSelectorsIDs.BASE_TITLE,
+      CellComponentSelectorsIDs.BASE_TITLE,
       accountName,
     );
   }
 
   getSelectElement(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.SELECT, index);
+    return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
   }
 
   getMultiselectElement(index) {
-    return Matchers.getElementByID(CellModalSelectorsIDs.MULTISELECT, index);
+    return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
   }
 
   getSelectWithMenuElement(index) {
     return Matchers.getElementByID(
-      CellModalSelectorsIDs.SELECT_WITH_MENU,
+      CellComponentSelectorsIDs.SELECT_WITH_MENU,
       index,
     );
   }

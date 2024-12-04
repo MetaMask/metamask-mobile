@@ -1064,7 +1064,7 @@ class DrawerView extends PureComponent {
     const accountName = isDefaultAccountName(name) && ens ? ens : name;
 
     return (
-      <View style={styles.wrapper} testID={'drawer-screen'}>
+      <View style={styles.wrapper}>
         <ScrollView>
           <View style={styles.header}>
             <View style={styles.metamaskLogo}>
