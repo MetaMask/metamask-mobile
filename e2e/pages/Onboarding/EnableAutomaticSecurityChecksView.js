@@ -1,6 +1,6 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { EnableAutomaticSecurityChecksIDs } from '../../selectors/Modals/EnableAutomaticSecurityChecks.selectors';
+import { EnableAutomaticSecurityChecksIDs } from '../../selectors/Onboarding/EnableAutomaticSecurityChecks.selectors';
 
 class EnableAutomaticSecurityChecksView {
   get container() {
