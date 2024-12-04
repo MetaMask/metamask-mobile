@@ -10,7 +10,10 @@ import {
 import Share from 'react-native-share';
 import QRCode from 'react-native-qrcode-svg';
 import { connect } from 'react-redux';
-
+import {
+  MetaMetricsEventCategory,
+  MetaMetricsEventName,
+} from '@metamask/smart-transactions-controller/dist/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
@@ -111,6 +114,10 @@ const createStyles = (theme) =>
  */
 class ReceiveRequest extends PureComponent {
   static propTypes = {
+    /**
+     *
+     */
+    origin: PropTypes.string,
     /**
      * The navigator object
      */
@@ -228,6 +235,16 @@ class ReceiveRequest extends PureComponent {
       screen: 'PaymentRequest',
       params: { receiveAsset: this.props.receiveAsset },
     });
+
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEventName.ReceiveRequest)
+        .addProperties({
+          category: MetaMetricsEventCategory.Navigation,
+          location: this.props.origin,
+        })
+        .build(),
+    );
 
     this.props.metrics.trackEvent(
       this.props.metrics

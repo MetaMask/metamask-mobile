@@ -5,7 +5,9 @@ import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
-const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.api.cx.metamask.io';
+const SECURITY_ALERTS_API_URL =
+  process.env.SECURITY_ALERTS_API_URL ??
+  'https://security-alerts.api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -65,6 +67,9 @@ export default {
     ORIGIN_DEEPLINK: 'deeplink',
     ORIGIN_QR_CODE: 'qr-code',
     ORIGIN_NOTIFICATION: 'notifications',
+    ORIGIN_TOKEN_DETAILS: 'Token details',
+    ORIGIN_QR_SCANNER: 'QR code scanner icon',
+    ORIGIN_ACTION_MENU: 'Action menu',
   },
   WALLET_CONNECT: {
     //One day in hours

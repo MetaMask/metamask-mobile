@@ -1023,6 +1023,7 @@ export function getWalletNavbarOptions(
   function openQRScanner() {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_SCANNER,
     });
     trackEvent(
       MetricsEventBuilder.createEventBuilder(
