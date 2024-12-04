@@ -2940,20 +2940,6 @@
       "description": "Bán tiền mã hóa trực tiếp trong MetaMask! Chúng tôi sẽ giúp bạn tìm báo giá từ các nhà cung cấp đáng tin cậy, qua đó bạn có thể bán tiền mã hóa mọi lúc một cách dễ dàng, nhanh chóng và an toàn.",
       "action_text": "Thử ngay"
     },
-    "stx": {
-      "header": "Tăng cường bảo vệ giao dịch",
-      "description_1": "Đạt tỷ lệ thành công cao hơn, bảo vệ chống hành vi lợi dụng thông tin biết trước và khả năng hiển thị tốt hơn với Giao dịch thông minh.",
-      "description_2": "Chỉ có sẵn trên Ethereum. Có thể bật/tắt bất cứ lúc nào trong phần Cài đặt.",
-      "no_thanks": "Không, cảm ơn",
-      "primary_button": "Bật",
-      "learn_more": "Tìm hiểu thêm.",
-      "benefit_1_1": "Tỷ lệ thành công",
-      "benefit_1_2": "99,5%",
-      "benefit_2_1": "Tiết kiệm tiền",
-      "benefit_2_2": "của bạn",
-      "benefit_3_1": "Cập nhật",
-      "benefit_3_2": "theo thời gian thực"
-    },
     "transaction_simulation": {
       "title": "Thay đổi số dư ước tính",
       "description_1": "Bây giờ bạn có thể xem kết quả tiềm năng của các giao dịch trước khi thực hiện!",

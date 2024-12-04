@@ -2940,20 +2940,6 @@
       "description": "Ibenta ang iyong crypto nang direkta sa MetaMask! Tutulungan ka naming maghanap ng mga quote mula sa mga mapagkakatiwalaang provider, nang sa gayon ay maibenta mo ang iyong crypto sa isang accessible, mabilis, at secure na paraan, sa bawat pagkakataon.",
       "action_text": "Subukan ito"
     },
-    "stx": {
-      "header": "Pinahusay na Proteksyon sa Transaksyon",
-      "description_1": "I-unlock ang mas mataas na tiyansa ng tagumpay, proteksyon sa frontrunning, at mas mahusay na visibility sa mga Smart Transaction.",
-      "description_2": "Available lamang sa Ethereum. I-enable o i-disable anumang oras sa mga setting.",
-      "no_thanks": "Salamat na lang",
-      "primary_button": "I-enable",
-      "learn_more": "Matuto pa.",
-      "benefit_1_1": "99.5% tagumpay",
-      "benefit_1_2": "rate",
-      "benefit_2_1": "Nakakatipid ng",
-      "benefit_2_2": "pera",
-      "benefit_3_1": "Real-time",
-      "benefit_3_2": "mga update"
-    },
     "transaction_simulation": {
       "title": "Tinatayang mga pagbabago sa balanse",
       "description_1": "Maaari mo na ngayong makita ang potensyal na resulta ng iyong mga transaksyon bago mo gawin ang mga iyon!",

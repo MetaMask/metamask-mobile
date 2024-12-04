@@ -17,7 +17,7 @@ import { strings } from '../../../../../locales/i18n';
 interface InputHandlerParams {
   balance: BN;
 }
-
+const MAX_DIGITS = 12;
 const useInputHandler = ({ balance }: InputHandlerParams) => {
   const [amountEth, setAmountEth] = useState('0');
   const [amountWei, setAmountWei] = useState<BN>(new BN(0));
@@ -71,6 +71,13 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
 
   const handleKeypadChange = useCallback(
     ({ value }) => {
+      const digitsOnly = value.replace(/[^0-9.]/g, '');
+      const [whole = '', fraction = ''] = digitsOnly.split('.');
+      const totalDigits = whole.length + fraction.length;
+
+      if (totalDigits > MAX_DIGITS) {
+        return;
+      }
       isEth ? handleEthInput(value) : handleFiatInput(value);
     },
     [handleEthInput, handleFiatInput, isEth],

@@ -13,9 +13,33 @@ main().catch((error: Error): void => {
   process.exit(1);
 });
 
+// Determine whether E2E should run and provide the associated reason
+function shouldRunBitriseE2E(antiLabel: boolean, hasSmokeTestLabel: boolean, isDocs: boolean, isFork: boolean, isMergeQueue: boolean): [boolean, string] {
+
+  const conditions = [
+    {condition: hasSmokeTestLabel, message: "The smoke test label is present.", shouldRun: true},
+    {condition: isFork, message: "The pull request is from a fork.", shouldRun: false},
+    {condition: isDocs, message: "The pull request is documentation related.", shouldRun: false},
+    {condition: isMergeQueue, message: "The pull request is part of a merge queue.", shouldRun: false},
+    {condition: antiLabel, message: "The pull request has the anti-label.", shouldRun: false}
+  ];
+
+  // Iterate through conditions to determine action
+  for (const {condition, message, shouldRun} of conditions) {
+    if (condition) {
+      return [shouldRun, message];
+    }
+  }
+
+  // Default case if no conditions met
+  return [false, "Unexpected scenario or no relevant labels found."];
+}
+
+
 async function main(): Promise<void> {
   const githubToken = process.env.GITHUB_TOKEN;
   const e2eLabel = process.env.E2E_LABEL;
+  const antiLabel = process.env.NO_E2E_LABEL;
   const e2ePipeline = process.env.E2E_PIPELINE;
   const workflowName = process.env.WORKFLOW_NAME;
   const triggerAction = context.payload.action as PullRequestTriggerType;
@@ -42,6 +66,17 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  if (!antiLabel) {
+    core.setFailed('NO_E2E_LABEL not found');
+    process.exit(1);
+  }
+
+  // Logging for Pipeline debugging
+  console.log(`Trigger action: ${triggerAction}`);
+  console.log(`event: ${context.eventName}`);
+  console.log(`pullRequestNumber: ${pullRequestNumber}`);
+
+
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
   const { data: prData } = await octokit.rest.pulls.get({
@@ -50,18 +85,67 @@ async function main(): Promise<void> {
     pull_number: pullRequestNumber,
   });
 
+  const docs = prData.title.startsWith("docs:");
+
   // Get the latest commit hash
   const latestCommitHash = prData.head.sha;
 
-  // Check if the e2e smoke label is applied
+  // Grab flags and labels
   const labels = prData.labels;
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
+  const hasAntiLabel = labels.some((label) => label.name === antiLabel);
+  const fork = context.payload.pull_request?.head.repo.fork || false;
+  const mergeQueue = (context.eventName === 'merge_group')
 
-  // Pass check since e2e smoke label is not applied
-  if (!hasSmokeTestLabel) {
-    console.log(
-      `"${e2eLabel}" label not applied. Skipping Bitrise status check.`,
+
+  console.log(`Docs: ${docs}`);
+  console.log(`Fork: ${fork}`);
+  console.log(`Merge Queue: ${mergeQueue}`);
+  console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
+  console.log(`Anti label: ${hasAntiLabel}`);
+
+  const [shouldRun, reason] = shouldRunBitriseE2E(hasAntiLabel, hasSmokeTestLabel, docs, fork, mergeQueue);
+  console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
+
+  // One of these two labels must exist if not we bomb out
+  if (!hasSmokeTestLabel && !hasAntiLabel) {
+
+    // Fail Status due to missing labels
+    const createStatusCheckResponse = await octokit.rest.checks.create({
+      owner,
+      repo,
+      name: statusCheckName,
+      head_sha: latestCommitHash,
+      status: StatusCheckStatusType.Completed,
+      conclusion: CompletedConclusionType.Failure, 
+      started_at: new Date().toISOString(),
+      output: {
+        title: statusCheckTitle,
+        summary: `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`,
+      },
+    });
+
+    if (createStatusCheckResponse.status === 201) {
+      console.log(
+        `Created '${statusCheckName}' check with failed status for commit ${latestCommitHash}`,
+      );
+    } else {
+      core.setFailed(
+        `Failed to create '${statusCheckName}' check with failed status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+      );
+      process.exit(1);
+    }
+    core.setFailed(
+      `At least 1 E2E Label must be Applied either ${e2eLabel} or ${antiLabel}`,
     );
+    process.exit(1);
+  }
+
+  if (!shouldRun) {
+    console.log(
+      `Skipping Bitrise status check. due to the following reason: ${reason}`,
+    );
+
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
@@ -69,11 +153,11 @@ async function main(): Promise<void> {
       name: statusCheckName,
       head_sha: latestCommitHash,
       status: StatusCheckStatusType.Completed,
-      conclusion: CompletedConclusionType.Success,
+      conclusion: CompletedConclusionType.Success, 
       started_at: new Date().toISOString(),
       output: {
         title: statusCheckTitle,
-        summary: 'Skip run since no E2E smoke label is applied',
+        summary: `Skip run since ${reason}`,
       },
     });
 
@@ -95,6 +179,8 @@ async function main(): Promise<void> {
     triggerAction === PullRequestTriggerType.Labeled &&
     context.payload?.label?.name === e2eLabel
   ) {
+
+    console.log(`Starting Bitrise build for commit ${latestCommitHash}`);
     // Configure Bitrise configuration for API call
     const data = {
       build_params: {
@@ -222,6 +308,8 @@ async function main(): Promise<void> {
     }
 
     // Post pending status
+    console.log(`Posting pending status for commit ${latestCommitHash}`);
+    
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
       repo,
@@ -256,6 +344,8 @@ async function main(): Promise<void> {
   const lastCommentPage = Math.ceil(
     numberOfTotalComments / numberOfCommentsToCheck,
   );
+
+
   const { data: latestCommentBatch } = await octokit.rest.issues.listComments({
     owner,
     repo,
@@ -287,6 +377,8 @@ async function main(): Promise<void> {
 
   // Bitrise comment doesn't exist, post fail status
   if (!bitriseComment) {
+
+    console.log(`Bitrise comment not detected for commit ${latestCommitHash}`);
     // Post fail status
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,

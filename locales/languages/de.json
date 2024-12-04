@@ -2940,20 +2940,6 @@
       "description": "Verkaufen Sie Ihre Krypto direkt in MetaMask! Wir helfen Ihnen, Kurse von vertrauenswürdigen Anbietern zu finden, damit Sie Ihre Krypto jederzeit zugreifbar, schnell und sicher verkaufen können.",
       "action_text": "Probieren Sie es aus"
     },
-    "stx": {
-      "header": "Verbesserter Transaktionsschutz",
-      "description_1": "Erzielen Sie mit Smart Transactions höhere Erfolgsraten, einen Frontrunning-Schutz und eine bessere Transparenz.",
-      "description_2": "Nur auf Ethereum verfügbar. Sie können diese Funktion jederzeit in den Einstellungen aktivieren oder deaktivieren.",
-      "no_thanks": "Nein, danke",
-      "primary_button": "Aktivieren",
-      "learn_more": "Erfahren Sie mehr.",
-      "benefit_1_1": "Erfolgsrate:",
-      "benefit_1_2": "99,5 %",
-      "benefit_2_1": "Spart Ihnen",
-      "benefit_2_2": "Geld",
-      "benefit_3_1": "Echtzeit",
-      "benefit_3_2": "Updates"
-    },
     "transaction_simulation": {
       "title": "Geschätzte Saldoänderungen",
       "description_1": "Jetzt können Sie das mögliche Ergebnis Ihrer Transaktionen sehen, bevor Sie sie tätigen!",
