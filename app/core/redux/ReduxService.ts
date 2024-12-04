@@ -1,3 +1,4 @@
+import Logger from '../../util/Logger';
 import { ReduxStore } from './types';
 
 /**
@@ -11,14 +12,18 @@ class ReduxService {
       typeof store.dispatch !== 'function' ||
       typeof store.getState !== 'function'
     ) {
-      throw new Error('Redux store is not a valid store!');
+      const error = new Error('Redux store is not a valid store!');
+      Logger.error(error);
+      throw error;
     }
     return this.#reduxStore;
   }
 
   static #assertReduxStoreExists() {
     if (!this.#reduxStore) {
-      throw new Error('Redux store does not exist!');
+      const error = new Error('Redux store does not exist!');
+      Logger.error(error);
+      throw error;
     }
     return this.#reduxStore;
   }

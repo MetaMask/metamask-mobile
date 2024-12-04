@@ -6,13 +6,6 @@ import { processAttribution } from './processAttribution';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import ReduxService, { ReduxStore } from './redux';
 
-jest.mock('react-native', () => ({
-  AppState: {
-    addEventListener: jest.fn(),
-    currentState: 'active',
-  },
-}));
-
 jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
 
 jest.mock('../util/Logger', () => ({

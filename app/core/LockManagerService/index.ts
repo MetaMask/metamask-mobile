@@ -10,7 +10,7 @@ import Logger from '../../util/Logger';
 import { lockApp, interruptBiometrics } from '../../actions/user';
 import ReduxService from '../redux';
 
-class LockManagerService {
+export class LockManagerService {
   #appState?: AppStateStatus;
   #appStateListener?: NativeEventSubscription;
   #lockTimer?: number;
@@ -40,45 +40,52 @@ class LockManagerService {
 
   #handleAppStateChange = async (nextAppState: AppStateStatus) => {
     // Don't auto-lock.
-    const lockTime = ReduxService.store.getState().settings.lockTime;
-    if (
-      lockTime === -1 || // Lock timer isn't set.
-      nextAppState === 'inactive' || // Ignore inactive state.
-      (this.#appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
-    ) {
-      this.#appState = nextAppState;
-      return;
-    }
-
-    // EDGE CASE
-    // Handles interruptions in the middle of authentication while lock timer is a non-zero value
-    // This is most likely called when the background timer fails to be called while backgrounding the app
-    if (!this.#lockTimer && lockTime !== 0 && nextAppState !== 'active') {
-      ReduxService.store.dispatch(interruptBiometrics());
-    }
-
-    // Handle lock logic on background.
-    if (nextAppState === 'background') {
-      if (lockTime === 0) {
-        this.#lockApp();
-      } else {
-        // Autolock after some time.
-        this.#clearBackgroundTimer();
-        this.#lockTimer = BackgroundTimer.setTimeout(() => {
-          if (this.#lockTimer) {
-            this.#lockApp();
-          }
-        }, lockTime);
+    try {
+      const lockTime = ReduxService.store.getState().settings.lockTime;
+      if (
+        lockTime === -1 || // Lock timer isn't set.
+        nextAppState === 'inactive' || // Ignore inactive state.
+        (this.#appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
+      ) {
+        this.#appState = nextAppState;
+        return;
       }
-    }
 
-    // App has foregrounded from background.
-    // Clear background timer for safe measure.
-    if (nextAppState === 'active') {
-      this.#clearBackgroundTimer();
-    }
+      // EDGE CASE
+      // Handles interruptions in the middle of authentication while lock timer is a non-zero value
+      // This is most likely called when the background timer fails to be called while backgrounding the app
+      if (!this.#lockTimer && lockTime !== 0 && nextAppState !== 'active') {
+        ReduxService.store.dispatch(interruptBiometrics());
+      }
 
-    this.#appState = nextAppState;
+      // Handle lock logic on background.
+      if (nextAppState === 'background') {
+        if (lockTime === 0) {
+          this.#lockApp();
+        } else {
+          // Autolock after some time.
+          this.#clearBackgroundTimer();
+          this.#lockTimer = BackgroundTimer.setTimeout(() => {
+            if (this.#lockTimer) {
+              this.#lockApp();
+            }
+          }, lockTime);
+        }
+      }
+
+      // App has foregrounded from background.
+      // Clear background timer for safe measure.
+      if (nextAppState === 'active') {
+        this.#clearBackgroundTimer();
+      }
+
+      this.#appState = nextAppState;
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'LockManagerService: Error handling app state change',
+      );
+    }
   };
 
   /**
