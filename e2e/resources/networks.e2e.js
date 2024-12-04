@@ -36,7 +36,7 @@ const PopularNetworksList = {
     providerConfig: {
       type: 'rpc',
       chainId: toHex('8453'),
-      rpcUrl: `https://mainnet.base.org`,
+      rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'Base',
       ticker: 'ETH',
     },
