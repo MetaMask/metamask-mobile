@@ -332,11 +332,26 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
   return new BigNumber(gasLimit).times(multiplier).integerValue();
 };
 
-function getTransactionPropertiesFromGasEstimates(estimates) {
+async function getGasFeeEstimatesForTransaction(
+  transaction,
+  { gasEstimates, gasFeeEstimates },
+  { chainId, isEIP1559Network },
+) {
+  if (isEIP1559Network) {
+    const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
+    const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
+      transaction,
+      estimatedBaseFeeGwei,
+      chainId,
+    );
+    delete transaction.gasPrice;
+    return transactionGasFeeEstimates;
+  }
+
   return {
     gasPrice: addHexPrefix(
       decGWEIToHexWEI(
-        estimates.gasPrice || estimates[DEFAULT_GAS_FEE_OPTION_LEGACY],
+        gasEstimates.gasPrice || gasEstimates[DEFAULT_GAS_FEE_OPTION_LEGACY],
       ),
     ),
   };
@@ -908,22 +923,13 @@ function SwapsQuotesView({
 
       try {
         resetTransaction();
-
-        let tradeGasFeeEstimates;
         const tradeTransaction = selectedQuote.trade;
 
-        if (isEIP1559Network) {
-          const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
-          tradeGasFeeEstimates = await getTransaction1559GasFeeEstimates(
-            selectedQuote.trade,
-            estimatedBaseFeeGwei,
-            chainId,
-          );
-          delete tradeTransaction.gasPrice;
-        } else {
-          tradeGasFeeEstimates =
-            getTransactionPropertiesFromGasEstimates(gasEstimates);
-        }
+        const tradeGasFeeEstimates = await getGasFeeEstimatesForTransaction(
+          tradeTransaction,
+          { gasEstimates, gasFeeEstimates },
+          { chainId, isEIP1559Network },
+        );
 
         const { transactionMeta, result } = await addTransaction(
           {
@@ -975,20 +981,11 @@ function SwapsQuotesView({
       try {
         resetTransaction();
 
-        let approvalGasFeeEstimates;
-
-        if (isEIP1559Network) {
-          const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
-          approvalGasFeeEstimates = await getTransaction1559GasFeeEstimates(
-            approvalTransaction,
-            estimatedBaseFeeGwei,
-            chainId,
-          );
-          delete approvalTransaction.gasPrice;
-        } else {
-          approvalGasFeeEstimates =
-            getTransactionPropertiesFromGasEstimates(gasEstimates);
-        }
+        const approvalGasFeeEstimates = await getGasFeeEstimatesForTransaction(
+          approvalTransaction,
+          { gasEstimates, gasFeeEstimates },
+          { chainId, isEIP1559Network },
+        );
 
         const { transactionMeta, result } = await addTransaction(
           {

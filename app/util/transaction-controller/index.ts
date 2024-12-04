@@ -2,6 +2,7 @@ import {
   TransactionParams,
   TransactionController as BaseTransactionController,
 } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 import Engine from '../../core/Engine';
 
@@ -20,6 +21,21 @@ export async function estimateGas(transaction: TransactionParams) {
   const { TransactionController } = Engine.context;
 
   return await TransactionController.estimateGas(transaction);
+}
+
+export async function estimateGasFee({
+  transactionParams,
+  chainId,
+}: {
+  transactionParams: TransactionParams;
+  chainId: Hex;
+}) {
+  const { TransactionController } = Engine.context;
+
+  return await TransactionController.estimateGasFee({
+    transactionParams,
+    chainId,
+  });
 }
 
 // Proxy methods

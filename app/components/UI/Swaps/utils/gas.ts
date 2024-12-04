@@ -4,7 +4,7 @@ import type {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { addHexes, decGWEIToHexWEI } from '../../../../util/conversions';
-import Engine from '../../../../core/Engine';
+import { estimateGasFee } from '../../../../util/transaction-controller';
 
 export async function getTransaction1559GasFeeEstimates(
   transactionParams: TransactionParams,
@@ -13,9 +13,7 @@ export async function getTransaction1559GasFeeEstimates(
 ) {
   const estimatedBaseFee = decGWEIToHexWEI(estimatedBaseFeeGwei) as Hex;
 
-  const { TransactionController } = Engine.context;
-
-  const transactionGasFeeResponse = await TransactionController.estimateGasFee({
+  const transactionGasFeeResponse = await estimateGasFee({
     transactionParams,
     chainId,
   });
