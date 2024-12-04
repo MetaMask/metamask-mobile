@@ -6,6 +6,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
@@ -47,7 +49,8 @@ const MOCK_STORE_STATE = {
       AccountTrackerController: {
         accounts: {
           [MOCK_ACCOUNT_1.address]: {
-            balance: '0x0', stakedBalance: '0x0',
+            balance: '0x0',
+            stakedBalance: '0x0',
           },
           [MOCK_ACCOUNT_2.address]: {
             balance: '0x5',
@@ -105,6 +108,7 @@ describe('useAccounts', () => {
   });
 
   it('returns internal accounts', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     const expectedInternalAccounts: Account[] = [
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,

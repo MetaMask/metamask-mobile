@@ -7,16 +7,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
 
-// Add mock for trace utility
-jest.mock('../../../util/trace', () => ({
-  startSpan: () => ({
-    end: jest.fn(),
-    setTag: jest.fn(),
-    setData: jest.fn(),
-  }),
-  TRACE_TAGS: {},
-}));
-
 describe('ReturnToAppModal', () => {
   it('renders without crashing', () => {
     render(

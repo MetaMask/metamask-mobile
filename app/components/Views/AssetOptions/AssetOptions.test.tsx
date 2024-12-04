@@ -6,6 +6,83 @@ import AssetOptions from './AssetOptions';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 
+import {
+  createProviderConfig,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    TokensController: {
+      ignoreTokens: jest.fn(() => Promise.resolve()),
+    },
+    NetworkController: {
+      findNetworkClientIdByChainId: jest.fn(() => 'test-network'),
+      getNetworkClientById: jest.fn(() => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.example.com',
+          ticker: 'ETH',
+          type: 'mainnet',
+        },
+      })),
+      state: {
+        providerConfig: {
+          chainId: '0x1',
+          type: 'mainnet',
+        },
+        networkConfigurations: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      },
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(() => Promise.resolve()),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(() => Promise.resolve()),
+    },
+    TokenRatesController: {
+      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+    },
+  },
+  getTotalFiatAccountBalance: jest.fn(),
+}));
+
+jest.mock('../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(() => '1'),
+  selectProviderConfig: jest.fn(() => ({})),
+  selectNetworkConfigurations: jest.fn(() => ({
+    '0x1': {
+      chainId: '0x1',
+      rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
+      defaultRpcEndpointIndex: 0,
+    },
+    '0x89': {
+      chainId: '0x89',
+      rpcEndpoints: [{ url: 'https://polygon.example.com' }],
+      defaultRpcEndpointIndex: 0,
+    },
+  })),
+  createProviderConfig: jest.fn((networkConfig, rpcEndpoint) => ({
+    chainId: networkConfig.chainId,
+    rpcUrl: rpcEndpoint.url,
+    chainName: 'Example Chain',
+    nativeCurrency: {
+      name: 'Example Token',
+      symbol: 'EXAMPLE',
+      decimals: 18,
+    },
+  })),
+}));
+
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -231,5 +308,49 @@ describe('AssetOptions Component', () => {
       'AssetDetails',
       expect.anything(),
     );
+  });
+
+  describe('Portfolio and Network Configuration', () => {
+    const mockNetworkConfigurations = {
+      '0x1': {
+        chainId: '0x1',
+        rpcEndpoints: [{ url: 'https://mainnet.example.com' }],
+        defaultRpcEndpointIndex: 0,
+      },
+      '0x89': {
+        chainId: '0x89',
+        rpcEndpoints: [{ url: 'https://polygon.example.com' }],
+        defaultRpcEndpointIndex: 0,
+      },
+    };
+
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurations)
+          return mockNetworkConfigurations;
+        return {};
+      });
+    });
+
+    it('should use correct provider config when portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+      render(
+        <AssetOptions
+          route={{
+            params: {
+              address: '0x123',
+              chainId: '0x1',
+              isNativeCurrency: false,
+            },
+          }}
+        />,
+      );
+
+      expect(createProviderConfig).toHaveBeenCalledWith(
+        mockNetworkConfigurations['0x1'],
+        mockNetworkConfigurations['0x1'].rpcEndpoints[0],
+      );
+    });
   });
 });

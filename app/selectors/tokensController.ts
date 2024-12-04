@@ -13,7 +13,6 @@ import {
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
-// TODO: Double check this make sure this allTokens change plays nice with original view
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
   selectChainId,
@@ -135,9 +134,6 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
-// TODO: This isn't working fully, once a network has been selected then it
-// can detect all tokens in that network. But by default it only shows
-// detected tokens if the user has chosen it in the past
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
