@@ -20,7 +20,6 @@ describe('getTransaction1559GasFeeEstimates', () => {
     to: '0x2',
     value: '0x3',
   };
-  const mockEstimatedBaseFeeGwei = '1';
   const mockChainId = '0x1';
 
   it('should return correct gas fee estimates', async () => {
@@ -48,12 +47,10 @@ describe('getTransaction1559GasFeeEstimates', () => {
 
     const result = await getTransaction1559GasFeeEstimates(
       mockTransactionParams,
-      mockEstimatedBaseFeeGwei,
       mockChainId,
     );
 
     expect(result).toEqual({
-      baseAndPriorityFeePerGas: '3b9aca03', // 1000000003 to hex
       maxFeePerGas: '0x2',
       maxPriorityFeePerGas: '0x3',
     });
@@ -68,12 +65,10 @@ describe('getTransaction1559GasFeeEstimates', () => {
 
     const result = await getTransaction1559GasFeeEstimates(
       mockTransactionParams,
-      mockEstimatedBaseFeeGwei,
       mockChainId,
     );
 
     expect(result).toEqual({
-      baseAndPriorityFeePerGas: undefined,
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined,
     });

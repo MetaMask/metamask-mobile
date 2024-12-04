@@ -334,14 +334,12 @@ const gasLimitWithMultiplier = (gasLimit, multiplier) => {
 
 async function getGasFeeEstimatesForTransaction(
   transaction,
-  { gasEstimates, gasFeeEstimates },
+  gasEstimates,
   { chainId, isEIP1559Network },
 ) {
   if (isEIP1559Network) {
-    const { estimatedBaseFeeGwei = '0' } = gasFeeEstimates;
     const transactionGasFeeEstimates = await getTransaction1559GasFeeEstimates(
       transaction,
-      estimatedBaseFeeGwei,
       chainId,
     );
     delete transaction.gasPrice;
@@ -927,7 +925,7 @@ function SwapsQuotesView({
 
         const tradeGasFeeEstimates = await getGasFeeEstimatesForTransaction(
           tradeTransaction,
-          { gasEstimates, gasFeeEstimates },
+          gasEstimates,
           { chainId, isEIP1559Network },
         );
 
@@ -983,7 +981,7 @@ function SwapsQuotesView({
 
         const approvalGasFeeEstimates = await getGasFeeEstimatesForTransaction(
           approvalTransaction,
-          { gasEstimates, gasFeeEstimates },
+          gasEstimates,
           { chainId, isEIP1559Network },
         );
 
