@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectUseSafeChainsListValidation } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
-import { toggleUseSafeChainsListValidation } from '../../../../util/networks';
+import { toggleUseSafeChainsListValidation } from '../../../../util/networks/engineNetworkUtils';
 import NetworkDetailsCheckSettings from '.';
 import {
   USE_SAFE_CHAINS_LIST_VALIDATION,
@@ -22,7 +22,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/networks', () => ({
+jest.mock('../../../../util/networks/engineNetworkUtils', () => ({
   toggleUseSafeChainsListValidation: jest.fn(),
 }));
 
