@@ -1,6 +1,7 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
@@ -18,7 +19,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -54,20 +55,17 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
-  navigation,
   asset,
   displayBuyButton,
   displaySwapsButton,
 }: AssetOverviewProps) => {
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
@@ -77,7 +75,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
@@ -150,8 +148,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     );
   };
   const onBuy = () => {
-    const [route, params] = createBuyNavigationDetails();
-    navigation.navigate(route, params || {});
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
         .addProperties({

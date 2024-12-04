@@ -1,7 +1,7 @@
 import enContent from '../../locales/languages/en.json';
 
 export const TransactionConfirmViewSelectorsIDs = {
-  COMFIRM_TXN_AMOUNT: 'confirm-txn-amount',
+  CONFIRM_TXN_AMOUNT: 'confirm-txn-amount',
   TRANSACTION_VIEW_CONTAINER_ID: 'txn-confirm-screen',
   CONFIRM_TRANSACTION_BUTTON_ID: 'txn-confirm-send-button',
   NAVBAR_TITLE_TEXT: 'navbar-title-text',
