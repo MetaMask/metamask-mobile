@@ -384,7 +384,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               <ButtonIcon
                 testID={WalletViewSelectorsIDs.SORT_BY}
                 onPress={showSortControls}
-                iconName={IconName.Filter}
+                iconName={IconName.SwapVertical}
                 style={styles.controlIconButton}
               />
               <ButtonIcon
