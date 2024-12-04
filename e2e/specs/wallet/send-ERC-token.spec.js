@@ -8,7 +8,7 @@ import SendView from '../../pages/Send/SendView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
-import TokenOverview from '../../pages/TokenOverview';
+import TokenOverview from '../../pages/wallet/TokenOverview';
 import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';

@@ -13,8 +13,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import AddBookmarkView from '../../pages/Browser/AddBookmarkView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
 

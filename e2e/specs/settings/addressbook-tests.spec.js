@@ -4,8 +4,8 @@ import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import AddAddressModal from '../../pages/modals/AddAddressModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -50,7 +50,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
 
   it('should go to send view', async () => {
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     // Make sure view with my accounts visible
     await Assertions.checkIfVisible(SendView.CurrentAccountElement);
   });
@@ -138,7 +138,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await CommonView.tapBackButton();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     await Assertions.checkIfTextIsDisplayed('Ibrahim');
   });
 });

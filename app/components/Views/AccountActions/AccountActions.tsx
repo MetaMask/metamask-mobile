@@ -37,7 +37,7 @@ import styleSheet from './AccountActions.styles';
 import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
@@ -366,7 +366,7 @@ const AccountActions = () => {
           actionTitle={strings('account_actions.edit_name')}
           iconName={IconName.Edit}
           onPress={goToEditAccountName}
-          testID={AccountActionsModalSelectorsIDs.EDIT_ACCOUNT}
+          testID={AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT}
         />
         {isExplorerVisible && (
           <AccountAction
@@ -377,27 +377,27 @@ const AccountActions = () => {
             }
             iconName={IconName.Export}
             onPress={viewInEtherscan}
-            testID={AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN}
+            testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}
         <AccountAction
           actionTitle={strings('drawer.share_address')}
           iconName={IconName.Share}
           onPress={onShare}
-          testID={AccountActionsModalSelectorsIDs.SHARE_ADDRESS}
+          testID={AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS}
         />
         <AccountAction
           actionTitle={strings('account_details.show_private_key')}
           iconName={IconName.Key}
           onPress={goToExportPrivateKey}
-          testID={AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY}
+          testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
         />
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
             onPress={showRemoveHWAlert}
-            testID={AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
+            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
           />
         )}
         {
@@ -407,7 +407,7 @@ const AccountActions = () => {
               actionTitle={strings('accounts.remove_snap_account')}
               iconName={IconName.Close}
               onPress={showRemoveSnapAccountAlert}
-              testID={AccountActionsModalSelectorsIDs.REMOVE_SNAP_ACCOUNT}
+              testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_SNAP_ACCOUNT}
             />
           )
           ///: END:ONLY_INCLUDE_IF
