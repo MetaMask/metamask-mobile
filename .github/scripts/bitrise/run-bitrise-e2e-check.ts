@@ -125,6 +125,8 @@ async function main(): Promise<void> {
       },
     });
 
+    console.log(createStatusCheckResponse)
+
     if (createStatusCheckResponse.status === 201) {
       console.log(
         `Created '${statusCheckName}' check with failed status for commit ${latestCommitHash}`,
