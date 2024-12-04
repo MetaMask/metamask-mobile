@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, fireEvent, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarNetwork from './AvatarNetwork';
@@ -12,53 +12,48 @@ import {
 
 describe('AvatarNetwork', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    const wrapper = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render remote network image', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
 
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+    const imageComponent = screen.getByTestId(AVATARNETWORK_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render local network image', () => {
-    const wrapper = shallow(
+    render(
       <AvatarNetwork
         {...SAMPLE_AVATARNETWORK_PROPS}
         imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
       />,
     );
 
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+    const imageComponent = screen.getByTestId(AVATARNETWORK_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render fallback when image fails to load', () => {
-    const wrapper = shallow(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
-    const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
-    );
+    render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+
+    const prevImageComponent = screen.getByTestId(AVATARNETWORK_IMAGE_TESTID);
     // Simulate onError on Image component
-    prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
-    const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
+    fireEvent(prevImageComponent, 'onError', {
+      nativeEvent: { error: 'ERROR!' },
+    });
+
+    const currentImageComponent = screen.queryByTestId(
+      AVATARNETWORK_IMAGE_TESTID,
     );
-    expect(currentImageComponent.exists()).toBe(false);
+    expect(currentImageComponent).toBeNull();
   });
 
   it('should render fallback when image is not provided', () => {
-    const wrapper = shallow(
-      <AvatarNetwork name={SAMPLE_AVATARNETWORK_PROPS.name} />,
-    );
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARNETWORK_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(false);
+    render(<AvatarNetwork name={SAMPLE_AVATARNETWORK_PROPS.name} />);
+
+    const imageComponent = screen.queryByTestId(AVATARNETWORK_IMAGE_TESTID);
+    expect(imageComponent).toBeNull();
   });
 });

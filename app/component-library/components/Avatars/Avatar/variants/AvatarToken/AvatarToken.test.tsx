@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { screen, fireEvent, render } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarToken from './AvatarToken';
@@ -17,53 +17,48 @@ jest.mock('react-redux', () => ({
 
 describe('AvatarToken', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
+    const wrapper = render(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render remote network image', () => {
-    const wrapper = shallow(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
+    render(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
 
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+    const imageComponent = screen.getByTestId(AVATARTOKEN_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render local network image', () => {
-    const wrapper = shallow(
+    render(
       <AvatarToken
         {...SAMPLE_AVATARTOKEN_PROPS}
         imageSource={SAMPLE_AVATARTOKEN_IMAGESOURCE_LOCAL}
       />,
     );
 
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+    const imageComponent = screen.getByTestId(AVATARTOKEN_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render fallback when image fails to load', () => {
-    const wrapper = shallow(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
-    const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
-    );
+    render(<AvatarToken {...SAMPLE_AVATARTOKEN_PROPS} />);
+
+    const prevImageComponent = screen.getByTestId(AVATARTOKEN_IMAGE_TESTID);
+
     // Simulate onError on Image component
-    prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
-    const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
+    fireEvent(prevImageComponent, 'onError', {
+      nativeEvent: { error: 'ERROR!' },
+    });
+    const currentImageComponent = screen.queryByTestId(
+      AVATARTOKEN_IMAGE_TESTID,
     );
-    expect(currentImageComponent.exists()).toBe(false);
+    expect(currentImageComponent).toBeNull();
   });
 
   it('should render fallback when tokenImageUrl is not provided', () => {
-    const wrapper = shallow(
-      <AvatarToken name={SAMPLE_AVATARTOKEN_PROPS.name} />,
-    );
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARTOKEN_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(false);
+    render(<AvatarToken name={SAMPLE_AVATARTOKEN_PROPS.name} />);
+
+    const imageComponent = screen.queryByTestId(AVATARTOKEN_IMAGE_TESTID);
+    expect(imageComponent).toBeNull();
   });
 });

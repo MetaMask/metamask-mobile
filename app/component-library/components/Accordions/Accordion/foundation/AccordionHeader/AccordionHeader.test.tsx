@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../../../Icons/Icon';
@@ -16,13 +17,13 @@ import {
 
 describe('AccordionHeader - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
     );
     expect(wrapper).toMatchSnapshot();
   });
   it('should render a rotated down Arrow if isExpanded is true', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} isExpanded />,
     );
     expect(wrapper).toMatchSnapshot();
@@ -31,31 +32,23 @@ describe('AccordionHeader - Snapshot', () => {
 
 describe('AccordionHeader', () => {
   it('should render AccordionHeader', () => {
-    const wrapper = shallow(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
-    const accordionHeaderComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDIONHEADER,
-    );
-    expect(accordionHeaderComponent.exists()).toBe(true);
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
+
+    const accordionHeaderComponent = screen.getByTestId(TESTID_ACCORDIONHEADER);
+    expect(accordionHeaderComponent).toBeTruthy();
   });
   it('should render the given title', () => {
-    const wrapper = shallow(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
-    const titleElement = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDIONHEADER_TITLE,
-    );
-    expect(titleElement.props().children).toBe(SAMPLE_ACCORDIONHEADER_TITLE);
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
+
+    const titleElement = screen.getByText(SAMPLE_ACCORDIONHEADER_TITLE);
+    expect(titleElement).toBeTruthy();
   });
   it('should render the proper arrow down icon', () => {
-    const wrapper = shallow(
-      <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
-    );
-    const iconElement = wrapper.findWhere(
-      (node) => node.prop('testID') === TESTID_ACCORDIONHEADER_ARROWICON,
-    );
-    expect(iconElement.props().name).toBe(IconName.ArrowDown);
+    render(<AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />);
+
+    const iconElement = screen.getByTestId(TESTID_ACCORDIONHEADER_ARROWICON);
+    const iconProps = iconElement.props;
+    expect(iconProps.name).toBe(IconName.ArrowDown);
   });
   //TODO: Add Test for Pressed state and animation
 });

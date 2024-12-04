@@ -1,9 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AvatarToken should render correctly 1`] = `
-<AvatarBase
-  size="32"
-  style={{}}
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 16,
+      "height": 32,
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
 >
   <Image
     onError={[Function]}
@@ -22,5 +29,5 @@ exports[`AvatarToken should render correctly 1`] = `
     }
     testID="token-avatar-image"
   />
-</AvatarBase>
+</View>
 `;

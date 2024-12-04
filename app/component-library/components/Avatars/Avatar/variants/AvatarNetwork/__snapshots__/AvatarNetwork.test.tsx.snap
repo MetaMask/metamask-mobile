@@ -1,12 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`AvatarNetwork should render correctly 1`] = `
-<AvatarBase
-  size="32"
+<View
   style={
     {
       "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderRadius": 16,
+      "height": 32,
       "justifyContent": "center",
+      "overflow": "hidden",
+      "width": 32,
     }
   }
 >
@@ -26,5 +30,5 @@ exports[`AvatarNetwork should render correctly 1`] = `
     }
     testID="network-avatar-image"
   />
-</AvatarBase>
+</View>
 `;

@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, fireEvent, screen } from '@testing-library/react-native';
 
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
@@ -10,36 +10,36 @@ import {
   SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE,
 } from './AvatarFavicon.constants';
+import { queryByTestId } from '@testing-library/react';
 
 describe('AvatarFavicon', () => {
   it('should match the snapshot', () => {
-    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+    const wrapper = render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render favicon with remote image', () => {
-    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+    render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+
+    const imageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render favicon with local image', () => {
-    const wrapper = shallow(
+    render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL}
       />,
     );
-    const imageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
-    );
-    expect(imageComponent.exists()).toBe(true);
+
+    const imageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+
+    expect(imageComponent).toBeTruthy();
   });
 
   it('should render SVG', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
@@ -50,34 +50,41 @@ describe('AvatarFavicon', () => {
   });
 
   it('should render fallback', () => {
-    const wrapper = shallow(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
-    const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
-    );
+    render(<AvatarFavicon {...SAMPLE_AVATARFAVICON_PROPS} />);
+
+    const prevImageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+
     // Simulate onError on Image component
-    prevImageComponent.props().onError({ nativeEvent: { error: 'ERROR!' } });
-    const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    fireEvent(prevImageComponent, 'onError', {
+      nativeEvent: { error: 'ERROR!' },
+    });
+
+    const currentImageComponent = screen.queryByTestId(
+      AVATARFAVICON_IMAGE_TESTID,
     );
-    expect(currentImageComponent.exists()).toBe(false);
+
+    expect(currentImageComponent).toBeNull();
   });
 
   it('should render fallback when svg has error', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
       />,
     );
-    const prevImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
-    );
+    const prevImageComponent = screen.getByTestId(AVATARFAVICON_IMAGE_TESTID);
+
     // Simulate onError on Image component
-    prevImageComponent.props().onError(new Error('ERROR!'));
-    const currentImageComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === AVATARFAVICON_IMAGE_TESTID,
+    fireEvent(prevImageComponent, 'onError', {
+      nativeEvent: { error: 'ERROR!' },
+    });
+
+    const currentImageComponent = screen.queryByTestId(
+      AVATARFAVICON_IMAGE_TESTID,
     );
-    expect(currentImageComponent.exists()).toBe(true);
+
+    expect(currentImageComponent).toBeNull();
     expect(wrapper).toMatchSnapshot();
   });
 });

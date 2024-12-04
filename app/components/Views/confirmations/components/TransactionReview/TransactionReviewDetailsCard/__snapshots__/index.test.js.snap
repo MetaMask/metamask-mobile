@@ -1,32 +1,256 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TransactionReviewDetailsCard should render correctly 1`] = `
-<ContextProvider
-  value={
+<View
+  style={
     {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
-      },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
-      },
+      "minWidth": "100%",
+      "paddingBottom": 16,
+      "paddingHorizontal": 16,
+      "width": "100%",
     }
   }
 >
-  <TransactionReviewDetailsCard />
-</ContextProvider>
+  <View
+    style={
+      {
+        "paddingBottom": 20,
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        {
+          "paddingRight": 10,
+          "paddingVertical": 10,
+          "position": "absolute",
+          "zIndex": 1,
+        }
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          [
+            {
+              "color": "#141618",
+              "fontSize": 24,
+            },
+            undefined,
+            {
+              "fontFamily": "Ionicons",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            {},
+          ]
+        }
+      >
+        
+      </Text>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "paddingVertical": 12,
+          "textAlign": "center",
+        }
+      }
+    >
+      Transaction Details
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "borderColor": "#bbc0c5",
+        "borderRadius": 10,
+        "borderWidth": 1,
+        "padding": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "100",
+          }
+        }
+      >
+        Contract address:
+      </Text>
+      <View
+        style={
+          {
+            "color": "#141618",
+            "flexDirection": "row",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "marginLeft": "auto",
+            "textAlign": "right",
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontWeight": "600",
+              "marginHorizontal": 8,
+              "maxWidth": 120,
+            }
+          }
+        />
+        <Text
+          allowFontScaling={false}
+          onPress={[Function]}
+          style={
+            [
+              {
+                "color": "#0376c9",
+                "fontSize": 16,
+              },
+              {
+                "marginLeft": 1,
+                "marginTop": 2,
+              },
+              {
+                "fontFamily": "Feather",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "100",
+          }
+        }
+      >
+        Approve asset:
+      </Text>
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "flexDirection": "row",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+            "marginLeft": "auto",
+            "textAlign": "right",
+          }
+        }
+      >
+        undefined (#undefined)
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "borderColor": "#bbc0c5",
+        "borderRadius": 10,
+        "borderWidth": 1,
+        "marginTop": 20,
+        "padding": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      style={
+        {
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Bold",
+            "fontSize": 14,
+            "fontWeight": "600",
+          }
+        }
+      >
+        View Data
+      </Text>
+      <View
+        style={
+          {
+            "marginLeft": "auto",
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": "#141618",
+                "fontSize": 16,
+              },
+              undefined,
+              {
+                "fontFamily": "Ionicons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
 `;

@@ -1,22 +1,27 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import CustomNonceModal from '.';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 const PROPOSED_NONCE = 26;
 const saveMock = jest.fn();
 const closeMock = jest.fn();
 const createWrapper = () =>
-  shallow(
-    <CustomNonceModal
-      save={saveMock}
-      close={closeMock}
-      proposedNonce={PROPOSED_NONCE}
-      nonceValue={PROPOSED_NONCE}
-    />,
+  render(
+    <ThemeContext.Provider value={mockTheme}>
+      <CustomNonceModal
+        save={saveMock}
+        close={closeMock}
+        proposedNonce={PROPOSED_NONCE}
+        nonceValue={PROPOSED_NONCE}
+      />
+      ,
+    </ThemeContext.Provider>,
   );
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {
     const wrapper = createWrapper();
+
     expect(wrapper).toMatchSnapshot();
   });
 

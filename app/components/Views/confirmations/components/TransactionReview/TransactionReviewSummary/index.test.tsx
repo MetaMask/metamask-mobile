@@ -1,9 +1,10 @@
 import React from 'react';
 import TransactionReviewSummary from '.';
 import configureMockStore from 'redux-mock-store';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 const mockStore = configureMockStore();
 const initialState = {
@@ -28,10 +29,12 @@ const store = mockStore(initialState);
 
 describe('TransactionReviewSummary', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <TransactionReviewSummary />
-      </Provider>,
+    const wrapper = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <Provider store={store}>
+          <TransactionReviewSummary />
+        </Provider>
+      </ThemeContext.Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });

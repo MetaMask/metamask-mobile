@@ -3,10 +3,15 @@ import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/a
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
-import Adapter from 'enzyme-adapter-react-16';
-import Enzyme from 'enzyme';
+import '@testing-library/jest-dom';
+import '@testing-library/jest-native/extend-expect';
+// import Adapter from 'enzyme-adapter-react-16';
+// import Enzyme from 'enzyme';
+import { TextEncoder, TextDecoder } from 'util';
 
-Enzyme.configure({ adapter: new Adapter() });
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+// Enzyme.configure({ adapter: new Adapter() });
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
@@ -362,34 +367,39 @@ global.crypto = {
 };
 
 jest.mock('@react-native-firebase/messaging', () => {
-
   const module = () => {
-      return {
-          getToken: jest.fn(() => Promise.resolve('fcmToken')),
-          deleteToken: jest.fn(() => Promise.resolve()),
-          subscribeToTopic: jest.fn(),
-          unsubscribeFromTopic: jest.fn(),
-          hasPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
-          requestPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
-          setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
-          isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
-          registerDeviceForRemoteMessages: jest.fn(() =>
-            Promise.resolve('registered'),
-          ),
-          unregisterDeviceForRemoteMessages: jest.fn(() =>
-            Promise.resolve('unregistered'),
-          ),
-          onMessage: jest.fn(),
-          onTokenRefresh: jest.fn(),
+    return {
+      getToken: jest.fn(() => Promise.resolve('fcmToken')),
+      deleteToken: jest.fn(() => Promise.resolve()),
+      subscribeToTopic: jest.fn(),
+      unsubscribeFromTopic: jest.fn(),
+      hasPermission: jest.fn(() =>
+        Promise.resolve(module.AuthorizationStatus.AUTHORIZED),
+      ),
+      requestPermission: jest.fn(() =>
+        Promise.resolve(module.AuthorizationStatus.AUTHORIZED),
+      ),
+      setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+      isDeviceRegisteredForRemoteMessages: jest.fn(() =>
+        Promise.resolve(false),
+      ),
+      registerDeviceForRemoteMessages: jest.fn(() =>
+        Promise.resolve('registered'),
+      ),
+      unregisterDeviceForRemoteMessages: jest.fn(() =>
+        Promise.resolve('unregistered'),
+      ),
+      onMessage: jest.fn(),
+      onTokenRefresh: jest.fn(),
     };
   };
 
   module.AuthorizationStatus = {
-      NOT_DETERMINED: -1,
-      DENIED: 0,
-      AUTHORIZED: 1,
-      PROVISIONAL: 2,
-  }
+    NOT_DETERMINED: -1,
+    DENIED: 0,
+    AUTHORIZED: 1,
+    PROVISIONAL: 2,
+  };
 
-  return module
+  return module;
 });

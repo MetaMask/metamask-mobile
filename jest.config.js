@@ -16,16 +16,25 @@ process.env.LAUNCH_DARKLY_URL =
 const config = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
-  testEnvironment: 'jest-environment-node',
+  testEnvironment: 'jest-environment-jsdom',
+  testTimeout: 20000,
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
+    // 'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|nanoid|uuid)?(@walletconnect/)))',
+
+    // this regex working till @walletconnect added to it
+    // 'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|nanoid|uuid)))',
+
+    // after adding walletconnect => work for metamask but not walletconnect
+    '<rootDir>/node_modules/(?!((@metamask/)?(@react-native||react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee|nanoid|uuid|@walletconnect|@metamask/sdk-communication-layer)))',
+    '<rootDir>/node_modules/node_modules/@metamask',
+    '<rootDir>/node_modules/@metamask/sdk-communication-layer',
   ],
   transform: {
     '^.+\\.[jt]sx?$': 'babel-jest',
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
-  snapshotSerializers: ['enzyme-to-json/serializer'],
+  // snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
   collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],

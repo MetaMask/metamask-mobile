@@ -8,7 +8,6 @@ import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 import Root from '.';
 import { ApprovalTypes } from '../../../../../../core/RPCMethods/RPCMethodMiddleware';
-import { shallow } from 'enzyme';
 
 jest.mock('react-native-keyboard-aware-scroll-view', () => {
   const KeyboardAwareScrollView = jest.requireActual('react-native').ScrollView;
@@ -90,7 +89,7 @@ const store = mockStore(initialState);
 
 describe('Root', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    const wrapper = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <Root
