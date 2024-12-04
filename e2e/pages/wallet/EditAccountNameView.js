@@ -1,6 +1,6 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import EditAccountNameSelectorIDs from '../selectors/EditAccountName.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountName.selectors';
 
 class EditAccountNameView {
   get saveButton() {
