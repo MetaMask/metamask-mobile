@@ -4360,6 +4360,18 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
+"@metamask-previews/eth-ledger-bridge-keyring@7.0.0-e345222":
+  version "7.0.0-e345222"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-7.0.0-e345222.tgz#7c40e31df95fbdadc19a32d56149a8adb7164eff"
+  integrity sha512-T+V3edF3BaQWYct9i7kxlZGZcaWJWOpaOLI3A1ktiwtrT3KfTb6ZWbGWMWgjug7uHd817mTbqycimzk5uc5N3g==
+  dependencies:
+    "@ethereumjs/rlp" "^5.0.2"
+    "@ethereumjs/tx" "^4.2.0"
+    "@ethereumjs/util" "^8.1.0"
+    "@ledgerhq/hw-app-eth" "^6.39.0"
+    "@metamask/eth-sig-util" "^8.0.0"
+    hdkey "^2.1.0"
+
 "@metamask/abi-utils@^1.2.0":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/abi-utils/-/abi-utils-1.2.0.tgz#068e1b0f5e423dfae96961e0e5276a7c1babc03a"
@@ -4627,18 +4639,6 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^10.0.0"
     uuid "^8.3.2"
-
-"@metamask/eth-ledger-bridge-keyring@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-6.0.0.tgz#f62b6f3e286bdd3369c9360aa14300f86a24427c"
-  integrity sha512-xPNE/ZpmzwILnZ3a1JrcScSMdIL650fFPtrmf/7ZJRCyUlOoVWETpqUdSesLROC5WZBs8Ao1lus6YfTTqIsu6w==
-  dependencies:
-    "@ethereumjs/rlp" "^5.0.2"
-    "@ethereumjs/tx" "^4.2.0"
-    "@ethereumjs/util" "^8.1.0"
-    "@ledgerhq/hw-app-eth" "^6.39.0"
-    "@metamask/eth-sig-util" "^8.0.0"
-    hdkey "^2.1.0"
 
 "@metamask/eth-query@^4.0.0":
   version "4.0.0"
