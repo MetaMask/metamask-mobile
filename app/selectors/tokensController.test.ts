@@ -310,9 +310,7 @@ describe('TokensController Selectors', () => {
     };
 
     it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
-      jest
-        .spyOn(networks, 'isPortfolioViewEnabledFunction')
-        .mockReturnValue(false);
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
@@ -321,9 +319,7 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns only the current chain ID if PORTFOLIO_VIEW is set', () => {
-      jest
-        .spyOn(networks, 'isPortfolioViewEnabledFunction')
-        .mockReturnValue(true);
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',

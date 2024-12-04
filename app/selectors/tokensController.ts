@@ -79,7 +79,7 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   selectNetworkConfigurations,
   selectChainId,
   (networkConfigurations, currentChainId) => {
-    if (!isPortfolioViewEnabledFunction()) {
+    if (!isPortfolioViewEnabled()) {
       return [currentChainId];
     }
 

@@ -8,7 +8,7 @@ import { selectAccountsByChainId } from '../../selectors/accountTrackerControlle
 import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
 import { TokensWithBalances } from './useGetFormattedTokensPerChain';
 import {
-  selectCurrencyRates,
+  selectConversionRateForAllChains,
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
 import { InternalAccount } from '@metamask/keyring-api';
@@ -38,7 +38,7 @@ export const useGetTotalFiatBalanceCrossChains = (
   },
 ) => {
   const allNetworks = useSelector(selectNetworkConfigurations);
-  const currencyRates = useSelector(selectCurrencyRates);
+  const currencyRates = useSelector(selectConversionRateForAllChains);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);

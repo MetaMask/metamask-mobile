@@ -12,7 +12,7 @@ import {
 } from '../../selectors/networkController';
 import { selectTokenMarketData } from '../../selectors/tokenRatesController';
 import {
-  selectCurrencyRates,
+  selectConversionRateForAllChains,
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
@@ -75,7 +75,7 @@ export const useGetFormattedTokensPerChain = (
 
   const marketData: MarketDataMapping = useSelector(selectTokenMarketData);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const currencyRates = useSelector(selectCurrencyRates);
+  const currencyRates = useSelector(selectConversionRateForAllChains);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   //If the current network is a testnet, UI should display 0 unless conversions are enabled
