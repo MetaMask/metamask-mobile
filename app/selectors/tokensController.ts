@@ -25,7 +25,7 @@ export const selectTokens = createDeepEqualSelector(
         selectedAddress as Hex
       ];
     }
-    return tokensControllerState?.tokens;
+    return tokensControllerState?.tokens || [];
   },
 );
 
