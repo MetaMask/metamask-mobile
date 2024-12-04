@@ -149,6 +149,7 @@ async function main(): Promise<void> {
       `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
 
+    
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
