@@ -84,7 +84,8 @@
     "storybook-watch": "sb-rn-watcher",
     "start:flipper": "npx flipper-server",
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
-    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
+    "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false"
   },
   "husky": {
     "hooks": {
@@ -130,7 +131,10 @@
     "send": "0.19.0",
     "ethereumjs-util/**/secp256k1": "3.8.1",
     "**/secp256k1": "4.0.4",
-    "**/@metamask/rpc-errors": "7.0.1"
+    "**/@metamask/rpc-errors": "7.0.1",
+    "base58-js": "1.0.0",
+    "bech32": "2.0.0",
+    "sha256-uint8array": "0.10.3"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.7",
@@ -143,9 +147,11 @@
     "@metamask/approval-controller": "^7.1.0",
     "@metamask/assets-controllers": "^44.1.0",
     "@metamask/base-controller": "^7.0.1",
+    "@metamask/bitcoin-wallet-snap": "^0.8.2",
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
+    "@metamask/eth-hd-keyring": "^9.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
     "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
@@ -170,12 +176,13 @@
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.35.1",
     "@metamask/preferences-controller": "^14.0.0",
-    "@metamask/profile-sync-controller": "^0.9.7",
+    "@metamask/profile-sync-controller": "^1.0.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
     "@metamask/react-native-search-api": "1.0.1",
     "@metamask/react-native-webview": "^14.0.4",
+    "@metamask/remote-feature-flag-controller": "^1.0.0",
     "@metamask/rpc-errors": "^7.0.1",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
@@ -229,6 +236,7 @@
     "axios": "^1.6.8",
     "base-64": "1.0.0",
     "bignumber.js": "^9.0.1",
+    "bitcoin-address-validation": "2.2.3",
     "buffer": "6.0.3",
     "cockatiel": "^3.1.2",
     "compare-versions": "^3.6.0",
@@ -435,6 +443,7 @@
     "depcheck": "^1.4.7",
     "detox": "^20.27.5",
     "dotenv": "^16.0.3",
+    "dpdm": "^3.14.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
