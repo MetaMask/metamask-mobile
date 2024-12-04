@@ -119,7 +119,7 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-jest.mock('../../../util/notifications/hooks/useAccountSyncing', () => ({
+jest.mock('../../../util/identity/hooks/useAccountSyncing', () => ({
   useAccountSyncing: jest.fn().mockReturnValue({
     dispatchAccountSyncing: jest.fn(),
     error: undefined,

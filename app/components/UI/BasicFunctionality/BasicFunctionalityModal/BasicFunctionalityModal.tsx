@@ -30,10 +30,8 @@ import NotificationsService from '../../../../util/notifications/services/Notifi
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useMetrics } from '../../../hooks/useMetrics';
-import {
-  selectIsProfileSyncingEnabled,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 
 interface Props {
   route: {
