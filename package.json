@@ -195,7 +195,7 @@
     "@metamask/snaps-rpc-methods": "^11.5.1",
     "@metamask/snaps-sdk": "^6.11.0",
     "@metamask/snaps-utils": "^8.6.0",
-    "@metamask/stake-sdk": "^0.2.13",
+    "@metamask/stake-sdk": "^0.3.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^11.0.0",
     "@metamask/transaction-controller": "^39.1.0",
