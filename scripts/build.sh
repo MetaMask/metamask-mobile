@@ -164,6 +164,7 @@ loadJSEnv(){
 	fi
 	# Disable auto Sentry file upload by default
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
+	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
