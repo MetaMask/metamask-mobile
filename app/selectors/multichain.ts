@@ -57,6 +57,12 @@ interface NativeTokenBalance {
 
 type ChainBalances = Record<string, NativeTokenBalance>;
 
+/**
+ * Get the cached native token balance for the selected account by chainId.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
+ */
 export function getSelectedAccountNativeTokenCachedBalanceByChainId(
   state: RootState,
 ): ChainBalances {
@@ -84,6 +90,12 @@ export function getSelectedAccountNativeTokenCachedBalanceByChainId(
   );
 }
 
+/**
+ * Get the tokens for the selected account across all chains.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {TokensByChain} The tokens for the selected account across all chains.
+ */
 export const selectAccountTokensAcrossChains = createSelector(
   [
     selectSelectedInternalAccount,
@@ -141,7 +153,6 @@ export const selectAccountTokensAcrossChains = createSelector(
         tokensByChain[currentChainId] = userTokens.map((token) => {
           const tokenAddress = token.address as Hex;
           const tokenExchangeRatePriceByTokenAddress =
-            // TODO: Some exchange rates for some tokens don't exist? Is this expected?
             tokenExchangeRateByChainId[tokenAddress]?.price || 0;
 
           // Calculate token balance
@@ -219,11 +230,6 @@ export const selectAccountTokensAcrossChains = createSelector(
           }).format(tokenFiatAmount);
         }
         const name = isETH ? `Ethereum` : nativeCurrency;
-        // TODO: Check if this is correct for native tokens
-        // or do we need the wrapped native token address?
-        // for example the AVAX token has
-        // 0x0000000000000000000000000000000000000000 on its network
-        // but the wrapped version is 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7
         const address = zeroAddress() as Hex;
         const logo = isETH ? '../images/eth-logo-new.png' : '';
         const decimals = nativeTokenInfo?.decimals || 18;

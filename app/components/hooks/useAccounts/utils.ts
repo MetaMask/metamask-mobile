@@ -9,7 +9,7 @@ import {
 } from '../../../util/number';
 import { AccountInformation } from '@metamask/assets-controllers';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
-import { isPortfolioViewEnabledFunction } from '../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 interface AccountInfo {
   [address: string]: AccountInformation;
@@ -40,7 +40,7 @@ export const getAccountBalances = ({
   const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
   // IF portfolio view is active, display aggregated fiat balance cross chains
   let balanceFiat;
-  if (isPortfolioViewEnabledFunction()) {
+  if (isPortfolioViewEnabled()) {
     const { totalFiatBalance } =
       totalFiatBalancesCrossChain[internalAccount.address];
     balanceFiat = `${renderFiat(totalFiatBalance, currentCurrency)}`;
