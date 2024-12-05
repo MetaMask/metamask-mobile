@@ -1,6 +1,6 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
-import { TabBarSelectorIDs } from '../selectors/TabBar.selectors';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { TabBarSelectorIDs } from '../../selectors/wallet/TabBar.selectors';
 
 class TabBarComponent {
   get tabBarBrowserButton() {

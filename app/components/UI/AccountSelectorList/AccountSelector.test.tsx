@@ -5,7 +5,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { View } from 'react-native';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
 import {
@@ -140,10 +140,10 @@ describe('AccountSelectorList', () => {
 
     await waitFor(async () => {
       const businessAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
       const personalAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -183,7 +183,7 @@ describe('AccountSelectorList', () => {
       expect(accounts.length).toBe(1);
 
       const businessAccountItem = await queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -251,7 +251,7 @@ describe('AccountSelectorList', () => {
 
     await waitFor(() => {
       const businessAccountItem = queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).getByText(regex.eth(1))).toBeDefined();
@@ -272,7 +272,7 @@ describe('AccountSelectorList', () => {
 
     await waitFor(() => {
       const businessAccountItem = queryByTestId(
-        `${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
+        `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
       expect(within(businessAccountItem).queryByText(regex.eth(1))).toBeNull();
