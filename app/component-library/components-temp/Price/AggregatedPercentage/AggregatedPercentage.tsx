@@ -14,6 +14,7 @@ import {
   FORMATTED_VALUE_PRICE_TEST_ID,
   FORMATTED_PERCENTAGE_TEST_ID,
 } from './AggregatedPercentage.constants';
+import { DECIMALS_TO_SHOW } from '../../../../components/UI/Tokens/constants';
 
 export interface AggregatedPercentageProps {
   ethFiat: number;
@@ -41,7 +42,6 @@ const AggregatedPercentage = ({
   const { styles } = useStyles(styleSheet, {});
 
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const DECIMALS_TO_SHOW = 2;
 
   const totalBalance = ethFiat + tokenFiat;
   const totalBalance1dAgo = ethFiat1dAgo + tokenFiat1dAgo;

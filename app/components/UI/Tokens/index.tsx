@@ -16,6 +16,7 @@ import {
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -274,6 +275,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={styles.controlButton}
+              disabled={isTestNet(chainId)}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon

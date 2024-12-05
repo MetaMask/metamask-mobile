@@ -20,6 +20,19 @@ jest.mock('../../../../../core/Engine', () => ({
     PreferencesController: {
       setPrivacyMode: jest.fn(),
     },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      state: {
+        selectedNetworkClientId: 'mainnet',
+      },
+    },
   },
 }));
 
@@ -27,6 +40,31 @@ const initialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: [],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 1,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'infura',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+              },
+              {
+                name: 'public',
+                networkClientId: 'ea57f659-c004-4902-bfca-0c9688a43872',
+                type: 'custom',
+                url: 'https://mainnet-rpc.publicnode.com',
+              },
+            ],
+          },
+        },
+      },
       TokensController: {
         tokens: [
           {
@@ -75,7 +113,7 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        tokenBalances: { },
+        tokenBalances: {},
       },
     },
   },

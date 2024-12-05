@@ -4,7 +4,14 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
 import { Hex } from '@metamask/utils';
-import { selectChainId } from './networkController';
+import {
+  isPortfolioViewEnabledFunction,
+  TESTNET_CHAIN_IDS,
+} from '../util/networks';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from './networkController';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -52,10 +59,27 @@ export const selectDetectedTokens = createSelector(
     tokensControllerState?.detectedTokens,
 );
 
-const selectAllTokens = createSelector(
+export const selectAllTokens = createSelector(
   selectTokensControllerState,
   (tokensControllerState: TokensControllerState) =>
     tokensControllerState?.allTokens,
+);
+
+export const getChainIdsToPoll = createDeepEqualSelector(
+  selectNetworkConfigurations,
+  selectChainId,
+  (networkConfigurations, currentChainId) => {
+    if (!isPortfolioViewEnabledFunction()) {
+      return [currentChainId];
+    }
+
+    return Object.keys(networkConfigurations).filter(
+      (chainId) =>
+        chainId === currentChainId ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        !TESTNET_CHAIN_IDS.includes(chainId as any),
+    );
+  },
 );
 
 export const selectAllTokensFlat = createSelector(
