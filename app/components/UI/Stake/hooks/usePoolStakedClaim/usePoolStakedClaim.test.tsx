@@ -61,6 +61,7 @@ const mockPooledStakingContractService: PooledStakingContract = {
   estimateDepositGas: jest.fn(),
   estimateEnterExitQueueGas: jest.fn(),
   estimateMulticallGas: mockEstimateMulticallGas,
+  getShares: jest.fn(),
 };
 
 const mockSdkContext: Stake = {

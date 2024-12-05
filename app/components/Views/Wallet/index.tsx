@@ -84,8 +84,8 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 

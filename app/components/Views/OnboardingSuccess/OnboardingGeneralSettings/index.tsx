@@ -9,9 +9,9 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import { useStyles } from '../../../../component-library/hooks';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
-import { selectIsProfileSyncingEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { enableProfileSyncing } from '../../../../actions/identity';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
-import { enableProfileSyncing } from '../../../../actions/notification/helpers';
 import { RootState } from '../../../../reducers';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import styleSheet from '../DefaultSettings/index.styles';

@@ -1,9 +1,9 @@
-import Matchers from '../utils/Matchers';
-import Gestures from '../utils/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText
-} from '../selectors/TokenOverview.selectors';
+} from '../../selectors/wallet/TokenOverview.selectors';
 
 class TokenOverview {
   get container() {
