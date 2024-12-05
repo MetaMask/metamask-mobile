@@ -241,7 +241,6 @@ const LedgerSelectAccount = () => {
             .build(),
         );
         navigation.pop(2);
-
       } catch (err) {
         setErrorMsg((err as Error).message);
       } finally {
