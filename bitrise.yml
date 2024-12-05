@@ -62,11 +62,10 @@ pipelines:
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
   #App launch times pipeline. Runs on browserstack
-  app_launch_times_pipeline:
+  app_launch_times_and_expo_pipeline:
     stages:
-      - create_build_qa: {}
+      - create_build_qa_and_expo: {}
       - app_launch_times_test_stage: {}
-
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -114,6 +113,12 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
+  create_build_qa_and_expo:
+      workflows:
+      - build_android_devbuild: {}
+      - build_android_qa: {}
+      - build_ios_devbuild: {}
+      - build_ios_qa: {}
   create_build_qa:
     workflows:
       - build_android_qa: {}
@@ -1818,7 +1823,7 @@ trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
   - push_branch: main
-    pipeline: app_launch_times_pipeline
+    pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
