@@ -4373,7 +4373,7 @@
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
-"@metamask/eth-sig-util@^7.0.2", "@metamask/eth-sig-util@^7.0.3":
+"@metamask/eth-sig-util@^7.0.3":
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-7.0.3.tgz#be9e444fe0b8474c04e2ff42fd983173767f6ac0"
   integrity sha512-PAtGnOkYvh90k2lEZldq/FK7GTLF6WxE+2bV85PoA3pqlJnmJCAY62tuvxHSwnVngSKlc4mcNvjnUg2eYO6JGg==
@@ -4407,21 +4407,6 @@
     "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
-
-"@metamask/eth-snap-keyring@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-4.4.0.tgz#118f292523bc7717b2782776b6728bcd2b862730"
-  integrity sha512-N9+RMYrzwBvQER5aGc6kDjUNJi2m2A5LNUNC51v9oSvpQ2igooHQa+SHAdTpuh/OZ/oL3gvQ5dqz3ugS50kXmQ==
-  dependencies:
-    "@ethereumjs/tx" "^4.2.0"
-    "@metamask/eth-sig-util" "^7.0.3"
-    "@metamask/snaps-controllers" "^9.10.0"
-    "@metamask/snaps-sdk" "^6.7.0"
-    "@metamask/snaps-utils" "^8.3.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.2.1"
-    "@types/uuid" "^9.0.8"
-    uuid "^9.0.1"
 
 "@metamask/eth-snap-keyring@^5.0.1":
   version "5.0.1"
