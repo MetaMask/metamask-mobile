@@ -823,7 +823,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     screen,
     isSdkUrlUnknown,
-    isMultichainVersion1Enabled,
     renderSingleConnectScreen,
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,
