@@ -19,7 +19,6 @@ import {
   getDecimalChainId,
   isTestNet,
   isPortfolioViewEnabled,
-  isTestNet,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -172,10 +171,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       const assets = [...nativeTokens, ...nonNativeTokens];
 
-      const tokensWithBalances = assets.map((token) => {
+      const tokensWithBalances = (assets || []).map((token) => {
         const tokenFloatBalance = parseFloat(
-          token.balanceFiat.replace(/[^0-9.]/g, ''),
+          token.balanceFiat?.replace(/[^0-9.]/g, ''),
         );
+
         return {
           ...token,
           tokenFiatAmount: tokenFloatBalance,
