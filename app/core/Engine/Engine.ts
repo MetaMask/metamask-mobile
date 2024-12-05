@@ -46,6 +46,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
+import HDKeyring from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -80,14 +81,16 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
-  fetchEstimatedMultiLayerL1Fee,
   isTestNet,
-  deprecatedGetNetworkId,
   getDecimalChainId,
 } from '../../util/networks';
+import {
+  fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
+} from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
@@ -391,6 +394,7 @@ export class Engine {
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
       }),
+      state: initialState.NftController,
     });
 
     const loggingController = new LoggingController({
@@ -521,6 +525,13 @@ export class Engine {
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     additionalKeyrings.push(ledgerKeyringBuilder);
+
+    const hdKeyringBuilder = () =>
+      new HDKeyring({
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+      });
+    hdKeyringBuilder.type = HDKeyring.type;
+    additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
@@ -664,6 +675,7 @@ export class Engine {
           origin,
           target,
         ),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -945,6 +957,9 @@ export class Engine {
       getFeatureFlags: () => ({
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
+      clientCryptography: {
+        pbkdf2Sha512: pbkdf2
+      }
     });
 
     const authenticationController = new AuthenticationController.Controller({

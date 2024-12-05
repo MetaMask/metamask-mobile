@@ -33,7 +33,7 @@ import {
   MandatoryModalProps,
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
-import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/TermsOfUseModal.selectors';
+import { TermsOfUseModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 
 const ModalMandatory = ({ route }: MandatoryModalProps) => {
   const { colors } = useTheme();

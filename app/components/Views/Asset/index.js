@@ -19,6 +19,7 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import {
   swapsLivenessSelector,
+  swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
@@ -33,6 +34,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForRpc,
   isMainnetByChainId,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -472,6 +474,7 @@ class Asset extends PureComponent {
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
     const isNetworkAllowed = isSwapsAllowed(chainId);
+
     const isAssetAllowed =
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
@@ -525,7 +528,9 @@ Asset.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   swapsIsLive: swapsLivenessSelector(state),
-  swapsTokens: swapsTokensObjectSelector(state),
+  swapsTokens: isPortfolioViewEnabled()
+    ? swapsTokensMultiChainObjectSelector(state)
+    : swapsTokensObjectSelector(state),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),

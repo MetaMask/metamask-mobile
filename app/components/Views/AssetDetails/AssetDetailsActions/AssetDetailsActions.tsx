@@ -9,7 +9,7 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 
