@@ -16,6 +16,7 @@ import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 
 const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
+const MAINNET_CHAIN_ID = '0x1';
 
 describe(
   SmokeMultiChain('Network Permission System, non-permitted chain'),
@@ -68,7 +69,10 @@ describe(
           dapp: true,
           fixture: new FixtureBuilder()
             .withPermissionControllerConnectedToTestDapp()
-            .withChainPermission(['0x1', '0xaa36a7'])
+            .withChainPermission([
+              MAINNET_CHAIN_ID,
+              CustomNetworks.Sepolia.providerConfig.chainId,
+            ])
             .build(),
           restartDevice: true,
         },
