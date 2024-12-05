@@ -394,6 +394,7 @@ export class Engine {
           AccountsControllerSelectedEvmAccountChangeEvent,
         ],
       }),
+      state: initialState.NftController,
     });
 
     const loggingController = new LoggingController({
