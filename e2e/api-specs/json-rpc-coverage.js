@@ -9,7 +9,7 @@ import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter'
 import Browser from '../pages/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
-import TabBarComponent from '../pages/TabBarComponent';
+import TabBarComponent from '../pages/wallet/TabBarComponent';
 import FixtureBuilder from '../fixtures/fixture-builder';
 import {
   withFixtures,
