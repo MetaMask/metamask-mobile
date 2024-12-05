@@ -1,12 +1,7 @@
 import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
 import {
-  AUTH_ERROR,
-  AUTH_SUCCESS,
-  INTERRUPT_BIOMETRICS,
-  LOGIN,
-  LOCKED_APP,
-  LOGOUT,
+  UserActionType,
   authError,
   authSuccess,
   interruptBiometrics,
@@ -38,7 +33,7 @@ describe('authStateMachine', () => {
 
   it('should fork appLockStateMachine when logged in', async () => {
     const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(LOGIN));
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
     expect(generator.next().value).toEqual(fork(appLockStateMachine));
   });
 
@@ -48,7 +43,7 @@ describe('authStateMachine', () => {
     generator.next();
     // Fork appLockStateMachine
     generator.next();
-    expect(generator.next().value).toEqual(take(LOGOUT));
+    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
     expect(generator.next().value).toEqual(cancel());
   });
 });
@@ -60,7 +55,7 @@ describe('appLockStateMachine', () => {
 
   it('should fork biometricsStateMachine when app is locked', async () => {
     const generator = appLockStateMachine();
-    expect(generator.next().value).toEqual(take(LOCKED_APP));
+    expect(generator.next().value).toEqual(take(UserActionType.LOCKED_APP));
     // Fork biometrics listener.
     expect(generator.next().value).toEqual(
       fork(biometricsStateMachine, mockBioStateMachineId),
@@ -90,7 +85,11 @@ describe('biometricsStateMachine', () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     expect(generator.next().value).toEqual(
-      take([AUTH_SUCCESS, AUTH_ERROR, INTERRUPT_BIOMETRICS]),
+      take([
+        UserActionType.AUTH_SUCCESS,
+        UserActionType.AUTH_ERROR,
+        UserActionType.INTERRUPT_BIOMETRICS,
+      ]),
     );
     // Dispatch interrupt biometrics
     const nextFork = generator.next(interruptBiometrics() as Action).value;
