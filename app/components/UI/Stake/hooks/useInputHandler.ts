@@ -70,15 +70,14 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   );
 
   const handleKeypadChange = useCallback(
-    ({ value }) => {
+    ({ value, pressedKey }) => {
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;
 
-      if (totalDigits > MAX_DIGITS) {
-        return;
+      if (pressedKey === 'BACK' || totalDigits <= MAX_DIGITS) {
+        isEth ? handleEthInput(value) : handleFiatInput(value);
       }
-      isEth ? handleEthInput(value) : handleFiatInput(value);
     },
     [handleEthInput, handleFiatInput, isEth],
   );
