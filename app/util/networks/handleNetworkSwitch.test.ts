@@ -1,7 +1,7 @@
 import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
-import handleNetworkSwitch from './handleNetworkSwitch';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);

@@ -46,4 +46,4 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
   }
 };
 
-export default handleNetworkSwitch;
+export { handleNetworkSwitch };
