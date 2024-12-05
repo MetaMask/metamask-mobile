@@ -12,10 +12,10 @@ import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
-import AccountListView from '../../../pages/AccountListView';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
-import AddAccountModal from '../../../pages/modals/AddAccountModal';
-import AccountActionsModal from '../../../pages/modals/AccountActionsModal';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
+import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockNotificationServices } from '../utils/mocks';
 import { SmokeNotifications } from '../../../tags';
 
@@ -64,22 +64,22 @@ describe(SmokeNotifications('Account syncing'), () => {
 
     await WalletView.tapIdenticon();
 
-    await Assertions.checkIfVisible(AccountListView.accountList);
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
     for (const accountName of decryptedAccountNames) {
       await Assertions.checkIfVisible(
-        await AccountListView.getAccountElementByAccountName(accountName),
+        AccountListBottomSheet.getAccountElementByAccountName(accountName),
       );
     }
 
-    await AccountListView.tapAddAccountButton();
-    await AddAccountModal.tapCreateAccount();
-    await AccountListView.swipeToDismissAccountsModal();
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapCreateAccount();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
     await TestHelpers.delay(2000);
     await WalletView.tapCurrentMainWalletAccountActions();
 
-    await AccountListView.tapEditAccountActionsAtIndex(2);
-    await AccountActionsModal.renameActiveAccount(NEW_ACCOUNT_NAME);
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
+    await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
     await Assertions.checkIfElementToHaveText(
       WalletView.accountName,
@@ -99,10 +99,10 @@ describe(SmokeNotifications('Account syncing'), () => {
     );
 
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
     await Assertions.checkIfVisible(
-      await AccountListView.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+      AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
     );
   });
 });

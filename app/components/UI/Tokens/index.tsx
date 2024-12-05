@@ -186,8 +186,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled
-            ? Object.keys(networkConfigurationsByChainId) as Hex[]
-            : [chainId]
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [chainId],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),

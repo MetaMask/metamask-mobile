@@ -8,7 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectProviderType } from '../../../../../selectors/networkController';
 import { fontStyles } from '../../../../../styles/common';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -400,7 +400,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkType: selectProviderType(state),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
 });

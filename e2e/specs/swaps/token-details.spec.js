@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import TokenOverview from '../../pages/TokenOverview';
+import TokenOverview from '../../pages/wallet/TokenOverview';
 import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,

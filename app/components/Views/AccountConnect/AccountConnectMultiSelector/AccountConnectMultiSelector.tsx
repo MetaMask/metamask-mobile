@@ -25,7 +25,7 @@ import Engine from '../../../../core/Engine';
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
@@ -36,6 +36,7 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 const AccountConnectMultiSelector = ({
   accounts,
@@ -266,6 +267,7 @@ const AccountConnectMultiSelector = ({
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('accounts.disconnect')}
+                  testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
                   onPress={toggleRevokeAllAccountPermissionsModal}
                   isDanger
                   size={ButtonSize.Lg}
@@ -353,7 +355,7 @@ const AccountConnectMultiSelector = ({
               onPress={() =>
                 setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
               }
-              testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
             />
           </View>
           <View style={styles.body}>{renderCtaButtons()}</View>

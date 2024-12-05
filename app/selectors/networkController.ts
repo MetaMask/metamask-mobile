@@ -10,6 +10,7 @@ import {
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
+import { selectTokenNetworkFilter } from './preferencesController';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -155,4 +156,20 @@ export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
+);
+
+export const selectIsEIP1559Network = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState?.networksMetadata?.[
+      networkControllerState.selectedNetworkClientId
+    ].EIPS[1559] === true,
+);
+
+export const selectIsAllNetworks = createSelector(
+  selectNetworkConfigurations,
+  selectTokenNetworkFilter,
+  (networkConfigurations, tokenNetworkFilter) =>
+    Object.keys(tokenNetworkFilter).length ===
+    Object.keys(networkConfigurations).length,
 );

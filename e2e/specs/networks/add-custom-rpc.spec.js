@@ -1,9 +1,9 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
-import ToastModal from '../../pages/modals/ToastModal';
+import ToastModal from '../../pages/wallet/ToastModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { loginToApp } from '../../viewHelper';
@@ -20,7 +20,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Custom RPC Tests'), () => {
+describe(SmokeCore('Custom RPC Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

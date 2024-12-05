@@ -3,10 +3,10 @@ import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -56,7 +56,7 @@ describe(SmokeSwaps('Multiple Swaps from Actions'), () => {
       await TabBarComponent.tapWallet();
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
-      await WalletActionsModal.tapSwapButton();
+      await WalletActionsBottomSheet.tapSwapButton();
 
       if (!swapOnboarded) {
         await Onboarding.tapStartSwapping();
