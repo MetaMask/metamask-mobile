@@ -79,7 +79,6 @@ export const useGetFormattedTokensPerChain = (
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   //If the current network is a testnet, UI should display 0 unless conversions are enabled
-
   const validAccounts =
     accounts.length > 0 && accounts.every((item) => item !== undefined);
   if (!validAccounts || (isTestNet(currentChainId) && !showFiatOnTestnets)) {
@@ -96,8 +95,56 @@ export const useGetFormattedTokensPerChain = (
       tokensWithBalances: TokensWithBalances[];
     }[];
   } = {};
-  accounts.forEach((account) => {
-    const formattedPerNetwork = networksToFormat.map((singleChain) => {
+  function getTokenFiatBalances({
+    tokens,
+    accountAddress,
+    chainId,
+    tokenExchangeRates,
+    conversionRate,
+    decimalsToShow,
+  }: {
+    tokens: Token[];
+    accountAddress: string;
+    chainId: string;
+    tokenExchangeRates: {
+      [tokenAddress: string]: MarketDataDetails;
+    };
+    conversionRate: number;
+    decimalsToShow: number | undefined;
+  }) {
+    const formattedTokens = [];
+    for (const token of tokens) {
+      const hexBalance =
+        currentTokenBalances[accountAddress]?.[chainId]?.[token.address] ??
+        '0x0';
+
+      const decimalBalance = renderFromTokenMinimalUnit(
+        hexBalance,
+        token.decimals,
+      );
+      const exchangeRate = tokenExchangeRates?.[token.address]?.price;
+
+      const tokenBalanceFiat = balanceToFiatNumber(
+        decimalBalance,
+        conversionRate,
+        exchangeRate,
+        decimalsToShow,
+      );
+
+      formattedTokens.push({
+        address: token.address,
+        symbol: token.symbol,
+        decimals: token.decimals,
+        balance: decimalBalance,
+        tokenBalanceFiat,
+      });
+    }
+    return formattedTokens;
+  }
+
+  for (const account of accounts) {
+    const formattedPerNetwork = [];
+    for (const singleChain of networksToFormat) {
       const tokens: Token[] =
         importedTokens?.[singleChain]?.[account?.address] ?? [];
       const matchedChainSymbol = allNetworks[singleChain].nativeCurrency;
@@ -105,45 +152,21 @@ export const useGetFormattedTokensPerChain = (
         currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
       const tokenExchangeRates = marketData?.[toHexadecimal(singleChain)];
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      const tokensWithBalances = tokens.reduce(
-        (acc: TokensWithBalances[], token) => {
-          const hexBalance =
-            currentTokenBalances[account.address]?.[singleChain]?.[
-              token.address
-            ] ?? '0x0';
-
-          const decimalBalance = renderFromTokenMinimalUnit(
-            hexBalance,
-            token.decimals,
-          );
-          const exchangeRate = tokenExchangeRates?.[token.address]?.price;
-
-          const tokenBalanceFiat = balanceToFiatNumber(
-            decimalBalance,
-            conversionRate,
-            exchangeRate,
-            decimalsToShow,
-          );
-
-          acc.push({
-            address: token.address,
-            symbol: token.symbol,
-            decimals: token.decimals,
-            balance: decimalBalance,
-            tokenBalanceFiat,
-          });
-
-          return acc;
-        },
-        [],
-      );
-      return {
+      const tokensWithBalances = getTokenFiatBalances({
+        tokens,
+        accountAddress: account.address,
+        chainId: singleChain,
+        tokenExchangeRates,
+        conversionRate,
+        decimalsToShow,
+      });
+      formattedPerNetwork.push({
         chainId: singleChain,
         tokensWithBalances,
-      };
-    });
+      });
+    }
     result[account.address] = formattedPerNetwork;
-  });
+  }
 
   return result;
 };
