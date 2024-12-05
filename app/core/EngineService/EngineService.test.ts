@@ -2,13 +2,31 @@ import { EngineService } from './EngineService';
 import ReduxService, { type ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { type KeyringControllerState } from '@metamask/keyring-controller';
+import NavigationService from '../NavigationService';
+import Logger from '../../util/Logger';
+import Routes from '../../constants/navigation/Routes';
+
+// Mock NavigationService
+jest.mock('../NavigationService', () => ({
+  navigation: {
+    reset: jest.fn(),
+  },
+}));
+
+// Mock Logger
+jest.mock('../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 jest.mock('../BackupVault', () => ({
   getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
 }));
+
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
 // Unmock global Engine
 jest.unmock('../Engine');
+
 jest.mock('../Engine', () => {
   // Do not need to mock entire Engine. Only need subset of data for testing purposes.
   // TODO: Replace "any" with type
@@ -98,10 +116,27 @@ describe('EngineService', () => {
     engineService.start();
     expect(Engine.context).toBeDefined();
   });
+
   it('should have recovered vault on redux store ', async () => {
     engineService.start();
     const { success } = await engineService.initializeVaultFromBackup();
     expect(success).toBeTruthy();
     expect(Engine.context.KeyringController.state.vault).toBeDefined();
+  });
+
+  it('should navigate to vault recovery if Engine fails to initialize', () => {
+    jest.spyOn(Engine, 'init').mockImplementation(() => {
+      throw new Error('Failed to initialize Engine');
+    });
+    engineService.start();
+    // Logs error to Sentry
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('Failed to initialize Engine'),
+      'Failed to initialize Engine! Falling back to vault recovery.',
+    );
+    // Navigates to vault recovery
+    expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+    });
   });
 });

@@ -10,6 +10,8 @@ import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -50,7 +52,18 @@ export class EngineService {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
-    Engine.init(state);
+    try {
+      Engine.init(state);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to initialize Engine! Falling back to vault recovery.',
+      );
+      // Navigate to vault recovery
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    }
     this.updateControllers(Engine);
     endTrace({ name: TraceName.EngineInitialization });
   };
