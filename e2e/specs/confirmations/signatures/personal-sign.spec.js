@@ -1,6 +1,6 @@
 'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../pages/TabBarComponent';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';

@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.35.1",
+  "version": "7.36.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -84,7 +84,8 @@
     "storybook-watch": "sb-rn-watcher",
     "start:flipper": "npx flipper-server",
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
-    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
+    "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false"
   },
   "husky": {
     "hooks": {
@@ -150,6 +151,7 @@
     "@metamask/composable-controller": "^3.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
+    "@metamask/eth-hd-keyring": "^9.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
     "@metamask/eth-ledger-bridge-keyring": "^6.0.0",
@@ -174,7 +176,7 @@
     "@metamask/post-message-stream": "^8.0.0",
     "@metamask/ppom-validator": "0.35.1",
     "@metamask/preferences-controller": "^14.0.0",
-    "@metamask/profile-sync-controller": "^0.9.7",
+    "@metamask/profile-sync-controller": "^1.0.0",
     "@metamask/react-native-actionsheet": "2.4.2",
     "@metamask/react-native-button": "^3.0.0",
     "@metamask/react-native-payments": "^2.0.0",
@@ -186,14 +188,14 @@
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
     "@metamask/selected-network-controller": "^18.0.2",
     "@metamask/signature-controller": "^22.0.0",
-    "@metamask/slip44": "3.1.0",
+    "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^15.0.0",
-    "@metamask/snaps-controllers": "^9.13.0",
+    "@metamask/snaps-controllers": "^9.15.0",
     "@metamask/snaps-execution-environments": "^6.10.0",
-    "@metamask/snaps-rpc-methods": "^11.5.1",
-    "@metamask/snaps-sdk": "^6.11.0",
-    "@metamask/snaps-utils": "^8.6.0",
-    "@metamask/stake-sdk": "^0.2.13",
+    "@metamask/snaps-rpc-methods": "^11.7.0",
+    "@metamask/snaps-sdk": "^6.13.0",
+    "@metamask/snaps-utils": "^8.6.1",
+    "@metamask/stake-sdk": "^0.3.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^11.0.0",
     "@metamask/transaction-controller": "^39.1.0",
@@ -441,6 +443,7 @@
     "depcheck": "^1.4.7",
     "detox": "^20.27.5",
     "dotenv": "^16.0.3",
+    "dpdm": "^3.14.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",

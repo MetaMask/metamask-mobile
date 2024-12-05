@@ -3,9 +3,9 @@ import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
-import TokenOverview from '../../pages/TokenOverview';
+import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
