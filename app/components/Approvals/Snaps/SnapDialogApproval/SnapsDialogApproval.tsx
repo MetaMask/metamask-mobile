@@ -114,36 +114,6 @@ const SnapDialogApproval = () => {
   // snapId = npm:@metamask/dialog-example-snap
   const snapId = approvalRequest?.origin;
 
-  // requestData = {
-  //   "expectsResult": false,
-  //   "id": "pbjOGZG-883AvwnwxB-mk",
-  //   "origin": "npm:@metamask/dialog-example-snap",
-  //   "requestData": {"id": "_ZoCyKMys8j6iK9740CJn", "placeholder": undefined},
-  //   "requestState": null,
-  //   "time": 1732873517298,
-  //   "type": "snap_dialog:alert"
-  // }
-
-  //  approvalRequest {
-  //   "expectsResult": false,
-  //   "id": "8BToRoVRwmqq_Aq7hUexx",
-  //   "origin": "npm:@metamask/dialog-example-snap",
-  //   "requestData": {"id": "N0SPlni3gnHS878mC5ozF", "placeholder": undefined},
-  //   "requestState": null,
-  //   "time": 1732896611884,
-  //   "type": "snap_dialog:confirmation"
-  // }
-
-  //  approvalRequest {
-  //   "expectsResult": false,
-  //   "id": "5B4zPSmELsWAEyZ3ZO0ks",
-  //   "origin": "npm:@metamask/dialog-example-snap",
-  //   "requestData": {"id": "Tg79EdkJkZV0LQynItocD", "placeholder": "This is shown in the input."},
-  //   "requestState": null,
-  //   "time": 1732896778870,
-  //   "type": "snap_dialog:prompt"
-  // }
-
   //  approvalRequest {
   //   "expectsResult": false,
   //   "id": "5B4zPSmELsWAEyZ3ZO0ks",

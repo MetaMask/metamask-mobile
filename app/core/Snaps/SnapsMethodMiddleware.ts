@@ -86,6 +86,11 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'SnapController:get',
     ),
+    updateInterfaceState: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:updateInterfaceState',
+      origin,
+    ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);
 

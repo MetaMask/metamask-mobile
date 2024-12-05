@@ -3,10 +3,10 @@ import { useSelector } from 'react-redux';
 import { Box } from '../../../../components/UI/Box';
 import { isEqual } from 'lodash';
 import { getMemoizedInterface } from '../../../../selectors/snaps/interfaceController';
-
 import { SnapInterfaceContextProvider } from './SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../../UI/TemplateRenderer';
+import { Dimensions, StyleSheet } from 'react-native';
 
 interface SnapUIRendererProps {
   snapId: string;
@@ -47,9 +47,8 @@ const SnapUIRendererComponent = ({
   }
 
   const { state: initialState, context } = interfaceState;
-
   return (
-    <Box>
+    <Box style={styles.root}>
       <SnapInterfaceContextProvider
         snapId={snapId}
         interfaceId={interfaceId}
@@ -67,3 +66,10 @@ export const SnapUIRenderer = memo(
   SnapUIRendererComponent,
   (prevProps, nextProps) => isEqual(prevProps, nextProps),
 );
+
+const styles = StyleSheet.create({
+  root: {
+    flexGrow: 1,
+    height: Dimensions.get('window').height * 0.5,
+  },
+});

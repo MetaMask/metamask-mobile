@@ -20,7 +20,7 @@ export const FormTextField = ({
   maxLength,
   name,
   onBlur,
-  onChange,
+  onChangeText,
   onFocus,
   placeholder,
   readOnly,
@@ -63,7 +63,7 @@ export const FormTextField = ({
           defaultValue,
           maxLength,
           onBlur,
-          onChange,
+          onChangeText,
           onFocus,
           placeholder,
           value,
@@ -100,6 +100,7 @@ export const FormTextField = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    paddingVertical: 16,
   },
   disabled: {
     opacity: 0.5,

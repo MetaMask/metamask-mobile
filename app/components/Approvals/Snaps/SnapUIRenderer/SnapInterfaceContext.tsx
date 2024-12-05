@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import { useDispatch } from 'react-redux';
 import { mergeValue } from './utils';
+import { SetCurrentInputFocus } from './SnapInterface.types';
 
 export type HandleEvent = (args: {
   event: UserInputEventType;
@@ -30,6 +31,8 @@ export interface SnapInterfaceContextType {
   handleEvent: HandleEvent;
   getValue: GetValue;
   handleInputChange: HandleInputChange;
+  setCurrentFocusedInput: SetCurrentInputFocus;
+  focusedInput: React.MutableRefObject<string | null>;
 }
 
 export const SnapInterfaceContext =
@@ -50,6 +53,21 @@ const THROTTLED_EVENTS = [
   UserInputEventType.FormSubmitEvent,
 ];
 
+type StateType = Record<
+  string,
+  | string
+  | boolean
+  | { name: string; size: number; contentType: string; contents: string }
+  | Record<
+      string,
+      | string
+      | boolean
+      | { name: string; size: number; contentType: string; contents: string }
+      | null
+    >
+  | null
+>;
+
 /**
  * The Snap interface context provider that handles all the interface state operations.
  *
@@ -68,9 +86,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   // We keep an internal copy of the state to speed-up the state update in the UI.
   // It's kept in a ref to avoid useless re-rendering of the entire tree of components.
-  const internalState = useRef<
-    Record<string, string | Record<string, unknown> | unknown>
-  >(initialState ?? {});
+  const internalState = useRef<StateType>(initialState as StateType);
 
   // Since the internal state is kept in a reference, it won't update when the interface is updated.
   // We have to manually update it
@@ -107,7 +123,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
       },
     });
 
-  // The submittion of user input events is debounced or throttled to avoid crashing the snap if
+  // The submission of user input events is debounced or throttled to avoid crashing the snap if
   // there's too much events sent at the same time
   const snapRequestDebounced = debounce(rawSnapRequestFunction, 200);
   const snapRequestThrottled = throttle(rawSnapRequestFunction, 200);
@@ -115,7 +131,10 @@ export const SnapInterfaceContextProvider: FunctionComponent<
   // The update of the state is debounced to avoid crashes due to too much
   // updates in a short amount of time.
   const updateStateDebounced = debounce(
-    (state) => dispatch(updateInterfaceState(interfaceId, state)),
+    // (state: StateType) => dispatch(updateInterfaceState(interfaceId, state)
+    () => {
+      console.log('updateStateDebounced', internalState.current);
+    },
     200,
   );
 
@@ -167,12 +186,17 @@ export const SnapInterfaceContextProvider: FunctionComponent<
    * @param form - The name of the form containing the input.
    * Optional if the input is not contained in a form.
    */
-  const handleInputChange: HandleInputChange = (name, value, form) => {
-    const state = mergeValue(internalState.current, name, value, form);
+  const handleInputChange: HandleInputChange = (name, value, form?) => {
+    const state = mergeValue(
+      internalState.current as StateType,
+      name,
+      value,
+      form,
+    );
 
     internalState.current = state;
     updateStateDebounced(state);
-    handleInputChangeDebounced(name, value ?? '');
+    // handleInputChangeDebounced(name, value ?? '');
   };
 
   /**
@@ -195,9 +219,20 @@ export const SnapInterfaceContextProvider: FunctionComponent<
     return undefined;
   };
 
+  const setCurrentFocusedInput: SetCurrentInputFocus = (name) =>
+    (focusedInput.current = name);
+
+  const focusedInput = useRef<string | null>(null);
+
   return (
     <SnapInterfaceContext.Provider
-      value={{ handleEvent, getValue, handleInputChange }}
+      value={{
+        handleEvent,
+        getValue,
+        handleInputChange,
+        setCurrentFocusedInput,
+        focusedInput,
+      }}
     >
       {children}
     </SnapInterfaceContext.Provider>

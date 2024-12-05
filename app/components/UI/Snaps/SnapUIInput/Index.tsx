@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Approvals/Snaps/SnapUIRenderer/SnapInterfaceContext';
 import { FormTextField } from '../../FormTextField';
 
@@ -33,9 +33,9 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
     }
   }, [inputRef]);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value);
-    handleInputChange(name, event.target.value ?? null, form);
+  const handleChange = (text: string) => {
+    setValue(text);
+    handleInputChange(name, text ?? null, form);
   };
 
   const handleFocus = () => setCurrentFocusedInput(name);
@@ -49,7 +49,7 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
       className="snap-ui-renderer__input"
       id={name}
       value={value}
-      onChange={handleChange}
+      onChangeText={handleChange}
       {...props}
     />
   );
