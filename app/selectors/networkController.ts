@@ -159,6 +159,14 @@ export const selectNetworkClientId = createSelector(
     networkControllerState.selectedNetworkClientId,
 );
 
+export const selectIsEIP1559Network = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState?.networksMetadata?.[
+      networkControllerState.selectedNetworkClientId
+    ].EIPS[1559] === true,
+);
+
 export const selectIsAllNetworks = createSelector(
   selectNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),

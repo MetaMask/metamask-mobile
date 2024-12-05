@@ -14,7 +14,7 @@ import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../util/networks';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 

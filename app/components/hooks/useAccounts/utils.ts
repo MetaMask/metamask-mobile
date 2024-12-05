@@ -41,14 +41,9 @@ export const getAccountBalances = ({
   // IF portfolio view is active, display aggregated fiat balance cross chains
   let balanceFiat;
   if (isPortfolioViewEnabled()) {
-    const totalFiatBalance =
-      totalFiatBalancesCrossChain[internalAccount?.address as string]
-        ?.totalFiatBalance;
-
-    balanceFiat =
-      totalFiatBalance !== undefined
-        ? `${renderFiat(totalFiatBalance, currentCurrency)}`
-        : '';
+    const { totalFiatBalance } =
+      totalFiatBalancesCrossChain[internalAccount.address];
+    balanceFiat = `${renderFiat(totalFiatBalance, currentCurrency)}`;
   } else {
     balanceFiat =
       weiToFiat(hexToBN(totalBalanceWeiHex), conversionRate, currentCurrency) ||

@@ -15,14 +15,15 @@ import { InternalAccount } from '@metamask/keyring-api';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 
+interface TokenFiatBalancesCrossChains {
+  chainId: string;
+  nativeFiatValue: number;
+  tokenFiatBalances: number[];
+  tokensWithBalances: TokensWithBalances[];
+}
 export interface TotalFiatBalancesCrossChains {
   [address: string]: {
-    tokenFiatBalancesCrossChains: {
-      chainId: string;
-      nativeFiatValue: number;
-      tokenFiatBalances: number[];
-      tokensWithBalances: TokensWithBalances[];
-    }[];
+    tokenFiatBalancesCrossChains: TokenFiatBalancesCrossChains[];
     totalFiatBalance: number;
     totalTokenFiat: number;
   };
@@ -105,27 +106,40 @@ export const useGetTotalFiatBalanceCrossChains = (
     };
   });
 
+  function getERC20TotalBalance(arr: number[]) {
+    let sum = 0;
+    for (const num of arr) {
+      sum += num;
+    }
+    return sum;
+  }
+
+  function getTotalTokenFiat(array: TokenFiatBalancesCrossChains[]) {
+    let totalTokenFiat = 0;
+    let totalFiatBalance = 0;
+
+    for (const tokenFiatBalances of array) {
+      const tokenTmpTotal = getERC20TotalBalance(
+        tokenFiatBalances.tokenFiatBalances,
+      );
+      totalTokenFiat += tokenTmpTotal;
+      totalFiatBalance += tokenTmpTotal + tokenFiatBalances.nativeFiatValue;
+    }
+
+    return { totalTokenFiat, totalFiatBalance };
+  }
+
   const aggregatedBalPerAccount: TotalFiatBalancesCrossChains = {};
-
-  tokenFiatBalancesCrossChains.forEach((accountElement) => {
+  for (const accountElement of tokenFiatBalancesCrossChains) {
     for (const [key, value] of Object.entries(accountElement)) {
-      let totalTokenFiat = 0;
-      const totalFiatBalance = value.reduce((accumulator, currentValue) => {
-        const tokenTmpTotal = currentValue.tokenFiatBalances.reduce(
-          (acc, currValue) => acc + currValue,
-          0,
-        );
-        totalTokenFiat += tokenTmpTotal;
-        return accumulator + tokenTmpTotal + currentValue.nativeFiatValue;
-      }, 0);
-
+      const { totalFiatBalance, totalTokenFiat } = getTotalTokenFiat(value);
       aggregatedBalPerAccount[key] = {
         totalFiatBalance,
         totalTokenFiat,
         tokenFiatBalancesCrossChains: value,
       };
     }
-  });
+  }
 
   return aggregatedBalPerAccount;
 };
