@@ -5,51 +5,13 @@ import { TRIGGER_TYPES, Notification } from '../../util/notifications';
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
 
 type NotificationServicesState =
   NotificationServicesController.NotificationServicesControllerState;
-type AuthenticationState =
-  AuthenticationController.AuthenticationControllerState;
-type UserStorageState = UserStorageController.UserStorageControllerState;
-
-const selectAuthenticationControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.AuthenticationController ??
-  AuthenticationController.defaultState;
-
-const selectUserStorageControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.UserStorageController ??
-  UserStorageController.defaultState;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesController ??
   NotificationServicesController.defaultState;
-
-export const selectIsProfileSyncingEnabled = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState?.isProfileSyncingEnabled,
-);
-export const selectIsProfileSyncingUpdateLoading = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingUpdateLoading,
-);
-
-export const selectIsSignedIn = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    authenticationControllerState.isSignedIn,
-);
-
-export const selectSessionData = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    authenticationControllerState.sessionData,
-);
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,

@@ -5,8 +5,8 @@ import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
@@ -25,7 +25,7 @@ describe('Security Alert API - Send flow', () => {
   const navigateToSendConfirmation = async () => {
     await loginToApp();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     await SendView.inputAddress(BENIGN_ADDRESS_MOCK);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0');

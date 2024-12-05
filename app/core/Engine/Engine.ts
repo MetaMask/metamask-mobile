@@ -694,6 +694,7 @@ export class Engine {
           origin,
           target,
         ),
+      getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -975,6 +976,9 @@ export class Engine {
       getFeatureFlags: () => ({
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
+      clientCryptography: {
+        pbkdf2Sha512: pbkdf2
+      }
     });
 
     const authenticationController = new AuthenticationController.Controller({

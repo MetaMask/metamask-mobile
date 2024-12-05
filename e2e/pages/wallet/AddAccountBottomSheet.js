@@ -1,16 +1,16 @@
-import { AddAccountModalSelectorsIDs } from '../../selectors/Modals/AddAccountModal.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../selectors/wallet/AddAccountBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 
-class AddAccountModal {
+class AddAccountBottomSheet {
   get importAccountButton() {
     return Matchers.getElementByID(
-      AddAccountModalSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );
   }
   get createAccountButton() {
     return Matchers.getElementByID(
-      AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
     );
   }
 
@@ -22,4 +22,4 @@ class AddAccountModal {
   }
 }
 
-export default new AddAccountModal();
+export default new AddAccountBottomSheet();

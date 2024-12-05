@@ -14,7 +14,7 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
