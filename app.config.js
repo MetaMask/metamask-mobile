@@ -1,22 +1,22 @@
 module.exports = {
-    name: "MetaMask",
-    displayName: "MetaMask",
+    name: 'MetaMask',
+    displayName: 'MetaMask',
     plugins: [
         [
-            "expo-build-properties",
+            'expo-build-properties',
             {
-                "android": {
-                    "extraMavenRepos": [
-                        "../../node_modules/@notifee/react-native/android/libs"
+                android: {
+                    extraMavenRepos: [
+                        '../../node_modules/@notifee/react-native/android/libs'
                     ]
                 },
-                "ios": {}
+                ios: {}
             }
         ],
         [
-            "@config-plugins/detox",
+            '@config-plugins/detox',
             {
-                "subdomains": "*"
+                subdomains: '*'
             }
         ]
     ]
