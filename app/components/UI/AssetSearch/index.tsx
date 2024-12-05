@@ -139,6 +139,7 @@ const AssetSearch = memo(({ onSearch, onFocus, onBlur }: Props) => {
   return (
     <View
       style={[isFocus ? styles.searchSectionFocused : styles.searchSection]}
+      testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
     >
       <View style={styles.icon}>
         <Icon name={IconName.Search} size={IconSize.Sm} />

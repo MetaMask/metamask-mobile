@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { toChecksumAddress } from 'ethereumjs-util';
 import { useTheme } from '../../../../util/theme';
 import { selectTokenList } from '../../../../selectors/tokenListController';
+import { ImportTokenViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,7 +112,7 @@ const AssetList = ({
   );
 
   return (
-    <View>
+    <View testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
       {
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
