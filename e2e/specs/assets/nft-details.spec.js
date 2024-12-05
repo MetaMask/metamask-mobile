@@ -13,8 +13,8 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
-import LoginView from '../../pages/LoginView';
 import { getFixturesServerPort } from '../../fixtures/utils';
+import NftDetectionModal from '../../pages/modals/NftDetectionModal';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -73,30 +73,33 @@ describe(SmokeAssets('NFT Details page'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        fixture: new FixtureBuilder()
+          .withPreferencesController({
+            useNftDetection: false,
+          })
+          .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        smartContract: NFT_CONTRACT,
       },
-      async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry.getContractAddress(
-          NFT_CONTRACT,
-        );
+      async () => {
+        const nftsAddress = '0x6CB26dF0c825fEcE867a84658f87b0eCbceA72f6';
+        const testNftOnMainnet = 'LifesAJokeNFT';
 
         await loginToApp();
-
+        await Assertions.checkIfVisible(NftDetectionModal.container);
+        await NftDetectionModal.tapCancelButton();
         await WalletView.tapNftTab();
         await WalletView.scrollDownOnNFTsTab();
         // Tap on the add collectibles button
         await WalletView.tapImportNFTButton();
         await Assertions.checkIfVisible(ImportNFTView.container);
         await ImportNFTView.typeInNFTAddress(nftsAddress);
-        await ImportNFTView.typeInNFTIdentifier('1');
+        await ImportNFTView.typeInNFTIdentifier('2875');
 
         await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
         await Assertions.checkIfVisible(
-          WalletView.nftInWallet(TEST_DAPP_CONTRACT),
+          WalletView.nftInWallet(testNftOnMainnet),
         );
 
         await device.terminateApp();
@@ -109,9 +112,7 @@ describe(SmokeAssets('NFT Details page'), () => {
         await Assertions.checkIfVisible(WalletView.container);
         await WalletView.tapNftTab();
         // check NFT is there
-        await Assertions.checkIfVisible(
-          WalletView.nftInWallet(TEST_DAPP_CONTRACT),
-        );
+        await Assertions.checkIfTextIsDisplayed(testNftOnMainnet);
       },
     );
   });
