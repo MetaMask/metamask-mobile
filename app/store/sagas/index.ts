@@ -128,14 +128,14 @@ export function* basicFunctionalityToggle() {
 /**
  * Handles initializing app services on start up
  */
-function* startAppServices() {
+export function* startAppServices() {
   // Wait for persisted data to be loaded and navigation to be ready
   yield all([
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
-  EngineService.start();
-  AppStateEventProcessor.start();
+  // Start all in parallel and asynchronously
+  yield all([call(EngineService.start), call(AppStateEventProcessor.start)]);
   // TODO: Track a property in redux to gate keep the app until services are initialized
 }
 

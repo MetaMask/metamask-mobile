@@ -1,5 +1,6 @@
 import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
 import {
   UserActionType,
   authError,
@@ -12,10 +13,16 @@ import {
   authStateMachine,
   appLockStateMachine,
   lockKeyringAndApp,
+  startAppServices,
 } from './';
+import { NavigationActionType } from '../../actions/navigation';
+import EngineService from '../../core/EngineService';
+import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 const mockBioStateMachineId = '123';
+
 const mockNavigate = jest.fn();
+
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
     // TODO: Replace "any" with type
@@ -23,6 +30,17 @@ jest.mock('../../core/NavigationService', () => ({
     navigate: (screen: any, params?: any) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
     },
+  },
+}));
+
+// Mock the services
+jest.mock('../../core/EngineService', () => ({
+  start: jest.fn(),
+}));
+
+jest.mock('../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    start: jest.fn(),
   },
 }));
 
@@ -124,5 +142,39 @@ describe('biometricsStateMachine', () => {
     generator.next(authError(mockBioStateMachineId) as Action);
     // Move to next step
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+// TODO: Update all saga tests to use expectSaga (more intuitive and easier to read)
+describe('startAppServices', () => {
+  it('should start app services', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      // Verify services are started
+      .call(EngineService.start)
+      .call(AppStateEventProcessor.start)
+      .run();
+  });
+
+  it('should not start app services if navigation is not ready', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      // Verify services are not started
+      .not.call(EngineService.start)
+      .not.call(AppStateEventProcessor.start)
+      .run();
+  });
+
+  it('should not start app services if persisted data is not loaded', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      // Verify services are not started
+      .not.call(EngineService.start)
+      .not.call(AppStateEventProcessor.start)
+      .run();
   });
 });
