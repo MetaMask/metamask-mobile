@@ -19,7 +19,6 @@ import {
   getDecimalChainId,
   isTestNet,
   isPortfolioViewEnabled,
-  isTestNet,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
