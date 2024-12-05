@@ -7,10 +7,10 @@ import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView'
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
-import EnableAutomaticSecurityChecksView from '../../pages/modals/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import Browser from '../../pages/Browser/BrowserView';
-import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
+import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
@@ -66,7 +66,9 @@ describe(SmokeCore('Start Exploring'), () => {
 
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+    await Assertions.checkIfVisible(
+      EnableAutomaticSecurityChecksView.container,
+    );
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 

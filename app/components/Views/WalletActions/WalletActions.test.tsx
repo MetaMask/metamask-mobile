@@ -6,7 +6,7 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
@@ -87,19 +87,19 @@ describe('WalletActions', () => {
     });
 
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
   });
 
@@ -142,12 +142,14 @@ describe('WalletActions', () => {
       state: mockState,
     });
 
-    expect(queryByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON)).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeNull();
   });
 
@@ -156,7 +158,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
+    );
     expect(mockNavigate).toHaveBeenCalled();
   });
 
@@ -165,7 +169,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -174,7 +180,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -183,7 +191,9 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
+    fireEvent.press(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
+    );
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -217,12 +227,20 @@ describe('WalletActions', () => {
       state: mockStateWithoutSigning,
     });
 
-    const buyButton = getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON);
-    const sellButton = getByTestId(WalletActionsModalSelectorsIDs.SELL_BUTTON);
-    const sendButton = getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON);
-    const swapButton = getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON);
+    const buyButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+    );
+    const sellButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+    );
+    const sendButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+    );
+    const swapButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+    );
     const bridgeButton = getByTestId(
-      WalletActionsModalSelectorsIDs.BRIDGE_BUTTON,
+      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
     );
 
     expect(buyButton.props.disabled).toBe(true);

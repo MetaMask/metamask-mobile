@@ -13,7 +13,7 @@ import {
 } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
 

@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeSwaps } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
-import TokenOverview from '../../pages/TokenOverview';
+import TokenOverview from '../../pages/wallet/TokenOverview';
 import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
@@ -9,7 +9,6 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
@@ -23,7 +22,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await Assertions.checkIfElementNotToHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.checkIfElementNotToHaveText(
+      TokenOverview.tokenPrice,
+      '$0',
+    );
 
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);

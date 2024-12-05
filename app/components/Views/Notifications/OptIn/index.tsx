@@ -22,10 +22,8 @@ import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
-import {
-  selectIsProfileSyncingEnabled,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 
 const OptIn = () => {
   const { trackEvent, createEventBuilder } = useMetrics();

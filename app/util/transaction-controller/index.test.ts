@@ -3,7 +3,7 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 
-const { addTransaction, estimateGas, ...proxyMethods } =
+const { addTransaction, estimateGas, estimateGasFee, ...proxyMethods } =
   TransactionControllerUtils;
 
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
@@ -17,6 +17,7 @@ jest.mock('../../core/Engine', () => ({
     TransactionController: {
       addTransaction: jest.fn(),
       estimateGas: jest.fn(),
+      estimateGasFee: jest.fn(),
 
       // Proxy methods
       handleMethodData: jest.fn(),
@@ -54,6 +55,22 @@ describe('Transaction Controller Util', () => {
       expect(
         Engine.context.TransactionController.estimateGas,
       ).toHaveBeenCalledWith(TRANSACTION_MOCK);
+    });
+  });
+
+  describe('estimateGasFee', () => {
+    it('should call estimateGasFee with correct parameters', async () => {
+      await estimateGasFee({
+        transactionParams: TRANSACTION_MOCK,
+        chainId: '0x1',
+      });
+
+      expect(
+        Engine.context.TransactionController.estimateGasFee,
+      ).toHaveBeenCalledWith({
+        transactionParams: TRANSACTION_MOCK,
+        chainId: '0x1',
+      });
     });
   });
 

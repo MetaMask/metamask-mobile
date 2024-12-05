@@ -25,7 +25,7 @@ import Engine from '../../../../core/Engine';
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
-import { AccountListViewSelectorsIDs } from '../../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import AddAccountActions from '../../AddAccountActions';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {
@@ -355,7 +355,9 @@ const AccountConnectMultiSelector = ({
               onPress={() =>
                 setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
               }
-              testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+              testID={
+                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+              }
             />
           </View>
           <View style={styles.body}>{renderCtaButtons()}</View>

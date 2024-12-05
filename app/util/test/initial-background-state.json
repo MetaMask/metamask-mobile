@@ -353,6 +353,8 @@
     "fcmToken": ""
   },
   "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   }
