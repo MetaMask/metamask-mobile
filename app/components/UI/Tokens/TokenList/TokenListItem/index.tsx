@@ -180,7 +180,7 @@ export const TokenListItem = ({
 
     asset = { ...asset, balanceFiat };
   } else {
-    mainBalance = asset.balance;
+    mainBalance = `${asset.balance} ${asset.symbol}`;
     secondaryBalance = asset.balanceFiat
       ? asset.balanceFiat
       : strings('wallet.unable_to_find_conversion_rate');
