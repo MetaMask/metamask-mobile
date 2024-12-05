@@ -1,4 +1,4 @@
-import { NftDetectionModalSelectorsIDs } from '../../selectors/Modals/NftDetectionModal.selectors';
+import { NftDetectionModalSelectorsIDs } from '../../selectors/wallet/NftDetectionModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 

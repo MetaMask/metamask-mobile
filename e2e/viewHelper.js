@@ -22,12 +22,12 @@ import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TestHelpers from './helpers';
 
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
-import TabBarComponent from './pages/TabBarComponent';
-import LoginView from './pages/LoginView';
+import TabBarComponent from './pages/wallet/TabBarComponent';
+import LoginView from './pages/wallet/LoginView';
 import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
-import ToastModal from './pages/modals/ToastModal';
+import ToastModal from './pages/wallet/ToastModal';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();

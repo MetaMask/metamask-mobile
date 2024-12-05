@@ -1,29 +1,29 @@
-import { AccountActionsModalSelectorsIDs } from '../../selectors/Modals/AccountActionsModal.selectors.js';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/AccountActionsBottomSheet.selectors.js';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import EditAccountNameSelectorIDs from '../../selectors/EditAccountName.selectors.js';
+import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountName.selectors.js';
 import TestHelpers from '../../helpers.js';
-import EditAccountNameView from '../EditAccountNameView.js';
+import EditAccountNameView from './EditAccountNameView.js';
 
-class AccountActionsModal {
+class AccountActionsBottomSheet {
   get editAccount() {
     return Matchers.getElementByID(
-      AccountActionsModalSelectorsIDs.EDIT_ACCOUNT,
+      AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
     );
   }
 
   get showPrivateKey() {
     return Matchers.getElementByID(
-      AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY,
+      AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
     );
   }
 
   async tapEditAccount() {
-    await Gestures.waitAndTap(await this.editAccount);
+    await Gestures.waitAndTap(this.editAccount);
   }
 
   async tapShowPrivateKey() {
-    await Gestures.waitAndTap(await this.showPrivateKey);
+    await Gestures.waitAndTap(this.showPrivateKey);
   }
 
   async renameActiveAccount(newName) {
@@ -37,4 +37,4 @@ class AccountActionsModal {
   }
 }
 
-export default new AccountActionsModal();
+export default new AccountActionsBottomSheet();

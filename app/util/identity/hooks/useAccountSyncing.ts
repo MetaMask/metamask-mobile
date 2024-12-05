@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getErrorMessage } from '../../../util/errorHandling';
-import { syncInternalAccountsWithUserStorage as syncInternalAccountsWithUserStorageAction } from '../../../actions/notification/helpers';
+import { syncInternalAccountsWithUserStorage as syncInternalAccountsWithUserStorageAction } from '../../../actions/identity';
 
 /**
  * Custom hook to dispatch account syncing.
