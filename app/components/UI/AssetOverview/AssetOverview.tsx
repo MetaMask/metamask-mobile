@@ -151,6 +151,17 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   };
 
+  const handleSwapNavigation = useCallback(() => {
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourcePage: 'MainView',
+        chainId: asset.chainId,
+      },
+    });
+  }, [navigation, asset.address, asset.chainId]);
+
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
       navigation.navigate(Routes.WALLET.HOME, {
@@ -206,37 +217,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         NetworkController.setActiveNetwork(networkClientId as string).then(
           () => {
             setTimeout(() => {
-              navigation.navigate('Swaps', {
-                screen: 'SwapsAmountView',
-                params: {
-                  sourceToken:
-                    asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-                  sourcePage: 'MainView',
-                  chainId: asset.chainId,
-                },
-              });
+              handleSwapNavigation();
             }, 500);
           },
         );
       } else {
-        navigation.navigate('Swaps', {
-          screen: 'SwapsAmountView',
-          params: {
-            sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-            sourcePage: 'MainView',
-            chainId: asset.chainId,
-          },
-        });
+        handleSwapNavigation();
       }
     } else {
-      navigation.navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-          chainId: asset.chainId,
-        },
-      });
+      handleSwapNavigation();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
@@ -253,8 +242,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     asset.chainId,
     selectedChainId,
     trackEvent,
-    asset.address,
     createEventBuilder,
+    handleSwapNavigation,
   ]);
 
   const onBuy = () => {
