@@ -134,8 +134,9 @@ export function* startAppServices() {
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
   ]);
-  // Start all in parallel and asynchronously
-  yield all([call(EngineService.start), call(AppStateEventProcessor.start)]);
+  // Start services
+  EngineService.start();
+  AppStateEventProcessor.start();
   // TODO: Track a property in redux to gate keep the app until services are initialized
 }
 

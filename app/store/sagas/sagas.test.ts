@@ -147,34 +147,41 @@ describe('biometricsStateMachine', () => {
 
 // TODO: Update all saga tests to use expectSaga (more intuitive and easier to read)
 describe('startAppServices', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should start app services', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      // Verify services are started
-      .call(EngineService.start)
-      .call(AppStateEventProcessor.start)
       .run();
+
+    // Verify services are started
+    expect(EngineService.start).toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).toHaveBeenCalled();
   });
 
   it('should not start app services if navigation is not ready', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
-      // Verify services are not started
-      .not.call(EngineService.start)
-      .not.call(AppStateEventProcessor.start)
       .run();
+
+    // Verify services are not started
+    expect(EngineService.start).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
   });
 
   it('should not start app services if persisted data is not loaded', async () => {
     await expectSaga(startAppServices)
       // Dispatch both required actions
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
-      // Verify services are not started
-      .not.call(EngineService.start)
-      .not.call(AppStateEventProcessor.start)
       .run();
+
+    // Verify services are not started
+    expect(EngineService.start).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
   });
 });
