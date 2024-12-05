@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import CellSelectWithMenu from './CellSelectWithMenu';
-import { CellModalSelectorsIDs } from '../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 import { SAMPLE_CELLSELECT_WITH_BUTTON_PROPS } from './CellSelectWithMenu.constants';
 
@@ -19,6 +19,6 @@ describe('CellSelectWithMenu', () => {
       <CellSelectWithMenu {...SAMPLE_CELLSELECT_WITH_BUTTON_PROPS} />,
     );
     // Adjust the testID to match the one used in CellSelectWithMenu, if different
-    expect(queryByTestId(CellModalSelectorsIDs.MULTISELECT)).not.toBe(null);
+    expect(queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).not.toBe(null);
   });
 });

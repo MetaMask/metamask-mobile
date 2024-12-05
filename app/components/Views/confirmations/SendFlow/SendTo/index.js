@@ -57,7 +57,7 @@ import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';

@@ -14,6 +14,7 @@ export const ImportTokenViewSelectorsIDs = {
   ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL: 'add-cancel-custom-asset-modal',
   NEXT_BUTTON: 'token-import-next-button',
   SEARCH_BAR: 'input-search-asset',
+  ASSET_SEARCH_CONTAINER: 'add-searched-token-screen',
 };
 
 export const ImportTokenViewSelectorsText = {

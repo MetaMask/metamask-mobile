@@ -1,4 +1,4 @@
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/ConfirmationView.selectors';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
 import Matchers from '../../utils/Matchers';
 
 class ConfirmationView {

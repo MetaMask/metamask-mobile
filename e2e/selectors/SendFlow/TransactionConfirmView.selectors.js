@@ -1,4 +1,4 @@
-import enContent from '../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const TransactionConfirmViewSelectorsIDs = {
   CONFIRM_TXN_AMOUNT: 'confirm-txn-amount',

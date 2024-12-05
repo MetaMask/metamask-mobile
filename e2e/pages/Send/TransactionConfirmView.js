@@ -3,12 +3,12 @@ import Matchers from '../../utils/Matchers';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/EditGasView.selectors.js';
+} from '../../selectors/SendFlow/EditGasView.selectors.js';
 import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
-} from '../../selectors/TransactionConfirmView.selectors.js';
-import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/ConfirmationView.selectors.js';
+} from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {

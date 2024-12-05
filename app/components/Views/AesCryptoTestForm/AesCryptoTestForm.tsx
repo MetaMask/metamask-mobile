@@ -20,7 +20,7 @@ import {
   aesCryptoFormButtons,
   aesCryptoFormScrollIdentifier,
   accountAddress,
-} from '../../../../e2e/selectors/AesCrypto.selectors';
+} from '../../../../e2e/selectors/Settings/AesCrypto.selectors';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';

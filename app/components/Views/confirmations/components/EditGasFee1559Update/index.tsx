@@ -32,7 +32,7 @@ import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors.js';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,

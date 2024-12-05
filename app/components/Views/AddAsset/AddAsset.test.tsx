@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();

@@ -5,7 +5,7 @@ import {
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
 } from '../../selectors/Browser/BrowserView.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';

@@ -29,7 +29,6 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { PerformanceRegressionSelectorIDs } from '../../../../e2e/selectors/PerformanceRegression.selectors';
 import { Dispatch } from 'redux';
 import {
   saveOnboardingEvent as SaveEvent,
@@ -257,7 +256,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         <Text
                           style={styles.metricsData}
                           testID={
-                            PerformanceRegressionSelectorIDs.APP_START_TIME_ID
+                            OnboardingCarouselSelectorIDs.APP_START_TIME_ID
                           }
                         >
                           {appStartTime}

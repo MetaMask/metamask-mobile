@@ -1,4 +1,4 @@
-import enContent from '../../locales/languages/en.json';
+import enContent from '../../../locales/languages/en.json';
 
 export const EditGasViewSelectorsIDs = {
   ESTIMATED_FEE_TEST_ID: 'estimated-fee',

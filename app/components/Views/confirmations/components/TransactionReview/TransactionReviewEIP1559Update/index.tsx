@@ -5,7 +5,7 @@ import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/EditGasView.selectors';
+import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
 
 import AppConstants from '../../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../../core/GasPolling/GasPolling';

@@ -1,4 +1,4 @@
-export const CellModalSelectorsIDs = {
+export const CellComponentSelectorsIDs = {
   SELECT: 'cellselect',
   MULTISELECT: 'cellmultiselect',
   DISPLAY: 'celldisplay',
