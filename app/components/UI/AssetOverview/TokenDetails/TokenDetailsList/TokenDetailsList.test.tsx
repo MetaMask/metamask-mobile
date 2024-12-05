@@ -9,16 +9,6 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-// Add mock for trace utility
-jest.mock('../../../../../util/trace', () => ({
-  trace: {
-    startSpan: jest.fn(() => ({
-      end: jest.fn(),
-    })),
-    endSpan: jest.fn(),
-  },
-}));
-
 const mockTokenDetails = {
   contractAddress: '0x6B17...1d0F',
   tokenDecimal: 18,
@@ -28,10 +18,6 @@ const mockTokenDetails = {
 describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   it('should render correctly', () => {

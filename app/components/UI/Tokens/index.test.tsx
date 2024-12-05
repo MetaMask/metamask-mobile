@@ -598,4 +598,101 @@ describe('Tokens', () => {
       expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
     });
   });
+
+  describe('Portfolio View', () => {
+    beforeEach(() => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    });
+
+    it('should handle network filtering correctly', () => {
+      const multiNetworkState = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              selectedAddress,
+              tokenSortConfig: { key: 'symbol', order: 'asc' },
+              tokenNetworkFilter: {
+                '0x1': true,
+                '0x89': false,
+              },
+            },
+          },
+          selectedAccountTokensChains: {
+            '0x1': [
+              {
+                address: '0x123',
+                symbol: 'ETH',
+                decimals: 18,
+                balance: '1000000000000000000',
+                balanceFiat: '$100',
+                isNative: true,
+                chainId: '0x1',
+              },
+            ],
+            '0x89': [
+              {
+                address: '0x456',
+                symbol: 'MATIC',
+                decimals: 18,
+                balance: '2000000000000000000',
+                balanceFiat: '$200',
+                isNative: true,
+                chainId: '0x89',
+              },
+            ],
+          },
+        },
+      };
+
+      const { queryByText } = renderComponent(multiNetworkState);
+      expect(queryByText('ETH')).toBeDefined();
+      expect(queryByText('MATIC')).toBeNull();
+    });
+
+    it('should filter zero balance tokens when hideZeroBalanceTokens is enabled', () => {
+      const stateWithZeroBalances = {
+        ...initialState,
+        settings: {
+          hideZeroBalanceTokens: true,
+        },
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  [selectedAddress]: [
+                    {
+                      address: '0x123',
+                      symbol: 'ZERO',
+                      decimals: 18,
+                      balance: '0',
+                      balanceFiat: '$0',
+                      isNative: false,
+                      chainId: '0x1',
+                    },
+                    {
+                      address: '0x456',
+                      symbol: 'NON_ZERO',
+                      decimals: 18,
+                      balance: '1000000000000000000',
+                      balanceFiat: '$100',
+                      isNative: false,
+                      chainId: '0x1',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      };
+
+      const { queryByText } = renderComponent(stateWithZeroBalances);
+      expect(queryByText('ZERO')).toBeNull();
+      expect(queryByText('NON_ZERO')).toBeDefined();
+    });
+  });
 });

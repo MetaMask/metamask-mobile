@@ -13,7 +13,7 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { SEND_BUTTON_ID } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const createStyles = (colors) =>
@@ -139,7 +139,7 @@ class CollectibleContractOverview extends PureComponent {
             icon="send"
             onPress={this.onSend}
             label={leftActionButtonText}
-            testID={SEND_BUTTON_ID}
+            testID={TokenOverviewSelectorsIDs.SEND_BUTTON}
           />
           <AssetActionButton
             icon="add"

@@ -13,7 +13,6 @@ import {
   getDecimalChainId,
   isMultichainVersion1Enabled,
   getNetworkImageSource,
-  handleNetworkSwitch,
 } from '../../../../util/networks';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -54,6 +53,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 
 const AccountPermissionsConnected = ({
   onSetPermissionsScreen,

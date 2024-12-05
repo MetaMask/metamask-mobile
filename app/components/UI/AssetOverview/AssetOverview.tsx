@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -17,7 +17,7 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectConversionRateForAllChains,
+  selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import {
   selectContractExchangeRates,
@@ -77,7 +77,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const conversionRate = useSelector(selectConversionRate);
-  const conversionRateByTicker = useSelector(selectConversionRateForAllChains);
+  const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const primaryCurrency = useSelector(
@@ -126,8 +126,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
       SwapsController: SwapsController;
     };
