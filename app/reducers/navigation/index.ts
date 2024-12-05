@@ -11,7 +11,7 @@ export * from './selectors';
 /**
  * Initial navigation state
  */
-const initialState: NavigationState = {
+export const initialNavigationState: NavigationState = {
   currentRoute: 'WalletView',
   currentBottomNavRoute: 'Wallet',
 };
@@ -21,7 +21,7 @@ const initialState: NavigationState = {
  */
 /* eslint-disable @typescript-eslint/default-param-last */
 const navigationReducer = (
-  state: NavigationState = initialState,
+  state: NavigationState = initialNavigationState,
   action: NavigationAction,
 ): NavigationState => {
   switch (action.type) {
