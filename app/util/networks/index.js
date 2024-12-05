@@ -217,7 +217,8 @@ export const getTestNetImageByChainId = (chainId) => {
 /**
  * A list of chain IDs for known testnets
  */
-const TESTNET_CHAIN_IDS = [
+export const TESTNET_CHAIN_IDS = [
+  ChainId[NetworkType.goerli],
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
@@ -497,3 +498,6 @@ export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
+
+export const isPortfolioViewEnabledFunction = () =>
+  process.env.PORTFOLIO_VIEW === 'true';

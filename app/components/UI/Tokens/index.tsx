@@ -16,6 +16,7 @@ import {
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
+  isTestNet,
 } from '../../../util/networks';
 import { isZero } from '../../../util/lodash';
 import createStyles from './styles';
@@ -186,8 +187,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const actions = [
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled
-            ? Object.keys(networkConfigurationsByChainId) as Hex[]
-            : [chainId]
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [chainId],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
@@ -274,6 +275,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={styles.controlButton}
+              disabled={isTestNet(chainId)}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon

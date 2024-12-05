@@ -48,7 +48,7 @@ import {
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
@@ -686,7 +686,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
   internalAccounts: selectInternalAccounts(state),
   ticker: selectTicker(state),

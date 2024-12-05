@@ -1,22 +1,18 @@
 'use strict';
-
-import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-} from '../../fixtures/fixture-helper';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
+describe('Security Alert API - Send flow', () => {
   const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
   beforeAll(async () => {
@@ -29,7 +25,7 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
   const navigateToSendConfirmation = async () => {
     await loginToApp();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     await SendView.inputAddress(BENIGN_ADDRESS_MOCK);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0');
@@ -52,10 +48,8 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should not show security alerts for benign requests', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
-      ],
-      POST: [mockEvents.POST.securityAlertApiValidate,]
+      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      POST: [mockEvents.POST.securityAlertApiValidate],
     };
 
     await runTest(testSpecificMock, async () => {
@@ -72,19 +66,19 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
 
   it('should show security alerts for malicious request', async () => {
     const testSpecificMock = {
-      GET: [
-        mockEvents.GET.securityAlertApiSupportedChains,
-      ],
-      POST: [{
-        ...mockEvents.POST.securityAlertApiValidate,
-        response: {
-          block: 20733277,
-          result_type: 'Malicious',
-          reason: 'transfer_farming',
-          description: '',
-          features: ['Interaction with a known malicious address'],
+      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      POST: [
+        {
+          ...mockEvents.POST.securityAlertApiValidate,
+          response: {
+            block: 20733277,
+            result_type: 'Malicious',
+            reason: 'transfer_farming',
+            description: '',
+            features: ['Interaction with a known malicious address'],
+          },
         },
-      }]
+      ],
     };
 
     await runTest(testSpecificMock, async () => {
@@ -98,19 +92,22 @@ describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
     const testSpecificMock = {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
-        { 
-          urlEndpoint: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-          responseCode: 500
-        }
-      ],
-      POST: [{
-        ...mockEvents.POST.securityAlertApiValidate,
-        response: {
-          error: 'Internal Server Error',
-          message: 'An unexpected error occurred on the server.'
+        {
+          urlEndpoint:
+            'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+          responseCode: 500,
         },
-        responseCode: 500
-      }]
+      ],
+      POST: [
+        {
+          ...mockEvents.POST.securityAlertApiValidate,
+          response: {
+            error: 'Internal Server Error',
+            message: 'An unexpected error occurred on the server.',
+          },
+          responseCode: 500,
+        },
+      ],
     };
 
     await runTest(testSpecificMock, async () => {

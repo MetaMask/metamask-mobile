@@ -23,7 +23,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { ScrollView } from 'react-native-gesture-handler';
-import { EnableAutomaticSecurityChecksIDs } from '../../../../e2e/selectors/Modals/EnableAutomaticSecurityChecks.selectors';
+import { EnableAutomaticSecurityChecksIDs } from '../../../../e2e/selectors/Onboarding/EnableAutomaticSecurityChecks.selectors';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
