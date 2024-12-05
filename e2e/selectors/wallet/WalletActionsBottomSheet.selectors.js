@@ -1,4 +1,4 @@
-export const WalletActionsModalSelectorsIDs = {
+export const WalletActionsBottomSheetSelectorsIDs = {
   SEND_BUTTON: 'wallet-send-action',
   RECEIVE_BUTTON: 'wallet-receive-action',
   SWAP_BUTTON: 'wallet-swap-action',
