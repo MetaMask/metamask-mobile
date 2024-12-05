@@ -7,19 +7,22 @@
 app/component-library/               @MetaMask/design-system-engineers
 
 # Platform Team
-.github/CODEOWNERS                   @MetaMask/mobile-platform
-patches/                             @MetaMask/mobile-platform
-app/core/Engine/Engine.ts            @MetaMask/mobile-platform
-app/core/Engine/Engine.test.ts       @MetaMask/mobile-platform
-app/core/Engine/index.ts             @MetaMask/mobile-platform
-app/core/Engine/types.ts             @MetaMask/mobile-platform
-app/core/Analytics/                  @MetaMask/mobile-platform
-app/util/metrics/                    @MetaMask/mobile-platform
-app/components/hooks/useMetrics/     @MetaMask/mobile-platform
-app/store/migrations/                @MetaMask/mobile-platform
-bitrise.yml                          @MetaMask/mobile-platform
-yarn.lock                            @MetaMask/mobile-platform
-ios/Podfile.lock                     @MetaMask/mobile-platform
+.github/CODEOWNERS                                          @MetaMask/mobile-platform
+patches/                                                    @MetaMask/mobile-platform
+app/core/Engine/Engine.ts                                   @MetaMask/mobile-platform
+app/core/Engine/Engine.test.ts                              @MetaMask/mobile-platform
+app/core/Engine/index.ts                                    @MetaMask/mobile-platform
+app/core/Engine/types.ts                                    @MetaMask/mobile-platform
+app/core/Engine/controllers/RemoteFeatureFlagController/    @MetaMask/mobile-platform
+app/core/Analytics/                                         @MetaMask/mobile-platform
+app/util/metrics/                                           @MetaMask/mobile-platform
+app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
+app/selectors/featureFlagController/*                       @MetaMask/mobile-platform
+app/selectors/featureFlagController/minimumAppVersion/      @MetaMask/mobile-platform
+app/store/migrations/                                       @MetaMask/mobile-platform
+bitrise.yml                                                 @MetaMask/mobile-platform
+yarn.lock                                                   @MetaMask/mobile-platform
+ios/Podfile.lock                                            @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
@@ -53,11 +56,16 @@ app/components/UI/Swaps              @MetaMask/swaps-engineers
 app/components/Views/Notifications @MetaMask/notifications
 app/components/Views/Settings/NotificationsSettings @MetaMask/notifications
 app/components/UI/Notifications @MetaMask/notifications
-app/reducers/notification  @MetaMask/notifications 
-app/actions/notification @MetaMask/notifications 
-app/selectors/notification @MetaMask/notifications 
-app/util/notifications  @MetaMask/notifications 
+app/reducers/notification  @MetaMask/notifications
+app/actions/notification @MetaMask/notifications
+app/selectors/notification @MetaMask/notifications
+app/util/notifications  @MetaMask/notifications
 app/store/util/notifications @MetaMask/notifications
+
+# Identity Team
+app/actions/identity @MetaMask/identity
+app/util/identity @MetaMask/identity
+app/components/UI/ProfileSyncing @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain

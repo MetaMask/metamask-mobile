@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
+
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -45,6 +46,7 @@ import {
   AcceptOptions,
   ApprovalController,
 } from '@metamask/approval-controller';
+import HDKeyring from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
   PermissionController,
@@ -79,14 +81,16 @@ import {
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
 import {
   isMainnetByChainId,
-  fetchEstimatedMultiLayerL1Fee,
   isTestNet,
-  deprecatedGetNetworkId,
   getDecimalChainId,
 } from '../../util/networks';
+import {
+  fetchEstimatedMultiLayerL1Fee,
+  deprecatedGetNetworkId,
+} from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import {
@@ -153,6 +157,7 @@ import {
 } from './controllers/accounts/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { createAccountsController } from './controllers/accounts/utils';
+import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -161,9 +166,13 @@ import {
 } from '../../core/redux/slices/inpageProvider';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
-import { SmartTransactionStatuses, ClientId } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  SmartTransactionStatuses,
+  ClientId,
+} from '@metamask/smart-transactions-controller/dist/types';
 import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-publish-hook';
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -263,6 +272,9 @@ export class Engine {
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
+
+    const isBasicFunctionalityToggleEnabled = () =>
+      selectBasicFunctionalityEnabled(store.getState());
 
     const approvalController = new ApprovalController({
       messenger: this.controllerMessenger.getRestricted({
@@ -476,6 +488,16 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
+    const remoteFeatureFlagController = createRemoteFeatureFlagController({
+      state: initialState.RemoteFeatureFlagController,
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'RemoteFeatureFlagController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      disabled: !isBasicFunctionalityToggleEnabled(),
+    });
+
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
@@ -502,6 +524,13 @@ export class Engine {
     ledgerKeyringBuilder.type = LedgerKeyring.type;
 
     additionalKeyrings.push(ledgerKeyringBuilder);
+
+    const hdKeyringBuilder = () =>
+      new HDKeyring({
+        cryptographicFunctions: { pbkdf2Sha512: pbkdf2 },
+      });
+    hdKeyringBuilder.type = HDKeyring.type;
+    additionalKeyrings.push(hdKeyringBuilder);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const snapKeyringBuildMessenger = this.controllerMessenger.getRestricted({
@@ -924,8 +953,7 @@ export class Engine {
       encryptor,
       getMnemonic: getPrimaryKeyringMnemonic.bind(this),
       getFeatureFlags: () => ({
-        disableSnaps:
-          store.getState().settings.basicFunctionalityEnabled === false,
+        disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
     });
 
@@ -1383,6 +1411,7 @@ export class Engine {
       GasFeeController: gasFeeController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
+      RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: new SignatureController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1687,7 +1716,7 @@ export class Engine {
     );
 
     if (selectedInternalAccount) {
-      const selectSelectedInternalAccountChecksummedAddress =
+      const selectSelectedInternalAccountFormattedAddress =
         toChecksumHexAddress(selectedInternalAccount.address);
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.getNetworkClientById(
@@ -1715,17 +1744,19 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountChecksummedAddress
+          selectSelectedInternalAccountFormattedAddress
         ]
       ) {
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const balanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
+            selectSelectedInternalAccountFormattedAddress
           ].balance,
         );
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const stakedBalanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountChecksummedAddress
+            selectSelectedInternalAccountFormattedAddress
           ].stakedBalance || '0x00',
         );
         const totalAccountBalance = balanceBN
@@ -2057,6 +2088,7 @@ export default {
       NetworkController,
       PreferencesController,
       PhishingController,
+      RemoteFeatureFlagController,
       PPOMController,
       TokenBalancesController,
       TokenRatesController,
@@ -2099,6 +2131,7 @@ export default {
       KeyringController,
       NetworkController,
       PhishingController,
+      RemoteFeatureFlagController,
       PPOMController,
       PreferencesController,
       TokenBalancesController,

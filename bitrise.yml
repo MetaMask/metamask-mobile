@@ -664,7 +664,7 @@ workflows:
       - ios_api_specs
   run_tag_smoke_core_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/*/**/*'
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - ios_e2e_test
@@ -674,14 +674,14 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/*/**/*'
+      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
       - TEST_SUITE_TAG: '.*SmokeCore.*'
     after_run:
       - android_e2e_test
   run_tag_multichain_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
     after_run:
       - ios_e2e_test
   run_tag_multichain_android:
@@ -691,7 +691,7 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -1684,16 +1684,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.35.1
+      VERSION_NAME: 7.36.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1502
+      VERSION_NUMBER: 1505
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.35.1
+      FLASK_VERSION_NAME: 7.36.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1502
+      FLASK_VERSION_NUMBER: 1505
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1733,5 +1733,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: test-multichain-e2e-ci-workflow
-    pipeline: pr_regression_e2e_pipeline
+  - push_branch: detox/address-regression-tests-slowdown
+    pipeline: multichain_e2e_pipeline
