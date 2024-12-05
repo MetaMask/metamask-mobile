@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useState, useEffect } from 'react';
-import { Platform, SafeAreaView, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -8,7 +8,6 @@ import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -22,7 +21,6 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
 import styleSheet from './NetworkConnectMultiSelector.styles';
 import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -279,10 +277,6 @@ const NetworkConnectMultiSelector = ({
                 ...(isUpdateDisabled && styles.disabledOpacity),
               }}
               disabled={isUpdateDisabled}
-              {...generateTestId(
-                Platform,
-                ConnectNetworkModalSelectorsIDs.SELECT_MULTI_BUTTON,
-              )}
             />
           )}
         </View>

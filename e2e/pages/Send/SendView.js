@@ -1,7 +1,7 @@
 import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import { SendViewSelectorsIDs } from '../../selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
 
 class SendView {
   get cancelButton() {

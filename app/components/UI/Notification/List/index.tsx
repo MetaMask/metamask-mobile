@@ -7,7 +7,7 @@ import ScrollableTabView, {
   DefaultTabBarProps,
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
-import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import { strings } from '../../../../../locales/i18n';
 import {
   hasNotificationComponents,
