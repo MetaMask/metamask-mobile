@@ -39,6 +39,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -50,7 +51,11 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectTokens,
+  selectTokensByChainIdAndAddress,
+} from '../../../selectors/tokensController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -79,8 +84,8 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -181,6 +186,12 @@ const Wallet = ({
    * An array that represents the user tokens
    */
   const tokens = useSelector(selectTokens);
+  /**
+   * An array that represents the user tokens by chainId and address
+   */
+  const tokensByChainIdAndAddress = useSelector(
+    selectTokensByChainIdAndAddress,
+  );
   /**
    * Current provider ticker
    */
@@ -298,6 +309,7 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -323,6 +335,24 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+
+  /**
+   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   */
+  const handleNetworkFilter = useCallback(() => {
+    // TODO: Come back possibly just add the chain id of the eth
+    // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
+  }, [chainId, tokenNetworkFilter]);
+
+  useEffect(() => {
+    handleNetworkFilter();
+  }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled
@@ -364,7 +394,14 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
-        AccountTrackerController.refresh();
+
+        Object.values(networkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
+          },
+        );
       });
     },
     /* eslint-disable-next-line */
@@ -464,7 +501,9 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [...(tokens || [])];
+    const assets = isPortfolioViewEnabled
+      ? [...(tokensByChainIdAndAddress || [])]
+      : [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
@@ -487,6 +526,7 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
+      // TODO: Need to handle staked asset in multi chain
       if (
         accountBalanceByChainId.stakedBalance &&
         !hexToBN(accountBalanceByChainId.stakedBalance).isZero()

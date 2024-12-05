@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import { PooledStakingContract, ChainId } from '@metamask/stake-sdk';
 import { useStakeContext } from '../useStakeContext';
 import {
@@ -35,30 +34,13 @@ const attemptUnstakeTransaction =
   // Note: receiver is the user address attempting to unstake.
   async (valueWei: string, receiver: string) => {
     try {
-      // STAKE-867: This is temporary logic for the unstake all action
-      // if we are unstaking the total assets we send the total shares
-      // the user has in the vault through getShares contract method
-      // this is a quick fix for mobile only and will be refactored to cover
-      // portfolio in the future. We avoid the case where contract level rounding
-      // error causes 1 wei dust to be left when converting assets to shares
-      // and attempting to unstake all assets
+      // STAKE-871: if we are unstaking the total assets we send the total shares
+      // the user has in the vault through getShares contract method avoiding the
+      // case where contract level rounding error causes 1 wei dust to be left
+      // when converting assets to shares and attempting to unstake all assets
       let shares;
       if (valueWei === stakedBalanceWei) {
-        // create the interface for the getShares method and call getShares to get user shares
-        const tempInterface = new ethers.utils.Interface([
-          'function getShares(address) returns (uint256)',
-        ]);
-        const data = tempInterface.encodeFunctionData('getShares', [receiver]);
-        const sharesResult =
-          await pooledStakingContract?.contract.provider.call({
-            to: pooledStakingContract?.contract.address,
-            data,
-          });
-        const [sharesBN] = tempInterface.decodeFunctionResult(
-          'getShares',
-          sharesResult,
-        );
-        shares = sharesBN.toString();
+        shares = await pooledStakingContract.getShares(receiver);
       } else {
         shares = await pooledStakingContract.convertToShares(valueWei);
       }
