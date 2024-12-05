@@ -28,7 +28,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import useRampNetwork from '../../UI/Ramp/hooks/useRampNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
@@ -204,7 +204,7 @@ const WalletActions = () => {
             actionType={WalletActionType.Buy}
             iconName={IconName.Add}
             onPress={onBuy}
-            actionID={WalletActionsModalSelectorsIDs.BUY_BUTTON}
+            actionID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
@@ -215,7 +215,7 @@ const WalletActions = () => {
             actionType={WalletActionType.Sell}
             iconName={IconName.MinusBold}
             onPress={onSell}
-            actionID={WalletActionsModalSelectorsIDs.SELL_BUTTON}
+            actionID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
@@ -228,7 +228,7 @@ const WalletActions = () => {
               actionType={WalletActionType.Swap}
               iconName={IconName.SwapHorizontal}
               onPress={goToSwaps}
-              actionID={WalletActionsModalSelectorsIDs.SWAP_BUTTON}
+              actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
               iconStyle={styles.icon}
               iconSize={AvatarSize.Md}
               disabled={!canSignTransactions}
@@ -239,7 +239,7 @@ const WalletActions = () => {
             actionType={WalletActionType.Bridge}
             iconName={IconName.Bridge}
             onPress={goToBridge}
-            actionID={WalletActionsModalSelectorsIDs.BRIDGE_BUTTON}
+            actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
@@ -250,7 +250,7 @@ const WalletActions = () => {
           iconName={IconName.Arrow2Right}
           onPress={onSend}
           iconStyle={sendIconStyle}
-          actionID={WalletActionsModalSelectorsIDs.SEND_BUTTON}
+          actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
           iconSize={AvatarSize.Md}
           disabled={!canSignTransactions}
         />
@@ -258,7 +258,7 @@ const WalletActions = () => {
           actionType={WalletActionType.Receive}
           iconName={IconName.Received}
           onPress={onReceive}
-          actionID={WalletActionsModalSelectorsIDs.RECEIVE_BUTTON}
+          actionID={WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON}
           iconStyle={styles.icon}
           iconSize={AvatarSize.Md}
           disabled={false}

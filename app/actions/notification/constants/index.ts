@@ -1,8 +1,4 @@
 export enum notificationsErrors {
-  PERFORM_SIGN_IN = 'Error while trying to sign in',
-  PERFORM_SIGN_OUT = 'Error while trying to sign out',
-  ENABLE_PROFILE_SYNCING = 'Error while trying to enable profile syncing',
-  DISABLE_PROFILE_SYNCING = 'Error while trying to disable profile syncing',
   ENABLE_PUSH_NOTIFICATIONS = 'Error while trying to enable push notifications',
   DISABLE_PUSH_NOTIFICATIONS = 'Error while trying to disable push notifications',
   CHECK_ACCOUNTS_PRESENCE = 'Error while trying to check accounts presence',

@@ -7,14 +7,9 @@ import initialRootState from '../../../util/test/initial-root-state';
 import React from 'react';
 import { Provider } from 'react-redux';
 import createMockStore from 'redux-mock-store';
-import * as Selectors from '../../../selectors/notifications';
-import * as Actions from '../../../actions/notification/helpers';
+import * as Selectors from '../../../selectors/identity';
+import * as Actions from '../../../actions/identity';
 import useCreateSession from './useCreateSession';
-
-jest.mock('../constants', () => ({
-  ...jest.requireActual('../constants'),
-  isNotificationsFeatureEnabled: () => true,
-}));
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -55,7 +50,9 @@ function arrangeSelectors() {
 }
 
 function arrangeActions() {
-  const mockSignIn = jest.spyOn(Actions, 'signIn').mockResolvedValue(undefined);
+  const mockSignIn = jest
+    .spyOn(Actions, 'performSignIn')
+    .mockResolvedValue(undefined);
   const mockDisableProfileSyncing = jest
     .spyOn(Actions, 'disableProfileSyncing')
     .mockResolvedValue(undefined);

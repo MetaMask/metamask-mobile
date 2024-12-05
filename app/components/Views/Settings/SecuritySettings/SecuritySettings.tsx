@@ -75,11 +75,9 @@ import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFun
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import {
-  selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';

@@ -1,11 +1,10 @@
 import { useState, useCallback } from 'react';
-import { ProfileSyncingReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 import {
   disableProfileSyncing as disableProfileSyncingAction,
   enableProfileSyncing as enableProfileSyncingAction,
-} from '../../../actions/notification/helpers';
-import { isNotificationsFeatureEnabled } from '../constants';
+} from '../../../actions/identity';
+import { isNotificationsFeatureEnabled } from '../../notifications/constants';
 
 /**
  * Custom hook to enable profile syncing. This hook handles the process of signing in
@@ -13,7 +12,7 @@ import { isNotificationsFeatureEnabled } from '../constants';
  *
  * @returns An object containing the `enableProfileSyncing` function, loading state, and error state.
  */
-export function useProfileSyncing(): ProfileSyncingReturn {
+export function useProfileSyncing() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>();
 

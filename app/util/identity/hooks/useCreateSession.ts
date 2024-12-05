@@ -1,17 +1,15 @@
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { UseCreateSessionReturn } from './types';
 import { getErrorMessage } from '../../../util/errorHandling';
 
 import {
   selectIsProfileSyncingEnabled,
   selectIsSignedIn,
-} from '../../../selectors/notifications';
+} from '../../../selectors/identity';
 import {
   disableProfileSyncing,
-  signIn,
-} from '../../../actions/notification/helpers';
-import { isNotificationsFeatureEnabled } from '../constants';
+  performSignIn,
+} from '../../../actions/identity';
 
 /**
  * Custom hook to manage the creation of a session based on the user's authentication status,
@@ -25,17 +23,13 @@ import { isNotificationsFeatureEnabled } from '../constants';
  * - `createSession`: A function to initiate the session creation process.
  * - `error`: The error message, if any.
  */
-function useCreateSession(): UseCreateSessionReturn {
+function useCreateSession() {
   const isSignedIn = useSelector(selectIsSignedIn);
   const isProfileSyncingEnabled = useSelector(selectIsProfileSyncingEnabled);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
   const createSession = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
     // If the user is already signed in, no need to create a new session
     if (isSignedIn) {
       return;
@@ -51,7 +45,7 @@ function useCreateSession(): UseCreateSessionReturn {
       setLoading(true);
       setError(undefined);
       try {
-        const errorMessage = await signIn();
+        const errorMessage = await performSignIn();
         if (errorMessage) {
           throw new Error(errorMessage);
         }
