@@ -14,6 +14,7 @@ import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import LoginView from '../../pages/LoginView';
+import { getFixturesServerPort } from '../../fixtures/utils';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -72,10 +73,7 @@ describe(SmokeAssets('NFT Details page'), () => {
     await withFixtures(
       {
         dapp: true,
-        fixture: new FixtureBuilder()
-          .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
-          .build(),
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: NFT_CONTRACT,
@@ -101,8 +99,13 @@ describe(SmokeAssets('NFT Details page'), () => {
           WalletView.nftInWallet(TEST_DAPP_CONTRACT),
         );
 
-        await TestHelpers.relaunchApp();
-        await LoginView.enterPassword('123123123');
+        await device.terminateApp();
+        await device.launchApp({
+          delete: false,
+          fixtureServerPort: `${getFixturesServerPort()}`,
+        });
+
+        await loginToApp();
         await Assertions.checkIfVisible(WalletView.container);
         await WalletView.tapNftTab();
         // check NFT is there
