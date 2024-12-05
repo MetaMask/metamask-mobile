@@ -1,9 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-import { NavigationActionType } from './types';
-import type {
-  OnNavigationReadyAction,
-  SetCurrentRouteAction,
-  SetCurrentBottomNavRouteAction,
+import {
+  type OnNavigationReadyAction,
+  type SetCurrentRouteAction,
+  type SetCurrentBottomNavRouteAction,
+  NavigationActionType,
 } from './types';
 
 export * from './types';

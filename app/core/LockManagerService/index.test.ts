@@ -2,8 +2,7 @@ import { LockManagerService } from '.';
 import { AppState, AppStateStatus } from 'react-native';
 import { interruptBiometrics, lockApp } from '../../actions/user';
 import Logger from '../../util/Logger';
-import type { ReduxStore } from '../redux';
-import ReduxService from '../redux';
+import ReduxService, { type ReduxStore } from '../redux';
 
 jest.mock('../Engine', () => ({
   context: {

@@ -1,4 +1,7 @@
-import { NavigationActionType } from '../../actions/navigation/types';
+import {
+  type NavigationAction,
+  NavigationActionType,
+} from '../../actions/navigation/types';
 import { NavigationState } from './types';
 
 export * from './types';
@@ -16,11 +19,10 @@ const initialState: NavigationState = {
 /**
  * Navigation reducer
  */
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/* eslint-disable @typescript-eslint/default-param-last */
 const navigationReducer = (
-  state = initialState,
-  action: any = {},
+  state: NavigationState = initialState,
+  action: NavigationAction,
 ): NavigationState => {
   switch (action.type) {
     case NavigationActionType.SET_CURRENT_ROUTE:

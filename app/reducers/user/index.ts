@@ -27,8 +27,8 @@ export const userInitialState: UserState = {
 /**
  * User reducer
  */
+/* eslint-disable @typescript-eslint/default-param-last */
 const userReducer = (
-  // eslint-disable-next-line @typescript-eslint/default-param-last
   state: UserState = userInitialState,
   action: UserAction,
 ): UserState => {

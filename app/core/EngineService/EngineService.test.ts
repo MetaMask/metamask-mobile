@@ -1,13 +1,11 @@
 import { EngineService } from './EngineService';
-import type { ReduxStore } from '../redux';
-import ReduxService from '../redux';
+import ReduxService, { type ReduxStore } from '../redux';
 import Engine from '../Engine';
+import { type KeyringControllerState } from '@metamask/keyring-controller';
 
-jest.mock('../BackupVault', () => {
-  return {
-    getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
-  };
-});
+jest.mock('../BackupVault', () => ({
+  getVaultFromBackup: () => ({ success: true, vault: 'fake_vault' }),
+}));
 jest.mock('../../util/test/network-store.js', () => jest.fn());
 // Unmock global Engine
 jest.unmock('../Engine');
@@ -18,7 +16,7 @@ jest.mock('../Engine', () => {
   let instance: any;
 
   const mockEngine = {
-    init: (_: any, keyringState: any) => {
+    init: (_: unknown, keyringState: KeyringControllerState) => {
       instance = {
         controllerMessenger: { subscribe: jest.fn() },
         context: {
