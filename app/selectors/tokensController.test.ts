@@ -91,6 +91,11 @@ describe('TokensController Selectors', () => {
 
       expect(selectTokens(stateWithoutTokens)).toStrictEqual([]);
     });
+
+    it('returns tokens from TokensController state if portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      expect(selectTokens(mockRootState)).toStrictEqual([mockToken]);
+    });
   });
 
   describe('selectTokensByAddress', () => {

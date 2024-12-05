@@ -23,9 +23,10 @@ export const selectTokens = createDeepEqualSelector(
     selectedAddress: string | undefined,
   ) => {
     if (isPortfolioViewEnabled()) {
-      return tokensControllerState?.allTokens[chainId]?.[
-        selectedAddress as Hex
-      ];
+      return (
+        tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] ||
+        []
+      );
     }
     return tokensControllerState?.tokens || [];
   },
