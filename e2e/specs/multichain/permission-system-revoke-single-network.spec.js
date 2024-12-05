@@ -47,7 +47,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        await NetworkListModal.swipeToDismissModal();
+        // await NetworkListModal.swipeToDismissModal();
         await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
