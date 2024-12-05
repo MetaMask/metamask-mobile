@@ -10,8 +10,8 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
@@ -49,7 +49,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await TestHelpers.delay(2000);
         await TabBarComponent.tapActions();
         await TestHelpers.delay(2000);
-        await WalletActionsModal.tapSendButton();
+        await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();

@@ -82,6 +82,7 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const Stack = createStackNavigator();
 
@@ -362,35 +363,37 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <View style={styles.flex}>
-        {!forceReload ? (
-          <MainNavigator navigation={props.navigation} />
-        ) : (
-          renderLoader()
-        )}
-        <GlobalAlert />
-        <FadeOutOverlay />
-        <Notification navigation={props.navigation} />
-        <RampOrders />
-        <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
-        {renderDeprecatedNetworkAlert(
-          props.chainId,
-          props.backUpSeedphraseVisible,
-        )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
-        <ProtectYourWalletModal navigation={props.navigation} />
-        <RootRPCMethodsUI navigation={props.navigation} />
-      </View>
+      <AssetPollingProvider>
+        <View style={styles.flex}>
+          {!forceReload ? (
+            <MainNavigator navigation={props.navigation} />
+          ) : (
+            renderLoader()
+          )}
+          <GlobalAlert />
+          <FadeOutOverlay />
+          <Notification navigation={props.navigation} />
+          <RampOrders />
+          <SwapsLiveness />
+          <BackupAlert
+            onDismiss={toggleRemindLater}
+            navigation={props.navigation}
+          />
+          {renderDeprecatedNetworkAlert(
+            props.chainId,
+            props.backUpSeedphraseVisible,
+          )}
+          <SkipAccountSecurityModal
+            modalVisible={showRemindLaterModal}
+            onCancel={skipAccountModalSecureNow}
+            onConfirm={skipAccountModalSkip}
+            skipCheckbox={skipCheckbox}
+            toggleSkipCheckbox={toggleSkipCheckbox}
+          />
+          <ProtectYourWalletModal navigation={props.navigation} />
+          <RootRPCMethodsUI navigation={props.navigation} />
+        </View>
+      </AssetPollingProvider>
     </React.Fragment>
   );
 };

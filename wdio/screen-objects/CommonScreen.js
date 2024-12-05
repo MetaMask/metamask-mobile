@@ -3,9 +3,8 @@ import Gestures from '../helpers/Gestures';
 import {
   ToastSelectorsIDs,
   ToastSelectorsText,
-} from '../../e2e/selectors/Modals/ToastModal.selectors';
+} from '../../e2e/selectors/wallet/ToastModal.selectors';
 import { CommonSelectorsIDs } from '../../e2e/selectors/Common.selectors';
-import { NOTIFICATION_TITLE } from './testIDs/Components/Notification.testIds';
 
 class CommonScreen {
   get toast() {
@@ -17,7 +16,7 @@ class CommonScreen {
   }
 
   get TokenNotificationTitle() {
-    return Selectors.getElementByPlatform(NOTIFICATION_TITLE);
+    return Selectors.getElementByPlatform(ToastSelectorsIDs.NOTIFICATION_TITLE);
   }
 
   get toastCloseButton() {

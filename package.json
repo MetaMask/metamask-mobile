@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.35.1",
+  "version": "7.36.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -84,7 +84,8 @@
     "storybook-watch": "sb-rn-watcher",
     "start:flipper": "npx flipper-server",
     "gen-bundle:ios": "npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle",
-    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle"
+    "gen-bundle:android": "npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
+    "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false"
   },
   "husky": {
     "hooks": {
@@ -194,7 +195,7 @@
     "@metamask/snaps-rpc-methods": "^11.5.1",
     "@metamask/snaps-sdk": "^6.11.0",
     "@metamask/snaps-utils": "^8.6.0",
-    "@metamask/stake-sdk": "^0.2.13",
+    "@metamask/stake-sdk": "^0.3.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^11.0.0",
     "@metamask/transaction-controller": "^39.1.0",
@@ -442,6 +443,7 @@
     "depcheck": "^1.4.7",
     "detox": "^20.27.5",
     "dotenv": "^16.0.3",
+    "dpdm": "^3.14.0",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",

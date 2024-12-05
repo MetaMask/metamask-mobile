@@ -2,8 +2,8 @@
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
 import { Regression } from '../../tags.js';
-import TabBarComponent from '../../pages/TabBarComponent.js';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
 import SendView from '../../pages/Send/SendView.js';
 import AmountView from '../../pages/Send/AmountView.js';
 import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
@@ -13,8 +13,8 @@ import {
 } from '../../api-mocking/mock-server.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
-import AccountListView from '../../pages/AccountListView.js';
-import AddAccountModal from '../../pages/modals/AddAccountModal.js';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
@@ -62,21 +62,21 @@ describe(
         async () => {
           await loginToApp();
           await WalletView.tapIdenticon();
-          await Assertions.checkIfVisible(AccountListView.accountList);
-          await AccountListView.tapAddAccountButton();
-          await AddAccountModal.tapImportAccount();
+          await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+          await AccountListBottomSheet.tapAddAccountButton();
+          await AddAccountBottomSheet.tapImportAccount();
           await Assertions.checkIfVisible(ImportAccountView.container);
           await ImportAccountView.enterPrivateKey(validPrivateKey.keys);
           await Assertions.checkIfVisible(SuccessImportAccountView.container);
           await SuccessImportAccountView.tapCloseButton();
           if (device.getPlatform() === 'ios') {
-            await AccountListView.swipeToDismissAccountsModal();
-            await Assertions.checkIfNotVisible(AccountListView.title);
+            await AccountListBottomSheet.swipeToDismissAccountsModal();
+            await Assertions.checkIfNotVisible(AccountListBottomSheet.title);
           } else {
             await WalletView.tapIdenticon();
           }
           await TabBarComponent.tapActions();
-          await WalletActionsModal.tapSendButton();
+          await WalletActionsBottomSheet.tapSendButton();
           await SendView.inputAddress(RECIPIENT);
           await SendView.tapNextButton();
           await AmountView.typeInTransactionAmount(AMOUNT);
