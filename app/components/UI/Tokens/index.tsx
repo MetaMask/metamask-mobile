@@ -12,6 +12,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
 import {
   selectChainId,
+  selectIsAllNetworks,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
@@ -46,7 +47,6 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { enableAllNetworksFilter } from './util/enableAllNetworksFilter';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
 
@@ -111,7 +111,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ),
     ),
   ];
-  const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedAccountTokensChains = useSelector(
     selectAccountTokensAcrossChains,
   );
@@ -120,10 +119,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
-  const allNetworksEnabled = useMemo(
-    () => enableAllNetworksFilter(allNetworks),
-    [allNetworks],
-  );
+  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const styles = createStyles(colors);
 
@@ -341,10 +337,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  const allNetworksFilterShown =
-    Object.keys(tokenNetworkFilter).length !==
-    Object.keys(allNetworksEnabled).length;
-
   useEffect(() => {
     const { PreferencesController } = Engine.context;
     if (isTestNet(currentChainId)) {
@@ -365,9 +357,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <ButtonBase
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {allNetworksFilterShown
-                    ? networkName ?? strings('wallet.current_network')
-                    : strings('wallet.all_networks')}
+                  {isAllNetworks
+                    ? strings('wallet.all_networks')
+                    : networkName ?? strings('wallet.current_network')}
                 </Text>
               }
               isDisabled={isTestNet(currentChainId)}
