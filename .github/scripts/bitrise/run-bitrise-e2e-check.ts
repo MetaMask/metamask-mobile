@@ -76,6 +76,9 @@ async function main(): Promise<void> {
   console.log(`event: ${context.eventName}`);
   console.log(`pullRequestNumber: ${pullRequestNumber}`);
 
+  const mergeQueue = (context.eventName === 'merge_group')
+  const mqCommitHash = context.payload?.merge_group?.head_sha;
+
 
   const octokit: InstanceType<typeof GitHub> = getOctokit(githubToken);
 
@@ -85,17 +88,17 @@ async function main(): Promise<void> {
     pull_number: pullRequestNumber,
   });
 
-  const docs = prData.title.startsWith("docs:");
-
   // Get the latest commit hash
-  const latestCommitHash = prData.head.sha;
+  const prCommitHash = prData?.head?.sha;
+  // Determine the latest commit hash depending if it's a PR or MQ
+  const latestCommitHash = mergeQueue ? mqCommitHash : prCommitHash;
 
-  // Grab flags and labels
-  const labels = prData.labels;
+  // Grab flags & labels
+  const labels = prData?.labels ?? [];
   const hasSmokeTestLabel = labels.some((label) => label.name === e2eLabel);
   const hasAntiLabel = labels.some((label) => label.name === antiLabel);
   const fork = context.payload.pull_request?.head.repo.fork || false;
-  const mergeQueue = (context.eventName === 'merge_group')
+  const docs = mergeQueue ? false : prData.title.startsWith("docs:");
 
 
   console.log(`Docs: ${docs}`);
@@ -104,24 +107,49 @@ async function main(): Promise<void> {
   console.log(`Has smoke test label: ${hasSmokeTestLabel}`);
   console.log(`Anti label: ${hasAntiLabel}`);
 
+  const [shouldRun, reason] = shouldRunBitriseE2E(hasAntiLabel, hasSmokeTestLabel, docs, fork, mergeQueue);
+  console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
 
-  // One of these two labels must exist if not we bomb out
-  if (!hasSmokeTestLabel && !hasAntiLabel) {
+  // One of these two labels must exist for pull_request type
+  if (!mergeQueue && !hasSmokeTestLabel && !hasAntiLabel) {
+
+    // Fail Status due to missing labels
+    const createStatusCheckResponse = await octokit.rest.checks.create({
+      owner,
+      repo,
+      name: statusCheckName,
+      head_sha: latestCommitHash,
+      status: StatusCheckStatusType.Completed,
+      conclusion: CompletedConclusionType.Failure, 
+      started_at: new Date().toISOString(),
+      output: {
+        title: statusCheckTitle,
+        summary: `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`,
+      },
+    });
+
+    if (createStatusCheckResponse.status === 201) {
+      console.log(
+        `Created '${statusCheckName}' check with failed status for commit ${latestCommitHash}`,
+      );
+    } else {
+      core.setFailed(
+        `Failed to create '${statusCheckName}' check with failed status for commit ${latestCommitHash} with status code ${createStatusCheckResponse.status}`,
+      );
+      process.exit(1);
+    }
     core.setFailed(
       `At least 1 E2E Label must be Applied either ${e2eLabel} or ${antiLabel}`,
     );
     process.exit(1);
   }
 
-  const [shouldRun, reason] = shouldRunBitriseE2E(hasAntiLabel, hasSmokeTestLabel, docs, fork, mergeQueue);
-  console.log(`Should run: ${shouldRun}, Reason: ${reason}`);
-
-
   if (!shouldRun) {
     console.log(
       `Skipping Bitrise status check. due to the following reason: ${reason}`,
     );
 
+    
     // Post success status (skipped)
     const createStatusCheckResponse = await octokit.rest.checks.create({
       owner,
