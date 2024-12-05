@@ -148,7 +148,7 @@
     "@metamask/assets-controllers": "^44.1.0",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/bitcoin-wallet-snap": "^0.8.2",
-    "@metamask/composable-controller": "npm:@metamask-previews/composable-controller@9.0.1-preview-a0b32c13",
+    "@metamask/composable-controller": "^10.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
     "@metamask/eth-hd-keyring": "^9.0.0",
