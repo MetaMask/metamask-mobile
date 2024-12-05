@@ -2,8 +2,6 @@
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 
-const mockServer = getLocal();
-
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -12,6 +10,7 @@ const mockServer = getLocal();
  * @returns {Promise} Resolves to the running mock server.
  */
 export const startMockServer = async (events, port) => {
+  const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
   await mockServer.start(port);
@@ -36,7 +35,7 @@ export const startMockServer = async (events, port) => {
       console.log(`Response status: ${responseCode}`);
       console.log('Response:', response);
       if (requestBody) {
-        console.log(`POST request body ${requestBody}`);
+        console.log(`POST request body:`, requestBody);
       }
 
       if (method === 'GET') {
@@ -75,7 +74,7 @@ export const startMockServer = async (events, port) => {
  * Stops the mock server.
  *
  */
-export const stopMockServer = async () => {
+export const stopMockServer = async (mockServer) => {
   await mockServer.stop();
   console.log('Mock server shutting down');
 };

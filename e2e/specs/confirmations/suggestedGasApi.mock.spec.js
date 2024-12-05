@@ -39,7 +39,7 @@ describe(
 
     afterAll(async () => {
       try {
-        await stopMockServer();
+        await stopMockServer(mockServer);
       } catch (error) {
         // eslint-disable-next-line no-console
         console.log(
