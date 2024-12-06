@@ -198,6 +198,10 @@ export class EngineService {
         name: 'MultichainBalancesController',
         key: `${engine.context.MultichainBalancesController.name}:stateChange`,
       },
+      {
+        name: 'RatesController',
+        key: `${engine.context.RatesController.name}:stateChange`,
+      },
       ///: END:ONLY_INCLUDE_IF
     ];
 
