@@ -7,6 +7,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const mockNavigate = jest.fn();
 
@@ -68,8 +69,22 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
+const STATE_MOCK = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: '0x1',
+        }),
+      },
+    },
+  },
+};
+
 const renderComponent = () =>
-  renderWithProvider(<StakeButton asset={MOCK_STAKED_ETH_ASSET} />);
+  renderWithProvider(<StakeButton asset={MOCK_STAKED_ETH_ASSET} />, {
+    state: STATE_MOCK,
+  });
 
 describe('StakeButton', () => {
   beforeEach(() => {
