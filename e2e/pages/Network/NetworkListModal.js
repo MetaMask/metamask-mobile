@@ -4,6 +4,7 @@ import {
 } from '../../selectors/Network/NetworkListModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import TestHelpers from '../../helpers';
 import { NetworksViewSelectorsIDs } from '../../selectors/Settings/NetworksView.selectors';
 
 class NetworkListModal {
@@ -70,6 +71,7 @@ class NetworkListModal {
   async changeNetworkTo(networkName, custom) {
     const elem = this.getCustomNetwork(networkName, custom);
     await Gestures.waitAndTap(elem);
+    await TestHelpers.delay(3000);
   }
 
   async scrollToBottomOfNetworkList() {

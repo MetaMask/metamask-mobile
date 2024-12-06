@@ -54,6 +54,7 @@ describe('Blockaid util', () => {
         error: new Error('Simulated transaction error'),
         id: '1',
         chainId: '0x1',
+        networkClientId: 'testNetworkClientId',
         time: Date.now(),
         txParams: {
           from: '0x1',
@@ -82,6 +83,7 @@ describe('Blockaid util', () => {
         error: new Error('Simulated transaction error'),
         id: '1',
         chainId: '0x1',
+        networkClientId: 'testNetworkClientId',
         time: Date.now(),
         txParams: {
           from: '0x1',

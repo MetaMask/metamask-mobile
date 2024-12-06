@@ -50,6 +50,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import WarningMessage from '../../../SendFlow/WarningMessage';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectTicker,
 } from '../../../../../../selectors/networkController';
 import {
@@ -193,6 +194,10 @@ class TransactionReviewInformation extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
+    /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
@@ -256,8 +261,9 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -743,6 +749,7 @@ class TransactionReviewInformation extends PureComponent {
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   contractExchangeRates: selectContractExchangeRates(state),

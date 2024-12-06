@@ -16,6 +16,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '52fd9ae0-098f-11ef-949b-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'MetaMask Mobile',
         rawTransaction:
@@ -53,6 +54,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '07178fe0-0990-11ef-96e6-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'MetaMask Mobile',
         rawTransaction:
@@ -91,6 +93,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'a3551450-098f-11ef-95ae-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'app.uniswap.org',
         rawTransaction:
@@ -128,6 +131,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'a3551450-098f-11ef-95ae-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'app.uniswap.org',
         rawTransaction:
@@ -165,6 +169,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'b3095a90-0990-11ef-9909-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:
@@ -203,6 +208,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '15879650-0991-11ef-9ce4-2f3037ea41a6',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:
@@ -241,6 +247,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '1587e470-0991-11ef-9ce4-2f3037ea41a6',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:

@@ -21,7 +21,10 @@ jest.mock('../../../util/transactions');
 jest.mock('../../../util/address');
 jest.mock('../../Engine', () => ({
   context: {
-    NetworkController: { setProviderType: jest.fn() },
+    NetworkController: {
+      setProviderType: jest.fn(),
+      findNetworkClientIdByChainId: jest.fn(),
+    },
     PreferencesController: {
       state: { selectedAddress: MOCK_SENDER_ADDRESS },
     },

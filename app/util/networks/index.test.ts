@@ -372,6 +372,7 @@ describe('network-utils', () => {
   describe('getNetworkNonce', () => {
     const nonceMock = 123;
     const fromMock = '0x123';
+    const networkClientIdMock = 'testNetworkClientId';
 
     it('returns value from TransactionController', async () => {
       (getNonceLock as jest.Mock).mockReturnValueOnce({
@@ -379,9 +380,16 @@ describe('network-utils', () => {
         releaseLock: jest.fn(),
       });
 
-      expect(await getNetworkNonce({ from: fromMock })).toBe(nonceMock);
+      expect(
+        await getNetworkNonce(
+          {
+            from: fromMock,
+          },
+          networkClientIdMock,
+        ),
+      ).toBe(nonceMock);
 
-      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
+      expect(getNonceLock).toHaveBeenCalledWith(fromMock, networkClientIdMock);
     });
 
     it('releases nonce lock', async () => {
@@ -391,7 +399,12 @@ describe('network-utils', () => {
         releaseLock: releaseLockMock,
       });
 
-      await getNetworkNonce({ from: fromMock });
+      await getNetworkNonce(
+        {
+          from: fromMock,
+        },
+        networkClientIdMock,
+      );
 
       expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });

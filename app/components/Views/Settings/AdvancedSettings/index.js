@@ -237,7 +237,7 @@ class AdvancedSettings extends PureComponent {
 
   resetAccount = () => {
     const { navigation } = this.props;
-    wipeTransactions(true);
+    wipeTransactions();
     navigation.navigate('WalletView');
   };
 

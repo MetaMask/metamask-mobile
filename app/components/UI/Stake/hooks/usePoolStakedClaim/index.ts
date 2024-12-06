@@ -12,11 +12,14 @@ import {
   isRequestClaimable,
   transformAggregatedClaimableExitRequestToMulticallArgs,
 } from './utils';
+import { NetworkClientId } from '@metamask/network-controller';
+import { Stake } from '../../sdk/stakeSdkProvider';
 
 const attemptMultiCallClaimTransaction = async (
   pooledStakesData: PooledStake,
   poolStakingContract: PooledStakingContract,
   activeAccountAddress: string,
+  networkClientId: NetworkClientId,
 ) => {
   const multiCallData = transformAggregatedClaimableExitRequestToMulticallArgs(
     pooledStakesData.exitRequests,
@@ -44,6 +47,7 @@ const attemptMultiCallClaimTransaction = async (
 
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId,
     origin: ORIGIN_METAMASK,
     type: TransactionType.stakingClaim,
   });
@@ -53,6 +57,7 @@ const attemptSingleClaimTransaction = async (
   pooledStakesData: PooledStake,
   poolStakingContract: PooledStakingContract,
   activeAccountAddress: string,
+  networkClientId: NetworkClientId,
 ) => {
   const { positionTicket, timestamp, exitQueueIndex } =
     pooledStakesData.exitRequests[0];
@@ -87,13 +92,17 @@ const attemptSingleClaimTransaction = async (
 
   return addTransaction(txParams, {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId,
     origin: ORIGIN_METAMASK,
     type: TransactionType.stakingClaim,
   });
 };
 
 const attemptPoolStakedClaimTransaction =
-  (poolStakingContract: PooledStakingContract) =>
+  (
+    poolStakingContract: PooledStakingContract,
+    networkClientId: NetworkClientId,
+  ) =>
   async (activeAccountAddress: string, pooledStakesData: PooledStake) => {
     try {
       if (pooledStakesData.exitRequests.length === 0) return;
@@ -105,11 +114,13 @@ const attemptPoolStakedClaimTransaction =
             pooledStakesData,
             poolStakingContract,
             activeAccountAddress,
+            networkClientId,
           )
         : await attemptSingleClaimTransaction(
             pooledStakesData,
             poolStakingContract,
             activeAccountAddress,
+            networkClientId,
           );
     } catch (e) {
       const errorMessage = (e as Error).message;
@@ -121,14 +132,14 @@ const attemptPoolStakedClaimTransaction =
   };
 
 const usePoolStakedClaim = () => {
-  const poolStakeContext = useStakeContext();
-
-  const stakingContract =
-    poolStakeContext?.stakingContract as PooledStakingContract;
+  const { networkClientId, stakingContract } =
+    useStakeContext() as Required<Stake>;
 
   return {
-    attemptPoolStakedClaimTransaction:
-      attemptPoolStakedClaimTransaction(stakingContract),
+    attemptPoolStakedClaimTransaction: attemptPoolStakedClaimTransaction(
+      stakingContract,
+      networkClientId,
+    ),
   };
 };
 

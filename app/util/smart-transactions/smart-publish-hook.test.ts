@@ -11,7 +11,10 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { type SmartTransaction, ClientId } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  type SmartTransaction,
+  ClientId,
+} from '@metamask/smart-transactions-controller/dist/types';
 
 import {
   AllowedActions,
@@ -101,6 +104,7 @@ const defaultTransactionMeta: TransactionMeta = {
   },
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
+  networkClientId: 'testNetworkClientId',
   time: 1624408066355,
 };
 

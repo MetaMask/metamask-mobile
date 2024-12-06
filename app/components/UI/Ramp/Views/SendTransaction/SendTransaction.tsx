@@ -58,6 +58,7 @@ import { generateTransferData } from '../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
 import { RAMPS_SEND } from '../../constants';
+import { selectNetworkClientId } from '../../../../../selectors/networkController';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -70,6 +71,7 @@ function SendTransaction() {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
+  const networkClientId = useSelector(selectNetworkClientId);
   const trackEvent = useAnalytics();
 
   const [isConfirming, setIsConfirming] = useState(false);
@@ -165,10 +167,13 @@ function SendTransaction() {
         // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
+
       const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: RAMPS_SEND,
       });
+
       const hash = await response.result;
 
       if (order?.id) {
@@ -200,6 +205,7 @@ function SendTransaction() {
     orderData,
     trackEvent,
     transactionAnalyticsPayload,
+    networkClientId,
   ]);
 
   if (!order) {
