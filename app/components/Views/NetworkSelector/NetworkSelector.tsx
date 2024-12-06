@@ -399,7 +399,7 @@ const NetworkSelector = () => {
       AccountTrackerController.refresh();
 
       setTimeout(async () => {
-        await updateIncomingTransactions();
+        await updateIncomingTransactions([clientId]);
       }, 1000);
     }
 

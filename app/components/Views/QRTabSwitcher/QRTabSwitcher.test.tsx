@@ -44,6 +44,10 @@ describe('QRTabSwitcher', () => {
 
   afterEach(() => {
     jest.runAllTimers();
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
     jest.useRealTimers();
   });
 
