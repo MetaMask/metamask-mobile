@@ -1,7 +1,7 @@
 import { RootState } from '../reducers';
 import {
   getNativeTokenInfo,
-  getSelectedAccountNativeTokenCachedBalanceByChainId,
+  selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
@@ -98,7 +98,10 @@ describe('Multichain Selectors', () => {
 
   describe('getNativeTokenInfo', () => {
     it('should return native token info for a given chain', () => {
-      const result = getNativeTokenInfo(mockState, '0x1');
+      const networkConfigurations =
+        mockState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId;
+      const result = getNativeTokenInfo(networkConfigurations, '0x1');
       expect(result).toEqual({
         symbol: 'ETH',
         decimals: 18,
@@ -107,15 +110,18 @@ describe('Multichain Selectors', () => {
     });
 
     it('should return default values when network config is not found', () => {
-      const result = getNativeTokenInfo(mockState, '0x999');
+      const networkConfigurations =
+        mockState.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId;
+      const result = getNativeTokenInfo(networkConfigurations, '0x999');
       expect(result).toBeUndefined();
     });
   });
 
-  describe('getSelectedAccountNativeTokenCachedBalanceByChainId', () => {
+  describe('selectedAccountNativeTokenCachedBalanceByChainId', () => {
     it('should return native token balances for all chains', () => {
       const result =
-        getSelectedAccountNativeTokenCachedBalanceByChainId(mockState);
+        selectedAccountNativeTokenCachedBalanceByChainId(mockState);
       expect(result).toEqual({
         '0x1': {
           balance: '0x1',
@@ -150,9 +156,7 @@ describe('Multichain Selectors', () => {
       } as unknown as RootState;
 
       const result =
-        getSelectedAccountNativeTokenCachedBalanceByChainId(
-          stateWithoutAccount,
-        );
+        selectedAccountNativeTokenCachedBalanceByChainId(stateWithoutAccount);
       expect(result).toEqual({});
     });
   });
