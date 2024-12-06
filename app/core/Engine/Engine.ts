@@ -198,6 +198,7 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 import { createMultichainBalancesController } from './controllers/MultichainBalancesController/utils';
+import { createMultichainRatesController } from './controllers/RatesController/utils';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
@@ -395,6 +396,18 @@ export class Engine {
     const multichainBalancesController = createMultichainBalancesController({
       messenger: multichainBalancesControllerMessenger,
       initialState: initialState.MultichainBalancesController,
+    });
+
+    const multichainRatesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'RatesController',
+        allowedActions: [],
+        allowedEvents: [],
+      });
+
+    const multichainRatesController = createMultichainRatesController({
+      messenger: multichainRatesControllerMessenger,
+      initialState: initialState.RatesController,
     });
     ///: END:ONLY_INCLUDE_IF
 
@@ -1510,6 +1523,7 @@ export class Engine {
       }),
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,
+      RatesController: multichainRatesController,
       ///: END:ONLY_INCLUDE_IF
     };
 
