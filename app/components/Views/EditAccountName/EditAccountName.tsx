@@ -17,7 +17,7 @@ import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { formatAddress, getAddressAccountType } from '../../../util/address';
-import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
+import { EditAccountNameSelectorIDs } from '../../../../e2e/selectors/wallet/EditAccountName.selectors';
 
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
@@ -57,7 +57,7 @@ const EditAccountName = () => {
   const route = useRoute<EditAccountNameRouteProp>();
   const { selectedAccount } = route.params;
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { setOptions, goBack, navigate } = useNavigation();
   const [accountName, setAccountName] = useState<string>();
@@ -116,7 +116,11 @@ const EditAccountName = () => {
           return { account_type, chain_id: getDecimalChainId(chainId) };
         };
         const analyticsProps = await analyticsProperties();
-        trackEvent(MetaMetricsEvents.ACCOUNT_RENAMED, analyticsProps);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ACCOUNT_RENAMED)
+            .addProperties({ ...analyticsProps })
+            .build(),
+        );
       } catch {
         return {};
       }

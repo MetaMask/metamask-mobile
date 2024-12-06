@@ -71,6 +71,9 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
+import {
+  MAX_MESSAGE_LENGTH,
+} from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getPermittedAccounts,
@@ -91,7 +94,7 @@ import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
 } from '../../../selectors/preferencesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
 import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
@@ -111,6 +114,11 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { isMultichainVersion1Enabled } from '../../../util/networks';
+import { useIsFocused } from '@react-navigation/native';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
   AppConstants;
@@ -308,6 +316,8 @@ export const BrowserTab = (props) => {
     (state) => state.browser.activeTab === props.id,
   );
 
+  const isFocused = useIsFocused();
+
   /**
    * Gets the url to be displayed to the user
    * For example, if it's ens then show [site].eth instead of ipfs url
@@ -399,8 +409,15 @@ export const BrowserTab = (props) => {
     dismissTextSelectionIfNeeded();
     setShowOptions(!showOptions);
 
-    trackEvent(MetaMetricsEvents.DAPP_BROWSER_OPTIONS);
-  }, [dismissTextSelectionIfNeeded, showOptions, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_BROWSER_OPTIONS).build(),
+    );
+  }, [
+    dismissTextSelectionIfNeeded,
+    showOptions,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   /**
    * Show the options menu
@@ -852,11 +869,15 @@ export const BrowserTab = (props) => {
   );
 
   const trackEventSearchUsed = useCallback(() => {
-    trackEvent(MetaMetricsEvents.BROWSER_SEARCH_USED, {
-      option_chosen: 'Search on URL',
-      number_of_tabs: undefined,
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
+        .addProperties({
+          option_chosen: 'Search on URL',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   /**
    *  Function that allows custom handling of any web view requests.
@@ -953,6 +974,15 @@ export const BrowserTab = (props) => {
   const onMessage = ({ nativeEvent }) => {
     let data = nativeEvent.data;
     try {
+      if (data.length > MAX_MESSAGE_LENGTH) {
+        console.warn(
+          `message exceeded size limit and will be dropped: ${data.slice(
+            0,
+            1000,
+          )}...`,
+        );
+        return;
+      }
       data = typeof data === 'string' ? JSON.parse(data) : data;
       if (!data || (!data.type && !data.name)) {
         return;
@@ -977,7 +1007,7 @@ export const BrowserTab = (props) => {
     toggleOptionsIfNeeded();
     if (url.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
-    trackEvent(MetaMetricsEvents.DAPP_HOME);
+    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
 
   /**
@@ -1129,9 +1159,13 @@ export const BrowserTab = (props) => {
           error,
           setAccountsPermissionsVisible: () => {
             // Track Event: "Opened Acount Switcher"
-            trackEvent(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH, {
-              number_of_accounts: accounts?.length,
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+                .addProperties({
+                  number_of_accounts: accounts?.length,
+                })
+                .build(),
+            );
             props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
@@ -1202,33 +1236,43 @@ export const BrowserTab = (props) => {
    * Track new tab event
    */
   const trackNewTabEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_NEW_TAB, {
-      option_chosen: 'Browser Options',
-      number_of_tabs: undefined,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+        .addProperties({
+          option_chosen: 'Browser Options',
+          number_of_tabs: undefined,
+        })
+        .build(),
+    );
   };
 
   /**
    * Track add site to favorites event
    */
   const trackAddToFavoritesEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_ADD_FAVORITES, {
-      dapp_name: title.current || '',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_ADD_FAVORITES)
+        .addProperties({
+          dapp_name: title.current || '',
+        })
+        .build(),
+    );
   };
 
   /**
    * Track share site event
    */
   const trackShareEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_SHARE_SITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SHARE_SITE).build(),
+    );
   };
 
   /**
    * Track reload site event
    */
   const trackReloadEvent = () => {
-    trackEvent(MetaMetricsEvents.BROWSER_RELOAD);
+    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
   };
 
   /**
@@ -1263,7 +1307,9 @@ export const BrowserTab = (props) => {
       },
     });
     trackAddToFavoritesEvent();
-    trackEvent(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
+    );
   };
 
   /**
@@ -1290,7 +1336,9 @@ export const BrowserTab = (props) => {
         error,
       ),
     );
-    trackEvent(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
+    );
   };
 
   /**
@@ -1533,6 +1581,68 @@ export const BrowserTab = (props) => {
     [props.linkType],
   );
 
+  const checkTabPermissions = useCallback(() => {
+    if (!url.current) return;
+
+    const hostname = new URL(url.current).hostname;
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    const isConnected = permittedAccounts.length > 0;
+
+    if (isConnected) {
+      let permittedChains = [];
+      try {
+        const caveat = Engine.context.PermissionController.getCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+        const currentChainId = props.chainId;
+        const isCurrentChainIdAlreadyPermitted =
+          permittedChains.includes(currentChainId);
+
+        if (!isCurrentChainIdAlreadyPermitted) {
+          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+            params: {
+              isNonDappNetworkSwitch: true,
+              hostInfo: {
+                metadata: {
+                  origin: hostname,
+                },
+              },
+              isRenderedAsBottomSheet: true,
+              initialScreen: AccountPermissionsScreens.Connected,
+            },
+          });
+        }
+      } catch (e) {
+        Logger.error(e, 'Error in checkTabPermissions');
+      }
+    }
+  }, [props.chainId, props.navigation]);
+
+  const urlRef = useRef(url.current);
+  useEffect(() => {
+    urlRef.current = url.current;
+    if (
+      isMultichainVersion1Enabled &&
+      urlRef.current &&
+      isFocused &&
+      !props.isInTabsView &&
+      isTabActive
+    ) {
+      checkTabPermissions();
+    }
+  }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
+
   /**
    * Main render
    */
@@ -1695,6 +1805,10 @@ BrowserTab.propTypes = {
    * Represents the current chain id
    */
   chainId: PropTypes.string,
+  /**
+   * Boolean indicating if browser is in tabs view
+   */
+  isInTabsView: PropTypes.bool,
 };
 
 BrowserTab.defaultProps = {
@@ -1705,7 +1819,7 @@ const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress:
-    selectSelectedInternalAccountChecksummedAddress(state)?.toLowerCase(),
+    selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,

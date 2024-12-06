@@ -64,7 +64,7 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { useProfileSyncing } from '../../../util/notifications/hooks/useProfileSyncing';
+import { useProfileSyncing } from '../../../util/identity/hooks/useProfileSyncing';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

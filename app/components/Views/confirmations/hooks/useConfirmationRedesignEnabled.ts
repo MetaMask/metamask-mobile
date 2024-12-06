@@ -5,10 +5,11 @@ import useApprovalRequest from './useApprovalRequest';
 
 const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const {
-    type: approvalRequestType,
-    requestData: { version: approvalRequestVersion },
-  } = approvalRequest ?? { requestData: {} };
+
+  const { type: approvalRequestType, requestData } = approvalRequest ?? {
+    requestData: {},
+  };
+  const approvalRequestVersion = requestData?.version;
 
   const isRedesignedEnabled = useMemo(
     () =>

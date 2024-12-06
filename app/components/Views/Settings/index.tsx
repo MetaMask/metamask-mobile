@@ -34,7 +34,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -57,22 +57,31 @@ const Settings = () => {
   }, [updateNavBar]);
 
   const onPressGeneral = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_GENERAL);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_GENERAL).build());
     navigation.navigate('GeneralSettings');
   };
 
   const onPressAdvanced = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_ADVANCED).build());
     navigation.navigate('AdvancedSettings');
   };
 
   const onPressNotifications = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_NOTIFICATIONS);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_NOTIFICATIONS).build(),
+    );
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const onPressSecurity = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY,
+      ).build(),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.VIEW_SECURITY_SETTINGS).build(),
+    );
     navigation.navigate('SecuritySettings');
   };
 
@@ -81,12 +90,16 @@ const Settings = () => {
   };
 
   const onPressOnRamp = () => {
-    trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
+    );
     navigation.navigate(Routes.RAMP.SETTINGS);
   };
 
   const onPressExperimental = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_EXPERIMENTAL);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_EXPERIMENTAL).build(),
+    );
     navigation.navigate('ExperimentalSettings');
   };
 
@@ -95,7 +108,7 @@ const Settings = () => {
   };
 
   const onPressInfo = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_ABOUT).build());
     navigation.navigate('CompanySettings');
   };
 
@@ -128,7 +141,11 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const submitFeedback = () => {
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK,
+      ).build(),
+    );
     goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('app_settings.request_feature'),
@@ -140,7 +157,9 @@ const Settings = () => {
       'https://support.metamask.io',
       strings('app_settings.contact_support'),
     );
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+    );
   };
 
   const onPressLock = async () => {
@@ -164,7 +183,9 @@ const Settings = () => {
       ],
       { cancelable: false },
     );
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT).build(),
+    );
   };
 
   let aboutMetaMaskTitle = strings('app_settings.info_title');
