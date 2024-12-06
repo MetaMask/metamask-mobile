@@ -38,7 +38,6 @@ import {
   selectProviderType,
   selectRpcUrl,
 } from '../../../../../../selectors/networkController';
-import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
@@ -191,10 +190,7 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View
-            style={styles.bodyWrapper}
-            testID={ContractNickNameViewSelectorsIDs.CONTAINER}
-          >
+          <View style={styles.bodyWrapper}>
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -241,7 +237,6 @@ const AddNickname = (props: AddNicknameProps) => {
               style={styles.input}
               value={newNickname}
               editable={!addressHasError}
-              testID={ContractNickNameViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
@@ -259,7 +254,6 @@ const AddNickname = (props: AddNicknameProps) => {
               type={'confirm'}
               disabled={shouldDisableButton}
               onPress={saveTokenNickname}
-              testID={ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON}
             >
               {strings('nickname.save_nickname')}
             </StyledButton>

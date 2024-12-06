@@ -62,6 +62,12 @@ app/selectors/notification @MetaMask/notifications
 app/util/notifications  @MetaMask/notifications
 app/store/util/notifications @MetaMask/notifications
 
+# Identity Team
+app/actions/identity @MetaMask/identity
+app/util/identity @MetaMask/identity
+app/components/UI/ProfileSyncing @MetaMask/identity
+e2e/specs/identity @MetaMask/identity
+
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
 patches/react-native+0.*.patch       @MetaMask/supply-chain

@@ -5,6 +5,7 @@ import ExtendedKeyringTypes from '../../app/constants/keyringTypes';
 import type EthQuery from '@metamask/eth-query';
 import type { BN } from 'ethereumjs-util';
 import { Hex } from '@metamask/utils';
+import { getGlobalEthQuery } from './networks/global-network';
 
 const ZERO_BALANCE = '0x0';
 const MAX = 20;
@@ -32,7 +33,7 @@ const getBalance = async (address: string, ethQuery: EthQuery): Promise<Hex> =>
  */
 export default async () => {
   const { KeyringController } = Engine.context;
-  const ethQuery = Engine.getGlobalEthQuery();
+  const ethQuery = getGlobalEthQuery();
 
   await KeyringController.withKeyring(
     { type: ExtendedKeyringTypes.hd },

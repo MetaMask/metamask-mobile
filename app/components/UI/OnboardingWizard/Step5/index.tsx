@@ -13,7 +13,7 @@ import {
 import { useTheme } from '../../../../util/theme';
 
 import { useMetrics } from '../../../hooks/useMetrics';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 
 const styles = StyleSheet.create({
   main: {

@@ -37,9 +37,9 @@ import BottomSheetFooter, {
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   getNetworkImageSource,
-  toggleUseSafeChainsListValidation,
   isMultichainVersion1Enabled,
 } from '../../../util/networks';
+import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
