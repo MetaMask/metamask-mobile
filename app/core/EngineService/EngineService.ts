@@ -193,6 +193,12 @@ export class EngineService {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      {
+        name: 'MultichainBalancesController',
+        key: `${engine.context.MultichainBalancesController.name}:stateChange`,
+      },
+      ///: END:ONLY_INCLUDE_IF
     ];
 
     engine.controllerMessenger.subscribeOnceIf(
