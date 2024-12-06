@@ -73,6 +73,7 @@ import { updateSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import InstallSnapApproval from '../../Approvals/InstallSnapApproval';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
@@ -160,7 +161,7 @@ const RootRPCMethodsUI = (props) => {
             ({ id }) => id === approvalTransactionMetaId,
           );
 
-        const ethQuery = Engine.getGlobalEthQuery();
+        const ethQuery = getGlobalEthQuery();
 
         const ethBalance = await query(ethQuery, 'getBalance', [
           props.selectedAddress,
@@ -320,7 +321,7 @@ const RootRPCMethodsUI = (props) => {
               transactionId: transactionMeta.id,
               deviceId,
               // eslint-disable-next-line no-empty-function
-              onConfirmationComplete: () => {},
+              onConfirmationComplete: () => { },
               type: 'signTransaction',
             }),
           );
@@ -377,6 +378,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
         const { AssetsContractController } = Engine.context;
@@ -388,7 +390,7 @@ const RootRPCMethodsUI = (props) => {
           data &&
           data !== '0x' &&
           to &&
-          (await getMethodData(data)).name === TOKEN_METHOD_TRANSFER
+          (await getMethodData(data, networkClientId)).name === TOKEN_METHOD_TRANSFER
         ) {
           let asset = props.tokens.find(({ address }) =>
             toLowerCaseEquals(address, to),
@@ -431,6 +433,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            networkClientId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -443,6 +446,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            networkClientId,
             ...transactionMeta.txParams,
           });
         }
