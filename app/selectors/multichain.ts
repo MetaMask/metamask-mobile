@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
+import { NetworkConfiguration } from '@metamask/network-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { RootState } from '../reducers';
 import I18n from '../../locales/i18n';
@@ -10,14 +11,11 @@ import {
 import { selectAllTokens } from './tokensController';
 import { selectTokensBalances } from './tokenBalancesController';
 import { selectAccountsByChainId } from './accountTrackerController';
-import {
-  selectNetworkConfigurations,
-  selectNetworkConfigurationByChainId,
-} from './networkController';
+import { selectNetworkConfigurations } from './networkController';
 import { selectTokenMarketData as selectMarketData } from './tokenRatesController';
 import {
   selectCurrentCurrency,
-  selectConversionRateBySymbol,
+  selectCurrencyRates,
 } from './currencyRateController';
 
 import { AssetType } from '../components/UI/SimulationDetails/types';
@@ -32,8 +30,11 @@ import {
 } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
 
-export function getNativeTokenInfo(state: RootState, chainId: Hex) {
-  const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
+export function getNativeTokenInfo(
+  networkConfigurations: Record<Hex, NetworkConfiguration>,
+  chainId: Hex,
+) {
+  const networkConfig = networkConfigurations?.[chainId];
 
   if (networkConfig) {
     const symbol = networkConfig.nativeCurrency || AssetType.Native;
@@ -63,32 +64,30 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export function getSelectedAccountNativeTokenCachedBalanceByChainId(
-  state: RootState,
-): ChainBalances {
-  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
-  const accountsByChainId = selectAccountsByChainId(state);
+export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
+  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
+  (selectedAddress, accountsByChainId): ChainBalances => {
+    if (!selectedAddress || !accountsByChainId) {
+      return {};
+    }
 
-  if (!selectedAddress || !accountsByChainId) {
-    return {};
-  }
-
-  return Object.entries(accountsByChainId).reduce<ChainBalances>(
-    (acc, [chainId, accounts]) => {
-      const account = accounts[selectedAddress];
-      if (account) {
-        acc[chainId] = {
-          balance: account.balance,
-          stakedBalance: account.stakedBalance ?? '0x0',
-          isStaked: account.stakedBalance !== '0x0',
-          name: 'Staked Ethereum',
-        };
-      }
-      return acc;
-    },
-    {},
-  );
-}
+    return Object.entries(accountsByChainId).reduce<ChainBalances>(
+      (acc, [chainId, accounts]) => {
+        const account = accounts[selectedAddress];
+        if (account) {
+          acc[chainId] = {
+            balance: account.balance,
+            stakedBalance: account.stakedBalance ?? '0x0',
+            isStaked: account.stakedBalance !== '0x0',
+            name: 'Staked Ethereum',
+          };
+        }
+        return acc;
+      },
+      {},
+    );
+  },
+);
 
 /**
  * Get the tokens for the selected account across all chains.
@@ -102,10 +101,10 @@ export const selectAccountTokensAcrossChains = createSelector(
     selectAllTokens,
     selectTokensBalances,
     selectNetworkConfigurations,
-    getSelectedAccountNativeTokenCachedBalanceByChainId,
+    selectedAccountNativeTokenCachedBalanceByChainId,
     selectMarketData,
     selectCurrentCurrency,
-    (state: RootState) => state,
+    selectCurrencyRates,
   ],
   (
     selectedAccount,
@@ -115,7 +114,7 @@ export const selectAccountTokensAcrossChains = createSelector(
     nativeTokenBalancesByChainId,
     tokenExchangeRates,
     currentCurrency,
-    state,
+    currencyRates,
   ) => {
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: { [chainId: string]: TokenI[] } = {};
@@ -140,10 +139,8 @@ export const selectAccountTokensAcrossChains = createSelector(
         []) as TokenI[];
       const nativeCurrency =
         networkConfigurations?.[chainId as Hex].nativeCurrency;
-      const conversionRateByNativeCurrency = selectConversionRateBySymbol(
-        state,
-        nativeCurrency,
-      );
+      const conversionRateByNativeCurrency =
+        currencyRates?.[nativeCurrency]?.conversionRate || 0;
       const chainBalances =
         tokenBalances[selectedAddress as Hex]?.[currentChainId] || {};
       const tokenExchangeRateByChainId = tokenExchangeRates[chainId as Hex];
@@ -195,7 +192,10 @@ export const selectAccountTokensAcrossChains = createSelector(
       // Add native token if it exists for this chain
       const nativeTokenInfoByChainId = nativeTokenBalancesByChainId[chainId];
       if (nativeTokenInfoByChainId) {
-        const nativeTokenInfo = getNativeTokenInfo(state, chainId as Hex);
+        const nativeTokenInfo = getNativeTokenInfo(
+          networkConfigurations,
+          chainId as Hex,
+        );
 
         // Calculate native token balance
         const nativeBalanceFormatted = renderFromWei(

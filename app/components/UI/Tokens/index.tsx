@@ -123,7 +123,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const styles = createStyles(colors);
 
-  const tokensList = useMemo(() => {
+  const tokensList = useMemo((): TokenI[] => {
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
       const allTokens = Object.values(selectedAccountTokensChains).flat();
@@ -135,7 +135,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               !isZero(token.balance) || token.isNative || token.isStaked,
           )
         : allTokens;
-
       // Then apply network filters
       const filteredAssets = filterAssets(tokensWithBalance, [
         {
@@ -172,9 +171,12 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const assets = [...nativeTokens, ...nonNativeTokens];
 
       const tokensWithBalances = assets.map((token) => {
-        const tokenFloatBalance = parseFloat(
-          token.balanceFiat.replace(/[^0-9.]/g, ''),
-        );
+        let tokenFloatBalance = 0;
+        if (token.balanceFiat) {
+          tokenFloatBalance = parseFloat(
+            token.balanceFiat?.replace(/[^0-9.]/g, ''),
+          );
+        }
         return {
           ...token,
           tokenFiatAmount: tokenFloatBalance,
@@ -183,7 +185,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       return sortAssets(tokensWithBalances, tokenSortConfig);
     }
-
     // Previous implementation
     // Filter tokens based on hideZeroBalanceTokens flag
     const tokensToDisplay = hideZeroBalanceTokens

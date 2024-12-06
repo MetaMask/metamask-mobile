@@ -96,7 +96,7 @@ const Drawer = forwardRef<DrawerRef, Props>((props, ref) => {
           chainId,
           networkOnboardingState,
         );
-        if (!networkOnboarded && !isPortfolioViewEnabled()) {
+        if (!networkOnboarded) {
           InteractionManager.runAfterInteractions(() => {
             dispatch(toggleInfoNetworkModal(true));
           });
