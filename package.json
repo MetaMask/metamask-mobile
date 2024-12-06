@@ -134,7 +134,8 @@
     "**/@metamask/rpc-errors": "7.0.1",
     "base58-js": "1.0.0",
     "bech32": "2.0.0",
-    "sha256-uint8array": "0.10.3"
+    "sha256-uint8array": "0.10.3",
+    "express": "4.21.2"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.7",
