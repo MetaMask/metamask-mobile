@@ -33,6 +33,12 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerState,
+  MultichainBalancesController,
+  MultichainBalancesControllerEvents,
+  MultichainBalancesControllerActions,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -161,7 +167,7 @@ import {
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import {
   RemoteFeatureFlagController,
-  RemoteFeatureFlagControllerState
+  RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
 
 /**
@@ -212,6 +218,7 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
+  | MultichainBalancesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -242,6 +249,7 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
+  | MultichainBalancesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -314,6 +322,7 @@ export interface Controllers {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
+  MultichainBalancesController: MultichainBalancesController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 }
@@ -352,6 +361,7 @@ export interface EngineState {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  MultichainBalancesController: MultichainBalancesControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;

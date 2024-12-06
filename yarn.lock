@@ -4116,10 +4116,10 @@
     "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^44.1.0":
-  version "44.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-44.1.0.tgz#92d460b8926b138feacfff0cdf0c3efcc66091aa"
-  integrity sha512-YbEUoGSJciIrPjSxk4VJktcSEGxHUaK48OOLOjA8BMXWTlMJ1ac8OQeHwciPbTCGriwUa4QsxsequsuSGWNs/g==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@45.1.1-preview-9e677163":
+  version "45.1.1-preview-9e677163"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-45.1.1-preview-9e677163.tgz#ffe5d68af3d773a75c20a88ebb22c320825adb02"
+  integrity sha512-61xXAHU2Buzdtgad/bWHkkwezSMsdJkc9WnUszXgkxilDUtYJjWeRA0LMU0MsKYHXHwSPWfMqFzaWM7Tahy8rg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4130,15 +4130,17 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^7.0.2"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^12.0.1"
+    "@metamask/polling-controller" "^12.0.2"
     "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/snaps-utils" "^8.3.0"
     "@metamask/utils" "^10.0.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
+    bitcoin-address-validation "^2.2.3"
     bn.js "^5.2.1"
     cockatiel "^3.1.2"
     immer "^9.0.6"
@@ -4840,13 +4842,25 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.1":
+"@metamask/polling-controller@^12.0.0":
   version "12.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.1.tgz#89593c892d7fbbc93ccb6fe45dd2d820839f3d93"
   integrity sha512-ZCF7UBuyxk9utdmOAh9/VBT780OxRPN5pD0wJaRwsFnFM3FFOFmvmojqnw8Kz4lSglyETtOBBMvzyQsnqoXQEQ==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.2"
+    "@metamask/utils" "^10.0.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
+
+"@metamask/polling-controller@^12.0.2":
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.2.tgz#de37ff5f4f997d57d4da34b0c6574d2eba3184e0"
+  integrity sha512-TYplREQMrhPcsJn+b7WS2oZqMwt4jKcyL/tDmygVv90RcvESBBhXxz7D0Brm5UAirnkE3TPRq8fnVWwVSQAVcA==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/utils" "^10.0.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
@@ -12425,7 +12439,7 @@ bip66@^1.1.5:
   dependencies:
     safe-buffer "^5.0.1"
 
-bitcoin-address-validation@2.2.3:
+bitcoin-address-validation@2.2.3, bitcoin-address-validation@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-2.2.3.tgz#ffae6d48facd5ce7ef60574891aab979d21f9828"
   integrity sha512-1uGCGl26Ye8JG5qcExtFLQfuib6qEZWNDo1ZlLlwp/z7ygUFby3IxolgEfgMGaC+LG9csbVASLcH8fRLv7DIOg==
