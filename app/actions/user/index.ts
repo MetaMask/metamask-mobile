@@ -1,4 +1,4 @@
-import { AppThemeKey } from '../../util/theme/models';
+import { type AppThemeKey } from '../../util/theme/models';
 import {
   type InterruptBiometricsAction,
   type LockAppAction,

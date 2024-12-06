@@ -1,5 +1,5 @@
-import { AppThemeKey } from '../../util/theme/models';
-import { Action } from 'redux';
+import { type AppThemeKey } from '../../util/theme/models';
+import { type Action } from 'redux';
 
 // Action type enum
 export enum UserActionType {
