@@ -246,11 +246,13 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
+
+        await Promise.all([importAdditionalAccounts(), enableProfileSyncing()]);
+
         navigation.reset({
           index: 1,
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         });
-        await Promise.all([importAdditionalAccounts(), enableProfileSyncing()]);
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
