@@ -10,6 +10,7 @@ import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
+import { CustomNetworks } from '../../resources/networks.e2e';
 
 describe(SmokeCore('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
