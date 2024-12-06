@@ -1,8 +1,8 @@
 import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
-import { DEFAULT_MOCKSERVER_PORT } from '../api-mocking/mock-server';
 
+const DEFAULT_MOCKSERVER_PORT = 8000;
 
 function transformToValidPort(defaultPort, pid) {
   // Improve uniqueness by using a simple transformation

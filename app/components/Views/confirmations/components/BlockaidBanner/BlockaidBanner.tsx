@@ -32,7 +32,7 @@ import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import AppConstants from '../../../../../core/AppConstants';
-import { ConfirmationTopSheetSelectorsIDs } from '../../../../../../e2e/selectors/ConfirmationView.selectors';
+import { ConfirmationTopSheetSelectorsIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 
 const getReportUrl = (encodedData: string) =>
   `${FALSE_POSITIVE_REPORT_BASE_URL}?data=${encodeURIComponent(

@@ -10,6 +10,7 @@ const IS_OSX = process.platform === 'darwin';
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
+let INSTALL_PODS;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
   switch (arg) {
@@ -18,6 +19,12 @@ for (const arg of args) {
       continue;
     case '--no-build-ios':
       BUILD_IOS = false;
+      continue;
+    case '--install-pods':
+      INSTALL_PODS = true;
+      continue;
+    case '--no-install-pods':
+      INSTALL_PODS = false;
       continue;
     case '--node':
       IS_NODE = true;
@@ -28,6 +35,12 @@ for (const arg of args) {
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
   }
+}
+if (INSTALL_PODS === undefined) {
+  INSTALL_PODS = BUILD_IOS;
+}
+if (INSTALL_PODS && !BUILD_IOS) {
+  throw new Error('Cannot install pods if iOS setup has been skipped');
 }
 
 const rendererOptions = {
@@ -147,34 +160,39 @@ const setupIosTask = {
       return task.skip('Skipping iOS set up.');
     }
 
+    const tasks = [
+      {
+        title: 'Install bundler gem',
+        task: async () => {
+          await $`gem install bundler -v 2.5.8`;
+        },
+      },
+      {
+        title: 'Install gems',
+        task: async () => {
+          await $`yarn gem:bundle:install`;
+        },
+      },
+      {
+        title: 'Create xcconfig files',
+        task: async () => {
+          fs.writeFileSync('ios/debug.xcconfig', '');
+          fs.writeFileSync('ios/release.xcconfig', '');
+        },
+      },
+    ];
+
+    if (INSTALL_PODS) {
+      tasks.push({
+        title: 'Install CocoaPods',
+        task: async () => {
+          await $`yarn pod:install`;
+        },
+      });
+    }
+
     return task.newListr(
-      [
-        {
-          title: 'Install bundler gem',
-          task: async () => {
-            await $`gem install bundler -v 2.5.8`;
-          },
-        },
-        {
-          title: 'Install gems',
-          task: async () => {
-            await $`yarn gem:bundle:install`;
-          },
-        },
-        {
-          title: 'Create xcconfig files',
-          task: async () => {
-            fs.writeFileSync('ios/debug.xcconfig', '');
-            fs.writeFileSync('ios/release.xcconfig', '');
-          },
-        },
-        {
-          title: 'Install CocoaPods',
-          task: async () => {
-            await $`yarn pod:install`;
-          },
-        },
-      ],
+      tasks,
       {
         concurrent: false,
         exitOnError: true,

@@ -35,7 +35,7 @@ import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 
 const AddAsset = () => {
   const navigation = useNavigation();

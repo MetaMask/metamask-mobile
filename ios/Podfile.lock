@@ -3,8 +3,8 @@ PODS:
   - BEMCheckBox (1.4.1)
   - boost (1.76.0)
   - Branch (1.43.2)
-  - BVLinearGradient (2.5.6):
-    - React
+  - BVLinearGradient (2.8.3):
+    - React-Core
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
   - EXApplication (5.3.1):
@@ -1284,7 +1284,7 @@ SPEC CHECKSUMS:
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7dcd2de282d72e344012f7d6564d024930a6a440
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
-  BVLinearGradient: 44fd36b87f318e7933c4c91a6991442a5e3f5bcf
+  BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 5189b271737e1565bdce30deb4a08d647e3f5f54
   EXApplication: aa0fc96f297b984950f2ca8d64c5a326403a0b29

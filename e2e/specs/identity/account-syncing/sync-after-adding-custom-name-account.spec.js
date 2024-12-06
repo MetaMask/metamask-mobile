@@ -1,8 +1,8 @@
 import { SDK } from '@metamask/profile-sync-controller';
 import {
-  NOTIFICATIONS_TEAM_PASSWORD,
-  NOTIFICATIONS_TEAM_SEED_PHRASE,
-  NOTIFICATIONS_TEAM_STORAGE_KEY,
+  IDENTITY_TEAM_PASSWORD,
+  IDENTITY_TEAM_SEED_PHRASE,
+  IDENTITY_TEAM_STORAGE_KEY,
 } from '../utils/constants';
 import {
   startMockServer,
@@ -16,10 +16,10 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
-import { mockNotificationServices } from '../utils/mocks';
-import { SmokeNotifications } from '../../../tags';
+import { mockIdentityServices } from '../utils/mocks';
+import { SmokeIdentity } from '../../../tags';
 
-describe(SmokeNotifications('Account syncing'), () => {
+describe(SmokeIdentity('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
   let decryptedAccountNames = '';
 
@@ -29,8 +29,9 @@ describe(SmokeNotifications('Account syncing'), () => {
 
     const mockServer = await startMockServer();
 
-    const { userStorageMockttpControllerInstance } =
-      await mockNotificationServices(mockServer);
+    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
+      mockServer,
+    );
 
     userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
       getResponse: accountsSyncMockResponse,
@@ -40,7 +41,7 @@ describe(SmokeNotifications('Account syncing'), () => {
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(
           response.Data,
-          NOTIFICATIONS_TEAM_STORAGE_KEY,
+          IDENTITY_TEAM_STORAGE_KEY,
         );
         return JSON.parse(decryptedAccountName).n;
       }),
@@ -58,8 +59,8 @@ describe(SmokeNotifications('Account syncing'), () => {
 
   it('syncs newly added accounts with custom names', async () => {
     await importWalletWithRecoveryPhrase(
-      NOTIFICATIONS_TEAM_SEED_PHRASE,
-      NOTIFICATIONS_TEAM_PASSWORD,
+      IDENTITY_TEAM_SEED_PHRASE,
+      IDENTITY_TEAM_PASSWORD,
     );
 
     await WalletView.tapIdenticon();
@@ -94,8 +95,8 @@ describe(SmokeNotifications('Account syncing'), () => {
     });
 
     await importWalletWithRecoveryPhrase(
-      NOTIFICATIONS_TEAM_SEED_PHRASE,
-      NOTIFICATIONS_TEAM_PASSWORD,
+      IDENTITY_TEAM_SEED_PHRASE,
+      IDENTITY_TEAM_PASSWORD,
     );
 
     await WalletView.tapIdenticon();
