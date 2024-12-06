@@ -16,7 +16,10 @@ jest.mock('../core/Engine', () => ({
       withKeyring: jest.fn((_keyring, callback) => callback(mockKeyring)),
     },
   },
-  getGlobalEthQuery: () => mockEthQuery,
+}));
+
+jest.mock('./networks/global-network', () => ({
+  getGlobalEthQuery: jest.fn(() => mockEthQuery),
 }));
 
 /**
