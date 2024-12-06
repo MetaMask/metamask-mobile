@@ -161,7 +161,7 @@ import {
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
 import {
   RemoteFeatureFlagController,
-  RemoteFeatureFlagControllerState
+  RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
 
 /**

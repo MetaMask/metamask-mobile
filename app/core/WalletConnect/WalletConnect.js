@@ -186,7 +186,8 @@ class WalletConnect {
               });
 
               const { NetworkController } = Engine.context;
-              const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(chainId);
 
               const trx = await addTransaction(payload.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,

@@ -125,7 +125,10 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       }
       await Assertions.checkIfElementToHaveText(
         DetailsBottomSheet.title,
-        DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+        DetailsBottomSheet.generateExpectedTitle(
+          sourceTokenSymbol,
+          destTokenSymbol,
+        ),
       );
       await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
       await DetailsBottomSheet.tapOnCloseIcon();

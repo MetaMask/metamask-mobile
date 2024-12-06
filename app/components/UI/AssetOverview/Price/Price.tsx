@@ -90,7 +90,10 @@ const Price = ({
           <Text variant={TextVariant.BodyMDMedium}>{asset.symbol}</Text>
         )}
         {!isNaN(price) && (
-          <Text testID={TokenOverviewSelectorsIDs.TOKEN_PRICE} variant={TextVariant.HeadingLG}>
+          <Text
+            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
+            variant={TextVariant.HeadingLG}
+          >
             {isLoading ? (
               <View style={styles.loadingPrice}>
                 <SkeletonPlaceholder>

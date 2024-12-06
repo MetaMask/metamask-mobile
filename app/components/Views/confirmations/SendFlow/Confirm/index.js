@@ -318,7 +318,8 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -349,8 +350,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -1242,15 +1243,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          advancedGasInserted: !gasSelect,
-          stopUpdateGas: false,
-        }
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
         : {
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-        }),
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 

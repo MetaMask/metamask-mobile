@@ -58,7 +58,9 @@ describe(
 
     it('Should dismiss Automatic Security checks screen', async () => {
       await TestHelpers.delay(3500);
-      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+      await Assertions.checkIfVisible(
+        EnableAutomaticSecurityChecksView.container,
+      );
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
@@ -80,7 +82,9 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await Assertions.checkIfVisible(
+          ExperienceEnhancerBottomSheet.container,
+        );
         await ExperienceEnhancerBottomSheet.tapIAgree();
       } catch {
         /* eslint-disable no-console */

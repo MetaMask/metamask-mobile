@@ -17,7 +17,10 @@ export async function addTransaction(
 }
 
 // Keeping this export as function to put more logic in the future
-export async function estimateGas(transaction: TransactionParams, networkClientId: NetworkClientId) {
+export async function estimateGas(
+  transaction: TransactionParams,
+  networkClientId: NetworkClientId,
+) {
   const { TransactionController } = Engine.context;
   return await TransactionController.estimateGas(transaction, networkClientId);
 }

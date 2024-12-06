@@ -77,12 +77,15 @@ export const estimateGas = async (
 
   let estimation;
   try {
-    estimation = await controllerEstimateGas({
-      value: amount,
-      from,
-      data,
-      to: selectedAsset?.address ? selectedAsset.address : to,
-    }, networkClientId);
+    estimation = await controllerEstimateGas(
+      {
+        value: amount,
+        from,
+        data,
+        to: selectedAsset?.address ? selectedAsset.address : to,
+      },
+      networkClientId,
+    );
   } catch (e) {
     estimation = {
       gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,

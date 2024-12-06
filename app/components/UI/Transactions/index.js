@@ -572,7 +572,7 @@ class Transactions extends PureComponent {
     const onConfirmation = (isComplete) => {
       if (isComplete) {
         transaction.speedUpParams &&
-          transaction.speedUpParams?.type === 'SpeedUp'
+        transaction.speedUpParams?.type === 'SpeedUp'
           ? this.onSpeedUpCompleted()
           : this.onCancelCompleted();
       }
@@ -758,8 +758,8 @@ class Transactions extends PureComponent {
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions
-          .sort((a, b) => b.time - a.time)
-          .concat(confirmedTransactions)
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
         : this.props.transactions;
 
     const renderRetryGas = (rate) => {
