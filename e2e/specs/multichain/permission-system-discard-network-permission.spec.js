@@ -16,13 +16,14 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  fit('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
+
+  fit('should discard network permission changes when navigating back without confirming', async () => {
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission(['0x1', '0xaa36a7']) // Initialize with Ethereum mainnet and Sepolia
+          .withChainPermission()
           .build(),
         restartDevice: true,
       },
@@ -34,25 +35,21 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
-        // Navigate to chain permissions
+        // Navigate to network permissions and add Sepolia
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-
-        // Uncheck Sepolia and check Linea Sepolia
         await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
 
-        // Update permissions
-        await NetworkConnectMultiSelector.tapUpdateButton();
+        // Navigate back without confirming changes
+        await NetworkConnectMultiSelector.tapBackButton();
 
-        // Verify changes were saved by checking chain permissions again
+        // Verify changes were discarded by checking network permissions again
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
-        // Deselect both networks to verify they were the only ones selected
+        // Deselect Ethereum mainnet (should be the only network selected)
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
 
-        // Verify the disconnect all button appears (indicating no chains are selected)
+        // Verify the disconnect all button appears (indicating no networks are selected)
         await Assertions.checkIfVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );
