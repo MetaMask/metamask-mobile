@@ -100,6 +100,7 @@ describe('Transaction Controller Util', () => {
   describe('getNetworkNonce', () => {
     const nonceMock = 123;
     const fromMock = '0x123';
+    const networkClientIdMock = 'testNetworkClientId';
 
     beforeEach(() => {
       jest.spyOn(Engine.context.TransactionController, 'getNonceLock');
@@ -118,12 +119,15 @@ describe('Transaction Controller Util', () => {
       });
 
       expect(
-        await TransactionControllerUtils.getNetworkNonce({ from: fromMock }),
+        await TransactionControllerUtils.getNetworkNonce(
+          { from: fromMock },
+          networkClientIdMock,
+        ),
       ).toBe(nonceMock);
 
       expect(
         Engine.context.TransactionController.getNonceLock,
-      ).toHaveBeenCalledWith(fromMock);
+      ).toHaveBeenCalledWith(fromMock, networkClientIdMock);
     });
 
     it('releases nonce lock', async () => {
@@ -136,7 +140,10 @@ describe('Transaction Controller Util', () => {
         releaseLock: releaseLockMock,
       });
 
-      await TransactionControllerUtils.getNetworkNonce({ from: fromMock });
+      await TransactionControllerUtils.getNetworkNonce(
+        { from: fromMock },
+        networkClientIdMock,
+      );
 
       expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });
