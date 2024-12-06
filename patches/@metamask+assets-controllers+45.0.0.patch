@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 6ccbe9c..49270d6 100644
+index 6ccbe9c..f725852 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -150,7 +150,7 @@ index 6ccbe9c..49270d6 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index a34725f..21e9d20 100644
+index a34725f..12487d6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -108,6 +108,7 @@ export type NftMetadata = {

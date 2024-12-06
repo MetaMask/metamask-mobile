@@ -4116,10 +4116,10 @@
     "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^44.1.0":
-  version "44.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-44.1.0.tgz#92d460b8926b138feacfff0cdf0c3efcc66091aa"
-  integrity sha512-YbEUoGSJciIrPjSxk4VJktcSEGxHUaK48OOLOjA8BMXWTlMJ1ac8OQeHwciPbTCGriwUa4QsxsequsuSGWNs/g==
+"@metamask/assets-controllers@45.0.0":
+  version "45.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-45.0.0.tgz#85a898095a820497f3ed3fee205c2872f89b04ac"
+  integrity sha512-1pQo7YLPjClsD1zbL2pU9188REovMEpBaexSiTmhPrAhSIUgrJT3d6afBxrfiMI9LnCQ50HicTaL2vekLyIfnA==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4840,13 +4840,25 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.1":
+"@metamask/polling-controller@^12.0.0":
   version "12.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.1.tgz#89593c892d7fbbc93ccb6fe45dd2d820839f3d93"
   integrity sha512-ZCF7UBuyxk9utdmOAh9/VBT780OxRPN5pD0wJaRwsFnFM3FFOFmvmojqnw8Kz4lSglyETtOBBMvzyQsnqoXQEQ==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.2"
+    "@metamask/utils" "^10.0.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
+
+"@metamask/polling-controller@^12.0.1":
+  version "12.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.2.tgz#de37ff5f4f997d57d4da34b0c6574d2eba3184e0"
+  integrity sha512-TYplREQMrhPcsJn+b7WS2oZqMwt4jKcyL/tDmygVv90RcvESBBhXxz7D0Brm5UAirnkE3TPRq8fnVWwVSQAVcA==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/utils" "^10.0.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
