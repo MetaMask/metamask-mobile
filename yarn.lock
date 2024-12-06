@@ -4116,10 +4116,10 @@
     "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@45.0.0":
-  version "45.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-45.0.0.tgz#85a898095a820497f3ed3fee205c2872f89b04ac"
-  integrity sha512-1pQo7YLPjClsD1zbL2pU9188REovMEpBaexSiTmhPrAhSIUgrJT3d6afBxrfiMI9LnCQ50HicTaL2vekLyIfnA==
+"@metamask/assets-controllers@^45.1.1":
+  version "45.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-45.1.1.tgz#365be66cbd14a0fb5be57b3ec30d54f3314d70ec"
+  integrity sha512-zKMIKv9w4sZu0S/flbgYLAy3wgoL11GuL5RW8AF6n2/jKlMxEA0ImIK0EZGhmkJAB78ZrcVIdoLeEEvSsGuO/w==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4130,10 +4130,10 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^7.0.2"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^12.0.1"
+    "@metamask/polling-controller" "^12.0.2"
     "@metamask/rpc-errors" "^7.0.1"
     "@metamask/utils" "^10.0.0"
     "@types/bn.js" "^5.1.5"
@@ -4840,7 +4840,7 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.1":
+"@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.2":
   version "12.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.2.tgz#de37ff5f4f997d57d4da34b0c6574d2eba3184e0"
   integrity sha512-TYplREQMrhPcsJn+b7WS2oZqMwt4jKcyL/tDmygVv90RcvESBBhXxz7D0Brm5UAirnkE3TPRq8fnVWwVSQAVcA==
