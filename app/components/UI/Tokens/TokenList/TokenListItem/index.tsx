@@ -71,6 +71,8 @@ interface TokenListItemProps {
   showRemoveMenu: (arg: TokenI) => void;
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
+  showPercentageChange?: boolean;
+  showNetworkAvatar?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -80,6 +82,8 @@ export const TokenListItem = React.memo(
     showRemoveMenu,
     setShowScamWarningModal,
     privacyMode,
+    showPercentageChange = true,
+    showNetworkAvatar = true,
   }: TokenListItemProps) => {
     const navigation = useNavigation();
     const { colors } = useTheme();
@@ -322,17 +326,19 @@ export const TokenListItem = React.memo(
         mainBalance={mainBalance}
         privacyMode={privacyMode}
       >
-        <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkBadgeSource(chainId)}
-              name={networkName}
-            />
-          }
-        >
-          {renderNetworkAvatar()}
-        </BadgeWrapper>
+        {showNetworkAvatar ? (
+          <BadgeWrapper
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource(chainId)}
+                name={networkName}
+              />
+            }
+          >
+            {renderNetworkAvatar()}
+          </BadgeWrapper>
+        ) : null}
 
         <View style={styles.balances}>
           {/*

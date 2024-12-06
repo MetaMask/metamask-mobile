@@ -22,6 +22,8 @@ interface TokenListProps {
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   goToAddToken: () => void;
+  showPercentageChange?: boolean;
+  showNetworkAvatar?: boolean;
 }
 
 export const TokenList = ({
@@ -31,6 +33,8 @@ export const TokenList = ({
   onRefresh,
   showRemoveMenu,
   goToAddToken,
+  showPercentageChange = true,
+  showNetworkAvatar = true,
 }: TokenListProps) => {
   const { colors } = useTheme();
   const privacyMode = useSelector(selectPrivacyMode);
@@ -57,6 +61,8 @@ export const TokenList = ({
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
           privacyMode={privacyMode}
+          showPercentageChange={showPercentageChange}
+          showNetworkAvatar={showNetworkAvatar}
         />
       )}
       keyExtractor={(_, index) => index.toString()}

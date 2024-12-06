@@ -1,0 +1,267 @@
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+/* eslint-disable arrow-body-style */
+import {
+  MULTICHAIN_PROVIDER_CONFIGS,
+  MultichainProviderConfig,
+} from '../../core/Multichain/constants';
+import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import { RootState } from '../../reducers';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+  selectProviderConfig,
+  ProviderConfig,
+} from '../networkController';
+import { selectSelectedInternalAccount } from '../accountsController';
+import { createDeepEqualSelector } from '../util';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { selectConversionRate } from '../currencyRateController';
+import { isBtcMainnetAddress } from '../../core/Multichain/utils';
+import { isMainNet } from '../../util/networks';
+import { MultichainNativeAssets } from '@metamask/assets-controllers';
+import { selectAccountBalanceByChainId } from '../accountTrackerController';
+import { selectShowFiatInTestnets } from '../settings';
+
+/**
+ * Get the state of the `bitcoinSupportEnabled` flag.
+ *
+ * @param {*} state
+ * @returns The state of the `bitcoinSupportEnabled` flag.
+ */
+export function selectIsBitcoinSupportEnabled(state: RootState) {
+  return state.multichainSettings.bitcoinSupportEnabled;
+}
+
+/**
+ * Get the state of the `bitcoinTestnetSupportEnabled` flag.
+ *
+ * @param {*} state
+ * @returns The state of the `bitcoinTestnetSupportEnabled` flag.
+ */
+export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
+  return state.multichainSettings.bitcoinTestnetSupportEnabled;
+}
+
+export const selectMultichainIsEvm = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  (selectedAccount) => {
+    // If no account selected, assume EVM for onboarding scenario
+    if (!selectedAccount) {
+      return true;
+    }
+    return isEvmAccountType(selectedAccount.type);
+  },
+);
+
+export interface MultichainNetwork {
+  nickname: string;
+  isEvmNetwork: boolean;
+  chainId: CaipChainId;
+  network: ProviderConfig | MultichainProviderConfig;
+}
+
+function selectMultichainNetworkProviders(): MultichainProviderConfig[] {
+  return Object.values(MULTICHAIN_PROVIDER_CONFIGS);
+}
+
+export const selectMultichainNetwork = createDeepEqualSelector(
+  [
+    selectMultichainIsEvm,
+    selectChainId,
+    selectProviderConfig,
+    selectNetworkConfigurations,
+    selectSelectedInternalAccount,
+  ],
+  (
+    isEvm,
+    chainId,
+    providerConfig,
+    networkConfigurations,
+    selectedAccount,
+  ): MultichainNetwork => {
+    if (isEvm) {
+      // These are custom networks defined by the user.
+      const networkConfiguration = providerConfig.id
+        ? networkConfigurations[providerConfig.id as Hex]
+        : undefined;
+      // If there aren't any nicknames, the RPC URL is displayed.
+      const nickname =
+        networkConfiguration?.name ??
+        providerConfig.nickname ??
+        providerConfig.rpcUrl ??
+        'Custom Network';
+
+      return {
+        nickname,
+        isEvmNetwork: true,
+        // We assume the chain ID is `string` or `number`, so we convert it to a
+        // `Number` to be compliant with EIP155 CAIP chain ID
+        chainId: `${KnownCaipNamespace.Eip155}:${Number(
+          chainId,
+        )}` as CaipChainId,
+        network: providerConfig,
+      };
+    }
+
+    // Non-EVM networks:
+    // For non-EVM, we know we have a selected account, since the logic `isEvm` is based
+    // on having a non-EVM account being selected!
+    const nonEvmNetworks = selectMultichainNetworkProviders();
+    const nonEvmNetwork = selectedAccount
+      ? nonEvmNetworks.find((provider) =>
+          provider.isAddressCompatible(selectedAccount.address),
+        )
+      : undefined;
+
+    if (!nonEvmNetwork) {
+      throw new Error(
+        'Could not find non-EVM provider for the current configuration. This should never happen.',
+      );
+    }
+
+    return {
+      // TODO: Adapt this for other non-EVM networks
+      nickname: nonEvmNetwork.nickname,
+      isEvmNetwork: false,
+      chainId: nonEvmNetwork?.chainId,
+      network: nonEvmNetwork,
+    };
+  },
+);
+
+/**
+ * Retrieves the provider configuration for a multichain network.
+ *
+ * This function extracts the `network` field from the result of `selectMultichainNetwork(state)`,
+ * which is expected to be a `MultichainProviderConfig` object. The naming might suggest that
+ * it returns a network, but it actually returns a provider configuration specific to a multichain setup.
+ *
+ * @returns The current multichain provider configuration.
+ */
+export const selectMultichainProviderConfig = createDeepEqualSelector(
+  selectMultichainNetwork,
+  (multichainNetwork) => multichainNetwork.network,
+);
+
+export const selectMultichainDefaultToken = createDeepEqualSelector(
+  selectMultichainIsEvm,
+  selectProviderConfig,
+  selectMultichainProviderConfig,
+  (isEvm, providerConfig, multichainProviderConfig) => {
+    const symbol = isEvm
+      ? providerConfig?.ticker ?? 'ETH'
+      : multichainProviderConfig?.ticker;
+    return { symbol };
+  },
+);
+
+export const selectMultichainIsBitcoin = createDeepEqualSelector(
+  selectMultichainIsEvm,
+  selectMultichainDefaultToken,
+  (isEvm, token) => !isEvm && token.symbol === 'BTC',
+);
+
+export const selectMultichainIsMainnet = createDeepEqualSelector(
+  selectMultichainIsEvm,
+  selectSelectedInternalAccount,
+  selectChainId,
+  selectMultichainIsBitcoin,
+  (isEvm, selectedAccount, chainId, isBitcoin) => {
+    if (isEvm) {
+      return isMainNet(chainId);
+    }
+
+    // Non-EVM: Currently only Bitcoin
+    if (isBitcoin && selectedAccount) {
+      return isBtcMainnetAddress(selectedAccount.address);
+    }
+    return false;
+  },
+);
+
+/**
+ *
+ * @param state - Root redux state
+ * @returns - MultichainBalancesController state
+ */
+const selectMultichainBalancesControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainBalancesController;
+
+export const selectMultichainBalances = createDeepEqualSelector(
+  selectMultichainBalancesControllerState,
+  (multichainBalancesControllerState) =>
+    multichainBalancesControllerState.balances,
+);
+
+const selectBtcCachedBalance = createDeepEqualSelector(
+  selectMultichainBalances,
+  selectSelectedInternalAccount,
+  selectMultichainIsMainnet,
+  (multichainBalances, selectedInternalAccount, multichainIsMainnet) => {
+    const asset = multichainIsMainnet
+      ? MultichainNativeAssets.Bitcoin
+      : MultichainNativeAssets.BitcoinTestnet;
+
+    if (!selectedInternalAccount) return undefined;
+    return multichainBalances?.[selectedInternalAccount.id]?.[asset]?.amount;
+  },
+);
+
+export const selectMultichainShouldShowFiat = createDeepEqualSelector(
+  selectMultichainIsMainnet,
+  selectMultichainIsEvm,
+  selectShowFiatInTestnets,
+  (multichainIsMainnet, isEvm, shouldShowFiatOnTestnets) => {
+    const isTestNet = !multichainIsMainnet;
+    if (isEvm) {
+      return isTestNet ? shouldShowFiatOnTestnets : true; // Is it safe to assume that we default show fiat for mainnet?
+    }
+    return (
+      multichainIsMainnet || (isTestNet && Boolean(shouldShowFiatOnTestnets))
+    );
+  },
+);
+
+export const selectMultichainSelectedAccountCachedBalance =
+  createDeepEqualSelector(
+    selectMultichainIsEvm,
+    selectAccountBalanceByChainId,
+    selectBtcCachedBalance,
+    (isEvm, accountBalanceByChainId, btcCachedBalance) =>
+      isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
+  );
+
+export const selectMultichainSelectedAccountCachedBalanceIsZero =
+  createDeepEqualSelector(
+    selectMultichainSelectedAccountCachedBalance,
+    selectMultichainIsEvm,
+    (balance, isEvm) => {
+      const base = isEvm ? 16 : 10;
+      const numericValue = parseInt(balance || '0', base);
+      return numericValue === 0;
+    },
+  );
+
+export function selectMultichainCoinRates(state: RootState) {
+  return state.engine.backgroundState.RatesController.rates;
+}
+
+export const selectMultichainConversionRate = createDeepEqualSelector(
+  selectMultichainIsEvm,
+  selectConversionRate,
+  selectMultichainCoinRates,
+  selectMultichainProviderConfig,
+  (
+    isEvm,
+    evmConversionRate,
+    multichaincCoinRates,
+    multichainProviderConfig,
+  ) => {
+    if (isEvm) {
+      return evmConversionRate;
+    }
+    const ticker = multichainProviderConfig?.ticker?.toLowerCase();
+    return ticker ? multichaincCoinRates?.[ticker]?.conversionRate : undefined;
+  },
+);
+///: END:ONLY_INCLUDE_IF

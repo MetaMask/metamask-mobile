@@ -4,20 +4,20 @@ import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
-} from './accountsController';
-import { selectAllTokens } from './tokensController';
-import { selectAccountsByChainId } from './accountTrackerController';
-import { selectNetworkConfigurations } from './networkController';
-import { TokenI } from '../components/UI/Tokens/types';
-import { renderFromWei, weiToFiat } from '../util/number';
+} from '../accountsController';
+import { selectAllTokens } from '../tokensController';
+import { selectAccountsByChainId } from '../accountTrackerController';
+import { selectNetworkConfigurations } from '../networkController';
+import { TokenI } from '../../components/UI/Tokens/types';
+import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from './currencyRateController';
+} from '../currencyRateController';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 ///: END:ONLY_INCLUDE_IF
 
 interface NativeTokenBalance {

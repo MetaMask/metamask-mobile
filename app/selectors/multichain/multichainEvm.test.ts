@@ -1,11 +1,11 @@
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 import {
   selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
   selectIsSolanaSupportEnabled,
-} from './multichain';
+} from './multichainEvm';
 
 describe('Multichain Selectors', () => {
   const mockState: RootState = {
