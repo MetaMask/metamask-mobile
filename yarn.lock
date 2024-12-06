@@ -4360,10 +4360,10 @@
   resolved "https://registry.yarnpkg.com/@mantine/hooks/-/hooks-7.8.0.tgz#fc32e07746689459c4b049dc581d1dbda5545686"
   integrity sha512-+70fkgjhVJeJ+nJqnburIM3UAsfvxat1Low9HMPobLbv64FIdB4Nzu5ct3qojNQ58r5sK01tg5UoFIJYslaVrg==
 
-"@metamask-previews/eth-ledger-bridge-keyring@7.0.0-e345222":
-  version "7.0.0-e345222"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-7.0.0-e345222.tgz#7c40e31df95fbdadc19a32d56149a8adb7164eff"
-  integrity sha512-T+V3edF3BaQWYct9i7kxlZGZcaWJWOpaOLI3A1ktiwtrT3KfTb6ZWbGWMWgjug7uHd817mTbqycimzk5uc5N3g==
+"@metamask-previews/eth-ledger-bridge-keyring@7.0.0-dde1dbb":
+  version "7.0.0-dde1dbb"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-7.0.0-dde1dbb.tgz#9fb596ee7d264153f852e7ff643f3cfc92bbf0ec"
+  integrity sha512-lHY15p0Dk+4Mf5TjVlt4+ERUfvhr2lrl9NXxYSQUoyYTa0YSJrzznVsNDckVj319AiEYNIZJIoi/cHb/3X2nbg==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^4.2.0"
