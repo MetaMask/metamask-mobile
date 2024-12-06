@@ -14,7 +14,12 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
-import * as multichain from '../../../selectors/multichain';
+import * as multichain from '../../../selectors/multichain/';
+
+jest.mock('../../../selectors/multichain/', () => ({
+  ...jest.requireActual('../../../selectors/multichain/'),
+  selectAccountTokensAcrossChains: jest.fn(() => ({})),
+}));
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -515,10 +520,30 @@ describe('Tokens', () => {
     let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      selectAccountTokensAcrossChainsSpy = jest.spyOn(
-        multichain,
-        'selectAccountTokensAcrossChains',
-      );
+      selectAccountTokensAcrossChainsSpy = jest
+        .spyOn(multichain, 'selectAccountTokensAcrossChains')
+        .mockReturnValue({
+          '0x1': [
+            {
+              name: 'Ethereum',
+              symbol: 'ETH',
+              address: '0x0',
+              decimals: 18,
+              isETH: true,
+              isStaked: false,
+              balanceFiat: '< $0.01',
+              chainId: '0x1',
+            },
+            {
+              name: 'Bat',
+              symbol: 'BAT',
+              address: '0x01',
+              decimals: 18,
+              balanceFiat: '$0',
+              chainId: '0x1',
+            },
+          ],
+        });
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     });
 
