@@ -5,14 +5,13 @@ import {
 } from '@metamask/assets-controllers';
 import Logger from '../../../../util/Logger';
 
-// Default AccountsControllerState
 export const defaultMultichainBalancesControllerState: MultichainBalancesControllerState =
   {
     balances: {},
   };
 
 /**
- * Creates instance of AccountsController
+ * Creates instance of MultichainBalancesController
  *
  * @param options.messenger - Controller messenger instance
  * @param options.initialState - Initial state of MultichainBalancesController
