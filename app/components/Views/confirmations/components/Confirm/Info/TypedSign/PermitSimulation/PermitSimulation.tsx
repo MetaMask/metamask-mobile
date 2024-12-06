@@ -45,8 +45,7 @@ function extractTokenDetailsByPrimaryType(
   return isNonArrayObject ? [tokenDetails] : tokenDetails;
 }
 
-// Permit Simulation
-const Simulation = () => {
+const PermitSimulation = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { approvalRequest } = useApprovalRequest();
@@ -112,4 +111,4 @@ const Simulation = () => {
   );
 };
 
-export default Simulation;
+export default PermitSimulation;
