@@ -33,6 +33,12 @@ import {
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerState,
+  MultichainBalancesController,
+  MultichainBalancesControllerEvents,
+  MultichainBalancesControllerActions,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -227,6 +233,7 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
+  | MultichainBalancesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -259,6 +266,7 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
+  | MultichainBalancesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -335,6 +343,7 @@ export type Controllers = {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
+  MultichainBalancesController: MultichainBalancesController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 };
@@ -376,6 +385,7 @@ export type EngineState = {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  MultichainBalancesController: MultichainBalancesControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;

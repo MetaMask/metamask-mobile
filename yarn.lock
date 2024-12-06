@@ -4413,10 +4413,10 @@
     "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@^45.1.1":
-  version "45.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-45.1.1.tgz#365be66cbd14a0fb5be57b3ec30d54f3314d70ec"
-  integrity sha512-zKMIKv9w4sZu0S/flbgYLAy3wgoL11GuL5RW8AF6n2/jKlMxEA0ImIK0EZGhmkJAB78ZrcVIdoLeEEvSsGuO/w==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@45.1.1-preview-9e677163":
+  version "45.1.1-preview-9e677163"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-45.1.1-preview-9e677163.tgz#ffe5d68af3d773a75c20a88ebb22c320825adb02"
+  integrity sha512-61xXAHU2Buzdtgad/bWHkkwezSMsdJkc9WnUszXgkxilDUtYJjWeRA0LMU0MsKYHXHwSPWfMqFzaWM7Tahy8rg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4432,10 +4432,12 @@
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^12.0.2"
     "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/snaps-utils" "^8.3.0"
     "@metamask/utils" "^10.0.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     async-mutex "^0.5.0"
+    bitcoin-address-validation "^2.2.3"
     bn.js "^5.2.1"
     cockatiel "^3.1.2"
     immer "^9.0.6"
@@ -12640,7 +12642,7 @@ bip66@^1.1.5:
   dependencies:
     safe-buffer "^5.0.1"
 
-bitcoin-address-validation@2.2.3:
+bitcoin-address-validation@2.2.3, bitcoin-address-validation@^2.2.3:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-2.2.3.tgz#ffae6d48facd5ce7ef60574891aab979d21f9828"
   integrity sha512-1uGCGl26Ye8JG5qcExtFLQfuib6qEZWNDo1ZlLlwp/z7ygUFby3IxolgEfgMGaC+LG9csbVASLcH8fRLv7DIOg==
