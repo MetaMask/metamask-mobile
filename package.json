@@ -134,7 +134,8 @@
     "**/@metamask/rpc-errors": "7.0.1",
     "base58-js": "1.0.0",
     "bech32": "2.0.0",
-    "sha256-uint8array": "0.10.3"
+    "sha256-uint8array": "0.10.3",
+    "express": "4.21.2"
   },
   "dependencies": {
     "@consensys/on-ramp-sdk": "1.28.7",
@@ -198,7 +199,7 @@
     "@metamask/stake-sdk": "^0.3.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^11.0.0",
-    "@metamask/transaction-controller": "^39.1.0",
+    "@metamask/transaction-controller": "^41.0.0",
     "@metamask/utils": "^10.0.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
