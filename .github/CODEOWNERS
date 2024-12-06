@@ -66,6 +66,7 @@ app/store/util/notifications @MetaMask/notifications
 app/actions/identity @MetaMask/identity
 app/util/identity @MetaMask/identity
 app/components/UI/ProfileSyncing @MetaMask/identity
+e2e/specs/identity @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain

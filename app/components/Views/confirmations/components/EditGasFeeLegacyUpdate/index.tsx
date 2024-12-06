@@ -45,7 +45,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
-import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/EditGasView.selectors';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
 
 const EditGasFeeLegacy = ({
   onCancel,
