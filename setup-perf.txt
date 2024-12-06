@@ -1,0 +1,63 @@
+yarn run v1.22.22
+warning ../../../../package.json: No license field
+$ yarn clean && node scripts/setup.mjs
+warning ../../../../package.json: No license field
+$ time yarn clean:ios && time yarn clean:android && yarn clean:node && time yarn clean:ppom
+warning ../../../../package.json: No license field
+$ rm -rf ios/build
+
+real	0m0.393s
+user	0m0.157s
+sys	0m0.037s
+warning ../../../../package.json: No license field
+$ rm -rf android/app/build
+
+real	0m0.221s
+user	0m0.159s
+sys	0m0.036s
+warning ../../../../package.json: No license field
+$ time yarn clean:node:rmrf && time yarn clean:node:install
+warning ../../../../package.json: No license field
+$ rm -rf node_modules
+
+real	0m37.735s
+user	0m0.506s
+sys	0m22.771s
+warning ../../../../package.json: No license field
+$ yarn --frozen-lockfile > /dev/null 2>&1
+
+real	0m48.544s
+user	0m40.746s
+sys	1m28.965s
+warning ../../../../package.json: No license field
+$ rm -rf ppom/dist ppom/node_modules app/lib/ppom/ppom.html.js
+
+real	0m0.237s
+user	0m0.152s
+sys	0m0.037s
+❯ Prepare dependencies
+❯ Copy and source environment variables
+✔ Copy and source environment variables (Time taken: 0.000s)
+❯ Init git submodules
+✔ Init git submodules (Time taken: 0.230s)
+❯ Build inpage bridge
+✔ Build inpage bridge (Time taken: 6.767s)
+❯ Nodeify npm packages
+✔ Nodeify npm packages (Time taken: 4.975s)
+❯ Jetify npm packages for Android
+✔ Jetify npm packages for Android (Time taken: 3.595s)
+❯ Run lavamoat allow-scripts
+✔ Run lavamoat allow-scripts (Time taken: 33.724s)
+❯ Patch npm packages
+✔ Patch npm packages (Time taken: 0.696s)
+✔ Prepare dependencies
+❯ Concurrent tasks
+❯ Set up iOS
+❯ Build PPOM
+❯ Generate Terms of Use
+✔ Set up iOS (Time taken: 0.000s)
+✔ Build PPOM (Time taken: 0.000s)
+✔ Generate Terms of Use (Time taken: 0.000s)
+✔ Concurrent tasks
+COMPLETED ALL TASKS (49.991s)
+Done in 138.11s.

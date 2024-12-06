@@ -33,12 +33,22 @@ const rendererOptions = {
   collapseSubtasks: false,
 };
 
+const measureTime = (taskFn) => {
+  return async (ctx, task) => {
+    const startTime = performance.now();
+    await taskFn(ctx, task);
+    const endTime = performance.now();
+    const timeTaken = (endTime - startTime) / 1000;
+    task.title = `${task.title} (Time taken: ${timeTaken.toFixed(3)}s)`;
+  };
+};
+
 /*
  * TODO: parse example env file and add missing variables to existing .js.env
  */
 const copyAndSourceEnvVarsTask = {
   title: 'Copy and source environment variables',
-  task: (_, task) => {
+  task: measureTime((_, task) => {
     if (IS_CI) {
       return task.skip('Skipping copying and sourcing environment variables.');
     }
@@ -47,7 +57,7 @@ const copyAndSourceEnvVarsTask = {
       [
         {
           title: 'Copy env vars',
-          task: async () => {
+          task: measureTime(async () => {
             const envFiles = [
               '.js.env',
               '.ios.env',
@@ -66,11 +76,11 @@ const copyAndSourceEnvVarsTask = {
                 return;
               }
             });
-          },
+          }),
         },
         {
           title: 'Source env vars',
-          task: async () => {
+          task: measureTime(async () => {
             const envFiles = [
               '.js.env',
               '.ios.env',
@@ -80,7 +90,7 @@ const copyAndSourceEnvVarsTask = {
             envFiles.forEach((envFileName) => {
               `source ${envFileName}`;
             });
-          },
+          }),
         },
       ],
       {
@@ -89,12 +99,12 @@ const copyAndSourceEnvVarsTask = {
         rendererOptions,
       },
     );
-  },
+  }),
 };
 
 const buildPpomTask = {
   title: 'Build PPOM',
-  task: (_, task) => {
+  task: measureTime((_, task) => {
     if (IS_NODE) {
       return task.skip('Skipping building PPOM.');
     }
@@ -104,27 +114,27 @@ const buildPpomTask = {
       [
         {
           title: 'Clean',
-          task: async () => {
+          task: measureTime(async () => {
             await $ppom`yarn clean`;
-          },
+          }),
         },
         {
           title: 'Install deps',
-          task: async () => {
+          task: measureTime(async () => {
             await $ppom`yarn`;
-          },
+          }),
         },
         {
           title: 'Lint',
-          task: async () => {
+          task: measureTime(async () => {
             await $ppom`yarn lint`;
-          },
+          }),
         },
         {
           title: 'Build',
-          task: async () => {
+          task: measureTime(async () => {
             await $ppom`yarn build`;
-          },
+          }),
         },
       ],
       {
@@ -133,12 +143,12 @@ const buildPpomTask = {
         rendererOptions,
       },
     );
-  },
+  }),
 };
 
 const setupIosTask = {
   title: 'Set up iOS',
-  task: async (_, task) => {
+  task: measureTime(async (_, task) => {
     if (!BUILD_IOS) {
       return task.skip('Skipping iOS set up.');
     }
@@ -147,28 +157,28 @@ const setupIosTask = {
       [
         {
           title: 'Install bundler gem',
-          task: async () => {
+          task: measureTime(async () => {
             await $`gem install bundler -v 2.5.8`;
-          },
+          }),
         },
         {
           title: 'Install gems',
-          task: async () => {
+          task: measureTime(async () => {
             await $`yarn gem:bundle:install`;
-          },
+          }),
         },
         {
           title: 'Create xcconfig files',
-          task: async () => {
+          task: measureTime(async () => {
             fs.writeFileSync('ios/debug.xcconfig', '');
             fs.writeFileSync('ios/release.xcconfig', '');
-          },
+          }),
         },
         {
           title: 'Install CocoaPods',
-          task: async () => {
+          task: measureTime(async () => {
             await $`yarn pod:install`;
-          },
+          }),
         },
       ],
       {
@@ -176,82 +186,82 @@ const setupIosTask = {
         exitOnError: true,
       },
     );
-  },
+  }),
 };
 
 const buildInpageBridgeTask = {
   title: 'Build inpage bridge',
-  task: async (_, task) => {
+  task: measureTime(async (_, task) => {
     if (IS_NODE) {
       return task.skip('Skipping building inpage bridge.');
     }
     await $`./scripts/build-inpage-bridge.sh`;
-  },
+  }),
 };
 
 const nodeifyTask = {
   // TODO: find a saner alternative to bring node modules into react native bundler. See ReactNativify
   title: 'Nodeify npm packages',
-  task: async (_, task) => {
+  task: measureTime(async (_, task) => {
     if (IS_NODE) {
       return task.skip('Skipping nodeifying npm packages.');
     }
     await $`node_modules/.bin/rn-nodeify --install crypto,buffer,react-native-randombytes,vm,stream,http,https,os,url,net,fs --hack`;
-  },
+  }),
 };
 
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
-  task: async (_, task) => {
+  task: measureTime(async (_, task) => {
     if (IS_NODE) {
       return task.skip('Skipping jetifying npm packages.');
     }
     await $`yarn jetify`;
-  },
+  }),
 };
 
 const patchPackageTask = {
   title: 'Patch npm packages',
-  task: async () => {
+  task: measureTime(async () => {
     await $`yarn patch-package`;
-  },
+  }),
 };
 
 const updateGitSubmodulesTask = {
   title: 'Init git submodules',
-  task: async (_, task) => {
+  task: measureTime(async (_, task) => {
     if (IS_NODE) {
       return task.skip('Skipping init git submodules.');
     }
     await $`git submodule update --init`;
-  },
+  }),
 };
 
 const runLavamoatAllowScriptsTask = {
   title: 'Run lavamoat allow-scripts',
-  task: async () => {
+  task: measureTime(async () => {
     await $`yarn allow-scripts`;
-  },
+  }),
 };
 
 const generateTermsOfUseTask = {
   title: 'Generate Terms of Use',
-  task: (_, task) =>
+  task: measureTime((_, task) =>
     task.newListr(
       [
         {
           title: 'Download Terms of Use',
-          task: async () => {
+          task: measureTime(async () => {
             try {
               await $`curl -o ./docs/assets/termsOfUse.html https://legal.consensys.io/plain/terms-of-use/`;
             } catch (error) {
               throw new Error('Failed to download Terms of Use');
             }
-          },
+          }),
         },
         {
           title: 'Write Terms of Use file',
-          task: async () => {
+          task: measureTime(async () => {
             const termsOfUsePath = path.resolve(
               './docs/assets/termsOfUse.html',
             );
@@ -275,7 +285,7 @@ const generateTermsOfUseTask = {
             } catch (error) {
               throw new Error('Failed to write Terms of Use content file');
             }
-          },
+          }),
         },
       ],
       {
@@ -283,7 +293,7 @@ const generateTermsOfUseTask = {
         exitOnError: true,
         rendererOptions,
       },
-    ),
+    )),
 };
 
 /**
@@ -330,4 +340,8 @@ const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   rendererOptions,
 });
 
+const startTime = performance.now()
 await tasks.run();
+const endTime = performance.now();
+const timeTaken = (endTime - startTime) / 1000;
+console.log(`COMPLETED ALL TASKS (${timeTaken.toFixed(3)}s)`)
