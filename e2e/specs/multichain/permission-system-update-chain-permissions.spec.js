@@ -22,7 +22,10 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission(['0x1', '0xaa36a7']) // Initialize with Ethereum mainnet and Sepolia
+          .withChainPermission([
+            '0x1',
+            CustomNetworks.Sepolia.providerConfig.chainId,
+          ]) // Initialize with Ethereum mainnet and Sepolia
           .build(),
         restartDevice: true,
       },

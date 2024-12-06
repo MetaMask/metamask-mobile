@@ -68,7 +68,10 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission(['0x1', '0xaa36a7'])
+          .withChainPermission([
+            '0x1',
+            CustomNetworks.Sepolia.providerConfig.chainId,
+          ])
           .build(),
         restartDevice: true,
       },
@@ -138,7 +141,10 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission(['0x1', '0xaa36a7']) // Initialize with Ethereum mainnet and Sepolia
+          .withChainPermission([
+            '0x1',
+            CustomNetworks.Sepolia.providerConfig.chainId,
+          ]) // Initialize with Ethereum mainnet and Sepolia
           .build(),
         restartDevice: true,
       },
@@ -180,7 +186,7 @@ describe(SmokeCore('Network Permission System, non-permitted chain'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission(['0x1']) // Initialize with only Ethereum mainnet
+          .withChainPermission() // Initialize with only Ethereum mainnet
           .build(),
         restartDevice: true,
       },
