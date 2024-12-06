@@ -38,6 +38,10 @@ import {
   MultichainBalancesController,
   MultichainBalancesControllerEvents,
   MultichainBalancesControllerActions,
+  RatesControllerState,
+  RatesController,
+  RatesControllerEvents,
+  RatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 import {
@@ -232,7 +236,10 @@ type GlobalActions =
   | UserStorageController.Actions
   | NotificationServicesController.Actions
   | NotificationServicesPushController.Actions
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerActions
+  | RatesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -265,7 +272,10 @@ type GlobalEvents =
   | UserStorageController.Events
   | NotificationServicesController.Events
   | NotificationServicesPushController.Events
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | MultichainBalancesControllerEvents
+  | RatesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -342,9 +352,12 @@ export type Controllers = {
   UserStorageController: UserStorageController.Controller;
   NotificationServicesController: NotificationServicesController.Controller;
   NotificationServicesPushController: NotificationServicesPushController.Controller;
-  MultichainBalancesController: MultichainBalancesController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesController;
+  RatesController: RatesController;
+  ///: END:ONLY_INCLUDE_IF
 };
 
 /**
@@ -384,7 +397,6 @@ export type EngineState = {
   UserStorageController: UserStorageController.UserStorageControllerState;
   NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
   NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
-  MultichainBalancesController: MultichainBalancesControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
@@ -392,4 +404,8 @@ export type EngineState = {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesController: MultichainBalancesControllerState;
+  RatesController: RatesControllerState;
+  ///: END:ONLY_INCLUDE_IF
 };
