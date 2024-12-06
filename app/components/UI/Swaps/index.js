@@ -78,7 +78,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../util/networks';
@@ -197,7 +197,7 @@ function SwapsAmountView({
   const navigation = useNavigation();
   const route = useRoute();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
@@ -275,9 +275,11 @@ function SwapsAmountView({
               chain_id: getDecimalChainId(chainId),
             };
 
-            trackEvent(MetaMetricsEvents.SWAPS_OPENED, {
-              sensitiveProperties: { ...parameters },
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.SWAPS_OPENED)
+                .addSensitiveProperties(parameters)
+                .build(),
+            );
           });
         } else {
           navigation.pop();
@@ -1020,7 +1022,7 @@ const mapStateToProps = (state) => ({
   swapsControllerTokens: swapsControllerTokens(state),
   accounts: selectAccounts(state),
   balances: selectContractBalances(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   tokenExchangeRates: selectContractExchangeRates(state),

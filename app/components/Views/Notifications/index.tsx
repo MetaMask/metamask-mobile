@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/NotificationsView.selectors';
+import { NotificationsViewSelectorsIDs } from '../../../../e2e/selectors/wallet/NotificationsView.selectors';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { TRIGGER_TYPES, sortNotifications } from '../../../util/notifications';
@@ -43,7 +43,7 @@ const NotificationsView = ({
 }: {
   navigation: NavigationProp<ParamListBase>;
 }) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { isLoading } = useListNotifications();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
@@ -54,8 +54,8 @@ const NotificationsView = ({
   const handleMarkAllAsRead = useCallback(() => {
     markNotificationAsRead(notifications);
     NotificationsService.setBadgeCount(0);
-    trackEvent(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ);
-  }, [markNotificationAsRead, notifications, trackEvent]);
+    trackEvent(createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_MARKED_ALL_AS_READ).build());
+  }, [markNotificationAsRead, notifications, trackEvent, createEventBuilder]);
 
   const allNotifications = useMemo(() => {
     // All unique notifications

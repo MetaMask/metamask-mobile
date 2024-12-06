@@ -26,6 +26,7 @@ const createStyles = (colors) =>
     },
     network: {
       flexDirection: 'row',
+      alignItems: 'center',
     },
     networkName: {
       fontSize: 11,
@@ -37,7 +38,6 @@ const createStyles = (colors) =>
       height: 5,
       borderRadius: 100,
       marginRight: 5,
-      marginTop: Device.isIos() ? 4 : 5,
     },
     title: {
       fontSize: scale(14),
@@ -91,6 +91,10 @@ class NavbarTitle extends PureComponent {
      */
     showSelectedNetwork: PropTypes.bool,
     /**
+     * Name of the network to display
+     */
+    networkName: PropTypes.string,
+    /**
      * Content to display inside text element
      */
     children: PropTypes.node,
@@ -112,10 +116,12 @@ class NavbarTitle extends PureComponent {
         });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-          {
-            chain_id: getDecimalChainId(this.props.providerConfig.chainId),
-          },
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+            .addProperties({
+              chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+            })
+            .build(),
         );
         setTimeout(() => {
           this.animating = false;
@@ -125,8 +131,14 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { providerConfig, title, translate, showSelectedNetwork, children } =
-      this.props;
+    const {
+      providerConfig,
+      title,
+      translate,
+      showSelectedNetwork,
+      children,
+      networkName,
+    } = this.props;
     let name = null;
     const color =
       (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
@@ -134,7 +146,9 @@ class NavbarTitle extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (providerConfig.nickname) {
+    if (networkName) {
+      name = networkName;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -143,7 +157,6 @@ class NavbarTitle extends PureComponent {
     }
 
     const realTitle = translate ? strings(title) : title;
-
     return (
       <TouchableOpacity
         onPress={this.openNetworkList}

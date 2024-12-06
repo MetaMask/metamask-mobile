@@ -1,9 +1,10 @@
 import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/TokenOverview.selectors';
+import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
@@ -18,7 +19,7 @@ import {
 import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -45,7 +46,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
+import SwapsController from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -54,20 +55,17 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 
 interface AssetOverviewProps {
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
-  navigation,
   asset,
   displayBuyButton,
   displaySwapsButton,
 }: AssetOverviewProps) => {
+  const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate);
@@ -77,9 +75,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   );
   const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
@@ -96,12 +94,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { SwapsController } = Engine.context as { SwapsController: any };
+    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
+      SwapsController: SwapsController;
+    };
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsController.fetchTokenWithCache();
+        await SwapsControllerFromEngine.fetchTokenWithCache();
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -134,25 +132,37 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
-        sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+        sourceToken: asset.address,
         sourcePage: 'MainView',
       },
     });
-    trackEvent(MetaMetricsEvents.SWAP_BUTTON_CLICKED, {
-      text: 'Swap',
-      tokenSymbol: '',
-      location: 'TokenDetails',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Swap',
+          tokenSymbol: '',
+          location: 'TokenDetails',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
   const onBuy = () => {
-    const [route, params] = createBuyNavigationDetails();
-    navigation.navigate(route, params || {});
-    trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      text: 'Buy',
-      location: 'TokenDetails',
-      chain_id_destination: getDecimalChainId(chainId),
-    });
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const goToBrowserUrl = (url: string) => {

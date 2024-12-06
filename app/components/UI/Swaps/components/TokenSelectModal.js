@@ -59,7 +59,7 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -164,7 +164,7 @@ function TokenSelectModal({
   initialSearchString = '',
 }) {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const searchInput = useRef(null);
   const list = useRef();
@@ -319,17 +319,25 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      trackEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
-        sensitiveProperties: {
-          address,
-          symbol,
-          chain_id: getDecimalChainId(chainId),
-        },
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED)
+          .addSensitiveProperties({
+            address,
+            symbol,
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress, trackEvent],
+    [
+      chainId,
+      hideTokenImportModal,
+      onItemPress,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
@@ -590,7 +598,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),
