@@ -14,6 +14,9 @@ import {
   TokenRatesController,
   TokensController,
   CodefiTokenPricesServiceV2,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  MultichainBalancesControllerMessenger,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { AppState } from 'react-native';
@@ -145,6 +148,8 @@ import {
   AccountsControllerSetSelectedAccountAction,
   AccountsControllerGetAccountByAddressAction,
   AccountsControllerSetAccountNameAction,
+  AccountsControllerListMultichainAccountsAction,
+  AccountsControllerAccountRemovedEvent,
   ///: END:ONLY_INCLUDE_IF
   AccountsControllerGetAccountAction,
   AccountsControllerGetSelectedAccountAction,
@@ -192,6 +197,7 @@ import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
+import { createMultichainBalancesController } from './controllers/MultichainBalancesController/utils';
 ///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
@@ -371,6 +377,26 @@ export class Engine {
       messenger: accountsControllerMessenger,
       initialState: initialState.AccountsController,
     });
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    const multichainBalancesControllerMessenger: MultichainBalancesControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainBalancesController',
+        allowedEvents: [
+          AccountsControllerAccountAddedEvent,
+          AccountsControllerAccountRemovedEvent,
+        ],
+        allowedActions: [
+          AccountsControllerListMultichainAccountsAction,
+          'SnapController:handleRequest',
+        ],
+      });
+
+    const multichainBalancesController = createMultichainBalancesController({
+      messenger: multichainBalancesControllerMessenger,
+      initialState: initialState.MultichainBalancesController,
+    });
+    ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
       chainId: getGlobalChainId(networkController),
@@ -971,8 +997,8 @@ export class Engine {
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
       clientCryptography: {
-        pbkdf2Sha512: pbkdf2
-      }
+        pbkdf2Sha512: pbkdf2,
+      },
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1302,7 +1328,9 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+                chain_id: getDecimalChainId(
+                  getGlobalChainId(networkController),
+                ),
               })
               .build(),
           ),
@@ -1480,6 +1508,9 @@ export class Engine {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         nativeCrypto: Crypto as any,
       }),
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainBalancesController: multichainBalancesController,
+      ///: END:ONLY_INCLUDE_IF
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1518,7 +1549,7 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1538,7 +1569,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(
+              networkController,
+            )}`,
           );
         }
       },
