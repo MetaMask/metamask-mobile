@@ -75,6 +75,18 @@ _NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLO
 
   - **Android**:
 
+    UPDATE: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
+
+    - install a build on the emulator
+      - either install the apk or keep an existing install on the emulator
+    - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
+    - if emulator fails to launch you can launch emulator in another terminal
+      ```bash
+      emulator -avd <emulator-name>
+      ```
+      - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
+    - you don't need to repeat these steps unless emulator or metro server is restarted
+
     ```bash
     yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js
     ```
