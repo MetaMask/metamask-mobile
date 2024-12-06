@@ -39,9 +39,7 @@ import {
   NUMBER_OF_REJECTIONS_THRESHOLD,
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
-import { ProviderConfig } from '../../selectors/networkController';
 import { mockNetworkState } from '../../util/test/network';
-import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 
 jest.mock('./spam');
 
@@ -1467,6 +1465,13 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if it was sent more than one token to swap from', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
       const mockState: RootState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
@@ -1522,7 +1527,7 @@ describe('getRpcMethodMiddleware', () => {
               // ETH address
               address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            userAddress: 'eip155:1:0x0',
+            userAddress: `eip155:1:${mockAddress1}`,
           },
         ],
       };
@@ -1535,6 +1540,13 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if address required param is not defined', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
       const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
@@ -1583,7 +1595,7 @@ describe('getRpcMethodMiddleware', () => {
               // ETH address
               address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            userAddress: 'eip155:1:0x0',
+            userAddress: `eip155:1:${mockAddress1}`,
           },
         ],
       };
@@ -1596,6 +1608,13 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should throw error if swap is not live', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
       const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: false }, hasOnboarded: false, isLive: false },
         fiatOrders: {
@@ -1645,7 +1664,7 @@ describe('getRpcMethodMiddleware', () => {
               // ETH address
               address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            userAddress: 'eip155:1:0x0',
+            userAddress: `eip155:1:${mockAddress1}`,
           },
         ],
       };
@@ -1658,6 +1677,13 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('should navigate to SwapsAmountView if all conditions are met', async () => {
+      const mockAddress1 = '0x0000000000000000000000000000000000000001';
+      const mockAddress2 = '0x0000000000000000000000000000000000000002';
+      setupGlobalState({
+        permittedAccounts: { 'example.metamask.io': [mockAddress1] },
+        selectedAddress: mockAddress2,
+        selectedNetworkClientId: 'testNetworkClientId',
+      });
       const mockState = merge({}, initialRootState, {
         swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
         fiatOrders: {
@@ -1707,7 +1733,7 @@ describe('getRpcMethodMiddleware', () => {
               // ETH address
               address: 'eip155:1:0x0000000000000000000000000000000000000000',
             },
-            userAddress: 'eip155:1:0x0',
+            userAddress: `eip155:1:${mockAddress1}`,
           },
         ],
       };

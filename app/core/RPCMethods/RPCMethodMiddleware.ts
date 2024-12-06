@@ -56,7 +56,7 @@ import { fromWei } from '../../util/number/index.js';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import Routes from '../../constants/navigation/Routes';
 import { endTrace, trace, TraceName } from '../../util/trace';
 import {
@@ -425,9 +425,10 @@ export const getRpcMethodMiddleware = ({
     const rpcMethods: any = {
       wallet_swapAsset: async () => {
         const accounts = await getPermittedAccounts(origin);
+
         const permittedAccounts = accounts.map(safeToChecksumAddress);
         const { fromToken, toToken, userAddress } = req.params[0];
-        const selectedAddress = selectSelectedInternalAccountChecksummedAddress(
+        const selectedAddress = selectSelectedInternalAccountFormattedAddress(
           store.getState(),
         );
         // Implement on utils repo a interface for this
