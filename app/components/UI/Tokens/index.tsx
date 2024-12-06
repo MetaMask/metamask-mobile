@@ -47,7 +47,10 @@ import {
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
+import {
+  selectAccountTokensAcrossChains,
+  selectNativeTokenBalancesByChainId,
+} from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
 
 // this will be imported from TokenRatesController when it is exported from there
@@ -92,6 +95,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const selectedChainId = useSelector(selectChainId);
+  const selectNativeTokenBalances = useSelector(
+    selectNativeTokenBalancesByChainId,
+  );
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
@@ -126,15 +132,18 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokensList = useMemo((): TokenI[] => {
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
+      const allNativeTokens = Object.values(selectNativeTokenBalances).flat();
       const allTokens = Object.values(selectedAccountTokensChains).flat();
+
+      const allTokensType = [...allNativeTokens, ...allTokens];
 
       // First filter zero balance tokens if setting is enabled
       const tokensWithBalance = hideZeroBalanceTokens
-        ? allTokens.filter(
+        ? allTokensType.filter(
             (token) =>
               !isZero(token.balance) || token.isNative || token.isStaked,
           )
-        : allTokens;
+        : allTokensType;
       // Then apply network filters
       const filteredAssets = filterAssets(tokensWithBalance, [
         {
