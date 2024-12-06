@@ -23,6 +23,7 @@ import {
 } from '../../../reducers/swaps';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectRpcUrl,
 } from '../../../selectors/networkController';
@@ -164,6 +165,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -436,9 +441,11 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { networkClientId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([networkClientId]);
 
     this.setState({ refreshing: false });
   };
@@ -533,6 +540,7 @@ const mapStateToProps = (state) => ({
     selectChainId(state),
     getRampNetworks(state),
   ),
+  networkClientId: selectNetworkClientId(state),
 });
 
 export default connect(mapStateToProps)(withMetricsAwareness(Asset));

@@ -85,6 +85,7 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -195,6 +196,10 @@ class Confirm extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -315,8 +320,8 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -346,8 +351,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -448,6 +453,7 @@ class Confirm extends PureComponent {
   componentDidMount = async () => {
     const {
       chainId,
+      networkClientId,
       showCustomNonce,
       navigation,
       providerType,
@@ -497,6 +503,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          networkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -1237,15 +1244,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-            legacyGasTransaction: gasTxn,
-            legacyGasObject: gasObj,
-            advancedGasInserted: !gasSelect,
-            stopUpdateGas: false,
-          }
+          legacyGasTransaction: gasTxn,
+          legacyGasObject: gasObj,
+          advancedGasInserted: !gasSelect,
+          stopUpdateGas: false,
+        }
         : {
-            EIP1559GasTransaction: gasTxn,
-            EIP1559GasObject: gasObj,
-          }),
+          EIP1559GasTransaction: gasTxn,
+          EIP1559GasObject: gasObj,
+        }),
     });
   };
 
@@ -1553,6 +1560,7 @@ const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,

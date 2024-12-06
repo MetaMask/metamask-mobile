@@ -49,6 +49,7 @@ import {
   selectTicker,
   selectRpcUrl,
   selectNetworkConfigurations,
+  selectNetworkClientId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -148,6 +149,10 @@ class Approve extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * An object of all saved addresses
      */
@@ -277,8 +282,8 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -951,6 +956,7 @@ const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   primaryCurrency: selectPrimaryCurrency(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
