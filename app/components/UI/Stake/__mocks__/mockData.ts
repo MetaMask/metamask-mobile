@@ -128,6 +128,7 @@ const MOCK_POOLED_STAKING_CONTRACT_SERVICE = {
   estimateDepositGas: jest.fn(),
   estimateEnterExitQueueGas: jest.fn(),
   estimateMulticallGas: jest.fn(),
+  getShares: jest.fn(),
 };
 
 export const MOCK_POOL_STAKING_SDK: Stake = {

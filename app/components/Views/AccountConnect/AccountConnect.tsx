@@ -159,6 +159,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
 
+  const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
+
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
     let dappHostname = dappUrl || channelIdOrHostname;
@@ -178,6 +180,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = inappBrowserOrigin;
     } else {
       title = strings('sdk.unknown');
+      setIsSdkUrlUnknown(true);
     }
 
     return { domainTitle: title, hostname: dappHostname };
@@ -357,7 +360,13 @@ const AccountConnect = (props: AccountConnectProps) => {
           .build(),
       );
     },
-    [accountsLength, channelIdOrHostname, trackEvent, createEventBuilder, eventSource],
+    [
+      accountsLength,
+      channelIdOrHostname,
+      trackEvent,
+      createEventBuilder,
+      eventSource,
+    ],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -799,7 +808,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isMultichainVersion1Enabled
+        return isSdkUrlUnknown
+          ? renderSingleConnectScreen()
+          : isMultichainVersion1Enabled
           ? renderPermissionsSummaryScreen()
           : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
@@ -811,6 +822,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [
     screen,
+    isSdkUrlUnknown,
     renderSingleConnectScreen,
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,

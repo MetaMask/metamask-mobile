@@ -14,11 +14,9 @@ import {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import {
-  selectIsProfileSyncingEnabled,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
 
