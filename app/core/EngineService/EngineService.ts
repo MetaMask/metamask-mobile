@@ -54,6 +54,7 @@ export class EngineService {
     const Engine = UntypedEngine as any;
     try {
       Engine.init(state);
+      this.updateControllers(Engine);
     } catch (error) {
       Logger.error(
         error as Error,
@@ -64,7 +65,6 @@ export class EngineService {
         routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
       });
     }
-    this.updateControllers(Engine);
     endTrace({ name: TraceName.EngineInitialization });
   };
 
