@@ -1,6 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { LINEA_GOERLI } from '../../constants/network';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -101,6 +102,8 @@ export const PopularList = [
 ];
 
 export const INFURA_TESTNET_CHAIN_IDS = {
+  GOERLI: '0x5',
+  LINEA_GOERLI: '0xe704',
   SEPOLIA: '0xaa36a7',
   HOLESKY: '0x4268',
   LINEA_SEPOLIA: '0xe705',
@@ -120,6 +123,8 @@ export const INFURA_TESTNET_CHAIN_IDS = {
 } as const;
 
 export const infuraChainIdsTestNets: string[] = [
+  INFURA_TESTNET_CHAIN_IDS.GOERLI,
+  INFURA_TESTNET_CHAIN_IDS.LINEA_GOERLI,
   INFURA_TESTNET_CHAIN_IDS.SEPOLIA,
   INFURA_TESTNET_CHAIN_IDS.HOLESKY,
   INFURA_TESTNET_CHAIN_IDS.LINEA_SEPOLIA,
