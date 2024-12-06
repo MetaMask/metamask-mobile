@@ -1,8 +1,8 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeCore } from '../../tags';
+import { SmokeMultiChain } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -12,12 +12,12 @@ import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMulti
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
-describe(SmokeCore('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
+  fit('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
     await withFixtures(
       {
         dapp: true,
