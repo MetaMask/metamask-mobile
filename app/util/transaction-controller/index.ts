@@ -5,6 +5,7 @@ import {
 import { Hex } from '@metamask/utils';
 
 import Engine from '../../core/Engine';
+import { NetworkClientId } from '@metamask/network-controller';
 
 export async function addTransaction(
   transaction: TransactionParams,
@@ -15,10 +16,10 @@ export async function addTransaction(
   return await TransactionController.addTransaction(transaction, opts);
 }
 
-export async function estimateGas(transaction: TransactionParams) {
+// Keeping this export as function to put more logic in the future
+export async function estimateGas(transaction: TransactionParams, networkClientId: NetworkClientId) {
   const { TransactionController } = Engine.context;
-
-  return await TransactionController.estimateGas(transaction);
+  return await TransactionController.estimateGas(transaction, networkClientId);
 }
 
 export async function estimateGasFee({
