@@ -101,6 +101,7 @@ const defaultTransactionMeta: TransactionMeta = {
   },
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
+  networkClientId: 'testNetworkClientId',
   time: 1624408066355,
 };
 
