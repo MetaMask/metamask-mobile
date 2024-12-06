@@ -53,12 +53,6 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
-  get updateButton() {
-    return Matchers.getElementByID(
-      NetworkNonPemittedBottomSheetSelectorsIDs.UPDATE_BUTTON,
-    );
-  }
-
   async tapAddThisNetworkButton() {
     await Gestures.waitAndTap(this.addThisNetworkButton);
   }
@@ -81,10 +75,6 @@ class NetworkNonPemittedBottomSheet {
 
   async tapEditPermissionsButton() {
     await Gestures.waitAndTap(this.editPermissionsButton);
-  }
-
-  async tapUpdateButton() {
-    await Gestures.waitAndTap(this.updateButton);
   }
 }
 
