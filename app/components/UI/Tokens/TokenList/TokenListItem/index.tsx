@@ -59,6 +59,7 @@ import {
   UnpopularNetworkList,
   CustomNetworkImgMapping,
 } from '../../../../../util/networks/customNetworks';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -97,6 +98,7 @@ export const TokenListItem = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const multiChainMarketData = useSelector(selectTokenMarketData);
 
   const styles = createStyles(colors);
@@ -181,9 +183,15 @@ export const TokenListItem = ({
     asset = { ...asset, balanceFiat };
   } else {
     mainBalance = `${asset.balance} ${asset.symbol}`;
-    secondaryBalance = asset.balanceFiat
-      ? asset.balanceFiat
-      : strings('wallet.unable_to_find_conversion_rate');
+    const shouldNotShowBalanceOnTestnets =
+      isTestNet(chainId) && !showFiatOnTestnets;
+    if (shouldNotShowBalanceOnTestnets && asset.balanceFiat) {
+      secondaryBalance = undefined;
+    } else {
+      secondaryBalance = asset.balanceFiat
+        ? asset.balanceFiat
+        : strings('wallet.unable_to_find_conversion_rate');
+    }
   }
 
   const isMainnet = isMainnetByChainId(chainId);
