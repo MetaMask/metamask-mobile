@@ -178,7 +178,12 @@ export const selectAccountTokensAcrossChains = createSelector(
   ],
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
     const selectedAddress = selectedAccount?.address;
-    const tokensByChain: { [chainId: string]: (TokenI | Token)[] } = {};
+    const tokensByChain: {
+      [chainId: string]: (
+        | TokenI
+        | (Token & { isStaked?: boolean; isNative?: boolean; isETH?: boolean })
+      )[];
+    } = {};
 
     if (!selectedAddress) {
       return tokensByChain;
