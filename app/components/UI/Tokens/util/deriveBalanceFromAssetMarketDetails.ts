@@ -53,10 +53,12 @@ export const deriveBalanceFromAssetMarketDetails = (
 
   if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
     return {
-      balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
+      balanceFiat:
+        asset.isETH || asset.isNative
+          ? asset.balanceFiat
+          : TOKEN_RATE_UNDEFINED,
       balanceValueFormatted,
     };
-
   const balanceFiatCalculation = Number(
     asset.balanceFiat ||
       balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),

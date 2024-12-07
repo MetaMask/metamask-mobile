@@ -202,7 +202,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         const multiChainConversionRate =
           multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
-        return token.isETH
+        return token.isETH || token.isNative
           ? parseFloat(token.balance) * multiChainConversionRate
           : deriveBalanceFromAssetMarketDetails(
               token,
@@ -266,6 +266,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     selectedAccountTokensChains,
     tokenNetworkFilter,
     currentChainId,
+    multiChainCurrencyRates,
+    multiChainMarketData,
+    multiChainTokenBalance,
+    networkConfigurationsByChainId,
+    selectedInternalAccountAddress,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {

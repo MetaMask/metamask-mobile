@@ -202,7 +202,8 @@ export const TokenListItem = ({
 
   if (balanceFiat === TOKEN_RATE_UNDEFINED) {
     mainBalance = balanceValueFormatted;
-    secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+    secondaryBalance =
+      strings('wallet.unable_to_find_conversion_rate') + 'salim';
   }
 
   asset = { ...asset, balanceFiat };
