@@ -36,7 +36,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
     const fixture = new FixtureBuilder().withDefaultFixture().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

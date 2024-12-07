@@ -4,6 +4,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../utils/Assertions';
+import TestHelpers from '../../helpers';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 
 const AccountTwoText = 'Account 2';
@@ -11,7 +12,7 @@ const AccountTwoText = 'Account 2';
 describe(SmokeAccounts('Create wallet account'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await device.launchApp();
+    await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

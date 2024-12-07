@@ -76,6 +76,7 @@
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
+        <data android:scheme="expo-metamask" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
@@ -110,6 +111,12 @@
 			</intent-filter>
 			<intent-filter>
 				<data android:scheme="https" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+      <intent-filter>
+				<data android:scheme="expo-metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />

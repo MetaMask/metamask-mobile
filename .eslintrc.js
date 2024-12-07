@@ -60,7 +60,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js'],
+      files: ['scripts/**/*.js', 'app.config.js'],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,

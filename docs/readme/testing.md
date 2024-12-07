@@ -51,6 +51,21 @@ Ensure that these devices are set up. You can change the default devices at any 
     yarn test:e2e:android:debug:build
     ```
 
+- **Run All Tests Locally**:
+  - **iOS Debug**:
+
+    ```bash
+    yarn test:e2e:ios:debug:run
+    ```
+
+  - **Android Debug**:
+
+    ```bash
+    yarn test:e2e:android:debug:run
+    ```
+
+_NOTE_: EXPO DOESN'T SUPPORT DETOX OUT OF THE BOX SO IT IS POSSIBLE THAT, IN SLOWER COMPUTERS, LOADING FROM THE BUNDLER TAKES TOO LONG WHICH MAKES THE VERY FIRST TEST FAIL. THE FAILED TEST WILL THEN AUTOMATICALLY RESTART AND IT SHOULD WORK FROM THEN ON.
+
 - **Run Specific Tests**:
   - **iOS**:
 
@@ -59,6 +74,18 @@ Ensure that these devices are set up. You can change the default devices at any 
     ```
 
   - **Android**:
+
+    UPDATE: with the implementation of Expo, mobile app will need to be manually loaded on emulator before running automated E2E tests.
+
+    - install a build on the emulator
+      - either install the apk or keep an existing install on the emulator
+    - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
+    - if emulator fails to launch you can launch emulator in another terminal
+      ```bash
+      emulator -avd <emulator-name>
+      ```
+      - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
+    - you don't need to repeat these steps unless emulator or metro server is restarted
 
     ```bash
     yarn test:e2e:android:debug:run e2e/specs/TEST_NAME.spec.js

@@ -84,3 +84,10 @@ ignores:
   - 'app'
   - 'i18n-js'
   - 'images'
+  
+  ## Expo
+  - '@config-plugins/detox'
+  - 'cross-spawn'
+  - 'expo-build-properties'
+  - 'expo-dev-client'
+  
