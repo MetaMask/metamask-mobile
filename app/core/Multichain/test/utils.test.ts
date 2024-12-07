@@ -78,7 +78,7 @@ const mockBTCAccount: InternalAccount = {
     },
   },
   options: {},
-  methods: [BtcMethod.SendMany],
+  methods: [BtcMethod.SendBitcoin],
   type: BtcAccountType.P2wpkh,
 };
 

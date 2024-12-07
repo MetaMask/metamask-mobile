@@ -41,7 +41,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -218,7 +217,8 @@ export const getTestNetImageByChainId = (chainId) => {
 /**
  * A list of chain IDs for known testnets
  */
-const TESTNET_CHAIN_IDS = [
+export const TESTNET_CHAIN_IDS = [
+  ChainId[NetworkType.goerli],
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
@@ -348,14 +348,6 @@ export function isPrefixedFormattedHexString(value) {
   }
   return regex.prefixedFormattedHexString.test(value);
 }
-
-export const getNetworkNonce = async ({ from }) => {
-  const { nextNonce, releaseLock } = await getNonceLock(from);
-
-  releaseLock();
-
-  return nextNonce;
-};
 
 export function blockTagParamIndex(payload) {
   switch (payload.method) {
