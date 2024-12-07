@@ -274,7 +274,7 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    initialKeyringState?: KeyringControllerState | null,
+    initialKeyringState?: Partial<KeyringControllerState> | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
 
@@ -2151,7 +2151,10 @@ export default {
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null) {
+  init(
+    state: Partial<EngineState> | undefined,
+    keyringState: Partial<KeyringControllerState> | null = null,
+  ) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
