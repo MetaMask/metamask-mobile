@@ -63,6 +63,7 @@ import {
   UnpopularNetworkList,
   CustomNetworkImgMapping,
 } from '../../../../../util/networks/customNetworks';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -103,6 +104,7 @@ export const TokenListItem = ({
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
   // single chain
   const singleTokenExchangeRates = useSelector(selectContractExchangeRates);
@@ -164,10 +166,6 @@ export const TokenListItem = ({
   let mainBalance;
   let secondaryBalance;
 
-  // console.log('------------------------------------');
-  // console.log('token name:', asset.name);
-  // console.log('balance fiat:', balanceFiat);
-  // console.log('------------------------------------');
   // Set main and secondary balances based on the primary currency and asset type.
   if (primaryCurrency === 'ETH') {
     // Default to displaying the formatted balance value and its fiat equivalent.
@@ -185,22 +183,15 @@ export const TokenListItem = ({
       }
     }
   } else {
-    // For non-ETH currencies, determine balances based on the presence of fiat value.
-    mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
-    secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
-
-    // Adjust balances for native currencies in non-ETH scenarios.
-    if (asset.isETH) {
-      // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
-      if (!balanceFiat) {
-        mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
-      } else if (isOriginalNativeTokenSymbol) {
-        mainBalance = balanceFiat; // Show fiat value if it's a safe network
-      } else {
-        mainBalance = ''; // Otherwise, set to an empty string
-      }
-      // Secondary balance mirrors the main balance logic for consistency.
-      secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+    mainBalance = `${asset.balance} ${asset.symbol}`;
+    const shouldNotShowBalanceOnTestnets =
+      isTestNet(chainId) && !showFiatOnTestnets;
+    if (shouldNotShowBalanceOnTestnets && asset.balanceFiat) {
+      secondaryBalance = undefined;
+    } else {
+      secondaryBalance = asset.balanceFiat
+        ? asset.balanceFiat
+        : strings('wallet.unable_to_find_conversion_rate');
     }
   }
 
