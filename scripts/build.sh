@@ -224,18 +224,18 @@ prebuild_android(){
 buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --mode=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --mode=qaDebug --active-arch-only
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
-	react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
+	react-native run-android --port=$WATCHER_PORT --mode=flaskDebug --active-arch-only
 }
 
 buildIosSimulator(){
@@ -329,7 +329,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+		./node_modules/.bin/react-native run-ios --mode Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -351,7 +351,7 @@ buildIosFlaskRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
+		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --mode Release --simulator "iPhone 13 Pro"
 	fi
 }
 
