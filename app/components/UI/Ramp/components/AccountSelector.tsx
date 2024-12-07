@@ -47,7 +47,7 @@ const AccountSelector = () => {
           />
           <Text style={styles.accountText} primary centered numberOfLines={1}>
             {selectedInternalAccount.metadata.name.length > 13
-              ? `${selectedInternalAccount.metadata.name.substr(0, 13)}...`
+              ? `${selectedInternalAccount.metadata.name.substring(0, 14)}...`
               : selectedInternalAccount.metadata.name}{' '}
             (
             <EthereumAddress
