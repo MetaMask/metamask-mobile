@@ -15,6 +15,7 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
 import {
+  createLoggingXHROverride,
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
@@ -117,8 +118,10 @@ export function* basicFunctionalityToggle() {
 
     if (basicFunctionalityEnabled) {
       restoreXMLHttpRequest();
+      // apply metrics if enabled
+      createLoggingXHROverride();
     } else {
-      // apply global blocklist
+      // apply global blocklist and metrics if enabled
       overrideXMLHttpRequest();
     }
   }
