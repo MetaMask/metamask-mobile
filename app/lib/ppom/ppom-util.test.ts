@@ -157,6 +157,7 @@ describe('PPOM Utils', () => {
                 url: 'https://mainnet.infura.io/v3',
               },
             ],
+            lastUpdatedAt: Date.now(),
           },
         },
         networksMetadata: {},
@@ -182,7 +183,9 @@ describe('PPOM Utils', () => {
       MockEngine.context.PreferencesController.state.securityAlertsEnabled =
         false;
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
-      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(0);
+      expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
+        0,
+      );
       expect(spyTransactionAction).toHaveBeenCalledTimes(0);
     });
 
