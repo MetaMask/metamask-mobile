@@ -76,6 +76,8 @@ function mockAccountsApi(transactions) {
 }
 
 describe(SmokeCore('Incoming Transactions'), () => {
+    let mockServer;
+
     beforeAll(async () => {
         jest.setTimeout(2500000);
         await TestHelpers.reverseServerPort();
@@ -83,7 +85,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
 
     afterEach(async () => {
         try {
-            await stopMockServer();
+            await stopMockServer(mockServer);
         } catch (error) {
             // eslint-disable-next-line no-console
             console.log('Mock server already stopped or encountered an error:', error);
@@ -91,7 +93,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays standard incoming transaction', async () => {
-        await startMockServer({ GET: [mockAccountsApi()] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
 
         await withFixtures(
             {
@@ -110,7 +112,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays incoming token transfers', async () => {
-        await startMockServer({ GET: [mockAccountsApi([RESPONSE_TOKEN_TRANSFER_MOCK])] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_TOKEN_TRANSFER_MOCK])] });
 
         await withFixtures(
             {
@@ -130,7 +132,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays outgoing transactions', async () => {
-        await startMockServer({ GET: [mockAccountsApi([RESPONSE_OUTGOING_TRANSACTION_MOCK])] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_OUTGOING_TRANSACTION_MOCK])] });
 
         await withFixtures(
             {
@@ -148,7 +150,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays nothing if incoming transactions disabled', async () => {
-        await startMockServer({ GET: [mockAccountsApi()] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
 
         await withFixtures(
             {
@@ -170,7 +172,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays nothing if incoming transaction is a duplicate', async () => {
-        await startMockServer({ GET: [mockAccountsApi([RESPONSE_STANDARD_MOCK])] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_STANDARD_MOCK])] });
 
         await withFixtures(
             {
@@ -195,7 +197,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays notification', async () => {
-        await startMockServer({ GET: [mockAccountsApi()] });
+        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
 
         await withFixtures(
             {
