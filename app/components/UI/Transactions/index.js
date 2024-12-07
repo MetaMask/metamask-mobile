@@ -208,10 +208,6 @@ class Transactions extends PureComponent {
      */
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
-    /**
-     * ID of the global network client
-     */
-    networkClientId: PropTypes.string,
   };
 
   static defaultProps = {

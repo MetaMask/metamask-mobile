@@ -6,9 +6,9 @@ import Assertions from '../../utils/Assertions';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder, { DEFAULT_FIXTURE_ACCOUNT } from '../../fixtures/fixture-builder';
-import TabBarComponent from '../../pages/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import ToastModal from '../../pages/modals/ToastModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ToastModal from '../../pages/wallet/ToastModal';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';

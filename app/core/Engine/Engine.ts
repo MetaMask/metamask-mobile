@@ -1208,7 +1208,6 @@ export class Engine {
       getNonceLock: this.transactionController.getNonceLock.bind(
         this.transactionController,
       ),
-      // @ts-expect-error TODO: resolve types
       confirmExternalTransaction:
         this.transactionController.confirmExternalTransaction.bind(
           this.transactionController,

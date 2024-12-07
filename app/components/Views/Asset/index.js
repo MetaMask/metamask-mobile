@@ -165,10 +165,6 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
-    /**
-     * ID of the global network client
-     */
-    networkClientId: PropTypes.string,
   };
 
   state = {
