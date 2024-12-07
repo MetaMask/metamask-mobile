@@ -183,15 +183,14 @@ export const TokenListItem = ({
       }
     }
   } else {
-    mainBalance = `${asset.balance} ${asset.symbol}`;
+    secondaryBalance = balanceValueFormatted;
     const shouldNotShowBalanceOnTestnets =
       isTestNet(chainId) && !showFiatOnTestnets;
-    if (shouldNotShowBalanceOnTestnets && asset.balanceFiat) {
-      secondaryBalance = undefined;
+    if (shouldNotShowBalanceOnTestnets && balanceFiat) {
+      mainBalance = undefined;
     } else {
-      secondaryBalance = asset.balanceFiat
-        ? asset.balanceFiat
-        : strings('wallet.unable_to_find_conversion_rate');
+      mainBalance =
+        balanceFiat ?? strings('wallet.unable_to_find_conversion_rate');
     }
   }
 
