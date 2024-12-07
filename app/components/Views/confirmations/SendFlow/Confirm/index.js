@@ -52,7 +52,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../../util/general';
 import {
   isTestNet,
-  getNetworkNonce,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
@@ -117,11 +116,14 @@ import {
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
+import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/TransactionConfirmView.selectors.js';
 import {
   selectTransactionMetrics,
   updateTransactionMetrics,
@@ -1393,7 +1395,7 @@ class Confirm extends PureComponent {
               </Text>
               <Text
                 style={styles.textAmount}
-                testID={TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT}
+                testID={TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT}
               >
                 {transactionValue}
               </Text>

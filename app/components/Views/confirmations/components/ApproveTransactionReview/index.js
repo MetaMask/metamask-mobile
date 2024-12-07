@@ -56,12 +56,12 @@ import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import CustomSpendCap from '../../../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../../../util/Logger';

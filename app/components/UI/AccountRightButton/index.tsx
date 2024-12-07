@@ -26,7 +26,7 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';

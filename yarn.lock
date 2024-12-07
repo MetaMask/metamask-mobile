@@ -1438,10 +1438,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
   integrity sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==
 
-"@consensys/on-ramp-sdk@1.28.5":
-  version "1.28.5"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.28.5.tgz#b9ff6c2b0f46abef30bd32a720f34d963aa76491"
-  integrity sha512-tBZ2ZsEz+du/vHF4NChTTvcdYddoJCtNZDZj5lry8/TeNxctnYiZGx2tHtw2GJHfYa9Uuux2hwtdhubcR//ZeA==
+"@consensys/on-ramp-sdk@1.28.7":
+  version "1.28.7"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-1.28.7.tgz#fe26b8935219b2a782c8adc83db7be649cfcd243"
+  integrity sha512-2UE6FBuscFrsA/nUi1ZYu+sK0IXM1BbxN1876uHb9+LUGrtrBrnyMa9hrMJYRc9so7i+8Gy4bty70kCOIqzeGw==
   dependencies:
     async "^3.2.3"
     axios "^0.28.0"
@@ -4080,18 +4080,18 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.0.0"
 
-"@metamask/accounts-controller@^18.2.1":
-  version "18.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-18.2.1.tgz#8e4a842316e9b7bbd0409b36129f7123ba4a4c79"
-  integrity sha512-BEvux+ZFpTOQa6HbRl7i7Tq24ztqrZIsX+H0ePh47lU+N8RWq1q0JCItV+zbsgdcYnwhtcMZTsp4jJPQwPe2og==
+"@metamask/accounts-controller@^20.0.1":
+  version "20.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-20.0.1.tgz#6f3dc905418ad75e44fce830b0363a585cce2ea8"
+  integrity sha512-zjAzkA3Okxy9aptBAHtFKCaTq5VNE8EHV48ETzxl8Jhdl8wpaTGWcacbqdkmOooC1lPLe2oXGglHSdBP73JDMQ==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/eth-snap-keyring" "^4.3.3"
-    "@metamask/keyring-api" "^8.1.0"
-    "@metamask/snaps-sdk" "^6.5.0"
-    "@metamask/snaps-utils" "^8.1.1"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/eth-snap-keyring" "^5.0.1"
+    "@metamask/keyring-api" "^10.1.0"
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/snaps-utils" "^8.3.0"
+    "@metamask/utils" "^10.0.0"
     deepmerge "^4.2.2"
     ethereum-cryptography "^2.1.2"
     immer "^9.0.6"
@@ -4106,14 +4106,14 @@
     "@metamask/controller-utils" "^11.3.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/approval-controller@^7.0.2", "@metamask/approval-controller@^7.1.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.0.tgz#34b07bc4eaf6938b15f9d915c6885d4a5c0a5205"
-  integrity sha512-dhqUeX8wMzW88U+Vgr7oKf0Vouol10ncB3lxmvWyC1VZJhSOdO3VUkn0tH1lzt3ybxYVMOkPaB3gfdksfnNRyA==
+"@metamask/approval-controller@^7.1.0", "@metamask/approval-controller@^7.1.1":
+  version "7.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.1.tgz#184a280647922c0bdc6644e10292c6db903a7062"
+  integrity sha512-sMIoO7UQ8M9Ry7qWzcqPR4leJ/P3iq4xbdqzLLLzi8Wm1l3419hSOpk04QEa2HBWJZUiGcRCkc74s/iw4OLzhg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
 "@metamask/assets-controllers@^44.1.0":
@@ -4155,14 +4155,6 @@
     "@metamask/utils" "^8.1.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^6.0.2":
-  version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-6.0.3.tgz#9bb4e74234c1de5f99842c343ffa053c08055db1"
-  integrity sha512-neUqsCXRT6QYcZO51y6Y5u9NPTHuxgNsW5Z4h///o1gDdV8lBeIG/b1ne+QPK422DZMAm4ChnkG1DDNf4PkErw==
-  dependencies:
-    "@metamask/utils" "^9.1.0"
-    immer "^9.0.6"
-
 "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2":
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.2.tgz#bf908858215cd4f7d072b3b0f7f0946cf886ee49"
@@ -4170,6 +4162,11 @@
   dependencies:
     "@metamask/utils" "^10.0.0"
     immer "^9.0.6"
+
+"@metamask/bitcoin-wallet-snap@^0.8.2":
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.8.2.tgz#dd37c48366997e6e9927837e28cc65a6008d1524"
+  integrity sha512-NoqqAA7YuuFk/n0/ZgcLpaFRYKorkN5nS9mVYIkHcp1yxyduDGhrDKyYzMVcOiEmrnZSkSRt5tDulk1PQ+cdLw==
 
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
@@ -4205,10 +4202,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.0.2", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.2", "@metamask/controller-utils@^11.4.3":
-  version "11.4.3"
-  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.3.tgz#5763f0bbee2f3770c1ba42dd4869786afef849bd"
-  integrity sha512-shrVCHFwIbt8qVcKbxe/mp5tOxjz6905/7ZIAnwUJKHYv7iEqfjyO1ibPoOknrZCF2vbXtP21b435g3v9DBNTQ==
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.2", "@metamask/controller-utils@^11.4.3", "@metamask/controller-utils@^11.4.4":
+  version "11.4.4"
+  resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.4.tgz#6e43e4cf53d34dad225bab8aaf4e7efcb1fe7623"
+  integrity sha512-0/gKC6jxlj8KRzi0RjGDQnml6l4b46Da/AIqnGJMOC59zl4qD5UN1GM+mq7L5duw/m8sSHa7VbL1hL0l7Cw1pg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-query" "^4.0.0"
@@ -4254,6 +4251,18 @@
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-sig-util" "^7.0.3"
+    "@metamask/scure-bip39" "^2.1.1"
+    "@metamask/utils" "^9.2.1"
+    ethereum-cryptography "^2.1.2"
+
+"@metamask/eth-hd-keyring@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-9.0.0.tgz#cba58308af5cfb9b7b1b958eeea380ec9c798e64"
+  integrity sha512-dhvirCCWmFGd0HyiEmho0Zwdl2g86kLA+K78f3uHnV1PV0ELKsMgRqlcA8OuXlrz0jnGQPDRNFXGG6/yFyyLlg==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/key-tree" "^10.0.0"
     "@metamask/scure-bip39" "^2.1.1"
     "@metamask/utils" "^9.2.1"
     ethereum-cryptography "^2.1.2"
@@ -4320,15 +4329,15 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^5.0.1"
 
-"@metamask/eth-json-rpc-provider@^4.1.0", "@metamask/eth-json-rpc-provider@^4.1.5":
-  version "4.1.5"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.1.5.tgz#8461fb3af8a48e3a32b45602ce96e81e1c49b5db"
-  integrity sha512-ARXEgPnVhrz4uDiG+atgkfZD6t8oZbD4pzWZMV4kJIOgZeUngZvq0m5gVeLKWxkc5ofejoSUBRRAKUQBRaaJKA==
+"@metamask/eth-json-rpc-provider@^4.1.5", "@metamask/eth-json-rpc-provider@^4.1.6":
+  version "4.1.6"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.1.6.tgz#5d86ee7db6ff94b0abe1f00ef02aeffa60536497"
+  integrity sha512-32gz41C416E0P+b6YpG/2Ne1UoyqxHRGT9xBh1LTFaWvZXfGQxjSTdK+AEVG01pZ8Mf8Bgp8z2SpEsWcE9ZCng==
   dependencies:
-    "@metamask/json-rpc-engine" "^10.0.0"
-    "@metamask/rpc-errors" "^7.0.0"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/rpc-errors" "^7.0.1"
     "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
     uuid "^8.3.2"
 
 "@metamask/eth-ledger-bridge-keyring@^6.0.0":
@@ -4364,7 +4373,7 @@
     tweetnacl "^1.0.3"
     tweetnacl-util "^0.15.1"
 
-"@metamask/eth-sig-util@^7.0.2", "@metamask/eth-sig-util@^7.0.3":
+"@metamask/eth-sig-util@^7.0.3":
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-7.0.3.tgz#be9e444fe0b8474c04e2ff42fd983173767f6ac0"
   integrity sha512-PAtGnOkYvh90k2lEZldq/FK7GTLF6WxE+2bV85PoA3pqlJnmJCAY62tuvxHSwnVngSKlc4mcNvjnUg2eYO6JGg==
@@ -4399,16 +4408,16 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^4.3.3":
-  version "4.3.6"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-4.3.6.tgz#c010c644575d1d2dd7c47953f6a1392fe17e38d9"
-  integrity sha512-jds0NdBDWM99FnO7WjODnRo+fnRoo11lJZlFS+cIa4ol7TMQmJ0HQdpno7R2LNfweoTioDMQd1LY1mCBq4zXnA==
+"@metamask/eth-snap-keyring@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-5.0.1.tgz#aa16a5d623a4c68b44afaa9cd47f45a409f922d1"
+  integrity sha512-XP/gmuLyI8jYItpFiqQUGB5/d+Qft6dCqs9vCcbMzTEvyatJtP0bkk2ZWmpfnrVGQIlepY/nhOD25NDE7mgwEg==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
-    "@metamask/eth-sig-util" "^7.0.3"
-    "@metamask/snaps-controllers" "^9.7.0"
-    "@metamask/snaps-sdk" "^6.5.1"
-    "@metamask/snaps-utils" "^7.8.1"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/snaps-controllers" "^9.10.0"
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/snaps-utils" "^8.3.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^9.2.1"
     "@types/uuid" "^9.0.8"
@@ -4495,14 +4504,14 @@
     bn.js "^5.2.1"
     uuid "^8.3.2"
 
-"@metamask/json-rpc-engine@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.0.tgz#d2beb23ca43596bf2e4a72c54c1d4c24fce1c8a6"
-  integrity sha512-10GzJR3G+MM1uS9tLEOw67fc8/kstCSwVoSqaL3fxYaWfUrM6RJWAq1jnMdVrLgyItDguC0d8fsW1FTmF856rQ==
+"@metamask/json-rpc-engine@^10.0.0", "@metamask/json-rpc-engine@^10.0.1":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-10.0.1.tgz#432e4b42770ecd4da8a89f94b52cdeac982bdca3"
+  integrity sha512-RmoKubUhK7BtZrllJjqMiSkW0p5QIKiO8ohJoa7/pewJIgPWzPFid/5EahQ4f/sPtTH9O9ypDQF9r7DFCPFSVQ==
   dependencies:
-    "@metamask/rpc-errors" "^7.0.0"
+    "@metamask/rpc-errors" "^7.0.1"
     "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
 
 "@metamask/json-rpc-engine@^7.0.0":
   version "7.3.3"
@@ -4522,7 +4531,7 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     "@metamask/utils" "^8.3.0"
 
-"@metamask/json-rpc-engine@^9.0.0", "@metamask/json-rpc-engine@^9.0.1", "@metamask/json-rpc-engine@^9.0.2":
+"@metamask/json-rpc-engine@^9.0.0":
   version "9.0.3"
   resolved "https://registry.yarnpkg.com/@metamask/json-rpc-engine/-/json-rpc-engine-9.0.3.tgz#491eb6085b63b040979d4c65f2a01107d22a162a"
   integrity sha512-efeRXW7KaL0BJcAeudSGhzu6sD3hMpxx9nl3V+Yemm1bsyc66yVUhYPR+XH+Y6ZvB2p05ywgvd1Ev5PBwFzr/g==
@@ -4541,17 +4550,28 @@
     "@metamask/utils" "^8.3.0"
     readable-stream "^3.6.2"
 
-"@metamask/json-rpc-middleware-stream@^8.0.1", "@metamask/json-rpc-middleware-stream@^8.0.2":
-  version "8.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-middleware-stream/-/json-rpc-middleware-stream-8.0.2.tgz#2063b7775264d04fca8506844aebe3c3bf1fb443"
-  integrity sha512-8z7GAUYj3EFVkxiTjaND2x9Q8iURoKhwIyzLMZChLTiJ/XKRJwvtJ9cG2KIeL3GnNsPkVH97xngRmTaYAM6yDg==
+"@metamask/json-rpc-middleware-stream@^8.0.2", "@metamask/json-rpc-middleware-stream@^8.0.5":
+  version "8.0.5"
+  resolved "https://registry.yarnpkg.com/@metamask/json-rpc-middleware-stream/-/json-rpc-middleware-stream-8.0.5.tgz#f91ba2ebc0285b2104f36e72359cc8ba33d08d75"
+  integrity sha512-g/1McYbBODSceBLA/rlSqzLyHcBCOsXok776Dh4PuCo5VjdLR11I24xPwR9VIdFVsrDd+MLH1q3xpS4loydLaw==
   dependencies:
-    "@metamask/json-rpc-engine" "^9.0.2"
+    "@metamask/json-rpc-engine" "^10.0.1"
     "@metamask/safe-event-emitter" "^3.0.0"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/utils" "^10.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/key-tree@^9.0.0", "@metamask/key-tree@^9.1.2":
+"@metamask/key-tree@^10.0.0", "@metamask/key-tree@^10.0.1":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-10.0.1.tgz#b8928750121b122a9d83a5cebdb2b5e34a16eaae"
+  integrity sha512-R+xjgxKRsEzr37dE4oaA7u7itQZiO0X3FtBqlDDHi3wMB5RK/oTqH1RIPBOyUHnXxL59ldTc6hA+ZmvXos28eg==
+  dependencies:
+    "@metamask/scure-bip39" "^2.1.1"
+    "@metamask/utils" "^10.0.1"
+    "@noble/curves" "^1.2.0"
+    "@noble/hashes" "^1.3.2"
+    "@scure/base" "^1.0.0"
+
+"@metamask/key-tree@^9.0.0":
   version "9.1.2"
   resolved "https://registry.yarnpkg.com/@metamask/key-tree/-/key-tree-9.1.2.tgz#3f89fc7990c395be3aa9c3e6e045d3d28768149b"
   integrity sha512-oznbIDlIn7bQsyf/RVhuVX9TsK+QUlTDeksUjBjTPKhGkFHAgn9duBHPE8P30VcCdWlt/oYSqfJVC5WK1/OXKw==
@@ -4562,7 +4582,20 @@
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-api@^8.1.0", "@metamask/keyring-api@^8.1.3":
+"@metamask/keyring-api@^10.1.0":
+  version "10.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-10.1.0.tgz#22bb96886b9dbf9a6d6f48e5975cb16499209959"
+  integrity sha512-T1/4oQKJ4+V8gsXusVF515B+kpHSMiSbCpxZunJDjvnXEheT2NjbdvjtoIK5AT+Fe6JBWDzeZGpt6gv2vHX2SA==
+  dependencies:
+    "@metamask/snaps-sdk" "^6.7.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^9.2.1"
+    "@types/uuid" "^9.0.8"
+    bech32 "^2.0.0"
+    uuid "^9.0.1"
+    webextension-polyfill "^0.12.0"
+
+"@metamask/keyring-api@^8.1.3":
   version "8.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-8.1.3.tgz#53e6a68236b88592db5bd43cf7e0d7e97dfad818"
   integrity sha512-Ztm4G/U5hc+GKS/VOnqLWYVh2O26lFQ03bNpeufrfKq7regydIqYuHFcSowbQyj7xCZqKPsvl9jxhKdYIxvCXQ==
@@ -4574,10 +4607,10 @@
     bech32 "^2.0.0"
     uuid "^9.0.1"
 
-"@metamask/keyring-controller@^17.2.1", "@metamask/keyring-controller@^17.2.2":
-  version "17.3.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-17.3.1.tgz#1a498dd165df5b908761e62fc9e194b8a4f9a074"
-  integrity sha512-+R4tD0KtXjjAts5xOo+CKETPQVa+RJDC98L2qU2iGHyFKN05gFYt4M8HMcK4gq2GhGxm+0r6SYOUw2jK/wjD5g==
+"@metamask/keyring-controller@^18.0.0":
+  version "18.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-18.0.0.tgz#48d5a441cd798cef840c5bf6334d53b6e37dc938"
+  integrity sha512-SIvjDUvt9U+fqge3ao0qZYfWrlBVf/NI/nFOwp9Q8IFpPsZYHKpbLahLfviunR/KItBul7vTzWBIN/FtQo/eLg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
@@ -4593,6 +4626,25 @@
     ethereumjs-wallet "^1.0.1"
     immer "^9.0.6"
 
+"@metamask/keyring-controller@^19.0.1":
+  version "19.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-19.0.1.tgz#6fee40a46a780a720f4c864ea779673569be06a7"
+  integrity sha512-6dNQBaJanAKEg7V0ksnWyqxHY1r3YCe910OF6DpnN97NZIPx3tba2zy32jbQWGPG6XaybfTG1xdUBtdYdeTpQA==
+  dependencies:
+    "@ethereumjs/util" "^8.1.0"
+    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/eth-hd-keyring" "^7.0.4"
+    "@metamask/eth-sig-util" "^8.0.0"
+    "@metamask/eth-simple-keyring" "^6.0.5"
+    "@metamask/keyring-api" "^10.1.0"
+    "@metamask/message-manager" "^11.0.2"
+    "@metamask/utils" "^10.0.0"
+    async-mutex "^0.5.0"
+    ethereumjs-wallet "^1.0.1"
+    immer "^9.0.6"
+
 "@metamask/logging-controller@^6.0.1":
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/logging-controller/-/logging-controller-6.0.1.tgz#cfe858e91ba6fa490ebcf4e50bebd5f6dee0417e"
@@ -4602,13 +4654,13 @@
     "@metamask/controller-utils" "^11.3.0"
     uuid "^8.3.2"
 
-"@metamask/message-manager@^11.0.1":
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-11.0.1.tgz#7ffa6ea5a0daebb0ccb78dbd75774bf3aa0b9d69"
-  integrity sha512-dPkx6v14MyBPqdnKSlBPR97/BCx8KLuGudK9u0U3CmqI5dpO3mXvwXNspu5lnBrnjAoYqQVb+/e4vqkOx4/DlQ==
+"@metamask/message-manager@^11.0.1", "@metamask/message-manager@^11.0.2":
+  version "11.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/message-manager/-/message-manager-11.0.2.tgz#805ac8d2184c56d973a787bdc7c9571024348ce6"
+  integrity sha512-j8DgWn7ACfwZtLFqeAYx4U/TquBEtcPYa81LjhoZYK39W/MQVr4ZKAmGEKxKRruMLz50GX7ciOEZU9SBtPBAog==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/eth-sig-util" "^8.0.0"
     "@metamask/utils" "^10.0.0"
     "@types/uuid" "^8.3.0"
@@ -4638,7 +4690,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^21.0.0", "@metamask/network-controller@^21.1.0":
+"@metamask/network-controller@^21.0.0":
   version "21.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-21.1.0.tgz#766598a7e854a86bcb5f94af6c7bbc7f67820d02"
   integrity sha512-AyGumRyUtuQAkYJ/7f/KSPqwc+vndUP20BE0NbGo2hVfMS/IOdvUj2Dz+c8+LnqkO6JfyuQ7BVJiMy5JnMucJw==
@@ -4654,6 +4706,29 @@
     "@metamask/rpc-errors" "^7.0.0"
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^9.1.0"
+    async-mutex "^0.5.0"
+    immer "^9.0.6"
+    loglevel "^1.8.1"
+    reselect "^5.1.1"
+    uri-js "^4.4.1"
+    uuid "^8.3.2"
+
+"@metamask/network-controller@^22.0.2":
+  version "22.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.0.2.tgz#d6f5464d26bc9b68731cc5c7ec32845f63d1fcf0"
+  integrity sha512-DfcDdmtVRp7TrtbvaSFX+98jE/KSorhTy/znWOpe1zt60q6v3+SVttT2LJlZpvpk0hyiDPNBO4lmk3AOovR2/w==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/eth-block-tracker" "^11.0.2"
+    "@metamask/eth-json-rpc-infura" "^10.0.0"
+    "@metamask/eth-json-rpc-middleware" "^15.0.0"
+    "@metamask/eth-json-rpc-provider" "^4.1.6"
+    "@metamask/eth-query" "^4.0.0"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/swappable-obj-proxy" "^2.2.0"
+    "@metamask/utils" "^10.0.0"
     async-mutex "^0.5.0"
     immer "^9.0.6"
     loglevel "^1.8.1"
@@ -4724,16 +4799,16 @@
     "@metamask/safe-event-emitter" "^3.0.0"
     readable-stream "^3.6.2"
 
-"@metamask/permission-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.0.tgz#b205b97cfa95921aa87ffb1d479c064e9baf8cc0"
-  integrity sha512-HuQy9nkHVRSp5+soYN3Ks8HRIPz8ISvtTmn7x3Q5anyF70S5mDVsviLryHePUYdO5s8C9VJtB82E7StilK7WWg==
+"@metamask/permission-controller@^11.0.0", "@metamask/permission-controller@^11.0.3":
+  version "11.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/permission-controller/-/permission-controller-11.0.3.tgz#1d232ad892f9e097e281ddd7425370d3a6641344"
+  integrity sha512-u+btKRYRdJ+dBZP3nw1pmpo9bO4ehK6Lh0Veo0/Cx4ETvSN6JbP/L86aPRr/r8PAxXNrfSqv7YOgTfspw7cgCQ==
   dependencies:
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/controller-utils" "^11.0.2"
-    "@metamask/json-rpc-engine" "^9.0.2"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/utils" "^9.1.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.1"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/utils" "^10.0.0"
     "@types/deep-freeze-strict" "^1.1.0"
     deep-freeze-strict "^1.1.1"
     immer "^9.0.6"
@@ -4765,7 +4840,7 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^12.0.1":
+"@metamask/polling-controller@^12.0.0", "@metamask/polling-controller@^12.0.1":
   version "12.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-12.0.1.tgz#89593c892d7fbbc93ccb6fe45dd2d820839f3d93"
   integrity sha512-ZCF7UBuyxk9utdmOAh9/VBT780OxRPN5pD0wJaRwsFnFM3FFOFmvmojqnw8Kz4lSglyETtOBBMvzyQsnqoXQEQ==
@@ -4799,22 +4874,23 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^13.3.0":
-  version "13.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-13.3.0.tgz#5c10001148dc335d8dcc3e3118154961b1a2f377"
-  integrity sha512-USPwqvCxk9C4GlpZRrd9hYhpZz2vpBl8S6TyJQeX0maY2m+vrbahhUukq/6zPWJEjkthqKe8Ndu5KKKCXv1Fyg==
+"@metamask/preferences-controller@^14.0.0":
+  version "14.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-14.0.0.tgz#1ec10cf7d2091962345dfc99fa050339a997e467"
+  integrity sha512-rh0kWWIDCa1V/zAfC3pA+0I3JSiQp23kpi838uMqCDMBIB0ifFbWX+qjnZlxZp77R1bvJiSqtHGlYLl60/Y7FA==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/controller-utils" "^11.4.3"
 
-"@metamask/profile-sync-controller@^0.9.7":
-  version "0.9.7"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-0.9.7.tgz#d5e78cb8004f0dcb8637410bb8b54911e8f2c0a7"
-  integrity sha512-1R4P1/9VdGEHGPb68gc2oNM9/95xc84hNqIlZDL/OISSRgvW3wJguXwEVLfW6GE91gHmzHtMe4MxDM3pXQWc9w==
+"@metamask/profile-sync-controller@^1.0.0":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-1.0.2.tgz#877a04cdcda2441bd30ac996581f520b4b4f3c53"
+  integrity sha512-mFZtnmMR040QxnZx8U7hs/UVToBZxPxJCB+QWnUkkSUZ/rk2Yq1nWepxJEgxxrdyb4goHGzFGFUId+Fr0ezBjg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
+    "@metamask/base-controller" "^7.0.2"
     "@metamask/keyring-api" "^8.1.3"
-    "@metamask/keyring-controller" "^17.2.2"
+    "@metamask/keyring-controller" "^18.0.0"
+    "@metamask/network-controller" "^22.0.2"
     "@metamask/snaps-sdk" "^6.5.0"
     "@metamask/snaps-utils" "^8.1.1"
     "@noble/ciphers" "^0.5.2"
@@ -4823,7 +4899,7 @@
     loglevel "^1.8.1"
     siwe "^2.3.2"
 
-"@metamask/providers@^16.0.0", "@metamask/providers@^16.1.0":
+"@metamask/providers@^16.0.0":
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-16.1.0.tgz#7da593d17c541580fa3beab8d9d8a9b9ce19ea07"
   integrity sha512-znVCvux30+3SaUwcUGaSf+pUckzT5ukPRpcBmy+muBLC0yaWnBcvDqGfcsw6CBIenUdFrVoAFa8B6jsuCY/a+g==
@@ -4841,17 +4917,17 @@
     readable-stream "^3.6.2"
     webextension-polyfill "^0.10.0"
 
-"@metamask/providers@^17.1.2":
-  version "17.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-17.2.1.tgz#e57105deddd0aab7c7a7efc44ce91f3bd9737906"
-  integrity sha512-xnF48ULB0uZ4mOPLMv5xzLWenMs1zbAUNP+wiBofetzIqnD/i6S8u9axIkAwEXBsb0JXtDI1lBPiTBJ5HUxRdw==
+"@metamask/providers@^18.1.0", "@metamask/providers@^18.1.1":
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/providers/-/providers-18.2.0.tgz#557ca488a58966e288e50d629f104b061f8a76d2"
+  integrity sha512-GYgweLy6N1/aNNAg4CLhtfu9XwNNG+MZNlPCAl6Ai92+GKCUFRp8RTTBN81EzTLJvJu7NKIrw99AApJACJ8KRA==
   dependencies:
-    "@metamask/json-rpc-engine" "^9.0.1"
-    "@metamask/json-rpc-middleware-stream" "^8.0.1"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/json-rpc-middleware-stream" "^8.0.5"
     "@metamask/object-multiplex" "^2.0.0"
-    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/rpc-errors" "^7.0.1"
     "@metamask/safe-event-emitter" "^3.1.1"
-    "@metamask/utils" "^9.0.0"
+    "@metamask/utils" "^10.0.0"
     detect-browser "^5.2.0"
     extension-port-stream "^4.1.0"
     fast-deep-equal "^3.1.3"
@@ -4891,6 +4967,15 @@
   dependencies:
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
+
+"@metamask/remote-feature-flag-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.0.0.tgz#048162eaa6fa34401cfbabfa0eb33f0255bb2945"
+  integrity sha512-jrjEQhW/RdHQ/GQbgXH97N6YqDUW7nGA40lEr0TUSIhJVVaHDX0gCiNmJZcQ89yLY4DZ0bisEwjrCu8LycYiQQ==
+  dependencies:
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/utils" "^10.0.0"
+    cockatiel "^3.1.2"
 
 "@metamask/rpc-errors@7.0.1", "@metamask/rpc-errors@^6.2.1", "@metamask/rpc-errors@^6.3.1", "@metamask/rpc-errors@^7.0.0", "@metamask/rpc-errors@^7.0.1":
   version "7.0.1"
@@ -4939,33 +5024,28 @@
     "@metamask/swappable-obj-proxy" "^2.2.0"
     "@metamask/utils" "^9.1.0"
 
-"@metamask/signature-controller@^21.0.0":
-  version "21.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-21.1.0.tgz#04b164dc0dfaeee0bf77d1be50b5f9be39c8c334"
-  integrity sha512-WD99N98DUio/Ya21tQtRV8IXAvdoakXL0icFoBir8Dnv4ZuAwFkb5TbalhWfhyAA2rwED2amTbAmIrzcvXMagw==
+"@metamask/signature-controller@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-22.0.0.tgz#a52c79881aae4b47fecfc2c2b1f2d0e1e649e240"
+  integrity sha512-k4Kvq4tdFDWLiFiNijUeOGVQj10PfNp5R6DCPXwMgQnJqmUBXM14i/kMN4lU7rRsieYhQdXRVOQZ3/5r3wCstg==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.2"
+    "@metamask/controller-utils" "^11.4.3"
     "@metamask/eth-sig-util" "^8.0.0"
     "@metamask/utils" "^10.0.0"
     jsonschema "^1.2.4"
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/slip44@3.1.0", "@metamask/slip44@^3.1.0":
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-3.1.0.tgz#f8067796f89fbbd6eaa594660bd6a1fbd6837a51"
-  integrity sha512-bFlJ8jhTYJ4iQ0zgh2WMO2615UJ4Ne5J831EjsqKYaZs3qd6UTw/cy76hAmSxhnBluNAH5S6zZzxESLrTitCmQ==
+"@metamask/slip44@^4.0.0", "@metamask/slip44@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.1.0.tgz#6f2702de7ba64dad3ab6586ea3ac4e5647804b0a"
+  integrity sha512-RQ2MJO0X3QLnJo0rFlb83h2tNAkqqx/VNOPLc3/S2CvY3/cXy3UAEw/xRM/475BeAAkWI93yiIn/FoGUy3E0Ig==
 
-"@metamask/slip44@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.0.0.tgz#690a52d2ba74ea677d9bd0e827a90c8809fbecd3"
-  integrity sha512-MQMocMvFmp1MWownjKMuxevivwYeNQPSpNyIg9K7nmxKuoatp5NUc9L8EJ3Bh//rOfl6fBfXn9byfS0t+NE02Q==
-
-"@metamask/smart-transactions-controller@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-14.0.0.tgz#367b7fae63521678e94355b974a402d0d05af39d"
-  integrity sha512-V4fgI5q9AqO5J5DK260UpD4xZNhZkRohIX3EXdk1nsOWqu2RjjyzORNbokTuqU8CHwHZpFxtkzH6lcDRHZOD0A==
+"@metamask/smart-transactions-controller@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-15.0.0.tgz#d9a3c2b3e3b1c5d9ddf68c03c0a537d348119fab"
+  integrity sha512-IN3mtNDt6YZZBlBn0hk5M+9ShUVD+I4IhAkwbKGp5aom1NdGqVqvl/N0axuhFCqgjBG9JM4zt+orvXIDIhDLXw==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
@@ -4973,35 +5053,34 @@
     "@ethersproject/bytes" "^5.7.0"
     "@metamask/base-controller" "^7.0.1"
     "@metamask/controller-utils" "^11.0.0"
-    "@metamask/eth-json-rpc-provider" "^4.1.0"
+    "@metamask/eth-json-rpc-provider" "^4.1.6"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/network-controller" "^21.1.0"
-    "@metamask/polling-controller" "^11.0.0"
-    "@metamask/transaction-controller" "^37.3.0"
+    "@metamask/polling-controller" "^12.0.0"
     bignumber.js "^9.0.1"
     events "^3.3.0"
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^9.7.0", "@metamask/snaps-controllers@^9.8.0":
-  version "9.11.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.11.0.tgz#06cd0976994bfa12413c1326b60d50afe6a65640"
-  integrity sha512-4LrwAGnYVL125OqC7TRCFLdxtTfZLUbw/xyL0h/VWeT1+wt8uc6imN7gVyCudxM6GY2ujLaBcyp0NvmLEDDrfQ==
+"@metamask/snaps-controllers@^9.10.0", "@metamask/snaps-controllers@^9.15.0":
+  version "9.15.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-9.15.0.tgz#2091d72e0a8bd4c637e8b25e3222e597b5d62060"
+  integrity sha512-ElvlaX6u2MKwiuDbZ7yoJw6YuRhMspUcx0OnDSj1PhjF1apoKnOJVR/968BshqNDsTpDFFsGdvbFMX7wE3yLPQ==
   dependencies:
-    "@metamask/approval-controller" "^7.0.2"
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/json-rpc-engine" "^9.0.2"
-    "@metamask/json-rpc-middleware-stream" "^8.0.2"
+    "@metamask/approval-controller" "^7.1.1"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/json-rpc-engine" "^10.0.1"
+    "@metamask/json-rpc-middleware-stream" "^8.0.5"
+    "@metamask/key-tree" "^10.0.1"
     "@metamask/object-multiplex" "^2.0.0"
-    "@metamask/permission-controller" "^11.0.0"
+    "@metamask/permission-controller" "^11.0.3"
     "@metamask/phishing-controller" "^12.0.2"
     "@metamask/post-message-stream" "^8.1.1"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/snaps-registry" "^3.2.1"
-    "@metamask/snaps-rpc-methods" "^11.4.0"
-    "@metamask/snaps-sdk" "^6.8.0"
-    "@metamask/snaps-utils" "^8.4.0"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/snaps-registry" "^3.2.2"
+    "@metamask/snaps-rpc-methods" "^11.7.0"
+    "@metamask/snaps-sdk" "^6.13.0"
+    "@metamask/snaps-utils" "^8.6.1"
+    "@metamask/utils" "^10.0.0"
     "@xstate/fsm" "^2.0.0"
     browserify-zlib "^0.2.0"
     concat-stream "^2.0.0"
@@ -5011,47 +5090,48 @@
     nanoid "^3.1.31"
     readable-stream "^3.6.2"
     readable-web-to-node-stream "^3.0.2"
+    semver "^7.5.4"
     tar-stream "^3.1.7"
 
-"@metamask/snaps-execution-environments@^6.7.2":
-  version "6.7.2"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-6.7.2.tgz#d541006ce5a7acfc954a24acfed7d052ffef0f1d"
-  integrity sha512-MY2GVXAc6X1hZdnTtrHvLgHrCr/zdUv1FGO5JuJi04n7gQUMX0gx5r/g4BoCbgYZFJGYBXCLFByIhhLTawRgGA==
+"@metamask/snaps-execution-environments@^6.10.0":
+  version "6.10.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-execution-environments/-/snaps-execution-environments-6.10.0.tgz#f83f13d6fb6258fa6ae54e402064d933ee6122aa"
+  integrity sha512-5LRnwsTjOnV5ioBTNvoRQ4aMwuKJWjx5xxl0te1RfKMBmRw2CoREmVhLE8zosB/LJMgWsBS+QdeBOJMkjjJdlQ==
   dependencies:
-    "@metamask/json-rpc-engine" "^9.0.2"
+    "@metamask/json-rpc-engine" "^10.0.1"
     "@metamask/object-multiplex" "^2.0.0"
     "@metamask/post-message-stream" "^8.1.1"
-    "@metamask/providers" "^17.1.2"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/snaps-sdk" "^6.5.0"
-    "@metamask/snaps-utils" "^8.1.1"
+    "@metamask/providers" "^18.1.1"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/snaps-sdk" "^6.11.0"
+    "@metamask/snaps-utils" "^8.6.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
     readable-stream "^3.6.2"
 
-"@metamask/snaps-registry@^3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-registry/-/snaps-registry-3.2.1.tgz#ff97329b97e8dc9a512f0c5f0f41b3554a592ad3"
-  integrity sha512-MnG1BBJk4UK9iJArK+h/iz8wlt+xjsvgnj0k39p5658hWZu6cuumHoV1EIupCwsCv7XXOBLc8iAgjvITXKC1FQ==
+"@metamask/snaps-registry@^3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-registry/-/snaps-registry-3.2.2.tgz#c0402e7beeb3fbaaeb829a508c2277bd7e4a1622"
+  integrity sha512-20JqmfqAMcQgdR0rkWqLdiWoZYtMNhqzAUs64sO7jMBG0dBUYI+ktatH3ZlLLILqrOPumDDv+Goj7DozXLf33g==
   dependencies:
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.0.0"
+    "@metamask/utils" "^10.0.0"
     "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.3.2"
 
-"@metamask/snaps-rpc-methods@^11.1.1", "@metamask/snaps-rpc-methods@^11.4.0":
-  version "11.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.4.0.tgz#6cbf6cd6d91b65a5156882b4c10b1bdbc026e4cc"
-  integrity sha512-vFX4NFV1y7sj7uCDH6lJdDbRSLhELQdrv1FM0x/S8UptKYLGMhKafplhfx7KcQm0DBugSIXd42rmpgE8addunQ==
+"@metamask/snaps-rpc-methods@^11.7.0":
+  version "11.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-rpc-methods/-/snaps-rpc-methods-11.7.0.tgz#b4695cf740a8482c441bb2ce8ab6e17237749c96"
+  integrity sha512-qScT32npTnjdCLKpF20thHfYSg/G/pmOunHf5yMw46qvQHQYRnMtCLtDvhGjehXgTDiGzaQgVkireckYb//9mg==
   dependencies:
-    "@metamask/key-tree" "^9.1.2"
-    "@metamask/permission-controller" "^11.0.0"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/snaps-sdk" "^6.8.0"
-    "@metamask/snaps-utils" "^8.4.0"
+    "@metamask/key-tree" "^10.0.1"
+    "@metamask/permission-controller" "^11.0.3"
+    "@metamask/rpc-errors" "^7.0.1"
+    "@metamask/snaps-sdk" "^6.13.0"
+    "@metamask/snaps-utils" "^8.6.1"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^10.0.0"
     "@noble/hashes" "^1.3.1"
 
 "@metamask/snaps-sdk@^3.1.1":
@@ -5066,62 +5146,33 @@
     fast-xml-parser "^4.3.4"
     superstruct "^1.0.3"
 
-"@metamask/snaps-sdk@^6.1.0", "@metamask/snaps-sdk@^6.5.0", "@metamask/snaps-sdk@^6.5.1", "@metamask/snaps-sdk@^6.8.0":
-  version "6.9.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.9.0.tgz#409a36cdecf46da4825c437091c9d1541bea7bce"
-  integrity sha512-wPiZNvmkUXTGJ5yLIN9s+KZuB9zx4bz5LurUpufQ8geaMenQ2ZSyg8vqx7hj25q3yk3W2KncV3wnBmtixjucRA==
+"@metamask/snaps-sdk@^6.11.0", "@metamask/snaps-sdk@^6.13.0", "@metamask/snaps-sdk@^6.5.0", "@metamask/snaps-sdk@^6.5.1", "@metamask/snaps-sdk@^6.7.0":
+  version "6.13.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-6.13.0.tgz#cbfef71253264efd4e0ef4606f89e93f83885816"
+  integrity sha512-WXNt0XZSnmgbwgETL0RiRvl0CMa78ZA1zLS0olK8QR/+9zcPCSrh68v1lVAa+LcctvzpRJ8NiRAar2fRBthqyw==
   dependencies:
-    "@metamask/key-tree" "^9.1.2"
-    "@metamask/providers" "^17.1.2"
-    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/key-tree" "^10.0.1"
+    "@metamask/providers" "^18.1.1"
+    "@metamask/rpc-errors" "^7.0.1"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^10.0.0"
 
-"@metamask/snaps-utils@^7.8.1":
-  version "7.8.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-7.8.1.tgz#d18f56ece8a1d4e9ff2e8e7645c3349cf08937bc"
-  integrity sha512-v0xNoiWeJGHvtJqP0aU5dj+phqpV6vKCJoV5tNBXl8/AvMTaV2YL4SLO/z+PTo0RWZFplgAuuDsY254kAXi9Fw==
+"@metamask/snaps-utils@^8.1.1", "@metamask/snaps-utils@^8.3.0", "@metamask/snaps-utils@^8.6.0", "@metamask/snaps-utils@^8.6.1":
+  version "8.6.1"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-8.6.1.tgz#9f3b52f9b00a93ce9e3f22e79066fea0d6df458a"
+  integrity sha512-R6Gj6Im5gV09kjkSH9vDKrvsqNGaFGbSAl95fhlQBW3QevLaMbvAF4bCfhA3YCfsEYZUWsgplYpCjX78q2jvBA==
   dependencies:
     "@babel/core" "^7.23.2"
     "@babel/types" "^7.23.0"
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/key-tree" "^9.1.2"
-    "@metamask/permission-controller" "^11.0.0"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/slip44" "^3.1.0"
-    "@metamask/snaps-registry" "^3.2.1"
-    "@metamask/snaps-sdk" "^6.1.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.1.0"
-    "@noble/hashes" "^1.3.1"
-    "@scure/base" "^1.1.1"
-    chalk "^4.1.2"
-    cron-parser "^4.5.0"
-    fast-deep-equal "^3.1.3"
-    fast-json-stable-stringify "^2.1.0"
-    fast-xml-parser "^4.3.4"
-    marked "^12.0.1"
-    rfdc "^1.3.0"
-    semver "^7.5.4"
-    ses "^1.1.0"
-    validate-npm-package-name "^5.0.0"
-
-"@metamask/snaps-utils@^8.1.1", "@metamask/snaps-utils@^8.4.0":
-  version "8.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-8.4.0.tgz#aefedf45e6fe7b87a6b646193b7c0150caa5e51d"
-  integrity sha512-xxrAsxKf+l8Z3RP9oriNp6Jboh2tUB3mYZDw/kAvzBRX0tr28KgU/sKhRj4jF8GHEL7/jJmw9OIwOlhuXxD+Kg==
-  dependencies:
-    "@babel/core" "^7.23.2"
-    "@babel/types" "^7.23.0"
-    "@metamask/base-controller" "^6.0.2"
-    "@metamask/key-tree" "^9.1.2"
-    "@metamask/permission-controller" "^11.0.0"
-    "@metamask/rpc-errors" "^6.3.1"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/key-tree" "^10.0.1"
+    "@metamask/permission-controller" "^11.0.3"
+    "@metamask/rpc-errors" "^7.0.1"
     "@metamask/slip44" "^4.0.0"
-    "@metamask/snaps-registry" "^3.2.1"
-    "@metamask/snaps-sdk" "^6.8.0"
+    "@metamask/snaps-registry" "^3.2.2"
+    "@metamask/snaps-sdk" "^6.13.0"
     "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^9.2.1"
+    "@metamask/utils" "^10.0.0"
     "@noble/hashes" "^1.3.1"
     "@scure/base" "^1.1.1"
     chalk "^4.1.2"
@@ -5135,10 +5186,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/stake-sdk@^0.2.13":
-  version "0.2.13"
-  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.2.13.tgz#368749d698353f1ec9f9119ebc5bf9980582cc2b"
-  integrity sha512-F6JIfiCmQ+6xg9MA2HXJw7MVbEPK5HWy4IkI/2lmb1+tBGnK/9PddhhllNn50aU3Af/T0gPUQtLSVUXErfBHfg==
+"@metamask/stake-sdk@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.3.0.tgz#b6156fd29666bfb9482a89b555cfe70b2b63769a"
+  integrity sha512-i0QkzEc/7HRpVJbhe+qPORprQaMsuzRBpSgFjKgxbsLhz4YtYVDTgVJ5kesZXNy2KfprYTfeh4oV/jenQWgNJA==
 
 "@metamask/superstruct@^3.0.0", "@metamask/superstruct@^3.1.0":
   version "3.1.0"
@@ -5171,35 +5222,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.9.0.tgz#bac680e8f0007b3a11440f7e311674d6457d37ed"
   integrity sha512-N/WfmdrzJm+xbpuqJsfMrlrAhiNDsllIpwt9gDDeEKDlQAfJnMtT9xvOvBJbXY7zgMdtGZuD+KY64jNKabbuVQ==
 
-"@metamask/transaction-controller@^37.3.0":
-  version "37.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-37.3.0.tgz#adf030c809705e2dbb72146cbe1f50851f0647e3"
-  integrity sha512-IOqGUTd0EyhdVYMIk5kjTP0sTOgDEAUUV6psMoYhDmA63TexMxRt9oqlP28SEzl21tVcmINHuISqGXySIptjbw==
-  dependencies:
-    "@ethereumjs/common" "^3.2.0"
-    "@ethereumjs/tx" "^4.2.0"
-    "@ethereumjs/util" "^8.1.0"
-    "@ethersproject/abi" "^5.7.0"
-    "@ethersproject/contracts" "^5.7.0"
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
-    "@metamask/eth-query" "^4.0.0"
-    "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/nonce-tracker" "^6.0.0"
-    "@metamask/rpc-errors" "^6.3.1"
-    "@metamask/utils" "^9.1.0"
-    async-mutex "^0.5.0"
-    bn.js "^5.2.1"
-    eth-method-registry "^4.0.0"
-    fast-json-patch "^3.1.1"
-    lodash "^4.17.21"
-    uuid "^8.3.2"
-
-"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@41.0.0-preview-2eec965c":
-  version "41.0.0-preview-2eec965c"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/transaction-controller/-/transaction-controller-41.0.0-preview-2eec965c.tgz#ffac91c1b6a1b125790a044319ac7b161bd645b5"
-  integrity sha512-jvrQWkGU7cihLhUAITRNxUWgq2NmUEdFHT8GYAWr7ZQvv0pli1YuNHDFio2edn8ZLgvPCSzHyd4EXhILrM49oA==
+"@metamask/transaction-controller@^41.0.0":
+  version "41.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-41.1.0.tgz#ad226b3f754750a064175075554b60a0d755a7f3"
+  integrity sha512-5u7tnl7WOY+Nuw8zXoeIikW7zQSxHduYsXDs2kJSAJo0qaOnFBgER031bqB23TIX2nLh8MR8vPf3Ft5ZBr7/UQ==
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"
@@ -5208,7 +5234,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/nonce-tracker" "^6.0.0"
@@ -5221,10 +5247,10 @@
     lodash "^4.17.21"
     uuid "^8.3.2"
 
-"@metamask/utils@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.0.tgz#9285e6e195810e8b7c875147ac64981b4be51733"
-  integrity sha512-EoNZJijLqBbir8ikuiHBHfhCqE1s8Odae3bhtRAd8itJB109xmfFF84djY/iaQI+EAp59Sy7iwengfRohaTK8A==
+"@metamask/utils@^10.0.0", "@metamask/utils@^10.0.1":
+  version "10.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-10.0.1.tgz#a765f96c20e35fc51c068fb9f88a3332b40b215e"
+  integrity sha512-zHgAitJtRwviVVFnRUA2PLRMaAwatr3jiHgiH7mPicJaeSK4ma01aGR4fHy0iy5tlVo1ZiioTmJ1Hbp8FZ6pSg==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/superstruct" "^3.1.0"
@@ -6530,6 +6556,19 @@
     redux-thunk "^2.4.2"
     reselect "^4.1.8"
 
+"@reown/walletkit@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@reown/walletkit/-/walletkit-1.1.1.tgz#8d4e77a1fd92d16827dbb11338d60fd6000eab08"
+  integrity sha512-GTPksxBO6VAsqiQ0oH2jt8C845Y7redpI4OxRy31vf7KKDPPGfldbsTYZ+FP9xSda00dCJJKuXhzewZT/xHuDg==
+  dependencies:
+    "@walletconnect/core" "2.17.1"
+    "@walletconnect/jsonrpc-provider" "1.0.14"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/logger" "2.1.2"
+    "@walletconnect/sign-client" "2.17.1"
+    "@walletconnect/types" "2.17.1"
+    "@walletconnect/utils" "2.17.1"
+
 "@rpii/wdio-html-reporter@^7.7.1":
   version "7.7.1"
   resolved "https://registry.yarnpkg.com/@rpii/wdio-html-reporter/-/wdio-html-reporter-7.7.1.tgz#6d245d50ed7e11a054df5bb3960d688ec961c50b"
@@ -7014,7 +7053,7 @@
     "@stablelib/binary" "^1.0.1"
     "@stablelib/wipe" "^1.0.1"
 
-"@stablelib/sha256@1.0.1", "@stablelib/sha256@^1.0.1":
+"@stablelib/sha256@1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@stablelib/sha256/-/sha256-1.0.1.tgz#77b6675b67f9b0ea081d2e31bda4866297a3ae4f"
   integrity sha512-GIIH3e6KH+91FqGV42Kcj71Uefd/QEe7Dy42sBTeqppXV95ggCcxLTk39bEr+lZfJmp+ghsR07J++ORkRELsBQ==
@@ -10244,25 +10283,6 @@
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.3.4.tgz#06e83c5027f464eef861c329be81454bc8b70780"
   integrity sha512-7OjdcV8vQ74eiz1TZLzZP4JwqM5fA94K6yntPS5Z25r9HDuGNzaGdgvwKYq6S+MxwF0TFRwe50fIR/MYnakdkQ==
 
-"@walletconnect/auth-client@2.1.2":
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/@walletconnect/auth-client/-/auth-client-2.1.2.tgz#cee304fb0cdca76f6bf4aafac96ef9301862a7e8"
-  integrity sha512-ubJLn+vGb8sTdBFX6xAh4kjR5idrtS3RBngQWaJJJpEPBQmxMb8pM2q0FIRs8Is4K6jKy+uEhusMV+7ZBmTzjw==
-  dependencies:
-    "@ethersproject/hash" "^5.7.0"
-    "@ethersproject/transactions" "^5.7.0"
-    "@stablelib/random" "^1.0.2"
-    "@stablelib/sha256" "^1.0.1"
-    "@walletconnect/core" "^2.10.1"
-    "@walletconnect/events" "^1.0.1"
-    "@walletconnect/heartbeat" "^1.2.1"
-    "@walletconnect/jsonrpc-utils" "^1.0.8"
-    "@walletconnect/logger" "^2.0.1"
-    "@walletconnect/time" "^1.0.2"
-    "@walletconnect/utils" "^2.10.1"
-    events "^3.3.0"
-    isomorphic-unfetch "^3.1.0"
-
 "@walletconnect/browser-utils@^1.8.0":
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/@walletconnect/browser-utils/-/browser-utils-1.8.0.tgz#33c10e777aa6be86c713095b5206d63d32df0951"
@@ -10284,10 +10304,10 @@
     "@walletconnect/types" "^1.8.0"
     "@walletconnect/utils" "^1.8.0"
 
-"@walletconnect/core@2.15.0", "@walletconnect/core@^2.10.1":
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.15.0.tgz#0d15e48964f99f2073964ec3776bd032fb6fa3b3"
-  integrity sha512-QekYQlpxyn2bcQXMkMxo0+v7nUOQKyu3j5ZKzTg/HGU1eSgTRLIvYIEkC8VVflIgOw7meOAb5pFChX51wShksQ==
+"@walletconnect/core@2.17.1":
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.17.1.tgz#8ee51d630068e4450014fe62a76af895ab1d349d"
+  integrity sha512-SMgJR5hEyEE/tENIuvlEb4aB9tmMXPzQ38Y61VgYBmwAFEhOHtpt8EDfnfRWqEhMyXuBXG4K70Yh8c67Yry+Xw==
   dependencies:
     "@walletconnect/heartbeat" "1.2.2"
     "@walletconnect/jsonrpc-provider" "1.0.14"
@@ -10300,8 +10320,9 @@
     "@walletconnect/relay-auth" "1.0.4"
     "@walletconnect/safe-json" "1.0.2"
     "@walletconnect/time" "1.0.2"
-    "@walletconnect/types" "2.15.0"
-    "@walletconnect/utils" "2.15.0"
+    "@walletconnect/types" "2.17.1"
+    "@walletconnect/utils" "2.17.1"
+    "@walletconnect/window-getters" "1.0.1"
     events "3.3.0"
     lodash.isequal "4.5.0"
     uint8arrays "3.1.0"
@@ -10314,6 +10335,29 @@
     "@walletconnect/socket-transport" "^1.8.0"
     "@walletconnect/types" "^1.8.0"
     "@walletconnect/utils" "^1.8.0"
+
+"@walletconnect/core@^2.17.2":
+  version "2.17.2"
+  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.17.2.tgz#877dc03f190d7b262bff8ce346330fdf1019cd83"
+  integrity sha512-O9VUsFg78CbvIaxfQuZMsHcJ4a2Z16DRz/O4S+uOAcGKhH/i/ln8hp864Tb+xRvifWSzaZ6CeAVxk657F+pscA==
+  dependencies:
+    "@walletconnect/heartbeat" "1.2.2"
+    "@walletconnect/jsonrpc-provider" "1.0.14"
+    "@walletconnect/jsonrpc-types" "1.0.4"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/jsonrpc-ws-connection" "1.0.14"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/logger" "2.1.2"
+    "@walletconnect/relay-api" "1.0.11"
+    "@walletconnect/relay-auth" "1.0.4"
+    "@walletconnect/safe-json" "1.0.2"
+    "@walletconnect/time" "1.0.2"
+    "@walletconnect/types" "2.17.2"
+    "@walletconnect/utils" "2.17.2"
+    "@walletconnect/window-getters" "1.0.1"
+    events "3.3.0"
+    lodash.isequal "4.5.0"
+    uint8arrays "3.1.0"
 
 "@walletconnect/crypto@^1.0.2":
   version "1.0.3"
@@ -10351,7 +10395,7 @@
     keyvaluestorage-interface "^1.0.0"
     tslib "1.14.1"
 
-"@walletconnect/heartbeat@1.2.2", "@walletconnect/heartbeat@^1.2.1":
+"@walletconnect/heartbeat@1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@walletconnect/heartbeat/-/heartbeat-1.2.2.tgz#e8dc5179db7769950c6f9cf59b23516d9b95227d"
   integrity sha512-uASiRmC5MwhuRuf05vq4AT48Pq8RMi876zV8rr8cV969uTOzWdB/k+Lj5yI2PBtB1bGQisGen7MM1GcZlQTBXw==
@@ -10378,7 +10422,7 @@
     "@walletconnect/safe-json" "^1.0.2"
     events "^3.3.0"
 
-"@walletconnect/jsonrpc-types@1.0.4", "@walletconnect/jsonrpc-types@^1.0.2", "@walletconnect/jsonrpc-types@^1.0.3":
+"@walletconnect/jsonrpc-types@1.0.4", "@walletconnect/jsonrpc-types@^1.0.2", "@walletconnect/jsonrpc-types@^1.0.3", "@walletconnect/jsonrpc-types@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@walletconnect/jsonrpc-types/-/jsonrpc-types-1.0.4.tgz#ce1a667d79eadf2a2d9d002c152ceb68739c230c"
   integrity sha512-P6679fG/M+wuWg9TY8mh6xFSdYnFyFjwFelxyISxMDrlbXokorEVXYOxiqEbrU3x1BmBoCAJJ+vtEaEoMlpCBQ==
@@ -10414,7 +10458,7 @@
     idb-keyval "^6.2.1"
     unstorage "^1.9.0"
 
-"@walletconnect/logger@2.1.2", "@walletconnect/logger@^2.0.1":
+"@walletconnect/logger@2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@walletconnect/logger/-/logger-2.1.2.tgz#813c9af61b96323a99f16c10089bfeb525e2a272"
   integrity sha512-aAb28I3S6pYXZHQm5ESB+V6rDqIYfsnHaQyzFbwUUBFY4H0OXx/YtTl8lvhUNhMMfb9UxbwEBS253TlXUYJWSw==
@@ -10472,26 +10516,26 @@
   dependencies:
     tslib "1.14.1"
 
-"@walletconnect/se-sdk@1.10.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/se-sdk/-/se-sdk-1.10.0.tgz#1df6c14fec97a32403afbadf282d4ee1b694683c"
-  integrity sha512-24sHOc3nO3XFPHiEvmQmAcVuZscqPFzqEXyIlGL25HakbZofu7TZ3xXWDz5VIedeBXGf84Y9sowVADotjPt2qg==
+"@walletconnect/se-sdk@1.11.0":
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@walletconnect/se-sdk/-/se-sdk-1.11.0.tgz#09255df222aabf92e18f8fd7a526ec8a1aeef081"
+  integrity sha512-Ynr7LBcfbO2EUUlM3E4Fo4akKEio7KJIWr16Q564kw3eZFxKgsNg9nIPGs1LkqRHpimvUm3Nf/AMShkQRpJ4YA==
   dependencies:
-    "@walletconnect/web3wallet" "1.14.0"
+    "@reown/walletkit" "1.1.1"
 
-"@walletconnect/sign-client@2.15.0":
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/sign-client/-/sign-client-2.15.0.tgz#bad69a2850dac26d011ba54be86073455fc398c8"
-  integrity sha512-efwrPfIwKWKeku44TGBCnQqPZGCILI1wBKK9bTF0F0/qrLR/zRe6RWpM3/L4+jOMr/BktxPZ5lRozBh+c2U7Pg==
+"@walletconnect/sign-client@2.17.1":
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/@walletconnect/sign-client/-/sign-client-2.17.1.tgz#0777536427eba1b725c111ecc08eb301e05a8c55"
+  integrity sha512-6rLw6YNy0smslH9wrFTbNiYrGsL3DrOsS5FcuU4gIN6oh8pGYOFZ5FiSyTTroc5tngOk3/Sd7dlGY9S7O4nveg==
   dependencies:
-    "@walletconnect/core" "2.15.0"
+    "@walletconnect/core" "2.17.1"
     "@walletconnect/events" "1.0.1"
     "@walletconnect/heartbeat" "1.2.2"
     "@walletconnect/jsonrpc-utils" "1.0.8"
     "@walletconnect/logger" "2.1.2"
     "@walletconnect/time" "1.0.2"
-    "@walletconnect/types" "2.15.0"
-    "@walletconnect/utils" "2.15.0"
+    "@walletconnect/types" "2.17.1"
+    "@walletconnect/utils" "2.17.1"
     events "3.3.0"
 
 "@walletconnect/socket-transport@^1.8.0":
@@ -10510,10 +10554,22 @@
   dependencies:
     tslib "1.14.1"
 
-"@walletconnect/types@2.15.0", "@walletconnect/types@^2.9.0":
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.15.0.tgz#4593a138fbf31bf7dc4317f59de643c20d3c8dbb"
-  integrity sha512-hLffDKKe70jIrK+YcLkAnzi6vqNki1SDBWjV+M/72mKcU2KzXxk0G2STFsWsQDx8DoqxMiuGehd0DlD1jwQmBg==
+"@walletconnect/types@2.17.1":
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.17.1.tgz#425dedbe5853231252d081f61448c55ecd341c96"
+  integrity sha512-aiUeBE3EZZTsZBv5Cju3D0PWAsZCMks1g3hzQs9oNtrbuLL6pKKU0/zpKwk4vGywszxPvC3U0tBCku9LLsH/0A==
+  dependencies:
+    "@walletconnect/events" "1.0.1"
+    "@walletconnect/heartbeat" "1.2.2"
+    "@walletconnect/jsonrpc-types" "1.0.4"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/logger" "2.1.2"
+    events "3.3.0"
+
+"@walletconnect/types@2.17.2", "@walletconnect/types@^2.9.0":
+  version "2.17.2"
+  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.17.2.tgz#f9afff242563be33f377de689b03b482f5b20aee"
+  integrity sha512-j/+0WuO00lR8ntu7b1+MKe/r59hNwYLFzW0tTmozzhfAlDL+dYwWasDBNq4AH8NbVd7vlPCQWmncH7/6FVtOfQ==
   dependencies:
     "@walletconnect/events" "1.0.1"
     "@walletconnect/heartbeat" "1.2.2"
@@ -10527,24 +10583,55 @@
   resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-1.8.0.tgz#3f5e85b2d6b149337f727ab8a71b8471d8d9a195"
   integrity sha512-Cn+3I0V0vT9ghMuzh1KzZvCkiAxTq+1TR2eSqw5E5AVWfmCtECFkVZBP6uUJZ8YjwLqXheI+rnjqPy7sVM4Fyg==
 
-"@walletconnect/utils@2.15.0", "@walletconnect/utils@^2.10.1":
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/utils/-/utils-2.15.0.tgz#864f800e7cccdabc631215119f8ab3f1c71d4e41"
-  integrity sha512-xaazgCMyr5fUPm2QuZ76G+W8beDfKMILqJ3INL6wyuaLil2YQNdsCSvWMNhSP+EZeKD3SUqqBmQaM/maP0YHTg==
+"@walletconnect/utils@2.17.1":
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/@walletconnect/utils/-/utils-2.17.1.tgz#fc57ffb89fc101fa1bf015de016ea01091d10ae0"
+  integrity sha512-KL7pPwq7qUC+zcTmvxGqIyYanfHgBQ+PFd0TEblg88jM7EjuDLhjyyjtkhyE/2q7QgR7OanIK7pCpilhWvBsBQ==
   dependencies:
+    "@ethersproject/hash" "5.7.0"
+    "@ethersproject/transactions" "5.7.0"
     "@stablelib/chacha20poly1305" "1.0.1"
     "@stablelib/hkdf" "1.0.1"
     "@stablelib/random" "1.0.2"
     "@stablelib/sha256" "1.0.1"
     "@stablelib/x25519" "1.0.3"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/keyvaluestorage" "1.1.1"
     "@walletconnect/relay-api" "1.0.11"
+    "@walletconnect/relay-auth" "1.0.4"
     "@walletconnect/safe-json" "1.0.2"
     "@walletconnect/time" "1.0.2"
-    "@walletconnect/types" "2.15.0"
+    "@walletconnect/types" "2.17.1"
     "@walletconnect/window-getters" "1.0.1"
     "@walletconnect/window-metadata" "1.0.1"
     detect-browser "5.3.0"
-    elliptic "^6.5.7"
+    elliptic "6.5.7"
+    query-string "7.1.3"
+    uint8arrays "3.1.0"
+
+"@walletconnect/utils@2.17.2", "@walletconnect/utils@^2.17.2":
+  version "2.17.2"
+  resolved "https://registry.yarnpkg.com/@walletconnect/utils/-/utils-2.17.2.tgz#b4b12e3f5ebbfd883b2a5c87fb818e53501dc7ea"
+  integrity sha512-T7eLRiuw96fgwUy2A5NZB5Eu87ukX8RCVoO9lji34RFV4o2IGU9FhTEWyd4QQKI8OuQRjSknhbJs0tU0r0faPw==
+  dependencies:
+    "@ethersproject/hash" "5.7.0"
+    "@ethersproject/transactions" "5.7.0"
+    "@stablelib/chacha20poly1305" "1.0.1"
+    "@stablelib/hkdf" "1.0.1"
+    "@stablelib/random" "1.0.2"
+    "@stablelib/sha256" "1.0.1"
+    "@stablelib/x25519" "1.0.3"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/relay-api" "1.0.11"
+    "@walletconnect/relay-auth" "1.0.4"
+    "@walletconnect/safe-json" "1.0.2"
+    "@walletconnect/time" "1.0.2"
+    "@walletconnect/types" "2.17.2"
+    "@walletconnect/window-getters" "1.0.1"
+    "@walletconnect/window-metadata" "1.0.1"
+    detect-browser "5.3.0"
+    elliptic "6.6.0"
     query-string "7.1.3"
     uint8arrays "3.1.0"
 
@@ -10560,20 +10647,6 @@
     bn.js "4.11.8"
     js-sha3 "0.8.0"
     query-string "6.13.5"
-
-"@walletconnect/web3wallet@1.14.0":
-  version "1.14.0"
-  resolved "https://registry.yarnpkg.com/@walletconnect/web3wallet/-/web3wallet-1.14.0.tgz#e30c917de593728af81c6be3cef6b8f1a80b91c1"
-  integrity sha512-vBBicK4PJGwmiU1NgxSnflTJlbbZjmuTlbdTGCCL4w6eW/CtsY4zNnTNmrGhlej0CkGr0M+Jw6RbFtxpMEYqZA==
-  dependencies:
-    "@walletconnect/auth-client" "2.1.2"
-    "@walletconnect/core" "2.15.0"
-    "@walletconnect/jsonrpc-provider" "1.0.14"
-    "@walletconnect/jsonrpc-utils" "1.0.8"
-    "@walletconnect/logger" "2.1.2"
-    "@walletconnect/sign-client" "2.15.0"
-    "@walletconnect/types" "2.15.0"
-    "@walletconnect/utils" "2.15.0"
 
 "@walletconnect/window-getters@1.0.0":
   version "1.0.0"
@@ -11995,9 +12068,9 @@ aws4@^1.8.0:
   integrity sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==
 
 axios-retry@^3.1.2:
-  version "3.2.5"
-  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.2.5.tgz#64952992837c7d9a12eec156a2694a7945f60895"
-  integrity sha512-a8umkKbfIkTiYJQLx3v3TzKM85TGKB8ZQYz4zwykt2fpO64TsRlUhjaPaAb3fqMWCXFm2YhWcd8V5FHDKO9bSA==
+  version "3.9.1"
+  resolved "https://registry.yarnpkg.com/axios-retry/-/axios-retry-3.9.1.tgz#c8924a8781c8e0a2c5244abf773deb7566b3830d"
+  integrity sha512-8PJDLJv7qTTMMwdnbMvrLYuvB47M81wRtxQmEdV5w4rgbTXTt+vtPkXwajOfOdSyv/wZICJOC+/UhXH4aQ/R+w==
   dependencies:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
@@ -12242,6 +12315,11 @@ base-x@^3.0.2, base-x@^3.0.8:
   dependencies:
     safe-buffer "^5.0.1"
 
+base58-js@1.0.0, base58-js@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/base58-js/-/base58-js-1.0.0.tgz#08b6d745d811103114cc150f7da517b3c02a24ec"
+  integrity sha512-izVZ4M54gJYRk7VGsiRatRyUVCUaUDF15earKs3u9sUXlawvTwttC9xitGk8Xzlgib5rDL71WPOe4JsyJu9Scg==
+
 base58check@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/base58check/-/base58check-2.0.0.tgz#8046652d14bc87f063bd16be94a39134d3b61173"
@@ -12288,12 +12366,7 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
-bech32@1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/bech32/-/bech32-1.1.4.tgz#e38c9f37bf179b8eb16ae3a772b40c356d4832e9"
-  integrity sha512-s0IrSOzLlbvX7yp4WBfPITzpAU8sqQcpsmwXDiKwrG4r491vwCO/XpejasRNl0piBMe/DvP4Tz0mIS/X1DPJBQ==
-
-bech32@^2.0.0:
+bech32@1.1.4, bech32@2.0.0, bech32@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-2.0.0.tgz#078d3686535075c8c79709f054b1b226a133b355"
   integrity sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==
@@ -12351,6 +12424,15 @@ bip66@^1.1.5:
   integrity sha512-nemMHz95EmS38a26XbbdxIYj5csHd3RMP3H5bwQknX0WYHF01qhpufP42mLOwVICuH2JmhIhXiWs89MfUGL7Xw==
   dependencies:
     safe-buffer "^5.0.1"
+
+bitcoin-address-validation@2.2.3:
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-2.2.3.tgz#ffae6d48facd5ce7ef60574891aab979d21f9828"
+  integrity sha512-1uGCGl26Ye8JG5qcExtFLQfuib6qEZWNDo1ZlLlwp/z7ygUFby3IxolgEfgMGaC+LG9csbVASLcH8fRLv7DIOg==
+  dependencies:
+    base58-js "^1.0.0"
+    bech32 "^2.0.0"
+    sha256-uint8array "^0.10.3"
 
 bl@^1.2.3, bl@~0.8.1:
   version "1.2.3"
@@ -14886,6 +14968,19 @@ dotenv@^16.0.0, dotenv@^16.0.3:
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.3.1.tgz#369034de7d7e5b120972693352a3bf112172cc3e"
   integrity sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==
 
+dpdm@^3.14.0:
+  version "3.14.0"
+  resolved "https://registry.yarnpkg.com/dpdm/-/dpdm-3.14.0.tgz#12a60a2d88b23981c91239b86e7462a5c203e5e9"
+  integrity sha512-YJzsFSyEtj88q5eTELg3UWU7TVZkG1dpbF4JDQ3t1b07xuzXmdoGeSz9TKOke1mUuOpWlk4q+pBh+aHzD6GBTg==
+  dependencies:
+    chalk "^4.1.2"
+    fs-extra "^11.1.1"
+    glob "^10.3.4"
+    ora "^5.4.1"
+    tslib "^2.6.2"
+    typescript "^5.2.2"
+    yargs "^17.7.2"
+
 drbg.js@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/drbg.js/-/drbg.js-1.0.1.tgz#3e36b6c42b37043823cdbc332d58f31e2445480b"
@@ -15033,10 +15128,23 @@ elliptic@6.5.4:
     minimalistic-assert "^1.0.1"
     minimalistic-crypto-utils "^1.0.1"
 
-elliptic@^6.5.2, elliptic@^6.5.3, elliptic@^6.5.4, elliptic@^6.5.7:
+elliptic@6.5.7:
   version "6.5.7"
   resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.7.tgz#8ec4da2cb2939926a1b9a73619d768207e647c8b"
   integrity sha512-ESVCtTwiA+XhY3wyh24QqRGBoP3rEdDUl3EDUUo9tft074fi19IrdpH7hLCMMP3CIj7jb3W96rn8lt/BqIlt5Q==
+  dependencies:
+    bn.js "^4.11.9"
+    brorand "^1.1.0"
+    hash.js "^1.0.0"
+    hmac-drbg "^1.0.1"
+    inherits "^2.0.4"
+    minimalistic-assert "^1.0.1"
+    minimalistic-crypto-utils "^1.0.1"
+
+elliptic@6.6.0, elliptic@^6.5.2, elliptic@^6.5.3, elliptic@^6.5.4, elliptic@^6.5.7:
+  version "6.6.0"
+  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.6.0.tgz#5919ec723286c1edf28685aa89261d4761afa210"
+  integrity sha512-dpwoQcLc/2WLQvJvLRHKZ+f9FgOdjnq11rurqwekGQygGPsYSK29OMMD2WalatiqQ+XGFDglTNixpPfI+lpaAA==
   dependencies:
     bn.js "^4.11.9"
     brorand "^1.1.0"
@@ -16329,10 +16437,10 @@ exponential-backoff@^3.1.1:
   resolved "https://registry.yarnpkg.com/exponential-backoff/-/exponential-backoff-3.1.1.tgz#64ac7526fe341ab18a39016cd22c787d01e00bf6"
   integrity sha512-dX7e/LHVJ6W3DE1MHWi9S1EYzDESENfLrYohG2G++ovZrYOkm4Knwa0mc1cn84xJOR4KEU0WSchhLbd0UklbHw==
 
-express@4.21.1, express@^4.14.0, express@^4.17.3:
-  version "4.21.1"
-  resolved "https://registry.yarnpkg.com/express/-/express-4.21.1.tgz#9dae5dda832f16b4eec941a4e44aa89ec481b281"
-  integrity sha512-YSFlK1Ee0/GC8QaO91tHcDxJiE/X4FbpAyQWkxAvG6AXCuR65YzK8ua6D9hvi/TzUfZMpc+BwuM1IPw8fmQBiQ==
+express@4.21.1, express@4.21.2, express@^4.14.0, express@^4.17.3:
+  version "4.21.2"
+  resolved "https://registry.yarnpkg.com/express/-/express-4.21.2.tgz#cf250e48362174ead6cea4a566abef0162c1ec32"
+  integrity sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==
   dependencies:
     accepts "~1.3.8"
     array-flatten "1.1.1"
@@ -16353,7 +16461,7 @@ express@4.21.1, express@^4.14.0, express@^4.17.3:
     methods "~1.1.2"
     on-finished "2.4.1"
     parseurl "~1.3.3"
-    path-to-regexp "0.1.10"
+    path-to-regexp "0.1.12"
     proxy-addr "~2.0.7"
     qs "6.13.0"
     range-parser "~1.2.1"
@@ -17383,7 +17491,7 @@ glob@10.3.3:
     minipass "^5.0.0 || ^6.0.2 || ^7.0.0"
     path-scurry "^1.10.1"
 
-glob@10.4.5, glob@^10.0.0, glob@^10.2.2, glob@^10.3.10:
+glob@10.4.5, glob@^10.0.0, glob@^10.2.2, glob@^10.3.10, glob@^10.3.4:
   version "10.4.5"
   resolved "https://registry.yarnpkg.com/glob/-/glob-10.4.5.tgz#f4d9f0b90ffdbab09c9d77f5f29b4262517b0956"
   integrity sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==
@@ -18822,14 +18930,6 @@ isomorphic-fetch@^3.0.0:
   dependencies:
     node-fetch "^2.6.1"
     whatwg-fetch "^3.4.1"
-
-isomorphic-unfetch@^3.1.0:
-  version "3.1.0"
-  resolved "https://registry.yarnpkg.com/isomorphic-unfetch/-/isomorphic-unfetch-3.1.0.tgz#87341d5f4f7b63843d468438128cb087b7c3e98f"
-  integrity sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==
-  dependencies:
-    node-fetch "^2.6.1"
-    unfetch "^4.2.0"
 
 isomorphic-ws@^4.0.1:
   version "4.0.1"
@@ -22441,10 +22541,10 @@ path-scurry@^1.10.1, path-scurry@^1.11.1:
     lru-cache "^10.2.0"
     minipass "^5.0.0 || ^6.0.2 || ^7.0.0"
 
-path-to-regexp@0.1.10:
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.10.tgz#67e9108c5c0551b9e5326064387de4763c4d5f8b"
-  integrity sha512-7lf7qcQidTku0Gu3YDPc8DJ1q7OOucfa/BSsIwjuh56VU7katFvuM8hULfkwB3Fns/rsVF7PwPKVw1sl5KQS9w==
+path-to-regexp@0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.12.tgz#d5e1a12e478a976d432ef3c58d534b9923164bb7"
+  integrity sha512-RA1GjUVMnvYFxuqovrEqZoxxW5NUZqbwKtYz/Tt7nXerk0LbLblQmrsgdeOxV5SFHf0UDggjS/bSeOZwt1pmEQ==
 
 path-to-regexp@2.2.1:
   version "2.2.1"
@@ -23749,10 +23849,10 @@ react-native-level-fs@3.0.1:
     level-filesystem "^1.0.1"
     levelup "^0.18.2"
 
-react-native-linear-gradient@2.5.6:
-  version "2.5.6"
-  resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.5.6.tgz#96215cbc5ec7a01247a20890888aa75b834d44a0"
-  integrity sha512-HDwEaXcQIuXXCV70O+bK1rizFong3wj+5Q/jSyifKFLg0VWF95xh8XQgfzXwtq0NggL9vNjPKXa016KuFu+VFg==
+react-native-linear-gradient@^2.8.3:
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/react-native-linear-gradient/-/react-native-linear-gradient-2.8.3.tgz#9a116649f86d74747304ee13db325e20b21e564f"
+  integrity sha512-KflAXZcEg54PXkLyflaSZQ3PJp4uC4whM7nT/Uot9m0e/qxFV3p6uor1983D1YOBJbJN7rrWdqIjq0T42jOJyA==
 
 react-native-material-textfield@0.16.1:
   version "0.16.1"
@@ -24529,10 +24629,15 @@ redux@^4.0.5, redux@^4.2.1:
   dependencies:
     "@babel/runtime" "^7.9.2"
 
-reflect-metadata@0.1.13, reflect-metadata@^0.1.13:
+reflect-metadata@0.1.13:
   version "0.1.13"
   resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.13.tgz#67ae3ca57c972a2aa1642b10fe363fe32d49dc08"
   integrity sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==
+
+reflect-metadata@^0.1.13:
+  version "0.1.14"
+  resolved "https://registry.yarnpkg.com/reflect-metadata/-/reflect-metadata-0.1.14.tgz#24cf721fe60677146bb77eeb0e1f9dece3d65859"
+  integrity sha512-ZhYeb6nRaXCfhnndflDK8qI6ZQ/YcWZCISRAWICW9XYqMUwjZM9Z0DveWX/ABN01oxSHwVxKQmxeYZSsm0jh5A==
 
 reflect.getprototypeof@^1.0.4:
   version "1.0.6"
@@ -25289,6 +25394,11 @@ sha.js@^2.4.0, sha.js@^2.4.11, sha.js@^2.4.8:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
+
+sha256-uint8array@0.10.3, sha256-uint8array@^0.10.3:
+  version "0.10.3"
+  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.10.3.tgz#322a91413f78f518e0b9c8f8e982cc2e629b59c7"
+  integrity sha512-SFTs87RfXVulKrhhP6B5/qcFruOKQZaKf6jY9V4PJ7NOG0qIlQP6XL4pQq5xagsuP/Wd55S7tUBJpRajEsDUEQ==
 
 shaka-player@^2.5.9:
   version "2.5.23"
@@ -26698,7 +26808,7 @@ tslib@1.14.1, tslib@^1.8.1, tslib@^1.9.0, tslib@^1.9.3:
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2, tslib@^2.0.0, tslib@^2.0.1, tslib@^2.0.3, tslib@^2.1.0, tslib@^2.3.0, tslib@^2.4.0, tslib@^2.5.0, tslib@^2.5.3:
+tslib@^2, tslib@^2.0.0, tslib@^2.0.1, tslib@^2.0.3, tslib@^2.1.0, tslib@^2.3.0, tslib@^2.4.0, tslib@^2.5.0, tslib@^2.5.3, tslib@^2.6.2:
   version "2.8.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.8.1.tgz#612efe4ed235d567e8aba5f2a5fab70280ade83f"
   integrity sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==
@@ -26892,7 +27002,7 @@ typescript-tuple@^2.2.1:
   dependencies:
     typescript-compare "^0.0.2"
 
-typescript@5.6.3:
+typescript@5.6.3, typescript@^5.2.2:
   version "5.6.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.6.3.tgz#5f3449e31c9d94febb17de03cc081dd56d81db5b"
   integrity sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==
@@ -27557,7 +27667,12 @@ webdriverio@~7.16.13:
     serialize-error "^8.0.0"
     webdriver "7.16.16"
 
-"webextension-polyfill@>=0.10.0 <1.0", webextension-polyfill@^0.10.0:
+"webextension-polyfill@>=0.10.0 <1.0", webextension-polyfill@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.12.0.tgz#f62c57d2cd42524e9fbdcee494c034cae34a3d69"
+  integrity sha512-97TBmpoWJEE+3nFBQ4VocyCdLKfw54rFaJ6EVQYLBCXqCIpLSZkwGgASpv4oPt9gdKCJ80RJlcmNzNn008Ag6Q==
+
+webextension-polyfill@^0.10.0:
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/webextension-polyfill/-/webextension-polyfill-0.10.0.tgz#ccb28101c910ba8cf955f7e6a263e662d744dbb8"
   integrity sha512-c5s35LgVa5tFaHhrZDnr3FpQpjj1BB+RXhLTYUxGqBVN460HkbM8TBtEqdXWbpTKfzwCcjAZVF7zXCYSKtcp9g==

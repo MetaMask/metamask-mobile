@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useState, useEffect } from 'react';
-import { Platform, SafeAreaView, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -8,7 +8,6 @@ import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -22,7 +21,6 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
 import styleSheet from './NetworkConnectMultiSelector.styles';
 import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -36,6 +34,7 @@ import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
@@ -239,6 +238,10 @@ const NetworkConnectMultiSelector = ({
         <Checkbox
           style={styles.selectAllContainer}
           label={strings('networks.select_all')}
+          testID={ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON}
+          accessibilityLabel={
+            ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON
+          }
           isIndeterminate={areSomeNetworksSelectedButNotAll}
           isChecked={areAllNetworksSelected}
           onPress={onPress}
@@ -274,10 +277,6 @@ const NetworkConnectMultiSelector = ({
                 ...(isUpdateDisabled && styles.disabledOpacity),
               }}
               disabled={isUpdateDisabled}
-              {...generateTestId(
-                Platform,
-                ConnectNetworkModalSelectorsIDs.SELECT_MULTI_BUTTON,
-              )}
             />
           )}
         </View>
@@ -294,6 +293,9 @@ const NetworkConnectMultiSelector = ({
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('common.disconnect')}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON
+                }
                 onPress={toggleRevokeAllNetworkPermissionsModal}
                 isDanger
                 size={ButtonSize.Lg}
