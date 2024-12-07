@@ -13,14 +13,18 @@ import {
   selectChainId,
   selectProviderConfig,
   selectTicker,
+  selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
 import {
   selectContractExchangeRates,
   selectTokenMarketData,
 } from '../../../../../selectors/tokenRatesController';
+import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { RootState } from '../../../../../reducers';
@@ -77,7 +81,10 @@ export const TokenListItem = ({
 }: TokenListItemProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const { data: tokenBalances } = useTokenBalancesController();
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const { data: selectedChainTokenBalance } = useTokenBalancesController();
 
   const { type } = useSelector(selectProviderConfig);
   const selectedChainId = useSelector(selectChainId);
@@ -90,23 +97,46 @@ export const TokenListItem = ({
     ticker,
     type,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const conversionRate = useSelector(selectConversionRate);
   const networkName = useSelector(selectNetworkName);
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  // single chain
+  const singleTokenExchangeRates = useSelector(selectContractExchangeRates);
+  const singleTokenConversionRate = useSelector(selectConversionRate);
+
+  // multi chain
+  const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainMarketData = useSelector(selectTokenMarketData);
+  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
   const styles = createStyles(colors);
 
   const itemAddress = safeToChecksumAddress(asset.address);
 
+  // Choose values based on multichain or legacy
+  const exchangeRates = isPortfolioViewEnabled()
+    ? multiChainMarketData?.[chainId as Hex]
+    : singleTokenExchangeRates;
+  const tokenBalances = isPortfolioViewEnabled()
+    ? multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+        chainId as Hex
+      ]
+    : selectedChainTokenBalance;
+  const nativeCurrency =
+    networkConfigurations?.[chainId as Hex]?.nativeCurrency;
+
+  const conversionRate = isPortfolioViewEnabled()
+    ? multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0
+    : singleTokenConversionRate;
+
   const { balanceFiat, balanceValueFormatted } =
     deriveBalanceFromAssetMarketDetails(
       asset,
-      tokenExchangeRates,
+      exchangeRates,
       tokenBalances,
       conversionRate,
       currentCurrency,
@@ -126,65 +156,65 @@ export const TokenListItem = ({
       : tokenPercentageChange;
   } else {
     pricePercentChange1d = itemAddress
-      ? tokenExchangeRates?.[itemAddress as Hex]?.pricePercentChange1d
-      : tokenExchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
+      ? exchangeRates?.[itemAddress as Hex]?.pricePercentChange1d
+      : exchangeRates?.[zeroAddress() as Hex]?.pricePercentChange1d;
   }
 
   // render balances according to primary currency
   let mainBalance;
   let secondaryBalance;
 
-  if (!isPortfolioViewEnabled()) {
-    // Set main and secondary balances based on the primary currency and asset type.
-    if (primaryCurrency === 'ETH') {
-      // Default to displaying the formatted balance value and its fiat equivalent.
+  // console.log('------------------------------------');
+  // console.log('token name:', asset.name);
+  // console.log('balance fiat:', balanceFiat);
+  // console.log('------------------------------------');
+  // Set main and secondary balances based on the primary currency and asset type.
+  if (primaryCurrency === 'ETH') {
+    // Default to displaying the formatted balance value and its fiat equivalent.
+    mainBalance = balanceValueFormatted;
+    secondaryBalance = balanceFiat;
+    // For ETH as a native currency, adjust display based on network safety.
+    if (asset.isETH) {
+      // Main balance always shows the formatted balance value for ETH.
       mainBalance = balanceValueFormatted;
-      secondaryBalance = balanceFiat;
-
-      // For ETH as a native currency, adjust display based on network safety.
-      if (asset.isETH) {
-        // Main balance always shows the formatted balance value for ETH.
-        mainBalance = balanceValueFormatted;
-        // Display fiat value as secondary balance only for original native tokens on safe networks.
+      // Display fiat value as secondary balance only for original native tokens on safe networks.
+      if (isPortfolioViewEnabled()) {
+        secondaryBalance = balanceFiat;
+      } else {
         secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
       }
-    } else {
-      // For non-ETH currencies, determine balances based on the presence of fiat value.
-      mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
-      secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
-
-      // Adjust balances for native currencies in non-ETH scenarios.
-      if (asset.isETH) {
-        // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
-        if (!balanceFiat) {
-          mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
-        } else if (isOriginalNativeTokenSymbol) {
-          mainBalance = balanceFiat; // Show fiat value if it's a safe network
-        } else {
-          mainBalance = ''; // Otherwise, set to an empty string
-        }
-        // Secondary balance mirrors the main balance logic for consistency.
-        secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
-      }
     }
-
-    if (asset?.hasBalanceError) {
-      mainBalance = asset.symbol;
-      secondaryBalance = strings('wallet.unable_to_load');
-    }
-
-    if (balanceFiat === TOKEN_RATE_UNDEFINED) {
-      mainBalance = balanceValueFormatted;
-      secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
-    }
-
-    asset = { ...asset, balanceFiat };
   } else {
-    mainBalance = `${asset.balance} ${asset.symbol}`;
-    secondaryBalance = asset.balanceFiat
-      ? asset.balanceFiat
-      : strings('wallet.unable_to_find_conversion_rate');
+    // For non-ETH currencies, determine balances based on the presence of fiat value.
+    mainBalance = !balanceFiat ? balanceValueFormatted : balanceFiat;
+    secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+
+    // Adjust balances for native currencies in non-ETH scenarios.
+    if (asset.isETH) {
+      // Main balance logic: Show crypto value if fiat is absent or fiat value on safe networks.
+      if (!balanceFiat) {
+        mainBalance = balanceValueFormatted; // Show crypto value if fiat is not preferred
+      } else if (isOriginalNativeTokenSymbol) {
+        mainBalance = balanceFiat; // Show fiat value if it's a safe network
+      } else {
+        mainBalance = ''; // Otherwise, set to an empty string
+      }
+      // Secondary balance mirrors the main balance logic for consistency.
+      secondaryBalance = !balanceFiat ? balanceFiat : balanceValueFormatted;
+    }
   }
+
+  if (asset?.hasBalanceError) {
+    mainBalance = asset.symbol;
+    secondaryBalance = strings('wallet.unable_to_load');
+  }
+
+  if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+    mainBalance = balanceValueFormatted;
+    secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+  }
+
+  asset = { ...asset, balanceFiat };
 
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
