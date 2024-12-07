@@ -4,6 +4,10 @@ function getSentUnitMessage(unit) {
   return enContent.transactions.sent_unit.replace('{{unit}}', unit);
 }
 
+export const ActivitiesViewSelectorsIDs = {
+  CONTAINER: 'transactions-container',
+};
+
 export const ActivitiesViewSelectorsText = {
   CONFIRM_TEXT: enContent.transaction.confirmed,
   INCREASE_ALLOWANCE_METHOD: enContent.transactions.increase_allowance,

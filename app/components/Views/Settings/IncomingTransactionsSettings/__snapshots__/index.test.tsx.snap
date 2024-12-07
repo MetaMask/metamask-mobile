@@ -61,7 +61,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           "variant": "Network",
         }
       }
-      secondaryText="etherscan.io"
       style={
         {
           "backgroundColor": "#ffffff",
@@ -140,22 +139,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           >
             Mainnet
           </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            etherscan.io
-          </Text>
         </View>
         <View
           style={
@@ -207,7 +190,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           "variant": "Network",
         }
       }
-      secondaryText="lineascan.build"
       style={
         {
           "backgroundColor": "#ffffff",
@@ -285,22 +267,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             testID="cellbase-avatar-title"
           >
             Linea Mainnet
-          </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            lineascan.build
           </Text>
         </View>
         <View

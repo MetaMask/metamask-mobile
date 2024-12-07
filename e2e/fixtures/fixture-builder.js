@@ -3,6 +3,10 @@
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
 import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+
+export const DEFAULT_FIXTURE_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+
 const DAPP_URL = 'localhost';
 
 /**
@@ -59,18 +63,18 @@ class FixtureBuilder {
           backgroundState: {
             AccountTrackerController: {
               accounts: {
-                '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                [DEFAULT_FIXTURE_ACCOUNT]: {
                   balance: '0x0',
                 },
               },
               accountsByChainId: {
                 64: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
                     balance: '0x0',
                   },
                 },
                 1: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
                     balance: '0x0',
                   },
                 },
@@ -134,7 +138,7 @@ class FixtureBuilder {
                 '{"cipher":"ynNI8tAH4fcpmXo8S88A/3T3Dd1w0LY5ftpL59gW0ObYxovgFhrtKpRe/WD7WU42KwGBNKVicB9W9at4ePgOJGS6IMWr//C3jh0vKQTabkDzDy1ZfSvztRxGpVjmrnU3fC5B0eq/MBMSrgu8Bww309pk5jghyRfzp9YsG0ONo1CXUm2brQo/eRve7i9aDbiGXiEK0ch0BO7AvZPGMhHtYRrrOro4QrDVHGUgAF5SA1LD4dv/2AB8ctHwn4YbUmICieqlhJhprx3CNOJ086g7vPQOr21T4IbvtTumFaTibfoD3GWHQo11CvE04z3cN3rRERriP7bww/tZOe8OAMFGWANkmOJHwPPwEo1NBr6w3GD2VObEmqNhXeNc6rrM23Vm1JU40Hl+lVKubnbT1vujdGLmOpDY0GdekscQQrETEQJfhKlXIT0wwyPoLwR+Ja+GjyOhBr0nfWVoVoVrcTUwAk5pStBMt+5OwDRpP29L1+BL9eMwDgKpjVXRTh4MGagKYmFc6eKDf6jV0Yt9pG+jevv5IuyhwX0TRtfQCGgRTtS7oxhDQPxGqu01rr+aI7vGMfRQpaKEEXEWVmMaqCmktyUV35evK9h/xv1Yif00XBll55ShxN8t2/PnATvZxFKQfjJe5f/monbwf8rpfXHuFoh8M9hzjbcS5eh/TPYZZu1KltpeHSIAh5C+4aFyZw0e1DeAg/wdRO3PhBrVztsHSyISHlRdfEyw7QF4Lemr++2MVR1dTxS2I5mUEHjh+hmp64euH1Vb/RUppXlmE8t1RYYXfcsF2DlRwPswP739E/EpVtY3Syf/zOTyHyrOJBldzw22sauIzt8Q5Fe5qA/hGRWiejjK31P/P5j7wEKY7vrOJB1LWNXHSuSjffx9Ai9E","iv":"d5dc0252424ac0c08ca49ef320d09569","salt":"feAPSGdL4R2MVj2urJFl4A==","lib":"original"}',
               keyrings: [
                 {
-                  accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+                  accounts: [DEFAULT_FIXTURE_ACCOUNT],
                   index: 0,
                   type: 'HD Key Tree',
                 },
@@ -244,7 +248,7 @@ class FixtureBuilder {
               internalAccounts: {
                 accounts: {
                   '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
-                    address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+                    address: DEFAULT_FIXTURE_ACCOUNT,
                     id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
                     metadata: {
                       name: 'Account 1',
@@ -270,15 +274,15 @@ class FixtureBuilder {
             PreferencesController: {
               featureFlags: {},
               identities: {
-                '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-                  address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                [DEFAULT_FIXTURE_ACCOUNT]: {
+                  address: DEFAULT_FIXTURE_ACCOUNT,
                   name: 'Account 1',
                   importTime: 1684232000456,
                 },
               },
               ipfsGateway: 'https://dweb.link/ipfs/',
               lostIdentities: {},
-              selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+              selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
               useTokenDetection: true,
               useNftDetection: true,
               displayNftMedia: true,
@@ -291,15 +295,15 @@ class FixtureBuilder {
                 featureFlags: {},
                 frequentRpcList: [],
                 identities: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-                    address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                    address: DEFAULT_FIXTURE_ACCOUNT,
                     name: 'Account 1',
                     importTime: 1684232000456,
                   },
                 },
                 ipfsGateway: 'https://dweb.link/ipfs/',
                 lostIdentities: {},
-                selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
                 useTokenDetection: true,
                 useNftDetection: false,
                 displayNftMedia: true,
@@ -692,9 +696,8 @@ class FixtureBuilder {
     const { providerConfig } = data;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${
-      Object.keys(networkController.networkConfigurationsByChainId).length + 1
-    }`;
+    const newNetworkClientId = `networkClientId${Object.keys(networkController.networkConfigurationsByChainId).length + 1
+      }`;
 
     // Define the network configuration
     const networkConfig = {
@@ -746,7 +749,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: 'restrictReturnedAccounts',
-            value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+            value: [DEFAULT_FIXTURE_ACCOUNT],
           },
         ],
         date: 1664388714636,
@@ -815,10 +818,9 @@ class FixtureBuilder {
     const fixtures = this.fixture.state.engine.backgroundState;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${
-      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-        .length + 1
-    }`;
+    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+      .length + 1
+      }`;
 
     // Define the Ganache network configuration
     const ganacheNetworkConfig = {
@@ -854,10 +856,9 @@ class FixtureBuilder {
     const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
 
     // Generate a unique key for the new network client ID
-    const newNetworkClientId = `networkClientId${
-      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
-        .length + 1
-    }`;
+    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+      .length + 1
+      }`;
 
     // Define the Sepolia network configuration
     const sepoliaNetworkConfig = {
@@ -907,9 +908,8 @@ class FixtureBuilder {
       } = network.providerConfig;
 
       // Generate a unique key for the new network client ID
-      const newNetworkClientId = `networkClientId${
-        Object.keys(networkConfigurationsByChainId).length + 1
-      }`;
+      const newNetworkClientId = `networkClientId${Object.keys(networkConfigurationsByChainId).length + 1
+        }`;
 
       // Define the network configuration
       const networkConfig = {
@@ -970,7 +970,7 @@ class FixtureBuilder {
       keyrings: [
         {
           type: 'HD Key Tree',
-          accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
         },
         {
           type: 'Simple Key Pair',
@@ -979,6 +979,34 @@ class FixtureBuilder {
       ],
       vault:
         '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
+  withTokens(tokens) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        }
+      }
+    });
+    return this;
+  }
+
+  withIncomingTransactionPreferences(incomingTransactionPreferences) {
+    merge(
+      this.fixture.state.engine.backgroundState.PreferencesController,
+      {
+        showIncomingTransactions: incomingTransactionPreferences,
+      },
+    );
+    return this;
+  }
+
+  withTransactions(transactions) {
+    merge(this.fixture.state.engine.backgroundState.TransactionController, {
+      transactions,
     });
     return this;
   }

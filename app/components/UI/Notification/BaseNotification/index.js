@@ -154,7 +154,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
 };
 
 export const getDescription = (status, { amount = null, type = null }) => {
-  if (amount && typeof amount !== 'object') {
+  if (amount && typeof amount !== 'object' && type) {
     return strings(`notifications.${type}_${status}_message`, { amount });
   }
   return strings(`notifications.${status}_message`);

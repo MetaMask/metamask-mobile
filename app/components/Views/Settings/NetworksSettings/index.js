@@ -44,6 +44,7 @@ import { updateIncomingTransactions } from '../../../../util/transaction-control
 import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getGlobalChainId } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -191,7 +192,7 @@ class NetworksSettings extends PureComponent {
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await updateIncomingTransactions([MAINNET]);
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -451,7 +452,7 @@ class NetworksSettings extends PureComponent {
       (networkConfiguration, i) => {
         const defaultRpcEndpoint =
           networkConfiguration.rpcEndpoints[
-            networkConfiguration.defaultRpcEndpointIndex
+          networkConfiguration.defaultRpcEndpointIndex
           ];
         const { color, name, url, chainId } = {
           name: networkConfiguration.name || defaultRpcEndpoint.url,
