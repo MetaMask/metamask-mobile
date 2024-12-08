@@ -9,7 +9,7 @@ import {
 } from '../../../util/number';
 import { AccountInformation } from '@metamask/assets-controllers';
 import { TotalFiatBalancesCrossChains } from '../useGetTotalFiatBalanceCrossChains';
-import { isPortfolioViewEnabledFunction } from '../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 interface AccountInfo {
   [address: string]: AccountInformation;
@@ -40,10 +40,14 @@ export const getAccountBalances = ({
   const balanceETH = renderFromWei(totalBalanceWeiHex); // Gives ETH
   // IF portfolio view is active, display aggregated fiat balance cross chains
   let balanceFiat;
-  if (isPortfolioViewEnabledFunction()) {
-    const { totalFiatBalance } =
-      totalFiatBalancesCrossChain[internalAccount.address];
-    balanceFiat = `${renderFiat(totalFiatBalance, currentCurrency)}`;
+  if (isPortfolioViewEnabled()) {
+    const totalFiatBalance =
+      totalFiatBalancesCrossChain[internalAccount?.address as string]
+        ?.totalFiatBalance;
+    balanceFiat =
+      totalFiatBalance !== undefined
+        ? `${renderFiat(totalFiatBalance, currentCurrency)}`
+        : '';
   } else {
     balanceFiat =
       weiToFiat(hexToBN(totalBalanceWeiHex), conversionRate, currentCurrency) ||

@@ -33,6 +33,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
 
         // Switch to Sepolia
         await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
         await NetworkListModal.changeNetworkTo(SEPOLIA);
         await NetworkEducationModal.tapGotItButton();
 

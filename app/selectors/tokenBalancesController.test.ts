@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { RootState } from '../reducers';
 import {
   selectContractBalances,
@@ -30,14 +31,30 @@ describe('TokenBalancesController Selectors', () => {
     engine: {
       backgroundState: {
         TokenBalancesController: mockTokenBalancesControllerState,
+        NetworkController: {
+          providerConfig: {
+            chainId: '0x1',
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: 'account1',
+            accounts: {
+              account1: {
+                id: 'account1',
+                address: '0xAccount1',
+              },
+            },
+          },
+        },
       },
     },
   } as unknown as RootState;
 
   describe('selectContractBalances', () => {
     it('returns token balances for the selected account and chain ID', () => {
-      const selectedAccount = '0xAccount1';
-      const chainId = '0x1';
+      const selectedAccount: Hex = '0xAccount1';
+      const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
         mockTokenBalancesControllerState,
@@ -52,8 +69,8 @@ describe('TokenBalancesController Selectors', () => {
     });
 
     it('returns an empty object if no balances exist for the selected account', () => {
-      const selectedAccount = '0xUnknownAccount';
-      const chainId = '0x1';
+      const selectedAccount: Hex = '0xUnknownAccount';
+      const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
         mockTokenBalancesControllerState,
@@ -65,8 +82,8 @@ describe('TokenBalancesController Selectors', () => {
     });
 
     it('returns an empty object if no balances exist for the selected chain ID', () => {
-      const selectedAccount = '0xAccount1';
-      const chainId = '0xUnknownChain';
+      const selectedAccount: Hex = '0xAccount1';
+      const chainId: Hex = '0xUnknownChain';
 
       const result = selectContractBalances.resultFunc(
         mockTokenBalancesControllerState,
@@ -78,12 +95,12 @@ describe('TokenBalancesController Selectors', () => {
     });
 
     it('returns an empty object if the selected account is undefined', () => {
-      const selectedAccount = undefined;
-      const chainId = '0x1';
+      const selectedAccount: Hex | string = '';
+      const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
         mockTokenBalancesControllerState,
-        selectedAccount,
+        selectedAccount as `0x${string}`,
         chainId,
       );
 

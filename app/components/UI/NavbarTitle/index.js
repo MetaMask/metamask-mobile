@@ -6,7 +6,6 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
