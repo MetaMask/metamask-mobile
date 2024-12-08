@@ -359,7 +359,6 @@ async function getGasFeeEstimatesForTransaction(
 
 async function addTokenToAssetsController(newToken) {
   const { TokensController } = Engine.context;
-
   if (
     !isSwapsNativeAsset(newToken) &&
     !TokensController.state.tokens.includes((token) =>
