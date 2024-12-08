@@ -93,6 +93,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -390,23 +391,31 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  useEffect(
-    () => {
-      requestAnimationFrame(async () => {
-        const { AccountTrackerController } = Engine.context;
+  useEffect(() => {
+    const refreshNetworks = async () => {
+      const { AccountTrackerController } = Engine.context;
 
-        Object.values(networkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh(
-              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            );
-          },
-        );
+      const refreshPromises = Object.values(networkConfigurations)
+        .map(({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+          const networkClientId =
+            rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId;
+          if (networkClientId) {
+            return AccountTrackerController.refresh(networkClientId);
+          }
+          return null;
+        })
+        .filter(Boolean);
+
+      await Promise.all(refreshPromises);
+    };
+
+    // Use requestAnimationFrame to batch updates if necessary
+    requestAnimationFrame(() => {
+      refreshNetworks().catch((error) => {
+        Logger.error(error, 'Error refreshing networks');
       });
-    },
-    /* eslint-disable-next-line */
-    [navigation, providerConfig.chainId],
-  );
+    });
+  }, [networkConfigurations, providerConfig.chainId]);
 
   useEffect(() => {
     if (!selectedInternalAccount) return;

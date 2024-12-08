@@ -42,21 +42,21 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
       return {};
     }
 
-    return Object.entries(accountsByChainId).reduce<ChainBalances>(
-      (acc, [chainId, accounts]) => {
-        const account = accounts[selectedAddress];
-        if (account) {
-          acc[chainId] = {
-            balance: account.balance,
-            stakedBalance: account.stakedBalance ?? '0x0',
-            isStaked: account.stakedBalance !== '0x0',
-            name: 'Staked Ethereum',
-          };
-        }
-        return acc;
-      },
-      {},
-    );
+    const result: ChainBalances = {};
+    for (const chainId in accountsByChainId) {
+      const accounts = accountsByChainId[chainId];
+      const account = accounts[selectedAddress];
+      if (account) {
+        result[chainId] = {
+          balance: account.balance,
+          stakedBalance: account.stakedBalance ?? '0x0',
+          isStaked: account.stakedBalance !== '0x0',
+          name: 'Staked Ethereum',
+        };
+      }
+    }
+
+    return result;
   },
 );
 
@@ -79,7 +79,6 @@ export const selectNativeTokensAcrossChains = createSelector(
     tokenMarketData,
   ) => {
     const tokensByChain: { [chainId: string]: TokenI[] } = {};
-
     for (const token of Object.values(networkConfigurations)) {
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
@@ -144,7 +143,7 @@ export const selectNativeTokensAcrossChains = createSelector(
       tokensByChain[nativeChainId].push({
         ...nativeTokenInfoByChainId,
         address: nativeAddress,
-        balance: nativeBalanceFormatted, // X
+        balance: nativeBalanceFormatted,
         chainId: nativeChainId,
         isNative: true,
         aggregators: [],
