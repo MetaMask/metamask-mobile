@@ -482,6 +482,7 @@ exports[`Network Selector renders correctly 1`] = `
                           >
                             <RCTScrollView
                               collapsable={false}
+                              keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               style={
@@ -1181,48 +1182,48 @@ exports[`Network Selector renders correctly 1`] = `
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </View>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
-                                "borderColor": "#0376c9",
-                                "borderRadius": 24,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "marginBottom": 0,
-                                "marginHorizontal": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                            testID="add-network-button"
-                          >
-                            <Text
-                              accessibilityRole="text"
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "transparent",
+                                  "borderColor": "#0376c9",
+                                  "borderRadius": 24,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "marginBottom": 0,
+                                  "marginHorizontal": 16,
+                                  "paddingHorizontal": 16,
                                 }
                               }
+                              testID="add-network-button"
                             >
-                              Add Network
-                            </Text>
-                          </TouchableOpacity>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Add Network
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1723,6 +1724,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           >
                             <RCTScrollView
                               collapsable={false}
+                              keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
                               style={
@@ -3898,48 +3900,48 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 </View>
                               </View>
                             </RCTScrollView>
-                          </View>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
-                                "borderColor": "#0376c9",
-                                "borderRadius": 24,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "marginBottom": 12,
-                                "marginHorizontal": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                            testID="add-network-button"
-                          >
-                            <Text
-                              accessibilityRole="text"
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "transparent",
+                                  "borderColor": "#0376c9",
+                                  "borderRadius": 24,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "marginBottom": 12,
+                                  "marginHorizontal": 16,
+                                  "paddingHorizontal": 16,
                                 }
                               }
+                              testID="add-network-button"
                             >
-                              Add a custom network
-                            </Text>
-                          </TouchableOpacity>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Add a custom network
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
