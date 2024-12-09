@@ -41,7 +41,6 @@ ignores:
   - 'fbjs-scripts'
   - 'improved-yarn-audit'
   - 'jetifier'
-  - 'metro-react-native-babel-preset'
   - 'octonode'
   - 'prettier-plugin-gherkin'
   - 'react-native-svg-asset-plugin'
@@ -84,10 +83,9 @@ ignores:
   - 'app'
   - 'i18n-js'
   - 'images'
-  
+
   ## Expo
   - '@config-plugins/detox'
   - 'cross-spawn'
   - 'expo-build-properties'
   - 'expo-dev-client'
-  
