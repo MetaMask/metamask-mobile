@@ -1,23 +1,21 @@
 import React from 'react';
 import { Switch, ImageSourcePropType } from 'react-native';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { useStyles } from '../../../component-library/hooks';
 import Cell from '../../../component-library/components/Cells/Cell/Cell';
 import { CellVariant } from '../../../component-library/components/Cells/Cell';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useTheme } from '../../../util/theme';
-import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
 import styleSheet from './NetworkCell.styles';
+import { Hex } from '@metamask/utils';
 
-const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
 interface NetworkCellProps {
   name: string;
-  chainId: EtherscanSupportedHexChainId | keyof typeof supportedNetworks;
+  chainId: Hex;
   imageSource: ImageSourcePropType;
-  secondaryText: string;
+  secondaryText?: string;
   showIncomingTransactionsNetworks: Record<string, boolean>;
   toggleEnableIncomingTransactions: (
-    chainId: EtherscanSupportedHexChainId,
+    chainId: Hex,
     value: boolean,
   ) => void;
   testID?: string;

@@ -18,7 +18,6 @@ import {
 } from '../../../../selectors/preferencesController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { EtherscanSupportedHexChainId } from '@metamask/preferences-controller';
-import { ETHERSCAN_SUPPORTED_NETWORKS } from '@metamask/transaction-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import styleSheet from './index.styles';
 import {
@@ -29,6 +28,8 @@ import {
 import { NetworksI } from './index.types';
 import NetworkCell from '../../../UI/NetworkCell/NetworkCell';
 import { MAINNET, LINEA_MAINNET } from '../../../../../app/constants/network';
+import { INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 const IncomingTransactionsSettings = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -40,14 +41,12 @@ const IncomingTransactionsSettings = () => {
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const supportedNetworks = ETHERSCAN_SUPPORTED_NETWORKS;
-
   const toggleEnableIncomingTransactions = (
-    hexChainId: EtherscanSupportedHexChainId,
+    hexChainId: Hex,
     value: boolean,
   ) => {
     PreferencesController.setEnableNetworkIncomingTransactions(
-      hexChainId,
+      hexChainId as EtherscanSupportedHexChainId,
       value,
     );
   };
@@ -73,7 +72,10 @@ const IncomingTransactionsSettings = () => {
       chainId,
       defaultRpcEndpointIndex,
     }: NetworkConfiguration) => {
-      if (!chainId || !Object.keys(supportedNetworks).includes(chainId))
+      if (
+        !chainId ||
+        !INCOMING_TRANSACTIONS_SUPPORTED_CHAIN_IDS.includes(chainId)
+      )
         return null;
 
       const rpcUrl = rpcEndpoints[defaultRpcEndpointIndex].url;
@@ -88,8 +90,6 @@ const IncomingTransactionsSettings = () => {
 
       //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
-      const secondaryText =
-        supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
 
       return (
         <NetworkCell
@@ -97,7 +97,6 @@ const IncomingTransactionsSettings = () => {
           name={name}
           chainId={chainId as EtherscanSupportedHexChainId}
           imageSource={image}
-          secondaryText={secondaryText}
           showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
           toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
           testID={testId}
@@ -113,16 +112,15 @@ const IncomingTransactionsSettings = () => {
     const getOtherNetworks = () => getAllNetworks().slice(2);
     return getOtherNetworks().map((networkType) => {
       const { name, imageSource, chainId } = NetworksTyped[networkType];
+
       if (!chainId) return null;
-      const secondaryText =
-        supportedNetworks[chainId as keyof typeof supportedNetworks].domain;
+
       return (
         <NetworkCell
           key={`${name}-${chainId}`}
           name={name}
-          chainId={chainId as keyof typeof supportedNetworks}
+          chainId={chainId as Hex}
           imageSource={imageSource as ImageSourcePropType}
-          secondaryText={secondaryText}
           showIncomingTransactionsNetworks={showIncomingTransactionsNetworks}
           toggleEnableIncomingTransactions={toggleEnableIncomingTransactions}
         />
