@@ -273,6 +273,28 @@ buildIosDevBuild(){
 	cd ..
 }
 
+buildIosDevBuildSimulator(){
+	remapEnvVariableLocal
+	prebuild_ios
+	
+	
+	echo "Setting up env vars...";
+	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+	echo "Build started..."
+	brew install watchman
+	cd ios
+
+	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
+	scheme="MetaMask"
+
+	echo "exportOptionsPlist: $exportOptionsPlist"
+  	echo "Generating archive packages for $scheme"
+	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -sdk 'iphonesimulator' -destination 'generic/platform=iOS Simulator'
+	echo "Generating app for $scheme"
+	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	cd ..
+}
+
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
@@ -602,6 +624,8 @@ buildIos() {
 		fi
 	elif [ "$MODE" == "devbuild" ] ; then
 		buildIosDevBuild
+	elif [ "$MODE" == "devbuildSimulator" ] ; then
+		buildIosDevBuildSimulator
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
