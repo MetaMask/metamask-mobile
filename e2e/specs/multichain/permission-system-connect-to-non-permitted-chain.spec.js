@@ -45,8 +45,6 @@ describe(
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
 
           // Switch to non-permitted network
           await TabBarComponent.tapWallet();
@@ -57,6 +55,8 @@ describe(
 
           // Verify bottom sheet appears
           await TabBarComponent.tapBrowser();
+          await TestHelpers.delay(3000);
+          await Browser.navigateToTestDApp();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -79,8 +79,6 @@ describe(
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
 
           // Switch to already permitted network
           await TabBarComponent.tapWallet();
@@ -91,6 +89,8 @@ describe(
 
           // Verify no bottom sheet appears
           await TabBarComponent.tapBrowser();
+          await TestHelpers.delay(3000);
+          await Browser.navigateToTestDApp();
           await Assertions.checkIfNotVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -110,8 +110,6 @@ describe(
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
 
           // Switch to non-permitted network
           await TabBarComponent.tapWallet();
@@ -122,6 +120,8 @@ describe(
 
           // Add network permission
           await TabBarComponent.tapBrowser();
+          await TestHelpers.delay(3000);
+          await Browser.navigateToTestDApp();
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
           // Verify permission was added by checking that disconnecting both networks shows disconnect all button
@@ -152,8 +152,6 @@ describe(
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
 
           // Switch to non-permitted network (Linea Sepolia)
           await TabBarComponent.tapWallet();
@@ -164,6 +162,8 @@ describe(
 
           // Verify bottom sheet appears and choose from permitted networks
           await TabBarComponent.tapBrowser();
+          await TestHelpers.delay(3000);
+          await Browser.navigateToTestDApp();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -194,8 +194,6 @@ describe(
         },
         async () => {
           await loginToApp();
-          await TabBarComponent.tapBrowser();
-          await Browser.navigateToTestDApp();
 
           // Switch to non-permitted network (Sepolia)
           await TabBarComponent.tapWallet();
@@ -206,6 +204,8 @@ describe(
 
           // Verify bottom sheet appears and navigate to edit permissions
           await TabBarComponent.tapBrowser();
+          await TestHelpers.delay(3000);
+          await Browser.navigateToTestDApp();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
