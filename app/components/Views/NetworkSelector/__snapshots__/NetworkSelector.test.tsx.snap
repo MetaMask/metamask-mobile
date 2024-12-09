@@ -1921,7 +1921,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   }
                                                 }
                                               >
-                                                https://mainnet-rpc.publicnode.com
+                                                mainnet-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
                                                 color="#141618"
@@ -2171,7 +2171,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   }
                                                 }
                                               >
-                                                https://linea-rpc.publicnode.com
+                                                linea-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
                                                 color="#141618"

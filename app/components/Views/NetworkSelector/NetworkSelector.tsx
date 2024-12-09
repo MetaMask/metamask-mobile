@@ -469,7 +469,9 @@ const NetworkSelector = () => {
           variant={CellVariant.SelectWithMenu}
           title={name}
           secondaryText={
-            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+            rpcEndpoints?.length > 1
+              ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+              : undefined
           }
           avatarProps={{
             variant: AvatarVariant.Network,
@@ -545,7 +547,9 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={
-            rpcEndpoints?.length > 1 ? hideKeyFromUrl(rpcUrl) : undefined
+            rpcEndpoints?.length > 1
+              ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+              : undefined
           }
           buttonProps={{
             onButtonClick: () => {
@@ -684,10 +688,10 @@ const NetworkSelector = () => {
 
       const networkConfiguration = networkConfigurations[chainId];
 
+      const rpcEndpoints = networkConfiguration?.rpcEndpoints;
+
       const rpcUrl =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration?.defaultRpcEndpointIndex
-        ].url;
+        rpcEndpoints?.[networkConfiguration?.defaultRpcEndpointIndex].url;
 
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
@@ -696,7 +700,11 @@ const NetworkSelector = () => {
           <Cell
             key={chainId}
             variant={CellVariant.SelectWithMenu}
-            secondaryText={hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))}
+            secondaryText={
+              rpcEndpoints?.length > 1
+                ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
+                : undefined
+            }
             title={name}
             avatarProps={{
               variant: AvatarVariant.Network,
