@@ -69,7 +69,9 @@ const PermitSimulation = () => {
   const tokenDetails = extractTokenDetailsByPrimaryType(message, primaryType);
 
   const isNFT = tokenId !== undefined;
-  const labelChangeType = isNFT ? strings('confirm.simulation.subtitle_permit') : strings('confirm.simulation.subtitle_permit_nft');
+  const labelChangeType = isNFT
+    ? strings('confirm.simulation.label_change_type_permit')
+    : strings('confirm.simulation.label_change_type_permit_nft');
 
   return (
     <InfoSection>
@@ -82,30 +84,30 @@ const PermitSimulation = () => {
 
       <InfoRow label={labelChangeType}>
         {Array.isArray(tokenDetails) ? (
-            <View style={styles.permitValues}>
-              {tokenDetails.map(
-                (
-                  { token, amount }: { token: string; amount: string },
-                  i: number,
-                ) => (
-                  <PermitSimulationValueDisplay
-                    key={`${token}-${i}`}
-                    primaryType={primaryType}
-                    tokenContract={safeToChecksumAddress(token)}
-                    value={amount}
-                    chainId={chainId}
-                  />
-                ),
-              )}
-            </View>
-          ) : (
-            <PermitSimulationValueDisplay
-              tokenContract={verifyingContract}
-              value={message.value}
-              tokenId={message.tokenId}
-              chainId={chainId}
-            />
-          )}
+          <View style={styles.permitValues}>
+            {tokenDetails.map(
+              (
+                { token, amount }: { token: string; amount: string },
+                i: number,
+              ) => (
+                <PermitSimulationValueDisplay
+                  key={`${token}-${i}`}
+                  primaryType={primaryType}
+                  tokenContract={safeToChecksumAddress(token)}
+                  value={amount}
+                  chainId={chainId}
+                />
+              ),
+            )}
+          </View>
+        ) : (
+          <PermitSimulationValueDisplay
+            tokenContract={verifyingContract}
+            value={message.value}
+            tokenId={message.tokenId}
+            chainId={chainId}
+          />
+        )}
       </InfoRow>
     </InfoSection>
   );
