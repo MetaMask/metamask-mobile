@@ -332,8 +332,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   let balance, balanceFiat;
-
-  if (asset.isETH) {
+  if (asset.isETH || asset.isNative) {
     balance = renderFromWei(
       //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
