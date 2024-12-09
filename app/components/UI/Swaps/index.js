@@ -275,7 +275,7 @@ function SwapsAmountView({
 
             trackEvent(
               createEventBuilder(MetaMetricsEvents.SWAPS_OPENED)
-                .addSensitiveProperties(parameters)
+                .addProperties(parameters)
                 .build(),
             );
           });
