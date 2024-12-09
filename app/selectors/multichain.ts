@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
@@ -50,7 +51,7 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
           balance: account.balance,
           stakedBalance: account.stakedBalance ?? '0x0',
           isStaked: account.stakedBalance !== '0x0',
-          name: 'Staked Ethereum',
+          name: '',
         };
       }
     }
@@ -85,7 +86,14 @@ export const selectNativeTokensAcrossChains = createSelector(
       const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
         token.nativeCurrency || '',
       );
-      const name = isETH ? `Ethereum` : token.name;
+      let name = nativeTokenInfoByChainId.name;
+      if (token.chainId === CHAIN_IDS.BSC) {
+        name = 'BNB';
+      }
+      if (token.chainId === CHAIN_IDS.POLYGON) {
+        name = 'POL';
+      }
+
       const logo = isETH ? '../images/eth-logo-new.png' : '';
 
       tokensByChain[nativeChainId] = [];
@@ -110,7 +118,7 @@ export const selectNativeTokensAcrossChains = createSelector(
           logo,
           isETH,
           decimals: 18,
-          name,
+          name: 'Staked Ethereum',
           symbol: getTicker(networkConfig.nativeCurrency),
           isStaked: true,
         });
@@ -140,6 +148,7 @@ export const selectNativeTokensAcrossChains = createSelector(
       // Non-staked tokens
       tokensByChain[nativeChainId].push({
         ...nativeTokenInfoByChainId,
+        name,
         address: getNativeTokenAddress(nativeChainId),
         balance: nativeBalanceFormatted,
         chainId: nativeChainId,
@@ -150,7 +159,6 @@ export const selectNativeTokensAcrossChains = createSelector(
         logo,
         isETH,
         decimals: 18,
-        name,
         symbol: getTicker(token.nativeCurrency),
         isStaked: false,
       });
@@ -194,6 +202,7 @@ export const selectAccountTokensAcrossChains = createSelector(
       const nonNativeTokens =
         allTokens[currentChainId]?.[selectedAddress]?.map((token) => ({
           ...token,
+          token: token.name,
           chainId,
           isETH: false,
           isNative: false,
