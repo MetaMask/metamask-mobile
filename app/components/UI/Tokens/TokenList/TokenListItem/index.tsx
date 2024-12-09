@@ -138,10 +138,10 @@ export const TokenListItem = ({
   const { balanceFiat, balanceValueFormatted } =
     deriveBalanceFromAssetMarketDetails(
       asset,
-      exchangeRates,
-      tokenBalances,
-      conversionRate,
-      currentCurrency,
+      exchangeRates || {},
+      tokenBalances || {},
+      conversionRate || 0,
+      currentCurrency || '',
     );
 
   let pricePercentChange1d: number;

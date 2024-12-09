@@ -131,8 +131,8 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainMarketData = useSelector(selectTokenMarketData);
+  const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
   const styles = createStyles(colors);
@@ -206,10 +206,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           ? parseFloat(token.balance) * multiChainConversionRate
           : deriveBalanceFromAssetMarketDetails(
               token,
-              multiChainExchangeRates,
-              multiChainTokenBalances,
-              multiChainConversionRate,
-              currentCurrency,
+              multiChainExchangeRates || {},
+              multiChainTokenBalances || {},
+              multiChainConversionRate || 0,
+              currentCurrency || '',
             ).balanceFiatCalculation;
       });
 
@@ -235,10 +235,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             ? parseFloat(asset.balance) * conversionRate
             : deriveBalanceFromAssetMarketDetails(
                 asset,
-                tokenExchangeRates,
-                tokenBalances,
-                conversionRate,
-                currentCurrency,
+                tokenExchangeRates || {},
+                tokenBalances || {},
+                conversionRate || 0,
+                currentCurrency || '',
               ).balanceFiatCalculation,
         )
       : [];
