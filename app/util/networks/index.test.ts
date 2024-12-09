@@ -8,7 +8,6 @@ import {
   compareRpcUrls,
   getBlockExplorerAddressUrl,
   getBlockExplorerTxUrl,
-  getNetworkNonce,
   isPrivateConnection,
 } from '.';
 import {
@@ -25,7 +24,6 @@ import {
   LINEA_SEPOLIA,
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { getNonceLock } from '../../util/transaction-controller';
 import Engine from './../../core/Engine';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
@@ -76,11 +74,6 @@ jest.mock('./../../core/Engine', () => ({
       getLayer1GasFee: jest.fn(async () => '0x0a25339d61'),
     },
   },
-}));
-
-jest.mock('../../util/transaction-controller', () => ({
-  __esModule: true,
-  getNonceLock: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -369,33 +362,6 @@ describe('network-utils', () => {
     });
   });
 
-  describe('getNetworkNonce', () => {
-    const nonceMock = 123;
-    const fromMock = '0x123';
-
-    it('returns value from TransactionController', async () => {
-      (getNonceLock as jest.Mock).mockReturnValueOnce({
-        nextNonce: nonceMock,
-        releaseLock: jest.fn(),
-      });
-
-      expect(await getNetworkNonce({ from: fromMock })).toBe(nonceMock);
-
-      expect(getNonceLock).toHaveBeenCalledWith(fromMock);
-    });
-
-    it('releases nonce lock', async () => {
-      const releaseLockMock = jest.fn();
-
-      (getNonceLock as jest.Mock).mockReturnValueOnce({
-        releaseLock: releaseLockMock,
-      });
-
-      await getNetworkNonce({ from: fromMock });
-
-      expect(releaseLockMock).toHaveBeenCalledTimes(1);
-    });
-  });
   describe('convertNetworkId', () => {
     it('converts a number to a string', () => {
       expect(convertNetworkId(1)).toEqual('1');
