@@ -36,7 +36,10 @@ jest.mock('../Engine', () => {
   const mockEngine = {
     init: (_: unknown, keyringState: KeyringControllerState) => {
       instance = {
-        controllerMessenger: { subscribe: jest.fn() },
+        controllerMessenger: {
+          subscribe: jest.fn(),
+          subscribeOnceIf: jest.fn(),
+        },
         context: {
           AddressBookController: { subscribe: jest.fn() },
           KeyringController: {

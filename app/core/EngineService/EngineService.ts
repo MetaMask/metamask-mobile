@@ -195,18 +195,20 @@ export class EngineService {
       },
     ];
 
-    engine?.datamodel?.subscribe?.(() => {
-      if (!engine.context.KeyringController.metadata.vault) {
-        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-      }
-      if (!this.engineInitialized) {
+    engine.controllerMessenger.subscribeOnceIf(
+      'ComposableController:stateChange',
+      () => {
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+        }
         ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
-      }
-    });
+      },
+      () => !this.engineInitialized,
+    );
 
     controllers.forEach((controller) => {
-      const { name, key = undefined } = controller;
+      const { name, key } = controller;
       const update_bg_state_cb = () => {
         if (!engine.context.KeyringController.metadata.vault) {
           Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
@@ -216,11 +218,7 @@ export class EngineService {
           payload: { key: name },
         });
       };
-      if (key) {
-        engine.controllerMessenger.subscribe(key, update_bg_state_cb);
-      } else {
-        engine.context[name].subscribe(update_bg_state_cb);
-      }
+      engine.controllerMessenger.subscribe(key, update_bg_state_cb);
     });
   };
 
