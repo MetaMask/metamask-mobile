@@ -84,7 +84,6 @@ const getEntryTimePeriodGroupInfo = (
       timePeriodInfo.listGroup = `${newYear}-${newMonth}`;
       timePeriodInfo.listGroupLabel = monthLabel;
       timePeriodInfo.listGroupHeader = newYear;
-
       break;
     case DateRange.YEARLY:
       timePeriodInfo.chartGroup = newYear;
