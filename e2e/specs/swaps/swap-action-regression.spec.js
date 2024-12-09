@@ -82,17 +82,18 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.5'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrapped'}$    |${'.2'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
 
+      await TabBarComponent.tapWallet();
+
       if (network.providerConfig.nickname !== currentNetwork)
       {
-        await TabBarComponent.tapWallet();
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);

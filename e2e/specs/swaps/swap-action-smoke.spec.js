@@ -83,9 +83,10 @@ describe(SmokeSwaps('Swap from Actions'), () => {
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
+      await TabBarComponent.tapWallet();
+      
       if (network.providerConfig.nickname !== currentNetwork)
       {
-        await TabBarComponent.tapWallet();
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
         await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
