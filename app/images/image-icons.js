@@ -13,6 +13,8 @@ import SEPOLIA from './sepolia-logo-dark.png';
 import LINEA_MAINNET from './linea-mainnet-logo.png';
 import APE_TOKEN from './ape-token.png';
 import GRAVITY from './gravity.png';
+import KAIA_MAINNET from './kaia.png';
+import KAIA_KAIROS_TESTNET from './kaia.png';
 
 export default {
   PALM,
@@ -31,4 +33,6 @@ export default {
   'LINEA-MAINNET': LINEA_MAINNET,
   APE: APE_TOKEN,
   G: GRAVITY,
+  'KAIA-MAINNET': KAIA_MAINNET,
+  'KAIA-KAIROS-TESTNET': KAIA_KAIROS_TESTNET
 };
