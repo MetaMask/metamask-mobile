@@ -44,6 +44,8 @@ const config = {
     '\\.svg': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.png': '<rootDir>/app/__mocks__/pngMock.js',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
+    '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
+    '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
   },
   // Disable jest cache
   cache: false,
