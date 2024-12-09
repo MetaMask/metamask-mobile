@@ -635,10 +635,8 @@ export default class DeeplinkProtocolService {
     scheme: string;
     account: string; // account@chainid
   }) {
-    let walletSelectedAddress = '';
     let walletSelectedChainId = '';
     let dappAccountChainId = '';
-    let dappAccountAddress = '';
 
     if (!params.account?.includes('@')) {
       DevLogger.log(
@@ -646,10 +644,8 @@ export default class DeeplinkProtocolService {
       );
     } else {
       const account = params.account.split('@');
-      walletSelectedAddress = this.getSelectedAddress();
       walletSelectedChainId = this.getChainId();
       dappAccountChainId = account[1];
-      dappAccountAddress = account[0];
     }
 
     DevLogger.log(
@@ -696,7 +692,6 @@ export default class DeeplinkProtocolService {
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = message;
 
-        const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
         const isChainChanged = dappAccountChainId !== walletSelectedChainId;
 
         const rpcMethod = data.method;
@@ -726,10 +721,8 @@ export default class DeeplinkProtocolService {
 
         const isRpcMethodToSkip = checkForRpcMethodToSkip();
 
-        if (isAccountChanged || (!isRpcMethodToSkip && isChainChanged)) {
-          const dynamicErrorMessage = `The selected ${
-            isAccountChanged ? 'account' : 'chain'
-          } has changed. Please try again.`;
+        if (!isRpcMethodToSkip && isChainChanged) {
+          const dynamicErrorMessage = `The selected chain has changed. Please try again.`;
 
           this.sendMessage(
             {
