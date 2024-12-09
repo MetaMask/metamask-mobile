@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 'use strict';
 import { loginToApp } from '../../viewHelper.js';
 import { Regression } from '../../tags.js';
@@ -6,6 +7,10 @@ import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomShee
 import SendView from '../../pages/Send/SendView.js';
 import AmountView from '../../pages/Send/AmountView.js';
 import TransactionConfirmView from '../../pages/Send/TransactionConfirmView.js';
+import {
+  startMockServer,
+  stopMockServer,
+} from '../../api-mocking/mock-server.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import Assertions from '../../utils/Assertions.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
@@ -23,26 +28,36 @@ describe(
     'Mock suggestedGasApi fallback to legacy gas endpoint  when EIP1559 endpoint is down',
   ),
   () => {
+    let mockServer;
     beforeAll(async () => {
       jest.setTimeout(150000);
       await TestHelpers.reverseServerPort();
+      mockServer = await startMockServer({
+        GET: [mockEvents.GET.suggestedGasFeesMainNetError],
+      });
+    });
+
+    afterAll(async () => {
+      try {
+        await stopMockServer(mockServer);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.log(
+          'Mock server already stopped or encountered an error:',
+          error,
+        );
+      }
     });
 
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
-    const AMOUNT = '0.0003';
+    const AMOUNT = '0.000003';
     const validPrivateKey = Accounts.getAccountPrivateKey();
 
     it('should fallback to legacy gas endpoint & legacy modal when EIP1559 endpoint is down', async () => {
-
-      const testSpecificMock = {
-        GET: [mockEvents.GET.suggestedGasFeesMainNetError],
-      };
-
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
           restartDevice: true,
-          testSpecificMock,
         },
         async () => {
           await loginToApp();
@@ -70,6 +85,7 @@ describe(
           await Assertions.checkIfVisible(
             TransactionConfirmView.editPriorityLegacyModal,
           );
+          await stopMockServer(mockServer); //stop mock server to reinstate suggested gas api service
           await Assertions.checkIfVisible(
             TransactionConfirmView.editPriorityFeeSheetContainer,
             30000,
