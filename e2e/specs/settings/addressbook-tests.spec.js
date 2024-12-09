@@ -4,9 +4,9 @@ import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
+import AddAddressModal from '../../pages/Send/AddAddressModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import AddAddressModal from '../../pages/modals/AddAddressModal';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -34,7 +34,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

@@ -79,6 +79,7 @@ async function eth_sendTransaction({
   hostname: string;
   req: JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
     method: 'eth_sendTransaction';
+    networkClientId: string;
   };
   res: PendingJsonRpcResponse<Json>;
   sendTransaction: TransactionController['addTransaction'];
@@ -109,6 +110,7 @@ async function eth_sendTransaction({
 
   const { result, transactionMeta } = await sendTransaction(req.params[0], {
     deviceConfirmedOn: WalletDevice.MM_MOBILE,
+    networkClientId: req.networkClientId,
     origin: hostname,
   });
 

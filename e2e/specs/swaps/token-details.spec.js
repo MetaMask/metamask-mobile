@@ -9,11 +9,12 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
+import TestHelpers from '../../helpers'
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp();
+    await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
