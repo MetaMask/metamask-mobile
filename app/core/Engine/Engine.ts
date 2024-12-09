@@ -1407,7 +1407,6 @@ export class Engine {
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
         // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
         fetchEstimatedMultiLayerL1Fee,
-        pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
       }),
       GasFeeController: gasFeeController,
       ApprovalController: approvalController,
