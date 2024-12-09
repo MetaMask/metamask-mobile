@@ -7,8 +7,18 @@ import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
-import { NotificationServicesController } from '@metamask/notification-services-controller';
-import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import {
+  UserStorage,
+  USER_STORAGE_VERSION_KEY,
+  OnChainRawNotification,
+  OnChainRawNotificationsWithNetworkFields,
+} from '@metamask/notification-services-controller/notification-services';
+import {
+  NOTIFICATION_CHAINS_ID,
+  NOTIFICATION_NETWORK_CURRENCY_NAME,
+  NOTIFICATION_NETWORK_CURRENCY_SYMBOL,
+  SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS,
+} from '@metamask/notification-services-controller/notification-services/ui';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import Engine from '../../../core/Engine';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -17,7 +27,6 @@ import { TRIGGER_TYPES } from '../constants';
 import { Notification } from '../types';
 import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
-import CHAIN_SCANS_URLS from '../constants/urls';
 import I18n, { strings } from '../../../../locales/i18n';
 
 // Extend dayjs with the plugins
@@ -25,8 +34,6 @@ dayjs.extend(isYesterday);
 dayjs.extend(localeData);
 dayjs.extend(relativeTime);
 
-const { UI } = NotificationServicesController;
-export const USER_STORAGE_VERSION_KEY: unique symbol = 'v' as never;
 export function formatRelative(
   date: Dayjs,
   currentDate: Dayjs,
@@ -166,8 +173,8 @@ export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
 };
 
 export function hasNetworkFeeFields(
-  notification: NotificationServicesController.Types.OnChainRawNotification,
-): notification is NotificationServicesController.Types.OnChainRawNotificationsWithNetworkFields {
+  notification: OnChainRawNotification,
+): notification is OnChainRawNotificationsWithNetworkFields {
   return 'network_fee' in notification.data;
 }
 
@@ -184,9 +191,7 @@ export function getProviderByChainId(chainId: HexChainId) {
   return provider && new Web3Provider(provider);
 }
 
-export const getNetworkFees = async (
-  notification: NotificationServicesController.Types.OnChainRawNotification,
-) => {
+export const getNetworkFees = async (notification: OnChainRawNotification) => {
   if (!hasNetworkFeeFields(notification)) {
     throw new Error('Invalid notification type');
   }
@@ -336,52 +341,52 @@ export const sortNotifications = (
  */
 export function getNativeTokenDetailsByChainId(chainId: number) {
   const chainIdString = chainId.toString();
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.ETHEREUM) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.ETHEREUM,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.OPTIMISM) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.OPTIMISM,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.BSC) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.BNB,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.POLYGON) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.POL,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.ARBITRUM) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.AETH,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.AVALANCHE) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images.AVAX,
     };
   }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
+  if (chainIdString === NOTIFICATION_CHAINS_ID.LINEA) {
     return {
-      name: UI.NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
-      symbol: UI.NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
+      name: NOTIFICATION_NETWORK_CURRENCY_NAME[chainIdString],
+      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[chainIdString],
       image: images['LINEA-MAINNET'],
     };
   }
@@ -389,34 +394,19 @@ export function getNativeTokenDetailsByChainId(chainId: number) {
   return undefined;
 }
 
+const isSupportedBlockExplorer = (
+  chainId: number,
+): chainId is keyof typeof SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS =>
+  chainId in SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS;
+
 /**
  * Gets block explorer information for the notification chains we support
  * @param chainId Notification Chain Id. This is a subset of chains that support notifications
  * @returns some default block explorers for the chains we support.
  */
 export function getBlockExplorerByChainId(chainId: number) {
-  const chainIdString = chainId.toString();
-
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ETHEREUM) {
-    return CHAIN_SCANS_URLS.ETHEREUM;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.OPTIMISM) {
-    return CHAIN_SCANS_URLS.OPTIMISM;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.BSC) {
-    return CHAIN_SCANS_URLS.BSC;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.POLYGON) {
-    return CHAIN_SCANS_URLS.POLYGON;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.ARBITRUM) {
-    return CHAIN_SCANS_URLS.ARBITRUM;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.AVALANCHE) {
-    return CHAIN_SCANS_URLS.AVALANCHE;
-  }
-  if (chainIdString === UI.NOTIFICATION_CHAINS_ID.LINEA) {
-    return CHAIN_SCANS_URLS.LINEA;
+  if (isSupportedBlockExplorer(chainId)) {
+    return SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS[chainId].url;
   }
 
   return undefined;
@@ -485,28 +475,29 @@ export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 export interface NotificationTrigger {
-  id: string
-  chainId: string
-  kind: string
-  address: string
+  id: string;
+  chainId: string;
+  kind: string;
+  address: string;
 }
 
-type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result
+type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result;
 
 interface TraverseTriggerOpts<Result> {
-  address?: string
-  mapTrigger?: MapTriggerFn<Result>
+  address?: string;
+  mapTrigger?: MapTriggerFn<Result>;
 }
 
 const triggerToId = (trigger: NotificationTrigger) => trigger.id;
 const triggerIdentity = (trigger: NotificationTrigger) => trigger;
 
-export function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
+function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
   userStorage: UserStorage,
   options?: TraverseTriggerOpts<ResultTriggers>,
 ) {
   const triggers: ResultTriggers[] = [];
-  const mapTrigger = options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
+  const mapTrigger =
+    options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
 
   for (const address in userStorage) {
     if (address === (USER_STORAGE_VERSION_KEY as unknown as string)) continue;
@@ -544,9 +535,12 @@ export function getAllUUIDs(userStorage: UserStorage): string[] {
   return uuids;
 }
 
-export function parseNotification(remoteMessage: FirebaseMessagingTypes.RemoteMessage) {
+export function parseNotification(
+  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+) {
   const notification = remoteMessage.data?.data;
-  const parsedNotification = typeof notification === 'string' ? JSON.parse(notification) : notification;
+  const parsedNotification =
+    typeof notification === 'string' ? JSON.parse(notification) : notification;
 
   const notificationData = {
     type: parsedNotification?.type || parsedNotification?.data?.kind,
