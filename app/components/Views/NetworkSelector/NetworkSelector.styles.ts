@@ -154,6 +154,28 @@ const createStyles = (colors: Colors) =>
       fontSize: 10,
       marginTop: 4,
     },
+    screen: { justifyContent: 'flex-end' },
+    scrollableDescription: {
+      maxHeight: Device.getDeviceHeight() * 0.7,
+    },
+    sheet: {
+      backgroundColor: colors.background.default,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    title: {
+      textAlign: 'center',
+      marginTop: 8,
+      marginBottom: 8,
+    },
+    notch: {
+      width: 48,
+      height: 5,
+      borderRadius: 4,
+      backgroundColor: colors.border.default,
+      marginTop: 8,
+      alignSelf: 'center',
+    },
     searchContainer: {
       marginLeft: 16,
       marginRight: 16,
