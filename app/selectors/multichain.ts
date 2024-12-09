@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { zeroAddress } from 'ethereumjs-util';
+import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
   selectSelectedInternalAccountFormattedAddress,
@@ -13,7 +13,6 @@ import { TokenI } from '../components/UI/Tokens/types';
 import { getTicker } from '../util/transactions';
 import { renderFromWei } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
-import { Token } from '@metamask/assets-controllers';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -88,7 +87,6 @@ export const selectNativeTokensAcrossChains = createSelector(
       );
       const name = isETH ? `Ethereum` : token.name;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
-      const nativeAddress = zeroAddress() as Hex;
 
       tokensByChain[nativeChainId] = [];
       const networkConfig = networkConfigurations?.[nativeChainId];
@@ -103,7 +101,7 @@ export const selectNativeTokensAcrossChains = createSelector(
         tokensByChain[nativeChainId].push({
           ...nativeTokenInfoByChainId,
           chainId: nativeChainId,
-          address: nativeAddress,
+          address: getNativeTokenAddress(nativeChainId),
           balance: renderFromWei(nativeTokenInfoByChainId.stakedBalance),
           balanceFiat: '',
           isNative: true,
@@ -142,7 +140,7 @@ export const selectNativeTokensAcrossChains = createSelector(
       // Non-staked tokens
       tokensByChain[nativeChainId].push({
         ...nativeTokenInfoByChainId,
-        address: nativeAddress,
+        address: getNativeTokenAddress(nativeChainId),
         balance: nativeBalanceFormatted,
         chainId: nativeChainId,
         isNative: true,
