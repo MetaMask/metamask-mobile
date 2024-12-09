@@ -10,6 +10,7 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -46,7 +47,6 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import SwapsController from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -82,6 +82,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenBalances = useSelector(selectContractBalances);
   const chainId = useSelector((state: RootState) => selectChainId(state));
   const ticker = useSelector((state: RootState) => selectTicker(state));
+  const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
   const { data: prices = [], isLoading } = useTokenHistoricalPrices({
     address: asset.isETH ? zeroAddress() : asset.address,
@@ -94,12 +95,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
-      SwapsController: SwapsController;
-    };
+    const { SwapsController } = Engine.context;
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsControllerFromEngine.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -110,7 +111,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       }
     };
     fetchTokenWithCache();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   const onReceive = () => {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
