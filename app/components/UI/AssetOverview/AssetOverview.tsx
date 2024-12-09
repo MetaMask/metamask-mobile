@@ -383,8 +383,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.symbol}`;
-    secondaryBalance = asset.balanceFiat;
+    mainBalance = `${balance} ${asset.ticker}`;
+    secondaryBalance = exchangeRate ? asset.balanceFiat : '';
   }
 
   let currentPrice = 0;

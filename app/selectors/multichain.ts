@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
@@ -11,7 +10,6 @@ import { selectAllTokens } from './tokensController';
 import { selectAccountsByChainId } from './accountTrackerController';
 import { selectNetworkConfigurations } from './networkController';
 import { TokenI } from '../components/UI/Tokens/types';
-import { getTicker } from '../util/transactions';
 import { renderFromWei } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
 import {
@@ -86,18 +84,10 @@ export const selectNativeTokensAcrossChains = createSelector(
       const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
         token.nativeCurrency || '',
       );
-      let name = nativeTokenInfoByChainId.name;
-      if (token.chainId === CHAIN_IDS.BSC) {
-        name = 'BNB';
-      }
-      if (token.chainId === CHAIN_IDS.POLYGON) {
-        name = 'POL';
-      }
 
+      const name = isETH ? 'Ethereum' : token.nativeCurrency;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
-
       tokensByChain[nativeChainId] = [];
-      const networkConfig = networkConfigurations?.[nativeChainId];
 
       if (
         nativeTokenInfoByChainId &&
@@ -119,8 +109,9 @@ export const selectNativeTokensAcrossChains = createSelector(
           isETH,
           decimals: 18,
           name: 'Staked Ethereum',
-          symbol: getTicker(networkConfig.nativeCurrency),
+          symbol: name,
           isStaked: true,
+          ticker: token.nativeCurrency,
         });
       }
 
@@ -159,8 +150,9 @@ export const selectNativeTokensAcrossChains = createSelector(
         logo,
         isETH,
         decimals: 18,
-        symbol: getTicker(token.nativeCurrency),
+        symbol: name,
         isStaked: false,
+        ticker: token.nativeCurrency,
       });
     }
 

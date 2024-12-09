@@ -279,7 +279,7 @@ export const TokenListItem = ({
         <NetworkAssetLogo
           chainId={chainId as Hex}
           style={styles.ethLogo}
-          ticker={asset.symbol}
+          ticker={asset.ticker || ''}
           big={false}
           biggest={false}
           testID={'PLACE HOLDER'}
@@ -295,6 +295,7 @@ export const TokenListItem = ({
       />
     );
   }, [
+    asset.ticker,
     asset.isETH,
     asset.image,
     asset.symbol,
@@ -308,7 +309,7 @@ export const TokenListItem = ({
       // assign staked asset a unique key
       key={asset.isStaked ? '0x_staked' : itemAddress || '0x'}
       onPress={onItemPress}
-      onLongPress={asset.isETH ? null : showRemoveMenu}
+      onLongPress={asset.isETH || asset.isNative ? null : showRemoveMenu}
       asset={asset}
       balance={secondaryBalance}
       mainBalance={mainBalance}

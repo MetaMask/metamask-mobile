@@ -42,8 +42,10 @@ export const deriveBalanceFromAssetMarketDetails = (
       balanceValueFormatted: TOKEN_BALANCE_LOADING,
     };
   }
-
-  const balanceValueFormatted = `${balance} ${asset.symbol}`;
+  let balanceValueFormatted = `${balance} ${asset.symbol}`;
+  if (asset.isNative) {
+    balanceValueFormatted = `${balance} ${asset.ticker}`;
+  }
 
   if (!conversionRate)
     return {
