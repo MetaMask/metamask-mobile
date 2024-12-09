@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeCore } from '../../tags';
+import { SmokeMultiChain } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
@@ -11,8 +11,11 @@ import Assertions from '../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import WalletView from '../../pages/wallet/WalletView';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeCore('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -60,6 +63,47 @@ describe(SmokeCore('MultiChain Permissions System:'), () => {
         await Assertions.checkIfVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );
+      },
+    );
+  });
+
+  it('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
+          .withChainPermission([
+            '0x1', // Ethereum mainnet
+            CustomNetworks.Sepolia.providerConfig.chainId, // Sepolia
+            '0xe705', // Linea Sepolia
+          ])
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        // Open network permissions menu
+        await Browser.tapNetworkAvatarButtonOnBrowser();
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // Remove Ethereum Mainnet permission
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await NetworkConnectMultiSelector.tapUpdateButton();
+
+        // Handle network education modal and close bottom sheet
+        await NetworkEducationModal.tapGotItButton();
+        await PermissionSummaryBottomSheet.swipeToDismissModal();
+
+        // Verify network switched to Sepolia in wallet view
+        await TabBarComponent.tapWallet();
+        await Assertions.checkIfVisible(WalletView.container);
+        const networkPicker = await WalletView.getNavbarNetworkPicker();
+        await Assertions.checkIfElementHasLabel(networkPicker, 'Sepolia');
       },
     );
   });
