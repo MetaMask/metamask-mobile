@@ -1,11 +1,10 @@
 import React from 'react';
 
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
-import NoChangeSimulation from '../../NoChangeSimulation';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
 
-const PersonalSign = () => {
+const TypedSignV3V4 = () => {
   const { approvalRequest } = useApprovalRequest();
 
   if (!approvalRequest) {
@@ -14,11 +13,11 @@ const PersonalSign = () => {
 
   return (
     <>
-      <NoChangeSimulation />
+      {/* SIMULATION TO BE ADDED */}
       <InfoRowOrigin />
       <Message />
     </>
   );
 };
 
-export default PersonalSign;
+export default TypedSignV3V4;
