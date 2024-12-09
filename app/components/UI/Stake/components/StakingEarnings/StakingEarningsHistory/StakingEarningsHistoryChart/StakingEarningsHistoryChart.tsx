@@ -1,0 +1,294 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { GestureResponderEvent, View } from 'react-native';
+import { Defs, Line, LinearGradient, Stop } from 'react-native-svg';
+import { BarChart, Grid } from 'react-native-svg-charts';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { useTheme } from '../../../../../../../util/theme';
+import styleSheet from './StakingEarningsHistoryChart.styles';
+import Text, {
+  TextVariant,
+} from '../../../../../../../component-library/components/Texts/Text';
+
+export interface StakingEarningsHistoryChartData {
+  value: number;
+  label: string;
+}
+
+interface StakingEarningsHistoryChartProps {
+  earnings: StakingEarningsHistoryChartData[];
+  symbol: string;
+  earningsTotal: string;
+  // callback to handle selected earning
+  onSelectedEarning?: (earning?: { value: number; label: string }) => void;
+  // format the graph value from parent
+  formatValue?: (value: number) => string;
+}
+
+interface HorizontalLinesProps {
+  // sends bandwidth to parent
+  onBandWidthChange?: (bandWidth: number) => void;
+  strokeColor: string;
+  // BarChart component props are passed into all children
+  x?: (number: number) => number;
+  y?: (number: number) => number;
+  width?: number;
+  height?: number;
+  bandwidth?: number;
+  ticks?: number[];
+  data?: StakingEarningsHistoryChartProps['earnings'];
+}
+
+const HorizontalLines = ({
+  x,
+  y,
+  height,
+  bandwidth: bandWidth,
+  data,
+  onBandWidthChange,
+  strokeColor,
+}: HorizontalLinesProps) => {
+  useEffect(() => {
+    onBandWidthChange && onBandWidthChange(bandWidth || 0);
+  }, [bandWidth, onBandWidthChange]);
+  if (!x || !y || !height || !data || !bandWidth) return null;
+  return (
+    <>
+      {data.map((item, index) => (
+        <Line
+          key={index}
+          x1={x(index)}
+          x2={x(index) + bandWidth}
+          y1={y(item.value) - 0.5}
+          y2={y(item.value) - 0.5}
+          stroke={strokeColor}
+          strokeWidth={1}
+        />
+      ))}
+    </>
+  );
+};
+
+const StakingEarningsHistoryChart = ({
+  earnings,
+  symbol,
+  earningsTotal,
+  formatValue = (value) => value.toFixed(5),
+  onSelectedEarning,
+}: StakingEarningsHistoryChartProps) => {
+  //hooks
+  const { colors } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
+
+  // constants
+  const animate = false;
+  const stopColorGreen = 'rgb(228, 240, 231)';
+  const spacingDefault = 0;
+
+  //states
+  const [selectedBarAmount, setSelectedBarAmount] = useState<string | null>(
+    null,
+  );
+  const [lastOnSelectedEarningBarIndex, setLastOnSelectedEarningBarIndex] =
+    useState<number>(-1);
+  const [lastToggledBarIndex, setLastToggledBarIndex] = useState<number>(-1);
+  const [barToggle, setBarToggle] = useState<boolean>(false);
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number>(-1);
+  const [selectedBarLabel, setSelectedBarLabel] = useState<string | null>(null);
+  const [bandWidth, setBandWidth] = useState<number>(0);
+  const [spacing, setSpacing] = useState<number>(spacingDefault);
+  const [chartWidth, setChartWidth] = useState<number>(0);
+  const [hoveredBarIndex, setHoveredBarIndex] = useState<number>(-1);
+  const [transformedData, setTransformedData] = useState<
+    {
+      value: number;
+      label: string;
+      svg: { fill: string };
+    }[]
+  >([]);
+
+  // functions
+  const updateBarHoveredBarIndex = useCallback(
+    (xHover: number) => {
+      if (!bandWidth || !chartWidth || !earnings.length) return;
+      const barWidthTotal = bandWidth * earnings.length;
+      const spacingTotal = chartWidth - barWidthTotal;
+      const estimateGapSize = spacingTotal
+        ? spacingTotal / (earnings.length - 1)
+        : 0;
+      const barSegment = Math.floor(xHover / (bandWidth + estimateGapSize));
+      if (barSegment >= 0 && barSegment < earnings.length) {
+        setHoveredBarIndex(barSegment);
+      } else {
+        setHoveredBarIndex(-1);
+      }
+    },
+    [bandWidth, chartWidth, earnings.length],
+  );
+  const handleTouchEnd = () => {
+    setHoveredBarIndex(-1);
+    let overrideBarToggle = !!barToggle;
+    if (lastToggledBarIndex !== selectedBarIndex) {
+      overrideBarToggle = false;
+    }
+    if (!overrideBarToggle) {
+      setBarToggle(true);
+      setLastToggledBarIndex(selectedBarIndex);
+    } else {
+      setBarToggle(false);
+      if (
+        lastToggledBarIndex !== -1 &&
+        lastToggledBarIndex === selectedBarIndex
+      ) {
+        setSelectedBarIndex(-1);
+        setLastToggledBarIndex(-1);
+      }
+    }
+  };
+  const handleTouch = (evt: GestureResponderEvent) => {
+    updateBarHoveredBarIndex(evt.nativeEvent.locationX);
+  };
+
+  // if there is graph data or width change update all state
+  useEffect(() => {
+    if (earnings && earnings.length > 0) {
+      let newSpacing = spacingDefault;
+      if (earnings.length > 1) {
+        newSpacing = 0.1;
+      }
+      setSpacing(newSpacing);
+      const newTransformedData = earnings.map((value) => ({
+        value: value.value,
+        label: value.label,
+        svg: {
+          fill: 'url(#gradient)',
+        },
+      }));
+      setTransformedData(newTransformedData);
+    }
+  }, [earnings, chartWidth]);
+  // select what is hovered over
+  useEffect(() => {
+    if (hoveredBarIndex !== -1) {
+      setSelectedBarIndex(hoveredBarIndex);
+    }
+  }, [hoveredBarIndex]);
+  // main updates, time period earnings change, selected bar change
+  useEffect(() => {
+    setTransformedData((prev) => {
+      const newTransformedData = [...prev];
+      newTransformedData.forEach((data, index) => {
+        if (index === selectedBarIndex) {
+          data.svg.fill = colors.success.default;
+        } else {
+          data.svg.fill = 'url(#gradient)';
+        }
+      });
+      return newTransformedData;
+    });
+    let newSelectedBarAmount = null;
+    let newSelectedBarLabel = null;
+    if (selectedBarIndex !== -1 && selectedBarIndex < earnings.length) {
+      newSelectedBarAmount = formatValue(earnings[selectedBarIndex].value);
+      newSelectedBarLabel = earnings[selectedBarIndex].label;
+    }
+    setSelectedBarAmount(newSelectedBarAmount);
+    setSelectedBarLabel(newSelectedBarLabel);
+    if (
+      onSelectedEarning &&
+      lastOnSelectedEarningBarIndex !== selectedBarIndex
+    ) {
+      onSelectedEarning(earnings[selectedBarIndex]);
+      setLastOnSelectedEarningBarIndex(selectedBarIndex);
+    }
+  }, [
+    selectedBarIndex,
+    earnings,
+    formatValue,
+    colors.success.default,
+    onSelectedEarning,
+    lastToggledBarIndex,
+    lastOnSelectedEarningBarIndex,
+  ]);
+  // reset bar toggle state when earnings array changes
+  useEffect(() => {
+    // select the last bar each change
+    // setSelectedBarIndex(earnings.length - 1);
+    // setLastToggledBarIndex(earnings.length - 1);
+    // setBarToggle(true);
+
+    // deselect all bars each change
+    setSelectedBarIndex(-1);
+    setLastToggledBarIndex(-1);
+    setBarToggle(false);
+  }, [earnings]);
+
+  return (
+    earnings && (
+      <View
+        onLayout={(event) => {
+          const { width } = event.nativeEvent.layout;
+          setChartWidth(width);
+        }}
+      >
+        <View>
+          <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
+            <Text
+              variant={TextVariant.HeadingLG}
+              color={colors.success.default}
+            >
+              {selectedBarAmount || earningsTotal} {symbol}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXSMedium}
+              color={colors.text.alternative}
+            >
+              {selectedBarLabel || `Lifetime earnings`}
+            </Text>
+          </View>
+          <View
+            style={styles.stakingEarningsHistoryChartContainer}
+            onTouchStart={handleTouch}
+            onTouchMove={handleTouch}
+            onTouchEnd={handleTouchEnd}
+          >
+            <BarChart
+              animate={animate}
+              style={[styles.stakingEarningsHistoryChart]}
+              data={transformedData}
+              width={chartWidth}
+              gridMin={0}
+              contentInset={{ top: 10, bottom: 0 }}
+              yAccessor={({ item }) => item.value}
+              spacingInner={spacing}
+              spacingOuter={0}
+            >
+              <Grid
+                svg={{ stroke: 'transparent' }} // remove grid lines
+              />
+              <Defs>
+                <LinearGradient id="gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <Stop
+                    offset="0%"
+                    stopColor={colors.background.default}
+                    stopOpacity={1}
+                  />
+                  <Stop
+                    offset="100%"
+                    stopColor={stopColorGreen}
+                    stopOpacity={1}
+                  />
+                </LinearGradient>
+              </Defs>
+              <HorizontalLines
+                onBandWidthChange={setBandWidth}
+                strokeColor={colors.success.default}
+              />
+            </BarChart>
+          </View>
+        </View>
+      </View>
+    )
+  );
+};
+
+export default StakingEarningsHistoryChart;
