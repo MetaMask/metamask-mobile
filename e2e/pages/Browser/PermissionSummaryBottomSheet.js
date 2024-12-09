@@ -24,7 +24,7 @@ class PermissionSummaryBottomSheet {
   }
 
   async swipeToDismissModal() {
-    await Gestures.swipe(this.container, 'down', 'slow', 0.9);
+    await Gestures.swipe(this.container, 'down', 'fast');
   }
 }
 

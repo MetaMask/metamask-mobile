@@ -162,8 +162,9 @@ describe(
 
           // Verify bottom sheet appears and choose from permitted networks
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          await TestHelpers.delay(3000); // Wait for the browser to load
           await Browser.navigateToTestDApp();
+          await TestHelpers.delay(3000); // Wait for the toast to disappear
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -204,8 +205,9 @@ describe(
 
           // Verify bottom sheet appears and navigate to edit permissions
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          await TestHelpers.delay(3000); // Wait for the browser to load
           await Browser.navigateToTestDApp();
+          await TestHelpers.delay(3000); // Wait for the toast to disappear
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );

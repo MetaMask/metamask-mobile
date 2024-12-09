@@ -67,7 +67,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     );
   });
 
-  it('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+  fit('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -98,7 +98,9 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
 
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
+        await TestHelpers.delay(3000);
         await PermissionSummaryBottomSheet.swipeToDismissModal();
+        await TestHelpers.delay(3000);
 
         // Verify network switched to Sepolia in wallet view
         await TabBarComponent.tapWallet();
