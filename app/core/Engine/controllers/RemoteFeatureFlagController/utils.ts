@@ -13,19 +13,26 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
-    case 'local': return EnvironmentType.Development;
-    case 'pre-release': return EnvironmentType.ReleaseCandidate;
-    case 'production': return EnvironmentType.Production;
-    default: return EnvironmentType.Development;
+    case 'local':
+      return EnvironmentType.Development;
+    case 'pre-release':
+      return EnvironmentType.ReleaseCandidate;
+    case 'production':
+      return EnvironmentType.Production;
+    default:
+      return EnvironmentType.Development;
   }
 };
 
 const getFeatureFlagAppDistribution = () => {
   const dist = process.env.METAMASK_BUILD_TYPE;
   switch (dist) {
-    case 'main': return DistributionType.Main;
-    case 'flask': return DistributionType.Flask;
-    default: return DistributionType.Main;
+    case 'main':
+      return DistributionType.Main;
+    case 'flask':
+      return DistributionType.Flask;
+    default:
+      return DistributionType.Main;
   }
 };
 
@@ -34,7 +41,6 @@ export const createRemoteFeatureFlagController = ({
   messenger,
   disabled,
 }: RemoteFeatureFlagInitParamTypes) => {
-
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
@@ -58,4 +64,3 @@ export const createRemoteFeatureFlagController = ({
   }
   return remoteFeatureFlagController;
 };
-
