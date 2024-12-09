@@ -1541,48 +1541,48 @@ workflows:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
           title: Deploy iOS IPA
-   build_ios_devbuild_simulator:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuildSimulator
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - script:
-          title: Copy and Rename IPA
-          inputs:
-            - content: |-
-                # Define the source path of the generated IPA
-                SOURCE_IPA_PATH="ios/build/output/MetaMask.app"
-                
-                # Define the destination path with the new name
-                DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.app"
-                
-                # Copy and rename the IPA
-                cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-                
-                # Optionally, print the new path for verification
-                echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.app:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.app"
-          title: Deploy iOS IPA
+  build_ios_devbuild_simulator:
+  before_run:
+    - code_setup
+  after_run:
+    - notify_failure
+  steps:
+    - certificate-and-profile-installer@1: {}
+    - set-xcode-build-number@1:
+        inputs:
+          - build_short_version_string: $VERSION_NAME
+          - build_version: $VERSION_NUMBER
+          - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
+    - script@1:
+        inputs:
+          - content: |-
+              #!/usr/bin/env bash
+              node -v
+              GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuildSimulator
+        title: iOS Sourcemaps & Build
+        is_always_run: false
+    - script:
+        title: Copy and Rename IPA
+        inputs:
+          - content: |-
+              # Define the source path of the generated IPA
+              SOURCE_IPA_PATH="ios/build/output/MetaMask.app"
+              
+              # Define the destination path with the new name
+              DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.app"
+              
+              # Copy and rename the IPA
+              cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
+              
+              # Optionally, print the new path for verification
+              echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
+    - deploy-to-bitrise-io@2.2.3:
+        is_always_run: false
+        is_skippable: true
+        inputs:
+          - pipeline_intermediate_files: ios/build/output/MetaMask.app:BITRISE_APP_STORE_IPA_PATH
+          - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.app"
+        title: Deploy iOS IPA
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
