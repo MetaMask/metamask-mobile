@@ -490,6 +490,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   "maxHeight": 933.8,
                                 }
                               }
+                              testID="other-networks-scroll"
                             >
                               <View>
                                 <TouchableOpacity
@@ -1732,6 +1733,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   "maxHeight": 933.8,
                                 }
                               }
+                              testID="other-networks-scroll"
                             >
                               <View>
                                 <View

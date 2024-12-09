@@ -929,6 +929,7 @@ const NetworkSelector = () => {
           <ScrollView
             style={styles.scrollableDescription}
             keyboardShouldPersistTaps="handled"
+            testID={NetworkListModalSelectorsIDs.SCROLL}
           >
             {renderBottomSheetContent()}
           </ScrollView>
