@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 6ccbe9c..f725852 100644
+index 6ccbe9c..49270d6 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -54,7 +54,7 @@ index 6ccbe9c..f725852 100644
 +_NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new WeakMap(), _NftController_chainId = new WeakMap(), _NftController_ipfsGateway = new WeakMap(), _NftController_displayNftMedia = new WeakMap(), _NftController_useIpfsSubdomains = new WeakMap(), _NftController_isIpfsGatewayEnabled = new WeakMap(), _NftController_onNftAdded = new WeakMap(), _NftController_instances = new WeakSet(), _NftController_onNetworkControllerNetworkDidChange = function _NftController_onNetworkControllerNetworkDidChange({ selectedNetworkClientId, }) {
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
- }, _NftController_onPreferencesControllerStateChange =
+ }, _NftController_onPreferencesControllerStateChange = 
 @@ -597,16 +597,16 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
@@ -117,7 +117,7 @@ index 6ccbe9c..f725852 100644
 +            error: 'URI import error',
          };
      }
- }, _NftController_getNftURIAndStandard =
+ }, _NftController_getNftURIAndStandard = 
 @@ -840,10 +843,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
@@ -150,7 +150,7 @@ index 6ccbe9c..f725852 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index a34725f..12487d6 100644
+index a34725f..21e9d20 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -108,6 +108,7 @@ export type NftMetadata = {
@@ -161,3 +161,109 @@ index a34725f..12487d6 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+index c5aa814..83c0664 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenDetectionController.cjs
+@@ -220,50 +220,57 @@ _TokenDetectionController_intervalId = new WeakMap(), _TokenDetectionController_
+     // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+     // eslint-disable-next-line @typescript-eslint/no-misused-promises
+     this.messagingSystem.subscribe('KeyringController:unlock', async () => {
+-        __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, true, "f");
+-        await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
+-    });
+-    this.messagingSystem.subscribe('KeyringController:lock', () => {
+-        __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, false, "f");
+-        __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_stopPolling).call(this);
+-    });
+-    this.messagingSystem.subscribe('TokenListController:stateChange', 
+-    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-    async ({ tokensChainsCache }) => {
+-        const isEqualValues = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_compareTokensChainsCache).call(this, tokensChainsCache, __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f"));
+-        if (!isEqualValues) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this);
+-        }
+-    });
+-    this.messagingSystem.subscribe('PreferencesController:stateChange', 
+-    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-    async ({ useTokenDetection }) => {
+-        const selectedAccount = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this);
+-        const isDetectionChangedFromPreferences = __classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") !== useTokenDetection;
+-        __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, useTokenDetection, "f");
+-        if (isDetectionChangedFromPreferences) {
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
+-                selectedAddress: selectedAccount.address,
+-            });
+-        }
+-    });
+-    this.messagingSystem.subscribe('AccountsController:selectedEvmAccountChange', 
+-    // TODO: Either fix this lint violation or explain why it's necessary to ignore.
+-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+-    async (selectedAccount) => {
+-        const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
+-        const chainIds = Object.keys(networkConfigurationsByChainId);
+-        const isSelectedAccountIdChanged = __classPrivateFieldGet(this, _TokenDetectionController_selectedAccountId, "f") !== selectedAccount.id;
+-        if (isSelectedAccountIdChanged) {
+-            __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, selectedAccount.id, "f");
+-            await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
+-                selectedAddress: selectedAccount.address,
+-                chainIds,
+-            });
+-        }
+-    });
++      const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
++      const chainIds = Object.keys(networkConfigurationsByChainId);
++      __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, true, "f");
++      await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, { chainIds });
++  });
++  this.messagingSystem.subscribe('KeyringController:lock', () => {
++      __classPrivateFieldSet(this, _TokenDetectionController_isUnlocked, false, "f");
++      __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_stopPolling).call(this);
++  });
++  this.messagingSystem.subscribe('TokenListController:stateChange',
++  // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++  // eslint-disable-next-line @typescript-eslint/no-misused-promises
++  async ({ tokensChainsCache }) => {
++      const isEqualValues = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_compareTokensChainsCache).call(this, tokensChainsCache, __classPrivateFieldGet(this, _TokenDetectionController_tokensChainsCache, "f"));
++      if (!isEqualValues) {
++          const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
++          const chainIds = Object.keys(networkConfigurationsByChainId);
++          await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, { chainIds });
++      }
++  });
++  this.messagingSystem.subscribe('PreferencesController:stateChange',
++  // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++  // eslint-disable-next-line @typescript-eslint/no-misused-promises
++  async ({ useTokenDetection }) => {
++      const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
++      const selectedAccount = __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_getSelectedAccount).call(this);
++      const isDetectionChangedFromPreferences = __classPrivateFieldGet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, "f") !== useTokenDetection;
++      __classPrivateFieldSet(this, _TokenDetectionController_isDetectionEnabledFromPreferences, useTokenDetection, "f");
++      const chainIds = Object.keys(networkConfigurationsByChainId);
++      if (isDetectionChangedFromPreferences) {
++          await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
++              selectedAddress: selectedAccount.address,
++              chainIds,
++          });
++      }
++  });
++  this.messagingSystem.subscribe('AccountsController:selectedEvmAccountChange',
++  // TODO: Either fix this lint violation or explain why it's necessary to ignore.
++  // eslint-disable-next-line @typescript-eslint/no-misused-promises
++  async (selectedAccount) => {
++      const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
++      const chainIds = Object.keys(networkConfigurationsByChainId);
++      const isSelectedAccountIdChanged = __classPrivateFieldGet(this, _TokenDetectionController_selectedAccountId, "f") !== selectedAccount.id;
++      if (isSelectedAccountIdChanged) {
++          __classPrivateFieldSet(this, _TokenDetectionController_selectedAccountId, selectedAccount.id, "f");
++          await __classPrivateFieldGet(this, _TokenDetectionController_instances, "m", _TokenDetectionController_restartTokenDetection).call(this, {
++              selectedAddress: selectedAccount.address,
++              chainIds,
++          });
++      }
++  });
+ }, _TokenDetectionController_stopPolling = function _TokenDetectionController_stopPolling() {
+     if (__classPrivateFieldGet(this, _TokenDetectionController_intervalId, "f")) {
+         clearInterval(__classPrivateFieldGet(this, _TokenDetectionController_intervalId, "f"));
