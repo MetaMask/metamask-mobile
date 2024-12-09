@@ -2,7 +2,6 @@ import {
   RatesController,
   RatesControllerState,
   RatesControllerMessenger,
-  fetchMultiExchangeRate,
 } from '@metamask/assets-controllers';
 import Logger from '../../../../util/Logger';
 
@@ -31,7 +30,6 @@ export const createMultichainRatesController = ({
       messenger,
       state: initialState ?? defaultRatesControllerState,
       includeUsdRate: true,
-      fetchMultiExchangeRate,
     });
     return multichainRatesController;
   } catch (error) {
