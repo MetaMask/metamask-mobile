@@ -52,6 +52,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         // Initial setup: Login and navigate to test dapp
         await loginToApp();
         await TabBarComponent.tapBrowser();
+        await TestHelpers.delay(3000);
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
 
