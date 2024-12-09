@@ -481,7 +481,6 @@
     "metro-react-native-babel-transformer": "~0.76.9",
     "multiple-cucumber-html-reporter": "^3.0.1",
     "nock": "^13.3.1",
-    "node-addon-api": "^8.3.0",
     "nyc": "^15.1.0",
     "octonode": "0.10.2",
     "patch-package": "^6.2.2",
