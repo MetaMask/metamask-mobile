@@ -18,6 +18,7 @@ import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(SmokeIdentity('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
@@ -33,9 +34,13 @@ describe(SmokeIdentity('Account syncing'), () => {
       mockServer,
     );
 
-    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
-      getResponse: accountsSyncMockResponse,
-    });
+    userStorageMockttpControllerInstance.setupPath(
+      USER_STORAGE_FEATURE_NAMES.accounts,
+      mockServer,
+      {
+        getResponse: accountsSyncMockResponse,
+      },
+    );
 
     decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
