@@ -3,15 +3,14 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-// TODO: add metrics
-// import { MetaMetricsEventLocation } from '../../../../../../../../../shared/constants/metametrics';
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
   formatAmount,
   formatAmountMaxPrecision,
 } from '../../../../../../../../UI/SimulationDetails/formatAmount';
 import { useGetTokenStandardAndDetails } from '../../../../../../hooks/useGetTokenStandardAndDetails';
-// import useTrackERC20WithoutDecimalInformation from '../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
+import useTrackERC20WithoutDecimalInformation from '../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
+import { TokenDetailsERC20 } from '../../../../../../utils/token';
 
 import Box from '../../../../../../../../UI/Ramp/components/Box';
 import Address from '../../../../../UI/InfoRow/InfoValue/Address/Address';
@@ -55,7 +54,6 @@ interface PermitSimulationValueDisplayParams {
   value?: number | string;
 }
 
-
 const PermitSimulationValueDisplay: React.FC<
   PermitSimulationValueDisplayParams
 > = ({
@@ -77,14 +75,13 @@ const PermitSimulationValueDisplay: React.FC<
       : undefined;
 
   const tokenDetails = useGetTokenStandardAndDetails(tokenContract);
-  // TODO
-  // useTrackERC20WithoutDecimalInformation(
-  //   chainId,
-  //   tokenContract,
-  //   tokenDetails as TokenDetailsERC20,
-  //   MetaMetricsEventLocation.SignatureConfirmation,
-  // );
   const { decimalsNumber: tokenDecimals } = tokenDetails;
+
+  useTrackERC20WithoutDecimalInformation(
+    chainId,
+    tokenContract,
+    tokenDetails as TokenDetailsERC20,
+  );
 
   const fiatValue = useMemo(() => {
     if (exchangeRate && value && !tokenId) {
