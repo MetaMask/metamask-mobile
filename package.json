@@ -154,7 +154,7 @@
     "@metamask/assets-controllers": "^45.1.1",
     "@metamask/base-controller": "^7.0.1",
     "@metamask/bitcoin-wallet-snap": "^0.8.2",
-    "@metamask/composable-controller": "^3.0.0",
+    "@metamask/composable-controller": "^10.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
     "@metamask/eth-hd-keyring": "^9.0.0",
