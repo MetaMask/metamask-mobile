@@ -76,29 +76,20 @@ function mockAccountsApi(transactions) {
 }
 
 describe(SmokeCore('Incoming Transactions'), () => {
-    let mockServer;
 
     beforeAll(async () => {
         jest.setTimeout(2500000);
         await TestHelpers.reverseServerPort();
     });
 
-    afterEach(async () => {
-        try {
-            await stopMockServer(mockServer);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log('Mock server already stopped or encountered an error:', error);
-        }
-    });
-
     it('displays standard incoming transaction', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder().build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: {
+                    GET: [mockAccountsApi()]
+                }
             },
             async () => {
                 await loginToApp();
@@ -112,14 +103,13 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays incoming token transfers', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_TOKEN_TRANSFER_MOCK])] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder().withTokens([{
                     address: TOKEN_ADDRESS_MOCK, decimals: 18, symbol: TOKEN_SYMBOL_MOCK
                 }]).build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: { GET: [mockAccountsApi([RESPONSE_TOKEN_TRANSFER_MOCK])] }
             },
             async () => {
                 await loginToApp();
@@ -132,12 +122,11 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays outgoing transactions', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_OUTGOING_TRANSACTION_MOCK])] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder().build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: { GET: [mockAccountsApi([RESPONSE_OUTGOING_TRANSACTION_MOCK])] }
             },
             async () => {
                 await loginToApp();
@@ -150,8 +139,6 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays nothing if incoming transactions disabled', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder()
@@ -159,7 +146,8 @@ describe(SmokeCore('Incoming Transactions'), () => {
                         '0x1': false
                     })
                     .build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: { GET: [mockAccountsApi()] }
             },
             async () => {
                 await loginToApp();
@@ -172,8 +160,6 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays nothing if incoming transaction is a duplicate', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi([RESPONSE_STANDARD_MOCK])] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder()
@@ -184,7 +170,8 @@ describe(SmokeCore('Incoming Transactions'), () => {
                         }
                     }])
                     .build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: { GET: [mockAccountsApi([RESPONSE_STANDARD_MOCK])] }
             },
             async () => {
                 await loginToApp();
@@ -197,13 +184,12 @@ describe(SmokeCore('Incoming Transactions'), () => {
     });
 
     it('displays notification', async () => {
-        mockServer = await startMockServer({ GET: [mockAccountsApi()] });
-
         await withFixtures(
             {
                 fixture: new FixtureBuilder()
                     .build(),
-                restartDevice: true
+                restartDevice: true,
+                testSpecificMock: { GET: [mockAccountsApi()] }
             },
             async () => {
                 await loginToApp();
