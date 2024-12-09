@@ -27,16 +27,16 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         restartDevice: true,
       },
       async () => {
-        //should navigate to browser
+        // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
-        //TODO: should re add connecting to an external swap step after detox has been updated
-
+        // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
+        // Step 3: Navigate through permission management flow
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await ConnectedAccountsModal.tapSelectAllNetworksButton();
@@ -44,6 +44,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         await ConnectedAccountsModal.tapDisconnectNetworksButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
+        // Step 4: Verify UI state after permission removal
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
         await Assertions.checkIfVisible(NetworkListModal.networkScroll);

@@ -505,6 +505,9 @@ const PermissionsSummary = ({
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}
+                  testID={
+                    NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
+                  }
                   onPress={onChooseFromPermittedNetworks}
                   size={ButtonSize.Lg}
                   style={{
