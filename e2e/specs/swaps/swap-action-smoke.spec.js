@@ -5,8 +5,8 @@ import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
+import WalletView from '../../pages/wallet/WalletView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import Tenderly from '../../tenderly';
@@ -20,12 +20,12 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
-import AccountListView from '../../pages/AccountListView';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const fixtureServer = new FixtureServer();
@@ -62,9 +62,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
-    await AccountListView.tapAddAccountButton();
-    await AddAccountModal.tapImportAccount();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
@@ -72,7 +72,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
-    await AccountListView.swipeToDismissAccountsModal();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
     await TestHelpers.delay(2000);
   });
@@ -84,7 +84,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
       await TabBarComponent.tapWallet();
-      
+
       if (network.providerConfig.nickname !== currentNetwork)
       {
         await WalletView.tapNetworksButtonOnNavBar();
@@ -162,9 +162,9 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
       await TabBarComponent.tapWallet();
       await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListView.accountList);
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
       // This needs to be updated with the token balance
-      await AccountListView.tapToSelectActiveAccountAtIndex(1);
+      await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
 
     },
   );

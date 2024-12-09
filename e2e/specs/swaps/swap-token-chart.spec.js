@@ -18,19 +18,19 @@ import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
-import AccountListView from '../../pages/AccountListView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 
-xdescribe(Regression('Swap from Token view'), () => {
+describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet = ethers.Wallet.createRandom();
 
@@ -59,9 +59,9 @@ xdescribe(Regression('Swap from Token view'), () => {
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListView.accountList);
-    await AccountListView.tapAddAccountButton();
-    await AddAccountModal.tapImportAccount();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
@@ -69,7 +69,7 @@ xdescribe(Regression('Swap from Token view'), () => {
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
-    await AccountListView.swipeToDismissAccountsModal();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
     await TestHelpers.delay(2000);
   });
@@ -98,8 +98,8 @@ xdescribe(Regression('Swap from Token view'), () => {
     await SwapView.tapSwapButton();
     //Wait for Swap to complete
     await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
+    await TestHelpers.delay(13000);
     await device.enableSynchronization();
-    await TestHelpers.delay(10000);
     await CommonView.tapBackButton();
 
     // Check the swap activity completed
