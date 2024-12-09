@@ -165,6 +165,8 @@ export const TokenListItem = ({
   // render balances according to primary currency
   let mainBalance;
   let secondaryBalance;
+  const shouldNotShowBalanceOnTestnets =
+    isTestNet(chainId) && !showFiatOnTestnets;
 
   // Set main and secondary balances based on the primary currency and asset type.
   if (primaryCurrency === 'ETH') {
@@ -177,16 +179,16 @@ export const TokenListItem = ({
       mainBalance = balanceValueFormatted;
       // Display fiat value as secondary balance only for original native tokens on safe networks.
       if (isPortfolioViewEnabled()) {
-        secondaryBalance = balanceFiat;
+        secondaryBalance = shouldNotShowBalanceOnTestnets
+          ? undefined
+          : balanceFiat;
       } else {
         secondaryBalance = isOriginalNativeTokenSymbol ? balanceFiat : null;
       }
     }
   } else {
     secondaryBalance = balanceValueFormatted;
-    const shouldNotShowBalanceOnTestnets =
-      isTestNet(chainId) && !showFiatOnTestnets;
-    if (shouldNotShowBalanceOnTestnets && balanceFiat) {
+    if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
       mainBalance = undefined;
     } else {
       mainBalance =
