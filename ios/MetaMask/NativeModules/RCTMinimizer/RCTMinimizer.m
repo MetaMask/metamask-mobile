@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 #import "RCTMinimizer.h"
 
-@import UIKit;
-@import ObjectiveC.runtime;
+#import <UIKit/UIKit.h>
+#import <objc/runtime.h>
 
 @interface UISystemNavigationAction : NSObject
 @property(nonatomic, readonly, nonnull) NSArray<NSNumber*>* destinations;

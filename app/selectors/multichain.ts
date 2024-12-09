@@ -1,52 +1,22 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { zeroAddress } from 'ethereumjs-util';
+import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
-import I18n from '../../locales/i18n';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
 } from './accountsController';
 import { selectAllTokens } from './tokensController';
-import { selectTokensBalances } from './tokenBalancesController';
 import { selectAccountsByChainId } from './accountTrackerController';
-import {
-  selectNetworkConfigurations,
-  selectNetworkConfigurationByChainId,
-} from './networkController';
-import { selectTokenMarketData as selectMarketData } from './tokenRatesController';
-import {
-  selectCurrentCurrency,
-  selectConversionRateBySymbol,
-} from './currencyRateController';
-
-import { AssetType } from '../components/UI/SimulationDetails/types';
+import { selectNetworkConfigurations } from './networkController';
 import { TokenI } from '../components/UI/Tokens/types';
-
-import { getTicker } from '../util/transactions';
-import {
-  renderFromWei,
-  renderFromTokenMinimalUnit,
-  weiToFiat,
-  hexToBN,
-} from '../util/number';
+import { renderFromWei } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
-
-export function getNativeTokenInfo(state: RootState, chainId: Hex) {
-  const networkConfig = selectNetworkConfigurationByChainId(state, chainId);
-
-  if (networkConfig) {
-    const symbol = networkConfig.nativeCurrency || AssetType.Native;
-    const decimals = 18;
-    const name = networkConfig.name || 'Native Token';
-
-    return {
-      symbol,
-      decimals,
-      name,
-    };
-  }
-}
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from './currencyRateController';
+import { selectTokenMarketData } from './tokenRatesController';
 
 interface NativeTokenBalance {
   balance: string;
@@ -63,32 +33,132 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export function getSelectedAccountNativeTokenCachedBalanceByChainId(
-  state: RootState,
-): ChainBalances {
-  const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
-  const accountsByChainId = selectAccountsByChainId(state);
+export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
+  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
+  (selectedAddress, accountsByChainId): ChainBalances => {
+    if (!selectedAddress || !accountsByChainId) {
+      return {};
+    }
 
-  if (!selectedAddress || !accountsByChainId) {
-    return {};
-  }
-
-  return Object.entries(accountsByChainId).reduce<ChainBalances>(
-    (acc, [chainId, accounts]) => {
+    const result: ChainBalances = {};
+    for (const chainId in accountsByChainId) {
+      const accounts = accountsByChainId[chainId];
       const account = accounts[selectedAddress];
       if (account) {
-        acc[chainId] = {
+        result[chainId] = {
           balance: account.balance,
           stakedBalance: account.stakedBalance ?? '0x0',
           isStaked: account.stakedBalance !== '0x0',
-          name: 'Staked Ethereum',
+          name: '',
         };
       }
-      return acc;
-    },
-    {},
-  );
-}
+    }
+
+    return result;
+  },
+);
+
+/**
+ * Selector to get native tokens for the selected account across all chains.
+ */
+export const selectNativeTokensAcrossChains = createSelector(
+  [
+    selectNetworkConfigurations,
+    selectedAccountNativeTokenCachedBalanceByChainId,
+    selectCurrencyRates,
+    selectCurrentCurrency,
+    selectTokenMarketData,
+  ],
+  (
+    networkConfigurations,
+    nativeTokenBalancesByChainId,
+    currencyRates,
+    currentCurrency,
+    tokenMarketData,
+  ) => {
+    const tokensByChain: { [chainId: string]: TokenI[] } = {};
+    for (const token of Object.values(networkConfigurations)) {
+      const nativeChainId = token.chainId as Hex;
+      const nativeTokenInfoByChainId =
+        nativeTokenBalancesByChainId[nativeChainId];
+      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
+        token.nativeCurrency || '',
+      );
+
+      const name = isETH ? 'Ethereum' : token.nativeCurrency;
+      const logo = isETH ? '../images/eth-logo-new.png' : '';
+      tokensByChain[nativeChainId] = [];
+
+      if (
+        nativeTokenInfoByChainId &&
+        nativeTokenInfoByChainId.isStaked &&
+        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
+        nativeTokenInfoByChainId.stakedBalance !== toHex(0)
+      ) {
+        // Staked tokens
+        tokensByChain[nativeChainId].push({
+          ...nativeTokenInfoByChainId,
+          chainId: nativeChainId,
+          address: getNativeTokenAddress(nativeChainId),
+          balance: renderFromWei(nativeTokenInfoByChainId.stakedBalance),
+          balanceFiat: '',
+          isNative: true,
+          aggregators: [],
+          image: '',
+          logo,
+          isETH,
+          decimals: 18,
+          name: 'Staked Ethereum',
+          symbol: name,
+          isStaked: true,
+          ticker: token.nativeCurrency,
+        });
+      }
+
+      const nativeBalanceFormatted = renderFromWei(
+        nativeTokenInfoByChainId?.balance,
+      );
+
+      const tokenMarketDataByChainId = tokenMarketData?.[nativeChainId];
+      let balanceFiat = '';
+
+      if (
+        tokenMarketDataByChainId &&
+        Object.keys(tokenMarketDataByChainId).length === 0
+      ) {
+        const balanceFiatValue =
+          parseFloat(nativeBalanceFormatted) *
+          (currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0);
+
+        balanceFiat = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currentCurrency,
+        }).format(balanceFiatValue);
+      }
+
+      // Non-staked tokens
+      tokensByChain[nativeChainId].push({
+        ...nativeTokenInfoByChainId,
+        name,
+        address: getNativeTokenAddress(nativeChainId),
+        balance: nativeBalanceFormatted,
+        chainId: nativeChainId,
+        isNative: true,
+        aggregators: [],
+        balanceFiat,
+        image: '',
+        logo,
+        isETH,
+        decimals: 18,
+        symbol: name,
+        isStaked: false,
+        ticker: token.nativeCurrency,
+      });
+    }
+
+    return tokensByChain;
+  },
+);
 
 /**
  * Get the tokens for the selected account across all chains.
@@ -100,25 +170,17 @@ export const selectAccountTokensAcrossChains = createSelector(
   [
     selectSelectedInternalAccount,
     selectAllTokens,
-    selectTokensBalances,
     selectNetworkConfigurations,
-    getSelectedAccountNativeTokenCachedBalanceByChainId,
-    selectMarketData,
-    selectCurrentCurrency,
-    (state: RootState) => state,
+    selectNativeTokensAcrossChains,
   ],
-  (
-    selectedAccount,
-    allTokens,
-    tokenBalances,
-    networkConfigurations,
-    nativeTokenBalancesByChainId,
-    tokenExchangeRates,
-    currentCurrency,
-    state,
-  ) => {
+  (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
     const selectedAddress = selectedAccount?.address;
-    const tokensByChain: { [chainId: string]: TokenI[] } = {};
+    const tokensByChain: {
+      [chainId: string]: (
+        | TokenI
+        | (Token & { isStaked?: boolean; isNative?: boolean; isETH?: boolean })
+      )[];
+    } = {};
 
     if (!selectedAddress) {
       return tokensByChain;
@@ -127,165 +189,25 @@ export const selectAccountTokensAcrossChains = createSelector(
     // Create a list of available chainIds
     const chainIds = Object.keys(networkConfigurations);
 
-    Array.from(chainIds).forEach((chainId) => {
+    for (const chainId of chainIds) {
       const currentChainId = chainId as Hex;
-      tokensByChain[currentChainId] = [];
-
-      if (!tokensByChain[currentChainId]) {
-        tokensByChain[currentChainId] = [];
-      }
-
-      // Add non-native tokens
-      const userTokens = (allTokens[currentChainId]?.[selectedAddress] ||
-        []) as TokenI[];
-      const nativeCurrency =
-        networkConfigurations?.[chainId as Hex].nativeCurrency;
-      const conversionRateByNativeCurrency = selectConversionRateBySymbol(
-        state,
-        nativeCurrency,
-      );
-      const chainBalances =
-        tokenBalances[selectedAddress as Hex]?.[currentChainId] || {};
-      const tokenExchangeRateByChainId = tokenExchangeRates[chainId as Hex];
-
-      if (allTokens[currentChainId]?.[selectedAddress]) {
-        // Add non-native tokens if they exist for this chain
-        tokensByChain[currentChainId] = userTokens.map((token) => {
-          const tokenAddress = token.address as Hex;
-          const tokenExchangeRatePriceByTokenAddress =
-            tokenExchangeRateByChainId[tokenAddress]?.price || 0;
-
-          // Calculate token balance
-          const tokenBalance = renderFromTokenMinimalUnit(
-            chainBalances[token.address as Hex] || '0x0',
-            token.decimals || 18,
-          );
-
-          // Remove any non-numeric characters except decimal point e.g. < 0.00001
-          const cleanTokenBalance = tokenBalance.replace(/[^0-9.]/g, '');
-          const floatTokenBalance = parseFloat(cleanTokenBalance);
-
-          const adjustedTokenBalance = tokenBalance.startsWith('<')
-            ? 0.00001
-            : floatTokenBalance;
-
-          // Format token balance in fiat
-          const tokenFiatAmount =
-            tokenExchangeRatePriceByTokenAddress *
-            conversionRateByNativeCurrency *
-            adjustedTokenBalance;
-          const balanceFiat = new Intl.NumberFormat(I18n.locale, {
-            currency: currentCurrency.toUpperCase(),
-            style: 'currency',
-          }).format(tokenFiatAmount);
-
-          return {
-            ...token,
-            balance: tokenBalance,
-            chainId,
-            balanceFiat,
-            logo: token.image,
-            isETH: false,
-            isNative: false,
-            symbol: getTicker(token.symbol),
-          };
-        });
-      }
-
-      // Add native token if it exists for this chain
-      const nativeTokenInfoByChainId = nativeTokenBalancesByChainId[chainId];
-      if (nativeTokenInfoByChainId) {
-        const nativeTokenInfo = getNativeTokenInfo(state, chainId as Hex);
-
-        // Calculate native token balance
-        const nativeBalanceFormatted = renderFromWei(
-          nativeTokenInfoByChainId.balance,
-        );
-        const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
-          nativeTokenInfo?.symbol || '',
-        );
-
-        // Remove any non-numeric characters except decimal point e.g. < 0.00001
-        const cleanNativeBalance = nativeBalanceFormatted.replace(
-          /[^0-9.]/g,
-          '',
-        );
-        const floatNativeBalance = parseFloat(cleanNativeBalance);
-
-        let nativeBalanceFiat = '';
-
-        // calculate balance in fiat depending on the token
-        if (isETH) {
-          nativeBalanceFiat = weiToFiat(
-            hexToBN(nativeTokenInfoByChainId.balance),
-            conversionRateByNativeCurrency,
-            currentCurrency,
-          );
-        } else {
-          const tokenFiatAmount =
-            floatNativeBalance * conversionRateByNativeCurrency;
-          nativeBalanceFiat = new Intl.NumberFormat(I18n.locale, {
-            currency: currentCurrency.toUpperCase(),
-            style: 'currency',
-          }).format(tokenFiatAmount);
-        }
-        const name = isETH ? `Ethereum` : nativeCurrency;
-        const address = zeroAddress() as Hex;
-        const logo = isETH ? '../images/eth-logo-new.png' : '';
-        const decimals = nativeTokenInfo?.decimals || 18;
-        const symbol = getTicker(nativeTokenInfo?.symbol);
-        const aggregators: string[] = [];
-        const nativeAsset = {
-          ...nativeTokenInfo,
-          address,
-          balance: nativeBalanceFormatted,
-          balanceFiat: nativeBalanceFiat,
+      const nonNativeTokens =
+        allTokens[currentChainId]?.[selectedAddress]?.map((token) => ({
+          ...token,
+          token: token.name,
           chainId,
-          isNative: true,
-          aggregators,
-          image: '',
-          logo,
-          isETH,
-          decimals,
-          name,
-          symbol,
-        };
-        tokensByChain[chainId].push(nativeAsset);
+          isETH: false,
+          isNative: false,
+          balanceFiat: '',
+          isStaked: false,
+        })) || [];
 
-        if (
-          nativeTokenInfoByChainId.isStaked &&
-          nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-          nativeTokenInfoByChainId.stakedBalance !== toHex(0)
-        ) {
-          const stakedBalance = renderFromWei(
-            nativeTokenInfoByChainId.stakedBalance,
-          );
-          const stakedBalanceFiat = weiToFiat(
-            hexToBN(nativeTokenInfoByChainId.stakedBalance),
-            conversionRateByNativeCurrency,
-            currentCurrency,
-          );
-
-          tokensByChain[chainId].push({
-            ...nativeTokenInfo,
-            nativeAsset,
-            address,
-            balance: stakedBalance,
-            balanceFiat: stakedBalanceFiat,
-            chainId,
-            isNative: true,
-            aggregators,
-            image: '',
-            logo,
-            isETH,
-            decimals,
-            name: nativeTokenInfoByChainId.name,
-            symbol,
-            isStaked: nativeTokenInfoByChainId.isStaked,
-          });
-        }
-      }
-    });
+      // Add both native and non-native tokens
+      tokensByChain[currentChainId] = [
+        ...(nativeTokens[currentChainId] || []),
+        ...nonNativeTokens,
+      ];
+    }
 
     return tokensByChain;
   },

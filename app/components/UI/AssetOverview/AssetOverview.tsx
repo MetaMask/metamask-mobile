@@ -1,9 +1,9 @@
-import { zeroAddress } from 'ethereumjs-util';
 import React, { useCallback, useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -24,8 +24,14 @@ import {
   selectTokenMarketData,
 } from '../../../selectors/tokenRatesController';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  selectContractBalances,
+  selectTokensBalances,
+} from '../../../selectors/tokenBalancesController';
+import {
+  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import Logger from '../../../util/Logger';
 import { safeToChecksumAddress } from '../../../util/address';
 import {
@@ -76,6 +82,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
   const conversionRate = useSelector(selectConversionRate);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -100,6 +109,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
 
+  const multiChainTokenBalance = useSelector(selectTokensBalances);
   const chainId = isPortfolioViewEnabled()
     ? (asset.chainId as Hex)
     : selectedChainId;
@@ -111,7 +121,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     currentAddress = asset.address as Hex;
   } else {
     currentAddress = asset.isETH
-      ? (zeroAddress() as Hex)
+      ? getNativeTokenAddress(chainId as Hex)
       : (asset.address as Hex);
   }
 
@@ -322,38 +332,43 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   }
 
   let balance, balanceFiat;
-  if (!isPortfolioViewEnabled()) {
-    if (asset.isETH) {
-      balance = renderFromWei(
+  if (asset.isETH || asset.isNative) {
+    balance = renderFromWei(
+      //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
+      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+    );
+    balanceFiat = weiToFiat(
+      hexToBN(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
         accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-      );
-      balanceFiat = weiToFiat(
-        hexToBN(
-          //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-          accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
-        ),
-        conversionRate,
-        currentCurrency,
-      );
-    } else {
-      balance =
-        itemAddress && tokenBalances?.[itemAddress]
-          ? renderFromTokenMinimalUnit(
-              tokenBalances[itemAddress],
-              asset.decimals,
-            )
-          : 0;
-      balanceFiat = balanceToFiat(
-        balance,
-        conversionRate,
-        exchangeRate,
-        currentCurrency,
-      );
-    }
+      ),
+      conversionRate,
+      currentCurrency,
+    );
   } else {
-    balance = asset.balance;
-    balanceFiat = asset.balanceFiat;
+    const multiChainTokenBalanceHex =
+      itemAddress &&
+      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+        chainId as Hex
+      ]?.[itemAddress as Hex];
+
+    const selectedTokenBalanceHex =
+      itemAddress && tokenBalances?.[itemAddress as Hex];
+
+    const tokenBalanceHex = isPortfolioViewEnabled()
+      ? multiChainTokenBalanceHex
+      : selectedTokenBalanceHex;
+
+    balance =
+      itemAddress && tokenBalanceHex
+        ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
+        : 0;
+    balanceFiat = balanceToFiat(
+      balance,
+      conversionRate,
+      exchangeRate,
+      currentCurrency,
+    );
   }
 
   let mainBalance, secondaryBalance;
@@ -368,8 +383,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.symbol}`;
-    secondaryBalance = asset.balanceFiat;
+    mainBalance = `${balance} ${asset.ticker}`;
+    secondaryBalance = exchangeRate ? asset.balanceFiat : '';
   }
 
   let currentPrice = 0;

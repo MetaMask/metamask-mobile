@@ -40,13 +40,10 @@ function useHandleSuccessfulOrder() {
         return;
       }
 
-      const { TokensController, AccountsController } = Engine.context;
-      const selectedAccount = AccountsController.getSelectedAccount();
+      const { TokensController } = Engine.context;
 
       if (
-        !TokensController.state.allTokens[chainId as `0x${string}`]?.[
-          selectedAccount.address
-        ]?.find((stateToken: Token) =>
+        !TokensController.state.tokens.find((stateToken: Token) =>
           toLowerCaseEquals(stateToken.address, address),
         )
       ) {

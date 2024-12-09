@@ -4,6 +4,8 @@ import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { useSelector } from 'react-redux';
 import useTokenBalancesController from '../../hooks/useTokenBalancesController/useTokenBalancesController';
+import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { useTheme } from '../../../util/theme';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import Engine from '../../../core/Engine';
@@ -35,10 +37,14 @@ import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootState } from '../../../reducers';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketData,
+} from '../../../selectors/tokenRatesController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import {
   createTokenBottomSheetFilterNavDetails,
@@ -121,23 +127,35 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
+  // multi chain
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  );
+  const multiChainMarketData = useSelector(selectTokenMarketData);
+  const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+
   const styles = createStyles(colors);
 
-  const tokensList = useMemo(() => {
+  const tokensList = useMemo((): TokenI[] => {
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
-      const allTokens = Object.values(selectedAccountTokensChains).flat();
+      const allTokens = Object.values(
+        selectedAccountTokensChains,
+      ).flat() as TokenI[];
 
       // First filter zero balance tokens if setting is enabled
-      const tokensWithBalance = hideZeroBalanceTokens
+      const tokensToDisplay = hideZeroBalanceTokens
         ? allTokens.filter(
-            (token) =>
-              !isZero(token.balance) || token.isNative || token.isStaked,
+            (curToken) =>
+              !isZero(curToken.balance) ||
+              curToken.isNative ||
+              curToken.isStaked,
           )
         : allTokens;
 
       // Then apply network filters
-      const filteredAssets = filterAssets(tokensWithBalance, [
+      const filteredAssets = filterAssets(tokensToDisplay, [
         {
           key: 'chainId',
           opts: tokenNetworkFilter,
@@ -171,20 +189,37 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       const assets = [...nativeTokens, ...nonNativeTokens];
 
-      const tokensWithBalances = (assets || []).map((token) => {
-        const tokenFloatBalance = parseFloat(
-          token.balanceFiat?.replace(/[^0-9.]/g, ''),
-        );
+      // Calculate fiat balances for tokens
+      const tokenFiatBalances = assets.map((token) => {
+        const chainId = token.chainId as Hex;
+        const multiChainExchangeRates = multiChainMarketData?.[chainId];
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            chainId
+          ];
+        const nativeCurrency =
+          networkConfigurationsByChainId[chainId].nativeCurrency;
+        const multiChainConversionRate =
+          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
-        return {
-          ...token,
-          tokenFiatAmount: tokenFloatBalance,
-        };
+        return token.isETH || token.isNative
+          ? parseFloat(token.balance) * multiChainConversionRate
+          : deriveBalanceFromAssetMarketDetails(
+              token,
+              multiChainExchangeRates || {},
+              multiChainTokenBalances || {},
+              multiChainConversionRate || 0,
+              currentCurrency || '',
+            ).balanceFiatCalculation;
       });
+
+      const tokensWithBalances = assets.map((token, i) => ({
+        ...token,
+        tokenFiatAmount: tokenFiatBalances[i],
+      }));
 
       return sortAssets(tokensWithBalances, tokenSortConfig);
     }
-
     // Previous implementation
     // Filter tokens based on hideZeroBalanceTokens flag
     const tokensToDisplay = hideZeroBalanceTokens
@@ -200,10 +235,10 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             ? parseFloat(asset.balance) * conversionRate
             : deriveBalanceFromAssetMarketDetails(
                 asset,
-                tokenExchangeRates,
-                tokenBalances,
-                conversionRate,
-                currentCurrency,
+                tokenExchangeRates || {},
+                tokenBalances || {},
+                conversionRate || 0,
+                currentCurrency || '',
               ).balanceFiatCalculation,
         )
       : [];
@@ -231,6 +266,11 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     selectedAccountTokensChains,
     tokenNetworkFilter,
     currentChainId,
+    multiChainCurrencyRates,
+    multiChainMarketData,
+    multiChainTokenBalance,
+    networkConfigurationsByChainId,
+    selectedInternalAccountAddress,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {

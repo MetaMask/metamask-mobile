@@ -96,6 +96,7 @@ import {
 import {
   selectChainId,
   selectIsEIP1559Network,
+  selectNetworkClientId,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -116,6 +117,7 @@ import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransac
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -356,17 +358,11 @@ async function getGasFeeEstimatesForTransaction(
 }
 
 async function addTokenToAssetsController(newToken) {
-  const { TokensController, AccountsController, NetworkController } =
-    Engine.context;
-  const selectedAccount = AccountsController.getSelectedAccount().address;
-  const networkClientId = NetworkController.getSelectedNetworkClient();
-  const chainId =
-    NetworkController.getNetworkClientById(networkClientId).chainId;
-
+  const { TokensController } = Engine.context;
   if (
     !isSwapsNativeAsset(newToken) &&
-    !TokensController.state.allTokens[chainId]?.[selectedAccount]?.includes(
-      (token) => toLowerCaseEquals(token.address, newToken.address),
+    !TokensController.state.tokens.includes((token) =>
+      toLowerCaseEquals(token.address, newToken.address),
     )
   ) {
     const { address, symbol, decimals, name } = newToken;
@@ -382,6 +378,7 @@ function SwapsQuotesView({
   currentCurrency,
   conversionRate,
   chainId,
+  networkClientId,
   ticker,
   primaryCurrency,
   isInPolling,
@@ -795,7 +792,7 @@ function SwapsQuotesView({
 
   const updateSwapsTransactions = useCallback(
     async (transactionMeta, approvalTransactionMetaId) => {
-      const ethQuery = Engine.getGlobalEthQuery();
+      const ethQuery = getGlobalEthQuery();
       const blockNumber = await query(ethQuery, 'blockNumber', []);
       const currentBlock = await query(ethQuery, 'getBlockByNumber', [
         blockNumber,
@@ -942,6 +939,7 @@ function SwapsQuotesView({
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
             origin: process.env.MM_FOX_CODE,
           },
         );
@@ -976,6 +974,7 @@ function SwapsQuotesView({
       resetTransaction,
       chainId,
       isEIP1559Network,
+      networkClientId,
     ],
   );
 
@@ -997,6 +996,7 @@ function SwapsQuotesView({
           },
           {
             deviceConfirmedOn: WalletDevice.MM_MOBILE,
+            networkClientId,
             origin: process.env.MM_FOX_CODE,
           },
         );
@@ -1080,6 +1080,7 @@ function SwapsQuotesView({
       resetTransaction,
       shouldUseSmartTransaction,
       chainId,
+      networkClientId,
     ],
   );
 
@@ -2351,6 +2352,10 @@ SwapsQuotesView.propTypes = {
    */
   chainId: PropTypes.string,
   /**
+   * ID of the global network client
+   */
+  networkClientId: PropTypes.string,
+  /**
    * Native asset ticker
    */
   ticker: PropTypes.string,
@@ -2384,6 +2389,7 @@ SwapsQuotesView.propTypes = {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

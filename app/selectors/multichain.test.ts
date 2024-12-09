@@ -1,7 +1,6 @@
 import { RootState } from '../reducers';
 import {
-  getNativeTokenInfo,
-  getSelectedAccountNativeTokenCachedBalanceByChainId,
+  selectedAccountNativeTokenCachedBalanceByChainId,
   selectAccountTokensAcrossChains,
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
@@ -96,38 +95,22 @@ describe('Multichain Selectors', () => {
     },
   } as unknown as RootState;
 
-  describe('getNativeTokenInfo', () => {
-    it('should return native token info for a given chain', () => {
-      const result = getNativeTokenInfo(mockState, '0x1');
-      expect(result).toEqual({
-        symbol: 'ETH',
-        decimals: 18,
-        name: 'Ethereum Mainnet',
-      });
-    });
-
-    it('should return default values when network config is not found', () => {
-      const result = getNativeTokenInfo(mockState, '0x999');
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('getSelectedAccountNativeTokenCachedBalanceByChainId', () => {
+  describe('selectedAccountNativeTokenCachedBalanceByChainId', () => {
     it('should return native token balances for all chains', () => {
       const result =
-        getSelectedAccountNativeTokenCachedBalanceByChainId(mockState);
+        selectedAccountNativeTokenCachedBalanceByChainId(mockState);
       expect(result).toEqual({
         '0x1': {
           balance: '0x1',
           stakedBalance: '0x2',
           isStaked: true,
-          name: 'Staked Ethereum',
+          name: '',
         },
         '0x89': {
           balance: '0x3',
           stakedBalance: '0x0',
           isStaked: false,
-          name: 'Staked Ethereum',
+          name: '',
         },
       });
     });
@@ -150,9 +133,7 @@ describe('Multichain Selectors', () => {
       } as unknown as RootState;
 
       const result =
-        getSelectedAccountNativeTokenCachedBalanceByChainId(
-          stateWithoutAccount,
-        );
+        selectedAccountNativeTokenCachedBalanceByChainId(stateWithoutAccount);
       expect(result).toEqual({});
     });
   });
@@ -161,35 +142,27 @@ describe('Multichain Selectors', () => {
     it('should return tokens across all chains for selected account', () => {
       const result = selectAccountTokensAcrossChains(mockState);
       expect(result).toHaveProperty('0x1');
-      expect(result['0x1']).toHaveLength(3);
 
-      const ethToken = result['0x1'].find(
-        (token) => token.symbol === 'ETH' && !token.isStaked,
+      const chain1Tokens = result['0x1'] || [];
+      expect(chain1Tokens.length).toBeGreaterThan(0);
+
+      const ethToken = chain1Tokens.find(
+        (token) => token.symbol === 'Ethereum' && !token.isStaked,
       );
       expect(ethToken).toBeDefined();
       expect(ethToken?.isNative).toBe(true);
       expect(ethToken?.isETH).toBe(true);
 
-      const stakedEthToken = result['0x1'].find(
-        (token) => token.symbol === 'ETH' && token.isStaked,
+      const stakedEthToken = chain1Tokens.find(
+        (token) => token.symbol === 'Ethereum' && token.isStaked,
       );
       expect(stakedEthToken).toBeDefined();
       expect(stakedEthToken?.isNative).toBe(true);
       expect(stakedEthToken?.isStaked).toBe(true);
 
-      const tk1Token = result['0x1'].find((token) => token.symbol === 'TK1');
+      const tk1Token = chain1Tokens.find((token) => token.symbol === 'TK1');
       expect(tk1Token).toBeDefined();
       expect(tk1Token?.isNative).toBe(false);
-    });
-
-    it('should handle staked tokens correctly', () => {
-      const result = selectAccountTokensAcrossChains(mockState);
-      const stakedToken = result['0x1'].find((token) => token.isStaked);
-      expect(stakedToken).toBeDefined();
-      expect(stakedToken?.balance).toBeTruthy();
-      expect(stakedToken?.name).toBe('Staked Ethereum');
-      expect(stakedToken?.symbol).toBe('ETH');
-      expect(stakedToken?.isNative).toBe(true);
     });
 
     it('should handle multiple chains correctly', () => {
