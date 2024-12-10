@@ -1,7 +1,6 @@
 import UntypedEngine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
-import { store as importedStore } from '../../store';
 import Logger from '../../util/Logger';
 import {
   NO_VAULT_IN_BACKUP_ERROR,
@@ -10,6 +9,9 @@ import {
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
+import ReduxService from '../redux';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -18,37 +20,57 @@ interface InitializeEngineResult {
 
 const UPDATE_BG_STATE_KEY = 'UPDATE_BG_STATE';
 const INIT_BG_STATE_KEY = 'INIT_BG_STATE';
-class EngineService {
+export class EngineService {
   private engineInitialized = false;
 
   /**
-   * Initializer for the EngineService
+   * Starts the Engine and subscribes to the controller state changes
    *
-   * @param store - Redux store
+   * EngineService.start() with SES/lockdown:
+   * Requires ethjs nested patches (lib->src)
+   * - ethjs/ethjs-query
+   * - ethjs/ethjs-contract
+   * Otherwise causing the following errors:
+   * - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
+   * - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
+   * -  V8: Cannot assign to read only property 'constructor' of object '[object Object]'
+   * -  JSC: Attempted to assign to readonly property
+   * - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
+   * - V8: TypeError: _$$_REQUIRE(...) is not a constructor
+   * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
+   * - V8: SES_UNHANDLED_REJECTION
    */
-
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initalizeEngine = (store: any) => {
+  start = () => {
+    const reduxState = ReduxService.store.getState();
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
-      tags: getTraceTags(store.getState()),
+      tags: getTraceTags(reduxState),
     });
-    const reduxState = store.getState?.();
     const state = reduxState?.engine?.backgroundState || {};
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
-    Engine.init(state);
-    this.updateControllers(store, Engine);
+    try {
+      Engine.init(state);
+      this.updateControllers(Engine);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to initialize Engine! Falling back to vault recovery.',
+      );
+      // Navigate to vault recovery
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    }
     endTrace({ name: TraceName.EngineInitialization });
   };
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private updateControllers = (store: any, engine: any) => {
+  private updateControllers = (engine: any) => {
     if (!engine.context) {
       Logger.error(
         new Error(
@@ -173,29 +195,30 @@ class EngineService {
       },
     ];
 
-    engine?.datamodel?.subscribe?.(() => {
-      if (!engine.context.KeyringController.metadata.vault) {
-        Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
-      }
-      if (!this.engineInitialized) {
-        store.dispatch({ type: INIT_BG_STATE_KEY });
+    engine.controllerMessenger.subscribeOnceIf(
+      'ComposableController:stateChange',
+      () => {
+        if (!engine.context.KeyringController.metadata.vault) {
+          Logger.log('keyringController vault missing for INIT_BG_STATE_KEY');
+        }
+        ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
         this.engineInitialized = true;
-      }
-    });
+      },
+      () => !this.engineInitialized,
+    );
 
     controllers.forEach((controller) => {
-      const { name, key = undefined } = controller;
+      const { name, key } = controller;
       const update_bg_state_cb = () => {
         if (!engine.context.KeyringController.metadata.vault) {
           Logger.log('keyringController vault missing for UPDATE_BG_STATE_KEY');
         }
-        store.dispatch({ type: UPDATE_BG_STATE_KEY, payload: { key: name } });
+        ReduxService.store.dispatch({
+          type: UPDATE_BG_STATE_KEY,
+          payload: { key: name },
+        });
       };
-      if (key) {
-        engine.controllerMessenger.subscribe(key, update_bg_state_cb);
-      } else {
-        engine.context[name].subscribe(update_bg_state_cb);
-      }
+      engine.controllerMessenger.subscribe(key, update_bg_state_cb);
     });
   };
 
@@ -210,7 +233,7 @@ class EngineService {
    */
   async initializeVaultFromBackup(): Promise<InitializeEngineResult> {
     const keyringState = await getVaultFromBackup();
-    const reduxState = importedStore.getState?.();
+    const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState || {};
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,7 +248,7 @@ class EngineService {
       };
       const instance = Engine.init(state, newKeyringState);
       if (instance) {
-        this.updateControllers(importedStore, instance);
+        this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return {
