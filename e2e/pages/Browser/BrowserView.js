@@ -178,7 +178,8 @@ class Browser {
   }
 
   async navigateToURL(url) {
-    await Gestures.waitAndTap(this.clearURLButton);
+    // FIXME: This is a temporary fix to see if searching for that clear button and not finding it is the cause of all in app browser tests failing, (since when they are failing we is still unknown and so is why, suspecting Expo breaking changes from a few days ago).
+    // await Gestures.waitAndTap(this.clearURLButton);
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);
