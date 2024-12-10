@@ -2,6 +2,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
@@ -57,6 +58,15 @@ jest.mock('../../../core/Engine', () => ({
     },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
+      setTokenNetworkFilter: jest.fn(),
+      tokenNetworkFilter: {
+        '0x1': true,
+        '0xe708': true,
+        '0xa86a': true,
+        '0x89': true,
+        '0xa': true,
+        '0x64': true,
+      },
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
     AccountTrackerController: { refresh: jest.fn() },
@@ -205,6 +215,14 @@ const initialState = {
       },
       PreferencesController: {
         showTestNetworks: false,
+        tokenNetworkFilter: {
+          '0x1': true,
+          '0xe708': true,
+          '0xa86a': true,
+          '0x89': true,
+          '0xa': true,
+          '0x64': true,
+        },
       },
       NftController: {
         allNfts: { '0x': { '0x1': [] } },
@@ -349,6 +367,14 @@ describe('Network Selector', () => {
           ...initialState.engine.backgroundState,
           PreferencesController: {
             showTestNetworks: true,
+            tokenNetworkFilter: {
+              '0x1': true,
+              '0xe708': true,
+              '0xa86a': true,
+              '0x89': true,
+              '0xa': true,
+              '0x64': true,
+            },
           },
           NetworkController: {
             selectedNetworkClientId: 'sepolia',
@@ -514,7 +540,7 @@ describe('Network Selector', () => {
     it('renders the linea mainnet cell correctly', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const { getByText } = renderComponent(initialState);
-      const lineaRpcUrl = getByText('https://linea-rpc.publicnode.com');
+      const lineaRpcUrl = getByText('linea-rpc.publicnode.com');
       const lineaCell = getByText('Linea');
       expect(lineaCell).toBeTruthy();
       expect(lineaRpcUrl).toBeTruthy();
@@ -546,7 +572,7 @@ describe('Network Selector', () => {
     it('renders the  mainnet cell correctly', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const { getByText } = renderComponent(initialState);
-      const mainnetRpcUrl = getByText('https://mainnet-rpc.publicnode.com');
+      const mainnetRpcUrl = getByText('mainnet-rpc.publicnode.com');
       const mainnetCell = getByText('Ethereum Mainnet');
       expect(mainnetCell).toBeTruthy();
       expect(mainnetRpcUrl).toBeTruthy();
