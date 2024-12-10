@@ -6,7 +6,8 @@ import { getMemoizedInterface } from '../../../../selectors/snaps/interfaceContr
 import { SnapInterfaceContextProvider } from './SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../../UI/TemplateRenderer';
-import { Dimensions, StyleSheet } from 'react-native';
+import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 interface SnapUIRendererProps {
   snapId: string;
@@ -43,7 +44,7 @@ const SnapUIRendererComponent = ({
   );
 
   if (isLoading || !content) {
-    return null; // TODO: Add a loading state
+    return <ActivityIndicator size="large" color={Colors.primary} />;
   }
 
   const { state: initialState, context } = interfaceState;

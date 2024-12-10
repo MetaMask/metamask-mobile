@@ -11,6 +11,8 @@ import React, {
 import { useDispatch } from 'react-redux';
 import { mergeValue } from './utils';
 import { SetCurrentInputFocus } from './SnapInterface.types';
+import Engine from '../../../../core/Engine/Engine';
+import { handleSnapRequest } from '../../../../core/Snaps/utils';
 
 export type HandleEvent = (args: {
   event: UserInputEventType;
@@ -94,10 +96,6 @@ export const SnapInterfaceContextProvider: FunctionComponent<
     internalState.current = initialState;
   }, [initialState]);
 
-  // TODO: Wire up
-  const handleSnapRequest = () => {};
-  const updateInterfaceState = () => {};
-
   const rawSnapRequestFunction = (
     event: UserInputEventType,
     name?: string | null,
@@ -130,13 +128,12 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   // The update of the state is debounced to avoid crashes due to too much
   // updates in a short amount of time.
-  const updateStateDebounced = debounce(
-    // (state: StateType) => dispatch(updateInterfaceState(interfaceId, state)
-    () => {
-      console.log('updateStateDebounced', internalState.current);
-    },
-    200,
-  );
+  const updateStateDebounced = debounce((state: StateType) => {
+    Engine.context.SnapInterfaceController.updateInterfaceState(
+      interfaceId,
+      state,
+    );
+  }, 200);
 
   /**
    * Handle the submission of an user input event to the Snap.
@@ -196,7 +193,7 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
     internalState.current = state;
     updateStateDebounced(state);
-    // handleInputChangeDebounced(name, value ?? '');
+    handleInputChangeDebounced(name, value ?? '');
   };
 
   /**

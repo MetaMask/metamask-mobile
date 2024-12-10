@@ -15,6 +15,7 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
+import { SnapId } from '@metamask/snaps-sdk';
 
 enum SnapDialogTypes {
   ALERT = 'snap_dialog:alert',
@@ -40,10 +41,29 @@ const SnapDialogApproval = () => {
     await Engine.acceptPendingApproval(approvalRequest.id, null as any);
   };
 
+  const onConfirmInput = async () => {
+    setIsLoading(true);
+    if (!approvalRequest) return;
+
+    const inputState =
+      await Engine.context.SnapInterfaceController.getInterface(
+        approvalRequest?.origin as SnapId,
+        approvalRequest.requestData.id,
+      );
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      inputState.state['custom-input'] as any,
+    );
+    setIsLoading(false);
+  };
+
   const onConfirm = async () => {
+    setIsLoading(true);
     if (!approvalRequest) return;
 
     await Engine.acceptPendingApproval(approvalRequest.id, true as any);
+
+    setIsLoading(false);
   };
 
   const onReject = async () => {
@@ -73,6 +93,7 @@ const SnapDialogApproval = () => {
         ];
 
       case SnapDialogTypes.CONFIRM:
+      case SnapDialogTypes.PROMPT:
         return [
           {
             variant: ButtonVariants.Secondary,
@@ -87,7 +108,6 @@ const SnapDialogApproval = () => {
             onPress: onConfirm,
           },
         ];
-      case SnapDialogTypes.PROMPT:
       case SnapDialogTypes.CUSTOM:
         return [
           {
@@ -100,7 +120,7 @@ const SnapDialogApproval = () => {
             variant: ButtonVariants.Primary,
             label: strings(TemplateConfirmation.Ok),
             size: ButtonSize.Lg,
-            onPress: onConfirm,
+            onPress: onConfirmInput,
           },
         ];
 
@@ -110,20 +130,7 @@ const SnapDialogApproval = () => {
   };
 
   const buttons = getDialogButtons(approvalRequest?.type);
-
-  // snapId = npm:@metamask/dialog-example-snap
   const snapId = approvalRequest?.origin;
-
-  //  approvalRequest {
-  //   "expectsResult": false,
-  //   "id": "5B4zPSmELsWAEyZ3ZO0ks",
-  //   "origin": "npm:@metamask/dialog-example-snap",
-  //   "requestData": {"id": "Tg79EdkJkZV0LQynItocD", "placeholder": "This is shown in the input."},
-  //   "requestState": null,
-  //   "time": 1732896778870,
-  //   "type": "snap_dialog"
-  // }
-
   const interfaceId = approvalRequest?.requestData?.id;
 
   return (
