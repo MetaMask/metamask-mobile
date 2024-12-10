@@ -19,7 +19,7 @@ const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  SmokeMultiChain('Network Permission System, non-permitted chain'),
+  SmokeMultiChain('Network Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -57,6 +57,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
+          await TestHelpers.delay(3000);
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -207,10 +208,10 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000); // Wait for the browser to load
           await Browser.navigateToTestDApp();
-          await TestHelpers.delay(3000); // Wait for the toast to disappear
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
+          await TestHelpers.delay(3000); // Wait for the toast to disappear
           await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
           await NetworkNonPemittedBottomSheet.tapEditPermissionsButton();
 
