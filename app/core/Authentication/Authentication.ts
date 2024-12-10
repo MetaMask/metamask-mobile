@@ -7,7 +7,6 @@ import {
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
-import Logger from '../../util/Logger';
 import {
   authSuccess,
   authError,
@@ -16,7 +15,6 @@ import {
   passwordSet,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
@@ -32,6 +30,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import ReduxService from '../redux';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -43,51 +42,17 @@ export interface AuthData {
 
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
-  private store: Store | undefined = undefined;
-  private static isInitialized = false;
-
-  /**
-   * This method creates the instance of the authentication class
-   * @param {Store} store - A redux function that will dispatch global state actions
-   */
-  init(store: Store) {
-    if (!AuthenticationService.isInitialized) {
-      AuthenticationService.isInitialized = true;
-      this.store = store;
-    } else {
-      Logger.log(
-        'Attempted to call init on AuthenticationService but an instance has already been initialized',
-      );
-    }
-  }
 
   private dispatchLogin(): void {
-    if (this.store) {
-      this.store.dispatch(logIn());
-    } else {
-      Logger.log(
-        'Attempted to dispatch logIn action but dispatch was not initialized',
-      );
-    }
+    ReduxService.store.dispatch(logIn());
   }
 
   private dispatchPasswordSet(): void {
-    if (this.store) {
-      this.store.dispatch(passwordSet());
-    } else {
-      Logger.log(
-        'Attempted to dispatch passwordSet action but dispatch was not initialized',
-      );
-    }
+    ReduxService.store.dispatch(passwordSet());
   }
 
   private dispatchLogout(): void {
-    if (this.store) {
-      this.store.dispatch(logOut());
-    } else
-      Logger.log(
-        'Attempted to dispatch logOut action but dispatch was not initialized',
-      );
+    ReduxService.store.dispatch(logOut());
   }
 
   /**
@@ -307,7 +272,7 @@ class AuthenticationService {
       };
     } else if (
       rememberMe &&
-      this.store?.getState().security.allowLoginWithRememberMe
+      ReduxService.store.getState().security.allowLoginWithRememberMe
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
@@ -460,12 +425,12 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       this.dispatchLogin();
-      this.store?.dispatch(authSuccess(bioStateMachineId));
+      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.store?.dispatch(authError(bioStateMachineId));
+      ReduxService.store.dispatch(authError(bioStateMachineId));
       !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
