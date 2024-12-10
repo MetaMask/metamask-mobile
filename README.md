@@ -54,7 +54,15 @@ yarn watch
 
 #### Download and install the development build
 
-Go to the app's [GitHub Releases page](https://github.com/MetaMask/metamask-mobile/releases), download the latest release development build (android-expo-dev-build.apk or ios-expo-dev-build.ipa) and install it on an Android/iOS simulator or Android/iOS physical device.
+#### For internal developers
+- Access Runway via Okta and go to the Expo bucket either on the iOS or Android section. From there you will see the available development builds (android-expo-dev-build.apk or ios-expo-dev-build.ipa).
+- For Android:
+  - Install the .apk on your Android device or simulator.
+- For iOS:
+  - Device: you need to have your iPhone registered with our Apple dev account. If you have it, you can install the .ipa on your device.
+  - Simulator: please follow the [native development section](https://github.com/MetaMask/metamask-mobile?tab=readme-ov-file#native-development) and run `yarn setup` and `yarn start:ios` as the .ipa will not work for now, we are working on having an .app that works on simulators.
+
+##### [SOON] For external developers (we are testing the new dev builds and will make them publicly available soon after)
 
 #### Load the app
 

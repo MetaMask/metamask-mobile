@@ -4490,7 +4490,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.3", "@metamask/controller-utils@^11.4.4":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.1", "@metamask/controller-utils@^11.4.4":
   version "11.4.4"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.4.4.tgz#6e43e4cf53d34dad225bab8aaf4e7efcb1fe7623"
   integrity sha512-0/gKC6jxlj8KRzi0RjGDQnml6l4b46Da/AIqnGJMOC59zl4qD5UN1GM+mq7L5duw/m8sSHa7VbL1hL0l7Cw1pg==
@@ -4883,7 +4883,7 @@
     uuid "^9.0.1"
     webextension-polyfill "^0.12.0"
 
-"@metamask/keyring-controller@^19.0.0", "@metamask/keyring-controller@^19.0.1":
+"@metamask/keyring-controller@^19.0.1":
   version "19.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-19.0.1.tgz#6fee40a46a780a720f4c864ea779673569be06a7"
   integrity sha512-6dNQBaJanAKEg7V0ksnWyqxHY1r3YCe910OF6DpnN97NZIPx3tba2zy32jbQWGPG6XaybfTG1xdUBtdYdeTpQA==
@@ -4947,7 +4947,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^22.0.2", "@metamask/network-controller@^22.1.0":
+"@metamask/network-controller@^22.1.0":
   version "22.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.1.0.tgz#b4c81a31fc52147d12131bfb16c77c1c1cfbe43c"
   integrity sha512-wvP2HUBQCWvlvBkuhqMNtd6+D/cJa343ABFLfCLNrQsk8QjdHPFw/QDIqC+QXTPxyrPWw9GL5akaLb//rmO1NA==
@@ -4979,14 +4979,14 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.14.0.tgz#c2699db0c9e3329c2654a4a39d14176009963eaa"
-  integrity sha512-/OJW4j8PY66Gil+I/sJxstqXlR8ug+enOn1mCu0eqTDUwlrY+Qb3jOzww5mTWwN2q8D9IhkOHZm7HkM9dSWGSw==
+"@metamask/notification-services-controller@^0.15.0":
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-0.15.0.tgz#d846fa49df62838a8ae48e80a8fee098730f06b0"
+  integrity sha512-RJtCI0GkVLStmhNoq9QNqSQNag6gD37iWU/qU19ds5PujSrtmfS5t2Sk6YRNV3SkRrfiIFrhGDToUDBDBu13OA==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.3"
+    "@metamask/controller-utils" "^11.4.4"
     "@metamask/utils" "^10.0.0"
     bignumber.js "^9.1.2"
     firebase "^10.11.0"
@@ -5105,15 +5105,15 @@
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.4"
 
-"@metamask/profile-sync-controller@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-2.0.0.tgz#140297d4608373501b8dbe6fd86cbe3e63cdcc41"
-  integrity sha512-HdMlIz3Iun9wESUVcaH3y1pKNcnH+DJD0J0OKVaUxk4oKpS+u0QauEaMbvNps1ZxAY23x9gXTzeE3MMLbXYLgw==
+"@metamask/profile-sync-controller@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-3.0.0.tgz#52cdb1f370ba6c8ce580fb9f9d1e9a5b1f8b9014"
+  integrity sha512-OlNOlWcHLlX4QNKR/J0O4IwgtO46EYA3OPzntmDk7zlFtd3I61qooE3EnRWH6aYPQsf7GcsM2aP44cKVJyV4mg==
   dependencies:
     "@metamask/base-controller" "^7.0.2"
     "@metamask/keyring-api" "^10.1.0"
-    "@metamask/keyring-controller" "^19.0.0"
-    "@metamask/network-controller" "^22.0.2"
+    "@metamask/keyring-controller" "^19.0.1"
+    "@metamask/network-controller" "^22.1.0"
     "@metamask/snaps-sdk" "^6.7.0"
     "@metamask/snaps-utils" "^8.3.0"
     "@noble/ciphers" "^0.5.2"
@@ -17874,6 +17874,11 @@ fsevents@^2.3.2, fsevents@~2.3.2:
   resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.3.tgz#cac6407785d03675a2a5e1a5305c697b347d90d6"
   integrity sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==
 
+fsm-iterator@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fsm-iterator/-/fsm-iterator-1.1.0.tgz#337de45de19eb205788cf02e3a955ec206760dec"
+  integrity sha512-hg47CNYdIGJ5m9WSKh617LHRdvJo4PiF0VkncFLwPVxKvBEQfSPd1qx/xLV/eSusewEu0C8eUFrsLsWlBgIcOg==
+
 ftp-response-parser@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/ftp-response-parser/-/ftp-response-parser-1.0.1.tgz#3b9d33f8edd5fb8e4700b8f778c462e5b1581f89"
@@ -21184,6 +21189,11 @@ lodash.isequal@4.5.0, lodash.isequal@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
   integrity sha512-pDo3lu8Jhfjqls6GkMgpahsF9kCyayhgykjyLMNFTKWrpVdAQtYyB4muAMWozBB4ig/dtWAmsMxLEI8wuz+DYQ==
+
+lodash.ismatch@^4.4.0:
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/lodash.ismatch/-/lodash.ismatch-4.4.0.tgz#756cb5150ca3ba6f11085a78849645f188f85f37"
+  integrity sha512-fPMfXjGQEV9Xsq/8MTSgUf255gawYRbjwMyDbcvDhXgV7enSZA0hynz6vMPnpAb5iONEzBHBPsT+0zes5Z301g==
 
 lodash.isobject@^3.0.2:
   version "3.0.2"
@@ -25606,6 +25616,15 @@ redux-persist@6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-6.0.0.tgz#b4d2972f9859597c130d40d4b146fecdab51b3a8"
   integrity sha512-71LLMbUq2r02ng2We9S215LtPu3fY0KgaGE0k8WRgl6RkqxtGfl7HUozz1Dftwsb0D/5mZ8dwAaPbtnzfvbEwQ==
+
+redux-saga-test-plan@^4.0.6:
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/redux-saga-test-plan/-/redux-saga-test-plan-4.0.6.tgz#0e50a68f63083fbda4bb20cc087833d5b84ace77"
+  integrity sha512-ESdbFoDWCeJ/EiFdUNSCGtA2CC9tnuvHDm6k06gVFa98EIeR2hpzFkGk9kJ1/hpMUnYFp+OOEEITIrZeDYBfFg==
+  dependencies:
+    fsm-iterator "^1.1.0"
+    lodash.isequal "^4.5.0"
+    lodash.ismatch "^4.4.0"
 
 redux-saga@^1.3.0:
   version "1.3.0"

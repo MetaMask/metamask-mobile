@@ -154,9 +154,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts/constants';
+} from './controllers/AccountsController/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/accounts/utils';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -1042,12 +1042,17 @@ export class Engine {
           'NotificationServicesController:selectIsNotificationServicesEnabled',
           AccountsControllerListAccountsAction,
           AccountsControllerUpdateAccountMetadataAction,
+          'NetworkController:getState',
+          'NetworkController:addNetwork',
+          'NetworkController:removeNetwork',
+          'NetworkController:updateNetwork',
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           AccountsControllerAccountAddedEvent,
           AccountsControllerAccountRenamedEvent,
+          'NetworkController:networkRemoved',
         ],
       }),
       nativeScryptCrypto: scrypt,
