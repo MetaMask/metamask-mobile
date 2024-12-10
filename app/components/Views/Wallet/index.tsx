@@ -93,7 +93,6 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
