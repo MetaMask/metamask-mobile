@@ -16,6 +16,8 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';

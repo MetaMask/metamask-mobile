@@ -4,7 +4,6 @@ export const SwapsViewSelectors = {
   SWAP_BUTTON: 'swap-button',
   QUOTE_SUMMARY: 'swap-quote-summary',
   GAS_FEE: 'swap-gas-fee',
-  SWAP_BUTTON: 'swap-button',
 };
 
 export const SwapViewSelectorsTexts = {

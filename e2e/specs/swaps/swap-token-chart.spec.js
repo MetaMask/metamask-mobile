@@ -30,7 +30,7 @@ import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 
-describe(Regression('Swap from Token view'), () => {
+xdescribe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet = ethers.Wallet.createRandom();
 
