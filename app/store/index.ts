@@ -4,9 +4,6 @@ import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
-import EngineService from '../core/EngineService';
-import { Authentication } from '../core';
-import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
@@ -14,8 +11,9 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
-import { AppStateEventProcessor } from '../core/AppStateEventListener';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import ReduxService from '../core/redux';
+import { onPersistedDataLoaded } from '../actions/user';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -59,6 +57,8 @@ const createStoreAndPersistor = async () => {
     middleware: middlewares,
     preloadedState: initialState,
   });
+  // Set the store in the Redux class
+  ReduxService.store = store;
 
   sagaMiddleware.run(rootSaga);
 
@@ -66,34 +66,9 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
-    /**
-     * EngineService.initalizeEngine(store) with SES/lockdown:
-     * Requires ethjs nested patches (lib->src)
-     * - ethjs/ethjs-query
-     * - ethjs/ethjs-contract
-     * Otherwise causing the following errors:
-     * - TypeError: Cannot assign to read only property 'constructor' of object '[object Object]'
-     * - Error: Requiring module "node_modules/ethjs/node_modules/ethjs-query/lib/index.js", which threw an exception: TypeError:
-     * -  V8: Cannot assign to read only property 'constructor' of object '[object Object]'
-     * -  JSC: Attempted to assign to readonly property
-     * - node_modules/babel-runtime/node_modules/regenerator-runtime/runtime.js
-     * - V8: TypeError: _$$_REQUIRE(...) is not a constructor
-     * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
-     * - V8: SES_UNHANDLED_REJECTION
-     */
-
-    store.dispatch({
-      type: 'TOGGLE_BASIC_FUNCTIONALITY',
-      basicFunctionalityEnabled:
-        store.getState().settings.basicFunctionalityEnabled,
-    });
-
-    EngineService.initalizeEngine(store);
-
-    Authentication.init(store);
-    AppStateEventProcessor.init(store);
-    LockManagerService.init(store);
     endTrace({ name: TraceName.StoreInit });
+    // Signal that persisted data has been loaded
+    store.dispatch(onPersistedDataLoaded());
   };
 
   persistor = persistStore(store, null, onPersistComplete);

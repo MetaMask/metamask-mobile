@@ -496,6 +496,7 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-test-renderer": "18.2.0",
     "redux-flipper": "^2.0.3",
+    "redux-saga-test-plan": "^4.0.6",
     "regenerator-runtime": "0.13.9",
     "rn-nodeify": "10.3.0",
     "serve-handler": "^6.1.5",
