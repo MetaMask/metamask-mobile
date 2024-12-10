@@ -12,7 +12,6 @@ interface ChartNavigationButtonProps {
   label: string;
   selected: boolean;
 }
-
 const ChartNavigationButton = ({
   onPress,
   label,

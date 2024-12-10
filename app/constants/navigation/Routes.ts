@@ -152,7 +152,7 @@ const Routes = {
     EARNINGS_HISTORY: 'EarningsHistory',
     CLAIM: 'Claim',
     MODALS: {
-      LEARN_MORE: 'LearnMore',
+      POOL_STAKING_LEARN_MORE: 'PoolStakingLearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
     },
