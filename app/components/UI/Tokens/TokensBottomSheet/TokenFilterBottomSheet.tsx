@@ -20,6 +20,7 @@ import ListItemSelect from '../../../../component-library/components/List/ListIt
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 import { strings } from '../../../../../locales/i18n';
 import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 enum FilterOption {
   AllNetworks,
@@ -69,6 +70,7 @@ const TokenFilterBottomSheet = () => {
           {strings('wallet.filter_by')}
         </Text>
         <ListItemSelect
+          testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.AllNetworks)
           }
@@ -81,6 +83,7 @@ const TokenFilterBottomSheet = () => {
           </Text>
         </ListItemSelect>
         <ListItemSelect
+          testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.CurrentNetwork)
           }
