@@ -16,8 +16,6 @@ export const startMockServer = async (events, port) => {
   await mockServer.start(port);
   console.log(`Mockttp server running at http://localhost:${port}`);
 
-  mockServer.enableDebug();
-
   await mockServer
     .forGet('/health-check')
     .thenReply(200, 'Mock server is running');

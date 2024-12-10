@@ -6,7 +6,7 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from './utils';
+import { DEFAULT_MOCKSERVER_PORT, getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from './utils';
 import Utilities from '../utils/Utilities';
 import { device } from 'detox';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
@@ -105,8 +105,10 @@ export async function withFixtures(options, testSuite) {
 
   const fixtureServer = new FixtureServer();
   let mockServer;
-  const mockServerPort = getMockServerPort();
+  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
+
   if (testSpecificMock) {
+    mockServerPort = getMockServerPort();
     mockServer = await startMockServer(testSpecificMock, mockServerPort);
   }
 
