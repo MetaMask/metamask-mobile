@@ -485,23 +485,23 @@ function SwapsQuotesView({
 
     const orderedAggregators = hasConversionRate
       ? Object.values(quoteValues).sort(
-          (a, b) =>
-            Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
-        )
+        (a, b) =>
+          Number(b.overallValueOfQuote) - Number(a.overallValueOfQuote),
+      )
       : Object.values(quotes).sort((a, b) => {
-          const comparison = new BigNumber(b.destinationAmount).comparedTo(
-            a.destinationAmount,
+        const comparison = new BigNumber(b.destinationAmount).comparedTo(
+          a.destinationAmount,
+        );
+        if (comparison === 0) {
+          // If the  destination amount is the same, we sort by fees ascending
+          return (
+            Number(quoteValues[a.aggregator]?.ethFee) -
+            Number(quoteValues[b.aggregator]?.ethFee) || 0
           );
-          if (comparison === 0) {
-            // If the  destination amount is the same, we sort by fees ascending
-            return (
-              Number(quoteValues[a.aggregator]?.ethFee) -
-                Number(quoteValues[b.aggregator]?.ethFee) || 0
-            );
-          }
-          return comparison;
-          // eslint-disable-next-line no-mixed-spaces-and-tabs
-        });
+        }
+        return comparison;
+        // eslint-disable-next-line no-mixed-spaces-and-tabs
+      });
 
     return orderedAggregators.map(
       (quoteValue) => quotes[quoteValue.aggregator],
@@ -720,19 +720,19 @@ function SwapsQuotesView({
           GAS_ESTIMATE_TYPES.ETH_GASPRICE,
         ].includes(gasEstimateType)
           ? weiToFiat(
-              toWei(
-                swapsUtils.calcTokenAmount(
-                  new BigNumber(changedGasLimit, 10).times(
-                    decGWEIToHexWEI(changedGasEstimate.gasPrice),
-                    16,
-                  ),
-                  18,
+            toWei(
+              swapsUtils.calcTokenAmount(
+                new BigNumber(changedGasLimit, 10).times(
+                  decGWEIToHexWEI(changedGasEstimate.gasPrice),
+                  16,
                 ),
+                18,
               ),
-              conversionRate,
-              currentCurrency,
-              // eslint-disable-next-line no-mixed-spaces-and-tabs
-            )
+            ),
+            conversionRate,
+            currentCurrency,
+            // eslint-disable-next-line no-mixed-spaces-and-tabs
+          )
           : '',
         chain_id: getDecimalChainId(chainId),
       };
@@ -1767,9 +1767,9 @@ function SwapsQuotesView({
               <Text reset bold>
                 {!hasEnoughTokenBalance && !isSwapsNativeAsset(sourceToken)
                   ? `${renderFromTokenMinimalUnit(
-                      missingTokenBalance,
-                      sourceToken.decimals,
-                    )} ${sourceToken.symbol} `
+                    missingTokenBalance,
+                    sourceToken.decimals,
+                  )} ${sourceToken.symbol} `
                   : `${renderFromWei(missingEthBalance)} ${getTicker(ticker)} `}
               </Text>
               {!hasEnoughTokenBalance
@@ -1777,10 +1777,10 @@ function SwapsQuotesView({
                 : `${strings('swaps.more_gas_to_complete')} `}
               {(isSwapsNativeAsset(sourceToken) ||
                 (hasEnoughTokenBalance && !hasEnoughEthBalance)) && (
-                <Text link underline small onPress={buyEth}>
-                  {strings('swaps.token_marketplace')}
-                </Text>
-              )}
+                  <Text link underline small onPress={buyEth}>
+                    {strings('swaps.token_marketplace')}
+                  </Text>
+                )}
             </Alert>
           </View>
         )}
@@ -1835,7 +1835,7 @@ function SwapsQuotesView({
                           {weiToFiat(
                             toWei(
                               selectedQuote.priceSlippage?.sourceAmountInETH ||
-                                0,
+                              0,
                             ),
                             conversionRate,
                             currentCurrency,
@@ -2018,13 +2018,12 @@ function SwapsQuotesView({
                       {getTicker(ticker)}
                     </Text>
                     <Text primary bold upper>
-                      {`  ${
-                        weiToFiat(
-                          toWei(selectedQuoteValue?.ethFee),
-                          conversionRate,
-                          currentCurrency,
-                        ) || ''
-                      }`}
+                      {`  ${weiToFiat(
+                        toWei(selectedQuoteValue?.ethFee),
+                        conversionRate,
+                        currentCurrency,
+                      ) || ''
+                        }`}
                     </Text>
                   </View>
                 ) : (
@@ -2038,13 +2037,12 @@ function SwapsQuotesView({
                     {primaryCurrency === 'ETH' ? (
                       <>
                         <Text>
-                          {`${
-                            weiToFiat(
-                              toWei(selectedQuoteValue?.ethFee),
-                              conversionRate,
-                              currentCurrency,
-                            ) || ''
-                          } `}
+                          {`${weiToFiat(
+                            toWei(selectedQuoteValue?.ethFee),
+                            conversionRate,
+                            currentCurrency,
+                          ) || ''
+                            } `}
                         </Text>
                         <TouchableOpacity
                           disabled={unableToSwap}
@@ -2085,13 +2083,12 @@ function SwapsQuotesView({
                           </Text>
                         </TouchableOpacity>
                         <Text primary bold>
-                          {` ${
-                            weiToFiat(
-                              toWei(selectedQuoteValue?.ethFee),
-                              conversionRate,
-                              currentCurrency,
-                            ) || ''
-                          }`}
+                          {` ${weiToFiat(
+                            toWei(selectedQuoteValue?.ethFee),
+                            conversionRate,
+                            currentCurrency,
+                          ) || ''
+                            }`}
                         </Text>
                       </>
                     )}
@@ -2115,13 +2112,12 @@ function SwapsQuotesView({
                         {getTicker(ticker)}
                       </Text>
                       <Text upper>
-                        {`  ${
-                          weiToFiat(
-                            toWei(selectedQuoteValue?.maxEthFee),
-                            conversionRate,
-                            currentCurrency,
-                          ) || ''
-                        }`}
+                        {`  ${weiToFiat(
+                          toWei(selectedQuoteValue?.maxEthFee),
+                          conversionRate,
+                          currentCurrency,
+                        ) || ''
+                          }`}
                       </Text>
                     </View>
                   </>
@@ -2139,15 +2135,14 @@ function SwapsQuotesView({
                       <Text small primary>
                         {primaryCurrency === 'ETH'
                           ? ` ${renderFromWei(
-                              toWei(selectedQuoteValue?.maxEthFee || '0x0'),
-                            )} ${getTicker(ticker)}` // eslint-disable-line
-                          : ` ${
-                              weiToFiat(
-                                toWei(selectedQuoteValue?.maxEthFee),
-                                conversionRate,
-                                currentCurrency,
-                              ) || '' // eslint-disable-next-line
-                            }`}
+                            toWei(selectedQuoteValue?.maxEthFee || '0x0'),
+                          )} ${getTicker(ticker)}` // eslint-disable-line
+                          : ` ${weiToFiat(
+                            toWei(selectedQuoteValue?.maxEthFee),
+                            conversionRate,
+                            currentCurrency,
+                          ) || '' // eslint-disable-next-line
+                          }`}
                       </Text>
                     </FadeAnimationView>
                   </>
@@ -2243,8 +2238,8 @@ function SwapsQuotesView({
           <Text style={styles.text}>
             {selectedQuote && selectedQuote?.fee > 0
               ? strings('swaps.fee_text.fee_is_applied', {
-                  fee: `${selectedQuote.fee}%`,
-                })
+                fee: `${selectedQuote.fee}%`,
+              })
               : strings('swaps.fee_text.fee_is_not_applied')}
           </Text>
         }
