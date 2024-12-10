@@ -2,7 +2,6 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
   selectCurrencyRates,
-  selectConversionRateFoAllChains,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
@@ -84,31 +83,15 @@ describe('CurrencyRateController Selectors', () => {
   });
 
   describe('selectCurrencyRates', () => {
-    it('returns the currency rates from the state', () => {
-      const result = selectCurrencyRates.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
-    });
-
-    it('returns undefined if currency rates are not set', () => {
-      const result = selectCurrencyRates.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('selectConversionRateFoAllChains', () => {
     it('returns all conversion rates from the state', () => {
-      const result = selectConversionRateFoAllChains.resultFunc(
+      const result = selectCurrencyRates.resultFunc(
         mockCurrencyRateState as unknown as CurrencyRateState,
       );
       expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
     });
 
     it('returns undefined if conversion rates are not set', () => {
-      const result = selectConversionRateFoAllChains.resultFunc(
+      const result = selectCurrencyRates.resultFunc(
         {} as unknown as CurrencyRateState,
       );
       expect(result).toBeUndefined();
