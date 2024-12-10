@@ -42,8 +42,10 @@ export const deriveBalanceFromAssetMarketDetails = (
       balanceValueFormatted: TOKEN_BALANCE_LOADING,
     };
   }
-
-  const balanceValueFormatted = `${balance} ${asset.symbol}`;
+  let balanceValueFormatted = `${balance} ${asset.symbol}`;
+  if (asset.isNative) {
+    balanceValueFormatted = `${balance} ${asset.ticker}`;
+  }
 
   if (!conversionRate)
     return {
@@ -53,10 +55,12 @@ export const deriveBalanceFromAssetMarketDetails = (
 
   if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
     return {
-      balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
+      balanceFiat:
+        asset.isETH || asset.isNative
+          ? asset.balanceFiat
+          : TOKEN_RATE_UNDEFINED,
       balanceValueFormatted,
     };
-
   const balanceFiatCalculation = Number(
     asset.balanceFiat ||
       balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),

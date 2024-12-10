@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectNetworkConfigurations,
+  selectIsAllNetworks,
 } from '../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 import BottomSheet, {
@@ -33,6 +34,7 @@ const TokenFilterBottomSheet = () => {
 
   const chainId = useSelector(selectChainId);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworksEnabled = useMemo(
     () => enableAllNetworksFilter(allNetworks),
     [allNetworks],
@@ -59,8 +61,6 @@ const TokenFilterBottomSheet = () => {
   const isCurrentNetwork = Boolean(
     tokenNetworkFilter[chainId] && Object.keys(tokenNetworkFilter).length === 1,
   );
-  const isAllNetworks =
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length;
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>

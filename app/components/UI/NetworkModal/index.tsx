@@ -22,7 +22,10 @@ import {
 import { useTheme } from '../../../util/theme';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
-import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseSafeChainsListValidation,
+} from '../../../selectors/preferencesController';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -34,7 +37,10 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { toHex } from '@metamask/controller-utils';
 import { rpcIdentifierUtility } from '../../../components/hooks/useSafeChains';
 import Logger from '../../../util/Logger';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectIsAllNetworks,
+} from '../../../selectors/networkController';
 import {
   NetworkConfiguration,
   RpcEndpointType,
@@ -85,6 +91,7 @@ const NetworkModals = (props: NetworkProps) => {
   const [showDetails, setShowDetails] = React.useState(false);
   const [networkAdded, setNetworkAdded] = React.useState(false);
   const [showCheckNetwork, setShowCheckNetwork] = React.useState(false);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const [alerts, setAlerts] = React.useState<
     {
       alertError: string;
@@ -96,6 +103,7 @@ const NetworkModals = (props: NetworkProps) => {
   const isCustomNetwork = true;
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();
   const styles = createNetworkModalStyles(colors);
@@ -106,6 +114,30 @@ const NetworkModals = (props: NetworkProps) => {
     if (!isWebUri(url)) return false;
     return true;
   };
+
+  const customNetworkInformation = {
+    chainId,
+    blockExplorerUrl,
+    chainName: nickname,
+    rpcUrl,
+    icon: imageUrl,
+    ticker,
+    alerts,
+  };
+
+  const onUpdateNetworkFilter = useCallback(() => {
+    const { PreferencesController } = Engine.context;
+    if (!isAllNetworks) {
+      PreferencesController.setTokenNetworkFilter({
+        [customNetworkInformation.chainId]: true,
+      });
+    } else {
+      PreferencesController.setTokenNetworkFilter({
+        ...tokenNetworkFilter,
+        [customNetworkInformation.chainId]: true,
+      });
+    }
+  }, [customNetworkInformation.chainId, isAllNetworks, tokenNetworkFilter]);
 
   const addNetwork = async () => {
     const isValidUrl = validateRpcUrl(rpcUrl);
@@ -170,16 +202,6 @@ const NetworkModals = (props: NetworkProps) => {
     selectNetworkConfigurations,
   );
 
-  const customNetworkInformation = {
-    chainId,
-    blockExplorerUrl,
-    chainName: nickname,
-    rpcUrl,
-    icon: imageUrl,
-    ticker,
-    alerts,
-  };
-
   const checkNetwork = useCallback(async () => {
     if (useSafeChainsListValidation) {
       const alertsNetwork = await checkSafeNetwork(
@@ -243,6 +265,7 @@ const NetworkModals = (props: NetworkProps) => {
     }
 
     if (networkClientId) {
+      onUpdateNetworkFilter();
       await NetworkController.setActiveNetwork(networkClientId);
     }
 
@@ -268,7 +291,7 @@ const NetworkModals = (props: NetworkProps) => {
     const { networkClientId } =
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
-
+    onUpdateNetworkFilter();
     await NetworkController.setActiveNetwork(networkClientId);
   };
 
@@ -337,6 +360,7 @@ const NetworkModals = (props: NetworkProps) => {
         addedNetwork?.rpcEndpoints?.[addedNetwork.defaultRpcEndpointIndex] ??
         {};
 
+      onUpdateNetworkFilter();
       NetworkController.setActiveNetwork(networkClientId);
     }
     onClose();

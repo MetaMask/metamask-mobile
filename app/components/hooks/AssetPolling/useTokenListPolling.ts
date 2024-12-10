@@ -1,13 +1,18 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
-import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-import { selectERC20TokensByChain, selectTokenList } from '../../../selectors/tokenListController';
+import {
+  selectERC20TokensByChain,
+  selectTokenList,
+} from '../../../selectors/tokenListController';
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentChainId = useSelector(selectChainId);
@@ -16,18 +21,17 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const tokenList = useSelector(selectTokenList);
   const tokenListByChain = useSelector(selectERC20TokensByChain);
 
-  const chainIdsToPoll = isPortfolioViewEnabled
-    ? (chainIds ?? Object.keys(networkConfigurations))
+  const chainIdsToPoll = isPortfolioViewEnabled()
+    ? chainIds ?? Object.keys(networkConfigurations)
     : [currentChainId];
 
   const { TokenListController } = Engine.context;
 
   usePolling({
-    startPolling:
-      TokenListController.startPolling.bind(TokenListController),
+    startPolling: TokenListController.startPolling.bind(TokenListController),
     stopPollingByPollingToken:
       TokenListController.stopPollingByPollingToken.bind(TokenListController),
-    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex }))
+    input: chainIdsToPoll.map((chainId) => ({ chainId: chainId as Hex })),
   });
 
   return {

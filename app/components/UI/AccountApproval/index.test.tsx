@@ -48,6 +48,13 @@ const mockInitialState = {
           },
         },
       },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [],
+          },
+        },
+      },
     },
   },
 };

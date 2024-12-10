@@ -6,6 +6,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 import { getAccountBalances } from './utils';
 
 const mockReturnGetAccountBalances = getAccountBalances as jest.Mock;
@@ -123,6 +125,7 @@ describe('useAccounts', () => {
   });
 
   it('returns internal accounts', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
     mockReturnGetAccountBalances.mockReturnValueOnce({
       balanceWeiHex: '0x0',
       balanceETH: '0',

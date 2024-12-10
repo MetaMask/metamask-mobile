@@ -57,6 +57,23 @@ jest.mock('../../../../../selectors/currencyRateController.ts', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
 }));
 
+// Add mock for multichain selectors
+jest.mock('../../../../../selectors/multichain', () => ({
+  selectAccountTokensAcrossChains: jest.fn(() => ({
+    '0x1': [
+      {
+        address: '0x0',
+        symbol: 'ETH',
+        decimals: 18,
+        balance: '1.5',
+        balanceFiat: '$3000',
+        isNative: true,
+        isETH: true,
+      },
+    ],
+  })),
+}));
+
 const mockBalanceBN = toWei('1.5'); // 1.5 ETH
 
 const mockPooledStakingContractService: PooledStakingContract = {

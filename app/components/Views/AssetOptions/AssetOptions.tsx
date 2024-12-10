@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Text, TouchableOpacity, View, InteractionManager } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
+  createProviderConfig,
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
@@ -24,10 +25,14 @@ import { selectTokenList } from '../../../selectors/tokenListController';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { isPortfolioUrl } from '../../../util/url';
 import { BrowserTab } from '../../../components/UI/Tokens/types';
 import { RootState } from '../../../reducers';
+import { Hex } from '../../../util/smart-transactions/smart-publish-hook';
 interface Option {
   label: string;
   onPress: () => void;
@@ -39,12 +44,13 @@ interface Props {
     params: {
       address: string;
       isNativeCurrency: boolean;
+      chainId: string;
     };
   };
 }
 
 const AssetOptions = (props: Props) => {
-  const { address, isNativeCurrency } = props.route.params;
+  const { address, isNativeCurrency, chainId: networkId } = props.route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -58,7 +64,33 @@ const AssetOptions = (props: Props) => {
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+
+  // Memoize the provider config for the token explorer
+  const { providerConfigTokenExplorer } = useMemo(() => {
+    const tokenNetworkConfig = networkConfigurations[networkId as Hex];
+    const tokenRpcEndpoint =
+      networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
+        networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
+      ];
+
+    const providerConfigToken = createProviderConfig(
+      tokenNetworkConfig,
+      tokenRpcEndpoint,
+    );
+
+    const providerConfigTokenExplorerToken = isPortfolioViewEnabled()
+      ? providerConfigToken
+      : providerConfig;
+
+    return {
+      providerConfigTokenExplorer: providerConfigTokenExplorerToken,
+    };
+  }, [networkId, networkConfigurations, providerConfig]);
+
+  const explorer = useBlockExplorer(
+    providerConfigTokenExplorer,
+    networkConfigurations,
+  );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const goToBrowserUrl = (url: string, title: string) => {
@@ -88,7 +120,10 @@ const AssetOptions = (props: Props) => {
 
   const openTokenDetails = () => {
     modalRef.current?.dismissModal(() => {
-      navigation.navigate('AssetDetails');
+      navigation.navigate('AssetDetails', {
+        address,
+        chainId: networkId,
+      });
     });
   };
 
@@ -146,7 +181,18 @@ const AssetOptions = (props: Props) => {
           navigation.navigate('WalletView');
           InteractionManager.runAfterInteractions(async () => {
             try {
-              await TokensController.ignoreTokens([address]);
+              const { NetworkController } = Engine.context;
+
+              const chainIdToUse = isPortfolioViewEnabled()
+                ? networkId
+                : chainId;
+
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(
+                  chainIdToUse as Hex,
+                );
+
+              await TokensController.ignoreTokens([address], networkClientId);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,

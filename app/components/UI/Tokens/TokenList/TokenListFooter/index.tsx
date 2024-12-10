@@ -25,7 +25,10 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../../../util/networks';
 import {
   selectChainId,
   selectIsAllNetworks,
@@ -39,8 +42,6 @@ interface TokenListFooterProps {
   showDetectedTokens: () => void;
   isAddTokenEnabled: boolean;
 }
-
-const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
 
 const getDetectedTokensCount = (
   isPortfolioEnabled: boolean,
@@ -73,7 +74,6 @@ export const TokenListFooter = ({
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const styles = createStyles(colors);
@@ -99,7 +99,7 @@ export const TokenListFooter = ({
   };
 
   const tokenCount = getDetectedTokensCount(
-    isPortfolioViewEnabled,
+    isPortfolioViewEnabled(),
     isAllNetworks,
     allDetectedTokens,
     detectedTokens,
