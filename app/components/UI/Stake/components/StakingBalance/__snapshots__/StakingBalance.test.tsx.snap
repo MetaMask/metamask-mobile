@@ -158,9 +158,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               resizeMode="contain"
               source={
                 {
-                  "default": {
-                    "uri": "MockImage",
-                  },
+                  "uri": "MockImage",
                 }
               }
               style={
