@@ -229,8 +229,11 @@ export const TokenListItem = ({
       }
       if (isTestNet(currentChainId))
         return getTestNetImageByChainId(currentChainId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as any;
+      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
+        | {
+            imageSource: string;
+          }
+        | undefined;
 
       if (defaultNetwork) {
         return defaultNetwork.imageSource;
