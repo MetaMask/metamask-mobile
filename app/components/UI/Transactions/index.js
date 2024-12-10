@@ -208,6 +208,10 @@ class Transactions extends PureComponent {
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
     /**
+     * Chain ID of the token
+     */
+    tokenChainId: PropTypes.string,
+    /**
      * ID of the global network client
      */
     networkClientId: PropTypes.string,
@@ -369,6 +373,15 @@ class Transactions extends PureComponent {
   renderEmpty = () => {
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
+    if (this.props.tokenChainId !== this.props.chainId) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.textTransactions}>
+            {strings('wallet.switch_network_to_view_transactions')}
+          </Text>
+        </View>
+      );
+    }
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.text}>{strings('wallet.no_transactions')}</Text>
@@ -572,7 +585,7 @@ class Transactions extends PureComponent {
     const onConfirmation = (isComplete) => {
       if (isComplete) {
         transaction.speedUpParams &&
-          transaction.speedUpParams?.type === 'SpeedUp'
+        transaction.speedUpParams?.type === 'SpeedUp'
           ? this.onSpeedUpCompleted()
           : this.onCancelCompleted();
       }
@@ -758,8 +771,8 @@ class Transactions extends PureComponent {
     const transactions =
       submittedTransactions && submittedTransactions.length
         ? submittedTransactions
-          .sort((a, b) => b.time - a.time)
-          .concat(confirmedTransactions)
+            .sort((a, b) => b.time - a.time)
+            .concat(confirmedTransactions)
         : this.props.transactions;
 
     const renderRetryGas = (rate) => {
