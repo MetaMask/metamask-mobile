@@ -1361,6 +1361,7 @@ export function getNetworkNavbarOptions(
   onRightPress = undefined,
   disableNetwork = false,
   contentOffset = 0,
+  networkName = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1385,6 +1386,7 @@ export function getNetworkNavbarOptions(
         disableNetwork={disableNetwork}
         title={title}
         translate={translate}
+        networkName={networkName}
       />
     ),
     headerLeft: () => (

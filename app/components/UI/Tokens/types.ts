@@ -25,4 +25,5 @@ export interface TokenI {
   nativeAsset?: TokenI | undefined;
   chainId?: string;
   isNative?: boolean;
+  ticker?: string;
 }
