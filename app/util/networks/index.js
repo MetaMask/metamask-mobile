@@ -497,5 +497,4 @@ export const isChainPermissionsFeatureEnabled =
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPortfolioViewEnabled = () =>
-  process.env.PORTFOLIO_VIEW === 'true';
+export const isPortfolioViewEnabled = () => true;
