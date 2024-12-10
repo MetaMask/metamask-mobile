@@ -154,9 +154,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts/constants';
+} from './controllers/AccountsController/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/accounts/utils';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -200,11 +200,15 @@ import { JsonMap } from '../Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
-  Controllers,
   EngineState,
   EngineContext,
   TransactionEventPayload,
+  StatefulControllers,
 } from './types';
+import {
+  BACKGROUND_STATE_CHANGE_EVENT_NAMES,
+  STATELESS_NON_CONTROLLER_NAMES,
+} from './constants';
 import {
   getGlobalChainId,
   getGlobalNetworkClientId,
@@ -239,9 +243,7 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, StatefulControllers>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -449,7 +451,25 @@ export class Engine {
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
-      state: initialState.CurrencyRateController,
+      // normalize `null` currencyRate to `0`
+      // TODO: handle `null` currencyRate by hiding fiat values instead
+      state: {
+        ...initialState.CurrencyRateController,
+        currencyRates: Object.fromEntries(
+          Object.entries(
+            initialState.CurrencyRateController?.currencyRates ?? {
+              ETH: {
+                conversionRate: 0,
+                conversionDate: 0,
+                usdConversionRate: null,
+              },
+            },
+          ).map(([k, v]) => [
+            k,
+            { ...v, conversionRate: v.conversionRate ?? 0 },
+          ]),
+        ),
+      },
     });
 
     const gasFeeController = new GasFeeController({
@@ -1457,24 +1477,21 @@ export class Engine {
       }),
     };
 
-    // Avoiding `Object.values` and `getKnownPropertyNames` for performance benefits: https://www.measurethat.net/Benchmarks/Show/7173/0/objectvalues-vs-reduce
-    const controllers = (
-      Object.keys(this.context) as (keyof Controllers)[]
-    ).reduce<Controllers[keyof Controllers][]>(
-      (controllers, controllerName) => {
-        const controller = this.context[controllerName];
-        if (controller) {
-          controllers.push(controller);
-        }
-        return controllers;
+    const childControllers = Object.assign({}, this.context);
+    STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
+      if (name in childControllers && childControllers[name]) {
+        delete childControllers[name];
+      }
+    });
+    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
+      {
+        controllers: childControllers as StatefulControllers,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ComposableController',
+          allowedActions: [],
+          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+        }),
       },
-      [],
-    );
-
-    this.datamodel = new ComposableController(
-      // @ts-expect-error TODO: Filter out non-controller instances
-      controllers,
-      this.controllerMessenger,
     );
 
     const { NftController: nfts } = this.context;
@@ -2074,22 +2091,12 @@ export default {
       AccountsController,
     } = instance.datamodel.state;
 
-    // normalize `null` currencyRate to `0`
-    // TODO: handle `null` currencyRate by hiding fiat values instead
-    const modifiedCurrencyRateControllerState = {
-      ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
-    };
-
     return {
       AccountTrackerController,
       AddressBookController,
       NftController,
       TokenListController,
-      CurrencyRateController: modifiedCurrencyRateControllerState,
+      CurrencyRateController,
       KeyringController,
       NetworkController,
       PhishingController,

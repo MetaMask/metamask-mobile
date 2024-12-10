@@ -159,10 +159,16 @@ import {
   AccountsControllerState,
 } from '@metamask/accounts-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import { ComposableControllerEvents } from '@metamask/composable-controller';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
   RemoteFeatureFlagController,
-  RemoteFeatureFlagControllerState
+  RemoteFeatureFlagControllerState,
 } from '@metamask/remote-feature-flag-controller';
+import {
+  RemoteFeatureFlagControllerActions,
+  RemoteFeatureFlagControllerEvents,
+} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -173,6 +179,14 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  * Controllers that are sometimes not instantiated
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
+
+/**
+ * Controllers that are defined with state.
+ */
+export type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
 
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
@@ -223,9 +237,11 @@ type GlobalActions =
   | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerActions;
+  | AssetsContractControllerActions
+  | RemoteFeatureFlagControllerActions;
 
 type GlobalEvents =
+  | ComposableControllerEvents<EngineState>
   | AccountTrackerControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
@@ -255,7 +271,8 @@ type GlobalEvents =
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
   | SmartTransactionsControllerEvents
-  | AssetsContractControllerEvents;
+  | AssetsContractControllerEvents
+  | RemoteFeatureFlagControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -276,7 +293,10 @@ export type ControllerMessenger = ExtendedControllerMessenger<
 /**
  * All mobile controllers, keyed by name
  */
-export interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -316,7 +336,7 @@ export interface Controllers {
   NotificationServicesPushController: NotificationServicesPushController.Controller;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Combines required and optional controllers for the Engine context type.
@@ -326,7 +346,10 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 /**
  * All engine state, keyed by controller name
  */
-export interface EngineState {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   NftController: NftControllerState;
@@ -359,4 +382,4 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};
