@@ -24,8 +24,8 @@ describe('TokensController Selectors', () => {
     ignoredTokens: ['0xToken2'],
     detectedTokens: [mockToken],
     allTokens: {
-      '0xAddress1': {
-        '1': [mockToken],
+      '0x1': {
+        '0xAddress1': [mockToken],
       },
     },
     allDetectedTokens: {
@@ -42,6 +42,16 @@ describe('TokensController Selectors', () => {
     engine: {
       backgroundState: {
         TokensController: mockTokensControllerState,
+        AccountsController: {
+          internalAccounts: {
+            selectedAccount: '0xAddress1',
+            accounts: {
+              '0xAddress1': {
+                address: '0xAddress1',
+              },
+            },
+          },
+        },
       },
     },
   } as unknown as RootState;
@@ -58,13 +68,33 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
               tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
       } as unknown as RootState;
 
       expect(selectTokens(stateWithoutTokens)).toStrictEqual([]);
+    });
+
+    it('returns tokens from TokensController state if portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      expect(selectTokens(mockRootState)).toStrictEqual([mockToken]);
     });
   });
 
@@ -82,7 +112,22 @@ describe('TokensController Selectors', () => {
           backgroundState: {
             TokensController: {
               ...mockTokensControllerState,
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
               tokens: [],
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -105,6 +150,21 @@ describe('TokensController Selectors', () => {
             TokensController: {
               ...mockTokensControllerState,
               tokens: [],
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                selectedAccount: '0xAddress1',
+                accounts: {
+                  '0xAddress1': {
+                    address: '0xAddress1',
+                  },
+                },
+              },
             },
           },
         },
@@ -255,9 +315,7 @@ describe('TokensController Selectors', () => {
     };
 
     it('returns only the current chain ID if PORTFOLIO_VIEW is not set', () => {
-      jest
-        .spyOn(networks, 'isPortfolioViewEnabledFunction')
-        .mockReturnValue(false);
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
@@ -266,9 +324,7 @@ describe('TokensController Selectors', () => {
     });
 
     it('returns only the current chain ID if PORTFOLIO_VIEW is set', () => {
-      jest
-        .spyOn(networks, 'isPortfolioViewEnabledFunction')
-        .mockReturnValue(true);
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       const chainIds = getChainIdsToPoll.resultFunc(
         mockNetworkConfigurations,
         '0x1',
