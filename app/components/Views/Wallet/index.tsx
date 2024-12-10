@@ -391,31 +391,23 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  useEffect(() => {
-    const refreshNetworks = async () => {
-      const { AccountTrackerController } = Engine.context;
+  useEffect(
+    () => {
+      requestAnimationFrame(async () => {
+        const { AccountTrackerController } = Engine.context;
 
-      const refreshPromises = Object.values(networkConfigurations)
-        .map(({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-          const networkClientId =
-            rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId;
-          if (networkClientId) {
-            return AccountTrackerController.refresh(networkClientId);
-          }
-          return null;
-        })
-        .filter(Boolean);
-
-      await Promise.all(refreshPromises);
-    };
-
-    // Use requestAnimationFrame to batch updates if necessary
-    requestAnimationFrame(() => {
-      refreshNetworks().catch((error) => {
-        Logger.error(error, 'Error refreshing networks');
+        Object.values(networkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
+          },
+        );
       });
-    });
-  }, [networkConfigurations, providerConfig.chainId]);
+    },
+    /* eslint-disable-next-line */
+    [navigation, providerConfig.chainId],
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
