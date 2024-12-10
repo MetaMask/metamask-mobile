@@ -48,7 +48,27 @@ jest.mock('../../core/Engine', () => ({
 }));
 
 describe('logs :: generateStateLogs', () => {
-  it('should generate the state logs correctly without the explicitly deleted controller states', async () => {
+
+  it('generates a valid json export', async () => {
+    const mockStateInput = {
+      appVersion: '1',
+      buildNumber: '123',
+      metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+    const logs = generateStateLogs(mockStateInput);
+
+    expect(JSON.parse(logs)).toMatchSnapshot();
+  });
+
+  it('generates the expected state logs without the explicitly deleted controller states', async () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
@@ -74,6 +94,7 @@ describe('logs :: generateStateLogs', () => {
     const mockStateInput = {
       appVersion: '1',
       buildNumber: '123',
+      metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
       engine: {
         backgroundState: {
           ...backgroundState,
@@ -94,6 +115,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
     expect(logs.includes('appVersion')).toBe(true);
     expect(logs.includes('buildNumber')).toBe(true);
+    expect(logs.includes('metaMetricsId')).toBe(true);
   });
 });
 
