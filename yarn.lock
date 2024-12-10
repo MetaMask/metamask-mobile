@@ -4413,10 +4413,10 @@
     "@metamask/utils" "^10.0.0"
     nanoid "^3.1.31"
 
-"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@45.1.1-preview-9e677163":
-  version "45.1.1-preview-9e677163"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-45.1.1-preview-9e677163.tgz#ffe5d68af3d773a75c20a88ebb22c320825adb02"
-  integrity sha512-61xXAHU2Buzdtgad/bWHkkwezSMsdJkc9WnUszXgkxilDUtYJjWeRA0LMU0MsKYHXHwSPWfMqFzaWM7Tahy8rg==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@45.1.1-preview-ef8b0f57":
+  version "45.1.1-preview-ef8b0f57"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-45.1.1-preview-ef8b0f57.tgz#f40601a18cea083b657ec37fe2ee489a6e88839e"
+  integrity sha512-HCQRbQhkEKvgKCxa8SJabm4d7TEoKcetucVMnOJOGR1qecKY3RluYltg4v8ruvBsNu+o4qHkqJt3j+IN3YaJtg==
   dependencies:
     "@ethereumjs/util" "^8.1.0"
     "@ethersproject/abi" "^5.7.0"
