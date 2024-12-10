@@ -50,7 +50,7 @@ describe(
     });
 
     const RECIPIENT = '0x1FDb169Ef12954F20A15852980e1F0C122BfC1D6';
-    const AMOUNT = '0.0003';
+    const AMOUNT = '0.000003';
     const validPrivateKey = Accounts.getAccountPrivateKey();
 
     it('should fallback to legacy gas endpoint & legacy modal when EIP1559 endpoint is down', async () => {
@@ -85,7 +85,7 @@ describe(
           await Assertions.checkIfVisible(
             TransactionConfirmView.editPriorityLegacyModal,
           );
-          await stopMockServer(); //stop mock server to reinstate suggested gas api service
+          await stopMockServer(mockServer); //stop mock server to reinstate suggested gas api service
           await Assertions.checkIfVisible(
             TransactionConfirmView.editPriorityFeeSheetContainer,
             30000,
