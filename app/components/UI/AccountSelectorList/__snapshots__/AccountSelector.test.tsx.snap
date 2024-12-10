@@ -836,7 +836,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
       {
         "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "assets": {
-          "fiatBalance": "$3200.00
+          "fiatBalance": "$0
 1 ETH",
         },
         "balanceError": undefined,
@@ -848,7 +848,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
       {
         "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
         "assets": {
-          "fiatBalance": "$6400.00
+          "fiatBalance": "$0
 2 ETH",
         },
         "balanceError": undefined,
@@ -1564,7 +1564,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
       {
         "address": "0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272",
         "assets": {
-          "fiatBalance": "$3200.00
+          "fiatBalance": "$0
 1 ETH",
         },
         "balanceError": undefined,
@@ -1576,7 +1576,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
       {
         "address": "0xd018538C87232FF95acbCe4870629b75640a78E7",
         "assets": {
-          "fiatBalance": "$6400.00
+          "fiatBalance": "$0
 2 ETH",
         },
         "balanceError": undefined,
@@ -1913,7 +1913,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      $3200.00
+                      $0
                     </Text>
                     <Text
                       accessibilityRole="text"
@@ -2313,7 +2313,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         }
                       }
                     >
-                      $6400.00
+                      $0
                     </Text>
                     <Text
                       accessibilityRole="text"
