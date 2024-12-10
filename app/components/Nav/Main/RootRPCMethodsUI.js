@@ -243,7 +243,6 @@ const RootRPCMethodsUI = (props) => {
           best_quote_source: analyticsParams.best_quote_source,
           chain_id: analyticsParams.chain_id,
           custom_slippage: analyticsParams.custom_slippage,
-          network_fees_ETH: analyticsParams.network_fees_ETH,
           network_fees_USD: analyticsParams.network_fees_USD,
           other_quote_selected: analyticsParams.other_quote_selected,
           request_type: analyticsParams.request_type,
@@ -253,6 +252,7 @@ const RootRPCMethodsUI = (props) => {
         const sensitiveParameters = {
           token_from_amount: analyticsParams.token_from_amount,
           token_to_amount: analyticsParams.token_to_amount,
+          network_fees_ETH: analyticsParams.network_fees_ETH,
         };
 
         Logger.log('Swaps', 'Sending metrics event', event);
