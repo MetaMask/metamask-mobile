@@ -289,13 +289,10 @@ describe('Tokens', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  (networks.isPortfolioViewEnabled() ? it.skip : it)(
-    'render matches snapshot',
-    () => {
-      const { toJSON } = renderComponent(initialState);
-      expect(toJSON()).toMatchSnapshot();
-    },
-  );
+  it('render matches snapshot', () => {
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
@@ -602,6 +599,11 @@ describe('Tokens', () => {
   describe('Portfolio View', () => {
     beforeEach(() => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    });
+
+    it('should match the snapshot when portfolio view is enabled  ', () => {
+      const { toJSON } = renderComponent(initialState);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('should handle network filtering correctly', () => {
