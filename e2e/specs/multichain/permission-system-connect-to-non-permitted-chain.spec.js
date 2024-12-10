@@ -125,7 +125,7 @@ describe(
           await Browser.navigateToTestDApp();
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
-          // Verify permission was added by checking that disconnecting both networks shows disconnect all button
+          // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
