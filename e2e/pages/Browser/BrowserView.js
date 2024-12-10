@@ -178,8 +178,10 @@ class Browser {
   }
 
   async navigateToURL(url) {
-    // FIXME: This is a temporary fix to see if searching for that clear button and not finding it is the cause of all in app browser tests failing, (since when they are failing we is still unknown and so is why, suspecting Expo breaking changes from a few days ago).
+    // TODO: Commenting out the clear button tap for now, but the greater is that the in-app-browser has become sluggish
+    // as documented in issue github.com/MetaMask/metamask-mobile/issues/12019
     // await Gestures.waitAndTap(this.clearURLButton);
+
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);
