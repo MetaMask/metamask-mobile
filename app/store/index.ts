@@ -12,18 +12,15 @@ import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
-import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore';
-import ReduxService from '../core/redux';
+import ReduxService, { ReduxStore } from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
 
-// TODO: Improve type safety by using real Action types instead of `any`
+// TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
   persistConfig,
   rootReducer,
 );
 
-// TODO: Fix the Action type. It's set to `any` now because some of the
-// TypeScript reducers have invalid actions
 // eslint-disable-next-line import/no-mutable-exports
 let store: ReduxStore, persistor;
 const createStoreAndPersistor = async () => {
@@ -80,11 +77,3 @@ const createStoreAndPersistor = async () => {
 })();
 
 export { store, persistor };
-
-export type ReduxState = ReturnType<typeof pReducer>;
-
-export type ReduxStore = ToolkitStore<
-  ReduxState,
-  AnyAction,
-  [ReturnType<typeof createSagaMiddleware<typeof rootSaga>>, typeof thunk]
->;
