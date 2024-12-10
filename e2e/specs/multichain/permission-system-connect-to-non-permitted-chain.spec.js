@@ -169,6 +169,7 @@ describe(
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
+          await TestHelpers.delay(3000); // still waiting for the toast to disappear
           await NetworkNonPemittedBottomSheet.tapChooseFromPermittedNetworksButton();
 
           // Select Sepolia from permitted networks
@@ -223,6 +224,7 @@ describe(
           // Select Linea Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkEducationModal.tapGotItButton();
+          await TestHelpers.delay(3000); // Wait for the toast to disappear
 
           // Verify network switched to Linea Sepolia
           await TabBarComponent.tapWallet();
