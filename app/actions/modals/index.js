@@ -1,10 +1,3 @@
-export function toggleNetworkModal(shouldNetworkSwitchPopToWallet = true) {
-  return {
-    type: 'TOGGLE_NETWORK_MODAL',
-    shouldNetworkSwitchPopToWallet,
-  };
-}
-
 export function toggleCollectibleContractModal() {
   return {
     type: 'TOGGLE_COLLECTIBLE_CONTRACT_MODAL',
