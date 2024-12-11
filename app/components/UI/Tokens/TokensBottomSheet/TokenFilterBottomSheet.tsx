@@ -1,6 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+  selectIsAllNetworks,
+} from '../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 import BottomSheet, {
   BottomSheetRef,
@@ -15,25 +19,32 @@ import Text, {
 import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 import { strings } from '../../../../../locales/i18n';
+import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
 
 enum FilterOption {
-  AllNetworks = 0,
-  CurrentNetwork = 1,
+  AllNetworks,
+  CurrentNetwork,
 }
 
 const TokenFilterBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const allNetworks = useSelector(selectNetworkConfigurations);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const chainId = useSelector(selectChainId);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const allNetworksEnabled = useMemo(
+    () => enableAllNetworksFilter(allNetworks),
+    [allNetworks],
+  );
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {
     const { PreferencesController } = Engine.context;
     switch (option) {
       case FilterOption.AllNetworks:
-        PreferencesController.setTokenNetworkFilter({});
+        PreferencesController.setTokenNetworkFilter(allNetworksEnabled);
         sheetRef.current?.onCloseBottomSheet();
         break;
       case FilterOption.CurrentNetwork:
@@ -47,7 +58,9 @@ const TokenFilterBottomSheet = () => {
     }
   };
 
-  const isSelectedNetwork = Boolean(tokenNetworkFilter?.[chainId]);
+  const isCurrentNetwork = Boolean(
+    tokenNetworkFilter[chainId] && Object.keys(tokenNetworkFilter).length === 1,
+  );
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
@@ -59,7 +72,7 @@ const TokenFilterBottomSheet = () => {
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.AllNetworks)
           }
-          isSelected={!isSelectedNetwork}
+          isSelected={isAllNetworks}
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >
@@ -71,7 +84,7 @@ const TokenFilterBottomSheet = () => {
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.CurrentNetwork)
           }
-          isSelected={isSelectedNetwork}
+          isSelected={isCurrentNetwork}
           gap={8}
           verticalAlignment={VerticalAlignment.Center}
         >

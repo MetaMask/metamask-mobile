@@ -50,6 +50,7 @@ import {
 
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
+import EthQuery from '@metamask/eth-query';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -314,7 +315,7 @@ export function decodeTransferData(type, data) {
  * @param {string} data - Transaction data
  * @returns {MethodData} - Method data object containing the name if is valid
  */
-export async function getMethodData(data) {
+export async function getMethodData(data, networkClientId) {
   if (data.length < 10) return {};
   const fourByteSignature = getFourByteSignature(data);
   if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
@@ -332,7 +333,7 @@ export async function getMethodData(data) {
   }
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await handleMethodData(fourByteSignature);
+    const registryObject = await handleMethodData(fourByteSignature, networkClientId);
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -347,11 +348,14 @@ export async function getMethodData(data) {
  *
  * @param {string} address - Ethereum address
  * @param {string} chainId - Current chainId
+ * @param {string | undefined} networkClientId - ID of the network client
  * @returns {Promise<boolean>} - Whether the given address is a contract
  */
-export async function isSmartContractAddress(address, chainId) {
+export async function isSmartContractAddress(address, chainId, networkClientId = undefined) {
   if (!address) return false;
+
   address = toChecksumAddress(address);
+
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
@@ -360,13 +364,15 @@ export async function isSmartContractAddress(address, chainId) {
     return Promise.resolve(true);
   }
 
-  const ethQuery = Engine.getGlobalEthQuery();
+  const { NetworkController } = Engine.context;
+  const finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  const ethQuery = new EthQuery(NetworkController.getNetworkClientById(finalNetworkClientId).provider);
 
   const code = address
     ? await query(ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = isSmartContractCode(code);
-  return isSmartContract;
+
+  return isSmartContractCode(code);
 }
 
 /**
@@ -401,7 +407,7 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  const { type } = transaction ?? {};
+  const { networkClientId, type } = transaction ?? {};
   const txParams = transaction.txParams ?? transaction.transaction ?? {};
   const { data, to } = txParams;
 
@@ -419,14 +425,14 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   // if data in transaction try to get method data
   if (data && data !== '0x') {
-    const { name } = await getMethodData(data);
+    const { name } = await getMethodData(data, networkClientId);
     if (name) return name;
   }
 
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to);
+      : await isSmartContractAddress(to, undefined, networkClientId);
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;

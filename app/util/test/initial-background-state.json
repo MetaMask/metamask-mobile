@@ -21,7 +21,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AssetsContractController": {},
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -40,8 +39,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "TokenDetectionController": {},
-  "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
     "versionInfo": []
@@ -245,6 +242,11 @@
     "snaps": {},
     "unencryptedSnapStates": {}
   },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
+  },
   "SubjectMetadataController": {
     "subjectMetadata": {}
   },
@@ -348,6 +350,8 @@
     "fcmToken": ""
   },
   "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   }
