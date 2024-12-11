@@ -411,10 +411,6 @@ describe('captureSentryFeedback', () => {
       infuraAvailability: {
         isBlocked: false,
       },
-      navigation: {
-        currentBottomNavRoute: 'Wallet',
-        currentRoute: 'Login',
-      },
       networkOnboarded: {
         networkOnboardedState: {},
         networkState: {

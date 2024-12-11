@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { CommonActions, NavigationContainer } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import {
   Linking,
@@ -41,14 +41,7 @@ import {
   LAST_APP_VERSION,
 } from '../../../constants/storage';
 import { getVersion } from 'react-native-device-info';
-import {
-  setCurrentBottomNavRoute,
-  setCurrentRoute,
-  onNavigationReady,
-} from '../../../actions/navigation';
-import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
-import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
@@ -582,18 +575,130 @@ const ConnectHardwareWalletFlow = () => (
   </Stack.Navigator>
 );
 
+const AppFlow = (userLoggedIn) => (
+  <Stack.Navigator
+    initialRouteName={Routes.FOX_LOADER}
+    mode={'modal'}
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: importedColors.transparent },
+      animationEnabled: false,
+    }}
+  >
+    <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
+    <Stack.Screen
+      name={Routes.ONBOARDING.LOGIN}
+      component={Login}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="OnboardingRootNav"
+      component={OnboardingRootNav}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.SUCCESS_FLOW}
+      component={OnboardingSuccessFlow}
+      options={{ headerShown: false }}
+    />
+    {userLoggedIn && (
+      <Stack.Screen
+        name={Routes.ONBOARDING.HOME_NAV}
+        component={Main}
+        options={{ headerShown: false }}
+      />
+    )}
+    <Stack.Screen
+      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      component={VaultRecoveryFlow}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.ROOT_MODAL_FLOW}
+      component={RootModalFlow}
+    />
+    <Stack.Screen
+      name="ImportPrivateKeyView"
+      component={ImportPrivateKeyView}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name="ConnectQRHardwareFlow"
+      component={ConnectQRHardwareFlow}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.HW.CONNECT_LEDGER}
+      component={LedgerConnectFlow}
+    />
+    <Stack.Screen
+      name={Routes.HW.CONNECT}
+      component={ConnectHardwareWalletFlow}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_TRANSACTION_MODAL}
+      component={LedgerTransactionModal}
+    />
+    <Stack.Screen
+      options={{
+        //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+      }}
+      name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
+      component={LedgerMessageSignModal}
+    />
+    <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
+    <Stack.Screen
+      name="EditAccountName"
+      component={EditAccountName}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.ADD_NETWORK}
+      component={AddNetworkFlow}
+      options={{ animationEnabled: true }}
+    />
+    {isNetworkUiRedesignEnabled() ? (
+      <Stack.Screen
+        name={Routes.EDIT_NETWORK}
+        component={AddNetworkFlow}
+        options={{ animationEnabled: true }}
+      />
+    ) : null}
+
+    <Stack.Screen
+      name={Routes.LOCK_SCREEN}
+      component={LockScreen}
+      options={{ gestureEnabled: false }}
+    />
+  </Stack.Navigator>
+);
+
 const App = (props) => {
   const { userLoggedIn } = props;
   // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
   const supressRender = props?.route?.params?.supressRender;
-  const [navigator, setNavigator] = useState(undefined);
-  const prevNavigator = useRef(navigator);
+  // const [navigator, setNavigator] = useState(undefined);
+  const [onboarded, setOnboarded] = useState(false);
+  // const prevNavigator = useRef(navigator);
+  const navigation = useNavigation();
   const queueOfHandleDeeplinkFunctions = useRef([]);
-  const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
   const dispatch = useDispatch();
   const sdkInit = useRef();
-  const [onboarded, setOnboarded] = useState(false);
 
   trace({
     name: TraceName.NavInit,
@@ -601,23 +706,12 @@ const App = (props) => {
     op: TraceOperation.NavInit,
   });
 
-  const triggerSetCurrentRoute = (route) => {
-    dispatch(setCurrentRoute(route));
-    if (route === 'Wallet' || route === 'BrowserView') {
-      setOnboarded(true);
-      dispatch(setCurrentBottomNavRoute(route));
-    }
-  };
-
   useEffect(() => {
-    if (prevNavigator.current || !navigator) return;
-
     endTrace({ name: TraceName.NavInit });
     endTrace({ name: TraceName.UIStartup });
-  }, [navigator]);
+  }, []);
 
   useEffect(() => {
-    if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
@@ -634,16 +728,16 @@ const App = (props) => {
             },
           );
           // we need to reset the navigator here so that the user cannot go back to the login screen
-          navigator.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
+          navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
-          navigator.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
+          navigation.reset({ routes: [{ name: Routes.ONBOARDING.ROOT_NAV }] });
         }
       } catch (error) {
         // if there are no credentials, then they were cleared in the last session and we should not show biometrics on the login screen
         if (
           error.message === AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
         ) {
-          navigator.dispatch(
+          navigation.dispatch(
             CommonActions.setParams({
               locked: true,
             }),
@@ -661,7 +755,7 @@ const App = (props) => {
     appTriggeredAuth().catch((error) => {
       Logger.error(error, 'App: Error in appTriggeredAuth');
     });
-  }, [navigator, queueOfHandleDeeplinkFunctions]);
+  }, [navigation, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
     if (error) {
@@ -695,47 +789,40 @@ const App = (props) => {
   }, [handleDeeplink]);
 
   useEffect(() => {
-    if (navigator) {
-      // Initialize deep link manager
-      SharedDeeplinkManager.init({
-        navigation: {
-          navigate: (routeName, opts) => {
-            if (navigator) {
-              const params = { name: routeName, params: opts };
-              navigator.dispatch?.(CommonActions.navigate(params));
-            }
-          },
+    // Initialize deep link manager
+    SharedDeeplinkManager.init({
+      navigation: {
+        navigate: (routeName, opts) => {
+          const params = { name: routeName, params: opts };
+          navigation.dispatch?.(CommonActions.navigate(params));
         },
-        dispatch,
-      });
+      },
+      dispatch,
+    });
 
-      if (!prevNavigator.current) {
-        // Subscribe to incoming deeplinks
-        // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
-        branch.subscribe((opts) => {
-          const { error } = opts;
+    // Subscribe to incoming deeplinks
+    // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
+    branch.subscribe((opts) => {
+      const { error } = opts;
 
-          if (error) {
-            // Log error for analytics and continue handling deeplink
-            const branchError = new Error(error);
-            Logger.error(branchError, 'Error subscribing to branch.');
-          }
-
-          if (sdkInit.current) {
-            handleDeeplink(opts);
-          } else {
-            queueOfHandleDeeplinkFunctions.current =
-              queueOfHandleDeeplinkFunctions.current.concat([
-                () => {
-                  handleDeeplink(opts);
-                },
-              ]);
-          }
-        });
+      if (error) {
+        // Log error for analytics and continue handling deeplink
+        const branchError = new Error(error);
+        Logger.error(branchError, 'Error subscribing to branch.');
       }
-      prevNavigator.current = navigator;
-    }
-  }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
+
+      if (sdkInit.current) {
+        handleDeeplink(opts);
+      } else {
+        queueOfHandleDeeplinkFunctions.current =
+          queueOfHandleDeeplinkFunctions.current.concat([
+            () => {
+              handleDeeplink(opts);
+            },
+          ]);
+      }
+    });
+  }, [dispatch, handleDeeplink, navigation, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
     const initMetrics = async () => {
@@ -758,16 +845,11 @@ const App = (props) => {
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
     async function initSDKConnect() {
-      if (
-        navigator?.getCurrentRoute &&
-        onboarded &&
-        sdkInit.current === undefined &&
-        userLoggedIn
-      ) {
+      if (onboarded && sdkInit.current === undefined && userLoggedIn) {
         sdkInit.current = false;
         try {
           const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ navigation: navigator, context: 'Nav/App' });
+          await sdkConnect.init({ navigation, context: 'Nav/App' });
           await SDKConnect.getInstance().postInit(() => {
             setTimeout(() => {
               queueOfHandleDeeplinkFunctions.current = [];
@@ -788,19 +870,16 @@ const App = (props) => {
       .catch((err) => {
         Logger.error(err, 'Error initializing SDKConnect');
       });
-  }, [navigator, onboarded, userLoggedIn]);
+  }, [navigation, onboarded, userLoggedIn]);
 
   useEffect(() => {
-    const currentRoute = navigator?.getCurrentRoute();
-    if (isWC2Enabled && currentRoute !== undefined) {
-      DevLogger.log(
-        `WalletConnect: Initializing WalletConnect Manager route=${currentRoute.name}`,
-      );
-      WC2Manager.init({ navigation: navigator }).catch((err) => {
+    if (isWC2Enabled) {
+      DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
+      WC2Manager.init({ navigation }).catch((err) => {
         console.error('Cannot initialize WalletConnect Manager.', err);
       });
     }
-  }, [navigator]);
+  }, [navigation]);
 
   useEffect(() => {
     async function startApp() {
@@ -874,18 +953,6 @@ const App = (props) => {
     });
   }, []);
 
-  const setNavigatorRef = (ref) => {
-    if (!prevNavigator.current) {
-      setNavigator(ref);
-      NavigationService.setNavigationRef(ref);
-    }
-  };
-
-  /**
-   * Triggers when the navigation is ready
-   */
-  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
-
   return supressRender ? null : (
     <>
       {
@@ -898,131 +965,7 @@ const App = (props) => {
         ///: END:ONLY_INCLUDE_IF
       }
       <PPOMView />
-      <NavigationContainer
-        // Prevents artifacts when navigating between screens
-        theme={{
-          colors: {
-            background: colors.background.default,
-          },
-        }}
-        ref={setNavigatorRef}
-        onStateChange={(state) => {
-          // Updates redux with latest route. Used by DrawerView component.
-          const currentRoute = findRouteNameFromNavigatorState(state.routes);
-          triggerSetCurrentRoute(currentRoute);
-        }}
-        onReady={onNavigationReadyHandler}
-      >
-        <Stack.Navigator
-          initialRouteName={Routes.FOX_LOADER}
-          mode={'modal'}
-          screenOptions={{
-            headerShown: false,
-            cardStyle: { backgroundColor: importedColors.transparent },
-            animationEnabled: false,
-          }}
-        >
-          <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
-          <Stack.Screen
-            name={Routes.ONBOARDING.LOGIN}
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="OnboardingRootNav"
-            component={OnboardingRootNav}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.ONBOARDING.SUCCESS_FLOW}
-            component={OnboardingSuccessFlow}
-            options={{ headerShown: false }}
-          />
-          {userLoggedIn && (
-            <Stack.Screen
-              name={Routes.ONBOARDING.HOME_NAV}
-              component={Main}
-              options={{ headerShown: false }}
-            />
-          )}
-          <Stack.Screen
-            name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-            component={VaultRecoveryFlow}
-          />
-          <Stack.Screen
-            name={Routes.MODAL.ROOT_MODAL_FLOW}
-            component={RootModalFlow}
-          />
-          <Stack.Screen
-            name="ImportPrivateKeyView"
-            component={ImportPrivateKeyView}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name="ConnectQRHardwareFlow"
-            component={ConnectQRHardwareFlow}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name={Routes.HW.CONNECT_LEDGER}
-            component={LedgerConnectFlow}
-          />
-          <Stack.Screen
-            name={Routes.HW.CONNECT}
-            component={ConnectHardwareWalletFlow}
-          />
-          <Stack.Screen
-            options={{
-              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-              cardStyle: { backgroundColor: importedColors.transparent },
-              cardStyleInterpolator: () => ({
-                overlayStyle: {
-                  opacity: 0,
-                },
-              }),
-            }}
-            name={Routes.LEDGER_TRANSACTION_MODAL}
-            component={LedgerTransactionModal}
-          />
-          <Stack.Screen
-            options={{
-              //Refer to - https://reactnavigation.org/docs/stack-navigator/#animations
-              cardStyle: { backgroundColor: importedColors.transparent },
-              cardStyleInterpolator: () => ({
-                overlayStyle: {
-                  opacity: 0,
-                },
-              }),
-            }}
-            name={Routes.LEDGER_MESSAGE_SIGN_MODAL}
-            component={LedgerMessageSignModal}
-          />
-          <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
-          <Stack.Screen
-            name="EditAccountName"
-            component={EditAccountName}
-            options={{ animationEnabled: true }}
-          />
-          <Stack.Screen
-            name={Routes.ADD_NETWORK}
-            component={AddNetworkFlow}
-            options={{ animationEnabled: true }}
-          />
-          {isNetworkUiRedesignEnabled() ? (
-            <Stack.Screen
-              name={Routes.EDIT_NETWORK}
-              component={AddNetworkFlow}
-              options={{ animationEnabled: true }}
-            />
-          ) : null}
-
-          <Stack.Screen
-            name={Routes.LOCK_SCREEN}
-            component={LockScreen}
-            options={{ gestureEnabled: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppFlow userLoggedIn={userLoggedIn} />
       <Toast ref={toastRef} />
     </>
   );
