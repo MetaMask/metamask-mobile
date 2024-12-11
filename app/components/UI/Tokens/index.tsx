@@ -146,12 +146,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
       // First filter zero balance tokens if setting is enabled
       const tokensToDisplay = hideZeroBalanceTokens
-        ? allTokens.filter(
-            (curToken) =>
-              !isZero(curToken.balance) ||
-              curToken.isNative ||
-              curToken.isStaked,
-          )
+        ? allTokens.filter((curToken) => {
+            const multiChainTokenBalances =
+              multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+                curToken.chainId as Hex
+              ];
+            const balance = multiChainTokenBalances?.[curToken.address as Hex];
+            return !isZero(balance) || curToken.isNative || curToken.isStaked;
+          })
         : allTokens;
 
       // Then apply network filters

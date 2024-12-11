@@ -2253,7 +2253,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
             }
             testID="main-balance-test-id"
           >
-            0 undefined
+            0 ETH
           </Text>
         </View>
       </TouchableOpacity>
