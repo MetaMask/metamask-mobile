@@ -1,6 +1,6 @@
 import { Store } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistStore, persistReducer, Persistor } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
@@ -24,7 +24,7 @@ const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
 // TypeScript reducers have invalid actions
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
-let store: Store<RootState, any>, persistor;
+let store: Store<RootState, any>, persistor: Persistor;
 const createStoreAndPersistor = async () => {
   trace({
     name: TraceName.StoreInit,
