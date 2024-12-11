@@ -20,6 +20,7 @@ import useStakingInputHandlers from '../../hooks/useStakingInput';
 import InputDisplay from '../../components/InputDisplay';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import { formatEther } from 'ethers/lib/utils';
 
 const StakeInputView = () => {
   const title = strings('stake.stake_eth');
@@ -49,6 +50,8 @@ const StakeInputView = () => {
     handleMax,
     balanceValue,
     isHighGasCostImpact,
+    getDepositTxGasPercentage,
+    estimatedGasFeeWei,
     isLoadingStakingGasFee,
   } = useStakingInputHandlers();
 
@@ -60,6 +63,21 @@ const StakeInputView = () => {
 
   const handleStakePress = useCallback(() => {
     if (isHighGasCostImpact()) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.STAKE_GAS_COST_IMPACT_WARNING_TRIGGERED,
+        )
+          .addProperties({
+            selected_provider: 'consensys',
+            location: 'StakeInputView',
+            tokens_to_stake_native_value: amountEth,
+            tokens_to_stake_usd_value: fiatAmount,
+            estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
+            estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
+          })
+          .build(),
+      );
+
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.GAS_IMPACT,
         params: {
@@ -68,6 +86,8 @@ const StakeInputView = () => {
           annualRewardsETH,
           annualRewardsFiat,
           annualRewardRate,
+          estimatedGasFee: formatEther(estimatedGasFeeWei.toString()),
+          estimatedGasFeePercentage: `${getDepositTxGasPercentage()}%`,
         },
       });
       return;
@@ -103,6 +123,8 @@ const StakeInputView = () => {
     trackEvent,
     createEventBuilder,
     amountEth,
+    estimatedGasFeeWei,
+    getDepositTxGasPercentage,
   ]);
 
   const handleMaxButtonPress = () => {
