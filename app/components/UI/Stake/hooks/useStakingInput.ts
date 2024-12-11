@@ -135,6 +135,7 @@ const useStakingInputHandlers = () => {
     balanceValue,
     getDepositTxGasPercentage,
     isHighGasCostImpact,
+    estimatedGasFeeWei,
   };
 };
 
