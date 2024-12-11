@@ -27,6 +27,12 @@ jest.mock('../../../core/redux/ReduxService', () => ({
   },
 }));
 
+jest.mock('../../../core/NavigationService', () => ({
+  navigation: {
+    reset: jest.fn(),
+  },
+}));
+
 describe('useDeleteWallet', () => {
   test('it should provide two outputs of type function', () => {
     const { result } = renderHook(() => useDeleteWallet());
