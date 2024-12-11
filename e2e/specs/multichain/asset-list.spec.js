@@ -23,11 +23,7 @@ const fixtureServer = new FixtureServer();
 describe(SmokeMultiChain('Import Tokens'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    const fixture = new FixtureBuilder({
-      onboarding: false,
-    })
-      .withPopularNetworks()
-      .build();
+    const fixture = new FixtureBuilder().withPopularNetworks().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
@@ -40,7 +36,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-  it.only('should display tokens across networks when all networks filter is toggled on', async () => {
+  it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     const eth = WalletView.tokenInWallet('Ethereum');
