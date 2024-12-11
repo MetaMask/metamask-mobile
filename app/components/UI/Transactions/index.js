@@ -25,6 +25,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -101,6 +102,12 @@ const createStyles = (colors, typography) =>
     text: {
       fontSize: 20,
       color: colors.text.muted,
+      ...fontStyles.normal,
+    },
+    textTransactions: {
+      fontSize: 20,
+      color: colors.text.muted,
+      textAlign: 'center',
       ...fontStyles.normal,
     },
     viewMoreWrapper: {
@@ -206,6 +213,10 @@ class Transactions extends PureComponent {
      */
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -341,9 +352,11 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { networkClientId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([networkClientId]);
 
     this.setState({ refreshing: false });
   };
@@ -900,6 +913,7 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
