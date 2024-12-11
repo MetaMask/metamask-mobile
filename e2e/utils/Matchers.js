@@ -154,7 +154,6 @@ class Matchers {
     return by.id(selectorString);
   }
 
-
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
    *

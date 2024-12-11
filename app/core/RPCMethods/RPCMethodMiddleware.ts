@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import { createAsyncMiddleware } from 'json-rpc-engine';
+import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,

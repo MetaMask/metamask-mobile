@@ -66,7 +66,9 @@ describe('REGEX :: REGEX_6400_USD', () => {
 describe('REGEX :: regex.accountBalance', () => {
   it(`should match "${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
     expect(
-      regex.accountBalance.test(AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID),
+      regex.accountBalance.test(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID,
+      ),
     ).toEqual(true);
   });
 
