@@ -24,12 +24,18 @@ import {
 import Routes from '../../../../../../../constants/navigation/Routes';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
+import {
+  MetaMetricsEvents,
+  useMetrics,
+} from '../../../../../../hooks/useMetrics';
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
   const { navigate } = navigation;
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
 
@@ -110,6 +116,27 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
     }
   };
 
+  const handleCancelPress = () => {
+    const isStaking = action === FooterButtonGroupActions.STAKE;
+
+    const event = {
+      name: isStaking
+        ? MetaMetricsEvents.STAKE_CANCEL_CLICKED
+        : MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+      location: isStaking ? 'StakeConfirmationView' : 'UnstakeConfirmationView',
+    };
+
+    trackEvent(
+      createEventBuilder(event.name)
+        .addProperties({
+          location: event.location,
+        })
+        .build(),
+    );
+
+    navigation.goBack();
+  };
+
   return (
     <View style={styles.footerContainer}>
       <Button
@@ -122,9 +149,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         variant={ButtonVariants.Secondary}
         width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-        onPress={() => {
-          navigation.goBack();
-        }}
+        onPress={handleCancelPress}
         disabled={didSubmitTransaction}
       />
       <Button
