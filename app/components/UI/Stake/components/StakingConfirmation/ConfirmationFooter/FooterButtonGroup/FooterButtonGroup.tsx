@@ -92,17 +92,37 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
       setDidSubmitTransaction(true);
 
+      const isStaking = action === FooterButtonGroupActions.STAKE;
+
+      const metricsEvent = {
+        name: isStaking
+          ? MetaMetricsEvents.STAKE_TRANSACTION_INITIATED
+          : MetaMetricsEvents.UNSTAKE_TRANSACTION_INITIATED,
+        location: isStaking
+          ? 'StakeConfirmationView'
+          : 'UnstakeConfirmationView',
+      };
+
+      trackEvent(
+        createEventBuilder(metricsEvent.name)
+          .addProperties({
+            selected_provider: 'consensys',
+            location: metricsEvent.location,
+          })
+          .build(),
+      );
+
       let transactionId: string | undefined;
 
-      if (action === FooterButtonGroupActions.STAKE) {
+      if (isStaking) {
         const txRes = await attemptDepositTransaction(
           valueWei,
           activeAccount.address,
         );
         transactionId = txRes?.transactionMeta?.id;
       }
-
-      if (action === FooterButtonGroupActions.UNSTAKE) {
+      // Unstaking
+      else {
         const txRes = await attemptUnstakeTransaction(
           valueWei,
           activeAccount.address,
@@ -119,7 +139,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const handleCancelPress = () => {
     const isStaking = action === FooterButtonGroupActions.STAKE;
 
-    const event = {
+    const metricsEvent = {
       name: isStaking
         ? MetaMetricsEvents.STAKE_CANCEL_CLICKED
         : MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
@@ -127,9 +147,10 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
     };
 
     trackEvent(
-      createEventBuilder(event.name)
+      createEventBuilder(metricsEvent.name)
         .addProperties({
-          location: event.location,
+          selected_provider: 'consensys',
+          location: metricsEvent.location,
         })
         .build(),
     );
