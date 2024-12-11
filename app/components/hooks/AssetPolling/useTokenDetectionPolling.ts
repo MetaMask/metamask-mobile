@@ -3,7 +3,7 @@ import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
   selectChainId,
-  selectNetworkConfigurations,
+  selectChainIdsToPoll,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
@@ -11,13 +11,13 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectChainIdsToPoll);
   const currentChainId = useSelector(selectChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const useTokenDetection = useSelector(selectUseTokenDetection);
 
   const chainIdsToPoll = isPortfolioViewEnabled()
-    ? chainIds ?? Object.keys(networkConfigurations)
+    ? chainIds ?? networkConfigurations
     : [currentChainId];
 
   const { TokenDetectionController } = Engine.context;

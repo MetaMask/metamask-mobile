@@ -66,46 +66,6 @@ describe('enableAllNetworksFilter', () => {
     expect(result).toEqual({});
   });
 
-  it('should work with NETWORK_CHAIN_ID constants', () => {
-    const mockNetworks: FlareTestNetworkConfigurations = {
-      [NETWORK_CHAIN_ID.FLARE_MAINNET]: {
-        chainId: NETWORK_CHAIN_ID.FLARE_MAINNET,
-        name: 'Flare Mainnet',
-        blockExplorerUrls: ['https://flare.network'],
-        defaultRpcEndpointIndex: 0,
-        nativeCurrency: 'FLR',
-        rpcEndpoints: [
-          {
-            type: RpcEndpointType.Custom,
-            networkClientId: NETWORK_CHAIN_ID.FLARE_MAINNET,
-            url: 'https://flare-rpc.com',
-          },
-        ],
-      },
-      [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: {
-        chainId: NETWORK_CHAIN_ID.SONGBIRD_TESTNET,
-        name: 'Songbird Testnet',
-        blockExplorerUrls: ['https://songbird.flare.network'],
-        defaultRpcEndpointIndex: 0,
-        nativeCurrency: 'SGB',
-        rpcEndpoints: [
-          {
-            type: RpcEndpointType.Custom,
-            networkClientId: NETWORK_CHAIN_ID.SONGBIRD_TESTNET,
-            url: 'https://songbird-rpc.flare.network',
-          },
-        ],
-      },
-    };
-
-    const result = enableAllNetworksFilter(mockNetworks);
-
-    expect(result).toEqual({
-      [NETWORK_CHAIN_ID.FLARE_MAINNET]: true,
-      [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: true,
-    });
-  });
-
   it('should handle networks with different property values', () => {
     const mockNetworks: MultiNetworkConfigurations = {
       [NETWORK_CHAIN_ID.MAINNET]: {
@@ -160,5 +120,42 @@ describe('enableAllNetworksFilter', () => {
       NETWORK_CHAIN_ID.POLYGON,
       NETWORK_CHAIN_ID.BASE,
     ]);
+  });
+
+  it('should return empty object if all networks are not popular', () => {
+    const mockNetworks: FlareTestNetworkConfigurations = {
+      [NETWORK_CHAIN_ID.FLARE_MAINNET]: {
+        chainId: NETWORK_CHAIN_ID.FLARE_MAINNET,
+        name: 'Flare Mainnet',
+        blockExplorerUrls: ['https://flare.network'],
+        defaultRpcEndpointIndex: 0,
+        nativeCurrency: 'FLR',
+        rpcEndpoints: [
+          {
+            type: RpcEndpointType.Custom,
+            networkClientId: NETWORK_CHAIN_ID.FLARE_MAINNET,
+            url: 'https://flare-rpc.com',
+          },
+        ],
+      },
+      [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: {
+        chainId: NETWORK_CHAIN_ID.SONGBIRD_TESTNET,
+        name: 'Songbird Testnet',
+        blockExplorerUrls: ['https://songbird.flare.network'],
+        defaultRpcEndpointIndex: 0,
+        nativeCurrency: 'SGB',
+        rpcEndpoints: [
+          {
+            type: RpcEndpointType.Custom,
+            networkClientId: NETWORK_CHAIN_ID.SONGBIRD_TESTNET,
+            url: 'https://songbird-rpc.flare.network',
+          },
+        ],
+      },
+    };
+
+    const result = enableAllNetworksFilter(mockNetworks);
+
+    expect(result).toEqual({});
   });
 });

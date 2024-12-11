@@ -119,4 +119,60 @@ describe('useTokenBalancesPolling', () => {
       mockedTokenBalancesController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('should poll only for current network if selected one is not popular', () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const { unmount } = renderHookWithProvider(
+      () => useTokenBalancesPolling(),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: '1',
+                  accounts: {
+                    '1': {
+                      address: undefined,
+                    },
+                  },
+                },
+              },
+              NetworkController: {
+                selectedNetworkClientId: 'selectedNetworkClientId',
+                networkConfigurationsByChainId: {
+                  '0x82750': {
+                    chainId: '0x82750',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'selectedNetworkClientId',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenBalancesController = jest.mocked(
+      Engine.context.TokenBalancesController,
+    );
+
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(1);
+    expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
+      chainId: '0x82750',
+    });
+
+    unmount();
+    expect(
+      mockedTokenBalancesController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  });
 });
