@@ -58,7 +58,8 @@ export const downloadStateLogs = async (
   const appName = await getApplicationName();
   const appVersion = await getVersion();
   const buildNumber = await getBuildNumber();
-  const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+  const metrics = MetaMetrics.getInstance();
+  const metaMetricsId = metrics.isEnabled() ? await metrics.getMetaMetricsId() : undefined;
   const path =
     RNFS.DocumentDirectoryPath +
     `/state-logs-v${appVersion}-(${buildNumber}).json`;
