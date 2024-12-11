@@ -470,6 +470,7 @@
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
     "no_transactions": "You have no transactions!",
+    "switch_network_to_view_transactions": "Please switch network to view transactions",
     "send_button": "Send",
     "deposit_button": "Deposit",
     "copy_address": "Copy",
