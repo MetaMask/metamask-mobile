@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -28,6 +28,31 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
+import { IMetaMetricsEvent } from '../../../../../../../core/Analytics';
+import { formatEther } from 'ethers/lib/utils';
+
+const STAKING_TX_METRIC_EVENTS: Record<
+  FooterButtonGroupActions,
+  Record<
+    'APPROVED' | 'REJECTED' | 'CONFIRMED' | 'FAILED' | 'SUBMITTED',
+    IMetaMetricsEvent
+  >
+> = {
+  STAKE: {
+    APPROVED: MetaMetricsEvents.STAKE_TRANSACTION_APPROVED,
+    REJECTED: MetaMetricsEvents.STAKE_TRANSACTION_REJECTED,
+    CONFIRMED: MetaMetricsEvents.STAKE_TRANSACTION_CONFIRMED,
+    FAILED: MetaMetricsEvents.STAKE_TRANSACTION_FAILED,
+    SUBMITTED: MetaMetricsEvents.STAKE_TRANSACTION_SUBMITTED,
+  },
+  UNSTAKE: {
+    APPROVED: MetaMetricsEvents.UNSTAKE_TRANSACTION_APPROVED,
+    REJECTED: MetaMetricsEvents.UNSTAKE_TRANSACTION_REJECTED,
+    CONFIRMED: MetaMetricsEvents.UNSTAKE_TRANSACTION_CONFIRMED,
+    FAILED: MetaMetricsEvents.UNSTAKE_TRANSACTION_FAILED,
+    SUBMITTED: MetaMetricsEvents.UNSTAKE_TRANSACTION_SUBMITTED,
+  },
+};
 
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -46,13 +71,46 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const [didSubmitTransaction, setDidSubmitTransaction] = useState(false);
 
+  const isStaking = useMemo(
+    () => action === FooterButtonGroupActions.STAKE,
+    [action],
+  );
+
+  const submitTxMetaMetric = useCallback(
+    (txEventName: IMetaMetricsEvent) => {
+      const location = isStaking
+        ? 'StakeConfirmationView'
+        : 'UnstakeConfirmationView';
+
+      return trackEvent(
+        createEventBuilder(txEventName)
+          .addProperties({
+            selected_provider: 'consensys',
+            location,
+            transaction_amount_eth: formatEther(valueWei),
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, isStaking, trackEvent, valueWei],
+  );
+
   const listenForTransactionEvents = useCallback(
     (transactionId?: string) => {
       if (!transactionId) return;
 
       Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionApproved',
+        () => {
+          submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].APPROVED);
+        },
+        ({ transactionMeta }) => transactionMeta.id === transactionId,
+      );
+
+      Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionSubmitted',
         () => {
+          submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].SUBMITTED);
           setDidSubmitTransaction(false);
           navigate(Routes.TRANSACTIONS_VIEW);
         },
@@ -62,6 +120,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionFailed',
         () => {
+          submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].FAILED);
           setDidSubmitTransaction(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -70,6 +129,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionRejected',
         () => {
+          submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].REJECTED);
           setDidSubmitTransaction(false);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -78,12 +138,13 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
+          submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].CONFIRMED);
           refreshPooledStakes();
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [navigate, refreshPooledStakes],
+    [action, navigate, refreshPooledStakes, submitTxMetaMetric],
   );
 
   const handleConfirmation = async () => {
@@ -91,8 +152,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       if (!activeAccount?.address) return;
 
       setDidSubmitTransaction(true);
-
-      const isStaking = action === FooterButtonGroupActions.STAKE;
 
       const metricsEvent = {
         name: isStaking
@@ -108,6 +167,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
           .addProperties({
             selected_provider: 'consensys',
             location: metricsEvent.location,
+            transaction_amount_eth: formatEther(valueWei),
           })
           .build(),
       );
@@ -137,8 +197,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   };
 
   const handleCancelPress = () => {
-    const isStaking = action === FooterButtonGroupActions.STAKE;
-
     const metricsEvent = {
       name: isStaking
         ? MetaMetricsEvents.STAKE_CANCEL_CLICKED
