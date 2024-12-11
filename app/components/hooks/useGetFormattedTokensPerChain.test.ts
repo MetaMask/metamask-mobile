@@ -20,13 +20,11 @@ const mockInitialState: DeepPartial<RootState> = {
                 address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
                 symbol: 'USDC',
                 decimals: 6,
-                name: 'USDC',
               },
               {
                 address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
                 symbol: 'DAI',
                 decimals: 18,
-                name: 'Dai Stablecoin',
               },
             ],
           },
@@ -39,7 +37,6 @@ const mockInitialState: DeepPartial<RootState> = {
                 image:
                   'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x0d1e753a25ebda689453309112904807625befbe.png',
                 aggregators: ['CoinGecko', 'Lifi', 'Rubic'],
-                name: 'PancakeSwap',
               },
             ],
           },

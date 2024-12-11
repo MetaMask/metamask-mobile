@@ -62,8 +62,8 @@ const initialState = {
       TokenBalancesController: {
         tokenBalances: {
           [MOCK_ADDRESS_1]: {
-            '0x1': {
-              '0xAddress': '0xde0b6B3A7640000',
+            [CHAIN_IDS.MAINNET]: {
+              '0xAddress': '0xde0b6b3a7640000',
             },
           },
         },
@@ -77,6 +77,28 @@ const initialState = {
             aggregators: ['Metamask', 'CMC'],
           },
         ],
+        tokensByChainId: {
+          [CHAIN_IDS.MAINNET]: [
+            {
+              address: '0xAddress',
+              symbol: 'TKN',
+              decimals: 18,
+              aggregators: ['Metamask', 'CMC'],
+            },
+          ],
+        },
+        allTokens: {
+          [CHAIN_IDS.MAINNET]: {
+            [MOCK_ADDRESS_1]: [
+              {
+                address: '0xAddress',
+                symbol: 'TKN',
+                decimals: 18,
+                aggregators: ['Metamask', 'CMC'],
+              },
+            ],
+          },
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -117,6 +139,7 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
             },
           }}
         />
@@ -146,6 +169,7 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
             },
           }}
         />
@@ -195,6 +219,7 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
             },
           }}
         />
@@ -224,6 +249,7 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
             },
           }}
         />
