@@ -54,9 +54,23 @@ const UnstakeInputView = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getStakingNavbar(title, navigation, theme.colors, {
-        hasBackButton: false,
-      }),
+      getStakingNavbar(
+        title,
+        navigation,
+        theme.colors,
+        {
+          hasBackButton: false,
+        },
+        {
+          cancelButtonEvent: {
+            event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+            properties: {
+              selected_provider: 'consensys',
+              location: 'UnstakeInputView',
+            },
+          },
+        },
+      ),
     );
   }, [navigation, theme.colors, title]);
 

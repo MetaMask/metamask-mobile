@@ -283,7 +283,9 @@ enum EVENT_NAME {
   STAKE_CLAIM_BUTTON_CLICKED = 'Stake Claim Button Clicked',
   STAKE_LEARN_MORE_CLICKED = 'Stake Learn More Clicked',
   STAKE_INPUT_CURRENCY_SWITCH_CLICKED = 'Stake Input Currency Switch Clicked',
+  STAKE_CANCEL_CLICKED = 'Stake Cancel Clicked',
   UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED = 'Unstake Input Currency Switch Clicked',
+  UNSTAKE_CANCEL_CLICKED = 'Unstake Cancel Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -913,9 +915,11 @@ const events = {
   STAKE_INPUT_CURRENCY_SWITCH_CLICKED: generateOpt(
     EVENT_NAME.STAKE_INPUT_CURRENCY_SWITCH_CLICKED,
   ),
+  STAKE_CANCEL_CLICKED: generateOpt(EVENT_NAME.STAKE_CANCEL_CLICKED),
   UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED: generateOpt(
     EVENT_NAME.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
   ),
+  UNSTAKE_CANCEL_CLICKED: generateOpt(EVENT_NAME.UNSTAKE_CANCEL_CLICKED),
 };
 
 /**
