@@ -1,7 +1,7 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -26,7 +26,7 @@ describe(SmokeCore('Buy Crypto'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -44,7 +44,7 @@ describe(SmokeCore('Buy Crypto'), () => {
   it('should select Region and Payment Method to see the Build Buy Quote screen', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
+    await WalletActionsBottomSheet.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
     await SelectRegionView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption('United States of America');
@@ -59,7 +59,7 @@ describe(SmokeCore('Buy Crypto'), () => {
 
   it('should skip to the Build Quote screen for returning user', async () => {
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapBuyButton();
+    await WalletActionsBottomSheet.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
   });

@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
 import { PooledStake } from '@metamask/stake-sdk';
@@ -22,7 +22,7 @@ const usePooledStakes = () => {
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
   const selectedAddress =
-    useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
+    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const { pooledStakesData, exchangeRate } = useSelector(
     selectPooledStakesData,
   );

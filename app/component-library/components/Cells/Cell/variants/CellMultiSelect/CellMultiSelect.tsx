@@ -7,7 +7,7 @@ import React from 'react';
 import { useStyles } from '../../../../../hooks';
 import ListItemMultiSelect from '../../../../List/ListItemMultiSelect';
 import CellBase from '../../foundation/CellBase';
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import styleSheet from './CellMultiSelect.styles';
@@ -30,7 +30,7 @@ const CellMultiSelect = ({
     <ListItemMultiSelect
       isSelected={isSelected}
       style={styles.base}
-      testID={CellModalSelectorsIDs.MULTISELECT}
+      testID={CellComponentSelectorsIDs.MULTISELECT}
       {...props}
     >
       <CellBase

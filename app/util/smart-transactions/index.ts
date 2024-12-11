@@ -69,14 +69,18 @@ export const getShouldStartApprovalRequest = (
   isSend: boolean,
   isSwapApproveTx: boolean,
   hasPendingApprovalForSwapApproveTx: boolean,
+  mobileReturnTxHashAsap: boolean,
 ): boolean =>
-  isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx;
+  !mobileReturnTxHashAsap &&
+  (isDapp || isSend || isSwapApproveTx || !hasPendingApprovalForSwapApproveTx);
 
 export const getShouldUpdateApprovalRequest = (
   isDapp: boolean,
   isSend: boolean,
   isSwapTransaction: boolean,
-): boolean => isDapp || isSend || isSwapTransaction;
+  mobileReturnTxHashAsap: boolean,
+): boolean =>
+  !mobileReturnTxHashAsap && (isDapp || isSend || isSwapTransaction);
 
 const waitForSmartTransactionConfirmationDone = (
   controllerMessenger: ControllerMessenger,
