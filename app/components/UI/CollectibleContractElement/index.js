@@ -209,6 +209,22 @@ function CollectibleContractElement({
     ],
   );
 
+  const generateCollectibleRowKey = (collectibleRow) => {
+    if (collectibleRow.length === 0) return '0';
+    const collectibleRowKey = collectibleRow
+      .reduce(
+        (accumulator, currentCollectible) =>
+          accumulator +
+          currentCollectible.address +
+          ':' +
+          currentCollectible.tokenId +
+          '-',
+        '',
+      )
+      .slice(0, -1);
+    return collectibleRowKey;
+  };
+
   useEffect(() => {
     const temp = splitIntoSubArrays(contractCollectibles, 3);
     setCollectiblesGrid(temp);
@@ -256,17 +272,20 @@ function CollectibleContractElement({
           </Text>
         </View>
       </TouchableOpacity>
-      {collectiblesVisible && (
+      {collectiblesVisible ? (
         <View style={styles.grid}>
-          {collectiblesGrid.map((row, i) => (
-            <View key={i} style={styles.collectiblesRowContainer}>
+          {collectiblesGrid.map((row) => (
+            <View
+              key={generateCollectibleRowKey(row)}
+              style={styles.collectiblesRowContainer}
+            >
               {row.map((collectible, index) =>
                 renderCollectible({ ...collectible, logo: asset.logo }, index),
               )}
             </View>
           ))}
         </View>
-      )}
+      ) : null}
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
