@@ -356,6 +356,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="token-network-filter"
                           >
                             <Text
                               numberOfLines={1}
