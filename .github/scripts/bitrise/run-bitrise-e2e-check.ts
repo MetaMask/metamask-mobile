@@ -53,10 +53,6 @@ async function upsertStatusCheck(
     process.exit(1);
   }
 
-    listResponse.data.check_runs.forEach(check => {
-      console.log(`Check Name: ${check.name}, ID: ${check.id} Status: ${check.status}, Conclusion: ${check.conclusion}`);
-    });
-
   const existingCheck = listResponse.data.check_runs.find(check => check.name === statusCheckName);
 
   if (existingCheck) {
