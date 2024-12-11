@@ -29,6 +29,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
+    await TestHelpers.reverseServerPort();
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
