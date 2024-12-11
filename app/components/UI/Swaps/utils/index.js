@@ -41,15 +41,12 @@ if (__DEV__) {
   allowedChainIds.push(...allowedTestnetChainIds);
 }
 
-export function isSwapsAllowed(chainId, tokenChainId = undefined) {
+export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
     return false;
   }
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
-  }
-  if (isPortfolioViewEnabled() && tokenChainId) {
-    return allowedChainIds.includes(tokenChainId);
   }
   return allowedChainIds.includes(chainId);
 }
