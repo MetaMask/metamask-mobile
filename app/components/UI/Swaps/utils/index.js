@@ -4,7 +4,6 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 const {
   ETH_CHAIN_ID,
