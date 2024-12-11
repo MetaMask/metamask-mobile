@@ -254,18 +254,12 @@ function SwapsAmountView({
   }, [navigation, route, colors]);
 
   useEffect(() => {
-    let isStopped = false;
-
     (async () => {
       try {
         const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
           getFeatureFlagChainId(chainId),
           AppConstants.SWAPS.CLIENT_ID,
         );
-
-        if (isStopped) {
-          return;
-        }
 
         const liveness = getSwapsLiveness(featureFlags, chainId);
         setLiveness(chainId, featureFlags);
@@ -296,10 +290,6 @@ function SwapsAmountView({
         navigation.pop();
       }
     })();
-
-    return () => {
-      isStopped = true;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialSource, chainId, navigation, setLiveness]);
 
