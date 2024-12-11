@@ -274,6 +274,7 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
+    metaMetricsId: string | undefined,
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
@@ -510,8 +511,10 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
+      metaMetricsId,
     });
 
+    console.log('controller', remoteFeatureFlagController);
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
@@ -2156,8 +2159,8 @@ export default {
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null) {
-    instance = Engine.instance || new Engine(state, keyringState);
+  init(state: Partial<EngineState> | undefined, keyringState = null, metaMetricsId: string | undefined) {
+    instance = Engine.instance || new Engine(state, metaMetricsId, keyringState);
     Object.freeze(instance);
     return instance;
   },
