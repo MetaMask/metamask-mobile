@@ -4,6 +4,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 const {
   ETH_CHAIN_ID,
@@ -40,12 +41,15 @@ if (__DEV__) {
   allowedChainIds.push(...allowedTestnetChainIds);
 }
 
-export function isSwapsAllowed(chainId) {
+export function isSwapsAllowed(chainId, tokenChainId = undefined) {
   if (!AppConstants.SWAPS.ACTIVE) {
     return false;
   }
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
+  }
+  if (isPortfolioViewEnabled() && tokenChainId) {
+    return allowedChainIds.includes(tokenChainId);
   }
   return allowedChainIds.includes(chainId);
 }

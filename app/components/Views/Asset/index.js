@@ -18,6 +18,7 @@ import {
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
 import {
+  swapsLivenessMultichainSelector,
   swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
@@ -480,7 +481,7 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isSwapsAllowed(chainId);
+    const isNetworkAllowed = isSwapsAllowed(chainId, asset.chainId);
 
     const isAssetAllowed =
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
@@ -533,8 +534,10 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  swapsIsLive: swapsLivenessSelector(state),
+const mapStateToProps = (state, { route }) => ({
+  swapsIsLive: isPortfolioViewEnabled()
+    ? swapsLivenessMultichainSelector(state, route.params.chainId)
+    : swapsLivenessSelector(state),
   swapsTokens: isPortfolioViewEnabled()
     ? swapsTokensMultiChainObjectSelector(state)
     : swapsTokensObjectSelector(state),
