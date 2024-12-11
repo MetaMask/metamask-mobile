@@ -84,6 +84,10 @@ async function upsertStatusCheck(
       process.exit(1);
     }
 
+    console.log(`Updated existing check: ${statusCheckName} with id ${existingCheck.id} & status ${status} for commit ${commitHash}`);
+
+    
+
   } else {
     console.log(`Check does not exist: ${statusCheckName}, creating...`);
     // Create a new status check
@@ -107,6 +111,8 @@ async function upsertStatusCheck(
       );
       process.exit(1);
     }
+
+    console.log(`Created check: ${statusCheckName} with id ${createCheckResponse.data.id} & status ${status} for commit ${commitHash}`);
   }
 }
 // Determine whether E2E should run and provide the associated reason
