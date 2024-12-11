@@ -8,12 +8,17 @@ import { useTheme } from '../../../util/theme';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
-import { NavigationGateProps } from './types';
+import { NavigationProviderProps } from './types';
 import React from 'react';
 
 const Stack = createStackNavigator();
 
-const NavigationGate: React.FC<NavigationGateProps> = ({ children }) => {
+/**
+ * Provides the navigation context to the app
+ */
+const NavigationProvider: React.FC<NavigationProviderProps> = ({
+  children,
+}) => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
 
@@ -39,7 +44,7 @@ const NavigationGate: React.FC<NavigationGateProps> = ({ children }) => {
       ref={setNavigationRef}
     >
       <Stack.Navigator
-        initialRouteName="NavigationGate"
+        initialRouteName="NavigationProvider"
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen
@@ -51,4 +56,4 @@ const NavigationGate: React.FC<NavigationGateProps> = ({ children }) => {
   );
 };
 
-export default NavigationGate;
+export default NavigationProvider;

@@ -1,7 +1,7 @@
 /**
- * Props for the NavigationGate component
+ * Props for the NavigationProvider component
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type NavigationGateProps = {
+export type NavigationProviderProps = {
   children: React.ReactNode;
 };

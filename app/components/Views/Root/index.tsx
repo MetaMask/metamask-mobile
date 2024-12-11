@@ -11,7 +11,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootProps } from './types';
-import NavigationGate from '../../Nav/NavigationGate';
+import NavigationProvider from '../../Nav/NavigationProvider';
 
 /**
  * Top level of the component hierarchy
@@ -33,13 +33,13 @@ const Root = ({ foxCode }: RootProps) => {
       <Provider store={store}>
         <PersistGate persistor={persistor}>
           <ThemeContext.Provider value={mockTheme}>
-            <ToastContextWrapper>
-              <ErrorBoundary view="Root">
-                <NavigationGate>
+            <NavigationProvider>
+              <ToastContextWrapper>
+                <ErrorBoundary view="Root">
                   <App />
-                </NavigationGate>
-              </ErrorBoundary>
-            </ToastContextWrapper>
+                </ErrorBoundary>
+              </ToastContextWrapper>
+            </NavigationProvider>
           </ThemeContext.Provider>
         </PersistGate>
       </Provider>
