@@ -86,6 +86,22 @@ class WalletView {
     );
   }
 
+  get tokenNetworkFilter() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get tokenNetworkFilterAll() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+    );
+  }
+
+  get tokenNetworkFilterCurrent() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+    );
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -164,6 +180,18 @@ class WalletView {
 
   async tapPortfolio() {
     await Gestures.waitAndTap(this.portfolioButton);
+  }
+
+  async tapTokenNetworkFilter() {
+    await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapTokenNetworkFilterAll() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterAll);
+  }
+
+  async tapTokenNetworkFilterCurrent() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
   }
 }
 
