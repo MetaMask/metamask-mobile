@@ -398,6 +398,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         {isPortfolioViewEnabled() ? (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
+              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
                   {isAllNetworks
