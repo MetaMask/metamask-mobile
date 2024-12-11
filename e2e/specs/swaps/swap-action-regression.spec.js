@@ -79,13 +79,14 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await TestHelpers.delay(2000);
   });
 
+  // Remove ERC20->ERC20 temporarily due to bug
+  // ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'native'}$     |${'.3'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrapped'}$    |${'.2'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-  `//${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    (
+  `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
 

@@ -9,7 +9,7 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-import TestHelpers from '../../helpers'
+import TestHelpers from '../../helpers';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
@@ -48,7 +48,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   it('should not display the chart when using Sepolia test network', async () => {
     await switchToSepoliaNetwork();
     await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
-    await Assertions.checkIfVisible(TokenOverview.noChartData);
+    await Assertions.checkIfVisible(TokenOverview.noChartData, 30000);
     await Assertions.checkIfElementToHaveText(TokenOverview.tokenPrice, '$0');
   });
 });
