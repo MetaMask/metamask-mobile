@@ -1,3 +1,4 @@
+import React from 'react';
 import Root from './';
 import { render } from '@testing-library/react-native';
 
