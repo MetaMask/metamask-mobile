@@ -53,6 +53,12 @@ async function upsertStatusCheck(
     process.exit(1);
   }
 
+    // Print each existing check and its status
+    console.log(`Listing existing checks for commit ${commitHash}:`);
+    listResponse.data.check_runs.forEach(check => {
+      console.log(`Check Name: ${check.name}, ID: ${check.id} Status: ${check.status}, Conclusion: ${check.conclusion}`);
+    });
+
   const existingCheck = listResponse.data.check_runs.find(check => check.name === statusCheckName);
 
   if (existingCheck) {
@@ -210,7 +216,7 @@ async function main(): Promise<void> {
     // Fail Status due to missing labels
     await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, 
       CompletedConclusionType.Failure, `Failed due to missing labels. Please apply either ${e2eLabel} or ${antiLabel}.`);
-
+    return
   }
 
   if (!shouldRun) {
@@ -220,7 +226,6 @@ async function main(): Promise<void> {
 
     await upsertStatusCheck(statusCheckName, latestCommitHash, StatusCheckStatusType.Completed, CompletedConclusionType.Success,
       `Skip run since ${reason}`);
-
     return;
   }
 
