@@ -9,6 +9,7 @@ import {
   selectIsOriginBlockedForRPCRequests,
   onRPCRequestRejectedByUser,
 } from '../redux/slices/originThrottling';
+import NavigationService from '../NavigationService';
 
 export const BLOCKABLE_SPAM_RPC_METHODS = new Set([
   RPC_METHODS.ETH_SENDTRANSACTION,
@@ -57,7 +58,6 @@ export function processOriginThrottlingRejection({
   req,
   error,
   store,
-  navigation,
 }: {
   req: ExtendedJSONRPCRequest;
   error: {
@@ -65,9 +65,6 @@ export function processOriginThrottlingRejection({
     code?: number;
   };
   store: Store;
-  navigation: {
-    navigate: (route: string, params: Record<string, unknown>) => void;
-  };
 }) {
   const isBlockableRPCMethod = BLOCKABLE_SPAM_RPC_METHODS.has(req.method);
 
@@ -82,7 +79,7 @@ export function processOriginThrottlingRejection({
   store.dispatch(onRPCRequestRejectedByUser(req.origin));
 
   if (selectIsOriginBlockedForRPCRequests(store.getState(), req.origin)) {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ORIGIN_SPAM_MODAL,
       params: { origin: req.origin },
     });
