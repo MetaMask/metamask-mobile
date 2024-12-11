@@ -3,7 +3,7 @@ import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
   selectChainId,
-  selectNetworkConfigurations,
+  selectChainIdsToPoll,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
@@ -11,14 +11,14 @@ import { selectAllTokenBalances } from '../../../selectors/tokenBalancesControll
 
 const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(selectChainIdsToPoll);
   const currentChainId = useSelector(selectChainId);
 
   // Selectors returning state updated by the polling
   const tokenBalances = useSelector(selectAllTokenBalances);
 
   const chainIdsToPoll = isPortfolioViewEnabled()
-    ? chainIds ?? Object.keys(networkConfigurations)
+    ? chainIds ?? networkConfigurations
     : [currentChainId];
 
   const { TokenBalancesController } = Engine.context;

@@ -56,6 +56,8 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -140,6 +142,22 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
   const styles = createStyles(colors);
+
+  const isPopularNetwork = PopularList.some(
+    (network) =>
+      network.chainId === currentChainId ||
+      currentChainId === CHAIN_IDS.MAINNET ||
+      currentChainId === CHAIN_IDS.LINEA_MAINNET,
+  );
+
+  useEffect(() => {
+    const { PreferencesController } = Engine.context;
+    if (!isPopularNetwork) {
+      PreferencesController.setTokenNetworkFilter({
+        [currentChainId]: true,
+      });
+    }
+  }, [selectedAccountTokensChains, currentChainId, isPopularNetwork]);
 
   const tokensList = useMemo((): TokenI[] => {
     if (isPortfolioViewEnabled()) {
@@ -425,19 +443,21 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
                   {isAllNetworks
-                    ? strings('wallet.all_networks')
+                    ? `${strings('app_settings.popular')} ${strings(
+                        'app_settings.networks',
+                      )}`
                     : networkName ?? strings('wallet.current_network')}
                 </Text>
               }
-              isDisabled={isTestNet(currentChainId)}
+              isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={
-                isTestNet(currentChainId)
+                isTestNet(currentChainId) || !isPopularNetwork
                   ? styles.controlButtonDisabled
                   : styles.controlButton
               }
-              disabled={isTestNet(currentChainId)}
+              disabled={isTestNet(currentChainId) || !isPopularNetwork}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon

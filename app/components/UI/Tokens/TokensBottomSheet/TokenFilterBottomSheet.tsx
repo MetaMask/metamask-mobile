@@ -77,7 +77,9 @@ const TokenFilterBottomSheet = () => {
           verticalAlignment={VerticalAlignment.Center}
         >
           <Text style={styles.bottomSheetText}>
-            {strings('wallet.all_networks')}
+            {`${strings('app_settings.popular')} ${strings(
+              'app_settings.networks',
+            )}`}
           </Text>
         </ListItemSelect>
         <ListItemSelect

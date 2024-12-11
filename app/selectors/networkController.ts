@@ -12,6 +12,9 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectTokenNetworkFilter } from './preferencesController';
+import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
+import { PopularList } from '../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -169,11 +172,14 @@ export const selectIsEIP1559Network = createSelector(
 
 export const selectIsAllNetworks = createSelector(
   (state: RootState) => selectTokenNetworkFilter(state),
-  (tokenNetworkFilter) => {
+  (networkConfigurations, tokenNetworkFilter) => {
     if (Object.keys(tokenNetworkFilter).length === 1) {
       return false;
     }
-    return true;
+    const allNetworks = enableAllNetworksFilter(networkConfigurations);
+    return (
+      Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length
+    );
   },
 );
 
@@ -186,4 +192,26 @@ export const selectNativeCurrencyByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
   (networkConfigurations, chainId) =>
     networkConfigurations?.[chainId]?.nativeCurrency,
+);
+
+export const selectChainIdsToPoll = createSelector(
+  selectNetworkConfigurations,
+  selectChainId,
+  (networkConfigurations, currentChainId) => {
+    const allNetworks = enableAllNetworksFilter(networkConfigurations);
+
+    const isPopularNetwork = PopularList.some(
+      (network) => network.chainId === currentChainId,
+    );
+
+    if (
+      isPopularNetwork ||
+      currentChainId === CHAIN_IDS.MAINNET ||
+      currentChainId === CHAIN_IDS.LINEA_MAINNET
+    ) {
+      return Object.keys(allNetworks);
+    }
+
+    return [currentChainId];
+  },
 );

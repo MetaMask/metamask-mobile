@@ -263,4 +263,61 @@ describe('useTokenDetectionPolling', () => {
       mockedTokenDetectionController.stopPollingByPollingToken,
     ).toHaveBeenCalledTimes(1);
   });
+
+  it('should poll only for current network if selected one is not popular', () => {
+    const { unmount } = renderHookWithProvider(
+      () => useTokenDetectionPolling(),
+      {
+        state: {
+          ...state,
+          engine: {
+            ...state.engine,
+            backgroundState: {
+              ...state.engine.backgroundState,
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: '1',
+                  accounts: {
+                    '1': {
+                      address: undefined,
+                    },
+                  },
+                },
+              },
+              NetworkController: {
+                selectedNetworkClientId: 'selectedNetworkClientId',
+                networkConfigurationsByChainId: {
+                  '0x82750': {
+                    chainId: '0x82750',
+                    rpcEndpoints: [
+                      {
+                        networkClientId: 'selectedNetworkClientId',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    const mockedTokenDetectionController = jest.mocked(
+      Engine.context.TokenDetectionController,
+    );
+
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
+      1,
+    );
+    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
+      chainIds: ['0x82750'],
+      address: undefined,
+    });
+
+    unmount();
+    expect(
+      mockedTokenDetectionController.stopPollingByPollingToken,
+    ).toHaveBeenCalledTimes(1);
+  });
 });
