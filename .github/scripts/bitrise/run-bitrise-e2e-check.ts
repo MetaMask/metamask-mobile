@@ -53,8 +53,6 @@ async function upsertStatusCheck(
     process.exit(1);
   }
 
-    // Print each existing check and its status
-    console.log(`Listing existing checks for commit ${commitHash}:`);
     listResponse.data.check_runs.forEach(check => {
       console.log(`Check Name: ${check.name}, ID: ${check.id} Status: ${check.status}, Conclusion: ${check.conclusion}`);
     });
