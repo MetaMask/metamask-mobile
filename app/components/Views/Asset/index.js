@@ -481,7 +481,9 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isSwapsAllowed(asset.chainId);
+    const isNetworkAllowed = isPortfolioViewEnabled()
+      ? isSwapsAllowed(asset.chainId)
+      : isSwapsAllowed(chainId);
 
     const isAssetAllowed =
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
