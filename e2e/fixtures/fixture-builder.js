@@ -629,10 +629,6 @@ class FixtureBuilder {
         infuraAvailability: {
           isBlocked: false,
         },
-        navigation: {
-          currentRoute: 'AdvancedSettings',
-          currentBottomNavRoute: 'Wallet',
-        },
         networkOnboarded: {
           networkOnboardedState: {},
           networkState: {
