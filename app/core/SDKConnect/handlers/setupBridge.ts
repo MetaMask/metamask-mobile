@@ -54,7 +54,6 @@ export const setupBridge = ({
         channelId: connection.channelId,
         getProviderState,
         isMMSDK: true,
-        navigation: null, //props.navigation,
         getApprovedHosts: () =>
           connection.getApprovedHosts('rpcMethodMiddleWare'),
         setApprovedHosts: (hostname: string) => {

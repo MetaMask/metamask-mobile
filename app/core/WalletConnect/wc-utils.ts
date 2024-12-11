@@ -3,8 +3,8 @@ import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
 import { store } from '../../../app/store';
 import { wait } from '../SDKConnect/utils/wait.util';
-import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
+import NavigationService from '../NavigationService';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -46,29 +46,24 @@ const parseWalletConnectUri = (uri: string): WCMultiVersionParams => {
   return result;
 };
 
-export const hideWCLoadingState = ({
-  navigation,
-}: {
-  navigation?: NavigationContainerRef;
-}): void => {
-  const currentRoute = navigation?.getCurrentRoute()?.name;
-  if (currentRoute === Routes.SHEET.SDK_LOADING && navigation?.canGoBack()) {
-    navigation?.goBack();
+export const hideWCLoadingState = (): void => {
+  const currentRoute = NavigationService.navigation?.getCurrentRoute()?.name;
+  if (
+    currentRoute === Routes.SHEET.SDK_LOADING &&
+    NavigationService.navigation?.canGoBack()
+  ) {
+    NavigationService.navigation?.goBack();
   } else if (
     currentRoute === Routes.SHEET.RETURN_TO_DAPP_MODAL &&
-    navigation?.canGoBack()
+    NavigationService.navigation?.canGoBack()
   ) {
     // also close return to dapp if it wasnt previously closed
-    navigation?.goBack();
+    NavigationService.navigation?.goBack();
   }
 };
 
-export const showWCLoadingState = ({
-  navigation,
-}: {
-  navigation?: NavigationContainerRef;
-}): void => {
-  navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+export const showWCLoadingState = (): void => {
+  NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
     screen: Routes.SHEET.SDK_LOADING,
   });
 };

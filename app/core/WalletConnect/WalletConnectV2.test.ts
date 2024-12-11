@@ -2,12 +2,22 @@ import { WC2Manager } from './WalletConnectV2';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Ignoring the import error for testing purposes
 import { Client } from '@walletconnect/se-sdk';
-import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types/dist/types/sign-client/session';
 import { SingleEthereumTypes } from '@walletconnect/se-sdk/dist/types';
 import AppConstants from '../AppConstants';
 import StorageWrapper from '../../store/storage-wrapper';
+import Logger from '../../util/Logger';
+
+jest.mock('../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
+jest.mock('../NavigationService', () => ({
+  navigation: {
+    getCurrentRoute: jest.fn(),
+  },
+}));
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -153,7 +163,6 @@ describe('WC2Manager', () => {
   let manager: WC2Manager;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let mockClient: Client;
-  let mockNavigation: NavigationContainerRef;
   let mockApproveSession: jest.SpyInstance<
     Promise<SessionTypes.Struct>,
     [params: { id: number; chainId: number; accounts: string[] }],
@@ -163,9 +172,6 @@ describe('WC2Manager', () => {
 
   beforeEach(async () => {
     mockClient = new Client();
-    mockNavigation = {
-      getCurrentRoute: jest.fn().mockReturnValue({ name: 'Home' }),
-    } as unknown as NavigationContainerRef;
 
     Object.defineProperty(Engine, 'context', {
       value: {
@@ -189,7 +195,7 @@ describe('WC2Manager', () => {
       configurable: true,
     });
 
-    const initResult = await WC2Manager.init({ navigation: mockNavigation });
+    const initResult = await WC2Manager.init();
     if (!initResult) {
       throw new Error('Failed to initialize WC2Manager');
     }
@@ -234,15 +240,28 @@ describe('WC2Manager', () => {
 
   describe('WC2Manager Initialization', () => {
     it('should initialize correctly when called with valid inputs', async () => {
-      const result = await WC2Manager.init({ navigation: mockNavigation });
+      const result = await WC2Manager.init();
       expect(result).toBeInstanceOf(WC2Manager);
     });
 
     it('should not initialize if navigation is missing', async () => {
-      const result = await WC2Manager.init({
-        navigation: null as unknown as NavigationContainerRef,
+      jest.isolateModules(async () => {
+        // Get the actual NavigationService
+        const actualNavigationService = jest.requireActual(
+          '../NavigationService',
+        );
+        jest.doMock('../NavigationService', () => actualNavigationService);
+        jest.resetModules();
+
+        const navigationMissingMessage = 'Navigation reference does not exist!';
+        const { WC2Manager: FreshWC2Manager } = require('./WalletConnectV2');
+        await expect(FreshWC2Manager.init()).rejects.toThrow(
+          navigationMissingMessage,
+        );
+        expect(Logger.error).toHaveBeenCalledWith(
+          new Error(navigationMissingMessage),
+        );
       });
-      expect(result).toBeUndefined();
     });
   });
 

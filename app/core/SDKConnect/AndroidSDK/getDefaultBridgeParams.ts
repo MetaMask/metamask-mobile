@@ -22,7 +22,6 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       channelId: clientInfo.clientId,
       getProviderState,
       isMMSDK: true,
-      navigation: null, //props.navigation,
       getApprovedHosts: (host: string) => ({
         [host]: true,
       }),

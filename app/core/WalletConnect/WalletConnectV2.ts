@@ -2,7 +2,6 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { Core } from '@walletconnect/core';
 import Client, {
   SingleEthereum,
@@ -28,8 +27,9 @@ import parseWalletConnectUri, {
   hideWCLoadingState,
   showWCLoadingState,
 } from './wc-utils';
-
 import WalletConnect2Session from './WalletConnect2Session';
+import NavigationService from '../NavigationService';
+
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -45,7 +45,6 @@ export const ERROR_MESSAGES = {
 export class WC2Manager {
   private static instance: WC2Manager;
   private static _initialized = false;
-  private navigation?: NavigationContainerRef;
   private web3Wallet: Client;
   private sessions: { [topic: string]: WalletConnect2Session } = {};
   private deeplinkSessions: {
@@ -57,13 +56,11 @@ export class WC2Manager {
     deeplinkSessions: {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
-    navigation: NavigationContainerRef,
   ) {
     this.web3Wallet = web3Wallet;
     this.deeplinkSessions = deeplinkSessions;
-    this.navigation = navigation;
 
-    DevLogger.log(`WC2Manager::constructor()`, navigation);
+    DevLogger.log(`WC2Manager::constructor()`);
 
     web3Wallet.on('session_proposal', this.onSessionProposal.bind(this));
     web3Wallet.on('session_request', this.onSessionRequest.bind(this));
@@ -99,7 +96,6 @@ export class WC2Manager {
     const chainId = selectChainId(store.getState());
     DevLogger.log(
       `[WC2Manager::constructor chainId=${chainId} type=${typeof chainId}`,
-      this.navigation,
     );
     const permissionController = (
       Engine.context as {
@@ -118,7 +114,6 @@ export class WC2Manager {
           this.sessions[sessionKey] = new WalletConnect2Session({
             web3Wallet,
             channelId: sessionKey,
-            navigation: this.navigation,
             deeplink:
               typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
             session,
@@ -188,16 +183,7 @@ export class WC2Manager {
     }
   }
 
-  public static async init({
-    navigation,
-  }: {
-    navigation: NavigationContainerRef;
-  }) {
-    if (!navigation) {
-      console.warn(`WC2::init missing navigation --- SKIP INIT`);
-      return;
-    }
-
+  public static async init() {
     if (this.instance || this._initialized) {
       DevLogger.log(`WC2::init already initialized`);
       // already initialized
@@ -216,7 +202,8 @@ export class WC2Manager {
       keyringController,
       context: 'WalletConnectV2::init',
     });
-    const currentRouteName = navigation.getCurrentRoute()?.name;
+    const currentRouteName =
+      NavigationService.navigation.getCurrentRoute()?.name;
 
     let core;
     const chainId = parseInt(selectChainId(store.getState()), 16);
@@ -273,7 +260,7 @@ export class WC2Manager {
     try {
       // Add delay before returning instance
       await wait(1000);
-      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
+      this.instance = new WC2Manager(web3Wallet, deeplinkSessions);
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
@@ -401,7 +388,7 @@ export class WC2Manager {
       params,
     );
 
-    hideWCLoadingState({ navigation: this.navigation });
+    hideWCLoadingState();
 
     const permissionsController = (
       Engine.context as {
@@ -462,7 +449,6 @@ export class WC2Manager {
         channelId: '' + proposal.id,
         deeplink,
         web3Wallet: this.web3Wallet,
-        navigation: this.navigation,
       });
 
       this.sessions[activeSession.topic] = session;
@@ -534,9 +520,7 @@ export class WC2Manager {
   }) {
     try {
       Logger.log(
-        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl} navigation=${
-          this.navigation !== undefined
-        }`,
+        `WC2Manager::connect ${wcUri} origin=${origin} redirectUrl=${redirectUrl}`,
       );
       const params = parseWalletConnectUri(wcUri);
       const isDeepLink = origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
@@ -546,7 +530,7 @@ export class WC2Manager {
       if (rawParams.sessionTopic) {
         const { sessionTopic } = rawParams;
         this.sessions[sessionTopic]?.setDeeplink(true);
-        showWCLoadingState({ navigation: this.navigation });
+        showWCLoadingState();
         return;
       }
 
@@ -568,7 +552,7 @@ export class WC2Manager {
         const cleanUri = wcUri.startsWith('wc://')
           ? wcUri.replace('wc://', 'wc:')
           : wcUri;
-        showWCLoadingState({ navigation: this.navigation });
+        showWCLoadingState();
 
         const paired = await this.web3Wallet.core.pairing.pair({
           uri: cleanUri,
