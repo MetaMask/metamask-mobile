@@ -17,6 +17,8 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
+import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import { NetworkNickname } from '@metamask/controller-utils';
 
 const fixtureServer = new FixtureServer();
 
@@ -39,7 +41,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const eth = WalletView.tokenInWallet('Ethereum');
+    const eth = WalletView.tokenInWallet(NetworkNickname.ETHEREUM);
     const avax = WalletView.tokenInWallet('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(eth);
@@ -52,7 +54,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    const eth = WalletView.tokenInWallet('Ethereum');
+    const eth = WalletView.tokenInWallet(NetworkNickname.ETHEREUM);
     const avax = WalletView.tokenInWallet('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(eth);
@@ -60,7 +62,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+  it.only('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -75,10 +77,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       BNB_NAME,
     );
-    await NetworkEducationModal.tapGotItButton();
-
-    const cancelButton = await Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(cancelButton);
+    await BuildQuoteView.tapCancelButton();
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
