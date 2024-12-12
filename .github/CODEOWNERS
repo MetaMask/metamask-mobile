@@ -24,6 +24,7 @@ bitrise.yml                                                 @MetaMask/mobile-pla
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
+app/components/Views/Root                                   @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
