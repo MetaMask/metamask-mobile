@@ -110,15 +110,9 @@ describe('networkSelectors', () => {
     expect(selectNetworkClientId(mockState)).toBe('custom-network');
   });
 
-  it('selectIsAllNetworks should return false if tokenNetworkFilter length does not match networkConfigurations length', () => {
+  it('selectIsAllNetworks should return false if tokenNetworkFilter length is greater than 1', () => {
     const tokenNetworkFilter = { '0x1': 'true' };
-    expect(
-      selectIsAllNetworks.resultFunc(
-        mockState.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-        tokenNetworkFilter,
-      ),
-    ).toBe(false);
+    expect(selectIsAllNetworks.resultFunc(tokenNetworkFilter)).toBe(false);
   });
 
   it('selectNetworkConfigurationByChainId should return the network configuration for a given chainId', () => {
