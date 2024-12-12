@@ -21798,10 +21798,10 @@ lottie-ios@^4.3.3:
   resolved "https://registry.yarnpkg.com/lottie-ios/-/lottie-ios-4.5.0.tgz#d534643ac20b5587412ff569990cbe59234ef558"
   integrity sha512-lQa7L3YE4+FqZY+mhUO50kgZu1nVjIZUAF+bOrZBZjzJfLQFDXaX2RjNi1wbH6mH5wAlRTED04TvsSjIORMj4g==
 
-lottie-react-native@6.5.1:
-  version "6.5.1"
-  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-6.5.1.tgz#7986078648d1ff274a704ae3bd979a4c3aa235c6"
-  integrity sha512-pjih71P6qX6Ax5ucUBA+YJO7+fnveI581Bd8LmYeARm3spq3AnoGzEkrWaieM8odnK6WI4d5dwEJsxge/QjFPw==
+lottie-react-native@^7.0.0:
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/lottie-react-native/-/lottie-react-native-7.1.0.tgz#705d1f7603b7a1b3d0cf0b4bb9a193d0dba4efa4"
+  integrity sha512-73jtQySxRZ8KTTSKf6CtcpCt8tpOCw4NRiCST4HTYgXlycxIihIp89jRcK8rS/QiBKl5bzyixMzpVmd4mYVH5Q==
 
 lower-case@^2.0.2:
   version "2.0.2"

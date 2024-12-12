@@ -275,7 +275,7 @@
     "json-rpc-engine": "^6.1.0",
     "lodash": "^4.17.21",
     "lottie-ios": "^4.3.3",
-    "lottie-react-native": "6.5.1",
+    "lottie-react-native": "^7.0.0",
     "mockttp": "^3.15.2",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
