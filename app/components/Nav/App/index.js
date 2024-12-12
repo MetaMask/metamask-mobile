@@ -849,7 +849,7 @@ const App = (props) => {
         sdkInit.current = false;
         try {
           const sdkConnect = SDKConnect.getInstance();
-          await sdkConnect.init({ navigation, context: 'Nav/App' });
+          await sdkConnect.init({ context: 'Nav/App' });
           await SDKConnect.getInstance().postInit(() => {
             setTimeout(() => {
               queueOfHandleDeeplinkFunctions.current = [];
@@ -870,16 +870,16 @@ const App = (props) => {
       .catch((err) => {
         Logger.error(err, 'Error initializing SDKConnect');
       });
-  }, [navigation, onboarded, userLoggedIn]);
+  }, [onboarded, userLoggedIn]);
 
   useEffect(() => {
     if (isWC2Enabled) {
       DevLogger.log(`WalletConnect: Initializing WalletConnect Manager`);
-      WC2Manager.init({ navigation }).catch((err) => {
+      WC2Manager.init().catch((err) => {
         console.error('Cannot initialize WalletConnect Manager.', err);
       });
     }
-  }, [navigation]);
+  }, []);
 
   useEffect(() => {
     async function startApp() {
