@@ -13,7 +13,7 @@ import parseOriginatorInfo from '../parseOriginatorInfo';
 import Device from '../../../util/device';
 import { Platform } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 function handleUniversalLink({
   instance,
