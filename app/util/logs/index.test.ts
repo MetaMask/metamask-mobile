@@ -12,6 +12,7 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { merge } from 'lodash';
+import MetaMetrics from '../../core/Analytics/MetaMetrics';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -47,8 +48,39 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../core/Analytics/MetaMetrics');
+
+const mockMetrics = {
+  isEnabled: jest.fn(() => true),
+  getMetaMetricsId: jest.fn(() =>
+    Promise.resolve('6D796265-7374-4953-6D65-74616D61736B'),
+  ),
+};
+
+(MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetrics);
+
 describe('logs :: generateStateLogs', () => {
-  it('should generate the state logs correctly without the explicitly deleted controller states', async () => {
+
+  it('generates a valid json export', async () => {
+    const mockStateInput = {
+      appVersion: '1',
+      buildNumber: '123',
+      metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+    const logs = generateStateLogs(mockStateInput);
+
+    expect(JSON.parse(logs)).toMatchSnapshot();
+  });
+
+  it('generates the expected state logs without the explicitly deleted controller states', async () => {
     const mockStateInput = {
       engine: {
         backgroundState: {
@@ -74,6 +106,7 @@ describe('logs :: generateStateLogs', () => {
     const mockStateInput = {
       appVersion: '1',
       buildNumber: '123',
+      metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
       engine: {
         backgroundState: {
           ...backgroundState,
@@ -94,6 +127,7 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
     expect(logs.includes('appVersion')).toBe(true);
     expect(logs.includes('buildNumber')).toBe(true);
+    expect(logs.includes('metaMetricsId')).toBe(true);
   });
 });
 
@@ -255,5 +289,42 @@ describe('logs :: downloadStateLogs', () => {
       title: 'TestApp State logs -  v1.0.0 (100)',
       url: expect.stringContaining('data:text/plain;base64,'),
     });
+  });
+
+  it('does not include metametrics id if not opt-in', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+    (mockMetrics.isEnabled as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    });
+
+    await downloadStateLogs(mockStateInput);
+
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
+
+    // Access the arguments passed to Share.open
+    const shareOpenCalls = (Share.open as jest.Mock).mock.calls;
+    expect(shareOpenCalls.length).toBeGreaterThan(0);
+    const [shareOpenArgs] = shareOpenCalls[0];
+    const { url } = shareOpenArgs;
+    const base64Data = url.replace('data:text/plain;base64,', '');
+    const decodedData = Buffer.from(base64Data, 'base64').toString('utf-8');
+    const jsonData = JSON.parse(decodedData);
+    expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
 });

@@ -1,0 +1,356 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`logs :: generateStateLogs generates a valid json export 1`] = `
+{
+  "appVersion": "1",
+  "buildNumber": "123",
+  "engine": {
+    "backgroundState": {
+      "AccountTrackerController": {
+        "accounts": {},
+        "accountsByChainId": {
+          "0x1": {},
+        },
+      },
+      "AccountsController": {
+        "internalAccounts": {
+          "accounts": {},
+          "selectedAccount": "",
+        },
+      },
+      "AddressBookController": {
+        "addressBook": {},
+      },
+      "ApprovalController": {
+        "approvalFlows": [],
+        "pendingApprovalCount": 0,
+        "pendingApprovals": {},
+      },
+      "AuthenticationController": {
+        "isSignedIn": false,
+      },
+      "CurrencyRateController": {
+        "currencyRates": {
+          "ETH": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+            "usdConversionRate": null,
+          },
+        },
+        "currentCurrency": "usd",
+      },
+      "GasFeeController": {
+        "estimatedGasFeeTimeBounds": {},
+        "gasEstimateType": "none",
+        "gasFeeEstimates": {},
+        "gasFeeEstimatesByChainId": {},
+        "nonRPCGasFeeApisDisabled": false,
+      },
+      "KeyringController": {
+        "keyrings": [
+          "keyring1",
+          "keyring2",
+        ],
+      },
+      "LoggingController": {
+        "logs": {},
+      },
+      "NetworkController": {
+        "networkConfigurationsByChainId": {
+          "0x1": {
+            "blockExplorerUrls": [],
+            "chainId": "0x1",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Ethereum Mainnet",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "mainnet",
+                "type": "infura",
+                "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0x5": {
+            "blockExplorerUrls": [],
+            "chainId": "0x5",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Goerli",
+            "nativeCurrency": "GoerliETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "goerli",
+                "type": "infura",
+                "url": "https://goerli.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xaa36a7": {
+            "blockExplorerUrls": [],
+            "chainId": "0xaa36a7",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Sepolia",
+            "nativeCurrency": "SepoliaETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "sepolia",
+                "type": "infura",
+                "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xe704": {
+            "blockExplorerUrls": [],
+            "chainId": "0xe704",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Linea Goerli",
+            "nativeCurrency": "LineaETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "linea-goerli",
+                "type": "infura",
+                "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xe705": {
+            "blockExplorerUrls": [],
+            "chainId": "0xe705",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Linea Sepolia",
+            "nativeCurrency": "LineaETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "linea-sepolia",
+                "type": "infura",
+                "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+          "0xe708": {
+            "blockExplorerUrls": [],
+            "chainId": "0xe708",
+            "defaultRpcEndpointIndex": 0,
+            "name": "Linea",
+            "nativeCurrency": "ETH",
+            "rpcEndpoints": [
+              {
+                "networkClientId": "linea-mainnet",
+                "type": "infura",
+                "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
+              },
+            ],
+          },
+        },
+        "networksMetadata": {
+          "mainnet": {
+            "EIPS": {},
+            "status": "unknown",
+          },
+        },
+        "selectedNetworkClientId": "mainnet",
+      },
+      "NotificationServicesController": {
+        "isCheckingAccountsPresence": false,
+        "isFeatureAnnouncementsEnabled": false,
+        "isFetchingMetamaskNotifications": false,
+        "isMetamaskNotificationsFeatureSeen": false,
+        "isNotificationServicesEnabled": false,
+        "isUpdatingMetamaskNotifications": false,
+        "isUpdatingMetamaskNotificationsAccount": [],
+        "metamaskNotificationsList": [],
+        "metamaskNotificationsReadList": [],
+        "subscriptionAccountsSeen": [],
+      },
+      "NotificationServicesPushController": {
+        "fcmToken": "",
+      },
+      "PPOMController": {
+        "storageMetadata": [],
+        "versionInfo": [],
+      },
+      "PermissionController": {
+        "subjects": {},
+      },
+      "PreferencesController": {
+        "displayNftMedia": true,
+        "featureFlags": {},
+        "identities": {},
+        "ipfsGateway": "https://dweb.link/ipfs/",
+        "isIpfsGatewayEnabled": true,
+        "isMultiAccountBalancesEnabled": true,
+        "lostIdentities": {},
+        "privacyMode": false,
+        "securityAlertsEnabled": true,
+        "selectedAddress": "",
+        "showIncomingTransactions": {
+          "0x1": true,
+          "0x13881": true,
+          "0x38": true,
+          "0x5": true,
+          "0x504": true,
+          "0x505": true,
+          "0x507": true,
+          "0x61": true,
+          "0x64": true,
+          "0x89": true,
+          "0xa": true,
+          "0xa869": true,
+          "0xa86a": true,
+          "0xaa36a7": true,
+          "0xaa37dc": true,
+          "0xe704": true,
+          "0xe705": true,
+          "0xe708": true,
+          "0xfa": true,
+          "0xfa2": true,
+        },
+        "showMultiRpcModal": false,
+        "showTestNetworks": false,
+        "smartTransactionsOptInStatus": true,
+        "tokenNetworkFilter": {},
+        "tokenSortConfig": {
+          "key": "tokenFiatAmount",
+          "order": "dsc",
+          "sortCallback": "stringNumeric",
+        },
+        "useNftDetection": true,
+        "useSafeChainsListValidation": true,
+        "useTokenDetection": true,
+        "useTransactionSimulations": true,
+      },
+      "RemoteFeatureFlagController": {
+        "cacheTimestamp": 0,
+        "remoteFeatureFlags": {},
+      },
+      "SelectedNetworkController": {
+        "domains": {},
+      },
+      "SignatureController": {
+        "signatureRequests": {},
+        "unapprovedPersonalMsgCount": 0,
+        "unapprovedPersonalMsgs": {},
+        "unapprovedTypedMessages": {},
+        "unapprovedTypedMessagesCount": 0,
+      },
+      "SmartTransactionsController": {
+        "smartTransactionsState": {
+          "fees": {
+            "approvalTxFees": null,
+            "tradeTxFees": null,
+          },
+          "feesByChainId": {
+            "0x1": {
+              "approvalTxFees": null,
+              "tradeTxFees": null,
+            },
+            "0xaa36a7": {
+              "approvalTxFees": null,
+              "tradeTxFees": null,
+            },
+          },
+          "liveness": true,
+          "livenessByChainId": {
+            "0x1": true,
+            "0xaa36a7": true,
+          },
+          "smartTransactions": {
+            "0x1": [],
+          },
+          "userOptIn": null,
+          "userOptInV2": null,
+        },
+      },
+      "SnapController": {
+        "snapStates": {},
+        "snaps": {},
+        "unencryptedSnapStates": {},
+      },
+      "SnapsRegistry": {
+        "database": null,
+        "databaseUnavailable": false,
+        "lastUpdated": null,
+      },
+      "SubjectMetadataController": {
+        "subjectMetadata": {},
+      },
+      "SwapsController": {
+        "aggregatorMetadata": null,
+        "aggregatorMetadataLastFetched": 0,
+        "approvalTransaction": null,
+        "chainCache": {
+          "0x1": {
+            "aggregatorMetadata": null,
+            "aggregatorMetadataLastFetched": 0,
+            "tokens": null,
+            "tokensLastFetched": 0,
+            "topAssets": null,
+            "topAssetsLastFetched": 0,
+          },
+        },
+        "error": {
+          "description": null,
+          "key": null,
+        },
+        "fetchParams": {
+          "destinationToken": "",
+          "slippage": 0,
+          "sourceAmount": 0,
+          "sourceToken": "",
+          "walletAddress": "",
+        },
+        "fetchParamsMetaData": {
+          "destinationTokenInfo": {
+            "address": "",
+            "decimals": 0,
+            "symbol": "",
+          },
+          "sourceTokenInfo": {
+            "address": "",
+            "decimals": 0,
+            "symbol": "",
+          },
+        },
+        "isInPolling": false,
+        "pollingCyclesLeft": 3,
+        "quoteRefreshSeconds": null,
+        "quoteValues": {},
+        "quotes": {},
+        "quotesLastFetched": 0,
+        "tokens": null,
+        "tokensLastFetched": 0,
+        "topAggId": null,
+        "topAggSavings": null,
+        "topAssets": null,
+        "topAssetsLastFetched": 0,
+        "usedCustomGas": null,
+        "usedGasEstimate": null,
+      },
+      "TokenBalancesController": {
+        "tokenBalances": {},
+      },
+      "TokenListController": {
+        "preventPollingOnNetworkRestart": false,
+        "tokenList": {},
+        "tokensChainsCache": {},
+      },
+      "TokenRatesController": {
+        "marketData": {},
+      },
+      "TransactionController": {
+        "lastFetchedBlockNumbers": {},
+        "methodData": {},
+        "submitHistory": [],
+        "transactions": [],
+      },
+      "UserStorageController": {
+        "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingReadyToBeDispatched": false,
+        "isProfileSyncingEnabled": true,
+        "isProfileSyncingUpdateLoading": false,
+      },
+    },
+  },
+  "metaMetricsId": "6D796265-7374-4953-6D65-74616D61736B",
+}
+`;
