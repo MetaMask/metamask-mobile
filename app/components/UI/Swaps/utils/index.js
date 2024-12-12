@@ -118,6 +118,7 @@ export function getQuotesNavigationsParams(route) {
  * @param {object} options.destinationToken destinationToken object from tokens API
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
+ * @param {string} networkClientId Current network client ID
  */
 export function getFetchParams({
   slippage = 1,
@@ -125,6 +126,7 @@ export function getFetchParams({
   destinationToken,
   sourceAmount,
   walletAddress,
+  networkClientId,
 }) {
   return {
     slippage,
@@ -135,6 +137,7 @@ export function getFetchParams({
     metaData: {
       sourceTokenInfo: sourceToken,
       destinationTokenInfo: destinationToken,
+      networkClientId,
     },
   };
 }

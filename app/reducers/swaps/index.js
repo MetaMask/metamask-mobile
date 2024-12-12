@@ -2,13 +2,13 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
 import { toLowerCaseEquals } from '../../util/general';
-import Engine from '../../core/Engine';
 import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
 } from '../../selectors/tokensController';
+import { selectTokenList } from '../../selectors/tokenListController';
 import { selectContractBalances } from '../../selectors/tokenBalancesController';
 import { getChainFeatureFlags, getSwapsLiveness } from './utils';
 import { allowedTestnetChainIds } from '../../components/UI/Swaps/utils';
@@ -39,15 +39,12 @@ export const setSwapsHasOnboarded = (hasOnboarded) => ({
 
 // * Functions
 
-function addMetadata(chainId, tokens) {
+function addMetadata(chainId, tokens, tokenList) {
   if (!isMainnetByChainId(chainId)) {
     return tokens;
   }
   return tokens.map((token) => {
-    const tokenMetadata =
-      Engine.context.TokenListController.state.tokenList[
-        safeToChecksumAddress(token.address)
-      ];
+    const tokenMetadata = tokenList[safeToChecksumAddress(token.address)];
     if (tokenMetadata) {
       return { ...token, name: tokenMetadata.name };
     }
@@ -230,12 +227,13 @@ const swapsControllerAndUserTokensMultichain = createSelector(
 export const swapsTokensSelector = createSelector(
   chainIdSelector,
   swapsControllerAndUserTokens,
-  (chainId, tokens) => {
+  selectTokenList,
+  (chainId, tokens, tokenList) => {
     if (!tokens) {
       return [];
     }
 
-    return addMetadata(chainId, tokens);
+    return addMetadata(chainId, tokens, tokenList);
   },
 );
 
@@ -279,8 +277,9 @@ export const swapsTokensMultiChainObjectSelector = createSelector(
 export const swapsTokensWithBalanceSelector = createSelector(
   chainIdSelector,
   swapsControllerAndUserTokens,
+  selectTokenList,
   selectContractBalances,
-  (chainId, tokens, balances) => {
+  (chainId, tokens, tokenList, balances) => {
     if (!tokens) {
       return [];
     }
@@ -312,7 +311,7 @@ export const swapsTokensWithBalanceSelector = createSelector(
       0,
       Math.max(tokensWithBalance.length, MAX_TOKENS_WITH_BALANCE),
     );
-    return addMetadata(chainId, result);
+    return addMetadata(chainId, result, tokenList);
   },
 );
 
@@ -323,8 +322,9 @@ export const swapsTokensWithBalanceSelector = createSelector(
 export const swapsTopAssetsSelector = createSelector(
   chainIdSelector,
   swapsControllerAndUserTokens,
+  selectTokenList,
   topAssets,
-  (chainId, tokens, topAssets) => {
+  (chainId, tokens, tokenList, topAssets) => {
     if (!topAssets || !tokens) {
       return [];
     }
@@ -333,7 +333,7 @@ export const swapsTopAssetsSelector = createSelector(
         tokens?.find((token) => toLowerCaseEquals(token.address, address)),
       )
       .filter(Boolean);
-    return addMetadata(chainId, result);
+    return addMetadata(chainId, result, tokenList);
   },
 );
 
