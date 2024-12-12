@@ -1,17 +1,17 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import Browser from '../../pages/Browser/BrowserView';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ToastModal from '../../pages/wallet/ToastModal';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import Assertions from '../../utils/Assertions';
-import { SmokeMultiChain } from '../../tags';
+import TestHelpers from '../../../../helpers';
+import Browser from '../../../../pages/Browser/BrowserView';
+import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import ToastModal from '../../../../pages/wallet/ToastModal';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomSheet';
+import { loginToApp } from '../../../../viewHelper';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import Assertions from '../../../../utils/Assertions';
+import { SmokeMultiChain } from '../../../../tags';
 
 const AccountTwoText = 'Account 2';
 

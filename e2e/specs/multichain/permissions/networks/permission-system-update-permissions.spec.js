@@ -1,19 +1,19 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { SmokeMultiChain } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
+import TestHelpers from '../../../../helpers';
+import { SmokeMultiChain } from '../../../../tags';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import { loginToApp } from '../../../../viewHelper';
+import Assertions from '../../../../utils/Assertions';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
 describe(SmokeMultiChain('Network Permission Management'), () => {
   beforeAll(async () => {
