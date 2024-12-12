@@ -33,9 +33,7 @@ export const mockedUndefinedFlagsState = {
   },
 };
 
-export const getInvalidMockedFeatureFlag = (
-  invalidFeatureFlag: FeatureFlags,
-) => ({
+export const getInvalidMockedFeatureFlag = (invalidFeatureFlag: FeatureFlags) => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
