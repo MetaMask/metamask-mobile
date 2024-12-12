@@ -1,4 +1,4 @@
-import React, { useRef, useState, LegacyRef, useMemo, useEffect } from 'react';
+import React, { useRef, useState, LegacyRef, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';

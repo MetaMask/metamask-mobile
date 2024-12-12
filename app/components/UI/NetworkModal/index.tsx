@@ -6,7 +6,7 @@ import Text from '../../Base/Text';
 import NetworkDetails from './NetworkDetails';
 import NetworkAdded from './NetworkAdded';
 import Engine from '../../../core/Engine';
-import { isPrivateConnection, isTestNet } from '../../../util/networks';
+import { isPrivateConnection } from '../../../util/networks';
 import { toggleUseSafeChainsListValidation } from '../../../util/networks/engineNetworkUtils';
 import getDecimalChainId from '../../../util/networks/getDecimalChainId';
 import URLPARSE from 'url-parse';
@@ -46,8 +46,6 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export interface SafeChain {
   chainId: string;

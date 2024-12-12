@@ -40,7 +40,6 @@ import {
   getDecimalChainId,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
-  isTestNet,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -94,8 +93,6 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
