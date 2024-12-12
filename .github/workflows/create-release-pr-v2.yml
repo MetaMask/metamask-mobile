@@ -13,7 +13,6 @@ on:
         description: 'Previous release version tag. eg: v7.7.0'
         required: true
 jobs:
-
 #   Commented for testing so we don't create extra versions
 #   generate-build-version:
 #     uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
