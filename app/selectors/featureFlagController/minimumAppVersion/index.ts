@@ -1,14 +1,14 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../.';
 import {
-    FEATURE_FLAG_NAME,
-    MinimumAppVersionType,
+  FEATURE_FLAG_NAME,
+  MinimumAppVersionType,
 } from './types';
 import { Json, hasProperty, isObject } from '@metamask/utils';
 import { defaultValues } from './constants';
 
 const isMinimumAppVersionType = (obj: Json):
-    obj is MinimumAppVersionType =>
+  obj is MinimumAppVersionType =>
   isObject(obj) &&
   hasProperty(obj, 'appMinimumBuild') &&
   hasProperty(obj, 'appleMinimumOS') &&
@@ -22,7 +22,7 @@ export const selectMobileMinimumVersions = createSelector(
     return isMinimumAppVersionType(remoteFeatureFlag)
       ? remoteFeatureFlag
       : defaultValues;
-  },
+  }
 );
 
 export const selectAppMinimumBuild = createSelector(

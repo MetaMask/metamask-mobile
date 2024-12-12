@@ -6,7 +6,7 @@ export const mockedState = {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedMinimumAppVersion,
+          ...mockedMinimumAppVersion
         },
         cacheTimestamp: 0,
       },

@@ -6,12 +6,13 @@ import {
   selectAndroidMinimumAPI,
   selectAppMinimumBuild,
   selectAppleMinimumOS,
-  selectMobileMinimumVersions,
+  selectMobileMinimumVersions
 } from '.';
 
 jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
+
 
 describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector', () => {
   afterEach(() => {
@@ -38,21 +39,19 @@ describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector',
   it('returns default values when empty feature flag state', () => {
     testFlagValues(
       selectMobileMinimumVersions(mockedEmptyFlagsState),
-      defaultValues,
-    );
+      defaultValues);
   });
 
   it('returns default values when undefined RemoteFeatureFlagController state', () => {
     testFlagValues(
       selectMobileMinimumVersions(mockedUndefinedFlagsState),
-      defaultValues,
-    );
+      defaultValues);
   });
 
   it('returns remote values', () => {
     testFlagValues(
       selectMobileMinimumVersions(mockedState),
-      mockedMinimumAppVersion.mobileMinimumVersions,
+      mockedMinimumAppVersion.mobileMinimumVersions
     );
   });
 });
@@ -63,23 +62,22 @@ describe('minimumAppVersion Feature flag: appMinimumBuild selector', () => {
   });
 
   it('returns default value when empty feature flag state', () => {
-    expect(selectAppMinimumBuild(mockedEmptyFlagsState)).toEqual(
-      defaultValues.appMinimumBuild,
-    );
+    expect(
+        selectAppMinimumBuild(mockedEmptyFlagsState)
+    ).toEqual(defaultValues.appMinimumBuild);
   });
 
   it('returns default value when undefined RemoteFeatureFlagController state', () => {
-    expect(selectAppMinimumBuild(mockedUndefinedFlagsState)).toEqual(
-      defaultValues.appMinimumBuild,
-    );
+    expect(
+        selectAppMinimumBuild(mockedUndefinedFlagsState)
+    ).toEqual(defaultValues.appMinimumBuild);
   });
 
   it('returns default value when empty feature flag state', () => {
     const { appMinimumBuild: mockedValue } =
       mockedMinimumAppVersion.mobileMinimumVersions;
 
-    expect(
-        selectAppMinimumBuild(mockedState)
+    expect(selectAppMinimumBuild(mockedState)
     ).toEqual(mockedValue);
   });
 });
@@ -92,14 +90,14 @@ describe('minimumAppVersion Feature flag: appleMinimumOS selector', () => {
   it('returns default value when empty feature flag state', () => {
     const { appleMinimumOS: mockedValue } = defaultValues;
     expect(
-        selectAppleMinimumOS(mockedEmptyFlagsState)
+      selectAppleMinimumOS(mockedEmptyFlagsState)
     ).toEqual(mockedValue);
   });
 
   it('returns default value when undefined RemoteFeatureFlagController state', () => {
     const { appleMinimumOS: mockedValue } = defaultValues;
     expect(
-        selectAppleMinimumOS(mockedUndefinedFlagsState)
+      selectAppleMinimumOS(mockedUndefinedFlagsState)
     ).toEqual(mockedValue);
   });
 
@@ -108,7 +106,7 @@ describe('minimumAppVersion Feature flag: appleMinimumOS selector', () => {
       mockedMinimumAppVersion.mobileMinimumVersions;
 
     expect(
-        selectAppleMinimumOS(mockedState)
+      selectAppleMinimumOS(mockedState)
     ).toEqual(mockedValue);
   });
 });
@@ -121,14 +119,14 @@ describe('minimumAppVersion Feature flag: androidMinimumAPIVersion selector', ()
   it('returns default value when empty feature flag state', () => {
     const { androidMinimumAPIVersion: mockedValue } = defaultValues;
     expect(
-        selectAndroidMinimumAPI(mockedEmptyFlagsState)
+      selectAndroidMinimumAPI(mockedEmptyFlagsState)
     ).toEqual(mockedValue);
   });
 
   it('returns default value when undefined RemoteFeatureFlagController state', () => {
     const { androidMinimumAPIVersion: mockedValue } = defaultValues;
     expect(
-        selectAndroidMinimumAPI(mockedUndefinedFlagsState)
+      selectAndroidMinimumAPI(mockedUndefinedFlagsState)
     ).toEqual(mockedValue);
   });
 
@@ -137,7 +135,7 @@ describe('minimumAppVersion Feature flag: androidMinimumAPIVersion selector', ()
       mockedMinimumAppVersion.mobileMinimumVersions;
 
     expect(
-        selectAndroidMinimumAPI(mockedState)
+      selectAndroidMinimumAPI(mockedState)
     ).toEqual(mockedValue);
   });
 });
