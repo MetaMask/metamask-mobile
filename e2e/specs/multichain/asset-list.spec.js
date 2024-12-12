@@ -77,7 +77,9 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       NetworkEducationModal.networkName,
       BNB_NAME,
     );
-    await BuildQuoteView.tapCancelButton();
+    await NetworkEducationModal.tapGotItButton();
+    const cancelButton = await Matchers.getElementByText('Cancel');
+    await Gestures.waitAndTap(cancelButton);
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
