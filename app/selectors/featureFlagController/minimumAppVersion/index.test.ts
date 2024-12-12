@@ -45,7 +45,8 @@ describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector',
   it('returns default values when undefined RemoteFeatureFlagController state', () => {
     testFlagValues(
       selectMobileMinimumVersions(mockedUndefinedFlagsState),
-      defaultValues);
+        defaultValues
+    );
   });
 
   it('returns remote values', () => {
@@ -54,6 +55,7 @@ describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector',
       mockedMinimumAppVersion.mobileMinimumVersions
     );
   });
+
 });
 
 describe('minimumAppVersion Feature flag: appMinimumBuild selector', () => {
@@ -63,13 +65,13 @@ describe('minimumAppVersion Feature flag: appMinimumBuild selector', () => {
 
   it('returns default value when empty feature flag state', () => {
     expect(
-        selectAppMinimumBuild(mockedEmptyFlagsState)
+      selectAppMinimumBuild(mockedEmptyFlagsState)
     ).toEqual(defaultValues.appMinimumBuild);
   });
 
   it('returns default value when undefined RemoteFeatureFlagController state', () => {
     expect(
-        selectAppMinimumBuild(mockedUndefinedFlagsState)
+      selectAppMinimumBuild(mockedUndefinedFlagsState)
     ).toEqual(defaultValues.appMinimumBuild);
   });
 
@@ -77,7 +79,8 @@ describe('minimumAppVersion Feature flag: appMinimumBuild selector', () => {
     const { appMinimumBuild: mockedValue } =
       mockedMinimumAppVersion.mobileMinimumVersions;
 
-    expect(selectAppMinimumBuild(mockedState)
+    expect(
+      selectAppMinimumBuild(mockedState)
     ).toEqual(mockedValue);
   });
 });
