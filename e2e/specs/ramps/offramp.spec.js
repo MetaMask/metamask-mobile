@@ -1,7 +1,7 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -42,7 +42,7 @@ describe(SmokeCore('Off-Ramp'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -60,7 +60,7 @@ describe(SmokeCore('Off-Ramp'), () => {
   it('should display Build Sell Quote based on selected Region and Payment', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSellButton();
+    await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
     await SelectRegionView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption(Regions.USA);

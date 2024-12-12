@@ -1,7 +1,7 @@
 'use strict';
 import { SmokeAssets } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -33,6 +33,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
 
         // Switch to Sepolia
         await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
         await NetworkListModal.changeNetworkTo(SEPOLIA);
         await NetworkEducationModal.tapGotItButton();
 
