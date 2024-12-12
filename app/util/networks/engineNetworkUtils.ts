@@ -1,7 +1,7 @@
 import Engine from '../../core/Engine';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { NetworkClientId } from '@metamask/network-controller';
-import { TransactionMeta, TransactionParams } from '@metamask/transaction-controller';
+import { TransactionParams } from '@metamask/transaction-controller';
 import { isStrictHexString } from '@metamask/utils';
 
 /**
