@@ -35,6 +35,7 @@ import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
@@ -271,6 +272,9 @@ const NetworkConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
               onPress={handleUpdateNetworkPermissions}
+              testID={
+                NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS
+              }
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,

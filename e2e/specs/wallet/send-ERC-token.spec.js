@@ -20,7 +20,7 @@ const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 describe(SmokeCore('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await device.launchApp();
+    await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

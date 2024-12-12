@@ -110,14 +110,14 @@ export const PortfolioBalance = () => {
 
   let total;
   if (isOriginalNativeTokenSymbol) {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       total = totalFiatBalance ?? 0;
     } else {
       const tokenFiatTotal = balance?.tokenFiat ?? 0;
       const ethFiatTotal = balance?.ethFiat ?? 0;
       total = tokenFiatTotal + ethFiatTotal;
     }
-  } else if (isPortfolioViewEnabled) {
+  } else if (isPortfolioViewEnabled()) {
     total = totalTokenFiat ?? 0;
   } else {
     total = balance?.tokenFiat ?? 0;
@@ -175,7 +175,7 @@ export const PortfolioBalance = () => {
       return null;
     }
 
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       return (
         <AggregatedPercentageCrossChains
           privacyMode={privacyMode}

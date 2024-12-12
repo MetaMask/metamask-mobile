@@ -31,7 +31,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });

@@ -41,7 +41,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -350,14 +349,6 @@ export function isPrefixedFormattedHexString(value) {
   return regex.prefixedFormattedHexString.test(value);
 }
 
-export const getNetworkNonce = async ({ from }) => {
-  const { nextNonce, releaseLock } = await getNonceLock(from);
-
-  releaseLock();
-
-  return nextNonce;
-};
-
 export function blockTagParamIndex(payload) {
   switch (payload.method) {
     // blockTag is at index 2
@@ -506,7 +497,5 @@ export const isChainPermissionsFeatureEnabled =
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
-export const isPortfolioViewEnabledFunction = () =>
+export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';

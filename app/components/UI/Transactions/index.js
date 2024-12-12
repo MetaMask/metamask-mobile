@@ -25,6 +25,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -75,6 +76,7 @@ import {
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -101,6 +103,12 @@ const createStyles = (colors, typography) =>
     text: {
       fontSize: 20,
       color: colors.text.muted,
+      ...fontStyles.normal,
+    },
+    textTransactions: {
+      fontSize: 20,
+      color: colors.text.muted,
+      textAlign: 'center',
       ...fontStyles.normal,
     },
     viewMoreWrapper: {
@@ -341,9 +349,11 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
+    const { chainId } = this.props;
+
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions();
+    await updateIncomingTransactions([chainId]);
 
     this.setState({ refreshing: false });
   };
@@ -778,6 +788,7 @@ class Transactions extends PureComponent {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
+              testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
               data={transactions}
@@ -900,6 +911,7 @@ class Transactions extends PureComponent {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   collectibleContracts: collectibleContractsSelector(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
