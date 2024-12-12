@@ -2,8 +2,7 @@ name: Temp Create Release Pull Request V2
 
 on:
   push:
-    branches:
-      - rls-alignment
+  
 
 jobs:
   # Commented for testing so we don't create extra versions
