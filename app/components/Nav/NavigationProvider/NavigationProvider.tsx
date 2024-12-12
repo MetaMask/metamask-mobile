@@ -25,12 +25,18 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   /**
    * Triggers when the navigation is ready
    */
-  const onReady = () => dispatch(onNavigationReady());
+  const onReady = () => {
+    dispatch(onNavigationReady());
+  };
 
   /**
    * Sets the navigation ref on the NavigationService
    */
   const setNavigationRef = (ref: NavigationContainerRef) => {
+    // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
+    if (!ref) {
+      return;
+    }
     NavigationService.navigation = ref;
   };
 
