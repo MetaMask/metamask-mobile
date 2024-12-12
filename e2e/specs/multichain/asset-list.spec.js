@@ -20,8 +20,8 @@ import { NetworkNickname } from '@metamask/controller-utils';
 const fixtureServer = new FixtureServer();
 
 const ETHEREUM_NAME = 'Ethereum';
-const AVAX_NAME = 'Avalanche';
-const BNB_NAME = 'BNB Smart Chain';
+const AVAX_NAME = 'AVAX';
+const BNB_NAME = 'BNB';
 
 describe(SmokeMultiChain('Import Tokens'), () => {
   beforeAll(async () => {
