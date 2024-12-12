@@ -501,7 +501,7 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = isPortfolioViewEnabled
+    const assets = isPortfolioViewEnabled()
       ? [...(tokensByChainIdAndAddress || [])]
       : [...(tokens || [])];
 

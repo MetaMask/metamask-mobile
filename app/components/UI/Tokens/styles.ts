@@ -175,6 +175,16 @@ const createStyles = (colors: Colors) =>
       marginRight: 5,
       maxWidth: '60%',
     },
+    controlButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+      opacity: 0.5,
+    },
     controlButtonText: {
       color: colors.text.default,
     },
