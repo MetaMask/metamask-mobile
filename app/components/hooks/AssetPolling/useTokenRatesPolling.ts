@@ -12,9 +12,7 @@ import {
   selectTokenMarketData,
 } from '../../../selectors/tokenRatesController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import { getNetworkConfigurationsToPoll } from './utils';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
@@ -26,23 +24,11 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const contractExchangeRates = useSelector(selectContractExchangeRates);
   const tokenMarketData = useSelector(selectTokenMarketData);
 
-  // determine if the current chain is popular
-  const isPopular = PopularList.some(
-    (popular) =>
-      popular.chainId === currentChainId ||
-      currentChainId === CHAIN_IDS.MAINNET ||
-      currentChainId === CHAIN_IDS.LINEA_MAINNET,
-  );
-
-  // filter out networks that are not popular, mainnet or linea mainnet
-  const networkConfigurationsToPoll: NetworkConfiguration[] = Object.values(
+  const networkConfigurationsToPoll = getNetworkConfigurationsToPoll(
     networkConfigurations,
-  ).reduce((acc: NetworkConfiguration[], network) => {
-    if (isPopular) {
-      acc.push(network);
-    }
-    return acc;
-  }, []);
+    currentChainId,
+    isAllNetworksSelected,
+  );
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds = isAllNetworksSelected
