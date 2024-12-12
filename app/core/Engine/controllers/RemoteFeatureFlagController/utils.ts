@@ -13,14 +13,10 @@ import { RemoteFeatureFlagInitParamTypes } from './types';
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
   switch (env) {
-    case 'local':
-      return EnvironmentType.Development;
-    case 'pre-release':
-      return EnvironmentType.ReleaseCandidate;
-    case 'production':
-      return EnvironmentType.Production;
-    default:
-      return EnvironmentType.Development;
+    case 'local': return EnvironmentType.Development;
+    case 'pre-release': return EnvironmentType.ReleaseCandidate;
+    case 'production': return EnvironmentType.Production;
+    default: return EnvironmentType.Development;
   }
 };
 
