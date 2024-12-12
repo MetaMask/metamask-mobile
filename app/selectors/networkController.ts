@@ -171,6 +171,7 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 export const selectIsAllNetworks = createSelector(
+  selectNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
   (networkConfigurations, tokenNetworkFilter) => {
     if (Object.keys(tokenNetworkFilter).length === 1) {
