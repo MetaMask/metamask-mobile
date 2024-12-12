@@ -29,6 +29,7 @@ import { useSelector } from 'react-redux';
 import {
   selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectChainId,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -127,6 +128,7 @@ const NetworkSelector = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const currentChainId = useSelector(selectChainId);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -177,16 +179,23 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
+  const isPopularNetwork = PopularList.some(
+    (network) =>
+      network.chainId === currentChainId ||
+      currentChainId === CHAIN_IDS.MAINNET ||
+      currentChainId === CHAIN_IDS.LINEA_MAINNET,
+  );
+
   const setTokenNetworkFilter = useCallback(
     (chainId: string) => {
       const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
+      if (!isAllNetworks && isPopularNetwork && !isTestNet(chainId)) {
         PreferencesController.setTokenNetworkFilter({
           [chainId]: true,
         });
       }
     },
-    [isAllNetworks],
+    [isAllNetworks, isPopularNetwork],
   );
 
   const onRpcSelect = useCallback(

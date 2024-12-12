@@ -150,15 +150,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       currentChainId === CHAIN_IDS.LINEA_MAINNET,
   );
 
-  useEffect(() => {
-    const { PreferencesController } = Engine.context;
-    if (!isPopularNetwork) {
-      PreferencesController.setTokenNetworkFilter({
-        [currentChainId]: true,
-      });
-    }
-  }, [selectedAccountTokensChains, currentChainId, isPopularNetwork]);
-
   const tokensList = useMemo((): TokenI[] => {
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
@@ -421,15 +412,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
-
-  useEffect(() => {
-    const { PreferencesController } = Engine.context;
-    if (isTestNet(currentChainId)) {
-      PreferencesController.setTokenNetworkFilter({
-        [currentChainId]: true,
-      });
-    }
-  }, [currentChainId]);
 
   return (
     <View
