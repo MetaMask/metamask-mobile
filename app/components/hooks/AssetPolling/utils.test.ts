@@ -92,7 +92,6 @@ describe('getNetworkConfigurationsToPoll', () => {
   it('should return all networks if isAllNetworksSelected is true', () => {
     const result = getNetworkConfigurationsToPoll(
       mockNetworkConfigurations as Record<string, NetworkConfiguration>,
-      '0x1',
       true,
     );
 
@@ -102,7 +101,6 @@ describe('getNetworkConfigurationsToPoll', () => {
   it('should return only popular, mainnet, or linea mainnet networks if isAllNetworksSelected is false and current chain is popular', () => {
     const result = getNetworkConfigurationsToPoll(
       mockNetworkConfigurations as Record<string, NetworkConfiguration>,
-      '0x1',
       false,
     );
 
@@ -117,7 +115,6 @@ describe('getNetworkConfigurationsToPoll', () => {
   it('should return only mainnet and linea mainnet if isAllNetworksSelected is false and current chain is not popular', () => {
     const result = getNetworkConfigurationsToPoll(
       mockNetworkConfigurations as Record<string, NetworkConfiguration>,
-      '0xaa36a7',
       false,
     );
 
@@ -132,13 +129,11 @@ describe('getNetworkConfigurationsToPoll', () => {
   it('should return all networks if the current chain ID is mainnet or linea mainnet regardless of popularity', () => {
     const resultMainnet = getNetworkConfigurationsToPoll(
       mockNetworkConfigurations as Record<string, NetworkConfiguration>,
-      '0x1',
       false,
     );
 
     const resultLineaMainnet = getNetworkConfigurationsToPoll(
       mockNetworkConfigurations as Record<string, NetworkConfiguration>,
-      '0xe708',
       false,
     );
 

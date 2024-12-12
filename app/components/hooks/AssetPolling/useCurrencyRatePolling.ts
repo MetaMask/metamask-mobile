@@ -22,7 +22,6 @@ const useCurrencyRatePolling = () => {
 
   const networkConfigurationsPopular = getNetworkConfigurationsToPoll(
     networkConfigurations,
-    currentChainId,
     isAllNetworksSelected,
   );
 

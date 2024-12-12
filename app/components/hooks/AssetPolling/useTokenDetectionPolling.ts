@@ -21,7 +21,6 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   const networkConfigurationsToPoll = getNetworkConfigurationsToPoll(
     networkConfigurations,
-    currentChainId,
     isAllNetworksSelected,
   );
 

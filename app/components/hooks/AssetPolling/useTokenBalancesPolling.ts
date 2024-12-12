@@ -21,7 +21,6 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   const networkConfigurationsPopular = getNetworkConfigurationsToPoll(
     networkConfigurations,
-    currentChainId,
     isAllNetworksSelected,
   );
 
