@@ -365,7 +365,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 }
                               }
                             >
-                              All Networks
+                              Ethereum Main Network
                             </Text>
                             <SvgMock
                               color="#141618"
