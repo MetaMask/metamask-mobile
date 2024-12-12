@@ -152,9 +152,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(
-      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS),
-    );
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
       message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',

@@ -13,9 +13,7 @@ const useMinimumVersions = () => {
     (state: RootState) => state.security,
   );
 
-  const appMinimumBuild = useSelector((state: RootState) =>
-    selectAppMinimumBuild(state),
-  );
+  const appMinimumBuild = useSelector((state: RootState) => selectAppMinimumBuild(state));
   const currentBuildNumber = Number(getBuildNumber());
   const navigation = useNavigation();
   const shouldTriggerUpdateFlow =

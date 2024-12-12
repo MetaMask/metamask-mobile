@@ -355,9 +355,7 @@ const AccountConnectMultiSelector = ({
               onPress={() =>
                 setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
               }
-              testID={
-                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-              }
+              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
             />
           </View>
           <View style={styles.body}>{renderCtaButtons()}</View>

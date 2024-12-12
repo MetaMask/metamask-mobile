@@ -110,9 +110,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
-            testID={
-              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
-            }
+            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
           />
         </View>
       </Fragment>

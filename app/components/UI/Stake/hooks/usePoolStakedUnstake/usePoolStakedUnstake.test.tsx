@@ -170,11 +170,7 @@ describe('usePoolStakedUnstake', () => {
       expect(mockGetShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
-      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(
-        BigNumber.from(MOCK_USER_SHARES),
-        MOCK_RECEIVER_ADDRESS,
-        { gasLimit: MOCK_UNSTAKE_GAS_LIMIT },
-      );
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });

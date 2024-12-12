@@ -397,9 +397,7 @@ const AccountActions = () => {
             actionTitle={strings('accounts.remove_hardware_account')}
             iconName={IconName.Close}
             onPress={showRemoveHWAlert}
-            testID={
-              AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT
-            }
+            testID={AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT}
           />
         )}
         {
