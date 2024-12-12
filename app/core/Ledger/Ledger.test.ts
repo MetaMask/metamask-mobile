@@ -70,9 +70,7 @@ describe('Ledger core', () => {
     const mockKeyringController = MockEngine.context.KeyringController;
 
     ledgerKeyring = {
-      addAccounts: jest
-        .fn()
-        .mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']),
+      addAccounts: jest.fn().mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']),
       bridge: {
         getAppNameAndVersion: jest
           .fn()
@@ -302,7 +300,9 @@ describe('Ledger core', () => {
         await unlockLedgerWalletAccount(1);
       } catch (err) {
         expect(err).toBeInstanceOf(Error);
-        expect((err as Error).message).toBe(`Account Ledger 1 already exists`);
+        expect((err as Error).message).toBe(
+          `Account Ledger 1 already exists`
+        );
       }
     });
   });

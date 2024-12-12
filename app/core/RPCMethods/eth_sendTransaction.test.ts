@@ -155,9 +155,7 @@ function getMockAddTransaction({
 describe('eth_sendTransaction', () => {
   it('sends the transaction and returns the resulting hash', async () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
-    const mockTransactionParameters = {
-      from: mockAddress,
-    };
+    const mockTransactionParameters = { from: mockAddress };
     const expectedResult = 'fake-hash';
     const pendingResult = constructPendingJsonRpcResponse();
 

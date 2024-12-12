@@ -217,12 +217,8 @@ export const ledgerSignTypedMessage = async (
  */
 export const checkAccountNameExists = async (accountName: string) => {
   const accountsController = Engine.context.AccountsController;
-  const accounts = Object.values(
-    accountsController.state.internalAccounts.accounts,
-  );
-  const existingAccount = accounts.find(
-    (account) => account.metadata.name === accountName,
-  );
+  const accounts =  Object.values(accountsController.state.internalAccounts.accounts);
+  const existingAccount = accounts.find((account) => account.metadata.name === accountName);
   return !!existingAccount;
 };
 
@@ -233,30 +229,24 @@ export const checkAccountNameExists = async (accountName: string) => {
  */
 export const unlockLedgerWalletAccount = async (index: number) => {
   const accountsController = Engine.context.AccountsController;
-  const { unlockAccount, name } = await withLedgerKeyring(
-    async (keyring: LedgerKeyring) => {
-      const existingAccounts = await keyring.getAccounts();
-      const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
-      const accountName = `${keyringName} ${existingAccounts.length + 1}`;
+  const { unlockAccount, name}  = await withLedgerKeyring(async (keyring: LedgerKeyring) => {
+    const existingAccounts = await keyring.getAccounts();
+    const keyringName = keyringTypeToName(ExtendedKeyringTypes.ledger);
+    const accountName = `${keyringName} ${existingAccounts.length + 1}`;
 
-      if (await checkAccountNameExists(accountName)) {
-        throw new Error(
-          strings('ledger.account_name_existed', { accountName }),
-        );
-      }
+    if(await checkAccountNameExists(accountName)) {
+      throw new Error(strings('ledger.account_name_existed', { accountName }));
+    }
 
-      keyring.setAccountToUnlock(index);
-      const accounts = await keyring.addAccounts(1);
-      return {
-        unlockAccount: accounts[accounts.length - 1],
-        name: accountName,
-      };
-    },
-  );
+    keyring.setAccountToUnlock(index);
+    const accounts = await keyring.addAccounts(1);
+    return { unlockAccount: accounts[accounts.length - 1], name: accountName };
+  });
 
-  const account = accountsController.getAccountByAddress(unlockAccount);
+  const account =
+    accountsController.getAccountByAddress(unlockAccount);
 
-  if (account && name !== account.metadata.name) {
+  if(account && name !== account.metadata.name) {
     accountsController.setAccountName(account.id, name);
   }
 };

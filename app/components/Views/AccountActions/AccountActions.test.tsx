@@ -190,9 +190,7 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(
-      getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT),
-    );
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT));
 
     expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
       selectedAccount: {
@@ -220,9 +218,7 @@ describe('AccountActions', () => {
       );
 
       fireEvent.press(
-        getByTestId(
-          AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT,
-        ),
+        getByTestId(AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
       );
 
       const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;
