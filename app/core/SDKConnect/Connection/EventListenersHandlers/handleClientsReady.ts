@@ -9,6 +9,7 @@ import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 import AppConstants from '../../../../core/AppConstants';
+import NavigationService from '../../../NavigationService/NavigationService';
 
 function handleClientsReady({
   instance,
@@ -50,9 +51,12 @@ function handleClientsReady({
           ) {
             // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
             if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-              instance.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-              });
+              NavigationService.navigation?.navigate(
+                Routes.MODAL.ROOT_MODAL_FLOW,
+                {
+                  screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+                },
+              );
             }
           }
         },

@@ -51,7 +51,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 
@@ -173,7 +175,6 @@ export const handleConnectionMessage = async ({
     selectedAddress: selectedInternalAccountChecksummedAddress,
     selectedChainId: chainId,
     connection,
-    navigation: connection.navigation,
     rpc: {
       id: message.id,
       method: message.method,

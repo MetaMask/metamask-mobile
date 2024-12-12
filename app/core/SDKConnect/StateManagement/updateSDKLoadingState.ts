@@ -4,6 +4,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { waitForKeychainUnlocked } from '../utils/wait.util';
 import Engine from '../../Engine';
 import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../NavigationService/NavigationService';
 
 async function updateSDKLoadingState({
   channelId,
@@ -20,11 +21,16 @@ async function updateSDKLoadingState({
     delete instance.state.sdkLoadingState[channelId];
   }
 
-  const currentRouteName = instance.state.navigation?.getCurrentRoute?.()?.name;
+  const currentRouteName =
+    NavigationService.navigation?.getCurrentRoute?.()?.name;
   DevLogger.log(
     `updateSDKLoadingState:: currentRouteName=${currentRouteName} loading=${loading}`,
   );
-  const skipRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN, Routes.SHEET.ACCOUNT_CONNECT];
+  const skipRoutes = [
+    Routes.LOCK_SCREEN,
+    Routes.ONBOARDING.LOGIN,
+    Routes.SHEET.ACCOUNT_CONNECT,
+  ];
   if (currentRouteName && skipRoutes.includes(currentRouteName)) {
     // Skip on lock screen
     return;
@@ -42,7 +48,7 @@ async function updateSDKLoadingState({
       context: 'updateSDKLoadingState',
     });
 
-    instance.state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SDK_LOADING,
     });
   } else {

@@ -11,6 +11,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import NavigationService from '../../NavigationService/NavigationService';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -27,7 +28,8 @@ export const checkPermissions = async ({
   try {
     // close poientially open loading modal
     connection.setLoading(false);
-    const currentRouteName = connection.navigation?.getCurrentRoute()?.name;
+    const currentRouteName =
+      NavigationService.navigation?.getCurrentRoute()?.name;
 
     DevLogger.log(
       `checkPermissions initialConnection=${connection.initialConnection} method=${message?.method} lastAuthorized=${lastAuthorized}`,
@@ -55,7 +57,8 @@ export const checkPermissions = async ({
     if (currentRouteName && pendingRoutes.includes(currentRouteName)) {
       await waitForCondition({
         fn: (): boolean => {
-          const activeRoute = connection.navigation?.getCurrentRoute()?.name;
+          const activeRoute =
+            NavigationService.navigation?.getCurrentRoute()?.name;
           return Boolean(activeRoute && !pendingRoutes.includes(activeRoute));
         },
         waitTime: 1000,

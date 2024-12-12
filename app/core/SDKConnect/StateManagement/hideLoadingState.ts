@@ -1,16 +1,17 @@
 import Routes from '../../../constants/navigation/Routes';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
+import NavigationService from '../../NavigationService/NavigationService';
 
 async function hideLoadingState({ instance }: { instance: SDKConnect }) {
   instance.state.sdkLoadingState = {};
-  const currentRoute = instance.state.navigation?.getCurrentRoute()?.name;
+  const currentRoute = NavigationService.navigation?.getCurrentRoute()?.name;
   DevLogger.log(`SDKConnect::hideLoadingState currentRoute=${currentRoute}`);
   if (
     currentRoute === Routes.SHEET.SDK_LOADING &&
-    instance.state.navigation?.canGoBack()
+    NavigationService.navigation?.canGoBack()
   ) {
-    instance.state.navigation?.goBack();
+    NavigationService.navigation?.goBack();
   } else {
     DevLogger.log(
       `SDKConnect::hideLoadingState - SKIP - currentRoute=${currentRoute}`,

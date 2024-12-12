@@ -1,4 +1,3 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import {
   disconnectAll,
   resetApprovedHosts,
@@ -13,15 +12,12 @@ import { wait } from '../utils/wait.util';
 import AppConstants from '../../../../app/core/AppConstants';
 
 const asyncInit = async ({
-  navigation,
   instance,
   context,
 }: {
-  navigation: NavigationContainerRef;
   instance: SDKConnect;
   context?: string;
 }) => {
-  instance.state.navigation = navigation;
   DevLogger.log(`SDKConnect::init()[${context}] - starting`);
 
   // Ignore initial call to _handleAppState since it is first initialization.

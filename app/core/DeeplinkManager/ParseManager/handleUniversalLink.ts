@@ -13,6 +13,7 @@ import parseOriginatorInfo from '../parseOriginatorInfo';
 import Device from '../../../util/device';
 import { Platform } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../NavigationService/NavigationService';
 
 function handleUniversalLink({
   instance,
@@ -56,12 +57,15 @@ function handleUniversalLink({
     }
 
     if (action === ACTIONS.CONNECT) {
-      if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+      if (
+        params.redirect &&
+        origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
+      ) {
         if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
           });
-        }  else {
+        } else {
           Minimizer.goBack();
         }
       } else if (params.channelId) {

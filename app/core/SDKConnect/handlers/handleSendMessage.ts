@@ -9,6 +9,7 @@ import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
+import NavigationService from '../../NavigationService/NavigationService';
 
 export const handleSendMessage = async ({
   msg,
@@ -82,7 +83,7 @@ export const handleSendMessage = async ({
       );
       connection.setLoading(false);
       return;
-      // const currentRoute = connection.navigation?.getCurrentRoute()?.name;
+      // const currentRoute = NavigationService.navigation?.getCurrentRoute()?.name;
       // if (!method && currentRoute === 'AccountConnect') {
       //   DevLogger.log(`[handleSendMessage] remove modal`);
       //   if (
@@ -113,7 +114,7 @@ export const handleSendMessage = async ({
       //       // Ignore temporarily until next stage of permissions system implementation
       //       DevLogger.log(`[handleSendMessage] error goBack()`, _e);
       //     }
-      //     connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      //     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       //       screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       //     });
       //   }
@@ -143,7 +144,7 @@ export const handleSendMessage = async ({
 
     // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
     if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-      connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       });
     } else {
