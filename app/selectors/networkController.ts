@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -50,7 +51,7 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
 });
 
 // Helper function to create the provider config based on the network and endpoint
-const createProviderConfig = (
+export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
   rpcEndpoint: RpcEndpoint,
 ): ProviderConfig => {
@@ -80,7 +81,7 @@ const createProviderConfig = (
   };
 };
 
-const selectNetworkControllerState = (state: RootState) =>
+export const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(
@@ -149,7 +150,7 @@ export const selectNetworkStatus = createSelector(
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurationsByChainId,
+    networkControllerState?.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(
@@ -167,9 +168,22 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 export const selectIsAllNetworks = createSelector(
-  selectNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
-  (networkConfigurations, tokenNetworkFilter) =>
-    Object.keys(tokenNetworkFilter).length ===
-    Object.keys(networkConfigurations).length,
+  (tokenNetworkFilter) => {
+    if (Object.keys(tokenNetworkFilter).length === 1) {
+      return false;
+    }
+    return true;
+  },
+);
+
+export const selectNetworkConfigurationByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
+);
+
+export const selectNativeCurrencyByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
 );

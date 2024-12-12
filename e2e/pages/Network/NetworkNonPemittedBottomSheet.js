@@ -8,6 +8,7 @@ import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
 } from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import TestHelpers from '../../helpers';
 
 class NetworkNonPemittedBottomSheet {
   get addThisNetworkTitle() {
@@ -34,6 +35,24 @@ class NetworkNonPemittedBottomSheet {
     );
   }
 
+  get lineaSepoliaNetworkName() {
+    return Matchers.getElementByText(
+      NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+    );
+  }
+
+  get chooseFromPermittedNetworksButton() {
+    return Matchers.getElementByID(
+      NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
+    );
+  }
+
+  get editPermissionsButton() {
+    return Matchers.getElementByID(
+      NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
+    );
+  }
+
   async tapAddThisNetworkButton() {
     await Gestures.waitAndTap(this.addThisNetworkButton);
   }
@@ -44,6 +63,18 @@ class NetworkNonPemittedBottomSheet {
 
   async tapEthereumMainNetNetworkName() {
     await Gestures.waitAndTap(this.ethereumMainNetNetworkName);
+  }
+
+  async tapLineaSepoliaNetworkName() {
+    await Gestures.waitAndTap(this.lineaSepoliaNetworkName);
+  }
+
+  async tapChooseFromPermittedNetworksButton() {
+    await Gestures.waitAndTap(this.chooseFromPermittedNetworksButton);
+  }
+
+  async tapEditPermissionsButton() {
+    await Gestures.waitAndTap(this.editPermissionsButton);
   }
 }
 
