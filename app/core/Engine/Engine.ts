@@ -159,7 +159,7 @@ import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
-import { lowerCase } from 'lodash';
+import { lowerCase, omit } from 'lodash';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
@@ -317,15 +317,23 @@ export class Engine {
       },
     });
 
+    // Remove Goerli and Linea Goerli from NetworkController state to prevent
+    // repeated failure messages from the block tracker
+    const initialNetworkControllerState = initialState.NetworkController
+      ? {
+          ...initialState.NetworkController,
+          networkConfigurationsByChainId: omit(
+            initialState.NetworkController.networkConfigurationsByChainId,
+            ['0x5', '0xe704'],
+          ),
+        }
+      : undefined;
     // eslint-disable-next-line no-console
-    console.log(
-      'initial network controller state',
-      initialState.NetworkController,
-    );
+    console.dir(initialNetworkControllerState);
 
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
+      state: initialNetworkControllerState,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NetworkController',
         allowedEvents: [],
