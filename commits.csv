@@ -1,0 +1,84 @@
+Commit Message,Author,PR Link,Team,Change Type
+New Crowdin translations by Github Action (#12338),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/12338,team-mobile-platform,Unknown
+fix: disable flaky tests on incoming-transactions.spec (#12663),CW,https://github.com/MetaMask/metamask-mobile/pull/12663,team-mobile-platform,Changed
+build: Add --device flag to yarn start:android (#12645),Andre Pimenta,https://github.com/MetaMask/metamask-mobile/pull/12645,team-mobile-platform,Unknown
+chore: Chore/12435 mvp handle engine does not exist (#12538),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/12538,team-mobile-platform,Changed
+docs: Update README.md with new expo instructions (#12617),Andre Pimenta,https://github.com/MetaMask/metamask-mobile/pull/12617,team-mobile-platform,Changed
+fix: disable mock poc test (#12598),CW,https://github.com/MetaMask/metamask-mobile/pull/12598,team-mobile-platform,Changed
+fix: Jest timer error in unit test (#12230),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/12230,team-mobile-platform,Changed
+test: move remaining modal pages and selectors to their respective folders (#12559),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/12559,team-mobile-platform,Changed
+test: remove redundent tests in quarantine folder (#12556),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/12556,team-mobile-platform,Changed
+feat: v7.36.0 (#12314),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/12314,team-mobile-platform,Added
+test: Create e2e tag for multi chain  (#12558),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/12558,team-mobile-platform,Changed
+test: Move files to Wallet folder (#12531),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/12531,team-mobile-platform,Changed
+test: Move files to Onboarding folder (#12511),SamuelSalas,https://github.com/MetaMask/metamask-mobile/pull/12511,team-mobile-platform,Changed
+test: address regression pipeline slow down (#12512),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/12512,team-mobile-platform,Changed
+ci: disable security e2e tests (#12513),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/12513,team-mobile-platform,Changed
+feat: implement remote feature flag controller (#12427),João Loureiro,https://github.com/MetaMask/metamask-mobile/pull/12427,team-mobile-platform,Added
+chore: chore/7.37.0-Changelog (#12491),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/12491,team-mobile-platform,Changed
+chore: Additional e2e test to support `PortfolioView` (#12602),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/12602,team-assets,Changed
+fix: fix token details navigation (#12659),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12659,team-assets,Fixed
+fix: fix swaps button on asset overview page for multichain feature (#12650),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12650,team-assets,Added
+fix: add new translations (#12624),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12624,team-assets,Fixed
+fix: fix network selector (#12641),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12641,team-assets,Fixed
+fix: fix native tokens filter when all networks is selected (#12637),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12637,team-assets,Fixed
+feat: activate portfolio view (#12507),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/12507,team-assets,Added
+fix: fix flaky test (#12626),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/12626,team-assets,Changed
+chore: cherry-pick #12540 (#12600),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/12600,team-assets,Ops
+feat: migrate Base network RPC from https://mainnet.base.org to base-… (#12540),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/12540,team-assets,Added
+feat: add aggregated portfolio balance cross chains (#12505),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12505,team-assets,Added
+fix: fix NFTs disappearing after killing app (#12529),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/12529,team-assets,Fixed
+chore(runway): cherry-pick fix: Move `AssetPollingProvider` from Root to Nav/Main/index.js (#12564),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/12564,team-assets,Ops
+fix: Move `AssetPollingProvider` from Root to Nav/Main/index.js (#12562),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/12562,team-assets,Fixed
+feat: multichain detect tokens feat (#12417),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/12417,team-assets,Added
+feat: 7.37.0 (#12490),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/12490,team-bot,Added
+"feat: adding basic page for typed signatures V3, V4 (#12506)",Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/12506,team-confirmations,Added
+feat: upgrade transaction controller to get incoming transactions using accounts API (#12419),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/12419,team-confirmations,Added
+fix: e2e regression gas api (#12607),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/12607,team-confirmations,Fixed
+refactor: remove global network from transaction controller  (#12321),Matthew Walsh,https://github.com/MetaMask/metamask-mobile/pull/12321,team-confirmations,Changed
+test: fix mock server (#12536),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/12536,team-confirmations,Changed
+fix: add source when local PPOM fails (#12460),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/12460,team-confirmations,Fixed
+test: add e2e test for security alert api  (#12288),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/12288,team-confirmations,Changed
+feat: enable ledger clear signing feature (#12537),Xiaoming Wang,https://github.com/MetaMask/metamask-mobile/pull/12537,team-hardware-wallets,Added
+fix: 10967 User able to add Ledger account with existing account name (#12199),Xiaoming Wang,https://github.com/MetaMask/metamask-mobile/pull/12199,team-hardware-wallets,Fixed
+test(3615): additional e2e scenarios editing permissions and non permitted networks (#12597),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/12597,team-wallet-ux,Changed
+test(3615): add new e2e test for initial dapp connection and non permitted flow (#12488),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/12488,team-wallet-ux,Changed
+fix(12527): sdk connection with unknown url causes a bug (#12566),EtherWizard33,https://github.com/MetaMask/metamask-mobile/pull/12566,team-wallet-ux,Fixed
+fix(431-2): active network icon has too much margin and adding optional prop (#12405),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/12405,team-wallet-ux,Fixed
+refactor: de-anonymize insensitive properties of swaps events (#12532),Bryan Fullam,https://github.com/MetaMask/metamask-mobile/pull/12532,team-swaps,Changed
+feat: Hide the smart transaction status page if we return a txHash asap (#12622),Daniel,https://github.com/MetaMask/metamask-mobile/pull/12622,team-transactions,Added
+fix: hide tokens without balance for multichain (#12630),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/12630,"team-assets,team-wallet-ux",Fixed
+feat: multi chain asset list (#12431),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/12431,"team-assets,team-wallet-ux",Added
+chore: update bug template to include feature branches (#12623),jvbriones,https://github.com/MetaMask/metamask-mobile/pull/12623,team-qa,Added
+"chore: bump {profile-sync,notification-services}-controller (#12615)",cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/12615,team-wallet-framework,Ops
+"chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)",cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/12577,team-wallet-framework,Ops
+"chore: bump `@metamask/{preferences,assets}-controllers` (#12579)",cryptodev-2s,https://github.com/MetaMask/metamask-mobile/pull/12579,team-wallet-framework,Ops
+chore: Stop suppressing pod install failures (#12485),Mark Stacey,https://github.com/MetaMask/metamask-mobile/pull/12485,team-wallet-framework,Changed
+chore: Add option to skip pod install setup step (#12574),Mark Stacey,https://github.com/MetaMask/metamask-mobile/pull/12574,team-wallet-framework,Changed
+chore: update user storage E2E framework (#12609),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/12609,team-identity,Changed
+chore: transfer ownership of auth & profile sync E2E from notifications to identity (#12569),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/12569,team-identity,Changed
+chore: change ownership of profile sync from notifications to identity (#12534),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/12534,team-identity,Changed
+chore(deps): Bump `@metamask/composable-controller` from `^3.0.0` to `^10.0.0` (#10441),Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/10441,"team-wallet-framework,team-tiger",Changed
+"fix: Remove stateless ""non-controllers"" from background engine state (#12348)",Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/12348,"team-wallet-framework,team-tiger",Fixed
+"fix: Resolve errors, omissions, duplicates in Engine types `Global{Actions,Events}` (#12407)",Jongsun Suh,https://github.com/MetaMask/metamask-mobile/pull/12407,"team-wallet-framework,team-tiger",Fixed
+feat(ci): Expo (#12244),Andre Pimenta,https://github.com/MetaMask/metamask-mobile/pull/12244,team-tiger,Added
+"fix: circular deps between engine, network utils tx utils (#12376)",tommasini,https://github.com/MetaMask/metamask-mobile/pull/12376,team-tiger,Changed
+chore: bump react-native-linear-gradient library (#12553),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12553,team-tiger,Ops
+fix: circular dependencies engine-network-handleNetworkSwitch (#12373),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12373,team-tiger,Changed
+chore: Decrease hot and cold start app to wallet view time (#12543),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12543,team-tiger,Changed
+fix: abstract out circular dependencies between engine and networks util (#12372),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12372,team-tiger,Changed
+chore: Add eth hd keyring and key tree to decrease unlock time (#12428),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12428,team-tiger,Changed
+fix: add resolution for express to fix failing audit on path-to-regexp (#12591),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/12591,team-notifications,Fixed
+feat: upgrade profile-sync-controller to 1.0.0 (#12459),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/12459,team-notifications,Added
+chore(runway): cherry-pick fix(12527): sdk connection with unknown url causes a bug (#12573),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/12573,team-runway-bot,Ops
+chore(runway): cherry-pick feat: implement remote feature flag controller (#12510),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/12510,team-runway-bot,Added
+chore: Update accounts packages (#12555),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/12555,team-accounts,Changed
+feat: Add Bitcoin accounts (Flask Only) (#12294),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/12294,team-accounts,Added
+chore: cicd e2e hardening (#12563),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/12563,team-dev-ops,Changed
+chore: fail status when on no labels for retro-label changes (#12554),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/12554,team-dev-ops,Changed
+feat: cicd e2e label requirements + pr automation (#12243),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/12243,team-dev-ops,Added
+fix: update input handling in useInputHandler to support BACK key functionality (#12567),Amitabh Aggarwal,https://github.com/MetaMask/metamask-mobile/pull/12567,team-stake,Fixed
+chore: use getShares contract method from stake-sdk for unstake all flow (#12295),Nicholas Smith,https://github.com/MetaMask/metamask-mobile/pull/12295,team-stake,Changed
+chore: Bump Snaps packages (#12551),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/12551,team-snaps-platform,Changed
+feat: Support gas fee flows in swaps (#12495),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/12495,"team-swaps,team-confirmations",Added
+chore: Address derived from SRP (#12528),tommasini,https://github.com/MetaMask/metamask-mobile/pull/12528,"team-accounts,team-tiger",Changed
