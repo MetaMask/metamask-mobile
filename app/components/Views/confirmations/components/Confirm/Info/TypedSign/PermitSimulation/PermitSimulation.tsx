@@ -50,7 +50,7 @@ const PermitSimulation = () => {
 
   const { approvalRequest } = useApprovalRequest();
 
-  // TODO: confirm we want selected chainID, not one associated through confirmation itself
+  // TODO: update logic to use chainId from approvalRequest. SignatureController needs to be updated prior
   const chainId = useSelector(selectChainId);
 
   const msgData = approvalRequest?.requestData?.data;
@@ -92,6 +92,7 @@ const PermitSimulation = () => {
               ) => (
                 <PermitSimulationValueDisplay
                   key={`${token}-${i}`}
+                  labelChangeType={labelChangeType}
                   primaryType={primaryType}
                   tokenContract={safeToChecksumAddress(token)}
                   value={amount}
@@ -102,6 +103,7 @@ const PermitSimulation = () => {
           </View>
         ) : (
           <PermitSimulationValueDisplay
+            labelChangeType={labelChangeType}
             tokenContract={verifyingContract}
             value={message.value}
             tokenId={message.tokenId}
