@@ -250,3 +250,4 @@ export const unlockLedgerWalletAccount = async (index: number) => {
     accountsController.setAccountName(account.id, name);
   }
 };
+

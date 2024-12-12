@@ -277,7 +277,7 @@ describe('Ledger core', () => {
       // @ts-expect-error: The account metadata type is hard to mock
       metadata: {
         name: 'Ledger 1',
-      },
+      }
     });
 
     it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
@@ -287,13 +287,15 @@ describe('Ledger core', () => {
     });
 
     it(`throws an error if the account name has already exists`, async () => {
+
+
       mockAccountsController.state.internalAccounts.accounts = [
         {
           // @ts-expect-error: The account metadata type is hard to mock
           metadata: {
             name: 'Ledger 1',
           },
-        },
+        }
       ];
 
       try {
