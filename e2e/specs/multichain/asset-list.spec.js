@@ -15,7 +15,7 @@ import Assertions from '../../utils/Assertions';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
-import { NetworkNickname } from '@metamask/controller-utils';
+import SendView from '../../pages/Send/SendView';
 
 import QuoteView from '../../pages/swaps/QuoteView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -105,6 +105,8 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
+    await SendView.tapCancelButton();
+    await TabBarComponent.tapWallet();
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.tapOnToken('AVAX');
