@@ -7,7 +7,7 @@ import {
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 import {
   selectERC20TokensByChain,
   selectTokenList,
@@ -31,9 +31,10 @@ const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   );
 
   // if all networks are selected, poll all popular networks
-  const filteredChainIds = isAllNetworksSelected
-    ? networkConfigurationsToPoll.map((network) => network.chainId)
-    : [currentChainId];
+  const filteredChainIds =
+    isAllNetworksSelected && !isTestNet(currentChainId)
+      ? networkConfigurationsToPoll.map((network) => network.chainId)
+      : [currentChainId];
 
   const chainIdsToPoll = isPortfolioViewEnabled()
     ? chainIds ?? filteredChainIds

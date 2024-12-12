@@ -11,7 +11,7 @@ import {
   selectContractExchangeRates,
   selectTokenMarketData,
 } from '../../../selectors/tokenRatesController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 import { getNetworkConfigurationsToPoll } from './utils';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
@@ -31,9 +31,10 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   );
 
   // if all networks are selected, poll all popular networks
-  const filteredChainIds = isAllNetworksSelected
-    ? networkConfigurationsToPoll.map((network) => network.chainId)
-    : [currentChainId];
+  const filteredChainIds =
+    isAllNetworksSelected && !isTestNet(currentChainId)
+      ? networkConfigurationsToPoll.map((network) => network.chainId)
+      : [currentChainId];
 
   const chainIdsToPoll = isPortfolioViewEnabled()
     ? chainIds ?? filteredChainIds

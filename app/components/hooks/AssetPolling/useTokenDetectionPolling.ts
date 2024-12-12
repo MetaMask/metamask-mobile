@@ -7,7 +7,7 @@ import {
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { getNetworkConfigurationsToPoll } from './utils';
@@ -26,9 +26,10 @@ const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   );
 
   // if all networks are selected, poll all popular networks
-  const filteredChainIds = isAllNetworksSelected
-    ? networkConfigurationsToPoll.map((network) => network.chainId)
-    : [currentChainId];
+  const filteredChainIds =
+    isAllNetworksSelected && !isTestNet(currentChainId)
+      ? networkConfigurationsToPoll.map((network) => network.chainId)
+      : [currentChainId];
 
   // if portfolio view is enabled, poll all chain ids
   const chainIdsToPoll = isPortfolioViewEnabled()

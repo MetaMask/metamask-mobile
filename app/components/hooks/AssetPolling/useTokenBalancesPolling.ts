@@ -7,7 +7,7 @@ import {
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
 import { selectAllTokenBalances } from '../../../selectors/tokenBalancesController';
 import { getNetworkConfigurationsToPoll } from './utils';
 
@@ -26,9 +26,10 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   );
 
   // if all networks are selected, poll all popular networks
-  const networkConfigurationsToPoll = isAllNetworksSelected
-    ? networkConfigurationsPopular
-    : [{ chainId: currentChainId }];
+  const networkConfigurationsToPoll =
+    isAllNetworksSelected && !isTestNet(currentChainId)
+      ? networkConfigurationsPopular
+      : [{ chainId: currentChainId }];
 
   const chainIdsToPoll = isPortfolioViewEnabled()
     ? chainIds ?? networkConfigurationsToPoll.map((network) => network.chainId)

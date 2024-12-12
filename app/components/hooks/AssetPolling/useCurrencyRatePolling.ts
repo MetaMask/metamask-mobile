@@ -11,6 +11,7 @@ import {
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
 import { getNetworkConfigurationsToPoll } from './utils';
+import { isTestNet } from '../../../util/networks';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = () => {
@@ -30,13 +31,15 @@ const useCurrencyRatePolling = () => {
   const currencyRates = useSelector(selectCurrencyRates);
 
   // if all networks are selected, poll all popular networks
-  const networkConfigurationsToPoll = isAllNetworksSelected
-    ? networkConfigurationsPopular
-    : [
-        {
-          nativeCurrency: networkConfigurations[currentChainId].nativeCurrency,
-        },
-      ];
+  const networkConfigurationsToPoll =
+    isAllNetworksSelected && !isTestNet(currentChainId)
+      ? networkConfigurationsPopular
+      : [
+          {
+            nativeCurrency:
+              networkConfigurations[currentChainId].nativeCurrency,
+          },
+        ];
 
   // get all native currencies to poll
   const nativeCurrencies = [
