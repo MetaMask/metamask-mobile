@@ -34,8 +34,6 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     NavigationService.navigation = ref;
   };
 
-  const NavigationChildren: React.FC = () => <>{children}</>;
-
   return (
     <NavigationContainer
       // TODO: Check if other color properties are needed
@@ -47,10 +45,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
         initialRouteName="NavigationProvider"
         screenOptions={{ headerShown: false }}
       >
-        <Stack.Screen
-          name="NavigationChildren"
-          component={NavigationChildren}
-        />
+        <Stack.Screen name="NavigationChildren">
+          {() => <>{children}</>}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
