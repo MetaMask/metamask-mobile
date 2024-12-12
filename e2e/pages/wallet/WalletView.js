@@ -102,6 +102,10 @@ class WalletView {
     );
   }
 
+  get cancelButton() {
+    return Matchers.getElementByText('Cancel');
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -192,6 +196,10 @@ class WalletView {
 
   async tapTokenNetworkFilterCurrent() {
     await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

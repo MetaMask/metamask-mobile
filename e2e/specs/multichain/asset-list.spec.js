@@ -17,7 +17,6 @@ import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
-import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import { NetworkNickname } from '@metamask/controller-utils';
 
 const fixtureServer = new FixtureServer();
@@ -41,7 +40,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const eth = WalletView.tokenInWallet(NetworkNickname.ETHEREUM);
+    const eth = WalletView.tokenInWallet(NetworkNickname.mainnet);
     const avax = WalletView.tokenInWallet('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(eth);
@@ -54,7 +53,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    const eth = WalletView.tokenInWallet(NetworkNickname.ETHEREUM);
+    const eth = WalletView.tokenInWallet('Ethereum');
     const avax = WalletView.tokenInWallet('AVAX');
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(eth);
@@ -78,15 +77,13 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       BNB_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
-    const cancelButton = await Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(cancelButton);
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
     const ETHEREUM_NAME = 'Ethereum Main Network';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const ethereum = WalletView.tokenInWallet('Ethereum');
+    const ethereum = WalletView.tokenInWallet(NetworkNickname.mainnet);
     await Assertions.checkIfVisible(ethereum);
     await WalletView.tapOnToken();
     await Assertions.checkIfVisible(TokenOverview.sendButton);
@@ -98,8 +95,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       ETHEREUM_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
-    const cancelButton = await Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(cancelButton);
+    await WalletView.tapCancelButton();
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
