@@ -1,5 +1,4 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import AppConstants from '../AppConstants';
 import addDappConnection from './AndroidSDK/addDappConnection';
 import bindAndroidSDK from './AndroidSDK/bindAndroidSDK';
@@ -35,7 +34,6 @@ import {
 import Engine from '../../core/Engine';
 
 jest.mock('./Connection');
-jest.mock('@react-navigation/native');
 jest.mock('@metamask/sdk-communication-layer');
 jest.mock('./AndroidSDK/AndroidService');
 jest.mock('./AndroidSDK/addDappConnection');
@@ -128,16 +126,12 @@ describe('SDKConnect', () => {
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        const testNavigation = {} as NavigationContainerRef;
-
         await sdkConnect.init({
-          navigation: testNavigation,
           context: 'testContext',
         });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
-          navigation: testNavigation,
           context: 'testContext',
           instance: sdkConnect,
         });

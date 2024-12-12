@@ -1,4 +1,3 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import { Connection } from './Connection';
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import RPCQueueManager from '../RPCQueueManager';
@@ -58,7 +57,6 @@ describe('Connection', () => {
   const mockOrigin = 'testOrigin';
   const mockReconnect = true;
   const mockInitialConnection = true;
-  const mockNavigation = {} as NavigationContainerRef;
   const mockOriginatorInfo = {} as OriginatorInfo;
   const mockRpcManager = {} as RPCQueueManager;
   const mockSocketServerUrl = 'testSocketServerUrl';
@@ -81,7 +79,6 @@ describe('Connection', () => {
       origin: mockOrigin,
       reconnect: mockReconnect,
       initialConnection: mockInitialConnection,
-      navigation: mockNavigation,
       originatorInfo: mockOriginatorInfo,
       trigger: mockTrigger,
       lastAuthorized: mockLastAuthorized,
@@ -104,7 +101,6 @@ describe('Connection', () => {
       expect(connection.origin).toBe(mockOrigin);
       expect(connection.reconnect).toBe(mockReconnect);
       expect(connection.initialConnection).toBe(mockInitialConnection);
-      expect(connection.navigation).toBe(mockNavigation);
       expect(connection.originatorInfo).toBe(mockOriginatorInfo);
       expect(connection.trigger).toBe(mockTrigger);
       expect(connection.lastAuthorized).toBe(mockLastAuthorized);

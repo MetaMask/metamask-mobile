@@ -11,7 +11,7 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({

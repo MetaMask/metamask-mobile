@@ -9,7 +9,7 @@ import handleConnectionReady from '../../handlers/handleConnectionReady';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 import AppConstants from '../../../../core/AppConstants';
-import NavigationService from '../../../NavigationService/NavigationService';
+import NavigationService from '../../../NavigationService';
 
 function handleClientsReady({
   instance,

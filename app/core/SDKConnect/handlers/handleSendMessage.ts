@@ -9,7 +9,7 @@ import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 export const handleSendMessage = async ({
   msg,

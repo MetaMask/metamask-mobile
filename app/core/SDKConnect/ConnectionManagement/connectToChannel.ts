@@ -20,7 +20,7 @@ import { SDKConnect } from './../SDKConnect';
 import { wait, waitForCondition } from '../utils/wait.util';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 import packageJSON from '../../../../package.json';
 const { version: walletVersion } = packageJSON;

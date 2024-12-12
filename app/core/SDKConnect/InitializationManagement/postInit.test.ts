@@ -10,6 +10,13 @@ import {
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    getCurrentRoute: jest.fn().mockReturnValue({
+      name: 'dummy',
+    }),
+  },
+}));
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {

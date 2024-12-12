@@ -79,7 +79,6 @@ describe('connectToChannel', () => {
         paused: false,
         socketServerUrl: 'ws://test-url',
         rpcqueueManager: {},
-        navigation: {},
       },
       updateOriginatorInfos: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,

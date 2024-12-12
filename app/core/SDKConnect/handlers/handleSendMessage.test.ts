@@ -7,7 +7,13 @@ import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
 import handleBatchRpcResponse from './handleBatchRpcResponse';
 import handleSendMessage from './handleSendMessage'; // Adjust the import path as necessary
+import NavigationService from '../../NavigationService';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 jest.mock('../../../util/device');
 jest.mock('../utils/DevLogger');
 jest.mock('./handleBatchRpcResponse');
@@ -35,15 +41,11 @@ describe('handleSendMessage', () => {
   const mockCanRedirect = jest.fn();
   const mockRpcQueueManagerGetId = jest.fn();
   const mockBatchRPCManagerGetById = jest.fn();
-  const mockNavigate = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockConnection = {
-      navigation: {
-        navigate: mockNavigate,
-      },
       remote: {
         sendMessage: mockSendMessage,
       },
@@ -249,9 +251,12 @@ describe('handleSendMessage', () => {
           connection: mockConnection,
         });
 
-        expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-          screen: 'ReturnToDappModal',
-        });
+        expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+          'RootModalFlow',
+          {
+            screen: 'ReturnToDappModal',
+          },
+        );
       });
     });
 

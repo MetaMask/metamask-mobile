@@ -6,7 +6,7 @@ import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import { isE2E } from '../../../util/test/utils';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {

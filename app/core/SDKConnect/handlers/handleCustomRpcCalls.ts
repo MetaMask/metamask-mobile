@@ -9,7 +9,7 @@ import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
 import { createBuyNavigationDetails } from '../../../components/UI/Ramp/routes/utils';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 export const handleCustomRpcCalls = async ({
   rpc,

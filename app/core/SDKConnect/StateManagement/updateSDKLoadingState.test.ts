@@ -2,12 +2,19 @@ import SDKConnect from '../SDKConnect';
 import { waitForKeychainUnlocked } from '../utils/wait.util';
 import updateSDKLoadingState from './updateSDKLoadingState';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    getCurrentRoute: jest.fn().mockReturnValue({
+      name: 'dummy',
+    }),
+    navigate: jest.fn(),
+  },
+}));
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('@metamask/keyring-controller');
 jest.mock('../utils/wait.util');
 jest.mock('../../Engine');
-jest.mock('../../../constants/navigation/Routes');
 
 describe('updateSDKLoadingState', () => {
   let mockInstance = {} as unknown as SDKConnect;
@@ -17,7 +24,6 @@ describe('updateSDKLoadingState', () => {
       typeof waitForKeychainUnlocked
     >;
 
-  const mockNavigate = jest.fn();
   const mockHideLoadingState = jest.fn(
     () => new Promise((resolve) => resolve('')),
   );
@@ -30,9 +36,6 @@ describe('updateSDKLoadingState', () => {
     mockInstance = {
       state: {
         sdkLoadingState: {},
-        navigation: {
-          navigate: mockNavigate,
-        },
       },
       hideLoadingState: mockHideLoadingState,
     } as unknown as SDKConnect;

@@ -4,7 +4,7 @@ import { KeyringController } from '@metamask/keyring-controller';
 import { waitForKeychainUnlocked } from '../utils/wait.util';
 import Engine from '../../Engine';
 import Routes from '../../../constants/navigation/Routes';
-import NavigationService from '../../NavigationService/NavigationService';
+import NavigationService from '../../NavigationService';
 
 async function updateSDKLoadingState({
   channelId,

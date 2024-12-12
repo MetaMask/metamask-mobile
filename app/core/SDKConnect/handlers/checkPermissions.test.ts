@@ -8,6 +8,13 @@ import { PermissionController } from '@metamask/permission-controller';
 import { getPermittedAccounts } from '../../../core/Permissions';
 import { KeyringController } from '@metamask/keyring-controller';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    getCurrentRoute: jest.fn().mockReturnValue({
+      name: 'dummy',
+    }),
+  },
+}));
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
 }));
@@ -18,13 +25,7 @@ jest.mock('@metamask/approval-controller');
 jest.mock('../utils/DevLogger');
 
 describe('checkPermissions', () => {
-  let connection = {
-    navigation: {
-      getCurrentRoute: jest.fn(() => {
-        'ok';
-      }),
-    },
-  } as unknown as Connection;
+  let connection: Connection;
   let engine = {
     context: {
       keyringController: {
@@ -125,13 +126,15 @@ describe('checkPermissions', () => {
     mockGetPermittedAccounts.mockResolvedValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
     requestPermissions.mockResolvedValue({});
-    mockGetPermittedAccounts.mockResolvedValueOnce([]).mockResolvedValueOnce(['0x123']);
+    mockGetPermittedAccounts
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(requestPermissions).toHaveBeenCalledWith(
       { origin: connection.channelId },
       { eth_accounts: {} },
-      { preserveExistingPermissions: false }
+      { preserveExistingPermissions: false },
     );
     expect(result).toBe(true);
   });
