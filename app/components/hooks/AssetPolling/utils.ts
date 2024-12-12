@@ -1,26 +1,19 @@
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import { PopularList } from '../../../util/networks/customNetworks';
 
 export const getNetworkConfigurationsToPoll = (
   networkConfigurations: Record<string, NetworkConfiguration>,
-  currentChainId: Hex,
   isAllNetworksSelected: boolean,
 ): NetworkConfiguration[] => {
-  // determine if the current chain is popular
-  const isPopular = PopularList.some(
-    (popular) =>
-      popular.chainId === currentChainId ||
-      currentChainId === CHAIN_IDS.MAINNET ||
-      currentChainId === CHAIN_IDS.LINEA_MAINNET,
-  );
+  const popularNetworksChainIds = PopularList.map((popular) => popular.chainId);
 
   // filter out networks that are not popular, mainnet or linea mainnet
   return Object.values(networkConfigurations).reduce(
     (acc: NetworkConfiguration[], network) => {
       if (
-        isPopular ||
+        // check if the network is popular
+        popularNetworksChainIds.includes(network.chainId) ||
         network.chainId === CHAIN_IDS.MAINNET ||
         network.chainId === CHAIN_IDS.LINEA_MAINNET ||
         isAllNetworksSelected
