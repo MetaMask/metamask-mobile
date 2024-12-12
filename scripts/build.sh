@@ -225,8 +225,8 @@ prebuild_android(){
 buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	#react-native run-android --port=$WATCHER_PORT --mode=prodDebug --active-arch-only
+	npx expo run:android --no-install --port $WATCHER_PORT --mode 'prodDebug' --device
 }
 
 buildAndroidDevBuild(){
@@ -241,14 +241,14 @@ buildAndroidDevBuild(){
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
+	#react-native run-android --port=$WATCHER_PORT --mode=qaDebug --active-arch-only
+	npx expo run:android --no-install --port $WATCHER_PORT --mode 'qaDebug'
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
+	#react-native run-android --port=$WATCHER_PORT --mode=flaskDebug --active-arch-only
+	npx expo run:android --no-install  --port $WATCHER_PORT --mode 'flaskDebug'
 }
 
 buildIosDevBuild(){
@@ -282,7 +282,7 @@ buildIosSimulator(){
 		SIM_OPTION=""
 	fi
 	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT $SIM_OPTION
+	npx expo run:ios --no-install --mode Debug --port $WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){
@@ -290,7 +290,7 @@ buildIosSimulatorQA(){
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
+	npx expo run:ios --no-install --mode Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
@@ -298,7 +298,7 @@ buildIosSimulatorFlask(){
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
 
 	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+	npx expo run:ios --no-install --mode Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -319,20 +319,20 @@ buildIosDevice(){
 	remapEnvVariableLocal
 	prebuild_ios
 	#react-native run-ios --port=$WATCHER_PORT --device
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
+	npx expo run:ios --no-install --mode Debug --port $WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
 	#react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
 
-	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
+	npx expo run:ios --no-install --port $WATCHER_PORT --mode Debug --scheme "MetaMask-QA" --device
 }
 
 buildIosDeviceFlask(){
 	prebuild_ios
 	#react-native run-ios --device --scheme "MetaMask-Flask"
-	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
+	npx expo run:ios --no-install --mode Debug --scheme "MetaMask-Flask" --device
 }
 
 generateArchivePackages() {
@@ -373,7 +373,7 @@ buildIosRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --configuration Release --simulator "iPhone 13 Pro"
+		./node_modules/.bin/react-native run-ios --mode Release --simulator "iPhone 13 Pro"
 	fi
 }
 
@@ -395,7 +395,7 @@ buildIosFlaskRelease(){
 		if [ ! -f "ios/release.xcconfig" ] ; then
 			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
 		fi
-		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --configuration Release --simulator "iPhone 13 Pro"
+		./node_modules/.bin/react-native run-ios --scheme "MetaMask-Flask"  --mode Release --simulator "iPhone 13 Pro"
 	fi
 }
 
