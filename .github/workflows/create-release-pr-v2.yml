@@ -1,0 +1,34 @@
+name: Create Release Pull Request
+
+on:
+  workflow_dispatch:
+    inputs:
+      base-branch:
+        description: 'The base branch, tag, or SHA for git operations and the pull request.'
+        required: true
+      semver-version:
+        description: 'A semantic version. eg: x.x.x'
+        required: true
+      previous-version-tag:
+        description: 'Previous release version tag. eg: v7.7.0'
+        required: true
+jobs:
+
+#   Commented for testing so we don't create extra versions
+#   generate-build-version:
+#     uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+#     permissions:
+#       id-token: write
+
+  create-release-pr:
+    #needs: generate-build-version
+    uses: MetaMask/github-tools/.github/workflows/create-release-pr.yml@rls-alignment
+    with:
+      platform: mobile
+      base-branch: ${{ inputs.base-branch }}
+      semver-version: ${{ inputs.semver-version }}
+      previous-version-tag: ${{ inputs.previous-version-tag }}
+      mobile-build-version: "1514" # Hardcoded for testing purposes
+    permissions:
+      contents: write
+      pull-requests: write
