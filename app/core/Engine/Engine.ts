@@ -513,7 +513,6 @@ export class Engine {
       getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId(),
     });
 
-    console.log('controller', remoteFeatureFlagController);
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'PhishingController',
