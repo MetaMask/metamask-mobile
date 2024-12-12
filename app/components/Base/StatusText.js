@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
 
 export const ConfirmedText = (props) => (
   <Text
-    testID={CommonSelectorsIDs.STATUS_CONFIRMED}
+    testID={CommonSelectorsIDs.TRANSACTION_STATUS}
     bold
     green
     style={styles.status}
@@ -38,6 +38,7 @@ export const FailedText = (props) => {
   const { colors } = useTheme();
   return (
     <Text
+      testID={CommonSelectorsIDs.TRANSACTION_STATUS}
       bold
       style={[styles.status, { color: colors.error.default }]}
       {...props}

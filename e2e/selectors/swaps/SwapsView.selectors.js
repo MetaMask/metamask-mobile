@@ -1,10 +1,9 @@
 import enContent from '../../../locales/languages/en.json';
 
 export const SwapsViewSelectors = {
-  SWIPE_TO_SWAP_BUTTON: 'swipe-to-swap-button',
+  SWAP_BUTTON: 'swap-button',
   QUOTE_SUMMARY: 'swap-quote-summary',
   GAS_FEE: 'swap-gas-fee',
-  SWAP_BUTTON: 'swap-button',
 };
 
 export const SwapViewSelectorsTexts = {
