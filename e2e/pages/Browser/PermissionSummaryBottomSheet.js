@@ -3,7 +3,7 @@ import {
   PermissionSummaryBottomSheetSelectorsText,
 } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
-// import Gestures from '../../utils/Gestures';
+import Gestures from '../../utils/Gestures';
 
 class PermissionSummaryBottomSheet {
   get container() {
@@ -21,6 +21,10 @@ class PermissionSummaryBottomSheet {
     return Matchers.getElementByText(
       PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
     );
+  }
+
+  async swipeToDismissModal() {
+    await Gestures.swipe(this.container, 'down', 'fast');
   }
 }
 
