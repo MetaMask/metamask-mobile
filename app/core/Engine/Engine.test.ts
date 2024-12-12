@@ -8,7 +8,6 @@ import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
-import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
