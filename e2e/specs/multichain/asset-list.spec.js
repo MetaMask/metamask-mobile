@@ -13,13 +13,15 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import TokenOverview from '../../pages/wallet/TokenOverview';
-import Matchers from '../../utils/Matchers';
-import Gestures from '../../utils/Gestures';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
 import { NetworkNickname } from '@metamask/controller-utils';
 
 const fixtureServer = new FixtureServer();
+
+const ETHEREUM_NAME = 'Ethereum';
+const AVAX_NAME = 'Avalanche';
+const BNB_NAME = 'BNB Smart Chain';
 
 describe(SmokeMultiChain('Import Tokens'), () => {
   beforeAll(async () => {
@@ -40,9 +42,9 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   it('should display tokens across networks when all networks filter is toggled on', async () => {
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const eth = WalletView.tokenInWallet(NetworkNickname.mainnet);
-    const avax = WalletView.tokenInWallet('AVAX');
-    const bnb = WalletView.tokenInWallet('BNB');
+    const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
+    const avax = WalletView.tokenInWallet(AVAX_NAME);
+    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(eth);
     await Assertions.checkIfVisible(avax);
     await Assertions.checkIfVisible(bnb);
@@ -53,9 +55,9 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilterAll();
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterCurrent();
-    const eth = WalletView.tokenInWallet('Ethereum');
-    const avax = WalletView.tokenInWallet('AVAX');
-    const bnb = WalletView.tokenInWallet('BNB');
+    const eth = WalletView.tokenInWallet(ETHEREUM_NAME);
+    const avax = WalletView.tokenInWallet(AVAX_NAME);
+    const bnb = WalletView.tokenInWallet(BNB_NAME);
     await Assertions.checkIfVisible(eth);
     await Assertions.checkIfNotVisible(avax);
     await Assertions.checkIfNotVisible(bnb);
