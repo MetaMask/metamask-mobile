@@ -10,13 +10,13 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Network Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should remove single chain permission', async () => {
+  it('removes network access permission while maintaining account connections', async () => {
     await withFixtures(
       {
         dapp: true,

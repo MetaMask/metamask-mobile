@@ -10,13 +10,13 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should revoke single account dapp permisions', async () => {
+  it('revokes dapp access for single account while maintaining other connections', async () => {
     await withFixtures(
       {
         dapp: true,

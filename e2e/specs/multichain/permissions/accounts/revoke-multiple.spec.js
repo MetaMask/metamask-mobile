@@ -15,13 +15,13 @@ import { SmokeMultiChain } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should connect multiple accounts and revoke them', async () => {
+  it('allows connecting multiple accounts and revoking all permissions simultaneously', async () => {
     await withFixtures(
       {
         dapp: true,

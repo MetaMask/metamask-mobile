@@ -15,12 +15,12 @@ import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Network Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
+  it('allows simultaneous granting and revoking of multiple network permissions', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -67,7 +67,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     );
   });
 
-  it('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+  it('follows fallback priority when revoking permission for currently active network', async () => {
     await withFixtures(
       {
         dapp: true,

@@ -18,13 +18,13 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Network Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should remove network after connecting to dapp', async () => {
+  it('handles permission cleanup when removing a connected network', async () => {
     await withFixtures(
       {
         dapp: true,

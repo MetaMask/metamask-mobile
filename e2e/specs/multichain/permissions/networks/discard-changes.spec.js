@@ -11,13 +11,13 @@ import Assertions from '../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Network Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should discard chain permission changes when navigating back without confirming', async () => {
+  it('preserves original network permissions when user cancels modification', async () => {
     await withFixtures(
       {
         dapp: true,
