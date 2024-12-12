@@ -34,12 +34,26 @@ describe('useTokenListPolling', () => {
                 },
               ],
             },
-            '0x89': {},
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+            },
+          },
+        },
+        PreferencesController: {
+          useTokenDetection: true,
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
           },
         },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('Should poll by selected chain id, and stop polling on dismount', async () => {
     const { unmount } = renderHookWithProvider(() => useTokenListPolling(), {
@@ -108,6 +122,12 @@ describe('useTokenListPolling', () => {
                   },
                 ],
               },
+            },
+          },
+          PreferencesController: {
+            useTokenDetection: true,
+            tokenNetworkFilter: {
+              '0x82750': true,
             },
           },
         },

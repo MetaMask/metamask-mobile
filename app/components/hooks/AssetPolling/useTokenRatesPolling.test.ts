@@ -29,9 +29,16 @@ describe('useTokenRatesPolling', () => {
             '0x89': {},
           },
         },
+        PreferencesController: {
+          useTokenDetection: true,
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('Should poll by provided chain ids, and stop polling on dismount', async () => {
     const { unmount } = renderHookWithProvider(
@@ -77,6 +84,12 @@ describe('useTokenRatesPolling', () => {
           TokenRatesController: {
             marketData: {
               '0x82750': {},
+            },
+          },
+          PreferencesController: {
+            useTokenDetection: true,
+            tokenNetworkFilter: {
+              '0x82750': true,
             },
           },
         },

@@ -40,6 +40,12 @@ describe('useCurrencyRatePolling', () => {
               },
             },
           },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x1': true,
+              '0x89': true,
+            },
+          },
         },
       },
     } as unknown as RootState;
@@ -76,6 +82,12 @@ describe('useCurrencyRatePolling', () => {
                   },
                 ],
               },
+            },
+          },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x82750': true,
+              '0x89': true,
             },
           },
         },

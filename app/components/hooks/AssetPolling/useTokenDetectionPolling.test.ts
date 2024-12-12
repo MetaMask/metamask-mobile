@@ -3,6 +3,7 @@ import Engine from '../../../core/Engine';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -36,6 +37,10 @@ describe('useTokenDetectionPolling', () => {
         },
         PreferencesController: {
           useTokenDetection: true,
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
+          },
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
@@ -52,7 +57,7 @@ describe('useTokenDetectionPolling', () => {
         },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('Should poll by current chain ids/address, and stop polling on dismount', async () => {
     const { unmount } = renderHookWithProvider(

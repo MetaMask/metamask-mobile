@@ -3,6 +3,7 @@ import Engine from '../../../core/Engine';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -36,12 +37,25 @@ describe('useTokenBalancesPolling', () => {
                 },
               ],
             },
-            '0x89': {},
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+            },
+          },
+        },
+        PreferencesController: {
+          tokenNetworkFilter: {
+            [selectedChainId]: true,
+            '0x89': true,
           },
         },
       },
     },
-  };
+  } as unknown as RootState;
 
   it('should poll by selected chain id when portfolio view is disabled', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);

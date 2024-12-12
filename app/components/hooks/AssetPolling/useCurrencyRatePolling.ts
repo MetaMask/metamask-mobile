@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import {
   selectChainId,
+  selectIsAllNetworks,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
@@ -18,7 +19,9 @@ const useCurrencyRatePolling = () => {
   // Selectors to determine polling input
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentChainId = useSelector(selectChainId);
+  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
 
+  // determine if the current chain is popular
   const isPopular = PopularList.some(
     (popular) =>
       popular.chainId === currentChainId ||
@@ -26,13 +29,15 @@ const useCurrencyRatePolling = () => {
       currentChainId === CHAIN_IDS.LINEA_MAINNET,
   );
 
-  const chainIdsToPoll: NetworkConfiguration[] = Object.values(
+  // filter out networks that are not popular, mainnet or linea mainnet
+  const networkConfigurationsPopular: NetworkConfiguration[] = Object.values(
     networkConfigurations,
   ).reduce((acc: NetworkConfiguration[], network) => {
     if (
       isPopular ||
       network.chainId === CHAIN_IDS.MAINNET ||
-      network.chainId === CHAIN_IDS.LINEA_MAINNET
+      network.chainId === CHAIN_IDS.LINEA_MAINNET ||
+      isAllNetworksSelected
     ) {
       acc.push(network);
     }
@@ -43,9 +48,19 @@ const useCurrencyRatePolling = () => {
   const conversionRate = useSelector(selectConversionRate);
   const currencyRates = useSelector(selectCurrencyRates);
 
-  const nativeCurrencies = isPopular
-    ? [...new Set(chainIdsToPoll.map((n) => n.nativeCurrency))]
-    : [networkConfigurations[currentChainId].nativeCurrency];
+  // if all networks are selected, poll all popular networks
+  const networkConfigurationsToPoll = isAllNetworksSelected
+    ? networkConfigurationsPopular
+    : [
+        {
+          nativeCurrency: networkConfigurations[currentChainId].nativeCurrency,
+        },
+      ];
+
+  // get all native currencies to poll
+  const nativeCurrencies = [
+    ...new Set(networkConfigurationsToPoll.map((n) => n.nativeCurrency)),
+  ];
 
   const { CurrencyRateController } = Engine.context;
 

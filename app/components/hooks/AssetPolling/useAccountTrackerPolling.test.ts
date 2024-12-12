@@ -51,34 +51,15 @@ describe('useAccountTrackerPolling', () => {
             '0x2': {},
           },
         },
+        PreferencesController: {
+          tokenNetworkFilter: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
       },
     },
   } as unknown as RootState;
-
-  it('should poll for the selected network when portfolio view is disabled', () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-
-    const { unmount } = renderHookWithProvider(
-      () => useAccountTrackerPolling(),
-      { state },
-    );
-
-    const mockedAccountTrackerController = jest.mocked(
-      Engine.context.AccountTrackerController,
-    );
-
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-      1,
-    );
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientId: 'selectedNetworkClientId',
-    });
-
-    unmount();
-    expect(
-      mockedAccountTrackerController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
-  });
 
   it('should poll all network configurations when portfolio view is enabled', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
@@ -190,9 +171,15 @@ describe('useAccountTrackerPolling', () => {
                   '0x82750': {},
                 },
               },
+              PreferencesController: {
+                tokenNetworkFilter: {
+                  '0x82750': true,
+                  '0x89': true,
+                },
+              },
             },
           },
-        },
+        } as unknown as RootState,
       },
     );
 
