@@ -7,6 +7,7 @@ import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
+  withFixtures,
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
@@ -84,45 +85,67 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const ETHEREUM_NAME = 'Ethereum Main Network';
-    await WalletView.tapTokenNetworkFilter();
-    await WalletView.tapTokenNetworkFilterAll();
-    const ethereum = WalletView.tokenInWallet('Ethereum');
-    await Assertions.checkIfVisible(ethereum);
-    await WalletView.tapOnToken();
-    await Assertions.checkIfVisible(TokenOverview.sendButton);
-    await TokenOverview.tapSendButton();
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
 
-    await Assertions.checkIfVisible(NetworkEducationModal.container);
-    await Assertions.checkIfElementToHaveText(
-      NetworkEducationModal.networkName,
-      ETHEREUM_NAME,
+        const ETHEREUM_NAME = 'Ethereum Main Network';
+        await WalletView.tapTokenNetworkFilter();
+        await WalletView.tapTokenNetworkFilterAll();
+        const ethereum = WalletView.tokenInWallet('Ethereum');
+        await Assertions.checkIfVisible(ethereum);
+        await WalletView.tapOnToken();
+        await Assertions.checkIfVisible(TokenOverview.sendButton);
+        await TokenOverview.tapSendButton();
+
+        await Assertions.checkIfVisible(NetworkEducationModal.container);
+        await Assertions.checkIfElementToHaveText(
+          NetworkEducationModal.networkName,
+          ETHEREUM_NAME,
+        );
+        await NetworkEducationModal.tapGotItButton();
+      },
     );
-    await NetworkEducationModal.tapGotItButton();
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
-    await WalletView.tapTokenNetworkFilter();
-    await WalletView.tapTokenNetworkFilterAll();
-    await WalletView.tapOnToken('AVAX');
+    await withFixtures(
+      {
+        dapp: true,
+        fixture: new FixtureBuilder().withPopularNetworks().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
 
-    await Assertions.checkIfVisible(TokenOverview.container);
-    await TokenOverview.tapChartPeriod1d();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
-    await TokenOverview.tapChartPeriod1w();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod1w);
-    await TokenOverview.tapChartPeriod1m();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod1m);
-    await TokenOverview.tapChartPeriod3m();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod3m);
-    await TokenOverview.tapChartPeriod1y();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod1y);
-    await TokenOverview.tapChartPeriod3y();
-    await Assertions.checkIfVisible(TokenOverview.chartPeriod3y);
+        await WalletView.tapTokenNetworkFilter();
+        await WalletView.tapTokenNetworkFilterAll();
+        await WalletView.tapOnToken('AVAX');
 
-    await TokenOverview.scrollOnScreen();
-    await Assertions.checkIfVisible(TokenOverview.receiveButton);
-    await Assertions.checkIfVisible(TokenOverview.sendButton);
-    await Assertions.checkIfVisible(TokenOverview.swapButton);
+        await Assertions.checkIfVisible(TokenOverview.container);
+        await TokenOverview.tapChartPeriod1d();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
+        await TokenOverview.tapChartPeriod1w();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod1w);
+        await TokenOverview.tapChartPeriod1m();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod1m);
+        await TokenOverview.tapChartPeriod3m();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod3m);
+        await TokenOverview.tapChartPeriod1y();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod1y);
+        await TokenOverview.tapChartPeriod3y();
+        await Assertions.checkIfVisible(TokenOverview.chartPeriod3y);
+
+        await TokenOverview.scrollOnScreen();
+        await Assertions.checkIfVisible(TokenOverview.receiveButton);
+        await Assertions.checkIfVisible(TokenOverview.sendButton);
+        await Assertions.checkIfVisible(TokenOverview.swapButton);
+      },
+    );
   });
 });
