@@ -99,8 +99,6 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       ETHEREUM_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
-    const cancelButton = await Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(cancelButton);
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
