@@ -16,6 +16,8 @@ import TokenOverview from '../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import TestHelpers from '../../helpers';
 import { NetworkNickname } from '@metamask/controller-utils';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 const fixtureServer = new FixtureServer();
 
@@ -85,7 +87,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     const ETHEREUM_NAME = 'Ethereum Main Network';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const ethereum = WalletView.tokenInWallet(NetworkNickname.mainnet);
+    const ethereum = WalletView.tokenInWallet('Ethereum');
     await Assertions.checkIfVisible(ethereum);
     await WalletView.tapOnToken();
     await Assertions.checkIfVisible(TokenOverview.sendButton);
@@ -97,7 +99,8 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       ETHEREUM_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
-    await WalletView.tapCancelButton();
+    const cancelButton = await Matchers.getElementByText('Cancel');
+    await Gestures.waitAndTap(cancelButton);
   });
 
   it('should allows clicking into the asset details page of native token on another network', async () => {
