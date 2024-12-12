@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -44,6 +44,7 @@ import useBalance from '../../hooks/useBalance';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectChainId } from '../../../../../selectors/networkController';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -51,12 +52,20 @@ export interface StakingBalanceProps {
 
 const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const [
+    hasSentViewingStakingRewardsMetric,
+    setHasSentViewingStakingRewardsMetric,
+  ] = useState(false);
+
   const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
   const { isStakingSupportedChain } = useStakingChain();
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     pooledStakesData,
@@ -91,6 +100,28 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const hasClaimableEth = !!Number(claimableEth);
+
+  useEffect(() => {
+    if (hasStakedPositions && !hasSentViewingStakingRewardsMetric) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
+        )
+          .addProperties({
+            selected_provider: 'consensys',
+            location: 'StakingBalance',
+          })
+          .build(),
+      );
+
+      setHasSentViewingStakingRewardsMetric(true);
+    }
+  }, [
+    createEventBuilder,
+    hasSentViewingStakingRewardsMetric,
+    hasStakedPositions,
+    trackEvent,
+  ]);
 
   if (!isStakingSupportedChain) {
     return <></>;
