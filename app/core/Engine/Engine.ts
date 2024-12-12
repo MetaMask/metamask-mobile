@@ -1172,7 +1172,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1783,7 +1783,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1794,9 +1794,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
