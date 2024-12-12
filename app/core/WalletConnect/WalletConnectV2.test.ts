@@ -254,6 +254,7 @@ describe('WC2Manager', () => {
         jest.resetModules();
 
         const navigationMissingMessage = 'Navigation reference does not exist!';
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const { WC2Manager: FreshWC2Manager } = require('./WalletConnectV2');
         await expect(FreshWC2Manager.init()).rejects.toThrow(
           navigationMissingMessage,
