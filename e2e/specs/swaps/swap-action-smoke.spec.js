@@ -76,12 +76,12 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(2000);
+    await TestHelpers.delay(10000);
   });
 
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.4'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.04'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {

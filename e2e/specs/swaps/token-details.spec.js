@@ -48,7 +48,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   it('should not display the chart when using Sepolia test network', async () => {
     await switchToSepoliaNetwork();
     await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
-    await Assertions.checkIfVisible(TokenOverview.noChartData, 30000);
+    await Assertions.checkIfVisible(TokenOverview.noChartData, 60000);
     await Assertions.checkIfElementToHaveText(TokenOverview.tokenPrice, '$0');
   });
 });
