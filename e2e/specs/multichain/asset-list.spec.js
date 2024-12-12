@@ -19,6 +19,7 @@ import TestHelpers from '../../helpers';
 import { NetworkNickname } from '@metamask/controller-utils';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
+import QuoteView from '../../pages/swaps/QuoteView';
 
 const fixtureServer = new FixtureServer();
 
@@ -109,6 +110,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
           ETHEREUM_NAME,
         );
         await NetworkEducationModal.tapGotItButton();
+        await QuoteView.tapOnCancelButton();
       },
     );
   });
