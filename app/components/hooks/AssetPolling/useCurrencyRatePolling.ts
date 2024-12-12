@@ -10,9 +10,6 @@ import {
   selectConversionRate,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { getNetworkConfigurationsToPoll } from './utils';
 
 // Polls native currency prices across networks.
