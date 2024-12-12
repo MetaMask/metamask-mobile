@@ -317,6 +317,12 @@ export class Engine {
       },
     });
 
+    // eslint-disable-next-line no-console
+    console.log(
+      'initial network controller state',
+      initialState.NetworkController,
+    );
+
     const networkControllerOpts = {
       infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
       state: initialState.NetworkController,
@@ -971,8 +977,8 @@ export class Engine {
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
       clientCryptography: {
-        pbkdf2Sha512: pbkdf2
-      }
+        pbkdf2Sha512: pbkdf2,
+      },
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1302,7 +1308,9 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+                chain_id: getDecimalChainId(
+                  getGlobalChainId(networkController),
+                ),
               })
               .build(),
           ),
@@ -1410,7 +1418,6 @@ export class Engine {
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
         fetchEstimatedMultiLayerL1Fee,
       }),
       GasFeeController: gasFeeController,
@@ -1515,7 +1522,7 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1535,7 +1542,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(
+              networkController,
+            )}`,
           );
         }
       },
