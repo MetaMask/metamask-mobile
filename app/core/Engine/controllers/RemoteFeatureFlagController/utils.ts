@@ -9,6 +9,7 @@ import {
 import Logger from '../../../../util/Logger';
 
 import { RemoteFeatureFlagInitParamTypes } from './types';
+import { uuidv4 } from '@walletconnect/utils';
 
 const getFeatureFlagAppEnvironment = () => {
   const env = process.env.METAMASK_ENVIRONMENT;
@@ -33,14 +34,14 @@ export const createRemoteFeatureFlagController = ({
   state,
   messenger,
   disabled,
-  metaMetricsId,
+  getMetaMetricsId,
 }: RemoteFeatureFlagInitParamTypes) => {
 
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
     disabled,
-    metaMetricsId,
+    getMetaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {

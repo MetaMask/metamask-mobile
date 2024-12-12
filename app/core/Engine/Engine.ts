@@ -274,7 +274,6 @@ export class Engine {
   // eslint-disable-next-line @typescript-eslint/default-param-last
   constructor(
     initialState: Partial<EngineState> = {},
-    metaMetricsId: string | undefined,
     initialKeyringState?: KeyringControllerState | null,
   ) {
     this.controllerMessenger = new ExtendedControllerMessenger();
@@ -511,7 +510,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
-      metaMetricsId,
+      getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId(),
     });
 
     console.log('controller', remoteFeatureFlagController);
@@ -2159,8 +2158,8 @@ export default {
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null, metaMetricsId: string | undefined) {
-    instance = Engine.instance || new Engine(state, metaMetricsId, keyringState);
+  init(state: Partial<EngineState> | undefined, keyringState = null) {
+    instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
   },
