@@ -4628,10 +4628,10 @@
     "@metamask/utils" "^10.0.0"
     uuid "^8.3.2"
 
-"@metamask/eth-ledger-bridge-keyring@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-6.0.0.tgz#f62b6f3e286bdd3369c9360aa14300f86a24427c"
-  integrity sha512-xPNE/ZpmzwILnZ3a1JrcScSMdIL650fFPtrmf/7ZJRCyUlOoVWETpqUdSesLROC5WZBs8Ao1lus6YfTTqIsu6w==
+"@metamask/eth-ledger-bridge-keyring@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-8.0.0.tgz#f425443dfe3e00f2e4f17ef57c9d0c3990c3e69f"
+  integrity sha512-HqdLXGKJOMIDVheep1kLhc7MfY4NGmgOYM886XIh7dcEdX0WuaujvOPfaJ4IKEKMPBbFr6wsOYY31KvZ3s+9ew==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^4.2.0"
@@ -5445,10 +5445,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-8.9.0.tgz#bac680e8f0007b3a11440f7e311674d6457d37ed"
   integrity sha512-N/WfmdrzJm+xbpuqJsfMrlrAhiNDsllIpwt9gDDeEKDlQAfJnMtT9xvOvBJbXY7zgMdtGZuD+KY64jNKabbuVQ==
 
-"@metamask/transaction-controller@^41.0.0":
-  version "41.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-41.1.0.tgz#ad226b3f754750a064175075554b60a0d755a7f3"
-  integrity sha512-5u7tnl7WOY+Nuw8zXoeIikW7zQSxHduYsXDs2kJSAJo0qaOnFBgER031bqB23TIX2nLh8MR8vPf3Ft5ZBr7/UQ==
+"@metamask/transaction-controller@^42.0.0":
+  version "42.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-42.0.0.tgz#f5c035d018b7f72e4b21757bd075c6863a6301ca"
+  integrity sha512-lITyvFsrjUhJox5CypaT7B80Bs5VxOziul2dcSBJFrD56vOX46ijq7FelTGbuSegJ+hlc+BUIsSSmhMiSDgHhw==
   dependencies:
     "@ethereumjs/common" "^3.2.0"
     "@ethereumjs/tx" "^4.2.0"
