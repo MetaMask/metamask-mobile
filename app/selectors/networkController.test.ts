@@ -111,8 +111,24 @@ describe('networkSelectors', () => {
   });
 
   it('selectIsAllNetworks should return false if tokenNetworkFilter length is greater than 1', () => {
-    const tokenNetworkFilter = { '0x1': 'true' };
-    expect(selectIsAllNetworks.resultFunc(tokenNetworkFilter)).toBe(false);
+    expect(
+      selectIsAllNetworks({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+            },
+            PreferencesController: {
+              ...mockState.engine.backgroundState.PreferencesController,
+              tokenNetworkFilter: { '0x1': 'true' },
+            },
+          },
+        },
+      }),
+    ).toBe(false);
   });
 
   it('selectNetworkConfigurationByChainId should return the network configuration for a given chainId', () => {
