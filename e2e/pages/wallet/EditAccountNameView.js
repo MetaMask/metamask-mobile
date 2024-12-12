@@ -4,15 +4,11 @@ import { EditAccountNameSelectorIDs } from '../../selectors/wallet/EditAccountNa
 
 class EditAccountNameView {
   get saveButton() {
-    return Matchers.getElementByID(
-      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
-    );
+    return Matchers.getElementByID(EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE);
   }
 
   get accountNameInput() {
-    return Matchers.getElementByID(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
-    );
+    return Matchers.getElementByID(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT);
   }
 
   async tapSave() {

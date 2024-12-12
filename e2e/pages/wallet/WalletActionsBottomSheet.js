@@ -4,9 +4,7 @@ import Gestures from '../../utils/Gestures';
 
 class WalletActionsBottomSheet {
   get sendButton() {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
-    );
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
   }
 
   get receiveButton() {
@@ -16,21 +14,15 @@ class WalletActionsBottomSheet {
   }
 
   get swapButton() {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
-    );
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
   }
 
   get buyButton() {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-    );
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON);
   }
 
   get sellButton() {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-    );
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
   }
 
   async tapSendButton() {
