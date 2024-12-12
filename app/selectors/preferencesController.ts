@@ -4,6 +4,9 @@ import { RootState } from '../reducers';
 import { selectChainId } from './networkController';
 import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { PopularList } from '../util/networks/customNetworks';
+import { isTestNet } from '../util/networks';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController;
@@ -52,8 +55,21 @@ export const selectTokenSortConfig = createSelector(
 
 export const selectTokenNetworkFilter = createSelector(
   selectPreferencesControllerState,
-  (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.tokenNetworkFilter,
+  selectChainId,
+  (preferencesControllerState: PreferencesState, chainId: Hex) => {
+    const isPopularNetwork = PopularList.some(
+      (network) =>
+        network.chainId === chainId ||
+        chainId === CHAIN_IDS.MAINNET ||
+        chainId === CHAIN_IDS.LINEA_MAINNET,
+    );
+
+    if (!isPopularNetwork || isTestNet(chainId)) {
+      return { [chainId]: true };
+    }
+
+    return preferencesControllerState.tokenNetworkFilter;
+  },
 );
 
 export const selectIsTokenNetworkFilterEqualCurrentNetwork =
