@@ -76,6 +76,7 @@ import {
 } from '../../../util/transaction-controller';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
+import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -213,10 +214,6 @@ class Transactions extends PureComponent {
      */
     onScrollThroughContent: PropTypes.func,
     gasFeeEstimates: PropTypes.object,
-    /**
-     * ID of the global network client
-     */
-    networkClientId: PropTypes.string,
   };
 
   static defaultProps = {
@@ -352,11 +349,11 @@ class Transactions extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { networkClientId } = this.props;
+    const { chainId } = this.props;
 
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([networkClientId]);
+    await updateIncomingTransactions([chainId]);
 
     this.setState({ refreshing: false });
   };
@@ -791,6 +788,7 @@ class Transactions extends PureComponent {
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
             <FlatList
+              testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
               getItemLayout={this.getItemLayout}
               data={transactions}

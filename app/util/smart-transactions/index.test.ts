@@ -283,37 +283,53 @@ describe('Smart Transactions utils', () => {
   });
   describe('getShouldStartFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false);
+      const res = getShouldStartApprovalRequest(false, true, false, false, false);
       expect(res).toBe(true);
+    });
+    it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldStartApprovalRequest(false, true, false, false, true);
+      expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false);
+      const res = getShouldStartApprovalRequest(true, false, false, false, false);
       expect(res).toBe(true);
     });
+    it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldStartApprovalRequest(true, false, false, false, true);
+      expect(res).toBe(false);
+    });
     it('returns true for Swap approve transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, true, false);
+      const res = getShouldStartApprovalRequest(false, false, true, false, false);
       expect(res).toBe(true);
     });
     it('returns false for Swap transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, false, true);
+      const res = getShouldStartApprovalRequest(false, false, false, true, false);
       expect(res).toBe(false);
     });
   });
   describe('getShouldUpdateFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, true, false);
+      const res = getShouldUpdateApprovalRequest(false, true, false, false);
       expect(res).toBe(true);
+    });
+    it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldUpdateApprovalRequest(false, true, false, true);
+      expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldUpdateApprovalRequest(true, false, false);
+      const res = getShouldUpdateApprovalRequest(true, false, false, false);
       expect(res).toBe(true);
     });
+    it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldUpdateApprovalRequest(true, false, false, true);
+      expect(res).toBe(false);
+    });
     it('returns true for Swap transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, false, true);
+      const res = getShouldUpdateApprovalRequest(false, false, true, false);
       expect(res).toBe(true);
     });
     it('returns false for Swap approve transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, false, false);
+      const res = getShouldUpdateApprovalRequest(false, false, false, false);
       expect(res).toBe(false);
     });
   });
