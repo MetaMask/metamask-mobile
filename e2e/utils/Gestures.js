@@ -118,8 +118,8 @@ class Gestures {
 
     await this.clearField(element);
 
-    // // Add wait after clearing
-    // await waitFor(element).toBeVisible().withTimeout(2000);
+    // Add wait after clearing
+    await waitFor(element).toBeVisible().withTimeout(2000);
 
     await element.typeText(text + '\n');
   }
