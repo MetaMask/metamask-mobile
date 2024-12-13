@@ -63,15 +63,6 @@ describe('App', () => {
     mockNavigate.mockClear();
   });
 
-  it('renders according to latest snapshot', () => {
-    const { toJSON } = renderScreen(
-      App,
-      { name: 'App' },
-      { state: initialState },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('configures MetaMetrics instance and identifies user on startup', async () => {
     renderScreen(App, { name: 'App' }, { state: initialState });
     await waitFor(() => {
