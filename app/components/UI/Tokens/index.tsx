@@ -30,6 +30,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
   selectTokenNetworkFilter,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
@@ -104,6 +105,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const hideZeroBalanceTokens = useSelector(
     (state: RootState) => state.settings.hideZeroBalanceTokens,
   );
+  const isUserOnCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
 
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -144,17 +148,36 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         selectedAccountTokensChains,
       ).flat() as TokenI[];
 
-      // First filter zero balance tokens if setting is enabled
-      const tokensToDisplay = hideZeroBalanceTokens
-        ? allTokens.filter((curToken) => {
+      /*
+        If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
+        If user is on "current Network" we want to show native tokens, even with zero balance
+      */
+      let tokensToDisplay = [];
+      if (hideZeroBalanceTokens) {
+        if (isUserOnCurrentNetwork) {
+          tokensToDisplay = allTokens.filter((curToken) => {
             const multiChainTokenBalances =
               multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
                 curToken.chainId as Hex
               ];
             const balance = multiChainTokenBalances?.[curToken.address as Hex];
             return !isZero(balance) || curToken.isNative || curToken.isStaked;
-          })
-        : allTokens;
+          });
+        } else {
+          tokensToDisplay = allTokens.filter((curToken) => {
+            const multiChainTokenBalances =
+              multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+                curToken.chainId as Hex
+              ];
+            const balance =
+              multiChainTokenBalances?.[curToken.address as Hex] ||
+              curToken.balance;
+            return !isZero(balance) || curToken.isStaked;
+          });
+        }
+      } else {
+        tokensToDisplay = allTokens;
+      }
 
       // Then apply network filters
       const filteredAssets = filterAssets(tokensToDisplay, [
@@ -273,6 +296,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     multiChainTokenBalance,
     networkConfigurationsByChainId,
     selectedInternalAccountAddress,
+    isUserOnCurrentNetwork,
   ]);
 
   const showRemoveMenu = (token: TokenI) => {
@@ -398,6 +422,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         {isPortfolioViewEnabled() ? (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
+              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
                   {isAllNetworks
