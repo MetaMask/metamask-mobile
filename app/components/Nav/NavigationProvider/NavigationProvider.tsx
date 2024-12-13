@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -9,7 +10,10 @@ import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
 import { NavigationProviderProps } from './types';
-import React from 'react';
+import { endTrace, TraceOperation } from '../../../util/trace';
+import { TraceName } from '../../../util/trace';
+import { trace } from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
 const Stack = createStackNavigator();
 
@@ -22,10 +26,22 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   const { colors } = useTheme();
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    // Start trace when navigation provider is mounted
+    trace({
+      name: TraceName.NavInit,
+      parentContext: getUIStartupSpan(),
+      op: TraceOperation.NavInit,
+    });
+  }, []);
+
   /**
    * Triggers when the navigation is ready
    */
   const onReady = () => {
+    // End trace when navigation is ready
+    endTrace({ name: TraceName.NavInit });
+    // Dispatch navigation ready action, used by sagas
     dispatch(onNavigationReady());
   };
 

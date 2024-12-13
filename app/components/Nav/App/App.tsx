@@ -640,14 +640,7 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
 
-  trace({
-    name: TraceName.NavInit,
-    parentContext: getUIStartupSpan(),
-    op: TraceOperation.NavInit,
-  });
-
   useEffect(() => {
-    endTrace({ name: TraceName.NavInit });
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
