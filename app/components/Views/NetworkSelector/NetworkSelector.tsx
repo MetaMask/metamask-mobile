@@ -127,8 +127,6 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetwork = useSelector(selectIsAllNetworks);
-  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -178,18 +176,6 @@ const NetworkSelector = () => {
     networkTypeOrRpcUrl: '',
     isReadOnly: false,
   });
-
-  const setTokenNetworkFilter = useCallback(
-    (chainId: string) => {
-      const { PreferencesController } = Engine.context;
-      if (!isAllNetwork && isPopularNetwork) {
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-      }
-    },
-    [isAllNetwork, isPopularNetwork],
-  );
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
@@ -280,7 +266,6 @@ const NetworkSelector = () => {
         await NetworkController.setActiveNetwork(networkClientId);
       }
 
-      setTokenNetworkFilter(chainId);
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
@@ -395,7 +380,6 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
-      setTokenNetworkFilter(networkConfiguration.chainId);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
