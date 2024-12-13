@@ -151,7 +151,7 @@ stages:
       - run_tag_multichain_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # - run_ios_api_specs: {}
+      - run_ios_api_specs: {}
       # - run_tag_smoke_accounts_ios: {}
       # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
@@ -162,7 +162,7 @@ stages:
       # - run_tag_smoke_confirmations_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_ios: {}
       # - run_tag_smoke_core_android: {}
       # - run_tag_multichain_ios: {}
       # - run_tag_multichain_android: {}

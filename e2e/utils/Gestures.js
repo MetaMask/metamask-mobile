@@ -115,7 +115,11 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-    await this.clearField(elementID);
+
+    await this.clearField(element);
+
+    // // Add wait after clearing
+    // await waitFor(element).toBeVisible().withTimeout(2000);
 
     await element.typeText(text + '\n');
   }
