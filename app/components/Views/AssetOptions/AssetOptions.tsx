@@ -72,15 +72,17 @@ const AssetOptions = (props: Props) => {
       networkConfigurations[networkId as Hex]?.rpcEndpoints?.[
         networkConfigurations[networkId as Hex]?.defaultRpcEndpointIndex
       ];
+    let providerConfigToken;
+    if (isPortfolioViewEnabled()) {
+      providerConfigToken = createProviderConfig(
+        tokenNetworkConfig,
+        tokenRpcEndpoint,
+      );
+    } else {
+      providerConfigToken = providerConfig;
+    }
 
-    const providerConfigToken = createProviderConfig(
-      tokenNetworkConfig,
-      tokenRpcEndpoint,
-    );
-
-    const providerConfigTokenExplorerToken = isPortfolioViewEnabled()
-      ? providerConfigToken
-      : providerConfig;
+    const providerConfigTokenExplorerToken = providerConfigToken;
 
     return {
       providerConfigTokenExplorer: providerConfigTokenExplorerToken,
