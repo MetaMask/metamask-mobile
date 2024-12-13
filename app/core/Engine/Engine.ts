@@ -2142,6 +2142,10 @@ export default {
       LoggingController,
       AccountsController,
       SignatureController,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainBalancesController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2176,7 +2180,14 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+<<<<<<< HEAD
       SignatureController,
+=======
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainBalancesController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
+>>>>>>> 695f26f38 (start fetching balance)
     };
   },
 
