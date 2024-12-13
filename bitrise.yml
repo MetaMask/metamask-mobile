@@ -151,8 +151,8 @@ stages:
       - run_tag_multichain_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
-      # - run_tag_smoke_accounts_ios: {}
+      # - run_ios_api_specs: {}
+      - run_tag_smoke_accounts_ios: {}
       # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
@@ -1088,7 +1088,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release e2e/specs/accounts/reveal-secret-recovery-phrase.spec.js
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
