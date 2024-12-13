@@ -107,9 +107,9 @@ describe('SwitchChainApproval', () => {
       requestData: {
         rpcUrl: URL_MOCK,
       },
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any);
+    } as ApprovalRequest<{
+      rpcUrl: string;
+    }>);
 
     const wrapper = shallow(<SwitchChainApproval />);
     wrapper.find('SwitchCustomNetwork').simulate('confirm');

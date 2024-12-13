@@ -28,16 +28,10 @@ const SwitchChainApproval = () => {
     // If portfolio view is enabled should set network filter
     if (isPortfolioViewEnabled()) {
       const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
-        PreferencesController.setTokenNetworkFilter({
-          [approvalRequest?.requestData?.chainId]: true,
-        });
-      } else {
-        PreferencesController.setTokenNetworkFilter({
-          ...tokenNetworkFilter,
-          [approvalRequest?.requestData?.chainId]: true,
-        });
-      }
+      PreferencesController.setTokenNetworkFilter({
+        ...(isAllNetworks ? tokenNetworkFilter : {}),
+        [approvalRequest?.requestData?.chainId]: true,
+      });
     }
 
     dispatch(
