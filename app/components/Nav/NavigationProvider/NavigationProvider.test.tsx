@@ -6,6 +6,19 @@ import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import { NavigationContainerRef } from '@react-navigation/native';
+import { endTrace, trace, TraceName } from '../../../util/trace';
+
+jest.mock('../../../util/trace', () => {
+  const actual = jest.requireActual('../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn(),
+    endTrace: jest.fn(),
+  };
+});
+
+// Mock UIStartup to prevent second trace from being called (for testing purposes)
+jest.mock('../../../core/Performance/UIStartup', () => jest.fn());
 
 jest.mock('../../../core/NavigationService', () => ({
   navigation: jest.fn(),
@@ -67,5 +80,28 @@ describe('NavigationProvider', () => {
 
     expect(NavigationService.navigation).toBeDefined();
     expect(NavigationService.navigation).toHaveProperty('navigate');
+  });
+
+  it('Measures performance trace order when navigation provider is initialized', () => {
+    // Track calls in array to test for correct order
+    const traceCalls: { functionName: string; name: string }[] = [];
+    const mockTraceCall =
+      (functionName: string) =>
+      ({ name }: { name: string }) => {
+        traceCalls.push({ functionName, name });
+      };
+    (trace as jest.Mock).mockImplementation(mockTraceCall('trace'));
+    (endTrace as jest.Mock).mockImplementation(mockTraceCall('endTrace'));
+
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(traceCalls).toEqual([
+      { order: 'trace', name: TraceName.NavInit },
+      { order: 'endTrace', name: TraceName.NavInit },
+    ]);
   });
 });

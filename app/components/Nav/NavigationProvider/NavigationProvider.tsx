@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useRef } from 'react';
 import {
   NavigationContainer,
   NavigationContainerRef,
@@ -10,9 +10,12 @@ import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
 import { NavigationProviderProps } from './types';
-import { endTrace, TraceOperation } from '../../../util/trace';
-import { TraceName } from '../../../util/trace';
-import { trace } from '../../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceOperation,
+  TraceName,
+} from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
 const Stack = createStackNavigator();
@@ -25,15 +28,17 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
 }) => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
+  const hasInitialized = useRef(false);
 
-  useEffect(() => {
-    // Start trace when navigation provider is mounted
+  // Start trace when navigation provider is initialized
+  if (!hasInitialized.current) {
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
       op: TraceOperation.NavInit,
     });
-  }, []);
+    hasInitialized.current = true;
+  }
 
   /**
    * Triggers when the navigation is ready
