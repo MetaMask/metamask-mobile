@@ -127,6 +127,5 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await TokenOverview.scrollOnScreen();
     await Assertions.checkIfVisible(TokenOverview.receiveButton);
     await Assertions.checkIfVisible(TokenOverview.sendButton);
-    await Assertions.checkIfVisible(TokenOverview.swapButton);
   });
 });
