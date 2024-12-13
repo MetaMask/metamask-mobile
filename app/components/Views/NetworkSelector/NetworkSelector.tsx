@@ -26,11 +26,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import {
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectNetworkConfigurations,
-} from '../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
