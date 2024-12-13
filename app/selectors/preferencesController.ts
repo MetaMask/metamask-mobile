@@ -56,20 +56,8 @@ export const selectTokenSortConfig = createSelector(
 export const selectTokenNetworkFilter = createSelector(
   selectPreferencesControllerState,
   selectChainId,
-  (preferencesControllerState: PreferencesState, chainId: Hex) => {
-    const isPopularNetwork = PopularList.some(
-      (network) =>
-        network.chainId === chainId ||
-        chainId === CHAIN_IDS.MAINNET ||
-        chainId === CHAIN_IDS.LINEA_MAINNET,
-    );
-
-    if (!isPopularNetwork || isTestNet(chainId)) {
-      return { [chainId]: true };
-    }
-
-    return preferencesControllerState.tokenNetworkFilter;
-  },
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenNetworkFilter,
 );
 
 export const selectIsTokenNetworkFilterEqualCurrentNetwork =

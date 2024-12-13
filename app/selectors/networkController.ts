@@ -13,6 +13,9 @@ import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
+import { PopularList } from '../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isTestNet } from '../util/networks';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -168,14 +171,47 @@ export const selectIsEIP1559Network = createSelector(
     ].EIPS[1559] === true,
 );
 
+// Selector to get the popular network configurations, this filter also testnet networks
+const selectIsPopularNetworkConfigurations = createSelector(
+  selectNetworkConfigurations,
+  (networkConfigurations: Record<Hex, NetworkConfiguration>) => {
+    const popularNetworksChainIds = PopularList.map(
+      (popular) => popular.chainId,
+    );
+
+    return Object.keys(networkConfigurations)
+      .filter((chainId) => popularNetworksChainIds.includes(chainId as Hex))
+      .reduce((acc: Record<Hex, NetworkConfiguration>, chainId) => {
+        acc[chainId as Hex] = networkConfigurations[chainId as Hex];
+        return acc;
+      }, {});
+  },
+);
+
 export const selectIsAllNetworks = createSelector(
   selectNetworkConfigurations,
+  selectIsPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
-  (networkConfigurations, tokenNetworkFilter) => {
+  (networkConfigurations, popularNetworkConfigurations, tokenNetworkFilter) => {
+    // const isPopularNetwork = PopularList.some(
+    //   (network) =>
+    //     network.chainId === chainId ||
+    //     chainId === CHAIN_IDS.MAINNET ||
+    //     chainId === CHAIN_IDS.LINEA_MAINNET,
+    // );
+
+    // if (!isPopularNetwork || isTestNet(chainId)) {
+    //   return { [chainId]: true };
+    // }
+    console.log(
+      'popularNetworkConfigurations .......',
+      popularNetworkConfigurations,
+    );
+
     if (Object.keys(tokenNetworkFilter).length === 1) {
       return false;
     }
-    const allNetworks = enableAllNetworksFilter(networkConfigurations);
+    const allNetworks = enableAllNetworksFilter(popularNetworkConfigurations);
     return (
       Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length
     );
