@@ -19,6 +19,7 @@ describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
   });
+
   it('should render correctly', () => {
     const useDispatchSpy = jest.spyOn(reactRedux, 'useDispatch');
     useDispatchSpy.mockImplementation(() => jest.fn());

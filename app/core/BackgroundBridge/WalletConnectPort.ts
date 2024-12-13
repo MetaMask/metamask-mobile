@@ -23,7 +23,9 @@ class WalletConnectPort extends EventEmitter {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        const { selectedAddress } = Engine.datamodel.flatState;
+        const {
+          PreferencesController: { selectedAddress },
+        } = Engine.datamodel.state;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
           accounts: [selectedAddress],

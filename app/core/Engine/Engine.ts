@@ -154,9 +154,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts/constants';
+} from './controllers/AccountsController/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/accounts/utils';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -177,7 +177,6 @@ import { submitSmartTransactionHook } from '../../util/smart-transactions/smart-
 import { zeroAddress } from 'ethereumjs-util';
 import { ApprovalType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
-import EthQuery from '@metamask/eth-query';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
   MetaMetricsEventCategory,
@@ -201,11 +200,19 @@ import { JsonMap } from '../Analytics/MetaMetrics.types';
 import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
-  Controllers,
   EngineState,
   EngineContext,
   TransactionEventPayload,
+  StatefulControllers,
 } from './types';
+import {
+  BACKGROUND_STATE_CHANGE_EVENT_NAMES,
+  STATELESS_NON_CONTROLLER_NAMES,
+} from './constants';
+import {
+  getGlobalChainId,
+  getGlobalNetworkClientId,
+} from '../../util/networks/global-network';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -236,9 +243,7 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, StatefulControllers>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -344,9 +349,7 @@ export class Engine {
           'NetworkController:networkDidChange',
         ],
       }),
-      chainId: networkController.getNetworkClientById(
-        networkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
+      chainId: getGlobalChainId(networkController),
     });
 
     // Create AccountsController
@@ -370,9 +373,7 @@ export class Engine {
     });
 
     const nftController = new NftController({
-      chainId: networkController.getNetworkClientById(
-        networkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
+      chainId: getGlobalChainId(networkController),
       useIpfsSubdomains: false,
       messenger: this.controllerMessenger.getRestricted({
         name: 'NftController',
@@ -410,9 +411,7 @@ export class Engine {
       state: initialState.LoggingController,
     });
     const tokensController = new TokensController({
-      chainId: networkController.getNetworkClientById(
-        networkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
+      chainId: getGlobalChainId(networkController),
       // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
       provider: networkController.getProviderAndBlockTracker().provider,
       state: initialState.TokensController,
@@ -434,9 +433,7 @@ export class Engine {
       }),
     });
     const tokenListController = new TokenListController({
-      chainId: networkController.getNetworkClientById(
-        networkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
+      chainId: getGlobalChainId(networkController),
       onNetworkStateChange: (listener) =>
         this.controllerMessenger.subscribe(
           AppConstants.NETWORK_STATE_CHANGE_EVENT,
@@ -454,7 +451,25 @@ export class Engine {
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
-      state: initialState.CurrencyRateController,
+      // normalize `null` currencyRate to `0`
+      // TODO: handle `null` currencyRate by hiding fiat values instead
+      state: {
+        ...initialState.CurrencyRateController,
+        currencyRates: Object.fromEntries(
+          Object.entries(
+            initialState.CurrencyRateController?.currencyRates ?? {
+              ETH: {
+                conversionRate: 0,
+                conversionDate: 0,
+                usdConversionRate: null,
+              },
+            },
+          ).map(([k, v]) => [
+            k,
+            { ...v, conversionRate: v.conversionRate ?? 0 },
+          ]),
+        ),
+      },
     });
 
     const gasFeeController = new GasFeeController({
@@ -473,9 +488,7 @@ export class Engine {
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.chainId;
+        const chainId = getGlobalChainId(networkController);
         return (
           isMainnetByChainId(chainId) ||
           chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
@@ -1029,12 +1042,17 @@ export class Engine {
           'NotificationServicesController:selectIsNotificationServicesEnabled',
           AccountsControllerListAccountsAction,
           AccountsControllerUpdateAccountMetadataAction,
+          'NetworkController:getState',
+          'NetworkController:addNetwork',
+          'NetworkController:removeNetwork',
+          'NetworkController:updateNetwork',
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           AccountsControllerAccountAddedEvent,
           AccountsControllerAccountRenamedEvent,
+          'NetworkController:networkRemoved',
         ],
       }),
       nativeScryptCrypto: scrypt,
@@ -1109,8 +1127,6 @@ export class Engine {
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      blockTracker: networkController.getProviderAndBlockTracker().blockTracker,
       disableHistory: true,
       disableSendFlowHistory: true,
       disableSwaps: true,
@@ -1150,16 +1166,14 @@ export class Engine {
       },
       incomingTransactions: {
         isEnabled: () => {
-          const currentHexChainId = networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId;
+          const currentHexChainId = getGlobalChainId(networkController);
 
           const showIncomingTransactions =
             preferencesController?.state?.showIncomingTransactions;
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1176,16 +1190,9 @@ export class Engine {
         ],
         allowedEvents: [`NetworkController:stateChange`],
       }),
-      onNetworkStateChange: (listener) =>
-        this.controllerMessenger.subscribe(
-          AppConstants.NETWORK_STATE_CHANGE_EVENT,
-          listener,
-        ),
       pendingTransactions: {
         isResubmitEnabled: () => false,
       },
-      // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-      provider: networkController.getProviderAndBlockTracker().provider,
       sign: this.keyringController.signTransaction.bind(
         this.keyringController,
       ) as unknown as TransactionControllerOptions['sign'],
@@ -1295,11 +1302,7 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(
-                  networkController.getNetworkClientById(
-                    networkController?.state.selectedNetworkClientId,
-                  ).configuration.chainId,
-                ),
+                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
               })
               .build(),
           ),
@@ -1446,9 +1449,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
-        chainId: networkController.getNetworkClientById(
-          networkController?.state.selectedNetworkClientId,
-        ).configuration.chainId,
+        chainId: getGlobalChainId(networkController),
         blockaidPublicKey: process.env.BLOCKAID_PUBLIC_KEY as string,
         cdnBaseUrl: process.env.BLOCKAID_FILE_CDN as string,
         messenger: this.controllerMessenger.getRestricted({
@@ -1481,24 +1482,21 @@ export class Engine {
       }),
     };
 
-    // Avoiding `Object.values` and `getKnownPropertyNames` for performance benefits: https://www.measurethat.net/Benchmarks/Show/7173/0/objectvalues-vs-reduce
-    const controllers = (
-      Object.keys(this.context) as (keyof Controllers)[]
-    ).reduce<Controllers[keyof Controllers][]>(
-      (controllers, controllerName) => {
-        const controller = this.context[controllerName];
-        if (controller) {
-          controllers.push(controller);
-        }
-        return controllers;
+    const childControllers = Object.assign({}, this.context);
+    STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
+      if (name in childControllers && childControllers[name]) {
+        delete childControllers[name];
+      }
+    });
+    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
+      {
+        controllers: childControllers as StatefulControllers,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ComposableController',
+          allowedActions: [],
+          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+        }),
       },
-      [],
-    );
-
-    this.datamodel = new ComposableController(
-      // @ts-expect-error TODO: Filter out non-controller instances
-      controllers,
-      this.controllerMessenger,
     );
 
     const { NftController: nfts } = this.context;
@@ -1508,9 +1506,9 @@ export class Engine {
     }
 
     this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionBlockReceived',
-      (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
+      'TransactionController:incomingTransactionsReceived',
+      (incomingTransactions: TransactionMeta[]) => {
+        NotificationManager.gotIncomingTransaction(incomingTransactions);
       },
     );
 
@@ -1520,16 +1518,12 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-          networkController.getNetworkClientById(
-            networkController?.state.selectedNetworkClientId,
-          ).configuration.chainId !== currentChainId
+            getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
             this.configureControllersOnNetworkChange();
-            currentChainId = networkController.getNetworkClientById(
-              networkController?.state.selectedNetworkClientId,
-            ).configuration.chainId;
+            currentChainId = getGlobalChainId(networkController);
           }, 500);
         }
       },
@@ -1544,11 +1538,7 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${
-              networkController.getNetworkClientById(
-                networkController?.state.selectedNetworkClientId,
-              ).configuration.chainId
-            }`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
           );
         }
       },
@@ -1674,10 +1664,14 @@ export class Engine {
   }
 
   startPolling() {
-    const { TransactionController } = this.context;
+    const { NetworkController, TransactionController } = this.context;
+
+    const chainId = getGlobalChainId(NetworkController);
+
+    TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling();
+    TransactionController.startIncomingTransactionPolling([chainId]);
   }
 
   configureControllersOnNetworkChange() {
@@ -1692,9 +1686,7 @@ export class Engine {
     provider.sendAsync = provider.sendAsync.bind(provider);
 
     SwapsController.setProvider(provider, {
-      chainId: NetworkController.getNetworkClientById(
-        NetworkController?.state.selectedNetworkClientId,
-      ).configuration.chainId,
+      chainId: getGlobalChainId(NetworkController),
       pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
     });
     AccountTrackerController.refresh();
@@ -1725,7 +1717,7 @@ export class Engine {
         toChecksumHexAddress(selectedInternalAccount.address);
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.getNetworkClientById(
-        NetworkController?.state.selectedNetworkClientId,
+        getGlobalNetworkClientId(NetworkController),
       ).configuration;
       const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
@@ -1788,7 +1780,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1799,9 +1791,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2042,17 +2034,6 @@ export class Engine {
     AccountsController.setAccountName(accountToBeNamed.id, label);
     PreferencesController.setAccountLabel(address, label);
   }
-
-  getGlobalEthQuery(): EthQuery {
-    const { NetworkController } = this.context;
-    const { provider } = NetworkController.getSelectedNetworkClient() ?? {};
-
-    if (!provider) {
-      throw new Error('No selected network client');
-    }
-
-    return new EthQuery(provider);
-  }
 }
 
 /**
@@ -2117,22 +2098,12 @@ export default {
       AccountsController,
     } = instance.datamodel.state;
 
-    // normalize `null` currencyRate to `0`
-    // TODO: handle `null` currencyRate by hiding fiat values instead
-    const modifiedCurrencyRateControllerState = {
-      ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
-    };
-
     return {
       AccountTrackerController,
       AddressBookController,
       NftController,
       TokenListController,
-      CurrencyRateController: modifiedCurrencyRateControllerState,
+      CurrencyRateController,
       KeyringController,
       NetworkController,
       PhishingController,
@@ -2218,10 +2189,6 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getGlobalEthQuery: (): EthQuery => {
-    assertEngineExists(instance);
-    return instance.getGlobalEthQuery();
-  },
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring: () => {
     assertEngineExists(instance);

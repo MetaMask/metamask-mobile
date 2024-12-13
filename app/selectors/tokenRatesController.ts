@@ -20,3 +20,8 @@ export const selectTokenMarketData = createSelector(
   (tokenRatesControllerState: TokenRatesControllerState) =>
     tokenRatesControllerState.marketData,
 );
+
+export const selectTokenMarketDataByChainId = createSelector(
+  [selectTokenMarketData, (_state: RootState, chainId: Hex) => chainId],
+  (marketData, chainId) => marketData?.[chainId] || {},
+);

@@ -10,6 +10,22 @@ import {
   MOCK_STAKED_ETH_ASSET,
 } from '../../__mocks__/mockData';
 
+jest.mock('../../../../../selectors/multichain', () => ({
+  selectAccountTokensAcrossChains: jest.fn(() => ({
+    '0x1': [
+      {
+        address: '0x0',
+        symbol: 'ETH',
+        decimals: 18,
+        balance: '1.5',
+        balanceFiat: '$3000',
+        isNative: true,
+        isETH: true,
+      },
+    ],
+  })),
+}));
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
