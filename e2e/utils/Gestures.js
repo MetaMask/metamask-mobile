@@ -100,7 +100,7 @@ class Gestures {
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
 
   */
-  static async clearField(_, timeout = 2500) {
+  static async clearField(element, timeout = 2500) {
     // const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
 
