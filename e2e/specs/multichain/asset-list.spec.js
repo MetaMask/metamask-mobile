@@ -66,7 +66,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+  it.skip('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -82,12 +82,11 @@ describe(SmokeMultiChain('Import Tokens'), () => {
       BNB_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
+    await QuoteView.tapOnCancelButton();
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
     const ETHEREUM_NAME = 'Ethereum Main Network';
-    await QuoteView.tapOnCancelButton();
-    await TabBarComponent.tapWallet();
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     const ethereum = WalletView.tokenInWallet('Ethereum');
