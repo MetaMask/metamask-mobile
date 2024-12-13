@@ -37,6 +37,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         //TODO: should re add connecting to an external swap step after detox has been updated
+        //should connect to test dap
 
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
