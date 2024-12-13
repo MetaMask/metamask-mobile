@@ -1,13 +1,20 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  MultichainNativeAssets,
+  Token,
+  getNativeTokenAddress,
+} from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
 } from './accountsController';
 import { selectAllTokens } from './tokensController';
-import { selectAccountsByChainId } from './accountTrackerController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from './accountTrackerController';
 import {
   selectChainId,
   selectNetworkConfigurations,
@@ -28,6 +35,7 @@ import {
 } from '../core/Multichain/utils';
 import { isMainNet, isTestNet } from '../util/networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
+import { createDeepEqualSelector } from './util';
 
 interface NativeTokenBalance {
   balance: string;
@@ -280,67 +288,6 @@ export const selectMultichainIsBitcoin = createSelector(
   (isEvm, token) => !isEvm && token.symbol === 'BTC',
 );
 
-export const selectMultichainProviderConfig = createSelector(
-  selectProviderConfig,
-  (providerConfig) => providerConfig,
-);
-
-export const selectMultichainCurrentNetwork = selectMultichainProviderConfig;
-
-export const selectMultichainNativeCurrency = createSelector(
-  selectMultichainIsEvm,
-  selectTicker,
-  selectProviderConfig,
-  (isEvm, ticker, providerConfig) => (isEvm ? ticker : providerConfig?.ticker),
-);
-
-export const selectMultichainCurrentCurrency = createSelector(
-  selectMultichainIsEvm,
-  selectCurrentCurrency,
-  selectProviderConfig,
-  (isEvm, currentCurrency, providerConfig) => {
-    if (isEvm) {
-      return currentCurrency;
-    }
-    // For non-EVM:
-    return currentCurrency?.toLowerCase() === 'usd'
-      ? 'usd'
-      : providerConfig.ticker;
-  },
-);
-
-export const selectMultichainShouldShowFiat = createSelector(
-  selectMultichainIsEvm,
-  selectChainId,
-  (state: RootState) => state.settings.showFiatOnTestnets,
-  selectSelectedInternalAccount,
-  selectMultichainIsBitcoin,
-  (isEvm, chainId, showFiatOnTestnets, selectedAccount, isBitcoin) => {
-    if (isEvm) {
-      // EVM logic: show fiat on mainnet or showFiatOnTestnets if testnet
-      if (!isTestNet(chainId)) {
-        return true; // mainnet
-      }
-      return showFiatOnTestnets;
-    }
-
-    // Non-EVM logic: currently we only have Bitcoin as example
-    // Show fiat if mainnet or if testnet + showFiatOnTestnets is true
-    if (isBitcoin && selectedAccount) {
-      const isMainnet = isBtcMainnetAddress(selectedAccount.address);
-      const isTestnet = isBtcTestnetAddress(selectedAccount.address);
-
-      if (isMainnet) return true;
-      if (isTestnet) return showFiatOnTestnets;
-    }
-
-    // If other non-EVM networks are supported, adjust logic as needed.
-    return true;
-  },
-);
-
-export const selectMultichainCurrentChainId = selectChainId;
-
 export const selectMultichainIsMainnet = createSelector(
   selectMultichainIsEvm,
   selectSelectedInternalAccount,
@@ -355,59 +302,44 @@ export const selectMultichainIsMainnet = createSelector(
     if (isBitcoin && selectedAccount) {
       return isBtcMainnetAddress(selectedAccount.address);
     }
-
-    // If other non-EVM networks: adjust accordingly
-    return false;
-  },
-);
-
-export const selectMultichainIsTestnet = createSelector(
-  selectMultichainIsEvm,
-  selectSelectedInternalAccount,
-  selectChainId,
-  selectMultichainIsBitcoin,
-  (isEvm, selectedAccount, chainId, isBitcoin) => {
-    if (isEvm) {
-      return isTestNet(chainId);
-    }
-
-    if (isBitcoin && selectedAccount) {
-      return isBtcTestnetAddress(selectedAccount.address);
-    }
-
-    // For other non-EVM networks, implement similar logic
     return false;
   },
 );
 
 /**
- * If MultichainBalancesController state is integrated into the engine background state,
- * adapt the following selector. If not, please provide that part of the state so we can adjust.
+ *
+ * @param state - Root redux state
+ * @returns - MultichainBalancesController state
  */
-export const selectMultichainBalances = createSelector(
-  // Placeholder: adapt to where balances from MultichainBalancesController are stored.
-  (state: RootState) =>
-    state.engine.backgroundState.MultichainBalancesController?.balances ?? {},
-  (balances) => balances,
+const selectMultichainBalancesControllerState = (state: RootState) =>
+  state.engine.backgroundState.MultichainBalancesController;
+
+export const selectMultichainBalances = createDeepEqualSelector(
+  selectMultichainBalancesControllerState,
+  (multichainBalancesControllerState) => {
+    return multichainBalancesControllerState.balances;
+  },
 );
 
-export const selectMultichainCoinRates = selectCurrencyRates;
+const selectBtcCachedBalance = createDeepEqualSelector(
+  selectMultichainBalances,
+  selectSelectedInternalAccount,
+  selectMultichainIsMainnet,
+  (multichainBalances, selectedInternalAccount, multichainIsMainnet) => {
+    const asset = multichainIsMainnet
+      ? MultichainNativeAssets.Bitcoin
+      : MultichainNativeAssets.BitcoinTestnet;
+
+    return multichainBalances?.[selectedInternalAccount.id]?.[asset]?.amount;
+  },
+);
 
 export const selectMultichainSelectedAccountCachedBalance = createSelector(
-  selectSelectedInternalAccountFormattedAddress,
-  selectAccountsByChainId,
   selectMultichainIsEvm,
-  selectChainId,
-  selectSelectedInternalAccount,
-  (selectedAddress, accountsByChainId, isEvm, chainId, selectedAccount) => {
-    if (!selectedAddress || !chainId) return '0x0';
-    const account = accountsByChainId[chainId]?.[selectedAddress];
-    if (!account) return '0x0';
-
-    // For EVM: `account.balance` should be a hex string (e.g. '0x1234...')
-    // For Bitcoin: If the MultichainBalancesController stores balance as a decimal or something else,
-    // convert or adapt accordingly. If it stores amounts in sats, for example, convert if needed.
-    return account.balance || '0x0';
+  selectAccountBalanceByChainId,
+  selectBtcCachedBalance,
+  (isEvm, accountBalanceByChainId, btcCachedBalance) => {
+    return isEvm ? accountBalanceByChainId?.balance : btcCachedBalance;
   },
 );
 
