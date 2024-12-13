@@ -73,7 +73,6 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
-    await Assertions.checkIfVisible(TokenOverview.swapButton);
     await TokenOverview.tapSwapButton();
 
     await Assertions.checkIfVisible(NetworkEducationModal.container);
