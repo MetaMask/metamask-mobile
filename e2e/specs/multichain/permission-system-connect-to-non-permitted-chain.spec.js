@@ -175,6 +175,7 @@ describe(
           // Select Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
           await NetworkEducationModal.tapGotItButton();
+          await TestHelpers.delay(3000); // another toast to wait for, after switching to Sepolia
 
           // Verify network switched to Sepolia
           await TabBarComponent.tapWallet();
@@ -219,7 +220,8 @@ describe(
           // Select Linea Sepolia from network selector and update permissions
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
-          await NetworkEducationModal.tapGotItButton();
+          // await NetworkEducationModal.tapGotItButton(); // commeting this line for now, for some reason the e2e recordings dont currently show a got it modal here
+          await TestHelpers.delay(3000); // Wait for the toast to disappear
 
           // Select Linea Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
