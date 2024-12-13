@@ -312,3 +312,4 @@ exports[`Root should render correctly 1`] = `
   </RNCSafeAreaProvider>
 </View>
 `;
+exports[`Root should render correctly 1`] = `null`;
