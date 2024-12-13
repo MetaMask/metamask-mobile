@@ -2,7 +2,6 @@ import { RemoteFeatureFlagControllerMessenger, RemoteFeatureFlagControllerState 
 
 export interface RemoteFeatureFlagInitParamTypes {
   state?: RemoteFeatureFlagControllerState;
-  messenger: RemoteFeatureFlagControllerMessenger,
-  disabled: boolean
+  messenger: RemoteFeatureFlagControllerMessenger;
+  disabled: boolean;
 }
-
