@@ -205,7 +205,7 @@
     "@react-native-firebase/app": "^20.5.0",
     "@react-native-firebase/messaging": "^20.5.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
-    "@react-native/eslint-config": "^0.75.2",
+    "@react-native/eslint-config": "^0.76.5",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/compat": "^5.3.20",
     "@react-navigation/native": "^5.9.4",
