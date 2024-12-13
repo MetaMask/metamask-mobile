@@ -7,6 +7,9 @@ import App from './';
 import { MetaMetrics } from '../../../core/Analytics';
 import { waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { Authentication } from '../../../core/';
+import Routes from '../../../constants/navigation/Routes';
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -16,6 +19,23 @@ const initialState: DeepPartial<RootState> = {
     backgroundState,
   },
 };
+
+jest.mock('../../../core/NavigationService', () => ({
+  navigation: {
+    reset: jest.fn(),
+  },
+}));
+
+// Mock the navigation hook
+const mockNavigate = jest.fn();
+const mockReset = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    reset: mockReset,
+  }),
+}));
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -40,6 +60,7 @@ jest.mock(
 describe('App', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
   });
 
   it('renders according to latest snapshot', () => {
@@ -64,6 +85,28 @@ describe('App', () => {
       expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
         deviceProp: 'Device value',
         userProp: 'User value',
+      });
+    });
+  });
+
+  describe('Authentication flow logic', () => {
+    it('navigates to onboarding when user does not exist', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+        });
+      });
+    });
+    it('navigates to login when user exists and logs in', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(true);
+      jest.spyOn(Authentication, 'appTriggeredAuth').mockResolvedValue();
+      renderScreen(App, { name: 'App' }, { state: initialState });
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+        });
       });
     });
   });
