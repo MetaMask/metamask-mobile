@@ -34,7 +34,6 @@ export const createRemoteFeatureFlagController = ({
   messenger,
   disabled,
 }: RemoteFeatureFlagInitParamTypes) => {
-
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
@@ -58,4 +57,3 @@ export const createRemoteFeatureFlagController = ({
   }
   return remoteFeatureFlagController;
 };
-
