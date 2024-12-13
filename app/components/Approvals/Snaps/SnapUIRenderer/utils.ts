@@ -5,7 +5,6 @@ import { sha256 } from '@noble/hashes/sha256';
 import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
 import { unescape as unescapeEntities } from 'he';
 import { COMPONENT_MAPPING } from './components';
-import { UIComponent } from './components/types';
 
 // TODO: Theme isn't properly setup yet
 // const colors = Theme.colors;
@@ -112,6 +111,7 @@ export const mapTextToTemplate = (
   }) as NonEmptyArray<UIComponent | string>;
 
 import { FormState, InterfaceState } from '@metamask/snaps-sdk';
+import { UIComponent } from './components/types';
 
 /**
  * Merge a new input value in the interface state.
@@ -226,27 +226,28 @@ export enum BlockSize {
 }
 
 // export enum BorderColor {
-//   borderDefault = colors.border.default,
-//   borderMuted = colors.border.muted,
-//   primaryDefault = colors.primary.default,
-//   primaryAlternative = colors.primary.alternative,
-//   primaryMuted = colors.primary.muted,
-//   errorDefault = colors.error.default,
-//   errorAlternative = colors.error.alternative,
-//   errorMuted = colors.error.muted,
-//   warningDefault = colors.warning.default,
-//   warningMuted = colors.warning.muted,
-//   successDefault = colors.success.default,
-//   successMuted = colors.success.muted,
-//   infoDefault = colors.info.default,
-//   infoMuted = colors.info.muted,
-//   mainnet = colors.network.mainnet,
-//   goerli = colors.network.goerli,
-//   sepolia = colors.network.sepolia,
-//   lineaGoerli = colors.network.lineaGoerli,
-//   lineaSepolia = colors.network.lineaSepolia,
-//   lineaMainnet = colors.network.lineaMainnet,
-//   transparent = 'transparent',
-//   localhost = colors.network.localhost,
-//   backgroundDefault = colors.background.default,
+// TODO: These colours need adding
+// borderDefault = colors.border.default,
+// borderMuted = colors.border.muted,
+// primaryDefault = colors.primary.default,
+// primaryAlternative = colors.primary.alternative,
+// primaryMuted = colors.primary.muted,
+// errorDefault = colors.error.default,
+// errorAlternative = colors.error.alternative,
+// errorMuted = colors.error.muted,
+// warningDefault = colors.warning.default,
+// warningMuted = colors.warning.muted,
+// successDefault = colors.success.default,
+// successMuted = colors.success.muted,
+// infoDefault = colors.info.default,
+// infoMuted = colors.info.muted,
+// mainnet = colors.network.mainnet,
+// goerli = colors.network.goerli,
+// sepolia = colors.network.sepolia,
+// lineaGoerli = colors.network.lineaGoerli,
+// lineaSepolia = colors.network.lineaSepolia,
+// lineaMainnet = colors.network.lineaMainnet,
+// transparent = 'transparent',
+// localhost = colors.network.localhost,
+// backgroundDefault = colors.background.default,
 // }
