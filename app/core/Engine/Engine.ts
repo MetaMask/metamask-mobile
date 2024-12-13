@@ -510,6 +510,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
+      getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId(),
     });
 
     const phishingController = new PhishingController({
