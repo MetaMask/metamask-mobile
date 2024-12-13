@@ -15,7 +15,6 @@ import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isTestNet } from '../util/networks';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -172,7 +171,7 @@ export const selectIsEIP1559Network = createSelector(
 );
 
 // Selector to get the popular network configurations, this filter also testnet networks
-const selectIsPopularNetworkConfigurations = createSelector(
+export const selectAllPopularNetworkConfigurations = createSelector(
   selectNetworkConfigurations,
   (networkConfigurations: Record<Hex, NetworkConfiguration>) => {
     const popularNetworksChainIds = PopularList.map(
@@ -180,7 +179,12 @@ const selectIsPopularNetworkConfigurations = createSelector(
     );
 
     return Object.keys(networkConfigurations)
-      .filter((chainId) => popularNetworksChainIds.includes(chainId as Hex))
+      .filter(
+        (chainId) =>
+          popularNetworksChainIds.includes(chainId as Hex) ||
+          chainId === CHAIN_IDS.MAINNET ||
+          chainId === CHAIN_IDS.LINEA_MAINNET,
+      )
       .reduce((acc: Record<Hex, NetworkConfiguration>, chainId) => {
         acc[chainId as Hex] = networkConfigurations[chainId as Hex];
         return acc;
@@ -188,26 +192,18 @@ const selectIsPopularNetworkConfigurations = createSelector(
   },
 );
 
+export const selectIsPopularNetwork = createSelector(
+  selectChainId,
+  (chainId) =>
+    chainId === CHAIN_IDS.MAINNET ||
+    chainId === CHAIN_IDS.LINEA_MAINNET ||
+    PopularList.some((network) => network.chainId === chainId),
+);
+
 export const selectIsAllNetworks = createSelector(
-  selectNetworkConfigurations,
-  selectIsPopularNetworkConfigurations,
+  selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
-  (networkConfigurations, popularNetworkConfigurations, tokenNetworkFilter) => {
-    // const isPopularNetwork = PopularList.some(
-    //   (network) =>
-    //     network.chainId === chainId ||
-    //     chainId === CHAIN_IDS.MAINNET ||
-    //     chainId === CHAIN_IDS.LINEA_MAINNET,
-    // );
-
-    // if (!isPopularNetwork || isTestNet(chainId)) {
-    //   return { [chainId]: true };
-    // }
-    console.log(
-      'popularNetworkConfigurations .......',
-      popularNetworkConfigurations,
-    );
-
+  (popularNetworkConfigurations, tokenNetworkFilter) => {
     if (Object.keys(tokenNetworkFilter).length === 1) {
       return false;
     }

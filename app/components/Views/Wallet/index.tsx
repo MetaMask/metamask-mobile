@@ -339,20 +339,21 @@ const Wallet = ({
   /**
    * Handle network filter called when app is mounted and tokenNetworkFilter is empty
    */
-  const handleNetworkFilter = useCallback(() => {
-    // TODO: Come back possibly just add the chain id of the eth
-    // network as the default state instead of doing this
-    const { PreferencesController } = Engine.context;
-    if (Object.keys(tokenNetworkFilter).length === 0) {
-      PreferencesController.setTokenNetworkFilter({
-        [chainId]: true,
-      });
-    }
-  }, [chainId, tokenNetworkFilter]);
+  // const handleNetworkFilter = useCallback(() => {
+  //   console.log('HANDLE_NETWORK_FILTER 1111 .......');
+  //   // TODO: Come back possibly just add the chain id of the eth
+  //   // network as the default state instead of doing this
+  //   const { PreferencesController } = Engine.context;
+  //   if (Object.keys(tokenNetworkFilter).length === 0) {
+  //     PreferencesController.setTokenNetworkFilter({
+  //       [chainId]: true,
+  //     });
+  //   }
+  // }, [chainId, tokenNetworkFilter]);
 
-  useEffect(() => {
-    handleNetworkFilter();
-  }, [chainId, handleNetworkFilter]);
+  // useEffect(() => {
+  //   handleNetworkFilter();
+  // }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled

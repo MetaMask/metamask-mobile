@@ -2,8 +2,8 @@ import React, { useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectAllPopularNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 import BottomSheet, {
@@ -28,7 +28,7 @@ enum FilterOption {
 
 const TokenFilterBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const allNetworks = useSelector(selectNetworkConfigurations);
+  const allNetworks = useSelector(selectAllPopularNetworkConfigurations);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

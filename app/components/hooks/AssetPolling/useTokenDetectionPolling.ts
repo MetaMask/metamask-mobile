@@ -2,38 +2,36 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
+  selectAllPopularNetworkConfigurations,
   selectChainId,
   selectIsAllNetworks,
-  selectNetworkConfigurations,
+  selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled, isTestNet } from '../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import { getNetworkConfigurationsToPoll } from './utils';
 
 const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
   const currentChainId = useSelector(selectChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const useTokenDetection = useSelector(selectUseTokenDetection);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-
-  const networkConfigurationsToPoll = getNetworkConfigurationsToPoll(
-    networkConfigurations,
-    isAllNetworksSelected,
-  );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   // if all networks are selected, poll all popular networks
   const filteredChainIds =
-    isAllNetworksSelected && !isTestNet(currentChainId)
-      ? networkConfigurationsToPoll.map((network) => network.chainId)
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? Object.values(networkConfigurationsPopularNetworks).map(
+          (network) => network.chainId,
+        )
       : [currentChainId];
 
   // if portfolio view is enabled, poll all chain ids
-  const chainIdsToPoll = isPortfolioViewEnabled()
-    ? chainIds ?? filteredChainIds
-    : [currentChainId];
+  const chainIdsToPoll = chainIds ?? filteredChainIds;
 
   const { TokenDetectionController } = Engine.context;
 

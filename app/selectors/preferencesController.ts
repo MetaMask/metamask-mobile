@@ -4,9 +4,6 @@ import { RootState } from '../reducers';
 import { selectChainId } from './networkController';
 import { createDeepEqualSelector } from './util';
 import { Hex } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../util/networks/customNetworks';
-import { isTestNet } from '../util/networks';
 
 const selectPreferencesControllerState = (state: RootState) =>
   state.engine?.backgroundState?.PreferencesController;
@@ -55,7 +52,6 @@ export const selectTokenSortConfig = createSelector(
 
 export const selectTokenNetworkFilter = createSelector(
   selectPreferencesControllerState,
-  selectChainId,
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.tokenNetworkFilter,
 );

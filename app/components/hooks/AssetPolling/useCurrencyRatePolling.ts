@@ -1,8 +1,10 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import {
+  selectAllPopularNetworkConfigurations,
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
@@ -10,20 +12,18 @@ import {
   selectConversionRate,
   selectCurrencyRates,
 } from '../../../selectors/currencyRateController';
-import { getNetworkConfigurationsToPoll } from './utils';
-import { isTestNet } from '../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = () => {
   // Selectors to determine polling input
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentChainId = useSelector(selectChainId);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
-
-  const networkConfigurationsPopular = getNetworkConfigurationsToPoll(
-    networkConfigurations,
-    isAllNetworksSelected,
-  );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   // Selectors returning state updated by the polling
   const conversionRate = useSelector(selectConversionRate);
@@ -31,8 +31,10 @@ const useCurrencyRatePolling = () => {
 
   // if all networks are selected, poll all popular networks
   const networkConfigurationsToPoll =
-    isAllNetworksSelected && !isTestNet(currentChainId)
-      ? networkConfigurationsPopular
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? Object.values(networkConfigurationsPopularNetworks).map((network) => ({
+          nativeCurrency: network.nativeCurrency,
+        }))
       : [
           {
             nativeCurrency:

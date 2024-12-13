@@ -27,9 +27,9 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
-  selectNetworkConfigurations,
   selectIsAllNetworks,
-  selectChainId,
+  selectIsPopularNetwork,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -127,8 +127,8 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const currentChainId = useSelector(selectChainId);
+  const isAllNetwork = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -179,23 +179,16 @@ const NetworkSelector = () => {
     isReadOnly: false,
   });
 
-  const isPopularNetwork = PopularList.some(
-    (network) =>
-      network.chainId === currentChainId ||
-      currentChainId === CHAIN_IDS.MAINNET ||
-      currentChainId === CHAIN_IDS.LINEA_MAINNET,
-  );
-
   const setTokenNetworkFilter = useCallback(
     (chainId: string) => {
       const { PreferencesController } = Engine.context;
-      if (!isAllNetworks && isPopularNetwork && !isTestNet(chainId)) {
+      if (!isAllNetwork && isPopularNetwork) {
         PreferencesController.setTokenNetworkFilter({
           [chainId]: true,
         });
       }
     },
-    [isAllNetworks, isPopularNetwork],
+    [isAllNetwork, isPopularNetwork],
   );
 
   const onRpcSelect = useCallback(

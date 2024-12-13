@@ -15,6 +15,7 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
@@ -56,8 +57,6 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -140,17 +139,14 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const styles = createStyles(colors);
 
-  const isPopularNetwork = PopularList.some(
-    (network) =>
-      network.chainId === currentChainId ||
-      currentChainId === CHAIN_IDS.MAINNET ||
-      currentChainId === CHAIN_IDS.LINEA_MAINNET,
-  );
-
   const tokensList = useMemo((): TokenI[] => {
+    const filteredAssetsParam = isPopularNetwork
+      ? tokenNetworkFilter
+      : { [currentChainId]: true };
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
       const allTokens = Object.values(
@@ -192,7 +188,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const filteredAssets = filterAssets(tokensToDisplay, [
         {
           key: 'chainId',
-          opts: tokenNetworkFilter,
+          opts: filteredAssetsParam,
           filterCallback: 'inclusive',
         },
       ]);
@@ -298,6 +294,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     tokens,
     // Dependencies for multichain implementation
     selectedAccountTokensChains,
+    isPopularNetwork,
     tokenNetworkFilter,
     currentChainId,
     multiChainCurrencyRates,
@@ -424,7 +421,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             <ButtonBase
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks
+                  {isAllNetworks && isPopularNetwork
                     ? `${strings('app_settings.popular')} ${strings(
                         'app_settings.networks',
                       )}`
