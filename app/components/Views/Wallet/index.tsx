@@ -55,7 +55,6 @@ import {
   selectTokens,
   selectTokensByChainIdAndAddress,
 } from '../../../selectors/tokensController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -309,7 +308,6 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -335,25 +333,6 @@ const Wallet = ({
         .build(),
     );
   }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
-
-  /**
-   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
-   */
-  // const handleNetworkFilter = useCallback(() => {
-  //   console.log('HANDLE_NETWORK_FILTER 1111 .......');
-  //   // TODO: Come back possibly just add the chain id of the eth
-  //   // network as the default state instead of doing this
-  //   const { PreferencesController } = Engine.context;
-  //   if (Object.keys(tokenNetworkFilter).length === 0) {
-  //     PreferencesController.setTokenNetworkFilter({
-  //       [chainId]: true,
-  //     });
-  //   }
-  // }, [chainId, tokenNetworkFilter]);
-
-  // useEffect(() => {
-  //   handleNetworkFilter();
-  // }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled

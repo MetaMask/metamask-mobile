@@ -144,6 +144,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const styles = createStyles(colors);
 
   const tokensList = useMemo((): TokenI[] => {
+    // if it is not popular network, display tokens only for current network
     const filteredAssetsParam = isPopularNetwork
       ? tokenNetworkFilter
       : { [currentChainId]: true };
