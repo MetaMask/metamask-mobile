@@ -641,6 +641,7 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
 
   useEffect(() => {
+    // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
