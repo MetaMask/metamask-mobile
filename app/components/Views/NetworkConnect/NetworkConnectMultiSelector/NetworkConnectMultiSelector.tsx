@@ -95,16 +95,8 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
-      // Check if current network was originally permitted and is now being removed
-      const wasCurrentNetworkOriginallyPermitted =
-        originalChainIds.includes(currentChainId);
-      const isCurrentNetworkStillPermitted =
-        selectedChainIds.includes(currentChainId);
-
-      if (
-        wasCurrentNetworkOriginallyPermitted &&
-        !isCurrentNetworkStillPermitted
-      ) {
+      // Check if current network is being removed from permissions
+      if (!selectedChainIds.includes(currentChainId)) {
         // Find the network configuration for the first permitted chain
         const networkToSwitch = Object.entries(networkConfigurations).find(
           ([, { chainId }]) => chainId === selectedChainIds[0],
@@ -132,6 +124,7 @@ const NetworkConnectMultiSelector = ({
       } catch (e) {
         Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
+
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
           hostname,
@@ -160,7 +153,6 @@ const NetworkConnectMultiSelector = ({
     }
   }, [
     selectedChainIds,
-    originalChainIds,
     hostname,
     onUserAction,
     onNetworksSelected,
