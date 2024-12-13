@@ -175,6 +175,7 @@ describe(
           // Select Sepolia from permitted networks
           await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
           await NetworkEducationModal.tapGotItButton();
+          await TestHelpers.delay(3000); // another toast to wait for, after switching to Sepolia
 
           // Verify network switched to Sepolia
           await TabBarComponent.tapWallet();
