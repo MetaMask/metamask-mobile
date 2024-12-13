@@ -7,8 +7,8 @@ import React, {
 } from 'react';
 import {
   CommonActions,
-  RouteProp,
   useNavigation,
+  useRoute,
 } from '@react-navigation/native';
 import {
   Linking,
@@ -141,7 +141,6 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { RootState } from '../../../reducers';
 import { selectUserLoggedIn } from '../../../reducers/user';
 
 const clearStackNavigatorOptions = {
@@ -283,17 +282,20 @@ const VaultRecoveryFlow = () => (
   </Stack.Navigator>
 );
 
-// eslint-disable-next-line react/prop-types
-const AddNetworkFlow = ({ route }: { route: RouteProp<any, any> }) => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="AddNetwork"
-      component={NetworkSettings}
-      // eslint-disable-next-line react/prop-types
-      initialParams={route?.params}
-    />
-  </Stack.Navigator>
-);
+const AddNetworkFlow = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="AddNetwork"
+        component={NetworkSettings}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const DetectedTokensFlow = () => (
   <Stack.Navigator
     mode={'modal'}
@@ -631,11 +633,7 @@ const AppFlow = () => {
 
 const App: React.FC = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
-  // FIXME: Remove this when the unit tests are resolved for rendering this component. This property is only used by unit tests at the moment. Tests break when this is removed.
-  //   const supressRender = props?.route?.params?.supressRender;
-  // const [navigator, setNavigator] = useState(undefined);
   const [onboarded, setOnboarded] = useState(false);
-  // const prevNavigator = useRef(navigator);
   const navigation = useNavigation();
   const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
   const { toastRef } = useContext(ToastContext);
