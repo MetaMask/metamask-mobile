@@ -1,7 +1,8 @@
 name: Temp Create Release Pull Request V2
 
-on:
+on: 
   push:
+    branches: '**'
   
 
 jobs:
