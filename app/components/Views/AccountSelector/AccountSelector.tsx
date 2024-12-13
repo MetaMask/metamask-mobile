@@ -24,7 +24,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import AddAccountActions from '../AddAccountActions';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 // Internal dependencies.
 import {
   AccountSelectorProps,
@@ -101,7 +101,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           ensByAccountAddress={ensByAccountAddress}
           isRemoveAccountEnabled
           privacyMode={privacyMode}
-          testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ID}
+          testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
         />
         <View style={styles.sheet}>
           <Button
@@ -110,7 +110,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             onPress={() => setScreen(AccountSelectorScreens.AddAccountActions)}
-            testID={AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+            testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
           />
         </View>
       </Fragment>

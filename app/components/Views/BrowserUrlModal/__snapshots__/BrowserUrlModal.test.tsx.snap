@@ -19,7 +19,6 @@ exports[`BrowserUrlModal should render correctly 1`] = `
         "paddingTop": 50,
       }
     }
-    testID="browser-url-modal"
   >
     <View
       style={

@@ -58,6 +58,7 @@ import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
@@ -82,6 +83,8 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
+import { getGlobalEthQuery } from '../../../util/networks/global-network';
 
 const Stack = createStackNavigator();
 
@@ -116,6 +119,8 @@ const Main = (props) => {
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
+  const { chainId, networkClientId, showIncomingTransactionsNetworks } = props;
+
   useEffect(() => {
     if (DEPRECATED_NETWORKS.includes(props.chainId)) {
       setShowDeprecatedAlert(true);
@@ -125,19 +130,17 @@ const Main = (props) => {
   }, [props.chainId]);
 
   useEffect(() => {
-    const chainId = props.chainId;
+    stopIncomingTransactionPolling();
 
-    if (props.showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling();
-    } else {
-      stopIncomingTransactionPolling();
+    if (showIncomingTransactionsNetworks[chainId]) {
+      startIncomingTransactionPolling([chainId]);
     }
-  }, [props.showIncomingTransactionsNetworks, props.chainId]);
+  }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
       try {
-        const ethQuery = Engine.getGlobalEthQuery();
+        const ethQuery = getGlobalEthQuery();
         await query(ethQuery, 'blockNumber', []);
         props.setInfuraAvailabilityNotBlocked();
       } catch (e) {
@@ -175,11 +178,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions();
+          await updateIncomingTransactions([props.chainId]);
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications],
+    [backgroundMode, removeNotVisibleNotifications, props.chainId],
   );
 
   const initForceReload = () => {
@@ -362,35 +365,37 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <View style={styles.flex}>
-        {!forceReload ? (
-          <MainNavigator navigation={props.navigation} />
-        ) : (
-          renderLoader()
-        )}
-        <GlobalAlert />
-        <FadeOutOverlay />
-        <Notification navigation={props.navigation} />
-        <RampOrders />
-        <SwapsLiveness />
-        <BackupAlert
-          onDismiss={toggleRemindLater}
-          navigation={props.navigation}
-        />
-        {renderDeprecatedNetworkAlert(
-          props.chainId,
-          props.backUpSeedphraseVisible,
-        )}
-        <SkipAccountSecurityModal
-          modalVisible={showRemindLaterModal}
-          onCancel={skipAccountModalSecureNow}
-          onConfirm={skipAccountModalSkip}
-          skipCheckbox={skipCheckbox}
-          toggleSkipCheckbox={toggleSkipCheckbox}
-        />
-        <ProtectYourWalletModal navigation={props.navigation} />
-        <RootRPCMethodsUI navigation={props.navigation} />
-      </View>
+      <AssetPollingProvider>
+        <View style={styles.flex}>
+          {!forceReload ? (
+            <MainNavigator navigation={props.navigation} />
+          ) : (
+            renderLoader()
+          )}
+          <GlobalAlert />
+          <FadeOutOverlay />
+          <Notification navigation={props.navigation} />
+          <RampOrders />
+          <SwapsLiveness />
+          <BackupAlert
+            onDismiss={toggleRemindLater}
+            navigation={props.navigation}
+          />
+          {renderDeprecatedNetworkAlert(
+            props.chainId,
+            props.backUpSeedphraseVisible,
+          )}
+          <SkipAccountSecurityModal
+            modalVisible={showRemindLaterModal}
+            onCancel={skipAccountModalSecureNow}
+            onConfirm={skipAccountModalSkip}
+            skipCheckbox={skipCheckbox}
+            toggleSkipCheckbox={toggleSkipCheckbox}
+          />
+          <ProtectYourWalletModal navigation={props.navigation} />
+          <RootRPCMethodsUI navigation={props.navigation} />
+        </View>
+      </AssetPollingProvider>
     </React.Fragment>
   );
 };
@@ -447,6 +452,10 @@ Main.propTypes = {
    * backup seed phrase modal visible
    */
   backUpSeedphraseVisible: PropTypes.bool,
+  /**
+   * ID of the global network client
+   */
+  networkClientId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -454,6 +463,7 @@ const mapStateToProps = (state) => ({
     selectShowIncomingTransactionNetworks(state),
   providerType: selectProviderType(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
 });
 

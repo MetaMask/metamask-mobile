@@ -47,6 +47,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
 const PermissionsSummary = ({
   currentPageInformation,
@@ -272,7 +273,10 @@ const PermissionsSummary = ({
   function renderAccountPermissionsRequestInfoCard() {
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
-        <View style={styles.accountPermissionRequestInfoCard} testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}>
+        <View
+          style={styles.accountPermissionRequestInfoCard}
+          testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
+        >
           <Avatar
             variant={AvatarVariant.Icon}
             style={styles.walletIcon}
@@ -408,7 +412,12 @@ const PermissionsSummary = ({
       <View style={styles.mainContainer}>
         <View>
           {renderHeader()}
-          <View style={styles.title} testID={PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER}>
+          <View
+            style={styles.title}
+            testID={
+              PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
+            }
+          >
             <TextComponent variant={TextVariant.HeadingSM}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -482,6 +491,9 @@ const PermissionsSummary = ({
                 <Button
                   variant={ButtonVariants.Primary}
                   label={strings('permissions.add_this_network')}
+                  testID={
+                    NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
+                  }
                   onPress={onAddNetwork}
                   size={ButtonSize.Lg}
                   style={{
@@ -493,6 +505,9 @@ const PermissionsSummary = ({
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}
+                  testID={
+                    NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
+                  }
                   onPress={onChooseFromPermittedNetworks}
                   size={ButtonSize.Lg}
                   style={{

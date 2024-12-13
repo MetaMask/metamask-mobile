@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -10,6 +11,7 @@ import {
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
+import { selectTokenNetworkFilter } from './preferencesController';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -49,7 +51,7 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
 });
 
 // Helper function to create the provider config based on the network and endpoint
-const createProviderConfig = (
+export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
   rpcEndpoint: RpcEndpoint,
 ): ProviderConfig => {
@@ -79,7 +81,7 @@ const createProviderConfig = (
   };
 };
 
-const selectNetworkControllerState = (state: RootState) =>
+export const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(
@@ -148,11 +150,40 @@ export const selectNetworkStatus = createSelector(
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurationsByChainId,
+    networkControllerState?.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
     networkControllerState.selectedNetworkClientId,
+);
+
+export const selectIsEIP1559Network = createSelector(
+  selectNetworkControllerState,
+  (networkControllerState: NetworkState) =>
+    networkControllerState?.networksMetadata?.[
+      networkControllerState.selectedNetworkClientId
+    ].EIPS[1559] === true,
+);
+
+export const selectIsAllNetworks = createSelector(
+  (state: RootState) => selectTokenNetworkFilter(state),
+  (tokenNetworkFilter) => {
+    if (Object.keys(tokenNetworkFilter).length === 1) {
+      return false;
+    }
+    return true;
+  },
+);
+
+export const selectNetworkConfigurationByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
+);
+
+export const selectNativeCurrencyByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
 );
