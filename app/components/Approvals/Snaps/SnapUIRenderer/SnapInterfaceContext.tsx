@@ -128,12 +128,12 @@ export const SnapInterfaceContextProvider: FunctionComponent<
 
   // The update of the state is debounced to avoid crashes due to too much
   // updates in a short amount of time.
-  const updateStateDebounced = debounce((state: StateType) => {
+  const updateStateDebounced = (state: StateType) => {
     Engine.context.SnapInterfaceController.updateInterfaceState(
       interfaceId,
       state,
     );
-  }, 200);
+  };
 
   /**
    * Handle the submission of an user input event to the Snap.
@@ -164,16 +164,13 @@ export const SnapInterfaceContextProvider: FunctionComponent<
     }
   };
 
-  const handleInputChangeDebounced = debounce(
-    (name, value) =>
-      handleEvent({
-        event: UserInputEventType.InputChangeEvent,
-        name,
-        value,
-        flush: true,
-      }),
-    300,
-  );
+  const handleInputChangeDebounced = (name: string, value: string) =>
+    handleEvent({
+      event: UserInputEventType.InputChangeEvent,
+      name,
+      value,
+      flush: true,
+    });
 
   /**
    * Handle the value change of an input.
