@@ -16,6 +16,7 @@ import {
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 import { SnapId } from '@metamask/snaps-sdk';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 enum SnapDialogTypes {
   ALERT = 'snap_dialog:alert',
@@ -32,7 +33,6 @@ enum TemplateConfirmation {
 const SnapDialogApproval = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { approvalRequest } = useApprovalRequest();
-  console.log('approvalRequest', approvalRequest);
   const { styles } = useStyles(stylesheet, {});
 
   const onCancel = async () => {
@@ -115,12 +115,14 @@ const SnapDialogApproval = () => {
             label: strings(TemplateConfirmation.CANCEL),
             size: ButtonSize.Lg,
             onPress: onCancel,
+            startIconName: IconName.Close,
           },
           {
             variant: ButtonVariants.Primary,
             label: strings(TemplateConfirmation.Ok),
             size: ButtonSize.Lg,
             onPress: onConfirmInput,
+            endIconName: IconName.Check,
           },
         ];
 

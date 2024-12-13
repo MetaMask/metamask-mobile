@@ -23,6 +23,8 @@ const ButtonPrimary = ({
   onPressOut,
   isDanger = false,
   label,
+  startIconName,
+  endIconName,
   ...props
 }: ButtonPrimaryProps) => {
   const [pressed, setPressed] = useState(false);
@@ -60,9 +62,9 @@ const ButtonPrimary = ({
       label
     );
 
-    const renderLoading = () => (
-      <ActivityIndicator size="small" color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR} />
-    );
+  const renderLoading = () => (
+    <ActivityIndicator size="small" color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR} />
+  );
 
   return (
     <Button
