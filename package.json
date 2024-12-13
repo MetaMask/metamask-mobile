@@ -140,7 +140,8 @@
     "base58-js": "1.0.0",
     "bech32": "2.0.0",
     "sha256-uint8array": "0.10.3",
-    "express": "4.21.2"
+    "express": "4.21.2",
+    "@metamask/base-controller": "npm:@metamask-previews/base-controller@7.0.2-preview-1d772cc"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -153,7 +154,7 @@
     "@metamask/address-book-controller": "^6.0.1",
     "@metamask/approval-controller": "^7.1.0",
     "@metamask/assets-controllers": "^45.1.1",
-    "@metamask/base-controller": "^7.0.1",
+    "@metamask/base-controller": "npm:@metamask-previews/base-controller@7.0.2-preview-1d772cc",
     "@metamask/bitcoin-wallet-snap": "^0.8.2",
     "@metamask/composable-controller": "^10.0.0",
     "@metamask/controller-utils": "^11.3.0",

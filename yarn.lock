@@ -4443,10 +4443,10 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2":
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.0.2.tgz#bf908858215cd4f7d072b3b0f7f0946cf886ee49"
-  integrity sha512-zeZ5QPKedGT/r2M1NsT4lE7z4u9ciSNcOXG2vUdmfA+QT9YLwIm5+t56UGku3ZTjKGxDn9Ukca3BEkRc57Gt0A==
+"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@npm:@metamask-previews/base-controller@7.0.2-preview-1d772cc":
+  version "7.0.2-preview-1d772cc"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/base-controller/-/base-controller-7.0.2-preview-1d772cc.tgz#87acd0d2b9e6e8656e3b246af6fe3da62b6fe5ef"
+  integrity sha512-A+G55I8/Nb88UhHPcn7tM3yLHQIpUipsHIEMQ/ZvBTpkK8Bx7fLXRqvkxhSkgtXpNF2rIoFNssU20JHuHJg3OQ==
   dependencies:
     "@metamask/utils" "^10.0.0"
     immer "^9.0.6"
