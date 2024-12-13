@@ -17,17 +17,19 @@ import persistConfig from './persistConfig';
 import { AppStateEventProcessor } from '../core/AppStateEventListener';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 
-// TODO: Improve type safety by using real Action types instead of `any`
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
-
 // TODO: Fix the Action type. It's set to `any` now because some of the
 // TypeScript reducers have invalid actions
 // TODO: Replace "any" with type
+export let store: Store<RootState, any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/no-mutable-exports
-let store: Store<RootState, any>, persistor;
-const createStoreAndPersistor = async (preloadedState?: RootState) => {
+export let persistor: any;
+
+export const createStoreAndPersistor = async (preloadedState?: RootState) => {
+  // TODO: Improve type safety by using real Action types instead of `any`
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pReducer = persistReducer<RootState, any>(persistConfig, rootReducer);
+
   trace({
     name: TraceName.StoreInit,
     parentContext: getUIStartupSpan(),
@@ -110,5 +112,3 @@ const createStoreAndPersistor = async (preloadedState?: RootState) => {
 
   return { store, persistor };
 };
-
-export { store, persistor, createStoreAndPersistor };

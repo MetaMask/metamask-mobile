@@ -64,6 +64,7 @@
   "include": [
     "app/declarations/index.d.ts",
     "app/**/*",
+    "integration-tests/**/*",
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "storybook/**/*",

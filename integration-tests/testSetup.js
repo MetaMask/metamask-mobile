@@ -1,6 +1,7 @@
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
 import { setupServer } from 'msw/node';
+import { mockTheme } from '../app/util/theme';
 
 const server = setupServer();
 // Enable API mocking via Mock Service Worker (MSW)
@@ -9,6 +10,12 @@ beforeAll(() => server.listen());
 afterEach(() => server.resetHandlers());
 // Disable API mocking after the tests are done
 afterAll(() => server.close());
+
+jest.mock('../app/util/theme', () => ({
+  ...jest.requireActual('../app/util/theme'),
+  useAppThemeFromContext: () => ({ ...mockTheme }),
+}));
+
 
 jest.mock('react-native-quick-crypto', () => ({}));
 jest.mock('react-native-blob-jsi-helper', () => ({}));
@@ -101,13 +108,6 @@ jest.mock('react-native-blob-util', () => ({
   },
   ios: {
     excludeFromBackupKey: jest.fn(),
-  },
-}));
-
-jest.mock('../app/store', () => ({
-  store: {
-    getState: jest.fn(),
-    dispatch: jest.fn(),
   },
 }));
 

@@ -9,23 +9,29 @@ import { ToastContextWrapper } from '../../../component-library/components/Toast
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
-export const ConnectedRoot = ({ store, persistor }) => {
+const Root = () => {
   const theme = useAppTheme();
 
   return (
+    // <SafeAreaProvider>
+      <ThemeContext.Provider value={theme}>
+        <ToastContextWrapper>
+          <AssetPollingProvider>
+            <ErrorBoundary view="Root">
+              <App />
+            </ErrorBoundary>
+          </AssetPollingProvider>
+        </ToastContextWrapper>
+      </ThemeContext.Provider>
+    // </SafeAreaProvider>
+  );
+};
+
+export const ConnectedRoot = ({ store, persistor }) => {
+  return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-        <SafeAreaProvider>
-          <ThemeContext.Provider value={theme}>
-            <ToastContextWrapper>
-              <AssetPollingProvider>
-                <ErrorBoundary view="Root">
-                  <App />
-                </ErrorBoundary>
-              </AssetPollingProvider>
-            </ToastContextWrapper>
-          </ThemeContext.Provider>
-        </SafeAreaProvider>
+        <Root />
       </PersistGate>
     </Provider>
   );
