@@ -86,11 +86,11 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const ETHEREUM_NAME = 'Ethereum Main Network';
+    const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const ethereum = WalletView.tokenInWallet('Ethereum');
-    await Assertions.checkIfVisible(ethereum);
+    const bnb = WalletView.tokenInWallet('BNB');
+    await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken();
     await Assertions.checkIfVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
@@ -98,7 +98,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      ETHEREUM_NAME,
+      BNB_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
   });
