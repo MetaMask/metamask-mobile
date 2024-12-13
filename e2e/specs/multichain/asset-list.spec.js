@@ -91,7 +91,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await WalletView.tapTokenNetworkFilterAll();
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
-    await WalletView.tapOnToken();
+    await WalletView.tapOnToken('BNB');
     await Assertions.checkIfVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
 
