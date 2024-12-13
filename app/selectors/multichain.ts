@@ -33,6 +33,7 @@ import { selectTokenMarketData } from './tokenRatesController';
 import { isMainNet } from '../util/networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { createDeepEqualSelector } from './util';
+import Engine from '../core/Engine/Engine';
 
 interface NativeTokenBalance {
   balance: string;
@@ -300,8 +301,13 @@ export const selectMultichainIsMainnet = createSelector(
  * @param state - Root redux state
  * @returns - MultichainBalancesController state
  */
-const selectMultichainBalancesControllerState = (state: RootState) =>
-  state.engine.backgroundState.MultichainBalancesController;
+const selectMultichainBalancesControllerState = (state: RootState) => {
+  console.log(
+    'selectMultichainBalancesControllerState',
+    JSON.stringify(state.engine.backgroundState.MultichainBalancesController),
+  );
+  return state.engine.backgroundState.MultichainBalancesController;
+};
 
 export const selectMultichainBalances = createDeepEqualSelector(
   selectMultichainBalancesControllerState,
@@ -322,16 +328,17 @@ const selectBtcCachedBalance = createDeepEqualSelector(
   },
 );
 
-export const selectMultichainSelectedAccountCachedBalance = createSelector(
-  selectMultichainIsEvm,
-  selectAccountBalanceByChainId,
-  selectBtcCachedBalance,
-  (isEvm, accountBalanceByChainId, btcCachedBalance) =>
-    isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
-);
+export const selectMultichainSelectedAccountCachedBalance =
+  createDeepEqualSelector(
+    selectMultichainIsEvm,
+    selectAccountBalanceByChainId,
+    selectBtcCachedBalance,
+    (isEvm, accountBalanceByChainId, btcCachedBalance) =>
+      isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
+  );
 
 export const selectMultichainSelectedAccountCachedBalanceIsZero =
-  createSelector(
+  createDeepEqualSelector(
     selectMultichainSelectedAccountCachedBalance,
     selectMultichainIsEvm,
     (balance, isEvm) => {
@@ -341,7 +348,7 @@ export const selectMultichainSelectedAccountCachedBalanceIsZero =
     },
   );
 
-export const selectMultichainConversionRate = createSelector(
+export const selectMultichainConversionRate = createDeepEqualSelector(
   selectMultichainIsEvm,
   selectConversionRate,
   selectCurrencyRates,

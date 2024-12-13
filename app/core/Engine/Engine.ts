@@ -1212,7 +1212,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-            showIncomingTransactions?.[currentHexChainId],
+              showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1827,7 +1827,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-          chainId
+            chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1838,9 +1838,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address as Hex],
-                  item.decimals,
-                )
+                    tokenBalances[item.address as Hex],
+                    item.decimals,
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2143,6 +2143,10 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainBalancesController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
     } = instance.datamodel.state;
 
     return {
@@ -2177,6 +2181,10 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      MultichainBalancesController,
+      RatesController,
+      ///: END:ONLY_INCLUDE_IF
     };
   },
 
