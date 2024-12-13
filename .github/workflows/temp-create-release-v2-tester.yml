@@ -4,7 +4,6 @@ on:
   push:
     branches: '**'
   
-
 jobs:
   # Commented for testing so we don't create extra versions
   # generate-build-version:
