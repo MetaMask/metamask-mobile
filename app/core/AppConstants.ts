@@ -6,6 +6,7 @@ const DEVELOPMENT = 'development';
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
 const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://security-alerts.api.cx.metamask.io';
+const MM_PORTFOLIO_API_BASE_URL = process.env.MM_PORTFOLIO_API_BASE_URL ?? 'https://portfolio.dev-api.cx.metamask.io'
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -23,6 +24,9 @@ export default {
   },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
+  },
+  PORTFOLIO_API: {
+    URL: MM_PORTFOLIO_API_BASE_URL,
   },
   BRIDGE: {
     ACTIVE: true,
