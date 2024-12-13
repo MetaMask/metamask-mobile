@@ -19,7 +19,6 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
 } from './networkController';
 import { TokenI } from '../components/UI/Tokens/types';
 import { renderFromWei } from '../util/number';
@@ -29,12 +28,9 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
-import {
-  isBtcTestnetAddress,
-  isBtcMainnetAddress,
-} from '../core/Multichain/utils';
+import { isBtcMainnetAddress } from '../core/Multichain/utils';
 import { selectTokenMarketData } from './tokenRatesController';
-import { isMainNet, isTestNet } from '../util/networks';
+import { isMainNet } from '../util/networks';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { createDeepEqualSelector } from './util';
 
@@ -309,9 +305,8 @@ const selectMultichainBalancesControllerState = (state: RootState) =>
 
 export const selectMultichainBalances = createDeepEqualSelector(
   selectMultichainBalancesControllerState,
-  (multichainBalancesControllerState) => {
-    return multichainBalancesControllerState.balances;
-  },
+  (multichainBalancesControllerState) =>
+    multichainBalancesControllerState.balances,
 );
 
 const selectBtcCachedBalance = createDeepEqualSelector(
@@ -331,9 +326,8 @@ export const selectMultichainSelectedAccountCachedBalance = createSelector(
   selectMultichainIsEvm,
   selectAccountBalanceByChainId,
   selectBtcCachedBalance,
-  (isEvm, accountBalanceByChainId, btcCachedBalance) => {
-    return isEvm ? accountBalanceByChainId?.balance : btcCachedBalance;
-  },
+  (isEvm, accountBalanceByChainId, btcCachedBalance) =>
+    isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
 );
 
 export const selectMultichainSelectedAccountCachedBalanceIsZero =
