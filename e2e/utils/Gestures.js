@@ -112,6 +112,8 @@ class Gestures {
     await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText(text);
+
+    // await element.tapReturnKey();
   }
 
   /**
@@ -124,7 +126,7 @@ class Gestures {
     // const element = await elementID;
     await this.clearField(elementID);
 
-    const newText = text + '\n';
+    const newText = text;
     await this.typeText(elementID, newText);
   }
 

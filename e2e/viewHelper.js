@@ -220,4 +220,5 @@ export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await Assertions.checkIfVisible(LoginView.container);
   await LoginView.enterPassword(PASSWORD);
+  await LoginView.tapUnlockButton();
 };

@@ -11,6 +11,10 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
+  get unlockButton() {
+    return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
+  }
+
   get resetWalletButton() {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
@@ -21,6 +25,10 @@ class LoginView {
 
   async enterPassword(password) {
     await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
+  }
+
+  async tapUnlockButton() {
+    await Gestures.waitAndTap(this.unlockButton);
   }
 
   async tapResetWalletButton() {

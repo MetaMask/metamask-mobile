@@ -120,6 +120,8 @@ const createStyles = (colors: Theme['colors']) =>
     },
     ctaWrapper: {
       marginTop: 20,
+      height: 50,
+      backgroundColor: 'green',
     },
     footer: {
       marginVertical: 40,
@@ -250,7 +252,7 @@ class Login extends PureComponent {
     hasBiometricCredentials: false,
   };
 
-  fieldRef = React.createRef();
+  fieldRef = React.createRef<TextInput>();
 
   // parentSpan = trace({
   //   name: TraceName.Login,
@@ -379,6 +381,7 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
+    console.log('onLogin');
     // endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
@@ -386,15 +389,21 @@ class Login extends PureComponent {
     if (locked) this.setState({ error: strings('login.invalid_password') });
     if (this.state.loading || locked) return;
 
+    console.log('onLoginmove', password);
+
     this.setState({ loading: true, error: null });
     const authType = await Authentication.componentAuthenticationType(
       this.state.biometryChoice,
       this.state.rememberMe,
     );
 
+    console.log('onLoginmove2', password);
+
     try {
       await Authentication.userEntryAuth(password, authType);
       Keyboard.dismiss();
+
+      console.log('onLoginmove3', password);
 
       // Get onboarding wizard state
       const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
@@ -405,14 +414,15 @@ class Login extends PureComponent {
         this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
       }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      this.setState({
-        loading: false,
-        password: '',
-        hasBiometricCredentials: false,
-      });
-      field.setValue('');
+      // this.setState({
+      //   loading: false,
+      //   password: '',
+      //   hasBiometricCredentials: false,
+      // });
+      // field.setValue('');
     } catch (e) {
       const error = e.toString();
+      console.log('onLoginmove5', error);
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
@@ -519,7 +529,10 @@ class Login extends PureComponent {
   //   );
   // };
 
-  setPassword = (val) => this.setState({ password: val });
+  setPassword = (val) => {
+    console.log('setPassword', val);
+    this.setState({ password: val });
+  };
 
   // onCancelPress = () => {
   //   this.toggleWarningModal();
@@ -546,6 +559,8 @@ class Login extends PureComponent {
     //   this.state.hasBiometricCredentials
     // );
 
+    console.log('render', this.state.password);
+
     return (
       // <ErrorBoundary navigation={this.props.navigation} view="Login">
       <SafeAreaView style={styles.mainWrapper}>
@@ -567,7 +582,7 @@ class Login extends PureComponent {
                 placeholder={strings('login.password')}
                 placeholderTextColor={colors.text.muted}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType={'done'}
+                returnKeyType={'default'}
                 autoCapitalize="none"
                 secureTextEntry
                 ref={this.fieldRef}
@@ -610,18 +625,11 @@ class Login extends PureComponent {
                 /> */}
             </View>
 
-            <View
+            <TouchableOpacity
               style={styles.ctaWrapper}
               testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-            >
-              <Button
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                onPress={this.onLogin}
-                label={strings('login.unlock_button')}
-              />
-            </View>
+              onPress={this.onLogin}
+            ></TouchableOpacity>
           </View>
         </View>
         {/* <FadeOutOverlay /> */}
