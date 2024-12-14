@@ -590,7 +590,7 @@ class Login extends PureComponent {
                 value={this.state.password}
                 // baseColor={colors.border.default}
                 // tintColor={colors.primary.default}
-                onSubmitEditing={this.onLogin}
+                onSubmitEditing={() => {}}
                 // endAccessory={
                 //   <BiometryButton
                 //     onPress={this.tryBiometric}
