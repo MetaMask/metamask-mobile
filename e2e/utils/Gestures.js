@@ -100,8 +100,8 @@ class Gestures {
    * @param {number} timeout - Timeout for waiting (default: 8000ms)
 
   */
-  static async clearField(element, timeout = 2500) {
-    // const element = await elementID;
+  static async clearField(elementID, timeout = 2500) {
+    const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText('');
@@ -115,11 +115,7 @@ class Gestures {
    */
   static async typeTextAndHideKeyboard(elementID, text) {
     const element = await elementID;
-
-    await this.clearField(element);
-
-    // Add wait after clearing
-    await waitFor(element).toBeVisible().withTimeout(2000);
+    await this.clearField(elementID);
 
     await element.typeText(text + '\n');
   }
