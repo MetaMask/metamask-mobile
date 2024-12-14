@@ -3808,7 +3808,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        zkSync Mainnet
+                                        ZKsync Era Mainnet
                                       </Text>
                                     </View>
                                     <View

@@ -28,7 +28,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('324'),
       rpcUrl: `https://mainnet.era.zksync.io`,
-      nickname: 'zkSync Era Mainnet',
+      nickname: 'ZKsync Era Mainnet',
       ticker: 'FTM',
     },
   },
