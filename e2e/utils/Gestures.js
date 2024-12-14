@@ -113,7 +113,7 @@ class Gestures {
 
     await element.replaceText(text);
 
-    // await element.tapReturnKey();
+    await element.tapReturnKey();
   }
 
   /**
