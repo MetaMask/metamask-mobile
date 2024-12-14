@@ -231,7 +231,7 @@ class Login extends PureComponent {
     /**
      * Full state of the app
      */
-    fullState: PropTypes.object,
+    // fullState: PropTypes.object,
   };
 
   state = {
@@ -635,7 +635,7 @@ Login.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
-  fullState: state,
+  // fullState: state,
 });
 
 const mapDispatchToProps = (dispatch) => ({
