@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   TextInput,
-  ActivityIndicator,
+  //   ActivityIndicator,
   Alert,
-  Image,
-  Keyboard,
-  TouchableOpacity,
+  //   Image,
+  //   Keyboard,
+  //   TouchableOpacity,
   View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectUserLoggedIn } from '../../../reducers/user';
+// import { selectUserLoggedIn } from '../../../reducers/user';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import styleSheet from './styles';
 import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
@@ -31,11 +31,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text from '../../../component-library/components/Texts/Text';
 import Label from '../../../component-library/components/Form/Label';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+// import Button, {
+//   ButtonSize,
+//   ButtonVariants,
+//   ButtonWidthTypes,
+// } from '../../../component-library/components/Buttons/Button';
 import { Authentication } from '../../../core/Authentication/Authentication';
 import { toLowerCaseEquals } from '../../../util/general';
 import {
@@ -52,8 +52,8 @@ import Logger from '../../../util/Logger';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 // import storageWrapper from '../../../store/storage-wrapper';
 // import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import { passwordRequirementsMet } from '../../../util/password';
-import setOnboardingWizardStep from '../../../actions/wizard';
+// import { passwordRequirementsMet } from '../../../util/password';
+// import setOnboardingWizardStep from '../../../actions/wizard';
 
 const Login: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
   //   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const fieldRef = useRef<TextInput | null>(null);
 
-  const userLoggedIn = useSelector(selectUserLoggedIn);
+  //   const userLoggedIn = useSelector(selectUserLoggedIn);
   const dispatch = useDispatch();
   const {
     styles,
@@ -91,12 +91,12 @@ const Login: React.FC = () => {
 
   const onLogin = async () => {
     // endTrace({ name: TraceName.LoginUserInteraction });
-    const locked = !passwordRequirementsMet(password);
-    if (locked) setError(strings('login.invalid_password'));
-    if (loading || locked) return;
+    // const locked = !passwordRequirementsMet(password);
+    // if (locked) setError(strings('login.invalid_password'));
+    // if (loading || locked) return;
 
-    setLoading(true);
-    setError('');
+    // setLoading(true);
+    // setError('');
     const authType = await Authentication.componentAuthenticationType(
       biometryChoice,
       rememberMe,
@@ -114,14 +114,14 @@ const Login: React.FC = () => {
       //       await Authentication.userEntryAuth(password, authType);
       //     },
       //   );
-      Keyboard.dismiss();
+      //   Keyboard.dismiss();
 
       // Get onboarding wizard state
       //   const onboardingWizard = await storageWrapper.getItem(ONBOARDING_WIZARD);
       //   if (onboardingWizard) {
       //     navigation.replace(Routes.ONBOARDING.HOME_NAV);
       //   } else {
-      dispatch(setOnboardingWizardStep(1));
+      //   dispatch(setOnboardingWizardStep(1));
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
       //   }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
@@ -182,28 +182,6 @@ const Login: React.FC = () => {
           style={styles.wrapper}
         >
           <View testID={LoginViewSelectors.CONTAINER}>
-            <TouchableOpacity
-              style={styles.foxWrapper}
-              delayLongPress={10 * 1000} // 10 seconds
-              //   onLongPress={this.handleDownloadStateLogs}
-              activeOpacity={1}
-            >
-              {/* {Device.isAndroid() ? (
-                <Image
-                  source={require('../../../images/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              ) : (
-                <AnimatedFox bgColor={colors.background.default} />
-              )} */}
-              <Image
-                source={require('../../../images/fox.png')}
-                style={styles.image}
-                resizeMethod={'auto'}
-              />
-            </TouchableOpacity>
-
             <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
               {strings('login.title')}
             </Text>
@@ -250,7 +228,7 @@ const Login: React.FC = () => {
                 {this.state.error}
               </HelpText>
             )} */}
-            <View
+            {/* <View
               style={styles.ctaWrapper}
               testID={LoginViewSelectors.LOGIN_BUTTON_ID}
             >
@@ -270,7 +248,7 @@ const Login: React.FC = () => {
                   )
                 }
               />
-            </View>
+            </View> */}
 
             {/* <View style={styles.footer}>
               <Text variant={TextVariant.HeadingSMRegular} style={styles.cant}>
