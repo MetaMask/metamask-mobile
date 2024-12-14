@@ -11,6 +11,7 @@ import {
   InteractionManager,
   BackHandler,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -33,7 +34,7 @@ import {
   passcodeType,
   updateAuthTypeStorageFlags,
 } from '../../../util/authentication';
-import { BiometryButton } from '../../UI/BiometryButton';
+// import { BiometryButton } from '../../UI/BiometryButton';
 import Logger from '../../../util/Logger';
 import {
   BIOMETRY_CHOICE_DISABLED,
@@ -48,7 +49,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
+// import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -65,20 +66,18 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+// import TextField, {
+//   TextFieldSize,
+// } from '../../../component-library/components/Form/TextField';
 import Label from '../../../component-library/components/Form/Label';
-import HelpText, {
-  HelpTextSeverity,
-} from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import { Theme } from '@metamask/design-tokens';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
 
-const createStyles = (colors) =>
+const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     mainWrapper: {
       backgroundColor: colors.background.default,
@@ -87,6 +86,7 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       paddingHorizontal: 32,
+      backgroundColor: 'red',
     },
     foxWrapper: {
       justifyContent: 'center',
@@ -111,7 +111,7 @@ const createStyles = (colors) =>
       ...fontStyles.bold,
     },
     field: {
-      flex: 1,
+      // flex: 1,
       marginBottom: Device.isAndroid() ? 0 : 10,
       flexDirection: 'column',
     },
@@ -252,25 +252,25 @@ class Login extends PureComponent {
 
   fieldRef = React.createRef();
 
-  parentSpan = trace({
-    name: TraceName.Login,
-    op: TraceOperation.Login,
-    tags: getTraceTags(store.getState()),
-  });
+  // parentSpan = trace({
+  //   name: TraceName.Login,
+  //   op: TraceOperation.Login,
+  //   tags: getTraceTags(store.getState()),
+  // });
 
   async componentDidMount() {
-    trace({
-      name: TraceName.LoginUserInteraction,
-      op: TraceOperation.Login,
-      parentContext: this.parentSpan,
-    });
+    // trace({
+    //   name: TraceName.LoginUserInteraction,
+    //   op: TraceOperation.Login,
+    //   parentContext: this.parentSpan,
+    // });
 
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.LOGIN_SCREEN_VIEWED)
         .build(),
     );
-    BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+    // BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
 
     const authData = await Authentication.getType();
 
@@ -309,9 +309,9 @@ class Login extends PureComponent {
     }
   }
 
-  componentWillUnmount() {
-    BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
-  }
+  // componentWillUnmount() {
+  //   BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+  // }
 
   handleBackPress = async () => {
     await Authentication.lockApp();
@@ -379,7 +379,7 @@ class Login extends PureComponent {
   };
 
   onLogin = async () => {
-    endTrace({ name: TraceName.LoginUserInteraction });
+    // endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);
@@ -393,16 +393,7 @@ class Login extends PureComponent {
     );
 
     try {
-      await trace(
-        {
-          name: TraceName.AuthenticateUser,
-          op: TraceOperation.Login,
-          parentContext: this.parentSpan,
-        },
-        async () => {
-          await Authentication.userEntryAuth(password, authType);
-        },
-      );
+      await Authentication.userEntryAuth(password, authType);
       Keyboard.dismiss();
 
       // Get onboarding wizard state
@@ -462,136 +453,139 @@ class Login extends PureComponent {
       }
       Logger.error(e, 'Failed to unlock');
     }
-    endTrace({ name: TraceName.Login });
+    // endTrace({ name: TraceName.Login });
   };
 
-  tryBiometric = async (e) => {
-    if (e) e.preventDefault();
-    endTrace({ name: TraceName.LoginUserInteraction });
-    const { current: field } = this.fieldRef;
-    field?.blur();
-    try {
-      await trace(
-        {
-          name: TraceName.LoginBiometricAuthentication,
-          op: TraceOperation.Login,
-          parentContext: this.parentSpan,
-        },
-        async () => {
-          await Authentication.appTriggeredAuth();
-        },
-      );
-      const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-      if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
-      this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
-      // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
-      this.setState({
-        loading: false,
-        password: '',
-        hasBiometricCredentials: false,
-      });
-      field.setValue('');
-    } catch (error) {
-      this.setState({ hasBiometricCredentials: true });
-      Logger.log(error);
-    }
-    field?.blur();
-  };
+  // tryBiometric = async (e) => {
+  //   if (e) e.preventDefault();
+  //   endTrace({ name: TraceName.LoginUserInteraction });
+  //   const { current: field } = this.fieldRef;
+  //   field?.blur();
+  //   try {
+  //     await trace(
+  //       {
+  //         name: TraceName.LoginBiometricAuthentication,
+  //         op: TraceOperation.Login,
+  //         parentContext: this.parentSpan,
+  //       },
+  //       async () => {
+  //         await Authentication.appTriggeredAuth();
+  //       },
+  //     );
+  //     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
+  //     if (!onboardingWizard) this.props.setOnboardingWizardStep(1);
+  //     this.props.navigation.replace(Routes.ONBOARDING.HOME_NAV);
+  //     // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
+  //     this.setState({
+  //       loading: false,
+  //       password: '',
+  //       hasBiometricCredentials: false,
+  //     });
+  //     field.setValue('');
+  //   } catch (error) {
+  //     this.setState({ hasBiometricCredentials: true });
+  //     Logger.log(error);
+  //   }
+  //   field?.blur();
+  // };
 
-  toggleWarningModal = () => {
-    const { navigation } = this.props;
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
-  };
+  // toggleWarningModal = () => {
+  //   const { navigation } = this.props;
+  //   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+  //     screen: Routes.MODAL.DELETE_WALLET,
+  //   });
+  // };
 
-  updateBiometryChoice = async (biometryChoice) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    this.setState({ biometryChoice });
-  };
+  // updateBiometryChoice = async (biometryChoice) => {
+  //   await updateAuthTypeStorageFlags(biometryChoice);
+  //   this.setState({ biometryChoice });
+  // };
 
-  renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe) => {
-      this.setState({ rememberMe });
-    };
-    const shouldRenderBiometricLogin =
-      this.state.biometryType && !this.state.biometryPreviouslyDisabled
-        ? this.state.biometryType
-        : null;
-    return (
-      <LoginOptionsSwitch
-        shouldRenderBiometricOption={shouldRenderBiometricLogin}
-        biometryChoiceState={this.state.biometryChoice}
-        onUpdateBiometryChoice={this.updateBiometryChoice}
-        onUpdateRememberMe={handleUpdateRememberMe}
-      />
-    );
-  };
+  // renderSwitch = () => {
+  //   const handleUpdateRememberMe = (rememberMe) => {
+  //     this.setState({ rememberMe });
+  //   };
+  //   const shouldRenderBiometricLogin =
+  //     this.state.biometryType && !this.state.biometryPreviouslyDisabled
+  //       ? this.state.biometryType
+  //       : null;
+  //   return (
+  //     <LoginOptionsSwitch
+  //       shouldRenderBiometricOption={shouldRenderBiometricLogin}
+  //       biometryChoiceState={this.state.biometryChoice}
+  //       onUpdateBiometryChoice={this.updateBiometryChoice}
+  //       onUpdateRememberMe={handleUpdateRememberMe}
+  //     />
+  //   );
+  // };
 
   setPassword = (val) => this.setState({ password: val });
 
-  onCancelPress = () => {
-    this.toggleWarningModal();
-    InteractionManager.runAfterInteractions(this.toggleDeleteModal);
-  };
+  // onCancelPress = () => {
+  //   this.toggleWarningModal();
+  //   InteractionManager.runAfterInteractions(this.toggleDeleteModal);
+  // };
 
-  handleDownloadStateLogs = () => {
-    const { fullState } = this.props;
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS)
-        .build(),
-    );
-    downloadStateLogs(fullState, false);
-  };
+  // handleDownloadStateLogs = () => {
+  //   const { fullState } = this.props;
+  //   this.props.metrics.trackEvent(
+  //     this.props.metrics
+  //       .createEventBuilder(MetaMetricsEvents.LOGIN_DOWNLOAD_LOGS)
+  //       .build(),
+  //   );
+  //   downloadStateLogs(fullState, false);
+  // };
 
   render = () => {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
-    const shouldHideBiometricAccessoryButton = !(
-      this.state.biometryChoice &&
-      this.state.biometryType &&
-      this.state.hasBiometricCredentials
-    );
+    // const shouldHideBiometricAccessoryButton = !(
+    //   this.state.biometryChoice &&
+    //   this.state.biometryType &&
+    //   this.state.hasBiometricCredentials
+    // );
 
     return (
-      <ErrorBoundary navigation={this.props.navigation} view="Login">
-        <SafeAreaView style={styles.mainWrapper}>
-          <KeyboardAwareScrollView
-            keyboardShouldPersistTaps="handled"
-            resetScrollToCoords={{ x: 0, y: 0 }}
-            style={styles.wrapper}
-          >
-            <View testID={LoginViewSelectors.CONTAINER}>
-              <TouchableOpacity
-                style={styles.foxWrapper}
-                delayLongPress={10 * 1000} // 10 seconds
-                onLongPress={this.handleDownloadStateLogs}
-                activeOpacity={1}
+      // <ErrorBoundary navigation={this.props.navigation} view="Login">
+      <SafeAreaView style={styles.mainWrapper}>
+        <View style={styles.wrapper}>
+          <View testID={LoginViewSelectors.CONTAINER}>
+            <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
+              {strings('login.title')}
+            </Text>
+            <View style={styles.field}>
+              <Label
+                variant={TextVariant.HeadingSMRegular}
+                style={styles.label}
               >
-                {Device.isAndroid() ? (
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                ) : (
-                  <AnimatedFox bgColor={colors.background.default} />
-                )}
-              </TouchableOpacity>
-
-              <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>
-                {strings('login.title')}
-              </Text>
-              <View style={styles.field}>
-                <Label
-                  variant={TextVariant.HeadingSMRegular}
-                  style={styles.label}
-                >
-                  {strings('login.password')}
-                </Label>
-                <TextField
+                {strings('login.password')}
+              </Label>
+              <TextInput
+                // size={TextFieldSize.Lg}
+                style={{ height: 50, backgroundColor: 'blue' }}
+                placeholder={strings('login.password')}
+                placeholderTextColor={colors.text.muted}
+                testID={LoginViewSelectors.PASSWORD_INPUT}
+                returnKeyType={'done'}
+                autoCapitalize="none"
+                secureTextEntry
+                ref={this.fieldRef}
+                onChangeText={this.setPassword}
+                value={this.state.password}
+                // baseColor={colors.border.default}
+                // tintColor={colors.primary.default}
+                onSubmitEditing={this.onLogin}
+                // endAccessory={
+                //   <BiometryButton
+                //     onPress={this.tryBiometric}
+                //     hidden={shouldHideBiometricAccessoryButton}
+                //     biometryType={this.state.biometryType}
+                //   />
+                // }
+                keyboardAppearance={themeAppearance}
+              />
+              {/* <TextField
                   size={TextFieldSize.Lg}
                   placeholder={strings('login.password')}
                   placeholderTextColor={colors.text.muted}
@@ -613,62 +607,26 @@ class Login extends PureComponent {
                     />
                   }
                   keyboardAppearance={themeAppearance}
-                />
-              </View>
-
-              {this.renderSwitch()}
-
-              {!!this.state.error && (
-                <HelpText
-                  severity={HelpTextSeverity.Error}
-                  variant={TextVariant.BodyMD}
-                  testID={LoginViewSelectors.PASSWORD_ERROR}
-                >
-                  {this.state.error}
-                </HelpText>
-              )}
-              <View
-                style={styles.ctaWrapper}
-                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-              >
-                <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  size={ButtonSize.Lg}
-                  onPress={this.onLogin}
-                  label={
-                    this.state.loading ? (
-                      <ActivityIndicator
-                        size="small"
-                        color={colors.primary.inverse}
-                      />
-                    ) : (
-                      strings('login.unlock_button')
-                    )
-                  }
-                />
-              </View>
-
-              <View style={styles.footer}>
-                <Text
-                  variant={TextVariant.HeadingSMRegular}
-                  style={styles.cant}
-                >
-                  {strings('login.go_back')}
-                </Text>
-                <Button
-                  style={styles.goBack}
-                  variant={ButtonVariants.Link}
-                  onPress={this.toggleWarningModal}
-                  testID={LoginViewSelectors.RESET_WALLET}
-                  label={strings('login.reset_wallet')}
-                />
-              </View>
+                /> */}
             </View>
-          </KeyboardAwareScrollView>
-          <FadeOutOverlay />
-        </SafeAreaView>
-      </ErrorBoundary>
+
+            <View
+              style={styles.ctaWrapper}
+              testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+            >
+              <Button
+                variant={ButtonVariants.Primary}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                onPress={this.onLogin}
+                label={strings('login.unlock_button')}
+              />
+            </View>
+          </View>
+        </View>
+        {/* <FadeOutOverlay /> */}
+      </SafeAreaView>
+      // </ErrorBoundary>
     );
   };
 }
