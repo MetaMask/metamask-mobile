@@ -111,13 +111,7 @@ class Gestures {
     const element = await elementID;
     await waitFor(element).toBeVisible().withTimeout(timeout);
 
-    try {
-      await element.typeText(text);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Error typing text', error);
-      await element.replaceText(text);
-    }
+    await element.replaceText(text);
   }
 
   /**
