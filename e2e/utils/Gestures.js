@@ -107,6 +107,19 @@ class Gestures {
     await element.replaceText('');
   }
 
+  static async typeText(elementID, text, timeout = 2500) {
+    const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
+
+    try {
+      await element.typeText(text);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('Error typing text', error);
+      await element.replaceText(text);
+    }
+  }
+
   /**
    * Type text into an element and hide the keyboard.
    *
@@ -114,10 +127,11 @@ class Gestures {
    * @param {string} text - Text to be typed into the element
    */
   static async typeTextAndHideKeyboard(elementID, text) {
-    const element = await elementID;
+    // const element = await elementID;
     await this.clearField(elementID);
 
-    await element.typeText(text + '\n');
+    const newText = text + '\n';
+    await this.typeText(elementID, newText);
   }
 
   /**
