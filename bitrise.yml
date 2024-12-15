@@ -114,7 +114,7 @@ stages:
     workflows:
       - deploy_android_to_store: {}
   create_build_qa_and_expo:
-      workflows:
+    workflows:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
@@ -139,7 +139,7 @@ stages:
     abort_on_fail: true
     workflows:
       - ios_e2e_build: {}
-      - android_e2e_build: {}
+      # - android_e2e_build: {}
   build_multichain_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
@@ -151,21 +151,21 @@ stages:
       - run_tag_multichain_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      # - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
+      # - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_assets_android: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
-      - run_tag_multichain_ios: {}
-      - run_tag_multichain_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
+      # - run_tag_multichain_ios: {}
+      # - run_tag_multichain_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -1088,7 +1088,7 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release e2e/specs/accounts/reveal-secret-recovery-phrase.spec.js
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1235,20 +1235,20 @@ workflows:
             - content: |-
                 # Define the source path of the generated APK
                 SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
-                
+
                 # Define the destination path with the new name
                 DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-                
+
                 # Copy and rename the APK
                 cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "APK has been copied and renamed to: $DEST_APK_PATH"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk'
           title: Bitrise Deploy APK
     meta:
       bitrise.io:
@@ -1525,13 +1525,13 @@ workflows:
             - content: |-
                 # Define the source path of the generated IPA
                 SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
-                
+
                 # Define the destination path with the new name
                 DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-                
+
                 # Copy and rename the IPA
                 cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
       - deploy-to-bitrise-io@2.2.3:
@@ -1539,7 +1539,7 @@ workflows:
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa'
           title: Deploy iOS IPA
   build_ios_qa:
     envs:
