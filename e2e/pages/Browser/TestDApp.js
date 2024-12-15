@@ -42,10 +42,10 @@ class TestDApp {
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
-  get ethSignButton() {
+  get increaseAllowanceButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETH_SIGN,
+      TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
     );
   }
   get personalSignButton() {
@@ -80,6 +80,13 @@ class TestDApp {
     );
   }
 
+  get nftSetApprovalForAllButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -88,8 +95,8 @@ class TestDApp {
     await this.tapButton(this.ApproveButton);
   }
 
-  async tapEthSignButton() {
-    await this.tapButton(this.ethSignButton);
+  async tapIncreaseAllowanceButton() {
+    await this.tapButton(this.increaseAllowanceButton);
   }
 
   async tapPersonalSignButton() {
@@ -112,6 +119,10 @@ class TestDApp {
   }
   async tapNFTTransferButton() {
     await this.tapButton(this.nftTransferFromTokensButton);
+  }
+
+  async tapNFTSetApprovalForAllButton() {
+    await this.tapButton(this.nftSetApprovalForAllButton);
   }
 
   async tapConfirmButton() {

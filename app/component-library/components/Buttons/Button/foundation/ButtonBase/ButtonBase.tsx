@@ -23,6 +23,7 @@ import {
 const ButtonBase = ({
   label,
   labelColor = DEFAULT_BUTTONBASE_LABEL_COLOR,
+  labelTextVariant = DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
   startIconName,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
@@ -59,7 +60,7 @@ const ButtonBase = ({
       )}
       {typeof label === 'string' ? (
         <Text
-          variant={DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT}
+          variant={labelTextVariant}
           style={styles.label}
           accessibilityRole="none"
         >

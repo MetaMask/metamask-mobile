@@ -1,6 +1,11 @@
 // eslint-disable-next-line import/no-nodejs-modules
 import { inspect } from 'util';
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import type {
   TransactionParams,
   TransactionController,
@@ -20,9 +25,17 @@ jest.mock('../../core/Engine', () => ({
       usePPOM: jest.fn(),
     },
     NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
+    },
+    AccountsController: {
       state: {
-        providerConfig: { chainId: '0x1' },
+        internalAccounts: { accounts: [] },
       },
+      listAccounts: () => [],
     },
   },
 }));
@@ -33,6 +46,8 @@ jest.mock('../../util/transaction-controller', () => ({
   updateTransaction: jest.fn(),
 }));
 
+const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
+
 /**
  * Construct a `eth_sendTransaction` JSON-RPC request.
  *
@@ -40,12 +55,16 @@ jest.mock('../../util/transaction-controller', () => ({
  * @returns The JSON-RPC request.
  */
 function constructSendTransactionRequest(
-  params: unknown,
-): JsonRpcRequest<unknown> & { method: 'eth_sendTransaction' } {
+  params: [TransactionParams & JsonRpcParams],
+): JsonRpcRequest<[TransactionParams & JsonRpcParams]> & {
+  method: 'eth_sendTransaction';
+  networkClientId: string;
+} {
   return {
     jsonrpc: '2.0',
     id: 1,
     method: 'eth_sendTransaction',
+    networkClientId: 'testNetworkClientId',
     params,
   };
 }
@@ -55,7 +74,7 @@ function constructSendTransactionRequest(
  *
  * @returns A pending JSON-RPC response.
  */
-function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<unknown> {
+function constructPendingJsonRpcResponse(): PendingJsonRpcResponse<Json> {
   return {
     jsonrpc: '2.0',
     id: 1,
@@ -146,7 +165,10 @@ describe('eth_sendTransaction', () => {
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
-        expectedOrigin: { origin: 'example.metamask.io' },
+        expectedOrigin: {
+          origin: 'example.metamask.io',
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
+        },
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),
@@ -164,6 +186,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
@@ -186,6 +209,7 @@ describe('eth_sendTransaction', () => {
         async () =>
           await eth_sendTransaction({
             hostname: 'example.metamask.io',
+            //@ts-expect-error - invalid parameters forced
             req: constructSendTransactionRequest(invalidParameter),
             res: constructPendingJsonRpcResponse(),
             sendTransaction: getMockAddTransaction({
@@ -231,7 +255,10 @@ describe('eth_sendTransaction', () => {
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
-            expectedOrigin: { origin: 'example.metamask.io' },
+            expectedOrigin: {
+              origin: 'example.metamask.io',
+              networkClientId: NETWORK_CLIENT_ID_MOCK,
+            },
             addTransactionError: new Error('Failed to add transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
@@ -251,7 +278,10 @@ describe('eth_sendTransaction', () => {
           res: constructPendingJsonRpcResponse(),
           sendTransaction: getMockAddTransaction({
             expectedTransaction: mockTransactionParameters,
-            expectedOrigin: { origin: 'example.metamask.io' },
+            expectedOrigin: {
+              origin: 'example.metamask.io',
+              networkClientId: NETWORK_CLIENT_ID_MOCK,
+            },
             processTransactionError: new Error('User rejected the transaction'),
           }),
           validateAccountAndChainId: jest.fn(),
@@ -272,7 +302,10 @@ describe('eth_sendTransaction', () => {
       res: pendingResult,
       sendTransaction: getMockAddTransaction({
         expectedTransaction: mockTransactionParameters,
-        expectedOrigin: { origin: 'example.metamask.io' },
+        expectedOrigin: {
+          origin: 'example.metamask.io',
+          networkClientId: NETWORK_CLIENT_ID_MOCK,
+        },
         returnValue: expectedResult,
       }),
       validateAccountAndChainId: jest.fn(),

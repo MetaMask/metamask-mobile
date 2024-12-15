@@ -20,10 +20,21 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-jest.mock('../../lib/snaps/preinstalled-snaps', () =>
-  // eslint-disable-next-line no-console
-  console.log("do nothing since we aren't testing the pre installed snaps"),
-);
+/*
+ * NOTE: react-native-webview requires a jest mock starting on v12.
+ * More info on https://github.com/react-native-webview/react-native-webview/issues/2934
+ */
+jest.mock('@metamask/react-native-webview', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  const WebView = (props) => <View {...props} />;
+
+  return {
+    WebView,
+  };
+});
+
+jest.mock('../../lib/snaps/preinstalled-snaps');
 
 const mockFs = {
   CachesDirectoryPath: jest.fn(),
@@ -228,6 +239,10 @@ NativeModules.AesForked = {
   decrypt: jest.fn().mockResolvedValue('{"mockData": "mockedPlainTextForked"}'),
 };
 
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
+};
+
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => 'TouchableOpacity',
@@ -250,8 +265,6 @@ jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   setDeadline: jest.fn(),
 }));
 
-jest.mock('../../images/static-logos.js', () => ({}));
-
 jest.mock('@react-native-clipboard/clipboard', () => mockClipboard);
 
 jest.mock('../theme', () => ({
@@ -270,13 +283,34 @@ const initializeMockClient = () => {
     group: jest.fn(),
     alias: jest.fn(),
     reset: jest.fn(),
+    add: jest.fn(),
   };
   return global.segmentMockClient;
 };
 
-jest.mock('@segment/analytics-react-native', () => ({
-  createClient: jest.fn(() => initializeMockClient()),
-}));
+jest.mock('@segment/analytics-react-native', () => {
+  class Plugin {
+    type = 'utility';
+    analytics = undefined;
+
+    configure(analytics) {
+      this.analytics = analytics;
+    }
+  }
+
+  return {
+    createClient: jest.fn(() => initializeMockClient()),
+    PluginType: {
+      enrichment: 'enrichment',
+      utility: 'utility',
+    },
+    EventType: {
+      TrackEvent: 'track',
+      IdentifyEvent: 'identify',
+    },
+    Plugin,
+  };
+});
 
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
@@ -298,9 +332,9 @@ jest.mock('redux-persist', () => ({
   createMigrate: jest.fn(),
 }));
 
-jest.mock('react-native-default-preference', () => ({
-  get: jest.fn(),
-  set: jest.fn(),
+jest.mock('../../store/storage-wrapper', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
 }));
 
 // eslint-disable-next-line import/no-commonjs
@@ -308,9 +342,8 @@ require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests()
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
-jest.mock(
-  '../../core/Engine',
-  () => require('../../core/__mocks__/MockedEngine').default,
+jest.mock('../../core/Engine', () =>
+  require('../../core/__mocks__/MockedEngine'),
 );
 
 afterEach(() => {
@@ -327,3 +360,36 @@ global.crypto = {
     return arr;
   },
 };
+
+jest.mock('@react-native-firebase/messaging', () => {
+
+  const module = () => {
+      return {
+          getToken: jest.fn(() => Promise.resolve('fcmToken')),
+          deleteToken: jest.fn(() => Promise.resolve()),
+          subscribeToTopic: jest.fn(),
+          unsubscribeFromTopic: jest.fn(),
+          hasPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
+          requestPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
+          setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+          isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
+          registerDeviceForRemoteMessages: jest.fn(() =>
+            Promise.resolve('registered'),
+          ),
+          unregisterDeviceForRemoteMessages: jest.fn(() =>
+            Promise.resolve('unregistered'),
+          ),
+          onMessage: jest.fn(),
+          onTokenRefresh: jest.fn(),
+    };
+  };
+
+  module.AuthorizationStatus = {
+      NOT_DETERMINED: -1,
+      DENIED: 0,
+      AUTHORIZED: 1,
+      PROVISIONAL: 2,
+  }
+
+  return module
+});

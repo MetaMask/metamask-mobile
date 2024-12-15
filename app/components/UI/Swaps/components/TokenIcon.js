@@ -87,9 +87,10 @@ EmptyIcon.propTypes = {
   big: PropTypes.bool,
   biggest: PropTypes.bool,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  testID: PropTypes.string,
 };
 
-function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
+function TokenIcon({ symbol, icon, medium, big, biggest, style, testID }) {
   const [showFallback, setShowFallback] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -114,6 +115,7 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
   if (source && !showFallback) {
     return (
       <RemoteImage
+        testID={testID}
         fadeIn
         source={getSource()}
         onError={() => setShowFallback(true)}
@@ -130,7 +132,13 @@ function TokenIcon({ symbol, icon, medium, big, biggest, style }) {
 
   if (symbol) {
     return (
-      <EmptyIcon medium={medium} big={big} biggest={biggest} style={style}>
+      <EmptyIcon
+        medium={medium}
+        big={big}
+        biggest={biggest}
+        style={style}
+        testID={testID}
+      >
         <Text
           style={[
             styles.tokenSymbol,
@@ -155,6 +163,7 @@ TokenIcon.propTypes = {
   big: PropTypes.bool,
   biggest: PropTypes.bool,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
+  testID: PropTypes.string,
 };
 
 export default TokenIcon;

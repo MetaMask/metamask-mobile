@@ -29,6 +29,8 @@ const AvatarTokenMeta = {
 export default AvatarTokenMeta;
 
 export const AvatarToken = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <AvatarTokenComponent
       {...args}

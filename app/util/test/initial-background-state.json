@@ -1,12 +1,7 @@
 {
   "KeyringController": {
     "isUnlocked": false,
-    "keyrings": [],
-    "vault": {
-      "cipher": "mock-cipher",
-      "iv": "mock-iv",
-      "lib": "original"
-    }
+    "keyrings": []
   },
   "LoggingController": {
     "logs": {}
@@ -18,15 +13,14 @@
     }
   },
   "AccountsController": {
-     "internalAccounts": {
-       "accounts": {},
-       "selectedAccount": ""
-     }
+    "internalAccounts": {
+      "accounts": {},
+      "selectedAccount": ""
+    }
   },
   "AddressBookController": {
     "addressBook": {}
   },
-  "AssetsContractController": {},
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -45,37 +39,112 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "TokenDetectionController": {},
-  "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
-    "versionFileETag": "",
     "versionInfo": []
   },
-
   "CurrencyRateController": {
     "currentCurrency": "usd",
     "currencyRates": {
-      "ETH":{
-        "conversionDate":0,
+      "ETH": {
+        "conversionDate": 0,
         "conversionRate": 0,
         "usdConversionRate": null
       }
     }
   },
   "NetworkController": {
-    "networkConfigurations": {},
-    "providerConfig": {
-      "type": "mainnet",
-      "chainId": "0x1",
-      "ticker": "ETH"
-    },
-    "networksMetadata": {
-      "mainnet":{  "EIPS": {},"status": "unknown"}
-    },
-    "selectedNetworkClientId": "mainnet"
+    "selectedNetworkClientId": "mainnet",
+    "networksMetadata": { "mainnet": { "status": "unknown", "EIPS": {} } },
+    "networkConfigurationsByChainId": {
+      "0x1": {
+        "blockExplorerUrls": [],
+        "chainId": "0x1",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Ethereum Mainnet",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "mainnet",
+            "type": "infura",
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0x5": {
+        "blockExplorerUrls": [],
+        "chainId": "0x5",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Goerli",
+        "nativeCurrency": "GoerliETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "goerli",
+            "type": "infura",
+            "url": "https://goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xaa36a7": {
+        "blockExplorerUrls": [],
+        "chainId": "0xaa36a7",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Sepolia",
+        "nativeCurrency": "SepoliaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "sepolia",
+            "type": "infura",
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe704": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe704",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Goerli",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-goerli",
+            "type": "infura",
+            "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe705": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe705",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea Sepolia",
+        "nativeCurrency": "LineaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-sepolia",
+            "type": "infura",
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      },
+      "0xe708": {
+        "blockExplorerUrls": [],
+        "chainId": "0xe708",
+        "defaultRpcEndpointIndex": 0,
+        "name": "Linea",
+        "nativeCurrency": "ETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "linea-mainnet",
+            "type": "infura",
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
+          }
+        ]
+      }
+    }
   },
   "PhishingController": {
+    "c2DomainBlocklistLastFetched": 0,
     "phishingLists": [],
     "whitelist": [],
     "hotlistLastFetched": 0,
@@ -84,18 +153,16 @@
   "PreferencesController": {
     "featureFlags": {},
     "identities": {},
-    "ipfsGateway": "https://cloudflare-ipfs.com/ipfs/",
+    "ipfsGateway": "https://dweb.link/ipfs/",
     "lostIdentities": {},
     "selectedAddress": "",
     "useTokenDetection": true,
-    "useNftDetection": false,
+    "useNftDetection": true,
     "useSafeChainsListValidation": true,
     "displayNftMedia": true,
     "securityAlertsEnabled": true,
     "isMultiAccountBalancesEnabled": true,
-    "disabledRpcMethodPreferences": {
-      "eth_sign": false
-    },
+    "showMultiRpcModal": false,
     "showTestNetworks": false,
     "showIncomingTransactions": {
       "0x1": true,
@@ -120,14 +187,21 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false 
+    "smartTransactionsOptInStatus": true,
+    "useTransactionSimulations": true,
+    "tokenSortConfig": {
+      "key": "tokenFiatAmount",
+      "order": "dsc",
+      "sortCallback": "stringNumeric"
+    },
+    "tokenNetworkFilter": {},
+    "privacyMode": false
   },
   "TokenBalancesController": {
-    "contractBalances": {}
+    "tokenBalances": {}
   },
   "TokenRatesController": {
-    "contractExchangeRates": {},
-    "contractExchangeRatesByChainId": {}
+    "marketData": {}
   },
   "TransactionController": {
     "lastFetchedBlockNumbers": {},
@@ -137,13 +211,41 @@
   },
   "SmartTransactionsController": {
     "smartTransactionsState": {
-      "liveness": true
+      "smartTransactions": {
+        "0x1": []
+      },
+      "userOptIn": null,
+      "userOptInV2": null,
+      "fees": {
+        "approvalTxFees": null,
+        "tradeTxFees": null
+      },
+      "liveness": true,
+      "livenessByChainId": {
+        "0x1": true,
+        "0xaa36a7": true
+      },
+      "feesByChainId": {
+        "0x1": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
+        },
+        "0xaa36a7": {
+          "approvalTxFees": null,
+          "tradeTxFees": null
+        }
+      }
     }
   },
   "SnapController": {
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
+  },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -204,7 +306,8 @@
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
     "gasEstimateType": "none",
-    "gasFeeEstimatesByChainId": {}
+    "gasFeeEstimatesByChainId": {},
+    "nonRPCGasFeeApisDisabled": false
   },
   "ApprovalController": {
     "pendingApprovals": {},
@@ -214,12 +317,42 @@
   "PermissionController": {
     "subjects": {}
   },
+  "RemoteFeatureFlagController": {
+    "cacheTimestamp": 0,
+    "remoteFeatureFlags": {}
+  },
+  "SelectedNetworkController": {
+    "domains": {}
+  },
   "SignatureController": {
-    "unapprovedMsgs": {},
+    "signatureRequests": {},
     "unapprovedPersonalMsgs": {},
     "unapprovedTypedMessages": {},
-    "unapprovedMsgCount": 0,
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "AuthenticationController": {
+    "isSignedIn": false
+  },
+  "NotificationServicesController": {
+    "isCheckingAccountsPresence": false,
+    "isFeatureAnnouncementsEnabled": false,
+    "isFetchingMetamaskNotifications": false,
+    "isMetamaskNotificationsFeatureSeen": false,
+    "isNotificationServicesEnabled": false,
+    "isUpdatingMetamaskNotifications": false,
+    "isUpdatingMetamaskNotificationsAccount": [],
+    "metamaskNotificationsList": [],
+    "metamaskNotificationsReadList": [],
+    "subscriptionAccountsSeen": []
+  },
+  "NotificationServicesPushController": {
+    "fcmToken": ""
+  },
+  "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
+    "isProfileSyncingEnabled": true,
+    "isProfileSyncingUpdateLoading": false
   }
 }

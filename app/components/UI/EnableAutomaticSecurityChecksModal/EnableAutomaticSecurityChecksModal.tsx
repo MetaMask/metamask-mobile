@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, Image, Platform } from 'react-native';
+import { View, Image } from 'react-native';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -23,12 +23,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { ScrollView } from 'react-native-gesture-handler';
-import {
-  ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
-
-import generateTestId from '../../../../wdio/utils/generateTestId';
+import { EnableAutomaticSecurityChecksIDs } from '../../../../e2e/selectors/Onboarding/EnableAutomaticSecurityChecks.selectors';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
@@ -43,7 +38,7 @@ export const createEnableAutomaticSecurityChecksModalNavDetails =
 
 const EnableAutomaticSecurityChecksModal = () => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
   const dispatch = useDispatch();
@@ -52,10 +47,14 @@ const EnableAutomaticSecurityChecksModal = () => {
     modalRef?.current?.dismissModal(cb);
 
   useEffect(() => {
-    trackEvent(MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED, {
-      ...generateDeviceAnalyticsMetaData(),
-    });
-  }, [trackEvent]);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_PROMPT_VIEWED,
+      )
+        .addProperties(generateDeviceAnalyticsMetaData())
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   useEffect(() => {
     dispatch(setAutomaticSecurityChecksModalOpen(true));
@@ -68,34 +67,37 @@ const EnableAutomaticSecurityChecksModal = () => {
     () =>
       dismissModal(() => {
         trackEvent(
-          MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
-          { ...generateDeviceAnalyticsMetaData() },
+          createEventBuilder(
+            MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_PROMPT,
+          )
+            .addProperties(generateDeviceAnalyticsMetaData())
+            .build(),
         );
         dispatch(userSelectedAutomaticSecurityChecksOptions());
       }),
-    [dispatch, trackEvent],
+    [dispatch, trackEvent, createEventBuilder],
   );
 
   const enableAutomaticSecurityChecks = useCallback(() => {
     dismissModal(() => {
       trackEvent(
-        MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
-        { ...generateDeviceAnalyticsMetaData() },
+        createEventBuilder(
+          MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_PROMPT,
+        )
+          .addProperties(generateDeviceAnalyticsMetaData())
+          .build(),
       );
       dispatch(userSelectedAutomaticSecurityChecksOptions());
       dispatch(setAutomaticSecurityChecks(true));
     });
-  }, [dispatch, trackEvent]);
+  }, [dispatch, trackEvent, createEventBuilder]);
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content}>
         <View
           style={styles.images}
-          {...generateTestId(
-            Platform,
-            ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-          )}
+          testID={EnableAutomaticSecurityChecksIDs.CONTAINER}
         >
           <Image source={onboardingDeviceImage} />
         </View>
@@ -122,10 +124,7 @@ const EnableAutomaticSecurityChecksModal = () => {
           label={strings(
             'enable_automatic_security_check_modal.secondary_action',
           )}
-          {...generateTestId(
-            Platform,
-            ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
-          )}
+          testID={EnableAutomaticSecurityChecksIDs.NO_THANKS_BUTTON}
           size={ButtonSize.Md}
           onPress={triggerCloseAndDisableAutomaticSecurityChecks}
         />

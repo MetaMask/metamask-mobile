@@ -1,5 +1,10 @@
 import React, { useContext, useMemo } from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  ImageSourcePropType,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../../locales/i18n';
 import Avatar, {
@@ -18,15 +23,18 @@ import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
+import METAMASK_FOX from '../../../../images/fox.png';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { getHost } from '../../../../util/browser';
 import Device from '../../../../util/device';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import WebsiteIcon from '../../WebsiteIcon';
 import createStyles from './TabThumbnail.styles';
 import { TabThumbnailProps } from './TabThumbnail.types';
-import useNetworkInfo from './useNetworkInfo';
-import useSelectedAccount from './useSelectedAccount';
-import METAMASK_FOX from '../../../../images/fox.png';
+import { useSelector } from 'react-redux';
+import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
+import { getPermittedAccountsByHostname } from '../../../../core/Permissions';
+import { useAccounts } from '../../../hooks/useAccounts';
 
 const { HOMEPAGE_URL } = AppConstants;
 
@@ -46,8 +54,20 @@ const TabThumbnail = ({
   const Container: React.ElementType = Device.isAndroid() ? View : ElevatedView;
   const hostname = getHost(tab.url);
   const isHomepage = hostname === getHost(HOMEPAGE_URL);
-  const selectedAccount = useSelectedAccount();
-  const { networkName, networkImageSource } = useNetworkInfo();
+
+  // Get permitted accounts for this hostname
+  const permittedAccountsList = useSelector(selectPermissionControllerState);
+  const permittedAccountsByHostname = getPermittedAccountsByHostname(
+    permittedAccountsList,
+    hostname,
+  );
+  const activeAddress = permittedAccountsByHostname[0];
+  const { accounts } = useAccounts({});
+  const selectedAccount = accounts.find(
+    (account) => account.address.toLowerCase() === activeAddress?.toLowerCase(),
+  );
+
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
@@ -60,7 +80,10 @@ const TabThumbnail = ({
         <View style={styles.tabHeader}>
           <View style={styles.titleButton}>
             {isHomepage ? (
-              <Image style={styles.tabFavicon} source={METAMASK_FOX} />
+              <Image
+                style={styles.tabFavicon}
+                source={METAMASK_FOX as ImageSourcePropType}
+              />
             ) : (
               <WebsiteIcon
                 transparent
@@ -89,8 +112,8 @@ const TabThumbnail = ({
         <View style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
         </View>
-        <View style={styles.footerContainer}>
-          {selectedAccount?.address && (
+        {selectedAccount && (
+          <View style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
                 badgeElement={
@@ -105,22 +128,22 @@ const TabThumbnail = ({
                 <Avatar
                   size={AvatarSize.Xs}
                   variant={AvatarVariant.Account}
-                  accountAddress={selectedAccount?.address}
+                  accountAddress={selectedAccount.address}
                 />
               </BadgeWrapper>
             </View>
-          )}
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.footerText}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {`${selectedAccount?.name ?? strings('browser.undefined_account')}${
-              networkName ? ` - ${networkName}` : ''
-            }`}
-          </Text>
-        </View>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.footerText}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {`${
+                selectedAccount.name ?? strings('browser.undefined_account')
+              }${networkName ? ` - ${networkName}` : ''}`}
+            </Text>
+          </View>
+        )}
       </TouchableOpacity>
     </Container>
   );

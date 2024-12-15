@@ -30,4 +30,5 @@ gh pr create \
   --title "${PR_TITLE}" \
   --body "${PR_BODY}" \
   --head "${PR_BRANCH_NAME}" \
-  --base "${BASE_PR_BRANCH_NAME}"
+  --base "${BASE_PR_BRANCH_NAME}" \
+  --label "rc-cherry-picked"

@@ -42,6 +42,8 @@ export const SelectButton = {
     isDisabled: SAMPLE_SELECTBUTTON_PROPS.isDisabled,
     isDanger: SAMPLE_SELECTBUTTON_PROPS.isDanger,
   },
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <SelectButtonComponent
       {...args}

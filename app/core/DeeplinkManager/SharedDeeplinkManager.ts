@@ -12,6 +12,8 @@ const SharedDeeplinkManager = {
     dispatch,
   }: {
     navigation: NavigationProp<ParamListBase>;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: Dispatch<any>;
   }) => {
     if (instance) {

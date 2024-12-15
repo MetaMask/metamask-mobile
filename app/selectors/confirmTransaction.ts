@@ -1,14 +1,18 @@
 import { selectTransactions } from './transactionController';
 import { RootState } from '../reducers';
-import {
-  selectGasFeeControllerEstimateType,
-  selectGasFeeControllerEstimates,
-} from './gasFeeController';
+import { selectGasFeeControllerEstimates } from './gasFeeController';
 import { mergeGasFeeEstimates } from '@metamask/transaction-controller';
 import { createSelector } from 'reselect';
 import { createDeepEqualSelector } from './util';
 
 const selectCurrentTransactionId = (state: RootState) => state.transaction?.id;
+
+export const selectCurrentTransactionSecurityAlertResponse = (
+  state: RootState,
+) => {
+  const { id, securityAlertResponses } = state.transaction;
+  return securityAlertResponses?.[id];
+};
 
 export const selectCurrentTransactionMetadata = createSelector(
   selectTransactions,
@@ -22,28 +26,19 @@ const selectCurrentTransactionGasFeeEstimatesStrict = createSelector(
   (transactionMetadata) => transactionMetadata?.gasFeeEstimates,
 );
 
-const selectCurrentTransactionGasFeeEstimatesLoaded = createSelector(
-  selectCurrentTransactionMetadata,
-  (transactionMetadata) => transactionMetadata?.gasFeeEstimatesLoaded,
-);
-
 export const selectCurrentTransactionGasFeeEstimates = createDeepEqualSelector(
   selectCurrentTransactionGasFeeEstimatesStrict,
   (gasFeeEstimates) => gasFeeEstimates,
 );
 
 export const selectGasFeeEstimates = createSelector(
-  selectGasFeeControllerEstimateType,
   selectGasFeeControllerEstimates,
   selectCurrentTransactionGasFeeEstimates,
-  (
-    gasFeeControllerEstimateType,
-    gasFeeControllerEstimates,
-    transactionGasFeeEstimates,
-  ) => {
+  (gasFeeControllerEstimates, transactionGasFeeEstimates) => {
     if (transactionGasFeeEstimates) {
       return mergeGasFeeEstimates({
-        gasFeeControllerEstimateType: gasFeeControllerEstimateType as any,
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         gasFeeControllerEstimates: gasFeeControllerEstimates as any,
         transactionGasFeeEstimates,
       });
@@ -51,11 +46,4 @@ export const selectGasFeeEstimates = createSelector(
 
     return gasFeeControllerEstimates;
   },
-);
-
-export const selectTransactionGasFeeEstimates = createSelector(
-  selectCurrentTransactionGasFeeEstimatesLoaded,
-  selectGasFeeEstimates,
-  (transactionGasFeeEstimatesLoaded, gasFeeEstimates) =>
-    transactionGasFeeEstimatesLoaded ? gasFeeEstimates : undefined,
 );

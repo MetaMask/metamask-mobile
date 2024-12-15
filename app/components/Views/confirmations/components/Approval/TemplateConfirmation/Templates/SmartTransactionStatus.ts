@@ -3,6 +3,8 @@ import { Actions } from '../TemplateConfirmation';
 import { ConfirmationTemplateValues, ConfirmationTemplate } from '.';
 
 function getValues(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApproval: ApprovalRequest<any>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   strings: (key: string, params?: Record<string, string>) => string,

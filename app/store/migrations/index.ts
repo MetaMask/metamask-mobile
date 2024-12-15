@@ -42,6 +42,28 @@ import migration38 from './038';
 import migration39 from './039';
 import migration40 from './040';
 import migration41 from './041';
+import migration42 from './042';
+import migration43 from './043';
+import migration44 from './044';
+import migration45 from './045';
+import migration46 from './046';
+import migration47 from './047';
+import migration48 from './048';
+import migration49 from './049';
+import migration50 from './050';
+import migration51 from './051';
+import migration52 from './052';
+import migration53 from './053';
+import migration54 from './054';
+import migration55 from './055';
+import migration56 from './056';
+import migration57 from './057';
+import migration58 from './058';
+import migration59 from './059';
+import migration60 from './060';
+import migration61 from './061';
+import migration62 from './062';
+import migration63 from './063';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -96,6 +118,28 @@ export const migrationList: MigrationsList = {
   39: migration39,
   40: migration40,
   41: migration41,
+  42: migration42,
+  43: migration43,
+  44: migration44,
+  45: migration45,
+  46: migration46,
+  47: migration47,
+  48: migration48,
+  49: migration49,
+  50: migration50,
+  51: migration51,
+  52: migration52,
+  53: migration53,
+  54: migration54,
+  55: migration55,
+  56: migration56,
+  57: migration57,
+  58: migration58,
+  59: migration59,
+  60: migration60,
+  61: migration61,
+  62: migration62,
+  63: migration63,
 };
 
 // Enable both synchronous and asynchronous migrations

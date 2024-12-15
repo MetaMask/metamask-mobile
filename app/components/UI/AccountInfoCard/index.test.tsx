@@ -1,43 +1,54 @@
 import React from 'react';
 import AccountInfoCard from './';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_1,
+} from '../../../util/test/accountsControllerTestUtils';
+import { RootState } from '../../../reducers';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { mockNetworkState } from '../../../util/test/network';
 
-jest.mock('../../../core/Engine', () => ({
-  resetState: jest.fn(),
-  context: {
-    KeyringController: {
-      state: {
-        keyrings: [],
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    resetState: jest.fn(),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+        createNewVaultAndKeychain: () => jest.fn(),
+        setLocked: () => jest.fn(),
+        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
       },
-      createNewVaultAndKeychain: () => jest.fn(),
-      setLocked: () => jest.fn(),
-      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
     },
-  },
-}));
+  };
+});
 
-const mockInitialState = {
+const mockInitialState: DeepPartial<RootState> = {
   settings: {
     useBlockieIcon: false,
   },
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
+          [MOCK_ADDRESS_1]: {
             balance: '0x2',
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        identities: {
-          address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-          name: 'Account 1',
-        },
-      },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       CurrencyRateController: {
         currentCurrency: 'inr',
         currencyRates: {
@@ -47,15 +58,16 @@ const mockInitialState = {
         },
       },
       NetworkController: {
-        providerConfig: {
+        ...mockNetworkState({
           chainId: '0xaa36a7',
-          type: 'sepolia',
+          id: 'mainnet',
           nickname: 'Sepolia',
-          ticker: 'ETH',
-        },
+          ticker: 'SepoliaETH',
+          type: RpcEndpointType.Infura,
+        }),
       },
       TokenBalancesController: {
-        contractBalances: {},
+        tokenBalances: {},
       },
     },
   },
@@ -69,6 +81,20 @@ jest.mock('react-redux', () => ({
   useSelector: jest
     .fn()
     .mockImplementation((callback) => callback(mockInitialState)),
+}));
+
+jest.mock('is-url', () => jest.fn());
+jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
+  getInstance: () => ({
+    getConnections: jest.fn().mockReturnValue({
+      'https://metamask.io': {
+        originatorInfo: {
+          url: 'https://metamask.io',
+          icon: 'https://metamask.io/icon.png',
+        },
+      },
+    }),
+  }),
 }));
 
 describe('AccountInfoCard', () => {
@@ -96,6 +122,7 @@ describe('AccountInfoCard', () => {
       <AccountInfoCard
         fromAddress="0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272"
         operation="signing"
+        origin="https://metamask.io"
       />,
       { state: mockInitialState },
     );

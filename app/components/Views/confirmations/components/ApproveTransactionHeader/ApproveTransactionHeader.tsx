@@ -1,41 +1,38 @@
 import { toChecksumAddress } from 'ethereumjs-util';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import AccountBalance from '../../../../../component-library/components-temp/Accounts/AccountBalance';
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
-import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectProviderConfig } from '../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../selectors/preferencesController';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import {
+  selectNetworkImageSource,
+  selectNetworkName,
+} from '../../../../../selectors/networkInfos';
 import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../../../util/address';
-import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
-import {
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../../../util/networks';
-import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import useAddressBalance from '../../../../hooks/useAddressBalance/useAddressBalance';
-import useFavicon from '../../../../hooks/useFavicon/useFavicon';
 import {
-  APPROVE_TRANSACTION_ORIGIN_PILL,
   ORIGIN_DEEPLINK,
   ORIGIN_QR_CODE,
 } from './ApproveTransactionHeader.constants';
 import stylesheet from './ApproveTransactionHeader.styles';
 import { ApproveTransactionHeaderI } from './ApproveTransactionHeader.types';
+import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import ApprovalTagUrl from '../../../../UI/ApprovalTagUrl';
+import { RootState } from '../../../../../reducers';
+import { INTERNAL_ORIGINS } from '../../../../../constants/transaction';
 
 const ApproveTransactionHeader = ({
   from,
   origin,
   url,
+  sdkDappMetadata,
   currentEnsName,
   asset,
   dontWatchAsset,
@@ -43,27 +40,23 @@ const ApproveTransactionHeader = ({
   const [accountName, setAccountName] = useState('');
 
   const [isOriginDeepLink, setIsOriginDeepLink] = useState(false);
-  const [isOriginWalletConnect, setIsOriginWalletConnect] = useState(false);
-  const [isOriginMMSDKRemoteConn, setIsOriginMMSDKRemoteConn] = useState(false);
-
   const { styles } = useStyles(stylesheet, {});
   const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset);
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
-  const identities = useSelector(selectIdentities);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkName = getNetworkNameFromProviderConfig(providerConfig);
+  const networkName = useSelector(selectNetworkName);
 
   const useBlockieIcon = useSelector(
-    (state: any) => state.settings.useBlockieIcon,
+    (state: RootState) => state.settings.useBlockieIcon,
   );
 
   useEffect(() => {
     const accountNameVal = activeAddress
-      ? renderAccountName(activeAddress, identities)
+      ? renderAccountName(activeAddress, internalAccounts)
       : '';
 
     const isOriginDeepLinkVal =
@@ -71,70 +64,23 @@ const ApproveTransactionHeader = ({
 
     setAccountName(accountNameVal);
     setIsOriginDeepLink(isOriginDeepLinkVal);
+  }, [accountsByChainId, internalAccounts, activeAddress, origin]);
 
-    if (!origin) {
-      setIsOriginWalletConnect(false);
-      setIsOriginMMSDKRemoteConn(false);
+  const networkImage = useSelector(selectNetworkImageSource);
 
-      return;
-    }
+  const accountTypeLabel = getLabelTextByAddress(activeAddress) ?? undefined;
 
-    setIsOriginWalletConnect(origin.startsWith(WALLET_CONNECT_ORIGIN));
-    setIsOriginMMSDKRemoteConn(
-      origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN),
-    );
-  }, [accountsByChainId, identities, activeAddress, origin]);
-
-  const networkImage = getNetworkImageSource({
-    networkType: providerConfig.type,
-    chainId: providerConfig.chainId,
-  });
-
-  const domainTitle = useMemo(() => {
-    let title = '';
-    if (isOriginWalletConnect) {
-      title = getUrlObj(
-        (origin as string).split(WALLET_CONNECT_ORIGIN)[1],
-      ).origin;
-    } else if (isOriginMMSDKRemoteConn) {
-      title = getUrlObj(
-        (origin as string).split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1],
-      ).origin;
-    } else {
-      title = prefixUrlWithProtocol(currentEnsName || origin || url);
-    }
-
-    return title;
-  }, [
-    currentEnsName,
-    origin,
-    isOriginWalletConnect,
-    isOriginMMSDKRemoteConn,
-    url,
-  ]);
-
-  const faviconUpdatedOrigin = useMemo(() => {
-    let newOrigin = origin as string;
-    if (isOriginWalletConnect) {
-      newOrigin = newOrigin.split(WALLET_CONNECT_ORIGIN)[1];
-    } else if (isOriginMMSDKRemoteConn) {
-      newOrigin = newOrigin.split(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN)[1];
-    }
-    return newOrigin;
-  }, [origin, isOriginWalletConnect, isOriginMMSDKRemoteConn]);
-
-  const faviconSource = useFavicon(faviconUpdatedOrigin);
-
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   return (
     <View style={styles.transactionHeader}>
-      {origin && !isOriginDeepLink ? (
-        <TagUrl
-          testID={APPROVE_TRANSACTION_ORIGIN_PILL}
-          imageSource={faviconSource}
-          label={domainTitle}
-          style={styles.tagUrl}
+      { showOrigin ? (
+        <ApprovalTagUrl
+          from={from}
+          origin={origin}
+          url={url}
+          sdkDappMetadata={sdkDappMetadata}
+          currentEnsName={currentEnsName}
         />
       ) : null}
       <AccountBalance

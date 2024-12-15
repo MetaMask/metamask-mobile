@@ -84,6 +84,8 @@ export default async function processCustomOrderIdData(
       { ...customOrderIdData, lastTimeFetched: Date.now(), errorCount: 0 },
       null,
     ];
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return [customOrderIdData, null];
   }

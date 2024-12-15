@@ -3,6 +3,8 @@ import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
 import Device from '../../../util/device';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
     screen: {
@@ -27,6 +29,8 @@ export const createStyles = (colors: any) =>
       paddingLeft: 15,
       flex: 1,
       color: colors.text.default,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     cancelButton: {
       marginTop: -6,
@@ -37,6 +41,8 @@ export const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.primary.default,
       ...fontStyles.normal,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     searchWrapper: {
       flexDirection: 'row',

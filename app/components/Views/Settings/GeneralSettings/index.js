@@ -30,11 +30,15 @@ import { toDataUrl } from '../../../../util/blockies.js';
 import Jazzicon from 'react-native-jazzicon';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const diameter = 40;
 const spacing = 8;
@@ -52,6 +56,36 @@ const infuraCurrencyOptions = sortedCurrencies.map(
     value: code,
   }),
 );
+
+export const updateUserTraitsWithCurrentCurrency = (currency, metrics) => {
+  // track event and add selected currency to user profile for analytics
+  const traits = { [UserProfileProperty.CURRENT_CURRENCY]: currency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.CURRENCY_CHANGED)
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
+};
+
+export const updateUserTraitsWithCurrencyType = (primaryCurrency, metrics) => {
+  // track event and add primary currency preference (fiat/crypto) to user profile for analytics
+  const traits = { [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency };
+  metrics.addTraitsToUser(traits);
+  metrics.trackEvent(
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.PRIMARY_CURRENCY_TOGGLE,
+    )
+      .addProperties({
+        ...traits,
+        location: 'app_settings',
+      })
+      .build(),
+  );
+};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -178,6 +212,10 @@ class Settings extends PureComponent {
      * App theme
      */
     // appTheme: PropTypes.string,
+    /**
+     * Metrics injected by withMetricsAwareness HOC
+     */
+    metrics: PropTypes.object,
   };
 
   state = {
@@ -188,6 +226,7 @@ class Settings extends PureComponent {
   selectCurrency = async (currency) => {
     const { CurrencyRateController } = Engine.context;
     CurrencyRateController.setCurrentCurrency(currency);
+    updateUserTraitsWithCurrentCurrency(currency, this.props.metrics);
   };
 
   selectLanguage = (language) => {
@@ -203,6 +242,8 @@ class Settings extends PureComponent {
 
   selectPrimaryCurrency = (primaryCurrency) => {
     this.props.setPrimaryCurrency(primaryCurrency);
+
+    updateUserTraitsWithCurrencyType(primaryCurrency, this.props.metrics);
   };
 
   toggleHideZeroBalanceTokens = (toggleHideZeroBalanceTokens) => {
@@ -232,8 +273,8 @@ class Settings extends PureComponent {
       key,
     }));
     this.searchEngineOptions = [
-      { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
       { value: 'Google', label: 'Google', key: 'Google' },
+      { value: 'DuckDuckGo', label: 'DuckDuckGo', key: 'DuckDuckGo' },
     ];
     this.primaryCurrencyOptions = [
       {
@@ -408,7 +449,7 @@ class Settings extends PureComponent {
                     true: colors.primary.default,
                     false: colors.border.muted,
                   }}
-                  thumbColor={themeTokens.brandColors.white['000']}
+                  thumbColor={themeTokens.brandColors.white}
                   style={styles.switch}
                   ios_backgroundColor={colors.border.muted}
                 />
@@ -481,7 +522,7 @@ const mapStateToProps = (state) => ({
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
   useBlockieIcon: state.settings.useBlockieIcon,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
 });
@@ -496,4 +537,7 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Settings));

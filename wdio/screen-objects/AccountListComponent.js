@@ -1,17 +1,16 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  ACCOUNT_LIST_ADD_BUTTON_ID,
-  ACCOUNT_LIST_ID,
-} from './testIDs/Components/AccountListComponent.testIds';
+  AccountListBottomSheetSelectorsIDs,
+} from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 
 class AccountListComponent {
   get accountListContainer() {
-    return Selectors.getXpathElementByResourceId(ACCOUNT_LIST_ID);
+    return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
   }
 
   get addAccountButton() {
-    return Selectors.getXpathElementByResourceId(ACCOUNT_LIST_ADD_BUTTON_ID);
+    return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
   }
 
   async tapAddAccountButton() {

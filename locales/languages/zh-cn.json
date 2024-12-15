@@ -854,8 +854,7 @@
     "message": "消息",
     "message_from": "消息来自",
     "learn_more": "了解更多",
-    "read_more": "了解更多",
-    "eth_sign_warning": "谨慎行事。此操作有可能用来从您的账户提取资产。确保您信任此站点。"
+    "read_more": "了解更多"
   },
   "watch_asset_request": {
     "title": "添加建议代币",

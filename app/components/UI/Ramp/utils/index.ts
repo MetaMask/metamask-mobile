@@ -115,9 +115,17 @@ export const formatId = (id: string) => {
   return id.startsWith('/') ? id : '/' + id;
 };
 
-export function formatAmount(amount: number) {
+export function formatAmount(amount: number, useParts = false) {
   try {
-    if (Intl?.NumberFormat) return new Intl.NumberFormat().format(amount);
+    if (Intl?.NumberFormat) {
+      if (useParts) {
+        return new Intl.NumberFormat()
+          .formatToParts(amount)
+          .map(({ type, value }) => (type === 'integer' ? value : ''))
+          .join(' ');
+      }
+      return new Intl.NumberFormat().format(amount);
+    }
     return String(amount);
   } catch (e) {
     return String(amount);
@@ -129,10 +137,8 @@ export function isNetworkRampSupported(
   networks: AggregatorNetwork[],
 ) {
   return (
-    networks?.find(
-      // TODO(ramp, chainId-string): remove once chainId is a string
-      (network) => `${network.chainId}` === getDecimalChainId(chainId),
-    )?.active ?? false
+    networks?.find((network) => network.chainId === getDecimalChainId(chainId))
+      ?.active ?? false
   );
 }
 
@@ -141,8 +147,7 @@ export function isNetworkRampNativeTokenSupported(
   networks: AggregatorNetwork[],
 ) {
   const network = networks?.find(
-    // TODO(ramp, chainId-string): remove once chainId is a string
-    (_network) => `${_network.chainId}` === getDecimalChainId(chainId),
+    (_network) => _network.chainId === getDecimalChainId(chainId),
   );
   return (network?.active && network.nativeTokenSupported) ?? false;
 }

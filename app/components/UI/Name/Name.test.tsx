@@ -7,6 +7,7 @@ import { NameType } from './Name.types';
 import useDisplayName, {
   DisplayNameVariant,
 } from '../../hooks/DisplayName/useDisplayName';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
@@ -16,6 +17,7 @@ jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
 
 const UNKNOWN_ADDRESS_CHECKSUMMED =
   '0x299007B3F9E23B8d432D5f545F8a4a2B3E9A5B4e';
+const EXPECTED_UNKNOWN_ADDRESS_CHECKSUMMED = '0x29900...A5B4e';
 
 const UNKNOWN_ADDRESS_NOT_CHECKSUMMED =
   UNKNOWN_ADDRESS_CHECKSUMMED.toLowerCase();
@@ -33,6 +35,7 @@ describe('Name', () => {
     useDisplayName as jest.MockedFunction<typeof useDisplayName>
   ).mockReturnValue({
     variant: DisplayNameVariant.Unknown,
+    name: KNOWN_NAME_MOCK,
   });
 
   describe('unknown address', () => {
@@ -42,11 +45,14 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={UNKNOWN_ADDRESS_NOT_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );
 
-      expect(wrapper.getByText(UNKNOWN_ADDRESS_CHECKSUMMED)).toBeTruthy();
+      expect(
+        wrapper.getByText(EXPECTED_UNKNOWN_ADDRESS_CHECKSUMMED),
+      ).toBeTruthy();
       expect(wrapper).toMatchSnapshot();
     });
   });
@@ -63,11 +69,31 @@ describe('Name', () => {
           <Name
             type={NameType.EthereumAddress}
             value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
           />
         </Provider>,
       );
 
       expect(wrapper.getByText(KNOWN_NAME_MOCK)).toBeTruthy();
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('should render image', () => {
+      mockUseDisplayName.mockReturnValue({
+        variant: DisplayNameVariant.Recognized,
+        name: KNOWN_NAME_MOCK,
+        image: 'https://example.com/image.png',
+      });
+
+      const wrapper = render(
+        <Provider store={store}>
+          <Name
+            type={NameType.EthereumAddress}
+            value={KNOWN_ADDRESS_CHECKSUMMED}
+            variation={CHAIN_IDS.MAINNET}
+          />
+        </Provider>,
+      );
       expect(wrapper).toMatchSnapshot();
     });
   });

@@ -3,7 +3,7 @@ import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
@@ -18,10 +18,10 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import OnboardingSuccess from '../OnboardingSuccess';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,10 +102,6 @@ class ManualBackupStep3 extends PureComponent {
     setOnboardingWizardStep: PropTypes.func,
   };
 
-  track = (event, properties) => {
-    trackOnboarding(event, properties);
-  };
-
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -118,7 +114,7 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -127,7 +123,11 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+      ).build(),
+    );
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -165,11 +165,11 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints = JSON.parse(currentSeedphraseHints);
-    await AsyncStorage.setItem(
+    await StorageWrapper.setItem(
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
@@ -177,7 +177,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   done = async () => {
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {

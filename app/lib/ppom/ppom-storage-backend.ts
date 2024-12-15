@@ -3,6 +3,13 @@ import { StorageBackend, StorageKey } from '@metamask/ppom-validator';
 
 import { getArrayBufferForBlob } from 'react-native-blob-jsi-helper';
 
+declare global {
+  interface FileReader {
+    _setReadyState(state: number): void;
+    _result: Uint8Array | null;
+    _error: string | null;
+  }
+}
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 if (window.FileReader?.prototype.readAsArrayBuffer) {

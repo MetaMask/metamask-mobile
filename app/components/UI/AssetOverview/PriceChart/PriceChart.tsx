@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -69,9 +70,9 @@ const PriceChart = ({
 
   const chartColor =
     priceDiff > 0
-      ? theme.colors.success.default
+      ? theme.colors.primary.default
       : priceDiff < 0
-      ? theme.colors.error.default
+      ? theme.colors.primary.default
       : theme.colors.text.alternative;
 
   const apx = (size = 0) => {

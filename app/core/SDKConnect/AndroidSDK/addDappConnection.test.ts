@@ -5,8 +5,8 @@ import addDappConnection from './addDappConnection';
 jest.mock('../Connection');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
-jest.mock('react-native-default-preference', () => ({
-  set: jest.fn().mockResolvedValue(''),
+jest.mock('../../../store/storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue(''),
 }));
 jest.mock('../../../core/AppConstants');
 

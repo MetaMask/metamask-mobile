@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
 
 import generateTestId from '../../../../wdio/utils/generateTestId';
-import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAddressModal.selectors';
+import { AddAddressModalSelectorsIDs } from '../../../../e2e/selectors/SendFlow/AddAddressModal.selectors';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { baseStyles } from '../../../styles/common';
@@ -44,9 +44,10 @@ export const AddToAddressBookWrapper = ({
   const styles = createStyles(colors);
 
   const onSaveToAddressBook = () => {
+    if (!alias) return;
     const { AddressBookController } = Engine.context;
     AddressBookController.set(address, alias, chainId);
-    !!alias && setToAddressName?.(alias);
+    setToAddressName?.(alias);
     setAlias(undefined);
   };
 

@@ -1,19 +1,27 @@
 import Engine from '../../../../core/Engine';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ApprovalRequestType = ApprovalRequest<any>;
+
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
+  const pendingApprovalList = Object.values(pendingApprovals ?? {});
 
-  const approvalRequest = Object.values(pendingApprovals ?? {})[0] as
-    | ApprovalRequest<any>
+  const firstPendingApproval = pendingApprovalList[0] as
+    | ApprovalRequestType
     | undefined;
 
-  const pageMeta = approvalRequest?.requestData?.pageMeta ?? {};
+  const approvalRequest = useMemo(
+    () => cloneDeep(firstPendingApproval),
+    [firstPendingApproval],
+  );
 
   const onConfirm = useCallback(
     async (
@@ -40,8 +48,13 @@ const useApprovalRequest = () => {
     );
   }, [approvalRequest]);
 
+  const pageMeta = useMemo(
+    () => approvalRequest?.requestData?.pageMeta ?? {},
+    [approvalRequest],
+  );
+
   return {
-    approvalRequest: cloneDeep(approvalRequest),
+    approvalRequest,
     pageMeta,
     onConfirm,
     onReject,

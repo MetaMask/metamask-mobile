@@ -1,11 +1,16 @@
 'use strict';
-import { Regression } from '../../tags';
-import WalletView from '../../pages/WalletView';
+import { SmokeAccounts } from '../../tags';
+import WalletView from '../../pages/wallet/WalletView';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import AccountListView from '../../pages/AccountListView';
-import ImportAccountView from '../../pages/ImportAccountView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import ImportAccountView from '../../pages/importAccount/ImportAccountView';
+import Assertions from '../../utils/Assertions';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import CommonView from '../../pages/CommonView';
+import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import TestHelpers from '../../helpers';
 
-describe(Regression('Import account via private to wallet'), () => {
+describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
   const TEST_PRIVATE_KEY =
@@ -13,27 +18,30 @@ describe(Regression('Import account via private to wallet'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await device.launchApp();
+    await TestHelpers.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase();
+    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
   });
 
   it('should be able to import account', async () => {
     await WalletView.tapIdenticon();
-    await AccountListView.isVisible();
-    await AccountListView.tapAddAccountButton();
-    await AccountListView.tapImportAccountButton();
-    await ImportAccountView.isVisible();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapImportAccount();
+    await Assertions.checkIfVisible(ImportAccountView.container);
     // Tap on import button to make sure alert pops up
     await ImportAccountView.tapImportButton();
-    await ImportAccountView.tapOKAlertButton();
+    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(TEST_PRIVATE_KEY);
-    await ImportAccountView.isImportSuccessSreenVisible();
-    await ImportAccountView.tapCloseButtonOnImportSuccess();
-    await AccountListView.swipeToDimssAccountsModal();
-    await WalletView.isVisible();
-    await WalletView.isAccountNameCorrect('Account 3');
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
+    await Assertions.checkIfVisible(WalletView.container);
+    await Assertions.checkIfElementNotToHaveText(
+      WalletView.accountName,
+      'Account 1',
+    );
   });
 });

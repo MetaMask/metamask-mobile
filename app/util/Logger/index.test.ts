@@ -1,11 +1,7 @@
 import Logger from '.';
-import {
-  captureException,
-  withScope,
-  captureMessage,
-} from '@sentry/react-native';
+import { captureException, withScope } from '@sentry/react-native';
 import { AGREED, METRICS_OPT_IN } from '../../constants/storage';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -13,12 +9,11 @@ jest.mock('@sentry/react-native', () => ({
   withScope: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
-const mockedCaptureMessage = jest.mocked(captureMessage);
 const mockedWithScope = jest.mocked(withScope);
 
 describe('Logger', () => {
   beforeEach(() => {
-    DefaultPreference.get = jest.fn((key: string) => {
+    StorageWrapper.getItem = jest.fn((key: string) => {
       switch (key) {
         case METRICS_OPT_IN:
           return Promise.resolve(AGREED);
@@ -35,12 +30,14 @@ describe('Logger', () => {
   describe('error', () => {
     it('warns if error is not defined', async () => {
       const warn = jest.spyOn(console, 'warn');
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await Logger.error(undefined as any);
       expect(warn).toBeCalledWith('No error provided');
     });
 
     it('skips captureException if metrics is opted out', async () => {
-      DefaultPreference.get = jest.fn((key: string) => {
+      StorageWrapper.getItem = jest.fn((key: string) => {
         switch (key) {
           case METRICS_OPT_IN:
             return Promise.resolve('');
@@ -66,28 +63,11 @@ describe('Logger', () => {
     });
 
     it('calls captureException when string is passed instead of Error object', async () => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const testError = 'testError' as any;
       await Logger.error(testError);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    });
-  });
-
-  describe('message', () => {
-    it('skips captureMessage if metrics is opted out', async () => {
-      DefaultPreference.get = jest.fn((key: string) => {
-        switch (key) {
-          case METRICS_OPT_IN:
-            return Promise.resolve('');
-          default:
-            return Promise.resolve('');
-        }
-      });
-      await Logger.message('testMessage');
-      expect(mockedCaptureMessage).not.toHaveBeenCalled();
-    });
-    it('calls captureMessage if metrics is opted in', async () => {
-      await Logger.message('testMessage');
-      expect(mockedCaptureMessage).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,10 +1,18 @@
-/* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
 
-export const createStyles = () =>
-  StyleSheet.create({
-    wrapper: {
-      flex: 1,
-    },
-    icon: { marginHorizontal: 20 },
-  });
+const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+  },
+  stickyButton: {
+    width: 'auto',
+    left: 20,
+    right: 20,
+    bottom: 40,
+    position: 'absolute',
+  },
+  icon: { marginHorizontal: 16 },
+  title: { alignSelf: 'center' },
+});
+
+export default styles;

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export const ChoosePasswordSelectorsIDs = {
   CONTAINER_ID: 'create-password-screen',
   NEW_PASSWORD_INPUT_ID: 'create-password-first-input-field',

@@ -1,30 +1,36 @@
-/**
- * Constants
- */
-export const SET_CURRENT_ROUTE = 'SET_CURRENT_ROUTE';
-export const SET_CURRENT_BOTTOM_NAV_ROUTE = 'SET_CURRENT_TAB_BAR_ROUTE';
+import {
+  type NavigationAction,
+  NavigationActionType,
+} from '../../actions/navigation/types';
+import { NavigationState } from './types';
+
+export * from './types';
+
+export * from './selectors';
 
 /**
- * Reducers
+ * Initial navigation state
  */
-interface InitialState {
-  currentRoute: string;
-  currentBottomNavRoute: string;
-}
-
-const initialState: InitialState = {
+export const initialNavigationState: NavigationState = {
   currentRoute: 'WalletView',
   currentBottomNavRoute: 'Wallet',
 };
 
-const navigationReducer = (state = initialState, action: any = {}) => {
+/**
+ * Navigation reducer
+ */
+/* eslint-disable @typescript-eslint/default-param-last */
+const navigationReducer = (
+  state: NavigationState = initialNavigationState,
+  action: NavigationAction,
+): NavigationState => {
   switch (action.type) {
-    case SET_CURRENT_ROUTE:
+    case NavigationActionType.SET_CURRENT_ROUTE:
       return {
         ...state,
         currentRoute: action.payload.route,
       };
-    case SET_CURRENT_BOTTOM_NAV_ROUTE:
+    case NavigationActionType.SET_CURRENT_BOTTOM_NAV_ROUTE:
       return {
         ...state,
         currentBottomNavRoute: action.payload.route,
@@ -37,7 +43,11 @@ const navigationReducer = (state = initialState, action: any = {}) => {
 /**
  * Selectors
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getCurrentRoute = (state: any) => state.navigation.currentRoute;
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getCurrentBottomNavRoute = (state: any) =>
   state.navigation.currentBottomNavRoute;
 

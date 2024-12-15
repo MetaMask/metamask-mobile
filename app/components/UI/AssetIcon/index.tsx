@@ -7,18 +7,13 @@ import {
 } from 'react-native';
 import isUrl from 'is-url';
 import RemoteImage from '../../Base/RemoteImage';
-import staticLogos from 'images/static-logos';
 import { useTheme } from '../../../util/theme';
 
 interface Props {
   /**
-   * String of the asset icon to be searched in contractMap
+   * URL of the logo
    */
   logo: string;
-  /**
-   * Whether logo has to be fetched from @metamask/contract-metadata
-   */
-  watchedAsset?: boolean;
   /**
    * Custom style to apply to image
    */
@@ -29,6 +24,8 @@ interface Props {
   address?: string;
 }
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     logo: {
@@ -51,9 +48,9 @@ const AssetIcon = memo((props: Props) => {
 
   const style = [styles.logo, props.customStyle];
   const isImageUrl = isUrl(props.logo) || props.logo.substr(0, 4) === 'ipfs';
-  const source: ImageSourcePropType = isImageUrl
+  const source: ImageSourcePropType | null = isImageUrl
     ? { uri: props.logo }
-    : (staticLogos as any)[props.logo];
+    : null;
 
   if (!source) {
     return null;

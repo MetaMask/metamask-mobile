@@ -1,11 +1,12 @@
 import { createMigrate, createTransform } from 'redux-persist';
-import AsyncStorage from './async-storage-wrapper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
+import { UserState } from '../reducers/user';
 
 const TIMEOUT = 40000;
 
@@ -60,16 +61,16 @@ const MigratedStorage = {
  */
 const persistTransform = createTransform(
   (inboundState: RootState['engine']) => {
-    const {
-      TokenListController,
-      SwapsController,
-      PhishingController,
-      ...controllers
-    } = inboundState.backgroundState || {};
-    // TODO: Fix this type error
-    // @ts-expect-error Fix this typo, should be `tokensChainsCache`
-    const { tokenList, tokensChainCache, ...persistedTokenListController } =
-      TokenListController;
+    if (
+      !inboundState ||
+      Object.keys(inboundState.backgroundState).length === 0
+    ) {
+      return inboundState;
+    }
+
+    const { SwapsController, ...controllers } =
+      inboundState.backgroundState || {};
+
     const {
       aggregatorMetadata,
       aggregatorMetadataLastFetched,
@@ -80,18 +81,12 @@ const persistTransform = createTransform(
       topAssetsLastFetched,
       ...persistedSwapsController
     } = SwapsController;
-    // TODO: Fix this type error
-    // @ts-expect-error There is no `phishing` property in the phishing controller state
-    const { phishing, whitelist, ...persistedPhishingController } =
-      PhishingController;
 
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
         ...controllers,
-        TokenListController: persistedTokenListController,
         SwapsController: persistedSwapsController,
-        PhishingController: persistedPhishingController,
       },
     };
     return newState;
@@ -101,8 +96,7 @@ const persistTransform = createTransform(
 );
 
 const persistUserTransform = createTransform(
-  // TODO: Add types for the 'user' slice
-  (inboundState: any) => {
+  (inboundState: UserState) => {
     const { initialScreen, isAuthChecked, ...state } = inboundState;
     // Reconstruct data to persist
     return state;
@@ -114,7 +108,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts'],
+  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'multichainSettings'],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.

@@ -89,7 +89,7 @@ import {
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -102,6 +102,7 @@ import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -599,7 +600,8 @@ class Amount extends PureComponent {
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
-    const exchangeRate = contractExchangeRates[selectedAsset.address];
+    const exchangeRate =
+      contractExchangeRates?.[selectedAsset.address]?.price ?? null;
     return !!exchangeRate;
   };
 
@@ -681,9 +683,12 @@ class Amount extends PureComponent {
       await this.prepareTransaction(value);
     }
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT, {
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_AMOUNT)
+        .addProperties({ network: providerType })
+        .build(),
+    );
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
@@ -885,6 +890,7 @@ class Amount extends PureComponent {
       contractExchangeRates,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto, estimatedTotalGas } = this.state;
+    const tokenBalance = contractBalances[selectedAsset.address] || '0x0';
     let input;
     if (selectedAsset.isETH) {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
@@ -900,18 +906,17 @@ class Amount extends PureComponent {
         });
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : undefined;
       if (internalPrimaryCurrencyIsCrypto || !exchangeRate) {
         input = fromTokenMinimalUnitString(
-          contractBalances[selectedAsset.address]?.toString(10),
+          tokenBalance,
           selectedAsset.decimals,
         );
       } else {
         input = `${balanceToFiatNumber(
-          fromTokenMinimalUnitString(
-            contractBalances[selectedAsset.address]?.toString(10),
-            selectedAsset.decimals,
-          ),
+          fromTokenMinimalUnitString(tokenBalance, selectedAsset.decimals),
           conversionRate,
           exchangeRate,
         )}`;
@@ -965,7 +970,9 @@ class Amount extends PureComponent {
         renderableInputValueConversion = `${inputValueConversion} ${processedTicker}`;
       }
     } else {
-      const exchangeRate = contractExchangeRates[selectedAsset.address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[selectedAsset.address]?.price
+        : null;
       hasExchangeRate = !!exchangeRate;
       if (internalPrimaryCurrencyIsCrypto) {
         inputValueConversion = `${balanceToFiatNumber(
@@ -1078,7 +1085,9 @@ class Amount extends PureComponent {
       );
     } else {
       balance = renderFromTokenMinimalUnit(contractBalances[address], decimals);
-      const exchangeRate = contractExchangeRates[address];
+      const exchangeRate = contractExchangeRates
+        ? contractExchangeRates[address]?.price
+        : undefined;
       balanceFiat = balanceToFiat(
         balance,
         conversionRate,
@@ -1237,6 +1246,7 @@ class Amount extends PureComponent {
       isNetworkBuyNativeTokenSupported,
       swapsIsLive,
       chainId,
+      ticker,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
@@ -1247,6 +1257,7 @@ class Amount extends PureComponent {
         params: {
           sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
           destinationToken: selectedAsset.address,
+          sourcePage: 'SendFlow',
         },
       });
     };
@@ -1260,17 +1271,27 @@ class Amount extends PureComponent {
 
     const navigateToBuyOrSwaps = () => {
       if (isSwappable) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'swap_tokens',
-        });
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'swap_tokens',
+            })
+            .build(),
+        );
         navigateToSwap();
       } else if (isNetworkBuyNativeTokenSupported && selectedAsset.isETH) {
-        this.props.metrics.trackEvent(MetaMetricsEvents.LINK_CLICKED, {
-          location: 'insufficient_funds_warning',
-          text: 'buy_more',
-        });
-        navigation.navigate(Routes.RAMP.BUY);
+        this.props.metrics.trackEvent(
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.LINK_CLICKED)
+            .addProperties({
+              location: 'insufficient_funds_warning',
+              text: 'buy_more',
+            })
+            .build(),
+        );
+        navigation.navigate(...createBuyNavigationDetails());
       }
     };
 
@@ -1339,11 +1360,20 @@ class Amount extends PureComponent {
               onPress={navigateToBuyOrSwaps}
               style={styles.errorBuyWrapper}
             >
-              <Text style={styles.error}>{amountError}</Text>
-              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH && (
-                <Text style={[styles.error, styles.underline]}>
-                  {strings('transaction.buy_more')}
+              {isNetworkBuyNativeTokenSupported && selectedAsset.isETH ? (
+                <Text style={[styles.error]}>
+                  {strings('transaction.more_to_continue', {
+                    ticker: getTicker(ticker),
+                  })}
+                  {'\n'}
+                  <Text style={[styles.error, styles.underline]}>
+                    {strings('transaction.token_Marketplace')}
+                  </Text>
+                  {'\n'}
+                  {strings('transaction.you_can_also_send_funds')}
                 </Text>
+              ) : (
+                <Text style={styles.error}>{amountError}</Text>
               )}
 
               {isSwappable && (
@@ -1515,7 +1545,7 @@ const mapStateToProps = (state, ownProps) => ({
   gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,

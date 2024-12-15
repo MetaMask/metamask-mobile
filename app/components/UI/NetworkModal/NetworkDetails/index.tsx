@@ -6,6 +6,8 @@ import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
 import { getDecimalChainId } from '../../../../util/networks';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     accountInformation: {
@@ -58,7 +60,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
     },
   ];
 
-  const DetailsView = () => (
+  const renderDetailsView = () => (
     <>
       {DisplayData.map((item, index) => (
         <View key={index}>
@@ -77,9 +79,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
         action={goBack}
         title={strings('networks.network_details')}
       />
-      <View style={styles.accountInformation}>
-        <DetailsView />
-      </View>
+      <View style={styles.accountInformation}>{renderDetailsView()}</View>
     </View>
   );
 };

@@ -7,6 +7,8 @@ export interface VerifyContractDetailsProps {
   contractAddress: string;
   closeVerifyContractView: () => void;
   tokenAddress: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   savedContactListToArray: any[];
   /**
    * copy contract address
@@ -24,5 +26,5 @@ export interface VerifyContractDetailsProps {
   tokenSymbol: string;
   providerType: string;
   providerRpcTarget: string;
-  networkConfigurations: NetworkState['networkConfigurations'];
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'];
 }

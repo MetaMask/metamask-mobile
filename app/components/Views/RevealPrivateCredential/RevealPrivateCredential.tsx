@@ -1,5 +1,5 @@
 /* eslint-disable no-mixed-spaces-and-tabs */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Dimensions,
   Linking,
@@ -11,19 +11,26 @@ import {
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { InternalAccount } from '@metamask/keyring-api';
 import QRCode from 'react-native-qrcode-svg';
+import { RouteProp, ParamListBase } from '@react-navigation/native';
 import ScrollableTabView, {
   DefaultTabBar,
 } from 'react-native-scrollable-tab-view';
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = View as any;
-import Icon from 'react-native-vector-icons/FontAwesome5';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconSize,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 import InfoModal from '../../UI/Swaps/components/InfoModal';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { showAlert } from '../../../actions/alert';
@@ -43,25 +50,40 @@ import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { passwordRequirementsMet } from '../../../util/password';
 import { Authentication } from '../../../core/';
 
+import { isTest } from '../../../util/test/utils';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import { isHardwareAccount } from '../../../util/address';
 import AppConstants from '../../../core/AppConstants';
 import { createStyles } from './styles';
 import { getNavigationOptionsTitle } from '../../../components/UI/Navbar';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const PRIVATE_KEY = 'private_key';
 
+interface RootStackParamList extends ParamListBase {
+  RevealPrivateCredential: {
+    credentialName: string;
+    shouldUpdateNav?: boolean;
+    selectedAccount?: InternalAccount;
+  };
+}
+
+type RevealPrivateCredentialRouteProp = RouteProp<
+  RootStackParamList,
+  'RevealPrivateCredential'
+>;
+
 interface IRevealPrivateCredentialProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   credentialName: string;
   cancel: () => void;
-  route: any;
+  route: RevealPrivateCredentialRouteProp;
 }
 
 const RevealPrivateCredential = ({
@@ -76,24 +98,30 @@ const RevealPrivateCredential = ({
   const [clipboardPrivateCredential, setClipboardPrivateCredential] =
     useState<string>('');
   const [unlocked, setUnlocked] = useState<boolean>(false);
-  const [isUserUnlocked, setIsUserUnlocked] = useState<boolean>(false);
   const [password, setPassword] = useState<string>('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState<string>('');
   const [clipboardEnabled, setClipboardEnabled] = useState<boolean>(false);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const selectedAddress = useSelector(selectSelectedAddress);
+  const checkSummedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const dispatch = useDispatch();
 
   const theme = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors, themeAppearance } = theme;
   const styles = createStyles(theme);
 
   const credentialSlug = credentialName || route?.params.credentialName;
+  const selectedAddress =
+    route?.params?.selectedAccount?.address || checkSummedAddress;
   const isPrivateKey = credentialSlug === PRIVATE_KEY;
 
   const updateNavBar = () => {
@@ -111,50 +139,56 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const tryUnlockWithPassword = async (
-    pswd: string,
-    privCredentialName?: string,
-  ) => {
-    const { KeyringController } = Engine.context as any;
-    const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
+  const tryUnlockWithPassword = useCallback(
+    async (pswd: string, privCredentialName?: string) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { KeyringController } = Engine.context as any;
+      const isPrivateKeyReveal = privCredentialName === PRIVATE_KEY;
 
-    try {
-      let privateCredential;
-      if (!isPrivateKeyReveal) {
-        const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
-        privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
-      } else {
-        privateCredential = await KeyringController.exportAccount(
-          pswd,
-          selectedAddress,
-        );
-      }
+      try {
+        let privateCredential;
+        if (!isPrivateKeyReveal) {
+          const uint8ArraySeed = await KeyringController.exportSeedPhrase(pswd);
+          privateCredential = uint8ArrayToMnemonic(uint8ArraySeed, wordlist);
+        } else {
+          privateCredential = await KeyringController.exportAccount(
+            pswd,
+            selectedAddress,
+          );
+        }
 
-      if (privateCredential && (isUserUnlocked || isPrivateKeyReveal)) {
-        setClipboardPrivateCredential(privateCredential);
-        setUnlocked(true);
-      }
-    } catch (e: any) {
-      let msg = strings('reveal_credential.warning_incorrect_password');
-      if (isHardwareAccount(selectedAddress)) {
-        msg = strings('reveal_credential.hardware_error');
-      } else if (
-        e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
-      ) {
-        msg = strings('reveal_credential.unknown_error');
-      }
+        if (privateCredential) {
+          setClipboardPrivateCredential(privateCredential);
+          setUnlocked(true);
+        }
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        let msg = strings('reveal_credential.warning_incorrect_password');
+        if (selectedAddress && isHardwareAccount(selectedAddress)) {
+          msg = strings('reveal_credential.hardware_error');
+        } else if (
+          e.toString().toLowerCase() !== WRONG_PASSWORD_ERROR.toLowerCase()
+        ) {
+          msg = strings('reveal_credential.unknown_error');
+        }
 
-      setIsModalVisible(false);
-      setUnlocked(false);
-      setWarningIncorrectPassword(msg);
-    }
-  };
+        setIsModalVisible(false);
+        setUnlocked(false);
+        setWarningIncorrectPassword(msg);
+      }
+    },
+    [selectedAddress],
+  );
 
   useEffect(() => {
     updateNavBar();
     // Track SRP Reveal screen rendered
     if (!isPrivateKey) {
-      trackEvent(MetaMetricsEvents.REVEAL_SRP_SCREEN);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVEAL_SRP_SCREEN).build(),
+      );
     }
 
     const unlockWithBiometrics = async () => {
@@ -163,7 +197,7 @@ const RevealPrivateCredential = ({
       if (!passwordSet) {
         tryUnlockWithPassword('');
       } else if (availableBiometryType) {
-        const biometryChoice = await AsyncStorage.getItem(BIOMETRY_CHOICE);
+        const biometryChoice = await StorageWrapper.getItem(BIOMETRY_CHOICE);
         if (biometryChoice !== '' && biometryChoice === availableBiometryType) {
           const credentials = await Authentication.getPassword();
           if (credentials) {
@@ -188,18 +222,28 @@ const RevealPrivateCredential = ({
   const cancelReveal = () => {
     if (!unlocked)
       trackEvent(
-        isPrivateKey
-          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
-          : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
-        { view: 'Enter password' },
+        createEventBuilder(
+          isPrivateKey
+            ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
+            : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
+        )
+          .addProperties({
+            view: 'Enter password',
+          })
+          .build(),
       );
 
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA);
+    if (!isPrivateKey)
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CANCEL_REVEAL_SRP_CTA).build(),
+      );
     if (cancel) return cancel();
     navigateBack();
   };
 
   const tryUnlock = async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = Engine.context as any;
     try {
       await KeyringController.verifyPassword(password);
@@ -212,7 +256,9 @@ const RevealPrivateCredential = ({
     if (!isPrivateKey) {
       const currentDate = new Date();
       dispatch(recordSRPRevealTimestamp(currentDate.toString()));
-      trackEvent(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NEXT_REVEAL_SRP_CTA).build(),
+      );
     }
     setIsModalVisible(true);
     setWarningIncorrectPassword('');
@@ -223,7 +269,8 @@ const RevealPrivateCredential = ({
   };
 
   const done = () => {
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.SRP_DONE_CTA);
+    if (!isPrivateKey)
+      trackEvent(createEventBuilder(MetaMetricsEvents.SRP_DONE_CTA).build());
     navigateBack();
   };
 
@@ -231,13 +278,19 @@ const RevealPrivateCredential = ({
     privCredentialName: string,
   ) => {
     trackEvent(
-      privCredentialName === PRIVATE_KEY
-        ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
-        : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
-      { action: 'copied to clipboard' },
+      createEventBuilder(
+        privCredentialName === PRIVATE_KEY
+          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+          : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
+      )
+        .addProperties({
+          action: 'copied to clipboard',
+        })
+        .build(),
     );
 
-    if (!isPrivateKey) trackEvent(MetaMetricsEvents.COPY_SRP);
+    if (!isPrivateKey)
+      trackEvent(createEventBuilder(MetaMetricsEvents.COPY_SRP).build());
 
     await ClipboardManager.setStringExpire(clipboardPrivateCredential);
 
@@ -262,11 +315,16 @@ const RevealPrivateCredential = ({
     );
   };
 
-  const revealCredential = (privCredentialName: string) => {
-    tryUnlockWithPassword(password, privCredentialName);
-    setIsUserUnlocked(true);
+  const revealCredential = useCallback(() => {
+    const credential = credentialName || route?.params.credentialName;
+    tryUnlockWithPassword(password, credential);
     setIsModalVisible(false);
-  };
+  }, [
+    credentialName,
+    password,
+    route?.params.credentialName,
+    tryUnlockWithPassword,
+  ]);
 
   const renderTabBar = () => (
     <DefaultTabBar
@@ -283,22 +341,30 @@ const RevealPrivateCredential = ({
   const onTabBarChange = (event: { i: number }) => {
     if (event.i === 0) {
       trackEvent(
-        isPrivateKey
-          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
-          : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
-        { action: 'viewed SRP' },
+        createEventBuilder(
+          isPrivateKey
+            ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+            : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
+        )
+          .addProperties({ action: 'viewed SRP' })
+          .build(),
       );
 
-      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP);
+      if (!isPrivateKey)
+        trackEvent(createEventBuilder(MetaMetricsEvents.VIEW_SRP).build());
     } else if (event.i === 1) {
       trackEvent(
-        isPrivateKey
-          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
-          : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
-        { action: 'viewed QR code' },
+        createEventBuilder(
+          isPrivateKey
+            ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_COMPLETED
+            : MetaMetricsEvents.REVEAL_SRP_COMPLETED,
+        )
+          .addProperties({ action: 'viewed QR code' })
+          .build(),
       );
 
-      if (!isPrivateKey) trackEvent(MetaMetricsEvents.VIEW_SRP_QR);
+      if (!isPrivateKey)
+        trackEvent(createEventBuilder(MetaMetricsEvents.VIEW_SRP_QR).build());
     }
   };
 
@@ -317,6 +383,8 @@ const RevealPrivateCredential = ({
   const renderTabView = (privCredentialName: string) => (
     <ScrollableTabView
       renderTabBar={() => renderTabBar()}
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChangeTab={(event: any) => onTabBarChange(event)}
     >
       <CustomTabView
@@ -334,7 +402,7 @@ const RevealPrivateCredential = ({
             selectTextOnFocus
             style={styles.seedPhrase}
             editable={false}
-            testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_TEXT}
+            testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT}
             placeholderTextColor={colors.text.muted}
             keyboardAppearance={themeAppearance}
           />
@@ -347,7 +415,7 @@ const RevealPrivateCredential = ({
                 copyPrivateCredentialToClipboard(privCredentialName)
               }
               testID={
-                RevealSeedViewSelectorsIDs.REVEAL_SECRET_RECOVERY_PHRASE_TOUCHABLE_BOX_ID
+                RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
               }
               style={styles.clipboardButton}
             />
@@ -358,7 +426,10 @@ const RevealPrivateCredential = ({
         tabLabel={strings(`reveal_credential.qr_code`)}
         style={styles.tabContent}
       >
-        <View style={styles.qrCodeWrapper}>
+        <View
+          style={styles.qrCodeWrapper}
+          testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_QR_CODE_IMAGE_ID}
+        >
           <QRCode
             value={clipboardPrivateCredential}
             size={Dimensions.get('window').width - 176}
@@ -394,24 +465,29 @@ const RevealPrivateCredential = ({
 
   const closeModal = () => {
     trackEvent(
-      isPrivateKey
-        ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
-        : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
-      { view: 'Hold to reveal' },
+      createEventBuilder(
+        isPrivateKey
+          ? MetaMetricsEvents.REVEAL_PRIVATE_KEY_CANCELLED
+          : MetaMetricsEvents.REVEAL_SRP_CANCELLED,
+      )
+        .addProperties({ view: 'Hold to reveal' })
+        .build(),
     );
 
-    trackEvent(MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_DISMISS_HOLD_TO_REVEAL_DIALOG,
+      ).build(),
+    );
 
     setIsModalVisible(false);
   };
 
-  const renderModal = (
-    isPrivateKeyReveal: boolean,
-    privCredentialName: string,
-  ) => (
+  const renderModal = (isPrivateKeyReveal: boolean) => (
     <InfoModal
       isVisible={isModalVisible}
       toggleModal={closeModal}
+      testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_MODAL_ID}
       title={strings('reveal_credential.keep_credential_safe', {
         credentialName: isPrivateKeyReveal
           ? strings('reveal_credential.private_key_text')
@@ -441,19 +517,29 @@ const RevealPrivateCredential = ({
               </Text>
             </TouchableOpacity>
           </Text>
-
-          <ButtonReveal
-            label={strings('reveal_credential.hold_to_reveal_credential', {
-              credentialName: isPrivateKeyReveal
-                ? strings('reveal_credential.private_key_text')
-                : strings('reveal_credential.srp_abbreviation_text'),
-            })}
-            onLongPress={() => revealCredential(privCredentialName)}
-            {...generateTestId(
-              Platform,
-              RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_LONG_PRESS_BUTTON_ID,
-            )}
-          />
+          {isTest ? (
+            <Button
+              label={strings('reveal_credential.reveal_credential', {
+                credentialName: isPrivateKeyReveal
+                  ? strings('reveal_credential.private_key_text')
+                  : strings('reveal_credential.srp_abbreviation_text'),
+              })}
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={revealCredential}
+              style={styles.revealButton}
+              testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
+            />
+          ) : (
+            <ButtonReveal
+              label={strings('reveal_credential.hold_to_reveal_credential', {
+                credentialName: isPrivateKeyReveal
+                  ? strings('reveal_credential.private_key_text')
+                  : strings('reveal_credential.srp_abbreviation_text'),
+              })}
+              onLongPress={revealCredential}
+            />
+          )}
         </>
       }
     />
@@ -489,7 +575,7 @@ const RevealPrivateCredential = ({
   const renderWarning = (privCredentialName: string) => (
     <View style={styles.warningWrapper}>
       <View style={[styles.rowWrapper, styles.warningRowWrapper]}>
-        <Icon style={styles.icon} name="eye-slash" size={20} solid />
+        <Icon style={styles.icon} name={IconName.EyeSlash} size={IconSize.Lg} />
         {privCredentialName === PRIVATE_KEY ? (
           <Text style={styles.warningMessageText}>
             {strings(
@@ -511,7 +597,7 @@ const RevealPrivateCredential = ({
   return (
     <View
       style={[styles.wrapper]}
-      testID={RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_CONTAINER_ID}
+      testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
       <ActionView
         cancelText={
@@ -529,6 +615,9 @@ const RevealPrivateCredential = ({
         }
         confirmTestID={
           RevealSeedViewSelectorsIDs.SECRET_RECOVERY_PHRASE_NEXT_BUTTON_ID
+        }
+        scrollViewTestID={
+          RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
       >
         <>
@@ -548,7 +637,7 @@ const RevealPrivateCredential = ({
           </View>
         </>
       </ActionView>
-      {renderModal(isPrivateKey, credentialSlug)}
+      {renderModal(isPrivateKey)}
 
       <ScreenshotDeterrent
         enabled={unlocked}

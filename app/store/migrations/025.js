@@ -1,4 +1,4 @@
-import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller/dist/constants';
+import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller';
 
 export default function migrate(state) {
   try {

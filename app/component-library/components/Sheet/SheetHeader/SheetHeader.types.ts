@@ -1,3 +1,5 @@
+import { ViewProps } from 'react-native';
+
 /**
  * Options for displaying the action button on the right of the title.
  */
@@ -9,7 +11,7 @@ export interface SheetHeaderActionButtonOptions {
 /**
  * SheetHeader component props.
  */
-export interface SheetHeaderProps {
+export interface SheetHeaderProps extends ViewProps {
   /**
    * Sheet title.
    */

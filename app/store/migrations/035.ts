@@ -38,6 +38,13 @@ export default async function migrate(stateAsync: unknown) {
     return state;
   }
 
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
+  if (!isObject(keyringControllerState)) {
+    captureException(
+      `Migration 35: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
+    );
+  }
+
   const networkControllerState = state.engine.backgroundState.NetworkController;
   const newNetworkControllerState = state.engine.backgroundState
     .NetworkController as NetworkState;

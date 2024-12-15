@@ -1,8 +1,8 @@
 'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
-import TabBarComponent from '../../../pages/TabBarComponent';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
-import SigningModal from '../../../pages/modals/SigningModal';
+import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
@@ -11,6 +11,7 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
   beforeAll(async () => {
@@ -36,14 +37,16 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapPersonalSignButton();
-        await SigningModal.isPersonalRequestVisible();
-        await SigningModal.tapCancelButton();
-        await SigningModal.isNotVisible();
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapCancelButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
 
         await TestDApp.tapPersonalSignButton();
-        await SigningModal.isPersonalRequestVisible();
-        await SigningModal.tapSignButton();
-        await SigningModal.isNotVisible();
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
       },
     );
   });

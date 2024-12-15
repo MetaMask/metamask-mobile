@@ -14,6 +14,8 @@ import { RampType } from '../../reducers/fiatOrders/types';
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
   public pendingDeeplink: string | null;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public dispatch: Dispatch<any>;
 
   constructor({
@@ -21,6 +23,8 @@ class DeeplinkManager {
     dispatch,
   }: {
     navigation: NavigationProp<ParamListBase>;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dispatch: Store<any, AnyAction>['dispatch'];
   }) {
     this.navigation = navigation;

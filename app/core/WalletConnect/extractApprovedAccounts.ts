@@ -1,10 +1,10 @@
 import { Caveat, ValidPermission } from '@metamask/permission-controller';
-import { Json } from 'json-rpc-engine';
+import { Json } from '@metamask/utils';
 
 export const extractApprovedAccounts = (
-  accountPermission:
-    | ValidPermission<any, Caveat<any, any> | Caveat<any, Json>>
-    | undefined,
+  accountPermission: // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ValidPermission<any, Caveat<any, any> | Caveat<any, Json>> | undefined,
 ) => {
   const approvedAccounts = accountPermission?.caveats
     ?.map((caveat) => {

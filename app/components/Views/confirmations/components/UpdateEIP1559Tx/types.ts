@@ -4,6 +4,8 @@ export interface UpdateEIP1559Props {
   /**
    * Map of accounts to information objects including balances
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   accounts: any;
   /**
    * Chain Id
@@ -16,6 +18,8 @@ export interface UpdateEIP1559Props {
   /**
    * Gas fee estimates returned by the gas fee controller
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   gasFeeEstimates: any;
   /**
    * Estimate type returned by the gas fee controller, can be market-fee, legacy or eth_gasPrice
@@ -36,10 +40,14 @@ export interface UpdateEIP1559Props {
   /**
    * The max fee and max priorty fee selected tx
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   existingGas: any;
   /**
    * Gas object used to get suggestedGasLimit
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   gas: any;
   /**
    * Function that cancels the tx update
@@ -48,6 +56,8 @@ export interface UpdateEIP1559Props {
   /**
    * Function that performs the rest of the tx update
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave: (tx: any) => void;
 }
 

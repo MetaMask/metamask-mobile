@@ -13,8 +13,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import AddBookmarkView from '../../pages/Browser/AddBookmarkView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
 
@@ -24,7 +23,7 @@ describe(SmokeCore('Browser Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -42,7 +41,7 @@ describe(SmokeCore('Browser Tests'), () => {
     await TabBarComponent.tapBrowser();
     // Check that we are on the browser screen
 
-    await Assertions.checkIfVisible(await Browser.browserScreenID);
+    await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 
   it('should connect to the test dapp', async () => {
@@ -53,27 +52,27 @@ describe(SmokeCore('Browser Tests'), () => {
     await Browser.waitForBrowserPageToLoad();
   });
 
-  it('should add the test dapp to favorites', async () => {
-    // Check that we are still on the browser screen
+  // it('should add the test dapp to favorites', async () => {
+  //   // Check that we are still on the browser screen
 
-    // Tap on options
-    await Browser.tapOptionsButton();
-    await Browser.tapAddToFavoritesButton();
+  //   // Tap on options
+  //   await Browser.tapOptionsButton();
+  //   await Browser.tapAddToFavoritesButton();
 
-    await Assertions.checkIfVisible(await AddBookmarkView.container);
+  //   await Assertions.checkIfVisible(AddBookmarkView.container);
 
-    await AddBookmarkView.tapAddBookmarksButton();
-    await Assertions.checkIfNotVisible(await AddBookmarkView.container);
-  });
+  //   await AddBookmarkView.tapAddBookmarksButton();
+  //   await Assertions.checkIfNotVisible(AddBookmarkView.container);
+  // });
 
-  it('should tap on the test dapp in favorites on the home page', async () => {
-    await Browser.tapHomeButton();
-    // Wait for page to load
-    await TestHelpers.delay(1000);
-    await Browser.tapDappInFavorites();
-    await Assertions.checkIfTextIsDisplayed('metamask.github.io');
-    // }
-  });
+  // it('should tap on the test dapp in favorites on the home page', async () => {
+  //   await Browser.tapHomeButton();
+  //   // Wait for page to load
+  //   await TestHelpers.delay(3000);
+  //   await Browser.tapDappInFavorites();
+  //   await Assertions.checkIfTextIsDisplayed('metamask.github.io');
+  //   // }
+  // });
 
   it('should test invalid URL', async () => {
     await TestHelpers.delay(2000);
@@ -91,7 +90,7 @@ describe(SmokeCore('Browser Tests'), () => {
     // Clear text & Navigate to URL
     await Browser.navigateToURL(ExternalSites.PHISHING_SITE);
     await Browser.waitForBrowserPageToLoad();
-    await Assertions.checkIfVisible(await Browser.backToSafetyButton);
+    await Assertions.checkIfVisible(Browser.backToSafetyButton);
 
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen

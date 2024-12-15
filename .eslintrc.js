@@ -1,17 +1,18 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
   root: true,
-  parser: 'babel-eslint',
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+  },
   extends: [
-    // @react-native-community
-    // - Depends on babel-eslint parser
-    // - Migrated to @react-native/eslint-config after v3.2.0
-    '@react-native-community',
+    '@react-native',
     'eslint:recommended',
+    // '@metamask/eslint-config', // TODO: Enable when ready
     'plugin:import/warnings',
     'plugin:react/recommended',
   ],
-
+  plugins: ['@typescript-eslint', '@metamask/design-tokens'],
   overrides: [
     {
       files: ['*.{ts,tsx}'],
@@ -19,6 +20,10 @@ module.exports = {
       rules: {
         // TODO: re-enable
         'jsdoc/no-types': 'off',
+        'react/display-name': 'off',
+        'react/no-unused-prop-types': 'off',
+        'react/prop-types': 'off',
+        'react/self-closing-comp': 'off',
         // This change is included in `@metamask/eslint-config-typescript@10.0.0
         '@typescript-eslint/no-unused-vars': [
           'error',
@@ -29,14 +34,70 @@ module.exports = {
             ignoreRestSiblings: true, // this line is what has changed
           },
         ],
+        '@typescript-eslint/no-explicit-any': 'error',
+        // Under discussion
+        '@typescript-eslint/no-duplicate-enum-values': 'off',
       },
     },
     {
-      files: ['scripts/**/*.js'],
+      files: ['*.js', '*.jsx'],
+      parser: '@babel/eslint-parser',
+      parserOptions: {
+        requireConfigFile: false,
+        babelOptions: {
+          presets: ['@babel/preset-env'],
+        },
+      },
+      rules: {
+        // under discussion
+        'no-unused-vars': 'off',
+        'react/no-unstable-nested-components': [
+          'warn',
+          {
+            allowAsProps: true,
+          },
+        ],
+      },
+    },
+    {
+      files: ['scripts/**/*.js', 'app.config.js'],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,
         'import/no-nodejs-modules': 0,
+      },
+    },
+    {
+      files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
+      rules: {
+        '@metamask/design-tokens/color-no-hex': 'off',
+      },
+    },
+    {
+      files: [
+        'app/components/UI/Name/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: `ImportSpecifier[imported.name=/${[
+              'selectChainId',
+              'selectNetworkClientId',
+              'selectNetworkStatus',
+              'selectNickname',
+              'selectProviderConfig',
+              'selectProviderType',
+              'selectRpcUrl',
+              'selectSelectedNetworkClientId',
+              'selectTicker'
+            ]
+              .map((method) => `(${method})`)
+              .join('|')}/]`,
+            message: 'Avoid using global network selectors in confirmations',
+          },
+        ],
       },
     },
   ],
@@ -102,7 +163,7 @@ module.exports = {
     'import/no-mutable-exports': 2,
     'import/no-namespace': 2,
     'import/no-nodejs-modules': 2,
-    'import/prefer-default-export': 2,
+    'import/prefer-default-export': 0,
     'no-alert': 2,
     'no-constant-condition': [
       2,
@@ -175,8 +236,9 @@ module.exports = {
     'react/no-string-refs': 2,
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
+    '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 0,
   },
 
-  ignorePatterns: ['wdio.conf.js'],
+  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
 };

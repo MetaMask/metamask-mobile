@@ -30,6 +30,8 @@ export const setupBridge = ({
     url:
       PROTOCOLS.METAMASK + '://' + originatorInfo.url || originatorInfo.title,
     isRemoteConn: true,
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sendMessage: (msg: any) => {
       DevLogger.log(`setupBride::sendMessage`, msg);
       handleSendMessage({
@@ -75,7 +77,7 @@ export const setupBridge = ({
         title: {
           current: originatorInfo?.title,
         },
-        icon: { current: undefined },
+        icon: { current: originatorInfo.icon },
         // Bookmarks
         isHomepage: () => false,
         // Show autocomplete

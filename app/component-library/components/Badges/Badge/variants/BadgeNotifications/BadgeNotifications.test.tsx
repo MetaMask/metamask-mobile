@@ -4,34 +4,20 @@ import { render } from '@testing-library/react-native';
 
 import {
   TEST_NOTIFICATIONS_ACTION,
-  TEST_RNOTIFICATIONS_ICON_NAME,
-  BADGE_NOTIFICATIONS_TEST_ID,
+  TEST_NOTIFICATIONS_ICON_NAME,
 } from './BadgeNotifications.constants';
 
 // Internal dependencies.
 import BadgeNotifications from './BadgeNotifications';
 
-describe('BadgeNotifications - snapshots', () => {
+describe('BadgeNotifications', () => {
   it('should render badge notifications correctly', () => {
     const { toJSON } = render(
       <BadgeNotifications
-        name={TEST_NOTIFICATIONS_ACTION}
-        iconName={TEST_RNOTIFICATIONS_ICON_NAME}
+        testID={TEST_NOTIFICATIONS_ACTION}
+        iconName={TEST_NOTIFICATIONS_ICON_NAME}
       />,
     );
     expect(toJSON()).toMatchSnapshot();
-  });
-});
-
-describe('BadgeNotifications', () => {
-  it('should render badge notifications with the given content', () => {
-    const { findByTestId } = render(
-      <BadgeNotifications
-        name={TEST_NOTIFICATIONS_ACTION}
-        iconName={TEST_RNOTIFICATIONS_ICON_NAME}
-      />,
-    );
-
-    expect(findByTestId(BADGE_NOTIFICATIONS_TEST_ID)).toBeTruthy();
   });
 });

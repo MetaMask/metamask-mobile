@@ -23,6 +23,8 @@ describe('bindAndroidSDK', () => {
   });
 
   it('should return early if the platform is not android', async () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Platform as any).OS = 'ios';
 
     await bindAndroidSDK(mockInstance);

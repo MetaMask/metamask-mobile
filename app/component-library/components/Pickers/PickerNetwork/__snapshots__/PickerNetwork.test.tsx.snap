@@ -2,12 +2,13 @@
 
 exports[`PickerNetwork renders correctly 1`] = `
 <TouchableOpacity
+  disabled={false}
   onPress={[Function]}
   style={
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#F2F4F6",
+      "backgroundColor": "#f2f4f6",
       "borderRadius": 16,
       "flexDirection": "row",
       "height": 32,
@@ -16,43 +17,49 @@ exports[`PickerNetwork renders correctly 1`] = `
   }
 >
   <View
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#FFFFFF",
-        "borderRadius": 8,
-        "height": 16,
-        "justifyContent": "center",
-        "overflow": "hidden",
-        "width": 16,
-      }
-    }
+    style={null}
   >
-    <Image
-      onError={[Function]}
-      resizeMode="contain"
-      source={
-        {
-          "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
-        }
-      }
+    <View
+      accessibilityLabel="Ethereum Mainnet"
       style={
         {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
           "height": 16,
+          "justifyContent": "center",
+          "overflow": "hidden",
           "width": 16,
         }
       }
-      testID="network-avatar-image"
-    />
+      testID="network-avatar-picker"
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        testID="network-avatar-image"
+      />
+    </View>
   </View>
   <Text
     accessibilityRole="text"
     numberOfLines={1}
     style={
       {
-        "color": "#24272A",
+        "color": "#141618",
         "flexShrink": 1,
-        "fontFamily": "Euclid Circular B",
+        "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -65,7 +72,7 @@ exports[`PickerNetwork renders correctly 1`] = `
     Ethereum Mainnet
   </Text>
   <SvgMock
-    color="#24272A"
+    color="#141618"
     height={12}
     name="ArrowDown"
     style={

@@ -7,7 +7,10 @@ import {
 import { useMetrics } from '../../../../hooks/useMetrics';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
-import { CONSENSYS_PRIVACY_POLICY } from '../../../../../constants/urls';
+import {
+  CONSENSYS_PRIVACY_POLICY,
+  HOWTO_MANAGE_METAMETRICS,
+} from '../../../../../constants/urls';
 import Logger from '../../../../../util/Logger';
 import { getBrand, getDeviceId } from 'react-native-device-info';
 import Text, {
@@ -70,8 +73,12 @@ interface DeleteMetaMetricsDataProps {
  * ```
  */
 const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
-  const { checkDataDeleteStatus, trackEvent, createDataDeletionTask } =
-    useMetrics();
+  const {
+    checkDataDeleteStatus,
+    trackEvent,
+    createDataDeletionTask,
+    createEventBuilder,
+  } = useMetrics();
 
   /** metricsOptin prop is used to update the component when the user toggles the opt-in switch
    * We don't need the value to determine if the deletion button should be enabled or not
@@ -120,13 +127,13 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
 
   const trackDataDeletionRequest = () => {
     trackEvent(
-      MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION,
-      {
-        os: Platform.OS,
-        os_version: Platform.Version,
-        device_model: `${getBrand()} ${getDeviceId()}`,
-      },
-      false,
+      createEventBuilder(MetaMetricsEvents.ANALYTICS_REQUEST_DATA_DELETION)
+        .addProperties({
+          os: Platform.OS,
+          os_version: Platform.Version,
+          device_model: `${getBrand()} ${getDeviceId()}`,
+        })
+        .build(),
     );
   };
 
@@ -140,6 +147,8 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
       } else {
         showDeleteTaskError();
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       showDeleteTaskError();
       Logger.log('Error deleteMetaMetrics -', error);
@@ -161,6 +170,7 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
   }, [metricsOptin, checkInitialStatus, setDataTrackedSinceLastDeletion]);
 
   const openPrivacyPolicy = () => Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+  const openMetametricsHowto = () => Linking.openURL(HOWTO_MANAGE_METAMETRICS);
 
   return (
     <SettingsButtonSection
@@ -174,38 +184,51 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('app_settings.delete_metrics_description_part_one')}
             </Text>{' '}
-            <Text
-              variant={TextVariant.BodyMDBold}
-              color={TextColor.Alternative}
-            >
-              {strings('app_settings.delete_metrics_description_part_two')}
-            </Text>{' '}
+            <Button
+              variant={ButtonVariants.Link}
+              size={ButtonSize.Auto}
+              onPress={openMetametricsHowto}
+              label={strings(
+                'app_settings.delete_metrics_description_part_two',
+              )}
+            />{' '}
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('app_settings.delete_metrics_description_part_three')}
+            </Text>{' '}
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('app_settings.delete_metrics_description_before_delete')}
             </Text>{' '}
             <Button
               variant={ButtonVariants.Link}
               size={ButtonSize.Auto}
               onPress={openPrivacyPolicy}
-              label={strings('app_settings.consensys_privacy_policy')}
+              label={strings(
+                'app_settings.delete_metrics_description_privacy_policy',
+              )}
             />
           </>
         ) : (
           <>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('app_settings.delete_metrics_description_part_four')}
+              {strings(
+                'app_settings.delete_metrics_description_after_delete_part_one',
+              )}
             </Text>{' '}
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {deletionTaskDate}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('app_settings.delete_metrics_description_part_five')}
+              {strings(
+                'app_settings.delete_metrics_description_after_delete_part_two',
+              )}
             </Text>{' '}
             <Button
               variant={ButtonVariants.Link}
               size={ButtonSize.Auto}
               onPress={openPrivacyPolicy}
-              label={strings('app_settings.consensys_privacy_policy')}
+              label={strings(
+                'app_settings.delete_metrics_description_privacy_policy',
+              )}
             />
           </>
         )

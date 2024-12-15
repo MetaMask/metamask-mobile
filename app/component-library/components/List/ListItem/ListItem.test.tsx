@@ -23,6 +23,51 @@ describe('ListItem', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
+  it('should render the top accessory', () => {
+    const wrapper = render(
+      <ListItem topAccessory={<View />}>
+        <View />
+      </ListItem>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render the bottom accessory', () => {
+    const wrapper = render(
+      <ListItem bottomAccessory={<View />}>
+        <View />
+      </ListItem>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('should render the correct topAccessoryGap', () => {
+    const givenTopAccessoryGap = 20;
+    const { getByRole } = render(
+      <ListItem topAccessory={<View />} topAccessoryGap={givenTopAccessoryGap}>
+        <View />
+      </ListItem>,
+    );
+    expect(getByRole('none').props.children[0].props.style.marginBottom).toBe(
+      givenTopAccessoryGap,
+    );
+  });
+
+  it('should render the correct bottomAccessoryGap', () => {
+    const givenBottomAccessoryGap = 20;
+    const { getByRole } = render(
+      <ListItem
+        bottomAccessory={<View />}
+        bottomAccessoryGap={givenBottomAccessoryGap}
+      >
+        <View />
+      </ListItem>,
+    );
+    expect(getByRole('none').props.children[2].props.style.marginTop).toBe(
+      givenBottomAccessoryGap,
+    );
+  });
+
   it('should render the correct default gap', () => {
     const { getByTestId } = render(
       <ListItem>
@@ -61,7 +106,9 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(getByRole('none').props.style.alignItems).toBe('center');
+    expect(getByRole('none').props.children[1].props.style.alignItems).toBe(
+      'center',
+    );
   });
 
   it('should render the given verticalAlignment', () => {
@@ -70,6 +117,9 @@ describe('ListItem', () => {
         <View />
       </ListItem>,
     );
-    expect(getByRole('none').props.style.alignItems).toBe('flex-start');
+
+    expect(getByRole('none').props.children[1].props.style.alignItems).toBe(
+      'flex-start',
+    );
   });
 });

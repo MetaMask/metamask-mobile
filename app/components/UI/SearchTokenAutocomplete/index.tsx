@@ -19,16 +19,12 @@ import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import {
   selectChainId,
-  selectProviderConfig,
   selectTicker,
 } from '../../../selectors/networkController';
+import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
-import {
-  getDecimalChainId,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { EngineState } from '../../../selectors/types';
 import Routes from '../../../constants/navigation/Routes';
 import MultiAssetListItems from '../MultiAssetListItems/MultiAssetListItems';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -37,7 +33,10 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -70,16 +69,21 @@ interface Props {
   /**
 	/* navigation object required to push new views
 	*/
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  tabLabel: string;
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -112,6 +116,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   }, [selectedAsset, chainId]);
 
   const handleSearch = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (opts: any) => {
       setSearchResults(opts.results);
       setSearchQuery(opts.searchQuery);
@@ -146,6 +152,8 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const addToken = useCallback(
     async ({ address, symbol, decimals, iconUrl, name }) => {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
       await TokensController.addToken({
         address,
@@ -155,9 +163,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         name,
       });
 
-      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
     },
-    [getAnalyticsParams, trackEvent],
+    [getAnalyticsParams, trackEvent, createEventBuilder],
   );
 
   /**
@@ -197,10 +209,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     });
   }, [addToken, selectedAsset, goToWalletPage]);
 
-  const networkName = useSelector((state: EngineState) => {
-    const providerConfig = selectProviderConfig(state);
-    return getNetworkNameFromProviderConfig(providerConfig);
-  });
+  const networkName = useSelector(selectNetworkName);
 
   const goToConfirmAddToken = () => {
     navigation.push('ConfirmAddAsset', {
@@ -211,10 +220,14 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       addTokenList,
     });
 
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'manual',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const renderTokenDetectionBanner = useCallback(() => {
@@ -299,7 +312,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           label={strings('transaction.next')}
           onPress={goToConfirmAddToken}
           isDisabled={selectedAsset.length < 1}
-          testID="token-import-next-button"
+          testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
       </View>
     </View>

@@ -9,20 +9,11 @@ exports[`SimpleWebview should render correctly 1`] = `
   }
 >
   <WebView
-    cacheEnabled={true}
-    javaScriptEnabled={true}
-    originWhitelist={
-      [
-        "http://*",
-        "https://*",
-      ]
-    }
     source={
       {
         "uri": "https://etherscan.io",
       }
     }
-    useSharedProcessPool={true}
   />
 </View>
 `;

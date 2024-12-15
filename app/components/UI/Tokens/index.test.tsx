@@ -5,38 +5,119 @@ import Tokens from './';
 import { BN } from 'ethereumjs-util';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import Engine from '../../../core/Engine';
-import {
-  getAssetTestId,
-  IMPORT_TOKEN_BUTTON_ID,
-  MAIN_WALLET_VIEW_VIA_TOKENS_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import {
-  PORTFOLIO_BUTTON,
-  STAKE_BUTTON,
-  TOTAL_BALANCE_TEXT,
-} from '../../../../wdio/screen-objects/testIDs/Components/Tokens.testIds';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../../app/core/AppConstants';
 import Routes from '../../../../app/constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import Engine from '../../../core/Engine';
+import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
+import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
-const mockEngine = Engine;
+jest.mock('../../../core/NotificationManager', () => ({
+  showSimpleNotification: jest.fn(() => Promise.resolve()),
+}));
+
+const selectedAddress = '0x123';
+
+jest.mock('./TokensBottomSheet', () => ({
+  createTokensBottomSheetNavDetails: jest.fn(() => ['BottomSheetScreen', {}]),
+}));
 
 jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn(() => Promise.resolve()),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn(() => Promise.resolve()),
+    },
+    TokenRatesController: {
+      updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
+    },
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          selectedAccount: '1',
+          accounts: {
+            '1': {
+              address: selectedAddress,
+            },
+          },
+        },
+      },
     },
   },
 }));
 
+const mockTokens = {
+  '0x1': {
+    [selectedAddress]: [
+      {
+        name: 'Ethereum',
+        symbol: 'ETH',
+        address: '0x0',
+        decimals: 18,
+        isETH: true,
+        isStaked: false,
+        balanceFiat: '< $0.01',
+        iconUrl: '',
+      },
+      {
+        name: 'Bat',
+        symbol: 'BAT',
+        address: '0x01',
+        decimals: 18,
+        balanceFiat: '$0',
+        iconUrl: '',
+      },
+      {
+        name: 'Link',
+        symbol: 'LINK',
+        address: '0x02',
+        decimals: 18,
+        balanceFiat: '$0',
+        iconUrl: '',
+      },
+    ],
+  },
+};
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: '1',
+          accounts: {
+            '1': {
+              address: selectedAddress,
+            },
+          },
+        },
+      },
       TokensController: {
         tokens: [
           {
@@ -45,7 +126,7 @@ const initialState = {
             address: '0x0',
             decimals: 18,
             isETH: true,
-
+            isStaked: false,
             balanceFiat: '< $0.01',
             iconUrl: '',
           },
@@ -66,12 +147,47 @@ const initialState = {
             iconUrl: '',
           },
         ],
+        allTokens: {
+          '0x1': {
+            [selectedAddress]: [
+              {
+                name: 'Ethereum',
+                symbol: 'ETH',
+                address: '0x0',
+                decimals: 18,
+                isETH: true,
+
+                balanceFiat: '< $0.01',
+                iconUrl: '',
+              },
+              {
+                name: 'Bat',
+                symbol: 'BAT',
+                address: '0x01',
+                decimals: 18,
+                balanceFiat: '$0',
+                iconUrl: '',
+              },
+              {
+                name: 'Link',
+                symbol: 'LINK',
+                address: '0x02',
+                decimals: 18,
+                balanceFiat: '$0',
+                iconUrl: '',
+              },
+            ],
+          },
+        },
+        detectedTokens: [],
       },
       TokenRatesController: {
-        contractExchangeRates: {
-          '0x0': 0.005,
-          '0x01': 0.005,
-          '0x02': 0.005,
+        marketData: {
+          '0x1': {
+            '0x0': { price: 0.005 },
+            '0x01': { price: 0.005 },
+            '0x02': { price: 0.005 },
+          },
         },
       },
       CurrencyRateController: {
@@ -83,10 +199,14 @@ const initialState = {
         },
       },
       TokenBalancesController: {
-        contractBalances: {
-          '0x00': new BN(2),
-          '0x01': new BN(2),
-          '0x02': new BN(0),
+        tokenBalances: {
+          [selectedAddress]: {
+            '0x1': {
+              '0x00': new BN(2),
+              '0x01': new BN(2),
+              '0x02': new BN(0),
+            },
+          },
         },
       },
     },
@@ -94,6 +214,9 @@ const initialState = {
   settings: {
     primaryCurrency: 'usd',
     hideZeroBalanceTokens: true,
+  },
+  security: {
+    dataCollectionForMarketing: true,
   },
 };
 
@@ -111,7 +234,31 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../UI/Stake/constants', () => ({
+  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isEligible: true,
+    isLoadingEligibility: false,
+    refreshPooledStakingEligibility: jest.fn().mockResolvedValue({
+      isEligible: true,
+    }),
+    error: false,
+  })),
+}));
+
+jest.mock('../Stake/hooks/useStakingChain', () => ({
+  useStakingChainByChainId: () => ({
+    isStakingSupportedChain: true,
+  }),
+}));
+
 const Stack = createStackNavigator();
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -128,18 +275,27 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Tokens', () => {
+  beforeEach(() => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+  });
+
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
   });
+
   it('should render correctly', () => {
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('render matches snapshot', () => {
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('should hide zero balance tokens when setting is on', async () => {
     const { toJSON, getByText, queryByText } = renderComponent(initialState);
-    // ETH and BAT should display
 
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
@@ -159,7 +315,6 @@ describe('Tokens', () => {
     expect(getByText('Ethereum')).toBeDefined();
     await waitFor(() => expect(getByText('Bat')).toBeDefined());
     expect(getByText('Link')).toBeDefined();
-    // All three should display
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -168,49 +323,30 @@ describe('Tokens', () => {
     fireEvent.press(getByText('Ethereum'));
     expect(mockNavigate).toHaveBeenCalledWith('Asset', {
       ...initialState.engine.backgroundState.TokensController.tokens[0],
+      tokenFiatAmount: NaN,
     });
   });
 
   it('navigates to AddAsset screen when Add Tokens button is pressed', () => {
     const { getByTestId } = renderComponent(initialState);
-    fireEvent.press(getByTestId(IMPORT_TOKEN_BUTTON_ID));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
     expect(mockPush).toHaveBeenCalledWith('AddAsset', { assetType: 'token' });
   });
 
   it('shows remove menu when remove button is pressed', () => {
     const { getByTestId, queryAllByTestId } = renderComponent(initialState);
     fireEvent.press(queryAllByTestId(getAssetTestId('BAT'))[0], 'longPress');
-    expect(getByTestId(MAIN_WALLET_VIEW_VIA_TOKENS_ID)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
-  it('fiat balance must be defined', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(TOTAL_BALANCE_TEXT)).toBeDefined();
-  });
-  it('portfolio button should render correctly', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    expect(getByTestId(PORTFOLIO_BUTTON)).toBeDefined();
-  });
-  it('navigates to Portfolio url when portfolio button is pressed', () => {
-    const { getByTestId } = renderComponent(initialState);
-
-    fireEvent.press(getByTestId(PORTFOLIO_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.PORTFOLIO.URL}/?metamaskEntry=mobile`,
-        timestamp: 123,
-      },
-      screen: Routes.BROWSER.VIEW,
-    });
-  });
   it('should display unable to find conversion rate', async () => {
     const state = {
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           TokensController: {
+            detectedTokens: [],
+            allTokens: mockTokens,
             tokens: [
               {
                 name: 'Link',
@@ -223,8 +359,10 @@ describe('Tokens', () => {
             ],
           },
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x02': undefined,
+            marketData: {
+              '0x1': {
+                '0x02': undefined,
+              },
             },
           },
           CurrencyRateController: {
@@ -235,9 +373,33 @@ describe('Tokens', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '1',
+              accounts: {
+                '1': {
+                  address: selectedAddress,
+                },
+              },
+            },
+            state: {
+              internalAccounts: {
+                selectedAccount: '1',
+                accounts: {
+                  '1': {
+                    address: selectedAddress,
+                  },
+                },
+              },
+            },
+          },
           TokenBalancesController: {
-            contractBalances: {
-              '0x02': new BN(1),
+            tokenBalances: {
+              [selectedAddress]: {
+                '0x1': {
+                  '0x02': new BN(1),
+                },
+              },
             },
           },
         },
@@ -249,21 +411,524 @@ describe('Tokens', () => {
       await findByText(strings('wallet.unable_to_find_conversion_rate')),
     ).toBeDefined();
   });
+
   it('renders stake button correctly', () => {
     const { getByTestId } = renderComponent(initialState);
 
-    expect(getByTestId(STAKE_BUTTON)).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeDefined();
   });
-  it('navigates to Portfolio Stake url when stake button is pressed', () => {
+
+  it('navigates to Web view when stake button is pressed and user is not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
     const { getByTestId } = renderComponent(initialState);
 
-    fireEvent.press(getByTestId(STAKE_BUTTON));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      params: {
-        newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
-        timestamp: 123,
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        params: {
+          newTabUrl: `${AppConstants.STAKE.URL}?metamaskEntry=mobile`,
+          timestamp: 123,
+        },
+        screen: Routes.BROWSER.VIEW,
+      });
+    });
+  });
+
+  it('navigates to Stake Input screen when stake button is pressed and user is eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+
+  it('should refresh tokens and call necessary controllers', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.scroll(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      {
+        nativeEvent: {
+          contentOffset: { y: 100 }, // Simulate scroll offset
+          contentSize: { height: 1000, width: 500 }, // Total size of scrollable content
+          layoutMeasurement: { height: 800, width: 500 }, // Size of the visible content area
+        },
       },
-      screen: Routes.BROWSER.VIEW,
+    );
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
+
+    await waitFor(
+      () => {
+        expect(
+          Engine.context.TokenDetectionController.detectTokens,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.AccountTrackerController.refresh,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.CurrencyRateController.updateExchangeRate,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        ).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
+    );
+  });
+
+  it('triggers bottom sheet when sort controls are pressed', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    await fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
+    });
+  });
+
+  it('navigates to Stake Input screen only when eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: true }),
+      error: false,
+    });
+
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+
+  it('does not navigate to Stake Input screen if not eligible', async () => {
+    (useStakingEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      refreshPooledStakingEligibility: jest
+        .fn()
+        .mockResolvedValue({ isEligible: false }),
+      error: false,
+    });
+
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.STAKE_BUTTON));
+
+    await waitFor(() => {
+      expect(mockNavigate).not.toHaveBeenCalledWith('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+      });
+    });
+  });
+
+  it('calls onRefresh and updates state', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent(
+      getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
+      'refresh',
+      {
+        refreshing: true,
+      },
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.TokenDetectionController.detectTokens,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.AccountTrackerController.refresh,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.CurrencyRateController.updateExchangeRate,
+      ).toHaveBeenCalled();
+      expect(
+        Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+      ).toHaveBeenCalled();
+    });
+  });
+
+  it('hides zero balance tokens when hideZeroBalanceTokens is enabled', () => {
+    const { queryByText } = renderComponent(initialState);
+
+    expect(queryByText('Link')).toBeNull(); // Zero balance token should not be visible
+  });
+
+  it('triggers sort controls when sort button is pressed', async () => {
+    const { getByTestId } = renderComponent(initialState);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_BY));
+
+    await waitFor(() => {
+      expect(createTokensBottomSheetNavDetails).toHaveBeenCalledWith({});
+    });
+  });
+
+  describe('Portfolio View', () => {
+    beforeEach(() => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+    });
+
+    it('should match the snapshot when portfolio view is enabled  ', () => {
+      const { toJSON } = renderComponent(initialState);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should handle network filtering correctly', () => {
+      const multiNetworkState = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            PreferencesController: {
+              selectedAddress,
+              tokenSortConfig: { key: 'symbol', order: 'asc' },
+              tokenNetworkFilter: {
+                '0x1': true,
+                '0x89': false,
+              },
+            },
+          },
+          selectedAccountTokensChains: {
+            '0x1': [
+              {
+                address: '0x123',
+                symbol: 'ETH',
+                decimals: 18,
+                balance: '1000000000000000000',
+                balanceFiat: '$100',
+                isNative: true,
+                chainId: '0x1',
+              },
+            ],
+            '0x89': [
+              {
+                address: '0x456',
+                symbol: 'MATIC',
+                decimals: 18,
+                balance: '2000000000000000000',
+                balanceFiat: '$200',
+                isNative: true,
+                chainId: '0x89',
+              },
+            ],
+          },
+        },
+      };
+
+      const { queryByText } = renderComponent(multiNetworkState);
+      expect(queryByText('ETH')).toBeDefined();
+      expect(queryByText('MATIC')).toBeNull();
+    });
+
+    describe('When hideZeroBalance is enabled', () => {
+      describe('When currentNetwork is selected', () => {
+        it('should show zero balance native token and hide zero balance ERC20 token', () => {
+          const stateWithZeroBalances = {
+            ...initialState,
+            settings: {
+              hideZeroBalanceTokens: true,
+            },
+            engine: {
+              backgroundState: {
+                ...initialState.engine.backgroundState,
+                PreferencesController: {
+                  selectedAddress,
+                  tokenSortConfig: { key: 'symbol', order: 'asc' },
+                  tokenNetworkFilter: {
+                    '0x1': true,
+                  },
+                },
+                TokenBalancesController: {
+                  tokenBalances: {
+                    [selectedAddress]: {
+                      '0x1': {
+                        '0x456': '1000000000000000000',
+                        '0x5555': '0x0',
+                      },
+                    },
+                  },
+                },
+                TokensController: {
+                  allTokens: {
+                    '0x1': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x123',
+                          symbol: 'ZERO',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '$0',
+                          isNative: true,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x456',
+                          symbol: 'NON_ZERO_ERC20',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x5555',
+                          symbol: 'ZERO_ERC20',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '0',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          };
+
+          const { queryByText } = renderComponent(stateWithZeroBalances);
+          expect(queryByText('ZERO')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20')).toBeDefined();
+          expect(queryByText('ZERO_ERC20')).toBeNull();
+        });
+      });
+
+      describe('When allNetworks is selected', () => {
+        it('should hide zero balance ERC20 tokens and native tokens', () => {
+          const stateWithZeroBalances = {
+            ...initialState,
+            settings: {
+              hideZeroBalanceTokens: true,
+            },
+            engine: {
+              backgroundState: {
+                ...initialState.engine.backgroundState,
+                PreferencesController: {
+                  selectedAddress,
+                  tokenSortConfig: { key: 'symbol', order: 'asc' },
+                  tokenNetworkFilter: {
+                    '0x1': true,
+                    '0xe705': true,
+                  },
+                },
+                TokenBalancesController: {
+                  tokenBalances: {
+                    [selectedAddress]: {
+                      '0x1': {
+                        NON_ZERO_ERC20_1: '1000000000000000000',
+                      },
+                      '0xe705': {
+                        '0x4565': '1000000000000000000',
+                        '0x45654444': '0x0',
+                      },
+                    },
+                  },
+                },
+                TokensController: {
+                  allTokens: {
+                    '0x1': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x123',
+                          symbol: 'ZERO_1',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '$0',
+                          isNative: true,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x456',
+                          symbol: 'NON_ZERO_ERC20_1',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                      ],
+                    },
+                    '0xe705': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x1233',
+                          symbol: 'ZERO_2',
+                          decimals: 18,
+                          balance: '2233333',
+                          balanceFiat: '$344',
+                          isNative: true,
+                          chainId: '0xe705',
+                        },
+                        {
+                          address: '0x4565',
+                          symbol: 'NON_ZERO_ERC20_2',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0xe705',
+                        },
+                        {
+                          address: '0x45654444',
+                          symbol: 'NON_ZERO_ERC20_3',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '0',
+                          isNative: false,
+                          chainId: '0xe705',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const { queryByText } = renderComponent(stateWithZeroBalances);
+          expect(queryByText('ZERO_1')).toBeNull();
+          expect(queryByText('ZERO_2')).toBeDefined();
+
+          expect(queryByText('NON_ZERO_ERC20_1')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20_3')).toBeNull();
+        });
+      });
+    });
+
+    describe('When hideZeroBalance is disabled', () => {
+      it('should show zero balance native and ERC20 tokens', () => {
+        const stateWithZeroBalances = {
+          ...initialState,
+          settings: {
+            hideZeroBalanceTokens: false,
+          },
+          engine: {
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                selectedAddress,
+                tokenSortConfig: { key: 'symbol', order: 'asc' },
+                tokenNetworkFilter: {
+                  '0x1': true,
+                  '0xe705': true,
+                },
+              },
+              TokenBalancesController: {
+                tokenBalances: {
+                  [selectedAddress]: {
+                    '0x1': {
+                      NON_ZERO_ERC20_1: '1000000000000000000',
+                    },
+                    '0xe705': {
+                      '0x4565': '1000000000000000000',
+                      '0x45654444': '0x0',
+                    },
+                  },
+                },
+              },
+              TokensController: {
+                allTokens: {
+                  '0x1': {
+                    [selectedAddress]: [
+                      {
+                        address: '0x123',
+                        symbol: 'ZERO_1',
+                        decimals: 18,
+                        balance: '0',
+                        balanceFiat: '$0',
+                        isNative: true,
+                        chainId: '0x1',
+                      },
+                      {
+                        address: '0x456',
+                        symbol: 'NON_ZERO_ERC20_1',
+                        decimals: 18,
+                        balance: '1000000000000000000',
+                        balanceFiat: '$100',
+                        isNative: false,
+                        chainId: '0x1',
+                      },
+                    ],
+                  },
+                  '0xe705': {
+                    [selectedAddress]: [
+                      {
+                        address: '0x1233',
+                        symbol: 'ZERO_2',
+                        decimals: 18,
+                        balance: '2233333',
+                        balanceFiat: '$344',
+                        isNative: true,
+                        chainId: '0xe705',
+                      },
+                      {
+                        address: '0x4565',
+                        symbol: 'NON_ZERO_ERC20_2',
+                        decimals: 18,
+                        balance: '1000000000000000000',
+                        balanceFiat: '$100',
+                        isNative: false,
+                        chainId: '0xe705',
+                      },
+                      {
+                        address: '0x45654444',
+                        symbol: 'NON_ZERO_ERC20_3',
+                        decimals: 18,
+                        balance: '0',
+                        balanceFiat: '0',
+                        isNative: false,
+                        chainId: '0xe705',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        };
+
+        const { queryByText } = renderComponent(stateWithZeroBalances);
+        expect(queryByText('ZERO_1')).toBeDefined();
+        expect(queryByText('ZERO_2')).toBeDefined();
+
+        expect(queryByText('NON_ZERO_ERC20_1')).toBeDefined();
+        expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
+        expect(queryByText('NON_ZERO_ERC20_3')).toBeDefined();
+      });
     });
   });
 });

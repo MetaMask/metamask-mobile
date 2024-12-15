@@ -1,15 +1,10 @@
 import { ETH, GWEI, WEI } from './custom-gas';
-import { addHexPrefix } from './number';
 import {
   conversionUtil,
   addCurrencies,
   subtractCurrencies,
 } from './conversion';
 import { formatCurrency } from './confirm-tx.js';
-
-export function bnToHex(inputBn) {
-  return addHexPrefix(inputBn.toString(16));
-}
 
 export function hexToDecimal(hexValue) {
   return conversionUtil(hexValue, {

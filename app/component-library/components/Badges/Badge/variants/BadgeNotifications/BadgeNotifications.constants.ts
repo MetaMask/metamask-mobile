@@ -7,11 +7,11 @@ import { BadgeNotificationsProps } from './BadgeNotifications.types';
 // Test IDs
 export const BADGE_NOTIFICATIONS_TEST_ID = 'badge-notifications';
 export const TEST_NOTIFICATIONS_ACTION = NotificationTypes.TRANSACTION;
-export const TEST_RNOTIFICATIONS_ICON_NAME = IconName.Send2;
+export const TEST_NOTIFICATIONS_ICON_NAME = IconName.Send2;
 
 // Defaults
 export const DEFAULT_BADGENOTIFICATIONS_NOTIFICATIONSICON_SIZE = IconSize.Md;
 
 export const SAMPLE_BADGENOTIFICATIONS_PROPS: BadgeNotificationsProps = {
-  iconName: TEST_RNOTIFICATIONS_ICON_NAME,
+  iconName: TEST_NOTIFICATIONS_ICON_NAME,
 };

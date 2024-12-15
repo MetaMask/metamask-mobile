@@ -4,6 +4,8 @@ import Device from '../../../util/device';
 
 const SMALL_DEVICE = Device.isSmallDevice();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default (colors: any) =>
   StyleSheet.create({
     container: {

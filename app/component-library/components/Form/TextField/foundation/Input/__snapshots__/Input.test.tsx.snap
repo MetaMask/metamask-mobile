@@ -8,10 +8,10 @@ exports[`Input should render correctly 1`] = `
   onFocus={[Function]}
   style={
     {
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "transparent",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#0376c9",
       "borderWidth": 1,
-      "color": "#24272A",
+      "color": "#141618",
       "fontFamily": "Euclid Circular B",
       "fontSize": 14,
       "fontWeight": "400",

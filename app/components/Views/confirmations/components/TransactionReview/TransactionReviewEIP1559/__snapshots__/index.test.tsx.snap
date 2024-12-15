@@ -5,7 +5,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
   style={
     [
       {
-        "borderColor": "#D6D9DC",
+        "borderColor": "#bbc0c566",
         "borderRadius": 8,
         "borderWidth": 1,
         "padding": 16,
@@ -56,7 +56,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
           style={
             [
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -76,7 +76,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
               false,
               undefined,
               {
-                "color": "#24272A",
+                "color": "#141618",
               },
               undefined,
               undefined,
@@ -122,7 +122,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
                     "fontSize": 13,
                   },
                   {
-                    "color": "#BBC0C5",
+                    "color": "#9fa6ae",
                   },
                   {
                     "fontFamily": "Material Design Icons",
@@ -238,182 +238,6 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
           </View>
         </View>
       </View>
-      <View
-        style={
-          [
-            {
-              "flex": 1,
-              "flexDirection": "row",
-              "justifyContent": "flex-end",
-            },
-          ]
-        }
-      >
-        <View
-          onLayout={[Function]}
-        >
-          <View
-            style={
-              {
-                "position": "relative",
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "borderRadius": 4,
-                    "height": 10,
-                    "width": 120,
-                  },
-                  {
-                    "backgroundColor": "#E1E9EE",
-                    "overflow": "hidden",
-                  },
-                ]
-              }
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-  </View>
-  <View>
-    <View
-      style={
-        [
-          {
-            "borderBottomColor": "#D6D9DC",
-            "borderBottomWidth": 1,
-            "marginVertical": 6,
-          },
-          undefined,
-        ]
-      }
-    />
-    <View
-      style={
-        {
-          "marginTop": 4,
-        }
-      }
-    >
-      <View
-        style={
-          [
-            {
-              "flexDirection": "row",
-              "justifyContent": "space-between",
-              "marginVertical": 3,
-            },
-            undefined,
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <Text
-          style={
-            [
-              {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "color": "#24272A",
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              {
-                "marginVertical": 0,
-              },
-              undefined,
-            ]
-          }
-        >
-          Total
-        </Text>
-        <View
-          style={
-            [
-              {
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "flex-end",
-              },
-            ]
-          }
-        >
-          <View
-            onLayout={[Function]}
-          >
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 4,
-                      "height": 10,
-                      "width": 80,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
-        </View>
-      </View>
-    </View>
-    <View
-      style={
-        [
-          {
-            "flexDirection": "row",
-            "justifyContent": "space-between",
-            "marginVertical": 3,
-          },
-          undefined,
-          undefined,
-          undefined,
-        ]
-      }
-    >
       <View
         style={
           [

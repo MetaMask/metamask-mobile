@@ -2,7 +2,7 @@ import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import {
   CommonSelectorsIDs,
-  CommonSelectorsText,
+  CommonSelectorsText
 } from '../selectors/Common.selectors';
 
 class CommonView {
@@ -14,16 +14,12 @@ class CommonView {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get toast() {
-    return Matchers.getElementByID(CommonSelectorsIDs.TOAST_NOTIFICATION_TITLE);
-  }
-
   get errorMessage() {
     return Matchers.getElementByID(CommonSelectorsIDs.ERROR_MESSAGE);
   }
 
-  get disconnectedAccountsText() {
-    return Matchers.getElementByText(CommonSelectorsText.TOAST_REVOKE_ACCOUNTS);
+  get okAlertButton() {
+    return Matchers.getElementByText(CommonSelectorsText.OK_ALERT_BUTTON);
   }
 
   async tapBackButton() {
@@ -32,6 +28,10 @@ class CommonView {
 
   async tapOkAlert() {
     await Gestures.waitAndTap(this.okAlertByText);
+  }
+
+  async tapOKAlertButton() {
+    await Gestures.waitAndTap(this.okAlertButton);
   }
 }
 

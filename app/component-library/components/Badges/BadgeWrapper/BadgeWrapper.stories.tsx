@@ -53,6 +53,8 @@ export default BadgeWrapperMeta;
 
 export const BadgeWrapper = {
   // eslint-disable-next-line react/prop-types
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: { [x: string]: any; badge: any; anchorElementShape: any }) => {
     const { badge, anchorElementShape, ...props } = args;
     let badgeProps: BadgeProps;

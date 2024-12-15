@@ -8,10 +8,8 @@ const navigationMock = {
 };
 
 const coachmarkRef = {
-  yourAccountRef: {
-    current: {
-      measure: jest.fn(),
-    },
+  current: {
+    measure: jest.fn(),
   },
 };
 

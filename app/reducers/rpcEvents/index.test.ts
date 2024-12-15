@@ -16,7 +16,6 @@ const intialState: Readonly<iEventGroup> = {
 describe('rpcEvents reducer', () => {
   describe('isWhiteListedRPC', () => {
     it('isWhitelistedRPC should return true for whitelisted origin', () => {
-      expect(isWhitelistedRPC('eth_sign')).toEqual(true);
       expect(isWhitelistedRPC('personal_sign')).toEqual(true);
       expect(isWhitelistedRPC('eth_signTypedData')).toEqual(true);
       expect(isWhitelistedRPC('eth_signTypedData_v3')).toEqual(true);
@@ -49,13 +48,13 @@ describe('rpcEvents reducer', () => {
       const state = reducer(undefined, emptyAction);
       const action = {
         type: ActionType.SET_EVENT_STAGE,
-        rpcName: 'eth_sign',
+        rpcName: 'eth_signTypedData',
         eventStage: RPCStageTypes.REQUEST_SEND,
       };
       expect(reducer(state, action)).toEqual({
         signingEvent: {
           eventStage: RPCStageTypes.REQUEST_SEND,
-          rpcName: 'eth_sign',
+          rpcName: 'eth_signTypedData',
         },
       });
     });
@@ -64,7 +63,7 @@ describe('rpcEvents reducer', () => {
       const state = reducer(undefined, emptyAction);
       const action = {
         type: ActionType.RESET_EVENT_STATE,
-        rpcName: 'eth_sign',
+        rpcName: 'eth_signTypedData',
       };
       expect(reducer(state, action)).toEqual({
         signingEvent: {
@@ -78,13 +77,13 @@ describe('rpcEvents reducer', () => {
       const state = reducer(undefined, emptyAction);
       const action = {
         type: ActionType.SET_EVENT_ERROR,
-        rpcName: 'eth_sign',
+        rpcName: 'eth_signTypedData',
         error: new Error('Error'),
       };
       expect(reducer(state, action)).toEqual({
         signingEvent: {
           eventStage: RPCStageTypes.ERROR,
-          rpcName: 'eth_sign',
+          rpcName: 'eth_signTypedData',
           error: new Error('Error'),
         },
       });
@@ -94,7 +93,7 @@ describe('rpcEvents reducer', () => {
       const state = reducer(undefined, emptyAction);
       const action = {
         type: 'UNKNOWN',
-        rpcName: 'eth_sign',
+        rpcName: 'eth_signTypedData',
       };
       expect(reducer(state, action)).toEqual(state);
     });

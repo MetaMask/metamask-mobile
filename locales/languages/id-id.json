@@ -896,8 +896,7 @@
     "message": "Pesan",
     "message_from": "Pesan dari",
     "learn_more": "Pelajari Selengkapnya",
-    "read_more": "Baca selengkapnya",
-    "eth_sign_warning": "Lanjutkan dengan hati-hati. Tindakan ini dapat berpotensi digunakan untuk menarik aset dari akun Anda. Pastikan Anda memercayai situs ini."
+    "read_more": "Baca selengkapnya"
   },
   "watch_asset_request": {
     "title": "Tambahkan Token yang Disarankan",

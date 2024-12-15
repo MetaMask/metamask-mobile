@@ -22,7 +22,7 @@ const TEST_DAPP = 'https://metamask.github.io/test-dapp/';
 Given(/^I am on Home MetaMask website$/, async () => {
   await ExternalWebsitesScreen.isHomeFavoriteButtonDisplayed();
   await BrowserScreen.tapUrlBar();
-  await AddressBarScreen.isUrlValueContains('https://home.metamask.io/');
+  await AddressBarScreen.isUrlValueContains('https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/');
   await AddressBarScreen.tapUrlCancelButton();
 });
 
@@ -401,6 +401,7 @@ When(/^I connect my active wallet to the Uniswap exchange page$/, async () => {
   await ExternalWebsitesScreen.tapUniswapMetaMaskWalletButton();
 });
 When(/^I connect my active wallet to the test dapp$/, async () => {
+  await ExternalWebsitesScreen.isTestDappDisplayed();
   await ExternalWebsitesScreen.tapDappConnectButton();
   await AccountApprovalModal.tapConnectButtonByText();
   await AccountApprovalModal.waitForDisappear();

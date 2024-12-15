@@ -1,45 +1,38 @@
 import Engine from './Engine';
 import Logger from '../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { getLedgerKeyring } from './Ledger/Ledger';
+import { withLedgerKeyring } from './Ledger/Ledger';
 
 /**
- * Restores the QR keyring if it exists.
+ * Restore the given serialized QR keyring.
+ *
+ * @param {unknown} serializedQrKeyring - A serialized QR keyring.
  */
-export const restoreQRKeyring = async (qrKeyring) => {
+export const restoreQRKeyring = async (serializedQrKeyring) => {
   const { KeyringController } = Engine.context;
 
-  if (qrKeyring) {
-    try {
-      const serializedQRKeyring = await qrKeyring.serialize();
-      await KeyringController.restoreQRKeyring(serializedQRKeyring);
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to get qr accounts on recreate vault',
-      );
-    }
+  try {
+    await KeyringController.restoreQRKeyring(serializedQrKeyring);
+  } catch (e) {
+    Logger.error(e, 'error while trying to get qr accounts on recreate vault');
   }
 };
 
 /**
- * Restores the Ledger keyring if it exists.
+ * Restore the given serialized Ledger keyring.
+ *
+ * @param {unknown} serializedLedgerKeyring - A serialized Ledger keyring.
  */
-export const restoreLedgerKeyring = async (keyring) => {
-  const { KeyringController } = Engine.context;
-
-  if (keyring) {
-    try {
-      const serializedLedgerKeyring = await keyring.serialize();
-      (await getLedgerKeyring()).deserialize(serializedLedgerKeyring);
-
-      await KeyringController.persistAllKeyrings();
-    } catch (e) {
-      Logger.error(
-        e,
-        'error while trying to restore Ledger accounts on recreate vault',
-      );
-    }
+export const restoreLedgerKeyring = async (serializedLedgerKeyring) => {
+  try {
+    await withLedgerKeyring(async (keyring) => {
+      await keyring.deserialize(serializedLedgerKeyring);
+    });
+  } catch (e) {
+    Logger.error(
+      e,
+      'error while trying to restore Ledger accounts on recreate vault',
+    );
   }
 };
 
@@ -94,16 +87,28 @@ export const recreateVaultWithNewPassword = async (
   const hdKeyring = KeyringController.state.keyrings[0];
   const existingAccountCount = hdKeyring.accounts.length;
 
-  const ledgerKeyring = await getLedgerKeyring();
-  const qrKeyring = (
-    await KeyringController.getKeyringsByType(KeyringTypes.qr)
-  )[0];
+  const serializedLedgerKeyring = hasKeyringType(
+    KeyringController.state,
+    KeyringTypes.ledger,
+  )
+    ? await getSerializedKeyring(KeyringTypes.ledger)
+    : undefined;
+  const serializedQrKeyring = hasKeyringType(
+    KeyringController.state,
+    KeyringTypes.qr,
+  )
+    ? await getSerializedKeyring(KeyringTypes.qr)
+    : undefined;
 
   // Recreate keyring with password given to this method
   await KeyringController.createNewVaultAndRestore(newPassword, seedPhrase);
 
-  await restoreQRKeyring(qrKeyring);
-  await restoreLedgerKeyring(ledgerKeyring);
+  if (serializedQrKeyring !== undefined) {
+    await restoreQRKeyring(serializedQrKeyring);
+  }
+  if (serializedLedgerKeyring !== undefined) {
+    await restoreLedgerKeyring(serializedLedgerKeyring);
+  }
 
   // Create previous accounts again
   for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -139,3 +144,27 @@ export const recreateVaultWithSamePassword = async (
   password = '',
   selectedAddress,
 ) => recreateVaultWithNewPassword(password, password, selectedAddress);
+
+/**
+ * Checks whether the given keyring type exists in the given state.
+ *
+ * @param {KeyringControllerState} state - The KeyringController state.
+ * @param {KeyringTypes} type - The keyring type to check for.
+ * @returns Whether the type was found in state.
+ */
+function hasKeyringType(state, type) {
+  return state?.keyrings?.some((keyring) => keyring.type === type);
+}
+
+/**
+ * Get the serialized state from the first keyring found of the given type.
+ *
+ * @param {KeyringTypes} type - The type of keyring to serialize.
+ * @returns The serialized state for the first keyring found of the given type.
+ */
+async function getSerializedKeyring(type) {
+  const { KeyringController } = Engine.context;
+  return await KeyringController.withKeyring({ type }, (keyring) =>
+    keyring.serialize(),
+  );
+}

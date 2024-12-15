@@ -3,7 +3,6 @@ import { StyleSheet, TextStyle, Dimensions } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 
 const screenHeight = Dimensions.get('window').height;
-
 /**
  * Style sheet function for ModalConfirmation component.
  *

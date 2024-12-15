@@ -46,10 +46,21 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         primaryCurrency: action.primaryCurrency,
       };
+    case 'SET_SHOW_FIAT_ON_TESTNETS':
+      return {
+        ...state,
+        showFiatOnTestnets: action.showFiatOnTestnets,
+      };
     case 'TOGGLE_BASIC_FUNCTIONALITY':
       return {
         ...state,
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
+      };
+
+    case 'TOGGLE_DEVICE_NOTIFICATIONS':
+      return {
+        ...state,
+        deviceNotificationEnabled: action.deviceNotificationEnabled,
       };
 
     default:
