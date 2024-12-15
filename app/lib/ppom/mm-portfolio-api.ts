@@ -4,8 +4,8 @@ export function isMMPortfolioAPIEnabled() {
   return process.env.MM_PORTFOLIO_API_ENABLED === 'true';
 }
 
-export async function getMMPortfolioHealthCheck(): Promise<any> {
-  return request("");
+export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
+  return request('');
 }
 
 async function request(endpoint: string, options?: RequestInit) {
