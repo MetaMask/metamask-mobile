@@ -77,7 +77,7 @@ index 0000000..5dc1859
 +import { MMKV } from 'react-native-mmkv';
 +
 +const storage = new MMKV(); // id: mmkv.default
-+var isSesEnabled = storage.getBoolean('is-ses-enabled');
++var isSesEnabled = false;
 +
 +// Enable SES by default
 +if (isSesEnabled === undefined) {
