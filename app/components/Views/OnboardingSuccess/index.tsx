@@ -35,8 +35,8 @@ import styles from './index.styles';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
-  backedUpSRP: boolean;
-  noSRP: boolean;
+  backedUpSRP?: boolean;
+  noSRP?: boolean;
 }
 
 const OnboardingSuccess = ({
