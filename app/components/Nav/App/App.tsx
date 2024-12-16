@@ -1,6 +1,6 @@
 import React, {
-  useCallback,
-  useContext,
+  // useCallback,
+  // useContext,
   useEffect,
   useRef,
   useState,
@@ -39,20 +39,20 @@ import Main from '../Main';
 import Logger from '../../../util/Logger';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  CURRENT_APP_VERSION,
+  // CURRENT_APP_VERSION,
   EXISTING_USER,
-  LAST_APP_VERSION,
+  // LAST_APP_VERSION,
 } from '../../../constants/storage';
-import { getVersion } from 'react-native-device-info';
+// import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 // import Device from '../../../util/device';
 // import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 // import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
-import Toast, {
-  ToastContext,
-} from '../../../component-library/components/Toast';
+// import Toast, {
+//   ToastContext,
+// } from '../../../component-library/components/Toast';
 // import AccountSelector from '../../../components/Views/AccountSelector';
 // import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
 // import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
@@ -130,10 +130,10 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import FoxLoader from '../../../components/UI/FoxLoader';
 // import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
 // import MultiRpcModal from '../../../components/Views/MultiRpcModal/MultiRpcModal';
-import Engine from '../../../core/Engine';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../util/networks/customNetworks';
-import { RpcEndpointType } from '@metamask/network-controller';
+// import Engine from '../../../core/Engine';
+// import { CHAIN_IDS } from '@metamask/transaction-controller';
+// import { PopularList } from '../../../util/networks/customNetworks';
+// import { RpcEndpointType } from '@metamask/network-controller';
 // import {
 //   endTrace,
 //   trace,
@@ -635,9 +635,9 @@ const App: React.FC = () => {
   const [onboarded, setOnboarded] = useState(false);
   const navigation = useNavigation();
   const queueOfHandleDeeplinkFunctions = useRef<(() => void)[]>([]);
-  const { toastRef } = useContext(ToastContext);
-  const dispatch = useDispatch();
-  const sdkInit = useRef<boolean | undefined>(undefined);
+  // const { toastRef } = useContext(ToastContext);
+  // const dispatch = useDispatch();
+  // const sdkInit = useRef<boolean | undefined>(undefined);
 
   // useEffect(() => {
   //   // End trace when first render is complete
@@ -800,77 +800,77 @@ const App: React.FC = () => {
   //   }
   // }, []);
 
-  useEffect(() => {
-    async function startApp() {
-      const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-      if (!existingUser) {
-        // List of chainIds to add (as hex strings)
-        const chainIdsToAdd: `0x${string}`[] = [
-          CHAIN_IDS.ARBITRUM,
-          CHAIN_IDS.BASE,
-          CHAIN_IDS.BSC,
-          CHAIN_IDS.OPTIMISM,
-          CHAIN_IDS.POLYGON,
-        ];
+  // useEffect(() => {
+  //   async function startApp() {
+  //     const existingUser = await StorageWrapper.getItem(EXISTING_USER);
+  //     if (!existingUser) {
+  //       // List of chainIds to add (as hex strings)
+  //       const chainIdsToAdd: `0x${string}`[] = [
+  //         CHAIN_IDS.ARBITRUM,
+  //         CHAIN_IDS.BASE,
+  //         CHAIN_IDS.BSC,
+  //         CHAIN_IDS.OPTIMISM,
+  //         CHAIN_IDS.POLYGON,
+  //       ];
 
-        // Filter the PopularList to get only the specified networks based on chainId
-        const selectedNetworks = PopularList.filter((network) =>
-          chainIdsToAdd.includes(network.chainId),
-        );
-        const { NetworkController } = Engine.context;
+  //       // Filter the PopularList to get only the specified networks based on chainId
+  //       const selectedNetworks = PopularList.filter((network) =>
+  //         chainIdsToAdd.includes(network.chainId),
+  //       );
+  //       const { NetworkController } = Engine.context;
 
-        // Loop through each selected network and call NetworkController.addNetwork
-        for (const network of selectedNetworks) {
-          try {
-            await NetworkController.addNetwork({
-              chainId: network.chainId,
-              blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
-              defaultRpcEndpointIndex: 0,
-              defaultBlockExplorerUrlIndex: 0,
-              name: network.nickname,
-              nativeCurrency: network.ticker,
-              rpcEndpoints: [
-                {
-                  url: network.rpcUrl,
-                  name: network.nickname,
-                  type: RpcEndpointType.Custom,
-                },
-              ],
-            });
-          } catch (error) {
-            Logger.error(error as Error);
-          }
-        }
-      }
+  //       // Loop through each selected network and call NetworkController.addNetwork
+  //       for (const network of selectedNetworks) {
+  //         try {
+  //           await NetworkController.addNetwork({
+  //             chainId: network.chainId,
+  //             blockExplorerUrls: [network.rpcPrefs.blockExplorerUrl],
+  //             defaultRpcEndpointIndex: 0,
+  //             defaultBlockExplorerUrlIndex: 0,
+  //             name: network.nickname,
+  //             nativeCurrency: network.ticker,
+  //             rpcEndpoints: [
+  //               {
+  //                 url: network.rpcUrl,
+  //                 name: network.nickname,
+  //                 type: RpcEndpointType.Custom,
+  //               },
+  //             ],
+  //           });
+  //         } catch (error) {
+  //           Logger.error(error as Error);
+  //         }
+  //       }
+  //     }
 
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
+  //     try {
+  //       const currentVersion = getVersion();
+  //       const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
+  //       if (currentVersion !== savedVersion) {
+  //         if (savedVersion)
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
+  //         await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
+  //       }
 
-        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error as Error);
-      }
-    }
+  //       const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
+  //       if (!lastVersion) {
+  //         if (existingUser) {
+  //           // Setting last version to first version if user exists and lastVersion does not, to simulate update
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
+  //         } else {
+  //           // Setting last version to current version so that it's not treated as an update
+  //           await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
+  //         }
+  //       }
+  //     } catch (error) {
+  //       Logger.error(error as Error);
+  //     }
+  //   }
 
-    startApp().catch((error) => {
-      Logger.error(error, 'Error starting app');
-    });
-  }, []);
+  //   startApp().catch((error) => {
+  //     Logger.error(error, 'Error starting app');
+  //   });
+  // }, []);
 
   return (
     <>
