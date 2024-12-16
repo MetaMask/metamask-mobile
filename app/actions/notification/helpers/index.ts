@@ -7,7 +7,7 @@ import {
   mmStorage,
   getAllUUIDs,
 } from '../../../util/notifications';
-import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import type { UserStorage } from '@metamask/notification-services-controller/notification-services';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
