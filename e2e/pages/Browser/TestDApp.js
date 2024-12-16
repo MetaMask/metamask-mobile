@@ -87,6 +87,13 @@ class TestDApp {
     );
   }
 
+  get addTokensToWalletButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -97,6 +104,9 @@ class TestDApp {
 
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
+  }
+  async tapAddERCTokenToWalletButton() {
+    await this.tapButton(this.addTokensToWalletButton);
   }
 
   async tapPersonalSignButton() {
