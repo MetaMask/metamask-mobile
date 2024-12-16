@@ -1,3 +1,6 @@
+import { ApprovalRequest } from '@metamask/approval-controller';
+import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
+
 /**
  * The contents of this file have been taken verbatim from
  * metamask-extension/shared/modules/transaction.utils.ts
@@ -38,6 +41,15 @@ export const parseTypedDataMessage = (dataToParse: string) => {
   if (result.message?.value) {
     result.message.value = messageValue || String(result.message.value);
   }
-
   return result;
+};
+
+/**
+ * Returns true if the request is a recognized Permit Typed Sign signature request
+ *
+ * @param request - The confirmation request to check
+ */
+export const isRecognizedPermit = (approvalRequest: ApprovalRequest<{ data: string } & Record<string, any>>) => {
+  const { primaryType } = parseTypedDataMessage(approvalRequest?.requestData?.data);
+  return PRIMARY_TYPES_PERMIT.includes(primaryType);
 };
