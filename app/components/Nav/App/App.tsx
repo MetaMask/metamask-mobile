@@ -134,26 +134,26 @@ import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../util/trace';
+// import {
+//   endTrace,
+//   trace,
+//   TraceName,
+//   TraceOperation,
+// } from '../../../util/trace';
 import { selectUserLoggedIn } from '../../../reducers/user';
 
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
-  },
-  animationEnabled: false,
-};
+// const clearStackNavigatorOptions = {
+//   headerShown: false,
+//   cardStyle: {
+//     backgroundColor: 'transparent',
+//     cardStyleInterpolator: () => ({
+//       overlayStyle: {
+//         opacity: 0,
+//       },
+//     }),
+//   },
+//   animationEnabled: false,
+// };
 
 const Stack = createStackNavigator();
 
@@ -639,10 +639,10 @@ const App: React.FC = () => {
   const dispatch = useDispatch();
   const sdkInit = useRef<boolean | undefined>(undefined);
 
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
+  // useEffect(() => {
+  //   // End trace when first render is complete
+  //   endTrace({ name: TraceName.UIStartup });
+  // }, []);
 
   useEffect(() => {
     const appTriggeredAuth = async () => {
@@ -651,15 +651,7 @@ const App: React.FC = () => {
       try {
         if (existingUser) {
           // This should only be called if the auth type is not password, which is not the case so consider removing it
-          await trace(
-            {
-              name: TraceName.AppStartBiometricAuthentication,
-              op: TraceOperation.BiometricAuthentication,
-            },
-            async () => {
-              await Authentication.appTriggeredAuth();
-            },
-          );
+          await Authentication.appTriggeredAuth();
           // we need to reset the navigator here so that the user cannot go back to the login screen
           navigation.reset({ routes: [{ name: Routes.ONBOARDING.HOME_NAV }] });
         } else {
