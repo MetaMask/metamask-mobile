@@ -11,7 +11,8 @@ export const SecurityPrivacyViewSelectorsIDs = {
   REMEMBER_ME_TOGGLE: 'turn-on-remember-me',
   SHOW_PRIVATE_KEY: 'show-private-key',
   BIOMETRICS_TOGGLE: 'biometrics-option',
-  DEVICE_PASSCODE_TOGGLE: 'DevicePasscodeOption',
+  DEVICE_PASSCODE_TOGGLE: 'device-passcode-option',
+  CLEAR_PRIVACY_DATA_BUTTON: 'clear-privacy-data-button',
 };
 
 export const SecurityPrivacyViewSelectorsText = {
@@ -19,6 +20,7 @@ export const SecurityPrivacyViewSelectorsText = {
   BACK_UP_NOW: enContent.app_settings.back_up_now,
   PRIVACY_HEADING: enContent.app_settings.privacy_heading,
   CLEAR_BROWSER_COOKIES: enContent.app_settings.clear_browser_cookies_desc,
+  CLEAR_PRIVACY_DATA: enContent.app_settings.clear,
   AUTO_LOCK_30_SECONDS: enContent.app_settings.autolock_after.replace(
     '{{time}}',
     '30',
