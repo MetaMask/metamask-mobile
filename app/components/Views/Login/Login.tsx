@@ -52,8 +52,8 @@ import Logger from '../../../util/Logger';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 // import storageWrapper from '../../../store/storage-wrapper';
 // import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import { passwordRequirementsMet } from '../../../util/password';
-import setOnboardingWizardStep from '../../../actions/wizard';
+// import { passwordRequirementsMet } from '../../../util/password';
+// import setOnboardingWizardStep from '../../../actions/wizard';
 
 const Login: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -72,8 +72,8 @@ const Login: React.FC = () => {
   //   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
   const fieldRef = useRef<TextInput | null>(null);
 
-  const userLoggedIn = useSelector(selectUserLoggedIn);
-  const dispatch = useDispatch();
+  //   const userLoggedIn = useSelector(selectUserLoggedIn);
+  //   const dispatch = useDispatch();
   const {
     styles,
     theme: { colors },
@@ -91,12 +91,12 @@ const Login: React.FC = () => {
 
   const onLogin = async () => {
     // endTrace({ name: TraceName.LoginUserInteraction });
-    const locked = !passwordRequirementsMet(password);
-    if (locked) setError(strings('login.invalid_password'));
-    if (loading || locked) return;
+    // const locked = !passwordRequirementsMet(password);
+    // if (locked) setError(strings('login.invalid_password'));
+    // if (loading || locked) return;
 
-    setLoading(true);
-    setError('');
+    // setLoading(true);
+    // setError('');
     const authType = await Authentication.componentAuthenticationType(
       biometryChoice,
       rememberMe,
@@ -114,14 +114,14 @@ const Login: React.FC = () => {
       //       await Authentication.userEntryAuth(password, authType);
       //     },
       //   );
-      Keyboard.dismiss();
+      //   Keyboard.dismiss();
 
       // Get onboarding wizard state
       //   const onboardingWizard = await storageWrapper.getItem(ONBOARDING_WIZARD);
       //   if (onboardingWizard) {
       //     navigation.replace(Routes.ONBOARDING.HOME_NAV);
       //   } else {
-      dispatch(setOnboardingWizardStep(1));
+      //   dispatch(setOnboardingWizardStep(1));
       navigation.replace(Routes.ONBOARDING.HOME_NAV);
       //   }
       // Only way to land back on Login is to log out, which clears credentials (meaning we should not show biometric button)
