@@ -1719,6 +1719,9 @@ export class Engine {
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
     TransactionController.startIncomingTransactionPolling([chainId]);
+
+    this.context.MultichainBalancesController.start();
+    this.context.MultichainBalancesController.updateBalances();
   }
 
   configureControllersOnNetworkChange() {
