@@ -140,7 +140,6 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
-import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user';
 
 const clearStackNavigatorOptions = {
