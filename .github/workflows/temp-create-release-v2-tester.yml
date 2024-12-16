@@ -24,7 +24,7 @@ jobs:
       previous-version-tag: v7.37.0
       mobile-build-version: "1514" # Hardcoded for testing purposes
     secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.BUG_REPORT_TOKEN }}
     permissions:
       contents: write
       pull-requests: write

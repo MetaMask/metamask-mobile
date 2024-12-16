@@ -29,7 +29,6 @@ jobs:
       semver-version: ${{ inputs.semver-version }}
       previous-version-tag: ${{ inputs.previous-version-tag }}
       mobile-build-version: "1514" # Hardcoded for testing purposes
-      github-token: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: write
       pull-requests: write
