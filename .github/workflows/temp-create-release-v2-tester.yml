@@ -11,7 +11,7 @@ jobs:
   #   permissions:
   #     id-token: write
 
-  
+
   create-release-pr:
     # Uncomment and use `needs` if generate-build-version is uncommented
     # needs: generate-build-version
@@ -19,7 +19,7 @@ jobs:
     with:
       platform: mobile
       base-branch: rls-alignment
-      semver-version: 99.99.99
+      semver-version: 7.37.1
       previous-version-tag: v7.37.0
       mobile-build-version: "1514" # Hardcoded for testing purposes
     permissions:
