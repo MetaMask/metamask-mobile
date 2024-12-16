@@ -5,7 +5,6 @@ import styleSheet from './UnstakeConfirmationView.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import YouReceiveCard from '../../components/StakingConfirmation/YouReceiveCard/YouReceiveCard';
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
@@ -38,16 +37,12 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
-          <YouReceiveCard
-            amountWei={route.params.amountWei}
-            amountFiat={route.params.amountFiat}
-          />
+          <UnstakingTimeCard />
           <AccountCard
             contractName={MOCK_STAKING_CONTRACT_NAME}
             primaryLabel={strings('stake.unstaking_to')}
             secondaryLabel={strings('stake.interacting_with')}
           />
-          <UnstakingTimeCard />
         </View>
       </View>
       <ConfirmationFooter

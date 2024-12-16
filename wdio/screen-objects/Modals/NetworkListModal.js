@@ -3,8 +3,8 @@ import Gestures from '../../helpers/Gestures';
 
 import { NETWORK_TEST_SWITCH_ID } from '../testIDs/Components/NetworkListModal.TestIds';
 import { ADD_NETWORK_BUTTON } from '../testIDs/Screens/NetworksScreen.testids';
-import { CellModalSelectorsIDs } from '../../../e2e/selectors/Modals/CellModal.selectors';
-import { NetworkListModalSelectorsText } from "../../../e2e/selectors/Modals/NetworkListModal.selectors";
+import { CellComponentSelectorsIDs } from '../../../e2e/selectors/wallet/CellComponent.selectors';
+import { NetworkListModalSelectorsText } from "../../../e2e/selectors/Network/NetworkListModal.selectors";
 
 class NetworkListModal {
   get title() {
@@ -20,7 +20,7 @@ class NetworkListModal {
   }
 
   get networksButton() {
-    return Selectors.getXpathByContentDesc(CellModalSelectorsIDs.SELECT);
+    return Selectors.getXpathByContentDesc(CellComponentSelectorsIDs.SELECT);
   }
 
   async changeNetwork(networkName) {

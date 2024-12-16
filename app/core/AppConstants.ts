@@ -10,7 +10,7 @@ const SECURITY_ALERTS_API_URL = process.env.SECURITY_ALERTS_API_URL ?? 'https://
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'DuckDuckGo',
+  DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
@@ -76,7 +76,9 @@ export default {
       name: 'MetaMask Wallet',
       description: 'MetaMask Wallet Integration',
       url: 'https://metamask.io/',
-      icons: [],
+      icons: [
+        'https://raw.githubusercontent.com/MetaMask/metamask-mobile/main/logo.png',
+      ],
       redirect: {
         native: 'metamask://',
         universal: 'https://metamask.app.link/',
@@ -88,7 +90,7 @@ export default {
     ONLY_MAINNET: true,
     CLIENT_ID: 'mobile',
     LIVENESS_POLLING_FREQUENCY: 5 * 60 * 1000,
-    POLL_COUNT_LIMIT: 3,
+    POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,

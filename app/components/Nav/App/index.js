@@ -34,7 +34,6 @@ import SharedDeeplinkManager from '../../../core/DeeplinkManager/SharedDeeplinkM
 import branch from 'react-native-branch';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
-import { routingInstrumentation } from '../../../util/sentry/utils';
 import { connect, useDispatch } from 'react-redux';
 import {
   CURRENT_APP_VERSION,
@@ -45,6 +44,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   setCurrentBottomNavRoute,
   setCurrentRoute,
+  onNavigationReady,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -58,11 +58,13 @@ import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
-import TokenSortBottomSheet from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
+import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet.tsx';
+import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet.tsx';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../../components/Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
+import ConnectionDetails from '../../../components/Views/AccountPermissions/ConnectionDetails';
 import { SRPQuiz } from '../../Views/Quiz';
 import { TurnOffRememberMeModal } from '../../../components/UI/TurnOffRememberMeModal';
 import AssetHideConfirmation from '../../Views/AssetHideConfirmation';
@@ -116,14 +118,15 @@ import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingG
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
+import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
@@ -136,7 +139,13 @@ import Engine from '../../../core/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../util/trace';
+import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -382,10 +391,6 @@ const RootModalFlow = () => (
       component={ModalMandatory}
     />
     <Stack.Screen
-      name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
-      component={SmartTransactionsOptInModal}
-    />
-    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
@@ -424,12 +429,24 @@ const RootModalFlow = () => (
       component={AccountPermissionsConfirmRevokeAll}
     />
     <Stack.Screen
+      name={Routes.SHEET.CONNECTION_DETAILS}
+      component={ConnectionDetails}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
+      component={PermittedNetworksInfoSheet}
+    />
+    <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
       component={NetworkSelector}
     />
     <Stack.Screen
       name={Routes.SHEET.TOKEN_SORT}
       component={TokenSortBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.TOKEN_FILTER}
+      component={TokenFilterBottomSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
@@ -501,6 +518,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
       component={OriginSpamModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
+      component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
   </Stack.Navigator>
@@ -574,6 +595,12 @@ const App = (props) => {
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
 
+  trace({
+    name: TraceName.NavInit,
+    parentContext: getUIStartupSpan(),
+    op: TraceOperation.NavInit,
+  });
+
   const triggerSetCurrentRoute = (route) => {
     dispatch(setCurrentRoute(route));
     if (route === 'Wallet' || route === 'BrowserView') {
@@ -584,14 +611,22 @@ const App = (props) => {
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
+
+    endTrace({ name: TraceName.NavInit });
+    endTrace({ name: TraceName.UIStartup });
+  }, [navigator]);
+
+  useEffect(() => {
+    if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
       try {
         if (existingUser) {
+          // This should only be called if the auth type is not password, which is not the case so consider removing it
           await trace(
             {
-              name: TraceName.BiometricAuthentication,
+              name: TraceName.AppStartBiometricAuthentication,
               op: TraceOperation.BiometricAuthentication,
             },
             async () => {
@@ -614,6 +649,7 @@ const App = (props) => {
             }),
           );
         }
+
         await Authentication.lockApp({ reset: false });
         trackErrorAsAnalytics(
           'App: Max Attempts Reached',
@@ -674,8 +710,6 @@ const App = (props) => {
       });
 
       if (!prevNavigator.current) {
-        // Setup navigator with Sentry instrumentation
-        routingInstrumentation.registerNavigationContainer(navigator);
         // Subscribe to incoming deeplinks
         // Branch.io documentation: https://help.branch.io/developers-hub/docs/react-native
         branch.subscribe((opts) => {
@@ -847,6 +881,11 @@ const App = (props) => {
     }
   };
 
+  /**
+   * Triggers when the navigation is ready
+   */
+  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
+
   return supressRender ? null : (
     <>
       {
@@ -872,6 +911,7 @@ const App = (props) => {
           const currentRoute = findRouteNameFromNavigatorState(state.routes);
           triggerSetCurrentRoute(currentRoute);
         }}
+        onReady={onNavigationReadyHandler}
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}
@@ -960,7 +1000,7 @@ const App = (props) => {
           <Stack.Screen name={Routes.OPTIONS_SHEET} component={OptionsSheet} />
           <Stack.Screen
             name="EditAccountName"
-            component={EditAccountNameFlow}
+            component={EditAccountName}
             options={{ animationEnabled: true }}
           />
           <Stack.Screen

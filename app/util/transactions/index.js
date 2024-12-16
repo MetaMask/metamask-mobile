@@ -8,7 +8,7 @@ import {
   ERC721,
   ERC1155,
 } from '@metamask/controller-utils';
-import { isEIP1559Transaction } from '@metamask/transaction-controller';
+import { isEIP1559Transaction, TransactionType } from '@metamask/transaction-controller';
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
@@ -50,6 +50,7 @@ import {
 
 import Logger from '../../util/Logger';
 import { handleMethodData } from '../../util/transaction-controller';
+import EthQuery from '@metamask/eth-query';
 
 const { SAI_ADDRESS } = AppConstants;
 
@@ -124,6 +125,9 @@ const reviewActionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.tx_review_set_approval_for_all',
   ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -142,6 +146,9 @@ const actionKeys = {
   [SET_APPROVE_FOR_ALL_ACTION_KEY]: strings(
     'transactions.set_approval_for_all',
   ),
+  [TransactionType.stakingClaim]: strings('transactions.tx_review_staking_claim'),
+  [TransactionType.stakingDeposit]: strings('transactions.tx_review_staking_deposit'),
+  [TransactionType.stakingUnstake]: strings('transactions.tx_review_staking_unstake'),
 };
 
 /**
@@ -308,7 +315,7 @@ export function decodeTransferData(type, data) {
  * @param {string} data - Transaction data
  * @returns {MethodData} - Method data object containing the name if is valid
  */
-export async function getMethodData(data) {
+export async function getMethodData(data, networkClientId) {
   if (data.length < 10) return {};
   const fourByteSignature = getFourByteSignature(data);
   if (fourByteSignature === TRANSFER_FUNCTION_SIGNATURE) {
@@ -326,7 +333,7 @@ export async function getMethodData(data) {
   }
   // If it's a new method, use on-chain method registry
   try {
-    const registryObject = await handleMethodData(fourByteSignature);
+    const registryObject = await handleMethodData(fourByteSignature, networkClientId);
     if (registryObject) {
       return registryObject.parsedRegistryMethod;
     }
@@ -341,11 +348,14 @@ export async function getMethodData(data) {
  *
  * @param {string} address - Ethereum address
  * @param {string} chainId - Current chainId
+ * @param {string | undefined} networkClientId - ID of the network client
  * @returns {Promise<boolean>} - Whether the given address is a contract
  */
-export async function isSmartContractAddress(address, chainId) {
+export async function isSmartContractAddress(address, chainId, networkClientId = undefined) {
   if (!address) return false;
+
   address = toChecksumAddress(address);
+
   // If in contract map we don't need to cache it
   if (
     isMainnetByChainId(chainId) &&
@@ -354,13 +364,15 @@ export async function isSmartContractAddress(address, chainId) {
     return Promise.resolve(true);
   }
 
-  const ethQuery = Engine.getGlobalEthQuery();
+  const { NetworkController } = Engine.context;
+  const finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
+  const ethQuery = new EthQuery(NetworkController.getNetworkClientById(finalNetworkClientId).provider);
 
   const code = address
     ? await query(ethQuery, 'getCode', [address])
     : undefined;
-  const isSmartContract = isSmartContractCode(code);
-  return isSmartContract;
+
+  return isSmartContractCode(code);
 }
 
 /**
@@ -395,33 +407,38 @@ export async function isCollectibleAddress(address, tokenId) {
  * @returns {string} - Corresponding transaction action key
  */
 export async function getTransactionActionKey(transaction, chainId) {
-  // This condition is needed until the transaction reducer be refactored
-  if (!transaction.txParams) {
-    transaction.txParams = transaction.transaction;
+  const { networkClientId, type } = transaction ?? {};
+  const txParams = transaction.txParams ?? transaction.transaction ?? {};
+  const { data, to } = txParams;
+
+  if ([TransactionType.stakingClaim, TransactionType.stakingDeposit, TransactionType.stakingUnstake].includes(type)) {
+    return type;
   }
-  const { txParams: { data, to } = {} } = transaction;
-  if (!to) return CONTRACT_METHOD_DEPLOY;
-  if (to === getSwapsContractAddress(chainId))
+
+  if (!to) {
+    return CONTRACT_METHOD_DEPLOY;
+  }
+
+  if (to === getSwapsContractAddress(chainId)) {
     return SWAPS_TRANSACTION_ACTION_KEY;
-  let ret;
+  }
+
   // if data in transaction try to get method data
   if (data && data !== '0x') {
-    const methodData = await getMethodData(data);
-    const { name } = methodData;
+    const { name } = await getMethodData(data, networkClientId);
     if (name) return name;
   }
+
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to);
+      : await isSmartContractAddress(to, undefined, networkClientId);
+
   if (toSmartContract) {
-    // There is no data or unknown method data, if is smart contract
-    ret = SMART_CONTRACT_INTERACTION_ACTION_KEY;
-  } else {
-    // If there is no data and no smart contract interaction
-    ret = SEND_ETHER_ACTION_KEY;
+    return SMART_CONTRACT_INTERACTION_ACTION_KEY;
   }
-  return ret;
+
+  return SEND_ETHER_ACTION_KEY;
 }
 
 /**
@@ -455,11 +472,11 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
           ? strings('transactions.self_sent_unit', { unit: currencySymbol })
           : strings('transactions.self_sent_ether')
         : currencySymbol
-        ? strings('transactions.received_unit', { unit: currencySymbol })
-        : strings('transactions.received_ether')
+          ? strings('transactions.received_unit', { unit: currencySymbol })
+          : strings('transactions.received_ether')
       : currencySymbol
-      ? strings('transactions.sent_unit', { unit: currencySymbol })
-      : strings('transactions.sent_ether');
+        ? strings('transactions.sent_unit', { unit: currencySymbol })
+        : strings('transactions.sent_ether');
   }
   const transactionActionKey = actionKeys[actionKey];
 
@@ -478,7 +495,7 @@ export async function getActionKey(tx, selectedAddress, ticker, chainId) {
  * @returns {string} - Transaction function type
  */
 export async function getTransactionReviewActionKey(transaction, chainId) {
-  const actionKey = await getTransactionActionKey({ transaction }, chainId);
+  const actionKey = await getTransactionActionKey(transaction, chainId);
   const transactionReviewActionKey = reviewActionKeys[actionKey];
   if (transactionReviewActionKey) {
     return transactionReviewActionKey;
@@ -1029,7 +1046,7 @@ export const parseTransactionEIP1559 = (
     maxPriorityFeeNative,
     nativeCurrency,
     Boolean(maxPriorityFeePerGasTimesGasLimitHex) &&
-      maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
+    maxPriorityFeePerGasTimesGasLimitHex !== '0x0',
   );
   const renderableMaxPriorityFeeConversion = formatCurrency(
     maxPriorityFeeConversion,
@@ -1528,7 +1545,7 @@ export const getIsSwapApproveOrSwapTransaction = (
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
         decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          swapsUtils.getSwapsContractAddress(chainId)))
+        swapsUtils.getSwapsContractAddress(chainId)))
   );
 };
 

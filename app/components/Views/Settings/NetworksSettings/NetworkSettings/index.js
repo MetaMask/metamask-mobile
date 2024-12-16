@@ -541,7 +541,7 @@ export class NetworkSettings extends PureComponent {
         editable = false;
         blockExplorerUrl =
           networkConfigurations?.[chainId]?.blockExplorerUrls[
-            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
+          networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
           ];
         rpcUrl =
           networkConfigurations?.[chainId]?.rpcEndpoints[
@@ -563,13 +563,13 @@ export class NetworkSettings extends PureComponent {
           ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
             rpcEndpoints[defaultRpcEndpointIndex].url === networkTypeOrRpcUrl ||
             rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
-              networkTypeOrRpcUrl,
+            networkTypeOrRpcUrl,
         );
         nickname = networkConfiguration?.name;
         chainId = networkConfiguration?.chainId;
         blockExplorerUrl =
           networkConfiguration?.blockExplorerUrls[
-            networkConfiguration?.defaultBlockExplorerUrlIndex
+          networkConfiguration?.defaultBlockExplorerUrlIndex
           ];
         ticker = networkConfiguration?.nativeCurrency;
         editable = true;
@@ -822,14 +822,13 @@ export class NetworkSettings extends PureComponent {
     shouldNetworkSwitchPopToWallet,
     navigation,
   }) => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
     const url = new URL(rpcUrl);
     if (!isPrivateConnection(url.hostname)) {
       url.set('protocol', 'https:');
     }
 
-    CurrencyRateController.updateExchangeRate(ticker);
     const existingNetwork = this.props.networkConfigurations[chainId];
 
     const indexRpc = rpcUrls.findIndex(({ url }) => url === rpcUrl);
@@ -855,8 +854,8 @@ export class NetworkSettings extends PureComponent {
         networkConfig,
         existingNetwork.chainId === chainId
           ? {
-              replacementSelectedRpcEndpointIndex: indexRpc,
-            }
+            replacementSelectedRpcEndpointIndex: indexRpc,
+          }
           : undefined,
       );
     } else {
@@ -868,8 +867,8 @@ export class NetworkSettings extends PureComponent {
     isCustomMainnet
       ? navigation.navigate('OptinMetrics')
       : shouldNetworkSwitchPopToWallet
-      ? navigation.navigate('WalletView')
-      : navigation.goBack();
+        ? navigation.navigate('WalletView')
+        : navigation.goBack();
   };
 
   /**
@@ -1530,19 +1529,18 @@ export class NetworkSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
     const { networkConfigurations } = this.props;
 
     const { networkClientId } =
       networkConfigurations?.rpcEndpoints?.[
-        networkConfigurations.defaultRpcEndpointIndex
+      networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -1952,15 +1950,15 @@ export class NetworkSettings extends PureComponent {
                   // Conditionally include secondaryText only if rpcName exists
                   {...(rpcName
                     ? {
-                        secondaryText:
-                          hideKeyFromUrl(rpcUrl) ??
-                          hideKeyFromUrl(
-                            networkConfigurations?.[chainId]?.rpcEndpoints?.[
-                              networkConfigurations?.[chainId]
-                                ?.defaultRpcEndpointIndex
-                            ]?.url,
-                          ),
-                      }
+                      secondaryText:
+                        hideKeyFromUrl(rpcUrl) ??
+                        hideKeyFromUrl(
+                          networkConfigurations?.[chainId]?.rpcEndpoints?.[
+                            networkConfigurations?.[chainId]
+                              ?.defaultRpcEndpointIndex
+                          ]?.url,
+                        ),
+                    }
                     : {})}
                   isSelected={false}
                   withAvatar={false}
@@ -1995,17 +1993,17 @@ export class NetworkSettings extends PureComponent {
 
             {!isNetworkUiRedesignEnabled()
               ? warningRpcUrl && (
-                  <View
-                    style={
-                      isNetworkUiRedesignEnabled()
-                        ? styles.newWarningContainer
-                        : styles.warningContainer
-                    }
-                    testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
-                  >
-                    <Text style={styles.warningText}>{warningRpcUrl}</Text>
-                  </View>
-                )
+                <View
+                  style={
+                    isNetworkUiRedesignEnabled()
+                      ? styles.newWarningContainer
+                      : styles.warningContainer
+                  }
+                  testID={NetworksViewSelectorsIDs.RPC_WARNING_BANNER}
+                >
+                  <Text style={styles.warningText}>{warningRpcUrl}</Text>
+                </View>
+              )
               : null}
 
             <Text style={styles.label}>
@@ -2270,7 +2268,7 @@ export class NetworkSettings extends PureComponent {
         ) : null}
 
         {isNetworkUiRedesignEnabled() &&
-        showMultiBlockExplorerAddModal.isVisible ? (
+          showMultiBlockExplorerAddModal.isVisible ? (
           <ReusableModal
             style={
               blockExplorerUrls.length > 0 ? styles.sheet : styles.sheetSmall
@@ -2480,7 +2478,7 @@ export class NetworkSettings extends PureComponent {
       >
         <View style={styles.informationWrapper}>
           {(isNetworkUiRedesignEnabled() && !shouldShowPopularNetworks) ||
-          networkTypeOrRpcUrl ? (
+            networkTypeOrRpcUrl ? (
             this.customNetwork()
           ) : (
             <ScrollableTabView

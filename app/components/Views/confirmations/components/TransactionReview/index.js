@@ -31,10 +31,8 @@ import Logger from '../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import Device from '../../../../../util/device';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  isMultiLayerFeeNetwork,
-} from '../../../../../util/networks';
+import { isMultiLayerFeeNetwork } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
   fromTokenMinimalUnit,
@@ -275,6 +273,10 @@ class TransactionReview extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Object containing the current transaction metadata
+     */
+    transactionMetadata: PropTypes.object,
   };
 
   state = {
@@ -316,6 +318,7 @@ class TransactionReview extends PureComponent {
     const {
       transaction,
       transaction: { data, to, value },
+      transactionMetadata,
       tokens,
       chainId,
       tokenList,
@@ -327,7 +330,16 @@ class TransactionReview extends PureComponent {
     showHexData = showHexData || data;
     const approveTransaction =
       isApprovalTransaction(data) && (!value || isZeroValue(value));
-    const actionKey = await getTransactionReviewActionKey(transaction, chainId);
+
+    const actionKey = await getTransactionReviewActionKey(
+      {
+        ...transactionMetadata,
+        transaction,
+        txParams: undefined,
+      },
+      chainId,
+    );
+
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
       if (!contract) {
@@ -350,9 +362,14 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
-      is_smart_transaction: shouldUseSmartTransaction,
-    });
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties({
+          is_smart_transaction: shouldUseSmartTransaction,
+        })
+        .build(),
+    );
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -371,8 +388,10 @@ class TransactionReview extends PureComponent {
     };
 
     metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      additionalParams,
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(additionalParams)
+        .build(),
     );
   };
 
@@ -423,7 +442,11 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange, metrics } = this.props;
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
+    );
     onModeChange && onModeChange('edit');
   };
 
@@ -701,6 +724,7 @@ const mapStateToProps = (state) => ({
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  transactionMetadata: selectCurrentTransactionMetadata(state),
 });
 
 TransactionReview.contextType = ThemeContext;

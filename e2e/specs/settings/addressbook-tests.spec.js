@@ -4,9 +4,9 @@ import SendView from '../../pages/Send/SendView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
-import AddAddressModal from '../../pages/modals/AddAddressModal';
+import AddAddressModal from '../../pages/Send/AddAddressModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -19,7 +19,7 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
-import DeleteContactModal from '../../pages/modals/DeleteContactModal';
+import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../utils/Assertions';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -34,7 +34,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -50,7 +50,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
 
   it('should go to send view', async () => {
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     // Make sure view with my accounts visible
     await Assertions.checkIfVisible(SendView.CurrentAccountElement);
   });
@@ -128,8 +128,8 @@ describe(SmokeCore('Addressbook Tests'), () => {
     // Tap on edit
     await AddContactView.tapEditButton();
     await AddContactView.tapDeleteContactCTA();
-    await Assertions.checkIfVisible(DeleteContactModal.title);
-    await DeleteContactModal.tapDeleteButton();
+    await Assertions.checkIfVisible(DeleteContactBottomSheet.title);
+    await DeleteContactBottomSheet.tapDeleteButton();
     await ContactsView.isContactAliasNotVisible('Moon');
   });
 
@@ -138,7 +138,7 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await CommonView.tapBackButton();
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSendButton();
+    await WalletActionsBottomSheet.tapSendButton();
     await Assertions.checkIfTextIsDisplayed('Ibrahim');
   });
 });

@@ -45,6 +45,20 @@ describe('PickerNetwork', () => {
     ).toBeNull();
   });
 
+  it('shows network name when hideNetworkName is false', () => {
+    const { queryByTestId } = render(
+      <PickerNetwork
+        label={SAMPLE_PICKERNETWORK_PROPS.label}
+        imageSource={SAMPLE_PICKERNETWORK_PROPS.imageSource}
+        hideNetworkName={false}
+      />,
+    );
+
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT),
+    ).not.toBeNull();
+  });
+
   it('calls onPress when pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = render(

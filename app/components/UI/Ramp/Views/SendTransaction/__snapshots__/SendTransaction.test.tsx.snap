@@ -180,6 +180,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -978,6 +979,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1692,6 +1694,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }

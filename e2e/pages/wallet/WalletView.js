@@ -2,7 +2,6 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -32,6 +31,12 @@ class WalletView {
   get navbarNetworkButton() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON,
+    );
+  }
+
+  async getNavbarNetworkPicker() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
     );
   }
 
@@ -75,12 +80,34 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get mainWalletAccountActions() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  get currentMainWalletAccountActions() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+    );
   }
 
-  async tapMainWalletAccountActions() {
-    await Gestures.waitAndTap(this.mainWalletAccountActions);
+  get tokenNetworkFilter() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get tokenNetworkFilterAll() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+    );
+  }
+
+  get tokenNetworkFilterCurrent() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+    );
+  }
+
+  get cancelButton() {
+    return Matchers.getElementByText('Cancel');
+  }
+
+  async tapCurrentMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
   async tapOnToken(token) {
@@ -157,6 +184,22 @@ class WalletView {
 
   async tapPortfolio() {
     await Gestures.waitAndTap(this.portfolioButton);
+  }
+
+  async tapTokenNetworkFilter() {
+    await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapTokenNetworkFilterAll() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterAll);
+  }
+
+  async tapTokenNetworkFilterCurrent() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

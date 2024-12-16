@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationsDetails should renders correctly 1`] = `
+exports[`NotificationsDetails renders correctly 1`] = `
 <RCTScrollView
   collapsable={false}
   contentContainerStyle={

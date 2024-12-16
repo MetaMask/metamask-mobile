@@ -51,14 +51,18 @@ const ApprovalTagUrl = ({
   const domainTitle = useMemo(() => {
     let title = '';
 
-    if (currentEnsName || origin || url) {
-      title = prefixUrlWithProtocol(currentEnsName || origin || getHost(url));
+    if (currentEnsName) {
+      title = prefixUrlWithProtocol(currentEnsName);
+    } else if (origin && isOriginDeepLink) {
+      title = prefixUrlWithProtocol(origin);
+    } else if (url) {
+      title = prefixUrlWithProtocol(getHost(url));
     } else {
       title = '';
     }
 
     return title;
-  }, [currentEnsName, origin, url]);
+  }, [currentEnsName, origin, url, isOriginDeepLink]);
 
   const faviconSource = useFavicon(origin as string) as
     | { uri: string }

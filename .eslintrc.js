@@ -60,7 +60,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js'],
+      files: ['scripts/**/*.js', 'app.config.js'],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,
@@ -71,6 +71,33 @@ module.exports = {
       files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'off',
+      },
+    },
+    {
+      files: [
+        'app/components/UI/Name/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
+      ],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: `ImportSpecifier[imported.name=/${[
+              'selectChainId',
+              'selectNetworkClientId',
+              'selectNetworkStatus',
+              'selectNickname',
+              'selectProviderConfig',
+              'selectProviderType',
+              'selectRpcUrl',
+              'selectSelectedNetworkClientId',
+              'selectTicker'
+            ]
+              .map((method) => `(${method})`)
+              .join('|')}/]`,
+            message: 'Avoid using global network selectors in confirmations',
+          },
+        ],
       },
     },
   ],

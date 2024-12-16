@@ -3,11 +3,12 @@ import Matchers from '../../utils/Matchers';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/EditGasView.selectors.js';
+} from '../../selectors/SendFlow/EditGasView.selectors.js';
 import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
-} from '../../selectors/TransactionConfirmView.selectors.js';
+} from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -40,7 +41,7 @@ class TransactionConfirmationView {
 
   get transactionAmount() {
     return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
@@ -74,6 +75,18 @@ class TransactionConfirmationView {
   get editPriorityLegacyModal() {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+    );
+  }
+
+  get securityAlertBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+    );
+  }
+
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );
   }
 

@@ -21,7 +21,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AssetsContractController": {},
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -40,8 +39,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "TokenDetectionController": {},
-  "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
     "versionInfo": []
@@ -190,17 +187,18 @@
       "0x64": true
     },
     "isIpfsGatewayEnabled": true,
-    "smartTransactionsOptInStatus": false,
+    "smartTransactionsOptInStatus": true,
     "useTransactionSimulations": true,
     "tokenSortConfig": {
       "key": "tokenFiatAmount",
       "order": "dsc",
       "sortCallback": "stringNumeric"
     },
+    "tokenNetworkFilter": {},
     "privacyMode": false
   },
   "TokenBalancesController": {
-    "contractBalances": {}
+    "tokenBalances": {}
   },
   "TokenRatesController": {
     "marketData": {}
@@ -243,6 +241,11 @@
     "snapStates": {},
     "snaps": {},
     "unencryptedSnapStates": {}
+  },
+  "SnapsRegistry": {
+    "database": null,
+    "databaseUnavailable": false,
+    "lastUpdated": null
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
@@ -314,6 +317,10 @@
   "PermissionController": {
     "subjects": {}
   },
+  "RemoteFeatureFlagController": {
+    "cacheTimestamp": 0,
+    "remoteFeatureFlags": {}
+  },
   "SelectedNetworkController": {
     "domains": {}
   },
@@ -339,7 +346,12 @@
     "metamaskNotificationsReadList": [],
     "subscriptionAccountsSeen": []
   },
+  "NotificationServicesPushController": {
+    "fcmToken": ""
+  },
   "UserStorageController": {
+    "hasAccountSyncingSyncedAtLeastOnce": false,
+    "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
   }

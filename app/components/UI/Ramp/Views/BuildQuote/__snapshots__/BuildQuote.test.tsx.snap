@@ -180,6 +180,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -864,6 +865,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1548,6 +1550,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -2203,6 +2206,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3134,6 +3138,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3789,6 +3794,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4720,6 +4726,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5375,6 +5382,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6306,6 +6314,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6961,6 +6970,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -7892,6 +7902,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -10930,6 +10941,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -13948,6 +13960,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -14603,6 +14616,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }

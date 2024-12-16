@@ -3,10 +3,10 @@ import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -31,7 +31,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -55,7 +55,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
       await TabBarComponent.tapWallet();
       await TabBarComponent.tapActions();
-      await WalletActionsModal.tapSwapButton();
+      await WalletActionsBottomSheet.tapSwapButton();
 
       if (!swapOnboarded) {
         await Onboarding.tapStartSwapping();

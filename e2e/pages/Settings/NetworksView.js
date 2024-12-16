@@ -4,7 +4,7 @@ import {
 } from '../../selectors/Settings/NetworksView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import { NetworkListModalSelectorsIDs } from '../../selectors/Modals/NetworkListModal.selectors';
+import { NetworkListModalSelectorsIDs } from '../../selectors/Network/NetworkListModal.selectors';
 
 class NetworkView {
   get networkContainer() {

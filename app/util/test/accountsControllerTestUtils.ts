@@ -1,7 +1,18 @@
 import { v4 as uuidV4 } from 'uuid';
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import {
+  EthAccountType,
+  EthMethod,
+  InternalAccount,
+  KeyringAccountType,
+} from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  mockQrKeyringAddress,
+  mockSimpleKeyringAddress,
+  mockSnapAddress1,
+  mockSnapAddress2,
+} from './keyringControllerTestUtils';
 
 export function createMockUuidFromAddress(address: string): string {
   const fakeShaFromAddress = Array.from(
@@ -16,17 +27,32 @@ export function createMockUuidFromAddress(address: string): string {
 export function createMockInternalAccount(
   address: string,
   nickname: string,
+  keyringType: KeyringTypes = KeyringTypes.hd,
+  accountType: KeyringAccountType = EthAccountType.Eoa,
 ): InternalAccount {
+  const genericMetadata = {
+    name: nickname,
+    importTime: 1684232000456,
+    keyring: {
+      type: keyringType,
+    },
+  };
+  const snapMetadata = {
+    name: nickname,
+    importTime: 1684232000456,
+    keyring: {
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: 'snap-id',
+      enabled: true,
+    },
+  };
   return {
     address,
     id: createMockUuidFromAddress(address),
-    metadata: {
-      name: nickname,
-      importTime: 1684232000456,
-      keyring: {
-        type: 'HD Key Tree',
-      },
-    },
+    metadata:
+      keyringType === KeyringTypes.snap ? snapMetadata : genericMetadata,
     options: {},
     methods: [
       EthMethod.PersonalSign,
@@ -35,7 +61,7 @@ export function createMockInternalAccount(
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: 'eip155:eoa',
+    type: accountType,
   };
 }
 
@@ -102,6 +128,65 @@ export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
   },
 };
 
+// account IDs for different account types from MOCK_KEYRING_CONTROLLER_STATE
+export const mockQRHardwareAccountId =
+  createMockUuidFromAddress(mockQrKeyringAddress);
+export const mockSimpleKeyringAccountId = createMockUuidFromAddress(
+  mockSimpleKeyringAddress,
+);
+export const mockSnapAccount1Id = createMockUuidFromAddress(mockSnapAddress1);
+export const mockSnapAccount2Id = createMockUuidFromAddress(mockSnapAddress2);
+// internal accounts for different account types from MOCK_KEYRING_CONTROLLER_STATE
+const mockQRHardwareInternalAccount: InternalAccount =
+  createMockInternalAccount(
+    mockQrKeyringAddress,
+    'QR Hardware Account',
+    KeyringTypes.qr,
+  );
+const mockSimpleKeyringInternalAccount: InternalAccount =
+  createMockInternalAccount(
+    mockSimpleKeyringAddress,
+    'Simple Keyring Account',
+    KeyringTypes.simple,
+  );
+const mockSnapAccount1InternalAccount: InternalAccount =
+  createMockInternalAccount(
+    mockSnapAddress1,
+    'Snap Account 1',
+    KeyringTypes.snap,
+  );
+const mockSnapAccount2InternalAccount: InternalAccount =
+  createMockInternalAccount(
+    mockSnapAddress2,
+    'Snap Account 2',
+    KeyringTypes.snap,
+  );
+
+export const MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES: AccountsControllerState =
+  {
+    ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+    internalAccounts: {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+      accounts: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+        [mockQRHardwareAccountId]: mockQRHardwareInternalAccount,
+        [mockSimpleKeyringAccountId]: mockSimpleKeyringInternalAccount,
+        [mockSnapAccount1Id]: mockSnapAccount1InternalAccount,
+        [mockSnapAccount2Id]: {
+          ...mockSnapAccount2InternalAccount,
+          metadata: {
+            ...mockSnapAccount2InternalAccount.metadata,
+            snap: {
+              id: 'metamask-simple-snap-keyring',
+              name: 'MetaMask Simple Snap Keyring',
+              enabled: true,
+            },
+          },
+        },
+      },
+    },
+  };
+
 export function createMockAccountsControllerState(
   addresses: string[],
   selectedAddress?: string,
@@ -134,6 +219,7 @@ export function createMockAccountsControllerState(
 
 export function createMockAccountsControllerStateWithSnap(
   addresses: string[],
+  snapName: string = '',
   snapAccountIndex: number = 0,
 ): AccountsControllerState {
   if (addresses.length === 0) {
@@ -152,8 +238,17 @@ export function createMockAccountsControllerStateWithSnap(
   const snapAccountUuid = createMockUuidFromAddress(
     addresses[snapAccountIndex].toLowerCase(),
   );
-  state.internalAccounts.accounts[snapAccountUuid].metadata.keyring = {
-    type: KeyringTypes.snap,
+
+  state.internalAccounts.accounts[snapAccountUuid].metadata = {
+    ...state.internalAccounts.accounts[snapAccountUuid].metadata,
+    keyring: {
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: snapName,
+      name: snapName,
+      enabled: true,
+    },
   };
 
   return state;

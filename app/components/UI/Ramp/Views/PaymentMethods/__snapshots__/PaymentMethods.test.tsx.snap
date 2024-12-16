@@ -180,6 +180,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1626,6 +1627,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3072,6 +3074,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4296,6 +4299,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4953,6 +4957,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5610,6 +5615,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6265,6 +6271,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -7489,6 +7496,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -8993,6 +9001,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -9625,6 +9634,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }

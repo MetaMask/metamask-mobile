@@ -10,7 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
-import { AccountActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AccountActionsModal.selectors';
+import { AccountActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
@@ -28,7 +28,6 @@ const initialState = {
 };
 
 jest.mock('../../../core/Engine', () => ({
-  ...jest.requireActual('../../../core/Engine'),
   context: {
     PreferencesController: {
       selectedAddress: `0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756`,
@@ -65,6 +64,18 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+    }),
+    useRoute: () => ({
+      params: {
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
+      },
     }),
   };
 });
@@ -105,16 +116,16 @@ describe('AccountActions', () => {
     });
 
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS),
     ).toBeDefined();
     expect(
-      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY),
     ).toBeDefined();
   });
 
@@ -124,13 +135,13 @@ describe('AccountActions', () => {
     });
 
     fireEvent.press(
-      getByTestId(AccountActionsModalSelectorsIDs.VIEW_ETHERSCAN),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://etherscan.io/address/0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+        url: 'https://etherscan.io/address/0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
         title: 'etherscan.io',
       },
     });
@@ -141,10 +152,10 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.SHARE_ADDRESS));
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS));
 
     expect(Share.open).toHaveBeenCalledWith({
-      message: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
+      message: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
     });
   });
 
@@ -154,7 +165,7 @@ describe('AccountActions', () => {
     });
 
     fireEvent.press(
-      getByTestId(AccountActionsModalSelectorsIDs.SHOW_PRIVATE_KEY),
+      getByTestId(AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(
@@ -162,6 +173,14 @@ describe('AccountActions', () => {
       {
         credentialName: 'private_key',
         shouldUpdateNav: true,
+        selectedAccount: {
+          address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          metadata: {
+            keyring: {
+              type: 'HD Key Tree',
+            },
+          },
+        },
       },
     );
   });
@@ -171,9 +190,18 @@ describe('AccountActions', () => {
       state: initialState,
     });
 
-    fireEvent.press(getByTestId(AccountActionsModalSelectorsIDs.EDIT_ACCOUNT));
+    fireEvent.press(getByTestId(AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT));
 
-    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName');
+    expect(mockNavigate).toHaveBeenCalledWith('EditAccountName', {
+      selectedAccount: {
+        address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+        metadata: {
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+      },
+    });
   });
 
   describe('clicks remove account', () => {
@@ -190,7 +218,7 @@ describe('AccountActions', () => {
       );
 
       fireEvent.press(
-        getByTestId(AccountActionsModalSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
+        getByTestId(AccountActionsBottomSheetSelectorsIDs.REMOVE_HARDWARE_ACCOUNT),
       );
 
       const alertFnMock = Alert.alert as jest.MockedFn<typeof Alert.alert>;

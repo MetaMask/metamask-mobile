@@ -22,18 +22,26 @@ const PickerNetwork = ({
   label,
   imageSource,
   hideNetworkName,
+  isDisabled = false,
   ...props
 }: PickerNetworkProps) => {
   const { styles } = useStyles(stylesheet, { style });
 
   return (
-    <TouchableOpacity style={styles.base} onPress={onPress} {...props}>
+    <TouchableOpacity
+      style={styles.base}
+      onPress={onPress}
+      disabled={isDisabled}
+      {...props}
+    >
       <View style={hideNetworkName ? styles.networkIconContainer : null}>
         <Avatar
           variant={AvatarVariant.Network}
           size={AvatarSize.Xs}
           name={label}
           imageSource={imageSource}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER}
+          accessibilityLabel={label}
         />
       </View>
       {hideNetworkName ? null : (

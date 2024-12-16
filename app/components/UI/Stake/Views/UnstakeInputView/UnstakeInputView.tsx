@@ -17,12 +17,16 @@ import { View } from 'react-native';
 import styleSheet from './UnstakeInputView.styles';
 import InputDisplay from '../../components/InputDisplay';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     isEth,
@@ -35,7 +39,7 @@ const UnstakeInputView = () => {
     handleCurrencySwitch,
     currencyToggleValue,
     percentageOptions,
-    handleAmountPress,
+    handleQuickAmountPress,
     handleKeypadChange,
     stakedBalanceValue,
   } = useUnstakingInputHandlers();
@@ -64,7 +68,23 @@ const UnstakeInputView = () => {
         amountFiat: fiatAmount,
       },
     });
-  }, [amountWei, fiatAmount, navigation]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
+        .addProperties({
+          selected_provider: 'consensys',
+          tokens_to_stake_native_value: amountEth,
+          tokens_to_stake_usd_value: fiatAmount,
+        })
+        .build(),
+    );
+  }, [
+    amountEth,
+    amountWei,
+    createEventBuilder,
+    fiatAmount,
+    navigation,
+    trackEvent,
+  ]);
 
   return (
     <ScreenLayout style={styles.container}>
@@ -77,13 +97,32 @@ const UnstakeInputView = () => {
         fiatAmount={fiatAmount}
         isEth={isEth}
         currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitch}
+        handleCurrencySwitch={withMetaMetrics(handleCurrencySwitch, {
+          event: MetaMetricsEvents.UNSTAKE_INPUT_CURRENCY_SWITCH_CLICKED,
+          properties: {
+            selected_provider: 'consensys',
+            text: 'Currency Switch Trigger',
+            location: 'Unstake Input View',
+            // We want to track the currency switching to. Not the current currency.
+            currency_type: isEth ? 'fiat' : 'native',
+          },
+        })}
         currencyToggleValue={currencyToggleValue}
       />
       <UnstakeInputViewBanner style={styles.unstakeBanner} />
       <QuickAmounts
         amounts={percentageOptions}
-        onAmountPress={handleAmountPress}
+        onAmountPress={({ value }: { value: number }) =>
+          withMetaMetrics(handleQuickAmountPress, {
+            event: MetaMetricsEvents.UNSTAKE_INPUT_QUICK_AMOUNT_CLICKED,
+            properties: {
+              location: 'UnstakeInputView',
+              amount: value,
+              is_max: value === 1,
+              mode: isEth ? 'native' : 'fiat',
+            },
+          })({ value })
+        }
       />
       <Keypad
         value={isEth ? amountEth : fiatAmount}

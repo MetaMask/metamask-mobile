@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
@@ -9,24 +9,26 @@ import {
 import { selectChainId } from '../../../../selectors/networkController';
 import {
   hexToBN,
-  renderFiat,
   renderFromWei,
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
-import usePooledStakes from './usePooledStakes';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const rawAccountBalance = selectedAddress
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
+    : '0';
+
+  const stakedBalance = selectedAddress
+    ? accountsByChainId[chainId]?.[selectedAddress]?.stakedBalance || '0'
     : '0';
 
   const balanceETH = useMemo(
@@ -49,21 +51,26 @@ const useBalance = () => {
     [balanceWei, conversionRate],
   );
 
-  const { pooledStakesData } = usePooledStakes();
-  const assets = hexToBN(pooledStakesData.assets).toString('hex');
   const formattedStakedBalanceETH = useMemo(
-    () => `${renderFromWei(assets)} ETH`,
-    [assets],
+    () => `${renderFromWei(stakedBalance)} ETH`,
+    [stakedBalance],
   );
 
   const stakedBalanceFiatNumber = useMemo(
-    () => weiToFiatNumber(assets, conversionRate),
-    [assets, conversionRate],
+    () => weiToFiatNumber(stakedBalance, conversionRate),
+    [stakedBalance, conversionRate],
   );
 
   const formattedStakedBalanceFiat = useMemo(
-    () => renderFiat(stakedBalanceFiatNumber, currentCurrency, 2),
-    [currentCurrency, stakedBalanceFiatNumber],
+    () =>
+      weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(stakedBalance) as any,
+        conversionRate,
+        currentCurrency,
+      ),
+    [currentCurrency, stakedBalance, conversionRate],
   );
 
   return {
@@ -71,7 +78,7 @@ const useBalance = () => {
     balanceFiat,
     balanceWei,
     balanceFiatNumber,
-    stakedBalanceWei: assets ?? '0',
+    stakedBalanceWei: hexToBN(stakedBalance).toString(),
     formattedStakedBalanceETH,
     stakedBalanceFiatNumber,
     formattedStakedBalanceFiat,

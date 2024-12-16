@@ -16,30 +16,39 @@ const mockedNetworkControllerState = mockNetworkState({
   ticker: 'ETH',
 });
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    NetworkController: {
-      getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
-        provider: {
-          sendAsync: () => null,
+jest.mock('../../../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    context: {
+      NetworkController: {
+        getProviderAndBlockTracker: jest.fn().mockImplementation(() => ({
+          provider: {
+            sendAsync: () => null,
+          },
+        })),
+        getNetworkClientById: () => ({
+          configuration: {
+            chainId: '0x1',
+          },
+        }),
+        state: {
+          ...mockedNetworkControllerState,
         },
-      })),
-      getNetworkClientById: () => ({
-        configuration: {
-          chainId: '0x1',
+      },
+      KeyringController: {
+        state: {
+          keyrings: [],
         },
-      }),
-      state: {
-        ...mockedNetworkControllerState,
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE,
       },
     },
-    KeyringController: {
-      state: {
-        keyrings: [],
-      },
-    },
-  },
-}));
+  };
+});
 
 const initialState = {
   engine: {

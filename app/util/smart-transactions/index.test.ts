@@ -3,7 +3,7 @@ import {
   getShouldStartApprovalRequest,
   getShouldUpdateApprovalRequest,
   getTransactionType,
-  getSmartTransactionMetricsProperties
+  getSmartTransactionMetricsProperties,
 } from './index';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import type { ControllerMessenger } from '../../core/Engine';
@@ -16,6 +16,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '52fd9ae0-098f-11ef-949b-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'MetaMask Mobile',
         rawTransaction:
@@ -53,6 +54,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '07178fe0-0990-11ef-96e6-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'MetaMask Mobile',
         rawTransaction:
@@ -91,6 +93,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'a3551450-098f-11ef-95ae-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'app.uniswap.org',
         rawTransaction:
@@ -128,6 +131,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'a3551450-098f-11ef-95ae-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'app.uniswap.org',
         rawTransaction:
@@ -165,6 +169,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: 'b3095a90-0990-11ef-9909-c3c3278f64e5',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:
@@ -203,6 +208,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '15879650-0991-11ef-9ce4-2f3037ea41a6',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:
@@ -241,6 +247,7 @@ describe('Smart Transactions utils', () => {
         deviceConfirmedOn: 'metamask_mobile',
         gasFeeEstimatesLoaded: true,
         id: '1587e470-0991-11ef-9ce4-2f3037ea41a6',
+        networkClientId: 'testNetworkClientId',
         networkID: undefined,
         origin: 'EXAMPLE_FOX_CODE',
         rawTransaction:
@@ -276,44 +283,60 @@ describe('Smart Transactions utils', () => {
   });
   describe('getShouldStartFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldStartApprovalRequest(false, true, false, false);
+      const res = getShouldStartApprovalRequest(false, true, false, false, false);
       expect(res).toBe(true);
+    });
+    it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldStartApprovalRequest(false, true, false, false, true);
+      expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldStartApprovalRequest(true, false, false, false);
+      const res = getShouldStartApprovalRequest(true, false, false, false, false);
       expect(res).toBe(true);
     });
+    it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldStartApprovalRequest(true, false, false, false, true);
+      expect(res).toBe(false);
+    });
     it('returns true for Swap approve transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, true, false);
+      const res = getShouldStartApprovalRequest(false, false, true, false, false);
       expect(res).toBe(true);
     });
     it('returns false for Swap transaction', () => {
-      const res = getShouldStartApprovalRequest(false, false, false, true);
+      const res = getShouldStartApprovalRequest(false, false, false, true, false);
       expect(res).toBe(false);
     });
   });
   describe('getShouldUpdateFlow', () => {
     it('returns true for Send transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, true, false);
+      const res = getShouldUpdateApprovalRequest(false, true, false, false);
       expect(res).toBe(true);
+    });
+    it('returns false for Send transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldUpdateApprovalRequest(false, true, false, true);
+      expect(res).toBe(false);
     });
     it('returns true for Dapp transaction', () => {
-      const res = getShouldUpdateApprovalRequest(true, false, false);
+      const res = getShouldUpdateApprovalRequest(true, false, false, false);
       expect(res).toBe(true);
     });
+    it('returns false for Dapp transaction when mobileReturnTxHashAsap is true', () => {
+      const res = getShouldUpdateApprovalRequest(true, false, false, true);
+      expect(res).toBe(false);
+    });
     it('returns true for Swap transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, false, true);
+      const res = getShouldUpdateApprovalRequest(false, false, true, false);
       expect(res).toBe(true);
     });
     it('returns false for Swap approve transaction', () => {
-      const res = getShouldUpdateApprovalRequest(false, false, false);
+      const res = getShouldUpdateApprovalRequest(false, false, false, false);
       expect(res).toBe(false);
     });
   });
   describe('getSmartTransactionMetricsProperties', () => {
     let smartTransactionsController: SmartTransactionsController;
     let controllerMessenger: ControllerMessenger;
-  
+
     beforeEach(() => {
       smartTransactionsController = {
         getSmartTransactionByMinedTxHash: jest.fn(),
@@ -322,116 +345,125 @@ describe('Smart Transactions utils', () => {
         subscribe: jest.fn(),
       } as unknown as ControllerMessenger;
     });
-  
+
     it('returns empty object if transactionMeta is undefined', async () => {
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         undefined,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
-  
+
     it('returns metrics if smartTransaction is found by getSmartTransactionByMinedTxHash', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: true,
           timedOut: false,
           proxied: true,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
-  
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: true,
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
       });
     });
-  
+
     it('waits for smartTransaction if not found and waitForSmartTransaction is true', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: false,
           timedOut: true,
           proxied: false,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(undefined);
-      (controllerMessenger.subscribe as jest.Mock).mockImplementation((event, callback) => {
-        if (event === 'SmartTransactionsController:smartTransactionConfirmationDone') {
-          setTimeout(() => callback(smartTransaction), 100);
-        }
-      });
-  
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(undefined);
+      (controllerMessenger.subscribe as jest.Mock).mockImplementation(
+        (event, callback) => {
+          if (
+            event ===
+            'SmartTransactionsController:smartTransactionConfirmationDone'
+          ) {
+            setTimeout(() => callback(smartTransaction), 100);
+          }
+        },
+      );
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         true,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: false,
         smart_transaction_timed_out: true,
         smart_transaction_proxied: false,
       });
     });
-  
+
     it('returns empty object if smartTransaction is not found and waitForSmartTransaction is false', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(undefined);
-  
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(undefined);
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
-  
+
     it('returns empty object if smartTransaction is found but statusMetadata is undefined', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {};
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
-  
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({});
     });
-  
+
     it('returns metrics if smartTransaction is found with statusMetadata', async () => {
       const transactionMeta = { hash: '0x123' } as TransactionMeta;
       const smartTransaction = {
         statusMetadata: {
-          duplicated: true,
           timedOut: false,
           proxied: true,
         },
       };
-      (smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock).mockReturnValue(smartTransaction);
-  
+      (
+        smartTransactionsController.getSmartTransactionByMinedTxHash as jest.Mock
+      ).mockReturnValue(smartTransaction);
+
       const result = await getSmartTransactionMetricsProperties(
         smartTransactionsController,
         transactionMeta,
         false,
-        controllerMessenger
+        controllerMessenger,
       );
       expect(result).toEqual({
-        smart_transaction_duplicated: true,
         smart_transaction_timed_out: false,
         smart_transaction_proxied: true,
       });

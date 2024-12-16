@@ -7,8 +7,9 @@ import {
   StakingType,
   ChainId,
 } from '@metamask/stake-sdk';
-import { Contract } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { Stake } from '../../sdk/stakeSdkProvider';
+import useBalance from '../useBalance';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -32,6 +33,10 @@ const MOCK_DEPOSIT_CONTRACT_ADDRESS =
 const MOCK_RECEIVER_ADDRESS = '0x316bde155acd07609872a56bc32ccfb0b13201fa';
 const MOCK_UNSTAKE_GAS_LIMIT = 73135;
 const MOCK_UNSTAKE_VALUE_WEI = '10000000000000000'; // 0.01 ETH
+const MOCK_STAKED_BALANCE_VALUE_WEI = '20000000000000000'; // 0.02 ETH
+const MOCK_UNSTAKE_ALL_VALUE_WEI = MOCK_STAKED_BALANCE_VALUE_WEI;
+const MOCK_USER_SHARES = '20000000000008000';
+const MOCK_NETWORK_CLIENT_ID = 'testNetworkClientId';
 
 const ENCODED_TX_UNSTAKE_DATA = {
   chainId: 1,
@@ -53,6 +58,10 @@ const mockEncodeEnterExitQueueTransactionData = jest
 const mockConvertToShares = jest
   .fn()
   .mockResolvedValue({ hex: '0x230fa39a9b6ca0', type: 'BigNumber' });
+
+const mockGetShares = jest
+  .fn()
+  .mockResolvedValue(BigNumber.from(MOCK_USER_SHARES));
 
 let mockAddTransaction: jest.Mock;
 
@@ -82,8 +91,14 @@ jest.mock('../../../../../core/Engine', () => {
 const mockPooledStakingContractService: PooledStakingContract = {
   chainId: ChainId.ETHEREUM,
   connectSignerOrProvider: mockConnectSignerOrProvider,
-  contract: new Contract('0x0000000000000000000000000000000000000000', []),
+  contract: {
+    ...new Contract('0x0000000000000000000000000000000000000000', []),
+    provider: {
+      call: jest.fn(),
+    },
+  } as unknown as Contract,
   convertToShares: mockConvertToShares,
+  getShares: mockGetShares,
   encodeClaimExitedAssetsTransactionData: jest.fn(),
   encodeDepositTransactionData: jest.fn(),
   encodeEnterExitQueueTransactionData: mockEncodeEnterExitQueueTransactionData,
@@ -98,10 +113,20 @@ const mockSdkContext: Stake = {
   stakingContract: mockPooledStakingContractService,
   sdkType: StakingType.POOLED,
   setSdkType: jest.fn(),
+  networkClientId: MOCK_NETWORK_CLIENT_ID,
+};
+
+const mockBalance: Pick<ReturnType<typeof useBalance>, 'stakedBalanceWei'> = {
+  stakedBalanceWei: MOCK_STAKED_BALANCE_VALUE_WEI,
 };
 
 jest.mock('../useStakeContext', () => ({
   useStakeContext: () => mockSdkContext,
+}));
+
+jest.mock('../useBalance', () => ({
+  __esModule: true,
+  default: () => mockBalance,
 }));
 
 describe('usePoolStakedUnstake', () => {
@@ -124,9 +149,28 @@ describe('usePoolStakedUnstake', () => {
         MOCK_RECEIVER_ADDRESS,
       );
 
+      expect(mockGetShares).toHaveBeenCalledTimes(0);
       expect(mockConvertToShares).toHaveBeenCalledTimes(1);
       expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
       expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
+      expect(mockAddTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('attempts to create and submit an unstake all transaction', async () => {
+      const { result } = renderHookWithProvider(() => usePoolStakedUnstake(), {
+        state: mockInitialState,
+      });
+
+      await result.current.attemptUnstakeTransaction(
+        MOCK_UNSTAKE_ALL_VALUE_WEI,
+        MOCK_RECEIVER_ADDRESS,
+      );
+
+      expect(mockConvertToShares).toHaveBeenCalledTimes(0);
+      expect(mockGetShares).toHaveBeenCalledTimes(1);
+      expect(mockEstimateEnterExitQueueGas).toHaveBeenCalledTimes(1);
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledTimes(1);
+      expect(mockEncodeEnterExitQueueTransactionData).toHaveBeenCalledWith(BigNumber.from(MOCK_USER_SHARES), MOCK_RECEIVER_ADDRESS, { gasLimit: MOCK_UNSTAKE_GAS_LIMIT });
       expect(mockAddTransaction).toHaveBeenCalledTimes(1);
     });
   });

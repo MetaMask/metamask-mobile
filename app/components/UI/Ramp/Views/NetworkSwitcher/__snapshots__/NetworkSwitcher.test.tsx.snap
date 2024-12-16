@@ -157,6 +157,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1050,6 +1051,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     style={null}
                                                   >
                                                     <View
+                                                      accessibilityLabel="Cronos Mainnet"
                                                       style={
                                                         {
                                                           "alignItems": "center",
@@ -1062,6 +1064,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                           "width": 16,
                                                         }
                                                       }
+                                                      testID="network-avatar-picker"
                                                     >
                                                       <Text
                                                         accessibilityRole="text"
@@ -1888,6 +1891,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -3026,6 +3030,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -4164,6 +4169,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -5302,6 +5308,7 @@ exports[`NetworkSwitcher View renders correctly while loading 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -6628,6 +6635,7 @@ exports[`NetworkSwitcher View renders correctly while loading 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -7954,6 +7962,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -8586,6 +8595,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -9218,6 +9228,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
