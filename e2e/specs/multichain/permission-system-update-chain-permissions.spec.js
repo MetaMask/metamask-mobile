@@ -67,7 +67,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     );
   });
 
-  fit('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+  it('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
     await withFixtures(
       {
         dapp: true,
