@@ -22,6 +22,7 @@ jobs:
       semver-version: 7.37.1
       previous-version-tag: v7.37.0
       mobile-build-version: "1514" # Hardcoded for testing purposes
+      github-token: ${{ secrets.BUG_REPORT_TOKEN }}
     permissions:
       contents: write
       pull-requests: write
