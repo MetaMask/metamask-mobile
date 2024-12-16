@@ -157,360 +157,360 @@ const clearStackNavigatorOptions = {
 
 const Stack = createStackNavigator();
 
-const OnboardingSuccessComponent = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
-    />
-  );
-};
+// const OnboardingSuccessComponent = () => {
+//   const navigation = useNavigation();
+//   return (
+//     <OnboardingSuccess
+//       onDone={() => navigation.reset({ routes: [{ name: 'HomeNav' }] })}
+//     />
+//   );
+// };
 
-const OnboardingSuccessComponentNoSRP = () => {
-  const navigation = useNavigation();
-  return (
-    <OnboardingSuccess
-      noSRP
-      onDone={() =>
-        navigation.reset({
-          routes: [{ name: 'HomeNav' }],
-        })
-      }
-    />
-  );
-};
+// const OnboardingSuccessComponentNoSRP = () => {
+//   const navigation = useNavigation();
+//   return (
+//     <OnboardingSuccess
+//       noSRP
+//       onDone={() =>
+//         navigation.reset({
+//           routes: [{ name: 'HomeNav' }],
+//         })
+//       }
+//     />
+//   );
+// };
 
-const OnboardingSuccessFlow = () => (
-  <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponent} // Used in SRP flow
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
-      component={DefaultSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.GENERAL_SETTINGS}
-      component={OnboardingGeneralSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.ASSETS_SETTINGS}
-      component={OnboardingAssetsSettings}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SECURITY_SETTINGS}
-      component={OnboardingSecuritySettings}
-    />
-  </Stack.Navigator>
-);
-/**
- * Stack navigator responsible for the onboarding process
- * Create Wallet and Import from Secret Recovery Phrase
- */
-const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="OnboardingCarousel">
-    <Stack.Screen name="Onboarding" component={Onboarding} />
-    <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
-    <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
-    <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS_FLOW}
-      component={OnboardingSuccessFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.SUCCESS}
-      component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
-    />
-    <Stack.Screen
-      name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
-      component={DefaultSettings}
-    />
-    <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-    <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-    <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
-    <Stack.Screen
-      name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-      component={ImportFromSecretRecoveryPhrase}
-    />
-    <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
-  </Stack.Navigator>
-);
+// const OnboardingSuccessFlow = () => (
+//   <Stack.Navigator initialRouteName={Routes.ONBOARDING.SUCCESS}>
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.SUCCESS}
+//       component={OnboardingSuccessComponent} // Used in SRP flow
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+//       component={DefaultSettings}
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.GENERAL_SETTINGS}
+//       component={OnboardingGeneralSettings}
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.ASSETS_SETTINGS}
+//       component={OnboardingAssetsSettings}
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.SECURITY_SETTINGS}
+//       component={OnboardingSecuritySettings}
+//     />
+//   </Stack.Navigator>
+// );
+// /**
+//  * Stack navigator responsible for the onboarding process
+//  * Create Wallet and Import from Secret Recovery Phrase
+//  */
+// const OnboardingNav = () => (
+//   <Stack.Navigator initialRouteName="OnboardingCarousel">
+//     <Stack.Screen name="Onboarding" component={Onboarding} />
+//     <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
+//     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+//     <Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
+//     <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.SUCCESS_FLOW}
+//       component={OnboardingSuccessFlow}
+//       options={{ headerShown: false }}
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.SUCCESS}
+//       component={OnboardingSuccessComponentNoSRP} // Used in SRP flow
+//     />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.DEFAULT_SETTINGS} // This is being used in import wallet flow
+//       component={DefaultSettings}
+//     />
+//     <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
+//     <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
+//     <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+//     <Stack.Screen
+//       name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+//       component={ImportFromSecretRecoveryPhrase}
+//     />
+//     <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+//   </Stack.Navigator>
+// );
 
-/**
- * Parent Stack navigator that allows the
- * child OnboardingNav navigator to push modals on top of it
- */
-const SimpleWebviewScreen = () => (
-  <Stack.Navigator mode={'modal'}>
-    <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
-  </Stack.Navigator>
-);
+// /**
+//  * Parent Stack navigator that allows the
+//  * child OnboardingNav navigator to push modals on top of it
+//  */
+// const SimpleWebviewScreen = () => (
+//   <Stack.Navigator mode={'modal'}>
+//     <Stack.Screen name={Routes.WEBVIEW.SIMPLE} component={SimpleWebview} />
+//   </Stack.Navigator>
+// );
 
-const OnboardingRootNav = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.ONBOARDING.NAV}
-    mode="modal"
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-    <Stack.Screen name={Routes.WEBVIEW.MAIN} component={SimpleWebviewScreen} />
-  </Stack.Navigator>
-);
+// const OnboardingRootNav = () => (
+//   <Stack.Navigator
+//     initialRouteName={Routes.ONBOARDING.NAV}
+//     mode="modal"
+//     screenOptions={{ headerShown: false }}
+//   >
+//     <Stack.Screen name="OnboardingNav" component={OnboardingNav} />
+//     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+//     <Stack.Screen name={Routes.WEBVIEW.MAIN} component={SimpleWebviewScreen} />
+//   </Stack.Navigator>
+// );
 
-const VaultRecoveryFlow = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-      component={RestoreWallet}
-    />
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
-      component={WalletRestored}
-    />
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
-      component={WalletResetNeeded}
-    />
-  </Stack.Navigator>
-);
+// const VaultRecoveryFlow = () => (
+//   <Stack.Navigator
+//     initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+//     screenOptions={{ headerShown: false }}
+//   >
+//     <Stack.Screen
+//       name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+//       component={RestoreWallet}
+//     />
+//     <Stack.Screen
+//       name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
+//       component={WalletRestored}
+//     />
+//     <Stack.Screen
+//       name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
+//       component={WalletResetNeeded}
+//     />
+//   </Stack.Navigator>
+// );
 
-const AddNetworkFlow = () => {
-  const route = useRoute();
+// const AddNetworkFlow = () => {
+//   const route = useRoute();
 
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="AddNetwork"
-        component={NetworkSettings}
-        initialParams={route?.params}
-      />
-    </Stack.Navigator>
-  );
-};
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen
+//         name="AddNetwork"
+//         component={NetworkSettings}
+//         initialParams={route?.params}
+//       />
+//     </Stack.Navigator>
+//   );
+// };
 
-const DetectedTokensFlow = () => (
-  <Stack.Navigator
-    mode={'modal'}
-    screenOptions={clearStackNavigatorOptions}
-    initialRouteName={'DetectedTokens'}
-  >
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
-    <Stack.Screen
-      name={'DetectedTokensConfirmation'}
-      component={DetectedTokensConfirmation}
-    />
-  </Stack.Navigator>
-);
+// const DetectedTokensFlow = () => (
+//   <Stack.Navigator
+//     mode={'modal'}
+//     screenOptions={clearStackNavigatorOptions}
+//     initialRouteName={'DetectedTokens'}
+//   >
+//     <Stack.Screen name={'DetectedTokens'} component={DetectedTokens} />
+//     <Stack.Screen
+//       name={'DetectedTokensConfirmation'}
+//       component={DetectedTokensConfirmation}
+//     />
+//   </Stack.Navigator>
+// );
 
-const RootModalFlow = () => (
-  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
-    <Stack.Screen
-      name={Routes.MODAL.WALLET_ACTIONS}
-      component={WalletActions}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.DELETE_WALLET}
-      component={DeleteWalletModal}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.MODAL_CONFIRMATION}
-      component={ModalConfirmation}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.MODAL_MANDATORY}
-      component={ModalMandatory}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.ACCOUNT_SELECTOR}
-      component={AccountSelector}
-    />
-    <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
-    <Stack.Screen
-      name={Routes.SHEET.SDK_FEEDBACK}
-      component={SDKFeedbackModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
-      component={SDKSessionModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.EXPERIENCE_ENHANCER}
-      component={ExperienceEnhancerModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.DATA_COLLECTION}
-      component={DataCollectionModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.SDK_DISCONNECT}
-      component={SDKDisconnectModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={AccountConnect}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={AccountPermissions}
-      initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
-      component={AccountPermissionsConfirmRevokeAll}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.CONNECTION_DETAILS}
-      component={ConnectionDetails}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
-      component={PermittedNetworksInfoSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.NETWORK_SELECTOR}
-      component={NetworkSelector}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.TOKEN_SORT}
-      component={TokenSortBottomSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.TOKEN_FILTER}
-      component={TokenFilterBottomSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.BASIC_FUNCTIONALITY}
-      component={BasicFunctionalityModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.PROFILE_SYNCING}
-      component={ProfileSyncingModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.RESET_NOTIFICATIONS}
-      component={ResetNotificationsModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
-      component={ReturnToAppModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.AMBIGUOUS_ADDRESS}
-      component={AmbiguousAddressSheet}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
-      component={TurnOffRememberMeModal}
-    />
-    <Stack.Screen
-      name={'AssetHideConfirmation'}
-      component={AssetHideConfirmation}
-    />
-    <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
-    <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
-    <Stack.Screen name={'NftOptions'} component={NftOptions} />
-    <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
-    <Stack.Screen
-      name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
-      component={EnableAutomaticSecurityChecksModal}
-    />
-    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
-    <Stack.Screen
-      name={Routes.SHEET.ACCOUNT_ACTIONS}
-      component={AccountActions}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
-      component={FiatOnTestnetsFriction}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.SHOW_IPFS}
-      component={ShowIpfsGatewaySheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
-      component={ShowDisplayNftMediaSheet}
-    />
-    <Stack.Screen
-      name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
-      component={NFTAutoDetectionModal}
-    />
-    {isNetworkUiRedesignEnabled() ? (
-      <Stack.Screen
-        name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
-        component={MultiRpcModal}
-      />
-    ) : null}
-    <Stack.Screen
-      name={Routes.SHEET.SHOW_TOKEN_ID}
-      component={ShowTokenIdSheet}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.ORIGIN_SPAM_MODAL}
-      component={OriginSpamModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
-      component={ChangeInSimulationModal}
-    />
-    <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-  </Stack.Navigator>
-);
+// const RootModalFlow = () => (
+//   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+//     <Stack.Screen
+//       name={Routes.MODAL.WALLET_ACTIONS}
+//       component={WalletActions}
+//     />
+//     <Stack.Screen
+//       name={Routes.MODAL.DELETE_WALLET}
+//       component={DeleteWalletModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.MODAL.MODAL_CONFIRMATION}
+//       component={ModalConfirmation}
+//     />
+//     <Stack.Screen
+//       name={Routes.MODAL.MODAL_MANDATORY}
+//       component={ModalMandatory}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.ACCOUNT_SELECTOR}
+//       component={AccountSelector}
+//     />
+//     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
+//     <Stack.Screen
+//       name={Routes.SHEET.SDK_FEEDBACK}
+//       component={SDKFeedbackModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
+//       component={SDKSessionModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.EXPERIENCE_ENHANCER}
+//       component={ExperienceEnhancerModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.DATA_COLLECTION}
+//       component={DataCollectionModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.SDK_DISCONNECT}
+//       component={SDKDisconnectModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.ACCOUNT_CONNECT}
+//       component={AccountConnect}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
+//       component={AccountPermissions}
+//       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS}
+//       component={AccountPermissionsConfirmRevokeAll}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.CONNECTION_DETAILS}
+//       component={ConnectionDetails}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
+//       component={PermittedNetworksInfoSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.NETWORK_SELECTOR}
+//       component={NetworkSelector}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.TOKEN_SORT}
+//       component={TokenSortBottomSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.TOKEN_FILTER}
+//       component={TokenFilterBottomSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.BASIC_FUNCTIONALITY}
+//       component={BasicFunctionalityModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.PROFILE_SYNCING}
+//       component={ProfileSyncingModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.RESET_NOTIFICATIONS}
+//       component={ResetNotificationsModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.RETURN_TO_DAPP_MODAL}
+//       component={ReturnToAppModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
+//       component={AmbiguousAddressSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.MODAL.TURN_OFF_REMEMBER_ME}
+//       component={TurnOffRememberMeModal}
+//     />
+//     <Stack.Screen
+//       name={'AssetHideConfirmation'}
+//       component={AssetHideConfirmation}
+//     />
+//     <Stack.Screen name={'DetectedTokens'} component={DetectedTokensFlow} />
+//     <Stack.Screen name={'AssetOptions'} component={AssetOptions} />
+//     <Stack.Screen name={'NftOptions'} component={NftOptions} />
+//     <Stack.Screen name={Routes.MODAL.UPDATE_NEEDED} component={UpdateNeeded} />
+//     <Stack.Screen
+//       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
+//       component={EnableAutomaticSecurityChecksModal}
+//     />
+//     <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+//     <Stack.Screen
+//       name={Routes.SHEET.ACCOUNT_ACTIONS}
+//       component={AccountActions}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.FIAT_ON_TESTNETS_FRICTION}
+//       component={FiatOnTestnetsFriction}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.SHOW_IPFS}
+//       component={ShowIpfsGatewaySheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}
+//       component={ShowDisplayNftMediaSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
+//       component={NFTAutoDetectionModal}
+//     />
+//     {isNetworkUiRedesignEnabled() ? (
+//       <Stack.Screen
+//         name={Routes.MODAL.MULTI_RPC_MIGRATION_MODAL}
+//         component={MultiRpcModal}
+//       />
+//     ) : null}
+//     <Stack.Screen
+//       name={Routes.SHEET.SHOW_TOKEN_ID}
+//       component={ShowTokenIdSheet}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.ORIGIN_SPAM_MODAL}
+//       component={OriginSpamModal}
+//     />
+//     <Stack.Screen
+//       name={Routes.SHEET.CHANGE_IN_SIMULATION_MODAL}
+//       component={ChangeInSimulationModal}
+//     />
+//     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+//   </Stack.Navigator>
+// );
 
-const ImportPrivateKeyView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
-    <Stack.Screen
-      name="ImportPrivateKeySuccess"
-      component={ImportPrivateKeySuccess}
-    />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-  </Stack.Navigator>
-);
+// const ImportPrivateKeyView = () => (
+//   <Stack.Navigator
+//     screenOptions={{
+//       headerShown: false,
+//     }}
+//   >
+//     <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+//     <Stack.Screen
+//       name="ImportPrivateKeySuccess"
+//       component={ImportPrivateKeySuccess}
+//     />
+//     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+//   </Stack.Navigator>
+// );
 
-const ConnectQRHardwareFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
-  </Stack.Navigator>
-);
+// const ConnectQRHardwareFlow = () => (
+//   <Stack.Navigator
+//     screenOptions={{
+//       headerShown: false,
+//     }}
+//   >
+//     <Stack.Screen name="ConnectQRHardware" component={ConnectQRHardware} />
+//   </Stack.Navigator>
+// );
 
-const LedgerConnectFlow = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-    initialRouteName={Routes.HW.LEDGER_CONNECT}
-  >
-    <Stack.Screen
-      name={Routes.HW.LEDGER_CONNECT}
-      component={LedgerSelectAccount}
-    />
-  </Stack.Navigator>
-);
+// const LedgerConnectFlow = () => (
+//   <Stack.Navigator
+//     screenOptions={{
+//       headerShown: false,
+//     }}
+//     initialRouteName={Routes.HW.LEDGER_CONNECT}
+//   >
+//     <Stack.Screen
+//       name={Routes.HW.LEDGER_CONNECT}
+//       component={LedgerSelectAccount}
+//     />
+//   </Stack.Navigator>
+// );
 
-const ConnectHardwareWalletFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name={Routes.HW.SELECT_DEVICE}
-      component={SelectHardwareWallet}
-    />
-  </Stack.Navigator>
-);
+// const ConnectHardwareWalletFlow = () => (
+//   <Stack.Navigator>
+//     <Stack.Screen
+//       name={Routes.HW.SELECT_DEVICE}
+//       component={SelectHardwareWallet}
+//     />
+//   </Stack.Navigator>
+// );
 
 const AppFlow = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
@@ -540,7 +540,7 @@ const AppFlow = () => {
         component={Login}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="OnboardingRootNav"
         component={OnboardingRootNav}
         options={{ headerShown: false }}
@@ -619,7 +619,7 @@ const AppFlow = () => {
           component={AddNetworkFlow}
           options={{ animationEnabled: true }}
         />
-      ) : null}
+      ) : null} */}
 
       <Stack.Screen
         name={Routes.LOCK_SCREEN}
@@ -882,7 +882,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      {
+      {/* {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       }
       <View>
@@ -891,9 +891,9 @@ const App: React.FC = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <PPOMView />
+      <PPOMView /> */}
       <AppFlow />
-      <Toast ref={toastRef} />
+      {/* <Toast ref={toastRef} /> */}
     </>
   );
 };
