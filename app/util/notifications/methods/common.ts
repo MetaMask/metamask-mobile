@@ -1,5 +1,4 @@
 import dayjs, { Dayjs } from 'dayjs';
-import isYesterday from 'dayjs/plugin/isYesterday';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
 import notifee from '@notifee/react-native';
@@ -29,12 +28,36 @@ import { calcTokenAmount } from '../../transactions';
 import images from '../../../images/image-icons';
 import I18n, { strings } from '../../../../locales/i18n';
 
+/**
+ * Checks if 2 date objects are on the same day
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates are same day.
+ */
+const isSameDay = (currentDate: Date, dateToCheck: Date) =>
+  currentDate.getFullYear() === dateToCheck.getFullYear() &&
+  currentDate.getMonth() === dateToCheck.getMonth() &&
+  currentDate.getDate() === dateToCheck.getDate();
+
+/**
+ * Checks if a date is "yesterday" from the current date
+ *
+ * @param currentDate
+ * @param dateToCheck
+ * @returns boolean if dates were "yesterday"
+ */
+const isYesterday = (currentDate: Date, dateToCheck: Date) => {
+  const yesterday = new Date(currentDate);
+  yesterday.setDate(currentDate.getDate() - 1);
+  return isSameDay(yesterday, dateToCheck);
+};
+
 // Extend dayjs with the plugins
-dayjs.extend(isYesterday);
 dayjs.extend(localeData);
 dayjs.extend(relativeTime);
 
-export function formatRelative(
+function formatRelative(
   date: Dayjs,
   currentDate: Dayjs,
   locale: string = 'en',
@@ -56,46 +79,31 @@ export function formatMenuItemDate(date?: Date, locale: string = 'en'): string {
   if (!date) {
     return strings('notifications.no_date');
   }
-  const currentDate = dayjs();
+
+  const currentDate = new Date();
+  const currentDayjsDate = dayjs();
   const dayjsDate = dayjs(date);
 
   dayjs.locale(locale);
 
   // E.g. 12:21
-  if (dayjsDate.isSame(currentDate, 'day')) {
+  if (dayjsDate.isSame(currentDayjsDate, 'day')) {
     return dayjsDate.format('HH:mm');
   }
 
   // E.g. Yesterday
-  if (dayjs().add(-1, 'day').isYesterday()) {
-    return formatRelative(dayjsDate, currentDate, I18n.locale);
+  if (isYesterday(currentDate, date)) {
+    return formatRelative(dayjsDate, currentDayjsDate, I18n.locale);
   }
 
-  // E.g. 21 Oct
-  if (dayjsDate.isSame(currentDate, 'year')) {
-    return dayjsDate.format('D MMM');
+  // E.g. Oct 21
+  if (dayjsDate.isSame(currentDayjsDate, 'year')) {
+    return dayjsDate.format('MMM D');
   }
 
-  // E.g. 21 Oct 2022
-  return dayjsDate.format('D MMM YYYY');
+  // E.g. Oct 21, 2022
+  return dayjsDate.format('MMM D, YYYY');
 }
-
-/**
- * Generates a unique key based on the provided text, index, and a random string.
- *
- * @param text - The text to be included in the key.
- * @param index - The index to be included in the key.
- * @returns The generated unique key.
- */
-export const getRandomKey = (text: string, index: number) => {
-  const key = `${text
-    .replace(/\s+/gu, '_')
-    .replace(/[^\w-]/gu, '')}-${index}-${Math.random()
-    .toString(36)
-    .substring(2, 15)}`;
-
-  return key;
-};
 
 interface FormatOptions {
   decimalPlaces?: number;
@@ -172,7 +180,7 @@ export const formatAmount = (numericAmount: number, opts?: FormatOptions) => {
   return numericAmount.toString();
 };
 
-export function hasNetworkFeeFields(
+function hasNetworkFeeFields(
   notification: OnChainRawNotification,
 ): notification is OnChainRawNotificationsWithNetworkFields {
   return 'network_fee' in notification.data;
