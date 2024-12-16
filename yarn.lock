@@ -13940,7 +13940,7 @@ axios-retry@^3.1.2:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
 
-axios@1.4.0, axios@1.7.7, axios@^0.28.0, axios@^0.x, axios@^1.6.7, axios@^1.6.8, axios@^1.7.4, axios@~1.6.8:
+axios@1.4.0, axios@1.7.7, axios@^0.28.0, axios@^0.x, axios@^1.6.8, axios@^1.7.4, axios@~1.6.8:
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.4.tgz#4c8ded1b43683c8dd362973c393f3ede24052aa2"
   integrity sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==
@@ -15158,13 +15158,13 @@ chrome-trace-event@^1.0.2:
   resolved "https://registry.yarnpkg.com/chrome-trace-event/-/chrome-trace-event-1.0.3.tgz#1015eced4741e15d06664a957dbbf50d041e26ac"
   integrity sha512-p3KULyQg4S7NIHixdwbGX+nFHkoBiA4YQmyWtjb8XngSKV124nJmRysgAeujbUVb15vh+RvFUfCPqU7rXk+hZg==
 
-chromedriver@^123.0.1:
-  version "123.0.1"
-  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-123.0.1.tgz#331672e08c0e7d8647ea40525946b4f0b045be7e"
-  integrity sha512-YQUIP/zdlzDIRCZNCv6rEVDSY4RAxo/tDL0OiGPPuai+z8unRNqJr/9V6XTBypVFyDheXNalKt9QxEqdMPuLAQ==
+chromedriver@^131.0.3:
+  version "131.0.3"
+  resolved "https://registry.yarnpkg.com/chromedriver/-/chromedriver-131.0.3.tgz#55f13389b855dbd681399aadd87a003bb0ab1186"
+  integrity sha512-DKHFt0ilcA/RJzY1ApBiJAil6fh08f9mXM8XbdDE1u+S1V5YVUNTUi4bOtJFZoAwS9nlV0H5W6InWrpXqSs2xg==
   dependencies:
     "@testim/chrome-version" "^1.1.4"
-    axios "^1.6.7"
+    axios "^1.7.4"
     compare-versions "^6.1.0"
     extract-zip "^2.0.1"
     proxy-agent "^6.4.0"
@@ -20450,7 +20450,7 @@ https-proxy-agent@^4.0.0:
     agent-base "5"
     debug "4"
 
-https-proxy-agent@^7.0.1, https-proxy-agent@^7.0.2, https-proxy-agent@^7.0.3, https-proxy-agent@^7.0.5:
+https-proxy-agent@^7.0.1, https-proxy-agent@^7.0.2, https-proxy-agent@^7.0.5:
   version "7.0.5"
   resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-7.0.5.tgz#9e8b5013873299e11fab6fd548405da2d6c602b2"
   integrity sha512-1e4Wqeblerz+tMKPIq2EMGiiWW1dIjZOksyHWSUm1rmuvw/how9hBHZ38lAGj5ID4Ik6EdkOw7NmWPy6LAwalw==
@@ -26005,21 +26005,7 @@ proxy-agent@6.3.1:
     proxy-from-env "^1.1.0"
     socks-proxy-agent "^8.0.2"
 
-proxy-agent@^6.4.0:
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/proxy-agent/-/proxy-agent-6.4.0.tgz#b4e2dd51dee2b377748aef8d45604c2d7608652d"
-  integrity sha512-u0piLU+nCOHMgGjRbimiXmA9kM/L9EHh3zL81xCdp7m+Y2pHIsnmbdDoEDoAz5geaonNR6q6+yOPQs6n4T6sBQ==
-  dependencies:
-    agent-base "^7.0.2"
-    debug "^4.3.4"
-    http-proxy-agent "^7.0.1"
-    https-proxy-agent "^7.0.3"
-    lru-cache "^7.14.1"
-    pac-proxy-agent "^7.0.1"
-    proxy-from-env "^1.1.0"
-    socks-proxy-agent "^8.0.2"
-
-proxy-agent@^6.5.0:
+proxy-agent@^6.4.0, proxy-agent@^6.5.0:
   version "6.5.0"
   resolved "https://registry.yarnpkg.com/proxy-agent/-/proxy-agent-6.5.0.tgz#9e49acba8e4ee234aacb539f89ed9c23d02f232d"
   integrity sha512-TmatMXdr2KlRiA2CyDu8GqR8EjahTG3aY3nXjdzFyoZbmB8hrBsTyMezhULIXKnC0jpfjlmiZ3+EaCzoInSu/A==
