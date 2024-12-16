@@ -12,7 +12,7 @@ import {
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { useMetrics } from '../../../hooks/useMetrics';
-import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/OnboardingWizardModal.selectors';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 import useHandleLayout from '../useHandleLayout';
 
 const styles = StyleSheet.create({

@@ -2,18 +2,20 @@ import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import {
   AccountTrackerController,
   AccountTrackerControllerState,
+  AccountTrackerControllerActions,
+  AccountTrackerControllerEvents,
   CurrencyRateController,
-  CurrencyRateStateChange,
-  GetCurrencyRateState,
   CurrencyRateState,
+  CurrencyRateControllerActions,
+  CurrencyRateControllerEvents,
   NftController,
   NftControllerState,
+  NftControllerActions,
+  NftControllerEvents,
   NftDetectionController,
   TokenListController,
   TokenListControllerActions,
   TokenListControllerEvents,
-  GetTokenListState,
-  TokenListStateChange,
   TokenListState,
   TokensController,
   TokensControllerActions,
@@ -21,17 +23,16 @@ import {
   TokensControllerState,
   TokenBalancesController,
   TokenBalancesControllerState,
+  TokenBalancesControllerActions,
+  TokenBalancesControllerEvents,
   TokenDetectionController,
   TokenRatesController,
   TokenRatesControllerState,
+  TokenRatesControllerActions,
+  TokenRatesControllerEvents,
   AssetsContractController,
-  AssetsContractControllerGetERC20BalanceOfAction,
-  AssetsContractControllerGetERC721AssetNameAction,
-  AssetsContractControllerGetERC721AssetSymbolAction,
-  AssetsContractControllerGetERC721TokenURIAction,
-  AssetsContractControllerGetERC721OwnerOfAction,
-  AssetsContractControllerGetERC1155BalanceOfAction,
-  AssetsContractControllerGetERC1155TokenURIAction,
+  AssetsContractControllerActions,
+  AssetsContractControllerEvents,
 } from '@metamask/assets-controllers';
 import {
   AddressBookController,
@@ -65,15 +66,16 @@ import {
 } from '@metamask/preferences-controller';
 import {
   TransactionController,
+  TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
-  GasFeeStateChange,
-  GetGasFeeState,
   GasFeeState,
+  GasFeeControllerActions,
+  GasFeeControllerEvents,
 } from '@metamask/gas-fee-controller';
 import {
   ApprovalController,
@@ -101,6 +103,8 @@ import {
 } from '@metamask/permission-controller';
 import SwapsController, {
   SwapsControllerState,
+  SwapsControllerActions,
+  SwapsControllerEvents,
 } from '@metamask/swaps-controller';
 import {
   PPOMController,
@@ -113,14 +117,17 @@ import {
   SnapController,
   AllowedActions as SnapsAllowedActions,
   AllowedEvents as SnapsAllowedEvents,
+  PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
+  JsonSnapsRegistry as SnapsRegistry,
   SnapsRegistryState,
-  PersistedSnapControllerState,
   SnapInterfaceControllerState,
   SnapInterfaceControllerEvents,
   SnapInterfaceControllerActions,
   SnapInterfaceController,
+  SnapsRegistryActions,
+  SnapsRegistryEvents,
 } from '@metamask/snaps-controllers';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -155,8 +162,17 @@ import {
   AccountsControllerEvents,
   AccountsControllerState,
 } from '@metamask/accounts-controller';
-import { BaseState } from '@metamask/base-controller';
 import { getPermissionSpecifications } from '../Permissions/specifications.js';
+import { ComposableControllerEvents } from '@metamask/composable-controller';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
+import {
+  RemoteFeatureFlagController,
+  RemoteFeatureFlagControllerState,
+} from '@metamask/remote-feature-flag-controller';
+import {
+  RemoteFeatureFlagControllerActions,
+  RemoteFeatureFlagControllerEvents,
+} from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
 
 /**
  * Controllers that area always instantiated
@@ -168,34 +184,41 @@ type RequiredControllers = Omit<Controllers, 'PPOMController'>;
  */
 type OptionalControllers = Pick<Controllers, 'PPOMController'>;
 
+/**
+ * Controllers that are defined with state.
+ */
+export type StatefulControllers = Omit<
+  Controllers,
+  (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+>;
+
 type PermissionsByRpcMethod = ReturnType<typeof getPermissionSpecifications>;
 type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-type AuthenticationControllerActions = AuthenticationController.AllowedActions;
-type UserStorageControllerActions = UserStorageController.AllowedActions;
-type NotificationsServicesControllerActions =
-  NotificationServicesController.AllowedActions;
-
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
+  | SnapsRegistryActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions
   | SnapsAllowedActions;
 type SnapsGlobalEvents =
   | SnapControllerEvents
+  | SnapsRegistryEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents
   | SnapsAllowedEvents;
 ///: END:ONLY_INCLUDE_IF
 
 type GlobalActions =
+  | AccountTrackerControllerActions
+  | NftControllerActions
+  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
-  | GetCurrencyRateState
-  | GetGasFeeState
-  | GetTokenListState
+  | CurrencyRateControllerActions
+  | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
   | PermissionControllerActions
@@ -203,51 +226,59 @@ type GlobalActions =
   | LoggingControllerActions
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalActions
-  | AuthenticationControllerActions
-  | UserStorageControllerActions
-  | NotificationsServicesControllerActions
   | SnapInterfaceControllerActions
+  | AuthenticationController.Actions
+  | UserStorageController.Actions
+  | NotificationServicesController.Actions
+  | NotificationServicesPushController.Actions
   ///: END:ONLY_INCLUDE_IF
-  | KeyringControllerActions
   | AccountsControllerActions
   | PreferencesControllerActions
   | PPOMControllerActions
+  | TokenBalancesControllerActions
   | TokensControllerActions
+  | TokenRatesControllerActions
   | TokenListControllerActions
+  | TransactionControllerActions
   | SelectedNetworkControllerActions
   | SmartTransactionsControllerActions
-  | AssetsContractControllerGetERC20BalanceOfAction
-  | AssetsContractControllerGetERC721AssetNameAction
-  | AssetsContractControllerGetERC721AssetSymbolAction
-  | AssetsContractControllerGetERC721TokenURIAction
-  | AssetsContractControllerGetERC721OwnerOfAction
-  | AssetsContractControllerGetERC1155BalanceOfAction
-  | AssetsContractControllerGetERC1155TokenURIAction;
+  | AssetsContractControllerActions
+  | RemoteFeatureFlagControllerActions;
 
 type GlobalEvents =
+  | ComposableControllerEvents<EngineState>
+  | AccountTrackerControllerEvents
+  | NftControllerEvents
+  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
-  | CurrencyRateStateChange
-  | GasFeeStateChange
+  | CurrencyRateControllerEvents
+  | GasFeeControllerEvents
   | KeyringControllerEvents
-  | TokenListStateChange
   | NetworkControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
   | SnapInterfaceControllerEvents
+  | AuthenticationController.Events
+  | UserStorageController.Events
+  | NotificationServicesController.Events
+  | NotificationServicesPushController.Events
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
-  | KeyringControllerEvents
   | PPOMControllerEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
+  | TokenBalancesControllerEvents
   | TokensControllerEvents
+  | TokenRatesControllerEvents
   | TokenListControllerEvents
   | TransactionControllerEvents
   | SelectedNetworkControllerEvents
-  | SmartTransactionsControllerEvents;
+  | SmartTransactionsControllerEvents
+  | AssetsContractControllerEvents
+  | RemoteFeatureFlagControllerEvents;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -268,7 +299,10 @@ export type ControllerMessenger = ExtendedControllerMessenger<
 /**
  * All mobile controllers, keyed by name
  */
-export interface Controllers {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
@@ -288,6 +322,7 @@ export interface Controllers {
   SelectedNetworkController: SelectedNetworkController;
   PhishingController: PhishingController;
   PreferencesController: PreferencesController;
+  RemoteFeatureFlagController: RemoteFeatureFlagController;
   PPOMController: PPOMController;
   TokenBalancesController: TokenBalancesController;
   TokenListController: TokenListController;
@@ -299,6 +334,7 @@ export interface Controllers {
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: SnapController;
+  SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
@@ -307,7 +343,7 @@ export interface Controllers {
   SnapInterfaceController: SnapInterfaceController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
-}
+};
 
 /**
  * Combines required and optional controllers for the Engine context type.
@@ -317,16 +353,19 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 /**
  * All engine state, keyed by controller name
  */
-export interface EngineState {
+// Interfaces are incompatible with our controllers and state types by default.
+// Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
-  AssetsContractController: BaseState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   PreferencesController: PreferencesState;
+  RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
@@ -335,8 +374,6 @@ export interface EngineState {
   SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
-  TokenDetectionController: BaseState;
-  NftDetectionController: BaseState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
   SnapsRegistry: SnapsRegistryState;
@@ -353,4 +390,4 @@ export interface EngineState {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
-}
+};

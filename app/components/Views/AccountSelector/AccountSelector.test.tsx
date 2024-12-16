@@ -2,7 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import {
   AccountSelectorParams,
@@ -140,7 +140,7 @@ describe('AccountSelector', () => {
     );
 
     const accountsList = screen.getByTestId(
-      AccountListViewSelectorsIDs.ACCOUNT_LIST_ID,
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
     expect(accountsList).toBeDefined();
   });
@@ -158,7 +158,7 @@ describe('AccountSelector', () => {
     );
 
     const addButton = screen.getByTestId(
-      AccountListViewSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
     expect(addButton).toBeDefined();
   });

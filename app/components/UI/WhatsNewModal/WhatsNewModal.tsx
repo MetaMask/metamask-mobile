@@ -29,7 +29,7 @@ import Icon, {
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import { whatsNewList } from './';
 import { Colors } from '../../../util/theme/models';
-import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WhatsNewModal.selectors';
+import { WhatsNewModalSelectorsIDs } from '../../../../e2e/selectors/Onboarding/WhatsNewModal.selectors';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
