@@ -513,7 +513,7 @@ const Stack = createStackNavigator();
 // );
 
 const AppFlow = () => {
-  const userLoggedIn = useSelector(selectUserLoggedIn);
+  // const userLoggedIn = useSelector(selectUserLoggedIn);
 
   return (
     <Stack.Navigator
@@ -525,15 +525,12 @@ const AppFlow = () => {
         animationEnabled: false,
       }}
     >
-      {userLoggedIn && (
-        // Render only if wallet is unlocked
-        // Note: This is probably not needed but nice to ensure that wallet isn't accessible when it is locked
-        <Stack.Screen
-          name={Routes.ONBOARDING.HOME_NAV}
-          component={Main}
-          options={{ headerShown: false }}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.ONBOARDING.HOME_NAV}
+        component={Main}
+        options={{ headerShown: false }}
+      />
+
       <Stack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
       <Stack.Screen
         name={Routes.ONBOARDING.LOGIN}
