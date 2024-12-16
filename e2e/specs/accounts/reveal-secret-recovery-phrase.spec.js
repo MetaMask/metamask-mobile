@@ -39,7 +39,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
-    await loginToApp();
+    // await loginToApp();
   });
 
   afterAll(async () => {
