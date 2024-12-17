@@ -8,8 +8,8 @@ jobs:
   # Commented for testing so we don't create extra versions
   # generate-build-version:
   #   uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
-    permissions:
-      id-token: write
+  #   permissions:
+  #     id-token: write
 
 
   create-release-pr:
@@ -21,7 +21,7 @@ jobs:
       base-branch: rls-alignment
       semver-version: 7.37.1
       previous-version-tag: v7.37.0
-      mobile-build-version: "1524" # Hardcoded for testing purposes
+      mobile-build-version: "1525" # Hardcoded for testing purposes
     secrets:
       github-token: ${{ secrets.PR_TOKEN }}
     permissions:
