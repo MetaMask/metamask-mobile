@@ -26850,10 +26850,10 @@ react-native-fast-crypto@^2.2.0:
     buffer "^5.0.8"
     rfc4648 "^1.0.0"
 
-react-native-flipper@^0.263.0:
-  version "0.263.0"
-  resolved "https://registry.yarnpkg.com/react-native-flipper/-/react-native-flipper-0.263.0.tgz#c92ae71b04011470deb244ad48f58f76776d7e4a"
-  integrity sha512-eGQjGYHEJ3FQdcCijqziK9NTOaxZS7fyWKMpPbdqGgWMPDh/wUntmT/1VG1QxZgEJFInhCTge2LPIvjhn8poyg==
+react-native-flipper@^0.273.0:
+  version "0.273.0"
+  resolved "https://registry.yarnpkg.com/react-native-flipper/-/react-native-flipper-0.273.0.tgz#20c6922d135705da65e00631ade6c1bb9ab7fc3c"
+  integrity sha512-Eq0GW5ng8MrrW8JQDPIuqf9NVZRMhOF6xOCA7+xsy1sYxDZ1q81x5Mt4jNkk4vAdqILT5u8l/0ONilEIbiWlBQ==
 
 react-native-fs@^2.20.0:
   version "2.20.0"
