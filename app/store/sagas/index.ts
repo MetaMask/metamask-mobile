@@ -19,6 +19,7 @@ import {
 } from './xmlHttpRequestOverride';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+import { browserStateMachine } from './browser';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -143,6 +144,7 @@ export function* startAppServices() {
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(startAppServices);
+  yield fork(browserStateMachine);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
 }
