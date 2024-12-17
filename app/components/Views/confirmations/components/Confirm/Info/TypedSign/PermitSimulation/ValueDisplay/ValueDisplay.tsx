@@ -158,7 +158,10 @@ const PermitSimulationValueDisplay: React.FC<
           </View>
         </Box>
         <Box compact noBorder>
-          {/* TODO - add fiat shorten prop */}
+          {/*
+            TODO - add fiat shorten prop after tooltip logic has been updated
+            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
+          */}
           {fiatValue && <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />}
         </Box>
         {hasValueModalOpen && (
