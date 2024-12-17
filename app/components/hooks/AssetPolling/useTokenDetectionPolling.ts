@@ -2,8 +2,10 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
+  selectAllPopularNetworkConfigurations,
   selectChainId,
-  selectNetworkConfigurations,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
@@ -11,14 +13,25 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 
 const useTokenDetectionPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
   const currentChainId = useSelector(selectChainId);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const useTokenDetection = useSelector(selectUseTokenDetection);
+  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
-  const chainIdsToPoll = isPortfolioViewEnabled()
-    ? chainIds ?? Object.keys(networkConfigurations)
-    : [currentChainId];
+  // if all networks are selected, poll all popular networks
+  const filteredChainIds =
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? Object.values(networkConfigurationsPopularNetworks).map(
+          (network) => network.chainId,
+        )
+      : [currentChainId];
+
+  // if portfolio view is enabled, poll all chain ids
+  const chainIdsToPoll = chainIds ?? filteredChainIds;
 
   const { TokenDetectionController } = Engine.context;
 
