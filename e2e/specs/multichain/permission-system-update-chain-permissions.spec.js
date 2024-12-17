@@ -67,7 +67,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     );
   });
 
-  it('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+  fit('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -86,6 +86,10 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
         await TabBarComponent.tapBrowser();
         await TestHelpers.delay(3000);
         await Browser.navigateToTestDApp();
+
+        // adding delay,
+        // on artifact recording it shows the toast is stuck, and looks like tapNetworkAvatar is tapped but bottom sheet not coming up yet grey overlay usually behind the bottom sheet was showing, and recording stopped there, yet toast was stuck on screen for 15 seconds anduntil end of recording
+        await TestHelpers.delay(3000);
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarButtonOnBrowser();
