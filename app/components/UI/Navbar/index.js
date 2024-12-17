@@ -140,16 +140,14 @@ const styles = StyleSheet.create({
     top: 2,
     right: 10,
   },
-<<<<<<< HEAD
   headerLeftButton: {
     marginHorizontal: 16,
   },
   headerRightButton: {
     marginHorizontal: 16,
-=======
+  },
   addressCopyWrapper: {
     marginHorizontal: 4,
->>>>>>> a59756873da17fc420f8f14d27c267224a2097ac
   },
 });
 
