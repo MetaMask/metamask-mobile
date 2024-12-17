@@ -87,6 +87,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
               screen: Routes.BROWSER_VIEW,
             });
             break;
+          case Routes.NEW_BROWSING_EXPERIENCE_VIEW:
+            navigation.navigate(Routes.NEW_BROWSING_EXPERIENCE_VIEW);
+            break;
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;

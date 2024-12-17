@@ -90,6 +90,8 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import { NewBrowsingExperienceView } from '../../Views/NewBrowsingExperienceView';
+import { isNewBrowsingExperienceEnabled } from '../../../util/browser';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -218,6 +220,18 @@ const BrowserFlow = () => (
       component={BrowserUrlModal}
       options={{ animationEnabled: false, headerShown: false }}
     />
+  </Stack.Navigator>
+);
+
+const NewBrowsingExperienceFlow = () => (
+  <Stack.Navigator
+    initialRouteName={Routes.NEW_BROWSING_EXPERIENCE_VIEW}
+    mode={'modal'}
+    screenOptions={{
+      cardStyle: { backgroundColor: importedColors.transparent },
+    }}
+  >
+    <Stack.Screen name={Routes.NEW_BROWSING_EXPERIENCE_VIEW} component={NewBrowsingExperienceView} />
   </Stack.Navigator>
 );
 
@@ -471,6 +485,10 @@ const HomeTabs = () => {
       },
       rootScreenName: Routes.BROWSER_VIEW,
     },
+    newBrowsingExperience: {
+      tabBarIconKey: TabBarIconKey.Browser,
+      rootScreenName: Routes.NEW_BROWSING_EXPERIENCE_VIEW,
+    },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
@@ -549,11 +567,19 @@ const HomeTabs = () => {
             options={options.actions}
             component={WalletTabModalFlow}
           />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={options.browser}
-            component={BrowserFlow}
-          />
+          {isNewBrowsingExperienceEnabled() ? (
+            <Tab.Screen
+              name={Routes.NEW_BROWSING_EXPERIENCE_VIEW}
+              options={options.newBrowsingExperience}
+              component={NewBrowsingExperienceFlow}
+            />
+          ) : (
+            <Tab.Screen
+              name={Routes.BROWSER.HOME}
+              options={options.browser}
+              component={BrowserFlow}
+            />
+          )}
 
           <Tab.Screen
             name={Routes.SETTINGS_VIEW}
