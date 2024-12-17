@@ -26,9 +26,10 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import UrlParser from 'url-parse';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -58,7 +59,7 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   // TODO: Replace "any" with type
@@ -117,9 +118,13 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+          .addProperties({
+            chain_id: getDecimalChainId(providerConfig.chainId),
+          })
+          .build(),
+      );
     } else {
       onPress?.();
     }
@@ -131,6 +136,7 @@ const AccountRightButton = ({
     navigate,
     providerConfig.chainId,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
@@ -138,7 +144,7 @@ const AccountRightButton = ({
   const currentUrl = route.params?.url;
   let hostname;
   if (currentUrl) {
-    hostname = new URL(currentUrl).hostname;
+    hostname = new UrlParser(currentUrl)?.hostname;
   }
 
   const { networkName, networkImageSource } = useNetworkInfo(hostname);

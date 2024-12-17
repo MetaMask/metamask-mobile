@@ -42,12 +42,6 @@ class TestDApp {
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
-  get ethSignButton() {
-    return Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETH_SIGN,
-    );
-  }
   get increaseAllowanceButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -93,6 +87,13 @@ class TestDApp {
     );
   }
 
+  get addTokensToWalletButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -101,12 +102,11 @@ class TestDApp {
     await this.tapButton(this.ApproveButton);
   }
 
-  async tapEthSignButton() {
-    await this.tapButton(this.ethSignButton);
-  }
-
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
+  }
+  async tapAddERC20TokenToWalletButton() {
+    await this.tapButton(this.addTokensToWalletButton);
   }
 
   async tapPersonalSignButton() {

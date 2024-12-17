@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, isValidElement } from 'react';
 import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -23,12 +23,16 @@ const TooltipModal = ({ route }: TooltipModalProps) => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <View style={styles.container}>
+      <View>
         <BottomSheetHeader onClose={onCloseModal}>
           <Text variant={TextVariant.HeadingMD}>{title}</Text>
         </BottomSheetHeader>
         <View style={styles.content}>
-          <Text variant={TextVariant.BodyMD}>{tooltip}</Text>
+          {isValidElement(tooltip) ? (
+            tooltip
+          ) : (
+            <Text variant={TextVariant.BodyMD}>{tooltip}</Text>
+          )}
         </View>
       </View>
     </BottomSheet>

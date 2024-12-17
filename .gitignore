@@ -23,6 +23,7 @@ DerivedData
 project.xcworkspace
 ios/debug.xcconfig
 ios/release.xcconfig
+.xcode.env.local
 
 # android / intellij
 build/
@@ -40,6 +41,7 @@ android/app/_build*
 
 # if we ever want to add google services
 android/app/google-services.json
+ios/GoogleService-Info.plist
 
 # node.js
 node_modules/
@@ -124,3 +126,13 @@ app/util/termsOfUse/termsOfUseContent.ts
 docs/assets/termsOfUse.html
 
 /app/images/branding
+
+# build metadata
+android/app/src/main/assets/modules.json
+
+# Google firebase base64 derived configs
+**/GoogleService-Info.plist
+# Expo
+.expo
+dist/
+web-build/

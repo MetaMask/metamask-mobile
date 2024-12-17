@@ -111,6 +111,7 @@ describe('Migration #51', () => {
         engine: {
           backgroundState: {
             NetworkController: {
+              networkConfigurations: {},
               providerConfig: null,
             },
           },

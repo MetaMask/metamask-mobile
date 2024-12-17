@@ -12,4 +12,9 @@ export interface NetworkConnectMultiSelectorProps {
   urlWithProtocol: string;
   hostname: string;
   onBack: () => void;
+  isRenderedAsBottomSheet?: boolean;
+  onNetworksSelected?: (selectedChainIds: string[]) => void;
+  initialChainId?: string;
+  selectedChainIds?: string[];
+  isInitializedWithPermittedChains?: boolean;
 }

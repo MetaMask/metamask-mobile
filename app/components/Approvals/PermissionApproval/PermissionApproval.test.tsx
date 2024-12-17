@@ -9,6 +9,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { render } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useOriginSource from '../../hooks/useOriginSource';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useMetrics');
@@ -16,6 +18,8 @@ jest.mock('../../../components/hooks/useMetrics');
 jest.mock('../../Views/AccountConnect', () => ({
   createAccountConnectNavDetails: jest.fn(),
 }));
+
+jest.mock('../../hooks/useOriginSource');
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -68,21 +72,24 @@ const mockSelectorState = (state: any) => {
 
 const mockTrackEvent = jest.fn();
 
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
+
 describe('PermissionApproval', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
+    jest.clearAllMocks();
+    (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
   });
 
   it('navigates', async () => {
@@ -118,7 +125,12 @@ describe('PermissionApproval', () => {
 
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: HOST_INFO_MOCK,
+      requestData: {
+        ...HOST_INFO_MOCK,
+        metadata: {
+          ...HOST_INFO_MOCK.metadata,
+        },
+      },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
@@ -142,14 +154,17 @@ describe('PermissionApproval', () => {
 
     render(<PermissionApproval navigation={navigationMock} />);
 
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledWith(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.CONNECT_REQUEST_STARTED,
-      {
+    )
+      .addProperties({
         number_of_accounts: 3,
-        source: 'PERMISSION SYSTEM',
-      },
-    );
+        source: 'IN_APP_BROWSER',
+      })
+      .build();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
   it('does not navigate if no approval request', async () => {

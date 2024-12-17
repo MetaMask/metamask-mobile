@@ -16,3 +16,9 @@ export const selectShowCustomNonce = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) => settingsState.showCustomNonce,
 );
+
+export const selectBasicFunctionalityEnabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    settingsState.basicFunctionalityEnabled as boolean,
+);

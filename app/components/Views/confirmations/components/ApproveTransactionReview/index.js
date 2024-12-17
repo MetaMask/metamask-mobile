@@ -6,14 +6,13 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import Eth from 'ethjs-query';
+import Eth from '@metamask/ethjs-query';
 import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import PropTypes from 'prop-types';
 import { getApproveNavbar } from '../../../../UI/Navbar';
 import { connect } from 'react-redux';
 import { getHost } from '../../../../../util/browser';
 import {
-  safeToChecksumAddress,
   getAddressAccountType,
   getTokenDetails,
   shouldShowBlockExplorer,
@@ -57,12 +56,12 @@ import { withNavigation } from '@react-navigation/compat';
 import {
   isTestNet,
   isMultiLayerFeeNetwork,
-  fetchEstimatedMultiLayerL1Fee,
   isMainnetByChainId,
   TESTNET_FAUCETS,
   isTestNetworkWithFaucet,
   getDecimalChainId,
 } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import CustomSpendCap from '../../../../../component-library/components-temp/CustomSpendCap';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Logger from '../../../../../util/Logger';
@@ -104,6 +103,7 @@ import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { WC2Manager } from '../../../../../core/WalletConnect/WalletConnectV2';
+import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
@@ -362,7 +362,11 @@ class ApproveTransactionReview extends PureComponent {
       // Check if it is walletConnect origin
       WC2Manager.getInstance().then((wc2) => {
         this.originIsWalletConnect = wc2.getSessions().some((session) => {
-          if (session.peer.metadata.url === origin) {
+          // Otherwise, compare the origin with the metadata URL
+          if (
+            session.peer.metadata.url === origin ||
+            origin.startsWith(WALLET_CONNECT_ORIGIN)
+          ) {
             DevLogger.log(
               `ApproveTransactionReview::componentDidMount Found matching session for origin ${origin}`,
             );
@@ -384,7 +388,10 @@ class ApproveTransactionReview extends PureComponent {
       decodeApproveData(data);
     const encodedDecimalAmount = hexToBN(encodedHexAmount).toString();
 
-    const contract = tokenList[safeToChecksumAddress(to)];
+    // The tokenList addresses we get from state are not checksum addresses
+    // also, the tokenList we get does not contain the tokenStandard, so even if the token exists in tokenList we will
+    // need to fetch it using getTokenDetails
+    const contract = tokenList[to];
     if (tokenAllowanceState) {
       const {
         tokenSymbol: symbol,
@@ -400,7 +407,7 @@ class ApproveTransactionReview extends PureComponent {
       tokenBalance = balance;
       tokenStandard = standard;
       createdSpendCap = isReadyToApprove;
-    } else if (!contract) {
+    } else {
       try {
         const result = await getTokenDetails(to, from, encodedDecimalAmount);
 
@@ -423,12 +430,9 @@ class ApproveTransactionReview extends PureComponent {
           );
         }
       } catch (e) {
-        tokenSymbol = 'ERC20 Token';
-        tokenDecimals = 18;
+        tokenSymbol = contract?.symbol || 'ERC20 Token';
+        tokenDecimals = contract?.decimals || 18;
       }
-    } else {
-      tokenSymbol = contract.symbol;
-      tokenDecimals = contract.decimals;
     }
 
     const approveAmount = fromTokenMinimalUnit(
@@ -482,8 +486,10 @@ class ApproveTransactionReview extends PureComponent {
       },
       () => {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.APPROVAL_STARTED,
-          this.getAnalyticsParams(),
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_STARTED)
+            .addProperties(this.getAnalyticsParams())
+            .build(),
         );
       },
     );
@@ -615,12 +621,17 @@ class ApproveTransactionReview extends PureComponent {
     const { transaction, tokensLength, accountsLength, providerType } =
       this.props;
 
-    this.props.metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(event)
+        .addProperties({
+          view: transaction.origin,
+          numberOfTokens: tokensLength,
+          numberOfAccounts: accountsLength,
+          network: providerType,
+        })
+        .build(),
+    );
   };
 
   toggleViewData = () => {
@@ -631,7 +642,9 @@ class ApproveTransactionReview extends PureComponent {
   toggleViewDetails = () => {
     const { viewDetails } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.DAPP_APPROVE_SCREEN_VIEW_DETAILS)
+        .build(),
     );
     this.setState({ viewDetails: !viewDetails });
   };
@@ -645,8 +658,10 @@ class ApproveTransactionReview extends PureComponent {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -664,7 +679,9 @@ class ApproveTransactionReview extends PureComponent {
       originalApproveAmount,
     } = this.state;
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
     );
 
     updateTokenAllowanceState({
@@ -752,8 +769,10 @@ class ApproveTransactionReview extends PureComponent {
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_COPIED,
-      analyticsParams,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(analyticsParams)
+        .build(),
     );
   };
 
@@ -826,7 +845,7 @@ class ApproveTransactionReview extends PureComponent {
     const errorPress = isTestNetwork ? this.goToFaucet : this.buyEth;
     const errorLinkText = isTestNetwork
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       !gasEstimateType ||
@@ -890,6 +909,7 @@ class ApproveTransactionReview extends PureComponent {
               onConfirmPress={this.onConfirmPress}
               confirmDisabled={shouldDisableConfirmButton}
               confirmButtonState={this.getConfirmButtonState()}
+              confirmTestID="Confirm"
             >
               <View style={styles.actionViewChildren}>
                 <ScrollView nestedScrollEnabled>
@@ -1206,7 +1226,9 @@ class ApproveTransactionReview extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -1214,11 +1236,13 @@ class ApproveTransactionReview extends PureComponent {
     const { onCancel, transaction } = this.props;
     onCancel && onCancel();
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-      {
-        ...this.getAnalyticsParams(),
-        ...getBlockaidTransactionMetricsParams(transaction),
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+        .addProperties({
+          ...this.getAnalyticsParams(),
+          ...getBlockaidTransactionMetricsParams(transaction),
+        })
+        .build(),
     );
   };
 
@@ -1231,11 +1255,13 @@ class ApproveTransactionReview extends PureComponent {
 
     if (tokenStandard === ERC20 && !isReadyToApprove) {
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED,
-        {
-          ...this.getAnalyticsParams(),
-          ...getBlockaidTransactionMetricsParams(this.props.transaction),
-        },
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_PERMISSION_UPDATED)
+          .addProperties({
+            ...this.getAnalyticsParams(),
+            ...getBlockaidTransactionMetricsParams(this.props.transaction),
+          })
+          .build(),
       );
       return this.setState({ isReadyToApprove: true });
     }

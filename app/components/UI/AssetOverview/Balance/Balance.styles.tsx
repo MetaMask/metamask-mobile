@@ -24,9 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       overflow: 'hidden',
     },
     title: {
-      ...typography.sHeadingSM,
-      marginVertical: 0,
-      paddingVertical: 8,
+      paddingVertical: 4,
       paddingHorizontal: 15,
     } as TextStyle,
     text: {

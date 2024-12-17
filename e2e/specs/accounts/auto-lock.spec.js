@@ -11,13 +11,13 @@ import {
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import AutoLockModal from '../../pages/modals/AutoLockModal';
+import AutoLockModal from '../../pages/Settings/SecurityAndPrivacy/AutoLockModal';
 import Assertions from '../../utils/Assertions.js';
 import WalletView from '../../pages/wallet/WalletView.js';
-import LoginView from '../../pages/LoginView.js';
+import LoginView from '../../pages/wallet/LoginView.js';
 
 const fixtureServer = new FixtureServer();
 
@@ -29,7 +29,7 @@ describe(Regression('Auto-Lock'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -41,7 +41,7 @@ describe(Regression('Auto-Lock'), () => {
 
   it('backgrounds then relaunches without needing password on default auto-lock setting', async () => {
     await device.sendToHome();
-    await device.launchApp();
+    await TestHelpers.launchApp();
     await Assertions.checkIfVisible(WalletView.container);
   });
 
@@ -53,8 +53,8 @@ describe(Regression('Auto-Lock'), () => {
     await AutoLockModal.tapAutoLockImmediately();
     await TabBarComponent.tapWallet();
     await device.sendToHome();
-    await device.launchApp();
+    await TestHelpers.launchApp();
     await Assertions.checkIfNotVisible(WalletView.container);
-    await Assertions.checkIfVisible(LoginView.getContainer());
+    await Assertions.checkIfVisible(LoginView.container);
   });
 });

@@ -6,12 +6,15 @@ import renderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 
 import WalletActions from './WalletActions';
-import { WalletActionsModalSelectorsIDs } from '../../../../e2e/selectors/Modals/WalletActionsModal.selectors';
-import Engine from '../../../core/Engine';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletActionsBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-
-const mockEngine = Engine;
+import { mockNetworkState } from '../../../util/test/network';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  expectedUuid2,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -29,15 +32,17 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       NetworkController: {
-        providerConfig: { type: 'mainnet', chainId: '0x1', ticker: 'ETH' },
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-}));
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -82,19 +87,19 @@ describe('WalletActions', () => {
     });
 
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.RECEIVE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
     expect(
-      getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
   });
 
@@ -115,11 +120,12 @@ describe('WalletActions', () => {
         backgroundState: {
           ...backgroundState,
           NetworkController: {
-            providerConfig: {
-              type: 'mainnet',
-              chainId: '0x1asdscxds',
-              ticker: 'eth',
-            },
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.SEPOLIA,
+              id: 'sepolia',
+              nickname: 'Sepolia',
+              ticker: 'ETH',
+            }),
           },
         },
       },
@@ -136,12 +142,12 @@ describe('WalletActions', () => {
       state: mockState,
     });
 
-    expect(queryByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON)).toBeNull();
+    expect(queryByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON)).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeNull();
     expect(
-      queryByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON),
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeNull();
   });
 
@@ -150,14 +156,16 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('should call the onSend function when the Send button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<WalletActions />);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SEND_BUTTON));
+    fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -166,7 +174,7 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.SWAP_BUTTON));
+    fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -175,8 +183,52 @@ describe('WalletActions', () => {
       state: mockInitialState,
     });
 
-    fireEvent.press(getByTestId(WalletActionsModalSelectorsIDs.BRIDGE_BUTTON));
+    fireEvent.press(getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalled();
+  });
+  it('disables action buttons when the account cannot sign transactions', () => {
+    const mockStateWithoutSigning: DeepPartial<RootState> = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine?.backgroundState,
+          AccountsController: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+            internalAccounts: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+              accounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                [expectedUuid2]: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                    expectedUuid2
+                  ],
+                  methods: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockStateWithoutSigning,
+    });
+
+    const buyButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON);
+    const sellButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON);
+    const sendButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+    const swapButton = getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
+    const bridgeButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
+    );
+
+    expect(buyButton.props.disabled).toBe(true);
+    expect(sellButton.props.disabled).toBe(true);
+    expect(sendButton.props.disabled).toBe(true);
+    expect(swapButton.props.disabled).toBe(true);
+    expect(bridgeButton.props.disabled).toBe(true);
   });
 });

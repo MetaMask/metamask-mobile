@@ -11,7 +11,7 @@ export const RPC = NetworkType.rpc;
 export const NO_RPC_BLOCK_EXPLORER = 'NO_BLOCK_EXPLORER';
 export const PRIVATENETWORK = 'PRIVATENETWORK';
 export const DEFAULT_MAINNET_CUSTOM_NAME = 'Ethereum Main Custom';
-export const IPFS_DEFAULT_GATEWAY_URL = 'https://cloudflare-ipfs.com/ipfs/';
+export const IPFS_DEFAULT_GATEWAY_URL = 'https://dweb.link/ipfs/';
 
 /**
  * @enum {string}

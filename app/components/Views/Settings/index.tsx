@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
-import { useNavigation, CommonActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import SettingsDrawer from '../../UI/SettingsDrawer';
 import { getSettingsNavigationOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
@@ -18,7 +18,10 @@ import { TextColor } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
-import { isMutichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMultichainVersion1Enabled,
+  isPermissionsSettingsV1Enabled,
+} from '../../../util/networks';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -31,7 +34,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,9 +45,6 @@ const Settings = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.seedphraseBackedUp,
   );
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const passwordSet = useSelector((state: any) => state.user.passwordSet);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -57,22 +57,31 @@ const Settings = () => {
   }, [updateNavBar]);
 
   const onPressGeneral = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_GENERAL);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_GENERAL).build());
     navigation.navigate('GeneralSettings');
   };
 
   const onPressAdvanced = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_ADVANCED);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_ADVANCED).build());
     navigation.navigate('AdvancedSettings');
   };
 
   const onPressNotifications = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_NOTIFICATIONS);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_NOTIFICATIONS).build(),
+    );
     navigation.navigate(Routes.SETTINGS.NOTIFICATIONS);
   };
 
   const onPressSecurity = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SETTINGS_SECURITY_AND_PRIVACY,
+      ).build(),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.VIEW_SECURITY_SETTINGS).build(),
+    );
     navigation.navigate('SecuritySettings');
   };
 
@@ -81,12 +90,16 @@ const Settings = () => {
   };
 
   const onPressOnRamp = () => {
-    trackEvent(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONRAMP_SETTINGS_CLICKED).build(),
+    );
     navigation.navigate(Routes.RAMP.SETTINGS);
   };
 
   const onPressExperimental = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_EXPERIMENTAL);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SETTINGS_EXPERIMENTAL).build(),
+    );
     navigation.navigate('ExperimentalSettings');
   };
 
@@ -95,12 +108,16 @@ const Settings = () => {
   };
 
   const onPressInfo = () => {
-    trackEvent(MetaMetricsEvents.SETTINGS_ABOUT);
+    trackEvent(createEventBuilder(MetaMetricsEvents.SETTINGS_ABOUT).build());
     navigation.navigate('CompanySettings');
   };
 
   const onPressContacts = () => {
     navigation.navigate('ContactsSettings');
+  };
+
+  const onPressDeveloperOptions = () => {
+    navigation.navigate('DeveloperOptions');
   };
 
   const goToManagePermissions = () => {
@@ -124,7 +141,11 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const submitFeedback = () => {
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK);
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SEND_FEEDBACK,
+      ).build(),
+    );
     goToBrowserUrl(
       'https://community.metamask.io/c/feature-requests-ideas/',
       strings('app_settings.request_feature'),
@@ -136,24 +157,13 @@ const Settings = () => {
       'https://support.metamask.io',
       strings('app_settings.contact_support'),
     );
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+    );
   };
 
   const onPressLock = async () => {
-    await Authentication.lockApp();
-    if (!passwordSet) {
-      navigation.navigate('OnboardingRootNav', {
-        screen: Routes.ONBOARDING.NAV,
-        params: { screen: 'Onboarding' },
-      });
-    } else {
-      // TODO: Consolidate navigation action for locking app
-      const resetAction = CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked: true } }],
-      });
-      navigation.dispatch(resetAction);
-    }
+    await Authentication.lockApp({ locked: true });
   };
 
   const lock = () => {
@@ -173,7 +183,9 @@ const Settings = () => {
       ],
       { cancelable: false },
     );
-    trackEvent(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_LOGOUT).build(),
+    );
   };
 
   let aboutMetaMaskTitle = strings('app_settings.info_title');
@@ -214,7 +226,7 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
         />
       )}
-      {isMutichainVersion1Enabled && (
+      {isMultichainVersion1Enabled && isPermissionsSettingsV1Enabled && (
         <SettingsDrawer
           description={strings('app_settings.permissions_desc')}
           onPress={goToManagePermissions}
@@ -280,6 +292,12 @@ const Settings = () => {
         onPress={onPressInfo}
         testID={SettingsViewSelectorsIDs.ABOUT_METAMASK}
       />
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <SettingsDrawer
+          title={strings('app_settings.developer_options.title')}
+          onPress={onPressDeveloperOptions}
+        />
+      )}
       <SettingsDrawer
         title={strings('app_settings.request_feature')}
         onPress={submitFeedback}

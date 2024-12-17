@@ -24,7 +24,7 @@ import {
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
 import { Hex } from '@metamask/utils';
-import { BLOCKAID_SUPPORTED_CHAIN_IDS } from '../../util/networks';
+import { SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST } from '../../util/networks';
 
 export interface PPOMRequest {
   method: string;
@@ -38,7 +38,6 @@ const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
   TRANSACTION_METHOD,
-  'eth_sign',
   'eth_signTypedData',
   'eth_signTypedData_v1',
   'eth_signTypedData_v3',
@@ -64,7 +63,12 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
     NetworkController,
     PPOMController: ppomController,
   } = Engine.context;
-  const chainId = NetworkController.state.providerConfig.chainId;
+
+  const {
+    configuration: { chainId },
+  } = NetworkController.getNetworkClientById(
+    NetworkController.state?.selectedNetworkClientId,
+  );
   const isConfirmationMethod = CONFIRMATION_METHODS.includes(req.method);
   const isSupportedChain = await isChainSupported(chainId);
   const isBlockaidFeatEnabled = await isBlockaidFeatureEnabled();
@@ -133,7 +137,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 }
 
 async function isChainSupported(chainId: Hex): Promise<boolean> {
-  let supportedChainIds = BLOCKAID_SUPPORTED_CHAIN_IDS;
+  let supportedChainIds = SECURITY_PROVIDER_SUPPORTED_CHAIN_IDS_FALLBACK_LIST;
   try {
     if (isSecurityAlertsAPIEnabled()) {
       supportedChainIds = await getSecurityAlertsAPISupportedChainIds();
@@ -151,14 +155,19 @@ async function validateWithController(
   ppomController: PPOMController,
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
-  const response = (await ppomController.usePPOM((ppom) =>
-    ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
-  )) as SecurityAlertResponse;
+  try{
+    const response = (await ppomController.usePPOM((ppom) =>
+      ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
+    )) as SecurityAlertResponse;
 
-  return {
-    ...response,
-    source: SecurityAlertSource.Local,
-  };
+    return {
+      ...response,
+      source: SecurityAlertSource.Local,
+    };
+  } catch (e) {
+    Logger.log(`Error validating request with PPOM: ${e}`);
+    return {...SECURITY_ALERT_RESPONSE_FAILED, source: SecurityAlertSource.Local,};
+  }
 }
 
 async function validateWithAPI(

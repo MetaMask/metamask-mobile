@@ -16,19 +16,20 @@ import Fuse from 'fuse.js';
 import { strings } from '../../../../../locales/i18n';
 import ScreenLayout from './ScreenLayout';
 import Feather from 'react-native-vector-icons/Feather';
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
 import ModalDragger from '../../../Base/ModalDragger';
 import { useTheme } from '../../../../util/theme';
 import RegionAlert from './RegionAlert';
 import { RampType, Region, ScreenLocation } from '../types';
 import useAnalytics from '../hooks/useAnalytics';
 import createModalStyles from './modals/Modal.styles';
-
-// TODO: Convert into typescript and correctly type
-// TODO: Replace "any" with type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ListItem = BaseListItem as any;
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemSelect from '../../../../component-library/components/List/ListItemSelect';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const MAX_REGION_RESULTS = 20;
 
@@ -224,35 +225,29 @@ const RegionModal: React.FC<Props> = ({
 
   const renderRegionItem = useCallback(
     ({ item: region }: { item: Region }) => (
-      <TouchableOpacity
+      <ListItemSelect
+        style={styles.listItem}
+        isSelected={selectedRegion?.id === region.id}
         onPress={() => handleOnRegionPressCallback(region)}
         accessibilityRole="button"
         accessible
       >
-        <ListItem style={styles.listItem}>
-          <ListItem.Content>
-            <ListItem.Body>
-              <View style={styles.region}>
-                <View style={styles.emoji}>
-                  <Text>{region.emoji}</Text>
-                </View>
-                <View>
-                  <Text black bold={selectedRegion?.id === region.id}>
-                    {region.name}
-                  </Text>
-                </View>
-              </View>
-            </ListItem.Body>
-            {region.states && (
-              <ListItem.Amounts>
-                <Text primary big>
-                  {'>'}
-                </Text>
-              </ListItem.Amounts>
-            )}
-          </ListItem.Content>
-        </ListItem>
-      </TouchableOpacity>
+        <ListItemColumn widthType={WidthType.Fill}>
+          <View style={styles.region}>
+            <View style={styles.emoji}>
+              <Text>{region.emoji}</Text>
+            </View>
+            <View>
+              <Text variant={TextVariant.BodyLGMedium}>{region.name}</Text>
+            </View>
+          </View>
+        </ListItemColumn>
+        {region.states && (
+          <ListItemColumn>
+            <Text variant={TextVariant.BodyLGMedium}>{'>'}</Text>
+          </ListItemColumn>
+        )}
+      </ListItemSelect>
     ),
     [
       handleOnRegionPressCallback,
@@ -267,7 +262,7 @@ const RegionModal: React.FC<Props> = ({
   const renderEmptyList = useMemo(
     () => (
       <View style={modalStyles.emptyList}>
-        <Text>
+        <Text variant={TextVariant.BodyLGMedium}>
           {strings('fiat_on_ramp_aggregator.region.no_region_results', {
             searchString,
           })}
@@ -285,7 +280,7 @@ const RegionModal: React.FC<Props> = ({
     if (!sectionTitle) return null;
     return (
       <ListItem style={styles.listItem}>
-        <Text>{sectionTitle}</Text>
+        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
       </ListItem>
     );
   };
@@ -360,7 +355,7 @@ const RegionModal: React.FC<Props> = ({
                     color={colors.icon.default}
                   />
                 </TouchableOpacity>
-                <Text bold black>
+                <Text variant={TextVariant.BodyLGMedium}>
                   {regionInTransit?.name}
                 </Text>
                 <View style={styles.ghostSpacer} />

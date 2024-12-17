@@ -1,0 +1,130 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Footer should match snapshot for personal sign 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={0.2}
+    onPress={[MockFunction]}
+    style={
+      [
+        [
+          {
+            "borderRadius": 100,
+            "justifyContent": "center",
+            "padding": 15,
+          },
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#0376c9",
+            "borderWidth": 1,
+          },
+          {
+            "backgroundColor": "#f2f4f6",
+            "flex": 1,
+          },
+        ],
+        null,
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#007aff",
+            "fontSize": 17,
+            "fontWeight": "500",
+            "textAlign": "center",
+          },
+          null,
+          [
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "textAlign": "center",
+            },
+            {
+              "color": "#0376c9",
+            },
+            undefined,
+          ],
+          null,
+        ]
+      }
+    >
+      Reject
+    </Text>
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "width": 8,
+      }
+    }
+  />
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={0.2}
+    onPress={[MockFunction]}
+    style={
+      [
+        [
+          {
+            "borderRadius": 100,
+            "justifyContent": "center",
+            "padding": 15,
+          },
+          {
+            "backgroundColor": "#0376c9",
+            "minHeight": 50,
+          },
+          {
+            "flex": 1,
+          },
+        ],
+        null,
+      ]
+    }
+  >
+    <Text
+      style={
+        [
+          {
+            "color": "#007aff",
+            "fontSize": 17,
+            "fontWeight": "500",
+            "textAlign": "center",
+          },
+          null,
+          [
+            {
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 14,
+              "fontWeight": "600",
+              "textAlign": "center",
+            },
+            {
+              "color": "#ffffff",
+            },
+            undefined,
+          ],
+          null,
+        ]
+      }
+    >
+      Confirm
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

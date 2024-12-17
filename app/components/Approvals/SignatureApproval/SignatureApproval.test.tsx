@@ -25,11 +25,7 @@ describe('SignatureApproval', () => {
     jest.resetAllMocks();
   });
 
-  it.each([
-    ApprovalTypes.ETH_SIGN,
-    ApprovalTypes.PERSONAL_SIGN,
-    ApprovalTypes.ETH_SIGN_TYPED_DATA,
-  ])(
+  it.each([ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA])(
     'populates message params if approval type is %s',
     (approvalType: string) => {
       mockApprovalRequest({

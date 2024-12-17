@@ -1,12 +1,14 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-api';
+import { BtcAccountType, InternalAccount } from '@metamask/keyring-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
+  hasCreatedBtcMainnetAccount,
+  hasCreatedBtcTestnetAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -23,6 +25,7 @@ import {
   MOCK_KEYRINGS,
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 /**
  * Generates a mocked AccountsController state
@@ -90,7 +93,6 @@ describe('Accounts Controller Selectors', () => {
         },
         methods: [
           'personal_sign',
-          'eth_sign',
           'eth_signTransaction',
           'eth_signTypedData_v1',
           'eth_signTypedData_v3',
@@ -156,9 +158,9 @@ describe('Accounts Controller Selectors', () => {
       );
     });
   });
-  describe('selectSelectedInternalAccountChecksummedAddress', () => {
+  describe('selectSelectedInternalAccountFormattedAddress', () => {
     it('returns selected internal account address in checksum format', () => {
-      const result = selectSelectedInternalAccountChecksummedAddress({
+      const result = selectSelectedInternalAccountFormattedAddress({
         engine: {
           backgroundState: {
             AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -170,7 +172,7 @@ describe('Accounts Controller Selectors', () => {
       expect(result).toEqual(checksummedAddress);
     });
     it('returns undefined if selected account does not exist', () => {
-      const result = selectSelectedInternalAccountChecksummedAddress({
+      const result = selectSelectedInternalAccountFormattedAddress({
         engine: {
           backgroundState: {
             AccountsController: {
@@ -184,6 +186,67 @@ describe('Accounts Controller Selectors', () => {
         },
       } as RootState);
       expect(result).toEqual(undefined);
+    });
+  });
+});
+
+describe('Bitcoin Account Selectors', () => {
+  function getStateWithAccount(account: InternalAccount) {
+    return {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [account.id]: account,
+              },
+              selectedAccount: account.id,
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+  }
+
+  const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
+  const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+
+  const btcMainnetAccount = createMockInternalAccount(
+    MOCK_BTC_MAINNET_ADDRESS,
+    'Bitcoin Account',
+    KeyringTypes.snap,
+    BtcAccountType.P2wpkh,
+  );
+
+  const btcTestnetAccount = createMockInternalAccount(
+    MOCK_BTC_TESTNET_ADDRESS,
+    'Bitcoin Testnet Account',
+    KeyringTypes.snap,
+    BtcAccountType.P2wpkh,
+  );
+
+  describe('hasCreatedBtcMainnetAccount', () => {
+    it('returns true when a BTC mainnet account exists', () => {
+      const state = getStateWithAccount(btcMainnetAccount);
+      expect(hasCreatedBtcMainnetAccount(state)).toBe(true);
+    });
+
+    it('returns false when no BTC mainnet account exists', () => {
+      const state = getStateWithAccount(btcTestnetAccount);
+      expect(hasCreatedBtcMainnetAccount(state)).toBe(false);
+    });
+  });
+
+  describe('hasCreatedBtcTestnetAccount', () => {
+    it('returns true when a BTC testnet account exists', () => {
+      const state = getStateWithAccount(btcTestnetAccount);
+      expect(hasCreatedBtcTestnetAccount(state)).toBe(true);
+    });
+
+    it('returns false when no BTC testnet account exists', () => {
+      const state = getStateWithAccount(btcMainnetAccount);
+      expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
     });
   });
 });

@@ -1,16 +1,16 @@
 'use strict';
 import { SmokeAssets } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/modals/NetworkEducationModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
-import FiatOnTestnetsModal from '../../pages/modals/FiatOnTestnetsModal.js';
+import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet.js';
 import Assertions from '../../utils/Assertions.js';
 import TestHelpers from '../../helpers.js';
 
@@ -33,6 +33,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
 
         // Switch to Sepolia
         await WalletView.tapNetworksButtonOnNavBar();
+        await NetworkListModal.scrollToBottomOfNetworkList();
         await NetworkListModal.changeNetworkTo(SEPOLIA);
         await NetworkEducationModal.tapGotItButton();
 
@@ -50,7 +51,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
         await SettingsView.tapAdvancedTitle();
         await AdvancedSettingsView.scrollToShowFiatOnTestnetsToggle();
         await AdvancedSettingsView.tapShowFiatOnTestnetsSwitch();
-        await FiatOnTestnetsModal.tapContinueButton();
+        await FiatOnTestnetsBottomSheet.tapContinueButton();
 
         // Verify fiat values are displayed
         await TabBarComponent.tapWallet();

@@ -38,7 +38,6 @@ const METHODS_TO_REDIRECT = {
   eth_requestAccounts: true,
   eth_sendTransaction: true,
   eth_signTransaction: true,
-  eth_sign: true,
   personal_sign: true,
   eth_signTypedData: true,
   eth_signTypedData_v3: true,
@@ -176,16 +175,22 @@ class WalletConnect {
               const selectedAddress =
                 Engine.context.AccountsController.getSelectedAccount().address?.toLowerCase();
 
+              const chainId = payload.params[0].chainId;
+
               checkActiveAccountAndChainId({
                 address: payload.params[0].from,
-                chainId: payload.params[0].chainId,
+                chainId,
                 isWalletConnect: true,
                 activeAccounts: [selectedAddress],
                 hostname: payloadHostname,
               });
 
+              const { NetworkController } = Engine.context;
+              const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+
               const trx = await addTransaction(payload.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
+                networkClientId,
                 origin: this.url.current
                   ? WALLET_CONNECT_ORIGIN + this.url.current
                   : undefined,

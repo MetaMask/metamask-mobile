@@ -16,7 +16,6 @@ exports[`Asset should render correctly 1`] = `
         "flex": 1,
       }
     }
-    testID="txn-screen"
   >
     <View
       style={

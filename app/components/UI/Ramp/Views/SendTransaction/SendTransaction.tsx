@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -58,6 +58,7 @@ import { generateTransferData } from '../../../../../util/transactions';
 import useAnalytics from '../../hooks/useAnalytics';
 import { toHex } from '@metamask/controller-utils';
 import { RAMPS_SEND } from '../../constants';
+import { selectNetworkClientId } from '../../../../../selectors/networkController';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -70,7 +71,10 @@ function SendTransaction() {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
+  const networkClientId = useSelector(selectNetworkClientId);
   const trackEvent = useAnalytics();
+
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const {
     styles,
@@ -125,35 +129,37 @@ function SendTransaction() {
     } catch {
       return;
     }
-    let transactionParams: TransactionParams;
-    const amount = addHexPrefix(
-      new BN(
-        toTokenMinimalUnit(
-          orderData.cryptoAmount || '0',
-          orderData.cryptoCurrency.decimals,
-        ).toString(),
-      ).toString('hex'),
-    );
-    if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
-      transactionParams = {
-        from: safeToChecksumAddress(orderData.walletAddress) as string,
-        to: safeToChecksumAddress(orderData.depositWallet),
-        value: amount,
-        chainId: chainIdAsHex,
-      };
-    } else {
-      transactionParams = {
-        from: safeToChecksumAddress(orderData.walletAddress) as string,
-        to: safeToChecksumAddress(orderData.cryptoCurrency.address),
-        value: '0x0',
-        data: generateTransferData('transfer', {
-          toAddress: safeToChecksumAddress(orderData.depositWallet),
-          amount,
-        }),
-      };
-    }
 
     try {
+      setIsConfirming(true);
+      let transactionParams: TransactionParams;
+      const amount = addHexPrefix(
+        new BN(
+          toTokenMinimalUnit(
+            orderData.cryptoAmount || '0',
+            orderData.cryptoCurrency.decimals,
+          ).toString(),
+        ).toString('hex'),
+      );
+      if (orderData.cryptoCurrency.address === NATIVE_ADDRESS) {
+        transactionParams = {
+          from: safeToChecksumAddress(orderData.walletAddress) as string,
+          to: safeToChecksumAddress(orderData.depositWallet),
+          value: amount,
+          chainId: chainIdAsHex,
+        };
+      } else {
+        transactionParams = {
+          from: safeToChecksumAddress(orderData.walletAddress) as string,
+          to: safeToChecksumAddress(orderData.cryptoCurrency.address),
+          value: '0x0',
+          data: generateTransferData('transfer', {
+            toAddress: safeToChecksumAddress(orderData.depositWallet),
+            amount,
+          }),
+        };
+      }
+
       trackEvent(
         'OFFRAMP_SEND_TRANSACTION_INVOKED',
         //@ts-expect-error - TODO: Ramps team needs to resolve discrepancy between
@@ -161,10 +167,13 @@ function SendTransaction() {
         // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
+
       const response = await addTransaction(transactionParams, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: RAMPS_SEND,
       });
+
       const hash = await response.result;
 
       if (order?.id) {
@@ -186,6 +195,8 @@ function SendTransaction() {
         // but RampTransaction type / interface expecting it to be a number
         transactionAnalyticsPayload,
       );
+    } finally {
+      setIsConfirming(false);
     }
   }, [
     navigation,
@@ -194,6 +205,7 @@ function SendTransaction() {
     orderData,
     trackEvent,
     transactionAnalyticsPayload,
+    networkClientId,
   ]);
 
   if (!order) {
@@ -319,6 +331,7 @@ function SendTransaction() {
               onPress={handleSend}
               accessibilityRole="button"
               accessible
+              isDisabled={isConfirming}
               label={
                 <Text
                   variant={TextVariant.BodyLGMedium}

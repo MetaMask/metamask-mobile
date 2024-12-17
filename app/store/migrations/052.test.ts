@@ -83,24 +83,6 @@ describe('Migration #52', () => {
       expectedError:
         "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.accounts is not an object, type: 'object'",
     },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {},
-                selectedAccount: null,
-              },
-            },
-          },
-        },
-      }),
-      scenario:
-        'AccountsController internalAccounts selectedAccount is not a string',
-      expectedError:
-        "FATAL ERROR: Migration 52: Invalid AccountsController state error: internalAccounts.selectedAccount is not a string, type: 'object'",
-    },
   ];
 
   for (const { scenario, state, expectedError } of invalidStates) {
@@ -132,6 +114,25 @@ describe('Migration #52', () => {
             internalAccounts: {
               selectedAccount: 'invalid-uuid',
             },
+          },
+        },
+      },
+    });
+
+    const newState = migration(invalidState) as typeof invalidState;
+
+    expect(
+      newState.engine.backgroundState.AccountsController.internalAccounts
+        .selectedAccount,
+    ).toEqual(expectedUuid);
+  });
+
+  it('updates the selectedAccount if it is undefined', () => {
+    const invalidState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {},
           },
         },
       },

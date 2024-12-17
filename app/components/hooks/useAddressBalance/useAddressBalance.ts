@@ -12,11 +12,11 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { selectTicker } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
 
 const useAddressBalance = (
-  asset: Asset,
+  asset?: Asset,
   address?: string,
   dontWatchAsset?: boolean,
 ) => {
@@ -25,7 +25,7 @@ const useAddressBalance = (
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const ticker = useSelector(selectTicker);
 

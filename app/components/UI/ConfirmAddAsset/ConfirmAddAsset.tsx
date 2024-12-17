@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect } from 'react';
-import { View, Platform } from 'react-native';
+import { View } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -36,11 +36,7 @@ import Modal from 'react-native-modal';
 import Box from '../Ramp/components/Box';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
-  ADD_CONFIRM_CUSTOM_ASSET,
-} from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { TOKEN_TITLE } from '../../../components/Views/AddAsset/AddAsset.constants';
 
 const RenderBalance = (asset: {
@@ -129,7 +125,7 @@ const ConfirmAddAsset = () => {
     >
       <View
         style={styles.box}
-        {...generateTestId(Platform, ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL)}
+        testID={ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL}
       >
         <View style={styles.notch} />
         <SheetHeader title={strings('wallet.are_you_sure_exit')} />
@@ -175,7 +171,7 @@ const ConfirmAddAsset = () => {
   return (
     <View
       style={styles.rowWrapper}
-      {...generateTestId(Platform, ADD_CONFIRM_CUSTOM_ASSET)}
+      testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
       <Text variant={TextVariant.BodyMD} style={styles.title}>
         {strings('wallet.import_token')}

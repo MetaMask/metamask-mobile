@@ -6,7 +6,7 @@ import { RootState } from '../reducers';
 import { migrations, version } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
-import { IUserReducer } from '../reducers/user';
+import { UserState } from '../reducers/user';
 
 const TIMEOUT = 40000;
 
@@ -68,14 +68,9 @@ const persistTransform = createTransform(
       return inboundState;
     }
 
-    const {
-      TokenListController,
-      SwapsController,
-      PhishingController,
-      ...controllers
-    } = inboundState.backgroundState || {};
-    const { tokenList, tokensChainsCache, ...persistedTokenListController } =
-      TokenListController;
+    const { SwapsController, ...controllers } =
+      inboundState.backgroundState || {};
+
     const {
       aggregatorMetadata,
       aggregatorMetadataLastFetched,
@@ -87,16 +82,11 @@ const persistTransform = createTransform(
       ...persistedSwapsController
     } = SwapsController;
 
-    const { phishingLists, whitelist, ...persistedPhishingController } =
-      PhishingController;
-
     // Reconstruct data to persist
     const newState = {
       backgroundState: {
         ...controllers,
-        TokenListController: persistedTokenListController,
         SwapsController: persistedSwapsController,
-        PhishingController: persistedPhishingController,
       },
     };
     return newState;
@@ -106,7 +96,7 @@ const persistTransform = createTransform(
 );
 
 const persistUserTransform = createTransform(
-  (inboundState: IUserReducer) => {
+  (inboundState: UserState) => {
     const { initialScreen, isAuthChecked, ...state } = inboundState;
     // Reconstruct data to persist
     return state;
@@ -118,7 +108,7 @@ const persistUserTransform = createTransform(
 const persistConfig = {
   key: 'root',
   version,
-  blacklist: ['onboarding', 'rpcEvents', 'accounts'],
+  blacklist: ['onboarding', 'rpcEvents', 'accounts', 'multichainSettings'],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.

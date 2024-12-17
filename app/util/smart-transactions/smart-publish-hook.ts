@@ -3,7 +3,9 @@ import {
   TransactionController,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import SmartTransactionsController from '@metamask/smart-transactions-controller';
+import SmartTransactionsController, {
+  SmartTransactionsControllerSmartTransactionEvent,
+} from '@metamask/smart-transactions-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import {
   getShouldStartApprovalRequest,
@@ -21,14 +23,20 @@ import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
 import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/constants';
+import { ControllerMessenger } from '@metamask/base-controller';
 import { addSwapsTransaction } from '../swaps/swaps-transactions';
 
 export declare type Hex = `0x${string}`;
+
+export type AllowedActions = never;
+
+export type AllowedEvents = SmartTransactionsControllerSmartTransactionEvent;
 
 export interface SubmitSmartTransactionRequest {
   transactionMeta: TransactionMeta;
   smartTransactionsController: SmartTransactionsController;
   transactionController: TransactionController;
+  controllerMessenger: ControllerMessenger<AllowedActions, AllowedEvents>;
   shouldUseSmartTransaction: boolean;
   approvalController: ApprovalController;
   featureFlags: {
@@ -44,7 +52,7 @@ export interface SubmitSmartTransactionRequest {
       | {
           expectedDeadline: number;
           maxDeadline: number;
-          returnTxHashAsap: boolean;
+          mobileReturnTxHashAsap: boolean;
         }
       | Record<string, never>;
   };
@@ -66,7 +74,7 @@ class SmartTransactionHook {
     smartTransactions: {
       expectedDeadline?: number;
       maxDeadline?: number;
-      returnTxHashAsap?: boolean;
+      mobileReturnTxHashAsap?: boolean;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -75,6 +83,7 @@ class SmartTransactionHook {
   #approvalController: ApprovalController;
   #transactionMeta: TransactionMeta;
   #txParams: TransactionParams;
+  #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
   #isDapp: boolean;
   #isSend: boolean;
@@ -85,11 +94,13 @@ class SmartTransactionHook {
 
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
+  #mobileReturnTxHashAsap: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
       transactionMeta,
       smartTransactionsController,
+      controllerMessenger,
       transactionController,
       shouldUseSmartTransaction,
       approvalController,
@@ -105,6 +116,9 @@ class SmartTransactionHook {
     this.#featureFlags = featureFlags;
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
+    this.#controllerMessenger = controllerMessenger;
+    this.#mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
 
     const {
       isDapp,
@@ -132,11 +146,13 @@ class SmartTransactionHook {
       this.#isSend,
       this.#isSwapApproveTx,
       Boolean(approvalIdForPendingSwapApproveTx),
+      this.#mobileReturnTxHashAsap,
     );
     this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapTransaction,
+      this.#mobileReturnTxHashAsap,
     );
   }
 
@@ -210,7 +226,9 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      this.#cleanup();
+      if (!this.#mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
     }
   }
 
@@ -251,10 +269,8 @@ class SmartTransactionHook {
     uuid: string,
   ) => {
     let transactionHash: string | undefined | null;
-    const returnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.returnTxHashAsap;
 
-    if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+    if (this.#mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
       transactionHash = submitTransactionResponse.txHash;
     } else {
       transactionHash = await this.#waitForTransactionHash({
@@ -376,17 +392,20 @@ class SmartTransactionHook {
   };
 
   #addListenerToUpdateStatusPage = async ({ uuid }: { uuid: string }) => {
-    this.#smartTransactionsController.eventEmitter.on(
-      `${uuid}:smartTransaction`,
+    this.#controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransaction',
       async (smartTransaction: SmartTransaction) => {
-        const { status } = smartTransaction;
-        if (!status || status === SmartTransactionStatuses.PENDING) {
-          return;
-        }
-        if (this.#shouldUpdateApprovalRequest && !this.#approvalEnded) {
-          await this.#updateApprovalRequest({
-            smartTransaction,
-          });
+        if (uuid === smartTransaction.uuid) {
+          const { status } = smartTransaction;
+          if (!status || status === SmartTransactionStatuses.PENDING) {
+            return;
+          }
+          if (this.#shouldUpdateApprovalRequest && !this.#approvalEnded) {
+            await this.#updateApprovalRequest({
+              smartTransaction,
+            });
+          }
+          this.#cleanup();
         }
       },
     );
@@ -398,24 +417,26 @@ class SmartTransactionHook {
     uuid: string;
   }): Promise<string | null> =>
     new Promise((resolve) => {
-      this.#smartTransactionsController.eventEmitter.on(
-        `${uuid}:smartTransaction`,
+      this.#controllerMessenger.subscribe(
+        'SmartTransactionsController:smartTransaction',
         async (smartTransaction: SmartTransaction) => {
-          const { status, statusMetadata } = smartTransaction;
-          Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
-          if (!status || status === SmartTransactionStatuses.PENDING) {
-            return;
-          }
-          if (statusMetadata?.minedHash) {
-            Logger.log(
-              LOG_PREFIX,
-              'Smart Transaction - Received tx hash: ',
-              statusMetadata?.minedHash,
-            );
-            resolve(statusMetadata.minedHash);
-          } else {
-            // cancelled status will have statusMetadata?.minedHash === ''
-            resolve(null);
+          if (uuid === smartTransaction.uuid) {
+            const { status, statusMetadata } = smartTransaction;
+            Logger.log(LOG_PREFIX, 'Smart Transaction: ', smartTransaction);
+            if (!status || status === SmartTransactionStatuses.PENDING) {
+              return;
+            }
+            if (statusMetadata?.minedHash) {
+              Logger.log(
+                LOG_PREFIX,
+                'Smart Transaction - Received tx hash: ',
+                statusMetadata?.minedHash,
+              );
+              resolve(statusMetadata.minedHash);
+            } else {
+              // cancelled status will have statusMetadata?.minedHash === ''
+              resolve(null);
+            }
           }
         },
       );
@@ -434,7 +455,8 @@ class SmartTransactionHook {
       // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
       this.#transactionController.state.swapsTransactions || {};
 
-    const originalSwapsTransaction = swapsTransactions[this.#transactionMeta.id];
+    const originalSwapsTransaction =
+      swapsTransactions[this.#transactionMeta.id];
 
     addSwapsTransaction(uuid, originalSwapsTransaction);
   };

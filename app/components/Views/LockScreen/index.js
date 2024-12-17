@@ -125,7 +125,7 @@ class LockScreen extends PureComponent {
     });
     this.props.navigation.dispatch(resetAction);
     // Do not need to await since it's the last action.
-    Authentication.lockApp(false);
+    Authentication.lockApp({ reset: false });
   };
 
   async unlockKeychain() {
@@ -138,6 +138,7 @@ class LockScreen extends PureComponent {
         bioStateMachineId,
         disableAutoLogout: true,
       });
+
       this.setState({ ready: true });
       Logger.log('Lockscreen::unlockKeychain - state: ready');
     } catch (error) {

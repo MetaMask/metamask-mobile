@@ -21,15 +21,7 @@ import Alert, { AlertType } from '../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import NotificationManager from '../../../core/NotificationManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  CUSTOM_TOKEN_CONTAINER_ID,
-  TOKEN_ADDRESS_INPUT_BOX_ID,
-  TOKEN_ADDRESS_SYMBOL_ID,
-  TOKEN_ADDRESS_WARNING_MESSAGE_ID,
-  TOKEN_PRECISION_WARNING_MESSAGE_ID,
-} from '../../../../wdio/screen-objects/testIDs/Screens/AddCustomToken.testIds';
-import { NFT_IDENTIFIER_INPUT_BOX_ID } from '../../../../wdio/screen-objects/testIDs/Screens/NFTImportScreen.testIds';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import { regex } from '../../../../app/util/regex';
 import {
   getBlockExplorerAddressUrl,
@@ -195,8 +187,10 @@ class AddCustomToken extends PureComponent {
     await TokensController.addToken({ address, symbol, decimals, name });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TOKEN_ADDED,
-      this.getAnalyticsParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
 
     // Clear state before closing
@@ -520,10 +514,7 @@ class AddCustomToken extends PureComponent {
     );
 
     return (
-      <View
-        style={styles.wrapper}
-        {...generateTestId(Platform, CUSTOM_TOKEN_CONTAINER_ID)}
-      >
+      <View style={styles.wrapper}>
         <ScrollView>
           {this.renderBanner()}
           <View style={styles.addressWrapper}>
@@ -540,14 +531,14 @@ class AddCustomToken extends PureComponent {
               onBlur={() => {
                 this.handleBlurAddress();
               }}
-              {...generateTestId(Platform, TOKEN_ADDRESS_INPUT_BOX_ID)}
+              testID={ImportTokenViewSelectorsIDs.ADDRESS_INPUT}
               onSubmitEditing={this.jumpToAssetSymbol}
               returnKeyType={'next'}
               keyboardAppearance={themeAppearance}
             />
             <Text
               style={styles.warningText}
-              {...generateTestId(Platform, TOKEN_ADDRESS_WARNING_MESSAGE_ID)}
+              testID={ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE}
             >
               {this.state.warningAddress}
             </Text>
@@ -565,7 +556,7 @@ class AddCustomToken extends PureComponent {
                 value={this.state.symbol}
                 onChangeText={this.onSymbolChange}
                 onBlur={this.validateCustomTokenSymbol}
-                {...generateTestId(Platform, TOKEN_ADDRESS_SYMBOL_ID)}
+                testID={ImportTokenViewSelectorsIDs.SYMBOL_INPUT}
                 ref={this.assetSymbolInput}
                 onSubmitEditing={this.jumpToAssetPrecision}
                 returnKeyType={'next'}
@@ -590,7 +581,7 @@ class AddCustomToken extends PureComponent {
                 placeholderTextColor={colors.text.muted}
                 onChangeText={this.onDecimalsChange}
                 onBlur={this.validateCustomTokenDecimals}
-                {...generateTestId(Platform, NFT_IDENTIFIER_INPUT_BOX_ID)}
+                testID={ImportTokenViewSelectorsIDs.DECIMAL_INPUT}
                 ref={this.assetPrecisionInput}
                 onSubmitEditing={this.addToken}
                 returnKeyType={'done'}
@@ -601,10 +592,7 @@ class AddCustomToken extends PureComponent {
               {this.state.warningDecimals ? (
                 <Text
                   style={styles.warningText}
-                  {...generateTestId(
-                    Platform,
-                    TOKEN_PRECISION_WARNING_MESSAGE_ID,
-                  )}
+                  testID={ImportTokenViewSelectorsIDs.PRECISION_WARNING_MESSAGE}
                 >
                   {this.state.warningDecimals}{' '}
                   <Text
@@ -639,7 +627,7 @@ class AddCustomToken extends PureComponent {
             style={styles.import}
             onPress={this.goToConfirmAddToken}
             isDisabled={isDisabled}
-            testID="next-button-custom-import"
+            testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
           />
         </View>
       </View>

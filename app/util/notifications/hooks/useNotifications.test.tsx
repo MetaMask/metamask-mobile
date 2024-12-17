@@ -11,6 +11,7 @@ import {
   useEnableNotifications,
   useDisableNotifications,
   useMarkNotificationAsRead,
+  useDeleteNotificationsStorageKey,
 } from './useNotifications';
 import { TRIGGER_TYPES } from '../constants';
 import createMockStore from 'redux-mock-store';
@@ -22,6 +23,11 @@ import {
   createMockNotificationEthReceived,
   createMockNotificationEthSent,
 } from '../../../components/UI/Notification/__mocks__/mock_notifications';
+
+jest.mock('../constants', () => ({
+  ...jest.requireActual('../constants'),
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 function arrangeStore() {
   const store = createMockStore()(initialRootState);
@@ -270,5 +276,41 @@ describe('useMarkNotificationAsRead', () => {
     expect(mockActions.markMetamaskNotificationsAsRead).toHaveBeenCalledWith([
       { id: '1', isRead: true, type: 'eth_sent' },
     ]);
+  });
+});
+
+describe('useDeleteNotificationsStorageKey', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  function arrangeActions() {
+    const deleteNotificationsStorageKey = jest
+      .spyOn(Actions, 'performDeleteStorage')
+      .mockResolvedValue(undefined);
+
+    return {
+      deleteNotificationsStorageKey,
+    };
+  }
+
+  function arrangeHook() {
+    const store = arrangeStore();
+    const hook = renderHook(() => useDeleteNotificationsStorageKey(), {
+      wrapper: ({ children }) => <Provider store={store}>{children}</Provider>,
+    });
+
+    return hook;
+  }
+
+  it('deletes notifications storage key', async () => {
+    const mockActions = arrangeActions();
+    const { result } = arrangeHook();
+
+    await act(async () => {
+      await result.current.deleteNotificationsStorageKey();
+    });
+
+    expect(mockActions.deleteNotificationsStorageKey).toHaveBeenCalledTimes(1);
   });
 });

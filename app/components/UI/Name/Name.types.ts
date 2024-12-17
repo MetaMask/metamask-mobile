@@ -11,6 +11,8 @@ export enum NameType {
 }
 
 export interface NameProperties extends ViewProps {
+  preferContractSymbol?: boolean;
   type: NameType;
   value: string;
+  variation: string;
 }

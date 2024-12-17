@@ -15,9 +15,7 @@ import {
   BluetoothPermissionErrors,
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
-import SelectOptionSheet, {
-  ISelectOption,
-} from '../../UI/SelectOptionSheet';
+import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -88,12 +86,12 @@ const Scan = ({
   ]);
 
   useEffect(() => {
-    // first device is selected by default
-    if (devices?.length > 0) {
+    // first device is selected by default if not selectedDevice is set
+    if (devices?.length > 0 && !selectedDevice) {
+      setSelectedDevice(devices[0]);
       onDeviceSelected(devices[0]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devices]);
+  }, [devices, onDeviceSelected, selectedDevice]);
 
   useEffect(() => {
     if (bluetoothPermissionError && !permissionErrorShown) {

@@ -181,6 +181,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -192,7 +193,6 @@ exports[`SendTransaction View renders correctly 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -765,6 +765,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
@@ -995,6 +996,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1006,7 +1008,6 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -1495,6 +1496,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
@@ -1725,6 +1727,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 <View
                   style={
                     {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
@@ -1736,7 +1739,6 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           "borderRadius": 100,
                           "height": 5,
                           "marginRight": 5,
-                          "marginTop": 4,
                           "width": 5,
                         },
                         {
@@ -2309,6 +2311,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}

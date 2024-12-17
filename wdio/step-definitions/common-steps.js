@@ -17,7 +17,6 @@ import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
 import Gestures from '../helpers/Gestures';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
 import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
-import TransactionProtectionModal from '../screen-objects/Modals/TransactionProtectionModal';
 import SettingsScreen from '../screen-objects/SettingsScreen';
 
 Then(/^the Welcome screen is displayed$/, async () => {
@@ -26,10 +25,6 @@ Then(/^the Welcome screen is displayed$/, async () => {
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
-});
-
-Given(/^the splash animation disappears$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
 });
 
 Then(/^Terms of Use is displayed$/, async () => {
@@ -58,7 +53,6 @@ Given(/^I have imported my wallet$/, async () => {
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   if (!(await TermOfUseScreen.isCheckBoxChecked())) {
@@ -70,9 +64,9 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapConfirmPasswordTextToDismissKeyboard();
   await ImportFromSeedScreen.clickImportButton();
   await OnboardingSucessScreen.tapDone()
 });
@@ -80,7 +74,6 @@ Given(/^I have imported my wallet$/, async () => {
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -282,7 +275,7 @@ When(/^I tap on the Activity tab option$/, async () => {
 });
 
 When(/^I install upgrade the app$/, async () => {
-  await driver.installApp(process.env.BROWSERSTACK_APP_URL)
+  await driver.installApp(process.env.BROWSERSTACK_ANDROID_APP_URL)
 });
 
 When(/^I scroll up$/, async () => {
@@ -301,9 +294,6 @@ Then(/^removed test app$/, async () => {
   }
 });
 
-Given(/^the splash animation completes$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToComplete();
-});
 
 Then(/^I am on the "([^"]*)" account$/, async (accountName) => {
   await CommonScreen.isTextDisplayed(accountName)
@@ -330,16 +320,6 @@ Given(/^I close all the onboarding modals$/, async () => {
   }
 
   try {
-    await TransactionProtectionModal.isVisible();
-    await TransactionProtectionModal.tapEnableButton();
-    await TransactionProtectionModal.isNotVisible();
-  } catch {
-    /* eslint-disable no-console */
-
-    console.log('The whats new modal is not visible');
-  }
-
-  try {
     // Handle Marketing consent modal
 
     await ExperienceEnhancerModal.waitForDisplay();
@@ -347,6 +327,15 @@ Given(/^I close all the onboarding modals$/, async () => {
     await ExperienceEnhancerModal.waitForDisappear();
   } catch {
     console.log('The marketing consent modal is not visible');
+  }
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
   }
 });
 Then(/^I use the back button on Android$/, async () => {

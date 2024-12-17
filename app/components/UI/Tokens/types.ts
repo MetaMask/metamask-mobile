@@ -12,7 +12,6 @@ export interface TokensI {
 export interface TokenI {
   address: string;
   aggregators: string[];
-  balanceError: string | null;
   decimals: number;
   image: string;
   name: string;
@@ -21,4 +20,10 @@ export interface TokenI {
   balanceFiat: string;
   logo: string | undefined;
   isETH: boolean | undefined;
+  hasBalanceError?: boolean;
+  isStaked?: boolean | undefined;
+  nativeAsset?: TokenI | undefined;
+  chainId?: string;
+  isNative?: boolean;
+  ticker?: string;
 }

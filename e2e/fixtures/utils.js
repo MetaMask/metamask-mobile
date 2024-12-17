@@ -2,6 +2,8 @@ import { DEFAULT_GANACHE_PORT } from '../../app/util/test/ganache';
 import { DEFAULT_FIXTURE_SERVER_PORT } from './fixture-server';
 import { DEFAULT_DAPP_SERVER_PORT } from './fixture-helper';
 
+export const DEFAULT_MOCKSERVER_PORT = 8000;
+
 function transformToValidPort(defaultPort, pid) {
   // Improve uniqueness by using a simple transformation
   const transformedPort = (parseInt(pid, 10) % 100000) + defaultPort;
@@ -27,4 +29,8 @@ export function getFixturesServerPort() {
 
 export function getLocalTestDappPort() {
   return getServerPort(DEFAULT_DAPP_SERVER_PORT);
+}
+
+export function getMockServerPort() {
+  return getServerPort(DEFAULT_MOCKSERVER_PORT);
 }

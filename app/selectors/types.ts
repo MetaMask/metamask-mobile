@@ -1,18 +1,15 @@
 import {
-  AccountTrackerState,
+  AccountTrackerControllerState,
   CurrencyRateState,
-  NftDetectionController,
-  NftState,
-  TokenDetectionController,
+  NftControllerState,
   TokenListState,
-  TokenRatesState,
-  TokensState,
+  TokenRatesControllerState,
+  TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
 import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
-import { AddressBookState } from '@metamask/address-book-controller';
-import { BaseState } from '@metamask/base-controller';
+import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { PhishingControllerState } from '@metamask/phishing-controller';
@@ -27,10 +24,9 @@ import { SnapController } from '@metamask/snaps-controllers';
 export interface EngineState {
   engine: {
     backgroundState: {
-      AccountTrackerController: AccountTrackerState;
-      AddressBookController: AddressBookState;
-      AssetsContractController: BaseState;
-      NftController: NftState;
+      AccountTrackerController: AccountTrackerControllerState;
+      AddressBookController: AddressBookControllerState;
+      NftController: NftControllerState;
       TokenListController: TokenListState;
       CurrencyRateController: CurrencyRateState;
       KeyringController: KeyringControllerMemState;
@@ -39,16 +35,14 @@ export interface EngineState {
       PhishingController: PhishingControllerState;
       PPOMController: PPOMState;
       TokenBalancesController: TokenBalancesControllerState;
-      TokenRatesController: TokenRatesState;
+      TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;
       SwapsController: SwapsController;
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF
       GasFeeController: GasFeeController;
-      TokensController: TokensState;
-      TokenDetectionController: TokenDetectionController;
-      NftDetectionController: NftDetectionController;
+      TokensController: TokensControllerState;
       ApprovalController: ApprovalControllerState;
       AccountsController: AccountsControllerState;
     };

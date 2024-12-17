@@ -1,28 +1,22 @@
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
-
-import {
-  MULTI_TAB_ADD_BUTTON,
-  MULTI_TAB_CLOSE_ALL_BUTTON,
-  MULTI_TAB_DONE_BUTTON,
-  MULTI_TAB_NO_TABS_MESSAGE,
-} from '../testIDs/BrowserScreen/MultiTab.testIds';
+import { BrowserViewSelectorsIDs } from '../../../e2e/selectors/Browser/BrowserView.selectors';
 
 class MultiTabScreen {
   get closeAllButton() {
-    return Selectors.getElementByPlatform(MULTI_TAB_CLOSE_ALL_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
   }
 
   get addButton() {
-    return Selectors.getElementByPlatform(MULTI_TAB_ADD_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
   get doneButton() {
-    return Selectors.getElementByPlatform(MULTI_TAB_DONE_BUTTON);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.DONE_BUTTON);
   }
 
   get noTabsMessage() {
-    return Selectors.getElementByPlatform(MULTI_TAB_NO_TABS_MESSAGE);
+    return Selectors.getElementByPlatform(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 
   async isTabsViewDisplayed() {

@@ -1,19 +1,16 @@
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import {
-  ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
-  ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
-} from './testIDs/Screens/EnableAutomaticSecurityChecksScreen.testIds';
+import { EnableAutomaticSecurityChecksIDs } from '../../e2e/selectors/Onboarding/EnableAutomaticSecurityChecks.selectors';
 
 class EnableAutomaticSecurityChecksScreen {
   get noThanksButton() {
     return Selectors.getXpathElementByResourceId(
-      ENABLE_AUTOMATIC_SECURITY_CHECK_NO_THANKS_BUTTON_ID,
+      EnableAutomaticSecurityChecksIDs.NO_THANKS_BUTTON,
     );
   }
   get enableAutomaticSecurityChecksScreen() {
     return Selectors.getElementByPlatform(
-      ENABLE_AUTOMATIC_SECURITY_CHECK_CONTAINER_ID,
+      EnableAutomaticSecurityChecksIDs.CONTAINER,
     );
   }
 
@@ -25,9 +22,6 @@ class EnableAutomaticSecurityChecksScreen {
 
   async isVisible() {
     await expect(this.enableAutomaticSecurityChecksScreen).toBeDisplayed();
-  }
-  async notVisible() {
-    await expect(this.enableAutomaticSecurityChecksScreen).not.toBeDisplayed();
   }
 }
 export default new EnableAutomaticSecurityChecksScreen();

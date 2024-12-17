@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-commonjs
 module.exports = {
-  ignore: [/ses\.cjs/],
-  presets: ['module:metro-react-native-babel-preset'],
+  ignore: [/\/ses\.cjs/],
+  presets: ['babel-preset-expo'],
   plugins: [
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
@@ -17,6 +17,23 @@ module.exports = {
     },
     {
       test: './node_modules/@metamask/notification-services-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: [
+        './node_modules/**/@metamask/rpc-errors/**',
+        './node_modules/@metamask/rpc-errors/**',
+      ],
+      plugins: [['@babel/plugin-transform-classes', { loose: true }]],
+    },
+    {
+      test: './app/lib/snaps',
+      plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
+    // TODO: Remove this once we have a fix for the private methods
+    // Do not apply this plugin globally since it breaks FlatList props.getItem
+    {
+      test: './app/core/redux/ReduxService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

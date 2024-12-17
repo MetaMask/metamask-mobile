@@ -1,17 +1,24 @@
 import { zeroAddress } from 'ethereumjs-util';
-import React, { useState } from 'react';
+import { Hex } from '@metamask/utils';
+import { RootState } from '../../../../reducers';
+import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import i18n from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
-import { formatAddress, safeToChecksumAddress } from '../../../../util/address';
+import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import {
-  selectConversionRate,
+  selectTokenMarketDataByChainId,
+  selectContractExchangeRates,
+} from '../../../../selectors/tokenRatesController';
+import {
+  selectConversionRateBySymbol,
   selectCurrentCurrency,
+  selectConversionRate,
 } from '../../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   convertDecimalToPercentage,
   localizeLargeNumber,
@@ -21,8 +28,9 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import StakingEarnings from '../StakingEarnings';
 import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
+import StakingEarnings from '../../Stake/components/StakingEarnings';
+import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -46,23 +54,36 @@ interface TokenDetailsProps {
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
-  const tokenList = useSelector(selectTokenList);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const conversionRate = useSelector(selectConversionRate);
+  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
+    selectTokenMarketDataByChainId(state, asset.chainId as Hex),
+  );
+  const nativeCurrency = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, asset.chainId as Hex),
+  );
+  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+  const conversionRateLegacy = useSelector(selectConversionRate);
+  const conversionRateBySymbol = useSelector((state: RootState) =>
+    selectConversionRateBySymbol(state, nativeCurrency),
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
+  const tokenList = useSelector(selectTokenList);
 
-  // TEMP: Remove once component has been implemented.
-  const [hasStakingPositions] = useState(true);
+  const conversionRate = isPortfolioViewEnabled()
+    ? conversionRateBySymbol
+    : conversionRateLegacy;
+  const tokenExchangeRates = isPortfolioViewEnabled()
+    ? tokenExchangeRatesByChainId
+    : tokenExchangeRatesLegacy;
 
   let tokenMetadata;
   let marketData;
 
   if (asset.isETH) {
-    marketData = tokenExchangeRates[zeroAddress() as `0x${string}`];
-  } else if (!asset.isETH && tokenContractAddress) {
-    tokenMetadata = tokenList[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates[tokenContractAddress];
+    marketData = tokenExchangeRates?.[zeroAddress() as Hex];
+  } else if (tokenContractAddress) {
+    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
+    marketData = tokenExchangeRates?.[tokenContractAddress as Hex];
   } else {
     Logger.log('cannot find contract address');
     return null;
@@ -75,13 +96,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const tokenDetails: TokenDetails = asset.isETH
     ? {
-        contractAddress: formatAddress(zeroAddress(), 'short'),
+        contractAddress: zeroAddress(),
         tokenDecimal: 18,
         tokenList: '',
       }
     : {
-        contractAddress:
-          formatAddress(tokenContractAddress as string, 'short') || null,
+        contractAddress: tokenContractAddress || null,
         tokenDecimal: tokenMetadata?.decimals || null,
         tokenList: tokenMetadata?.aggregators.join(', ') || null,
       };
@@ -127,9 +147,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH &&
-        hasStakingPositions &&
-        isPooledStakingFeatureEnabled() && <StakingEarnings />}
+      {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}

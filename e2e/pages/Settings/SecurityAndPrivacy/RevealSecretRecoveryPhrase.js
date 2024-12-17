@@ -12,19 +12,12 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  // This is the password requested at login
-  // and should probably be moved eventually into LoginView.js
-  get passwordInput() {
-    return Matchers.getElementByID(RevealSeedViewSelectorsIDs.PASSWORD_INPUT);
-  }
-
   get passwordWarning() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID,
     );
   }
 
-  // This is the password requested to expose secret credentials
   get passwordInputToRevealCredential() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
@@ -37,11 +30,6 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  get recoveryPhrase() {
-    return Matchers.getElementByText(
-      RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TEXT,
-    );
-  }
   get revealSecretRecoveryPhraseButton() {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
@@ -72,12 +60,6 @@ class RevealSecretRecoveryPhrase {
     );
   }
 
-  // This is the password requested at login view
-  // and should probably be moved eventually into LoginView.js
-  async enterPassword(password) {
-    await Gestures.typeTextAndHideKeyboard(this.passwordInput, password);
-  }
-  // This is the password requested to expose secret credentials
   async enterPasswordToRevealSecretCredential(password) {
     await Gestures.typeTextAndHideKeyboard(
       this.passwordInputToRevealCredential,

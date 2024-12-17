@@ -4,11 +4,6 @@ import type { Notification } from '../../../util/notifications/types/notificatio
 
 import { MarkAsReadNotificationsParam } from '../../../actions/notification/helpers';
 
-export interface UseCreateSessionReturn {
-  createSession: () => Promise<void>;
-  loading: boolean;
-  error?: string;
-}
 export interface EnableMetametricsReturn {
   enableMetametrics: () => Promise<string | undefined>;
   loading: boolean;
@@ -47,17 +42,16 @@ export interface DisableNotificationsReturn {
   error?: string;
 }
 
-export interface MarkNotificationAsReadReturn {
-  markNotificationAsRead: (
-    notifications: MarkAsReadNotificationsParam,
-  ) => Promise<string | undefined>;
+export interface deleteNotificationsStorageKeyReturn {
+  deleteNotificationsStorageKey: () => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }
 
-export interface ProfileSyncingReturn {
-  enableProfileSyncing: () => Promise<string | undefined>;
-  disableProfileSyncing: () => Promise<string | undefined>;
+export interface MarkNotificationAsReadReturn {
+  markNotificationAsRead: (
+    notifications: MarkAsReadNotificationsParam,
+  ) => Promise<string | undefined>;
   loading: boolean;
   error?: string;
 }

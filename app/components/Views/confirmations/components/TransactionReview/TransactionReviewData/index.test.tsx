@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 const mockStore = configureMockStore();
+
 const initialState = {
   engine: {
     backgroundState,

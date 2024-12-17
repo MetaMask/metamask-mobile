@@ -33,6 +33,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,7 +79,7 @@ interface Props {
  * Component that provides ability to add searched assets with metadata.
  */
 const SearchTokenAutocomplete = ({ navigation }: Props) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   // TODO: Replace "any" with type
@@ -162,9 +163,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         name,
       });
 
-      trackEvent(MetaMetricsEvents.TOKEN_ADDED, getAnalyticsParams());
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+          .addProperties(getAnalyticsParams())
+          .build(),
+      );
     },
-    [getAnalyticsParams, trackEvent],
+    [getAnalyticsParams, trackEvent, createEventBuilder],
   );
 
   /**
@@ -215,10 +220,14 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       addTokenList,
     });
 
-    trackEvent(MetaMetricsEvents.TOKEN_IMPORT_CLICKED, {
-      source: 'manual',
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
+        .addProperties({
+          source: 'manual',
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
   };
 
   const renderTokenDetectionBanner = useCallback(() => {
@@ -303,7 +312,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           label={strings('transaction.next')}
           onPress={goToConfirmAddToken}
           isDisabled={selectedAsset.length < 1}
-          testID="token-import-next-button"
+          testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
       </View>
     </View>

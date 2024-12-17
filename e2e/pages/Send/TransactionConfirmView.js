@@ -3,11 +3,12 @@ import Matchers from '../../utils/Matchers';
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/EditGasView.selectors.js';
+} from '../../selectors/SendFlow/EditGasView.selectors.js';
 import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
-} from '../../selectors/TransactionConfirmView.selectors.js';
+} from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -40,7 +41,7 @@ class TransactionConfirmationView {
 
   get transactionAmount() {
     return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
@@ -71,6 +72,24 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
+  get editPriorityLegacyModal() {
+    return Matchers.getElementByID(
+      EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+    );
+  }
+
+  get securityAlertBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+    );
+  }
+
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
+    );
+  }
+
   async tapConfirmButton() {
     await Gestures.waitAndTap(this.confirmButton);
   }
@@ -79,10 +98,9 @@ class TransactionConfirmationView {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapEstimatedGasLink() {
+  async tapEstimatedGasLink(index = 0) {
     await Gestures.swipe(this.transactionAmount, 'up', 'fast');
-
-    await Gestures.waitAndTap(this.estimatedGasLink);
+    await Gestures.TapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

@@ -47,12 +47,18 @@ describe('App', () => {
       App,
       { name: 'App' },
       { state: initialState },
+      { supressRender: true },
     );
     expect(toJSON()).toMatchSnapshot();
   });
 
   it('configures MetaMetrics instance and identifies user on startup', async () => {
-    renderScreen(App, { name: 'App' }, { state: initialState });
+    renderScreen(
+      App,
+      { name: 'App' },
+      { state: initialState },
+      { supressRender: true },
+    );
     await waitFor(() => {
       expect(mockMetrics.configure).toHaveBeenCalledTimes(1);
       expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
