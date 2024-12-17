@@ -1351,7 +1351,7 @@ workflows:
             inputs:
               - content: |-
                   # Define the source path of the generated APK
-                  SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-qa-debug.apk"
+                  SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/debug/app-qa-debug.apk"
                   
                   # Define the destination path with the new name
                   DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-qa-build.apk"
