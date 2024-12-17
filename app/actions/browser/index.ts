@@ -1,4 +1,19 @@
-import { BrowserActionTypes } from './types';
+import {
+  BrowserActionTypes,
+  type BrowserRequestLoadAction,
+  type BrowserLoadEndAction,
+  type BrowserLoadStartAction,
+  type AddToViewedDappAction,
+  type AddToHistoryAction,
+  type ClearHistoryAction,
+  type AddToWhitelistAction,
+  type CloseAllTabsAction,
+  type CreateNewTabAction,
+  type CloseTabAction,
+  type SetActiveTabAction,
+  type UpdateTabAction,
+  type StoreFaviconAction,
+} from './types';
 
 export * from './types';
 
@@ -8,7 +23,7 @@ export * from './types';
  * @param {string} hostname - Dapp hostname
  * @returns
  */
-export function addToViewedDapp(hostname: string) {
+export function addToViewedDapp(hostname: string): AddToViewedDappAction {
   return {
     type: BrowserActionTypes.ADD_TO_VIEWED_DAPP,
     hostname,
@@ -22,9 +37,15 @@ export function addToViewedDapp(hostname: string) {
  * @param {string} website.url - The website's url
  * @param {string} website.name - The website name
  */
-export function addToHistory({ url, name }: { url: string; name: string }) {
+export function addToHistory({
+  url,
+  name,
+}: {
+  url: string;
+  name: string;
+}): AddToHistoryAction {
   return {
-    type: 'ADD_TO_BROWSER_HISTORY',
+    type: BrowserActionTypes.ADD_TO_BROWSER_HISTORY,
     url,
     name,
   };
@@ -33,9 +54,9 @@ export function addToHistory({ url, name }: { url: string; name: string }) {
 /**
  * Clears the entire browser history
  */
-export function clearHistory() {
+export function clearHistory(): ClearHistoryAction {
   return {
-    type: 'CLEAR_BROWSER_HISTORY',
+    type: BrowserActionTypes.CLEAR_BROWSER_HISTORY,
     id: Date.now(),
   };
 }
@@ -45,9 +66,9 @@ export function clearHistory() {
  *
  * @param {string} url - The website's url
  */
-export function addToWhitelist(url: string) {
+export function addToWhitelist(url: string): AddToWhitelistAction {
   return {
-    type: 'ADD_TO_BROWSER_WHITELIST',
+    type: BrowserActionTypes.ADD_TO_BROWSER_WHITELIST,
     url,
   };
 }
@@ -55,9 +76,9 @@ export function addToWhitelist(url: string) {
 /**
  * Closes all the opened tabs
  */
-export function closeAllTabs() {
+export function closeAllTabs(): CloseAllTabsAction {
   return {
-    type: 'CLOSE_ALL_TABS',
+    type: BrowserActionTypes.CLOSE_ALL_TABS,
   };
 }
 
@@ -67,9 +88,12 @@ export function closeAllTabs() {
  * @param {string} url - The website's url
  * @param {string} linkType - optional link type
  */
-export function createNewTab(url: string, linkType: string) {
+export function createNewTab(
+  url: string,
+  linkType: string,
+): CreateNewTabAction {
   return {
-    type: 'CREATE_NEW_TAB',
+    type: BrowserActionTypes.CREATE_NEW_TAB,
     url,
     linkType,
     id: Date.now(),
@@ -81,9 +105,9 @@ export function createNewTab(url: string, linkType: string) {
  *
  * @param {number} id - The Tab ID
  */
-export function closeTab(id: string) {
+export function closeTab(id: string): CloseTabAction {
   return {
-    type: 'CLOSE_TAB',
+    type: BrowserActionTypes.CLOSE_TAB,
     id,
   };
 }
@@ -93,9 +117,9 @@ export function closeTab(id: string) {
  *
  * @param {number} id - The Tab ID
  */
-export function setActiveTab(id: string) {
+export function setActiveTab(id: string): SetActiveTabAction {
   return {
-    type: 'SET_ACTIVE_TAB',
+    type: BrowserActionTypes.SET_ACTIVE_TAB,
     id,
   };
 }
@@ -106,9 +130,12 @@ export function setActiveTab(id: string) {
  * @param {number} id - The Tab ID
  * @param {string} url - The website's url
  */
-export function updateTab(id: string, data: { url: string; image?: string }) {
+export function updateTab(
+  id: string,
+  data: { url: string; image?: string },
+): UpdateTabAction {
   return {
-    type: 'UPDATE_TAB',
+    type: BrowserActionTypes.UPDATE_TAB,
     id,
     data,
   };
@@ -121,9 +148,15 @@ export function updateTab(id: string, data: { url: string; image?: string }) {
  * @param {string} favicon.url - the favicon image url
  * @returns {{favicon, type: string}}
  */
-export function storeFavicon({ origin, url }: { origin: string; url: string }) {
+export function storeFavicon({
+  origin,
+  url,
+}: {
+  origin: string;
+  url: string;
+}): StoreFaviconAction {
   return {
-    type: 'STORE_FAVICON_URL',
+    type: BrowserActionTypes.STORE_FAVICON_URL,
     origin,
     url,
   };
@@ -132,7 +165,7 @@ export function storeFavicon({ origin, url }: { origin: string; url: string }) {
 /**
  * Triggers when the browser requests to load
  */
-export function setBrowserRequestLoad() {
+export function setBrowserRequestLoad(): BrowserRequestLoadAction {
   return {
     type: BrowserActionTypes.SET_BROWSER_REQUEST_LOAD,
   };
@@ -142,7 +175,7 @@ export function setBrowserRequestLoad() {
  * Triggers when the browser starts load
  * @param url - The website's url
  */
-export function setBrowserLoadStart(url: string) {
+export function setBrowserLoadStart(url: string): BrowserLoadStartAction {
   return {
     type: BrowserActionTypes.SET_BROWSER_LOAD_START,
     payload: {
@@ -155,7 +188,7 @@ export function setBrowserLoadStart(url: string) {
  * Triggers when the browser ends load
  * @param url - The website's url
  */
-export function setBrowserLoadEnd(url: string) {
+export function setBrowserLoadEnd(url: string): BrowserLoadEndAction {
   return {
     type: BrowserActionTypes.SET_BROWSER_LOAD_END,
     payload: {
