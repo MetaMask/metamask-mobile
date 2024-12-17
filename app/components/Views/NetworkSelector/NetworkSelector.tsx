@@ -305,6 +305,12 @@ const NetworkSelector = () => {
     }
   };
 
+  const showRpcSelector = Object.values(networkConfigurations).some(
+    (networkConfiguration) =>
+      networkConfiguration.rpcEndpoints &&
+      networkConfiguration.rpcEndpoints.length > 1,
+  );
+
   const openRpcModal = useCallback(({ chainId, networkName }) => {
     setShowMultiRpcSelectModal({
       isVisible: true,
@@ -474,7 +480,7 @@ const NetworkSelector = () => {
           variant={CellVariant.SelectWithMenu}
           title={name}
           secondaryText={
-            rpcEndpoints?.length > 1
+            showRpcSelector
               ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
               : undefined
           }
@@ -552,7 +558,7 @@ const NetworkSelector = () => {
           style={styles.networkCell}
           buttonIcon={IconName.MoreVertical}
           secondaryText={
-            rpcEndpoints?.length > 1
+            showRpcSelector
               ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
               : undefined
           }
@@ -635,7 +641,7 @@ const NetworkSelector = () => {
             style={styles.networkCell}
             buttonIcon={IconName.MoreVertical}
             secondaryText={
-              rpcEndpoints?.length > 1
+              showRpcSelector
                 ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
                 : undefined
             }
@@ -706,7 +712,7 @@ const NetworkSelector = () => {
             key={chainId}
             variant={CellVariant.SelectWithMenu}
             secondaryText={
-              rpcEndpoints?.length > 1
+              showRpcSelector
                 ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
                 : undefined
             }
