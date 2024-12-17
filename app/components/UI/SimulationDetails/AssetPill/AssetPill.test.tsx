@@ -2,10 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import AssetPill from './AssetPill';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../selectors/networkController';
 import { AssetType, AssetIdentifier } from '../types';
 
 jest.mock('react-redux', () => ({
@@ -23,14 +19,6 @@ jest.mock('../../../hooks/useStyles', () => ({
 }));
 
 describe('AssetPill', () => {
-  const selectChainIdMock = jest.mocked(selectChainId);
-  const selectTickerMock = jest.mocked(selectTicker);
-
-  beforeAll(() => {
-    selectChainIdMock.mockReturnValue('0x1');
-    selectTickerMock.mockReturnValue('ETH');
-  });
-
   it('renders correctly for native assets', () => {
     const asset = { type: AssetType.Native } as AssetIdentifier;
     const { getByText, getByTestId } = render(<AssetPill asset={asset} />);
@@ -45,7 +33,9 @@ describe('AssetPill', () => {
     const asset = {
       type: AssetType.ERC20,
       address: '0xabc123',
+      chainId: '0x1',
     } as AssetIdentifier;
+
     const { getByTestId } = render(<AssetPill asset={asset} />);
 
     expect(getByTestId('simulation-details-asset-pill-name')).toBeTruthy();
