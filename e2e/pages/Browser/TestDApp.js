@@ -105,7 +105,7 @@ class TestDApp {
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
   }
-  async tapAddERCTokenToWalletButton() {
+  async tapAddERC20TokenToWalletButton() {
     await this.tapButton(this.addTokensToWalletButton);
   }
 

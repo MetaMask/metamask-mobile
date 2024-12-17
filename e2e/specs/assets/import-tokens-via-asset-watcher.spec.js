@@ -48,7 +48,7 @@ describe(SmokeAssets('Asset Watch:'), () => {
         });
         await TestHelpers.delay(3000); // Because loading the dapp is slow on CI
 
-        await TestDApp.tapAddERCTokenToWalletButton();
+        await TestDApp.tapAddERC20TokenToWalletButton();
         await Assertions.checkIfVisible(AssetWatchBottomSheet.container);
         await AssetWatchBottomSheet.tapAddTokenButton();
         await Assertions.checkIfNotVisible(AssetWatchBottomSheet.container);
