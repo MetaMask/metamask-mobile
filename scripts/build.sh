@@ -229,13 +229,22 @@ buildAndroidRun(){
 	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
 }
 
-buildAndroidDevBuild(){
+buildAndroidExpoDevBuild(){
 	prebuild_android
 	if [ -e $ANDROID_ENV_FILE ]
 	then
 		source $ANDROID_ENV_FILE
 	fi
 	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+}
+
+buildAndroidExpoQaBuild(){
+	prebuild_android
+	if [ -e $ANDROID_ENV_FILE ]
+	then
+		source $ANDROID_ENV_FILE
+	fi
+	cd android && ./gradlew assembleQaDebug -DtestBuildType=debug --build-cache --parallel && cd ..
 }
 
 buildAndroidRunQA(){
@@ -251,10 +260,12 @@ buildAndroidRunFlask(){
 	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
 }
 
-buildIosDevBuild(){
+
+buildIosExpoDevBuild(){
 	remapEnvVariableLocal
-	prebuild_ios
 	
+	prebuild_ios
+
 	
 	echo "Setting up env vars...";
 	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
@@ -264,6 +275,28 @@ buildIosDevBuild(){
 
 	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
 	scheme="MetaMask"
+
+	echo "exportOptionsPlist: $exportOptionsPlist"
+  	echo "Generating archive packages for $scheme"
+	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
+	echo "Generating ipa for $scheme"
+	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
+	cd ..
+}
+
+buildIosExpoQaBuild(){
+	remapEnvVariableLocal
+
+	prebuild_ios
+	
+	echo "Setting up env vars...";
+	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
+	echo "Build started..."
+	brew install watchman
+	cd ios
+
+	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
+	scheme="MetaMask-QA"
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
   	echo "Generating archive packages for $scheme"
@@ -558,8 +591,10 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidDevBuild
+	elif [ "$MODE" == "expoDevBuild" ] ; then
+		buildAndroidExpoDevBuild
+	elif [ "$MODE" == "expoQaBuild" ] ; then
+		buildAndroidExpoQaBuild
 	else
 		buildAndroidRun
 	fi
@@ -600,8 +635,10 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
-	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosDevBuild
+	elif [ "$MODE" == "expoDevBuild" ] ; then
+		buildIosExpoDevBuild
+	elif [ "$MODE" == "expoQaBuild" ] ; then
+		buildIosExpoQaBuild
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
