@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {
   Text,
-  StyleSheet,
   View,
   TouchableWithoutFeedback,
   Alert,
@@ -29,7 +28,6 @@ import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import onUrlSubmit, {
   prefixUrlWithProtocol,
@@ -63,7 +61,6 @@ import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
 import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
 import {
@@ -95,7 +92,14 @@ import {
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import {
+  HOMEPAGE_HOST,
+  IPFS_GATEWAY_DISABLED_ERROR,
+  OLD_HOMEPAGE_URL_HOST,
+  NOTIFICATION_NAMES,
+  HOMEPAGE_URL,
+  MM_MIXPANEL_TOKEN,
+} from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
@@ -118,279 +122,23 @@ import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
 import { useIsFocused } from '@react-navigation/native';
-import { Theme } from '@metamask/design-tokens';
-import { RootState } from '../../../reducers';
-import { Dispatch } from 'redux';
-
-const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
-  AppConstants;
-const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
-const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
-
-const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
-  StyleSheet.create({
-    wrapper: {
-      ...baseStyles.flexGrow,
-      backgroundColor: colors.background.default,
-    },
-    hide: {
-      flex: 0,
-      opacity: 0,
-      display: 'none',
-      width: 0,
-      height: 0,
-    },
-    progressBarWrapper: {
-      height: 3,
-      width: '100%',
-      left: 0,
-      right: 0,
-      top: 0,
-      position: 'absolute',
-      zIndex: 999999,
-    },
-    optionsOverlay: {
-      position: 'absolute',
-      zIndex: 99999998,
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-    optionsWrapper: {
-      position: 'absolute',
-      zIndex: 99999999,
-      width: 200,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      backgroundColor: colors.background.default,
-      borderRadius: 10,
-      paddingBottom: 5,
-      paddingTop: 10,
-    },
-    optionsWrapperAndroid: {
-      ...shadows.size.xs,
-      bottom: 65,
-      right: 5,
-    },
-    optionsWrapperIos: {
-      ...shadows.size.xs,
-      bottom: 90,
-      right: 5,
-    },
-    option: {
-      paddingVertical: 10,
-      height: 'auto',
-      minHeight: 44,
-      paddingHorizontal: 15,
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      marginTop: Device.isAndroid() ? 0 : -5,
-    },
-    optionText: {
-      fontSize: 16,
-      lineHeight: 16,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      marginTop: 3,
-      color: colors.primary.default,
-      flex: 1,
-      ...fontStyles.fontPrimary,
-    },
-    optionIconWrapper: {
-      flex: 0,
-      borderRadius: 5,
-      backgroundColor: colors.primary.muted,
-      padding: 3,
-      marginRight: 10,
-      alignSelf: 'center',
-    },
-    optionIcon: {
-      color: colors.primary.default,
-      textAlign: 'center',
-      alignSelf: 'center',
-      fontSize: 18,
-    },
-    webview: {
-      ...baseStyles.flexGrow,
-      zIndex: 1,
-    },
-    urlModalContent: {
-      flexDirection: 'row',
-      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
-      paddingHorizontal: 10,
-      height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
-      backgroundColor: colors.background.default,
-    },
-    searchWrapper: {
-      flexDirection: 'row',
-      borderRadius: 30,
-      backgroundColor: colors.background.alternative,
-      height: Device.isAndroid() ? 40 : 30,
-      flex: 1,
-    },
-    clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
-    urlModal: {
-      justifyContent: 'flex-start',
-      margin: 0,
-    },
-    urlInput: {
-      ...fontStyles.normal,
-      fontSize: Device.isAndroid() ? 16 : 14,
-      paddingLeft: 15,
-      flex: 1,
-      color: colors.text.default,
-    },
-    cancelButton: {
-      marginTop: -6,
-      marginLeft: 10,
-      justifyContent: 'center',
-    },
-    cancelButtonText: {
-      fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    bottomModal: {
-      justifyContent: 'flex-end',
-      margin: 0,
-    },
-    fullScreenModal: {
-      flex: 1,
-    },
-    bannerContainer: {
-      backgroundColor: colors.background.default,
-      position: 'absolute',
-      bottom: 16,
-      left: 16,
-      right: 16,
-      borderRadius: 4,
-    },
-  });
-
-// Add this interface near the top of the file with other interfaces
-interface SessionENSNames {
-  [key: string]: {
-    hostname: string;
-    hash: string;
-    type: string;
-  };
-}
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './styles';
+import { type RootState } from '../../../reducers';
+import { type Dispatch } from 'redux';
+import { type SessionENSNames, type BrowserTabProps } from './types';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
 
 const ensIgnoreList: string[] = [];
 
-// Add interfaces/types
-interface BrowserTabProps {
-  /**
-   * The ID of the current tab
-   */
-  id: number;
-  /**
-   * The ID of the active tab
-   */
-  activeTab: number;
-  /**
-   * InitialUrl
-   */
-  initialUrl?: string;
-  /**
-   * linkType - type of link to open
-   */
-  linkType?: string;
-  /**
-   * Protocol string to append to URLs that have none
-   */
-  defaultProtocol: string;
-  /**
-   * A string that of the chosen ipfs gateway
-   */
-  ipfsGateway: string;
-  /**
-   * Object containing the information for the current transaction
-   */
-  transaction?: Record<string, unknown>;
-  /**
-   * react-navigation object used to switch between screens
-   */
-  navigation: any; // Consider using proper react-navigation types
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: string;
-  /**
-   * whitelisted url to bypass the phishing detection
-   */
-  whitelist: string[];
-  /**
-   * Url coming from an external source
-   * For ex. deeplinks
-   */
-  url?: string;
-  /**
-   * Function to open a new tab
-   */
-  newTab: (url?: string) => void;
-  /**
-   * Function to store bookmarks
-   */
-  addBookmark: (bookmark: { name: string; url: string }) => void;
-  /**
-   * Array of bookmarks
-   */
-  bookmarks: Array<{ name: string; url: string }>;
-  /**
-   * String representing the current search engine
-   */
-  searchEngine: string;
-  /**
-   * Function to store the a page in the browser history
-   */
-  addToBrowserHistory: (entry: { url: string; name: string }) => void;
-  /**
-   * Function to store the a website in the browser whitelist
-   */
-  addToWhitelist: (url: string) => void;
-  /**
-   * Function to update the tab information
-   */
-  updateTabInfo: (url: string, tabID: number) => void;
-  /**
-   * Function to update the tab information
-   */
-  showTabs: () => void;
-  /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: (step: number) => void;
-  /**
-   * Current onboarding wizard step
-   */
-  wizardStep: number;
-  /**
-   * the current version of the app
-   */
-  app_version?: string;
-  /**
-   * Represents ipfs gateway toggle
-   */
-  isIpfsGatewayEnabled: boolean;
-  /**
-   * Represents the current chain id
-   */
-  chainId: string;
-  /**
-   * Boolean indicating if browser is in tabs view
-   */
-  isInTabsView: boolean;
-}
-
 // Update the component definition
 export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -431,8 +179,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const { colors, shadows } = useTheme();
-  const styles = createStyles(colors, shadows);
   const favicon = useFavicon(url.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
