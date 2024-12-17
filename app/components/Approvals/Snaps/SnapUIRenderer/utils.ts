@@ -3,7 +3,6 @@ import { hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
 import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
-import { unescape as unescapeEntities } from 'he';
 import { COMPONENT_MAPPING } from './components';
 
 // TODO: Theme isn't properly setup yet
@@ -103,8 +102,7 @@ export const mapTextToTemplate = (
   elements.map((element) => {
     // With the introduction of JSX elements here can be strings.
     if (typeof element === 'string') {
-      // We unescape HTML entities here, to allow usage of &bull; etc.
-      return unescapeEntities(element);
+      return element;
     }
 
     return mapToTemplate({ ...params, element });
