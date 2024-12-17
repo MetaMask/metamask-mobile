@@ -4125,3 +4125,4 @@ access
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.31.0...HEAD
