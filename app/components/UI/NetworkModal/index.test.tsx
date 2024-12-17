@@ -1,6 +1,6 @@
 import React from 'react';
 import NetworkModal from './index';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -8,6 +8,7 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
+import { renderWithSafeAreaProvider } from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -70,7 +71,7 @@ describe('NetworkDetails', () => {
   });
 
   const renderWithTheme = (component: React.ReactNode) =>
-    render(
+    renderWithSafeAreaProvider(
       <ThemeContext.Provider value={mockTheme}>
         {component}
       </ThemeContext.Provider>,
