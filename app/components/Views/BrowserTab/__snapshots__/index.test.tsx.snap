@@ -28,8 +28,34 @@ exports[`Browser should render correctly 1`] = `
   }
 >
   <BrowserTab
+    activeTab={1}
+    addBookmark={[MockFunction]}
+    addToBrowserHistory={[MockFunction]}
+    addToWhitelist={[MockFunction]}
+    bookmarks={[]}
+    chainId="1"
     defaultProtocol="https://"
+    id={1}
     initialUrl="https://metamask.io"
+    ipfsGateway="https://gateway.ipfs.io/ipfs/"
+    isInTabsView={false}
+    isIpfsGatewayEnabled={false}
+    navigation={
+      {
+        "canGoBack": true,
+        "canGoForward": true,
+        "goBack": [MockFunction],
+        "goForward": [MockFunction],
+      }
+    }
+    newTab={[MockFunction]}
+    searchEngine="Google"
+    selectedAddress="0x123"
+    setOnboardingWizardStep={[MockFunction]}
+    showTabs={[MockFunction]}
+    updateTabInfo={[MockFunction]}
+    whitelist={[]}
+    wizardStep={1}
   />
 </ContextProvider>
 `;
