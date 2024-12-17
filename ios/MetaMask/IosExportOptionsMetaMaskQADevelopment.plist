@@ -5,7 +5,7 @@
     <key>provisioningProfiles</key>
     <dict>
       <key>io.metamask.MetaMask-QA</key>
-      <string>development-metamask</string>
+      <string>development-metamask-qa</string>
     </dict>
     <key>uploadSymbols</key>
     <true/>
