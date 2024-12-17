@@ -295,7 +295,7 @@ buildIosExpoQaBuild(){
 	brew install watchman
 	cd ios
 
-	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
+	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskQADevelopment.plist"
 	scheme="MetaMask-QA"
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
