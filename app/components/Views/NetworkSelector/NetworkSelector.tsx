@@ -464,7 +464,6 @@ const NetworkSelector = () => {
 
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
-    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
     const rpcUrl =
       networkConfigurations?.[chainId]?.rpcEndpoints?.[
         networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
@@ -532,7 +531,6 @@ const NetworkSelector = () => {
   const renderLineaMainnet = () => {
     const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
-    const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
     const rpcUrl =
       networkConfigurations?.[chainId]?.rpcEndpoints?.[
         networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
