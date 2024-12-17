@@ -1321,54 +1321,54 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-build_android_expo_qa:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:expo:qa
-          title: Build Android Dev Build
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - script:
-          title: Copy and Rename APK
-          inputs:
-            - content: |-
-                # Define the source path of the generated APK
-                SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-qa-debug.apk"
-                
-                # Define the destination path with the new name
-                DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-qa-build.apk"
-                
-                # Copy and rename the APK
-                cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-                
-                # Optionally, print the new path for verification
-                echo "APK has been copied and renamed to: $DEST_APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-qa-build.apk"
-          title: Bitrise Deploy APK
-    meta:
-      bitrise.io:
+  build_android_expo_qa:
+      before_run:
+        - code_setup
+      after_run:
+        - notify_failure
+      steps:
+        - change-android-versioncode-and-versionname@1:
+            inputs:
+              - new_version_name: $VERSION_NAME
+              - new_version_code: $VERSION_NUMBER
+              - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+        - restore-gradle-cache@2: {}
+        - install-missing-android-tools@3:
+            inputs:
+              - ndk_version: $NDK_VERSION
+              - gradlew_path: $PROJECT_LOCATION/gradlew
+        - script@1:
+            inputs:
+              - content: |-
+                  #!/usr/bin/env bash
+                  node -v
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:expo:qa
+            title: Build Android Dev Build
+            is_always_run: false
+        - save-gradle-cache@1: {}
+        - script:
+            title: Copy and Rename APK
+            inputs:
+              - content: |-
+                  # Define the source path of the generated APK
+                  SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-qa-debug.apk"
+                  
+                  # Define the destination path with the new name
+                  DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-qa-build.apk"
+                  
+                  # Copy and rename the APK
+                  cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
+                  
+                  # Optionally, print the new path for verification
+                  echo "APK has been copied and renamed to: $DEST_APK_PATH"
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-qa-build.apk"
+            title: Bitrise Deploy APK
+      meta:
+        bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
   _upload_apk_to_browserstack:
@@ -1636,7 +1636,7 @@ build_android_expo_qa:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-build_ios_expo_qa:
+  build_ios_expo_qa:
     before_run:
       - code_setup
     after_run:
