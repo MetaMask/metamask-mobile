@@ -72,6 +72,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
+  get ethereumSignButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETHEREUM_SIGN,
+    );
+  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
@@ -114,6 +120,11 @@ class TestDApp {
   async tapTypedV4SignButton() {
     await this.tapButton(this.signTypedDataV4Button);
   }
+
+  async tapEthereumSignButton() {
+    await this.tapButton(this.ethereumSignButton);
+  }
+
   async tapERC20TransferButton() {
     await this.tapButton(this.erc20TransferTokensButton);
   }
