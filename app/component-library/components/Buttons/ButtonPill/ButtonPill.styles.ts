@@ -13,11 +13,11 @@ export interface ButtonPillStyleSheetVars {
 }
 
 /**
- * Style sheet function for ButtonIcon component
+ * Style sheet function for ButtonPill component
  *
  * @param params Style sheet params
  * @param params.theme Theme object
- * @param params.vars Inputs that the style sheet depends on
+ * @param params.vars Arbitrary inputs this style sheet depends on
  * @returns StyleSheet object
  */
 const styleSheet = (params: {
