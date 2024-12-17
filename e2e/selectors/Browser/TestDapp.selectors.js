@@ -10,4 +10,5 @@ export const TestDappSelectorsWebIDs = {
   SIGN_TYPE_DATA_V3: 'signTypedDataV3',
   SIGN_TYPE_DATA_V4: 'signTypedDataV4',
   ETHEREUM_SIGN: 'siwe',
+  ADD_TOKENS_TO_WALLET_BUTTON: 'watchAssets',
 };
