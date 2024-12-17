@@ -18,13 +18,13 @@ import NetworkEducationModal from '../../../../pages/Network/NetworkEducationMod
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('Network Permission Management'), () => {
+describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('handles permission cleanup when removing a connected network', async () => {
+  it('handles permission cleanup when removing a connected chain', async () => {
     await withFixtures(
       {
         dapp: true,

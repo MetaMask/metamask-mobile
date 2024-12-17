@@ -3,20 +3,21 @@ import TestHelpers from '../../../../helpers';
 import { SmokeMultiChain } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
-import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeMultiChain('Network Permission Management'), () => {
+describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('removes network access permission while maintaining account connections', async () => {
+  it('preserves original chain permissions when user cancels modification', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -27,29 +28,31 @@ describe(SmokeMultiChain('Network Permission Management'), () => {
         restartDevice: true,
       },
       async () => {
-        // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
-        // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
-        // Step 3: Navigate through permission management flow
+        // Navigate to chain permissions and add Sepolia
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        await ConnectedAccountsModal.tapSelectAllNetworksButton();
-        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
-        await ConnectedAccountsModal.tapDisconnectNetworksButton();
-        await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
+        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
 
-        // Step 4: Verify UI state after permission removal
-        await Browser.tapNetworkAvatarButtonOnBrowser();
-        await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
-        await NetworkListModal.swipeToDismissModal();
-        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
+        // Navigate back without confirming changes
+        await NetworkConnectMultiSelector.tapBackButton();
+
+        // Verify changes were discarded by checking chain permissions again
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+        // Deselect Ethereum mainnet (should be the only chain selected)
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+
+        // Verify the disconnect all button appears (indicating no chain are selected)
+        await Assertions.checkIfVisible(
+          ConnectedAccountsModal.disconnectNetworksButton,
+        );
       },
     );
   });

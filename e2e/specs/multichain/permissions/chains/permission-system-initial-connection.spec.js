@@ -13,14 +13,14 @@ import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 
-describe(SmokeMultiChain('Network Permission Management'), () => {
+describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
   describe('Initial Connection Flow', () => {
-    it('grants default permissions to single account and network on first connect', async () => {
+    it('grants default permissions to single account and chain on first connect', async () => {
       await withFixtures(
         {
           dapp: true,
@@ -42,7 +42,7 @@ describe(SmokeMultiChain('Network Permission Management'), () => {
       );
     });
 
-    it('allows user to modify permitted networks before completing connection', async () => {
+    it('allows user to modify permitted chains before completing connection', async () => {
       await withFixtures(
         {
           dapp: true,

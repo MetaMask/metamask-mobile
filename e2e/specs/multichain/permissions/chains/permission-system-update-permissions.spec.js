@@ -15,12 +15,12 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('Network Permission Management'), () => {
+describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('allows simultaneous granting and revoking of multiple network permissions', async () => {
+  it('allows simultaneous granting and revoking of multiple chain permissions', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -67,7 +67,7 @@ describe(SmokeMultiChain('Network Permission Management'), () => {
     );
   });
 
-  it('follows fallback priority when revoking permission for currently active network', async () => {
+  it('follows fallback priority when revoking permission for currently active chain', async () => {
     await withFixtures(
       {
         dapp: true,
