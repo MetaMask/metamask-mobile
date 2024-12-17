@@ -1,13 +1,13 @@
 const tags = {
-  regression: 'Regression',
-  smokeAccounts: 'SmokeAccounts',
-  smokeCore: 'SmokeCore',
-  smokeConfirmations: 'SmokeConfirmations',
-  SmokeSwaps: 'SmokeSwaps',
-  SmokeRest: 'SmokeRest',
-  smokeAssets: 'smokeAssets',
-  smokeIdentity: 'smokeIdentity',
-  smokeMultiChain: 'SmokeMultiChain',
+  regression: 'Regression:',
+  smokeAccounts: 'SmokeAccounts:',
+  smokeCore: 'SmokeCore:',
+  smokeConfirmations: 'SmokeConfirmations:',
+  SmokeSwaps: 'SmokeSwaps:',
+  SmokeRest: 'SmokeRest:',
+  smokeAssets: 'smokeAssets:',
+  smokeIdentity: 'smokeIdentity:',
+  smokeMultiChain: 'SmokeMultiChain:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
