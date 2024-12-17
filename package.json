@@ -439,7 +439,7 @@
     "enzyme-to-json": "3.3.5",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-jsdoc": "43.0.7",
     "eslint-plugin-prettier": "^3.3.1",
