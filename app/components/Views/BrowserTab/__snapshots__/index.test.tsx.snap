@@ -28,7 +28,6 @@ exports[`Browser should render correctly 1`] = `
   }
 >
   <BrowserTab
-    defaultProtocol="https://"
     initialUrl="https://metamask.io"
   />
 </ContextProvider>
