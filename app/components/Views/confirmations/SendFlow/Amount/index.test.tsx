@@ -4,18 +4,15 @@ import Amount from '.';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
 
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-const mockEngine = Engine;
 const mockTransactionTypes = TransactionTypes;
 
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
@@ -72,36 +69,69 @@ jest.mock('../../../../../util/transaction-controller', () => ({
 
 const mockNavigate = jest.fn();
 
-const CURRENT_ACCOUNT = '0x1a';
+const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
 
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
-        network: '1',
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0xaa36a7': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0xaa36a7',
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                type: 'Custom',
+                url: 'http://localhost/v3/',
+              },
+            ],
+          },
         },
       },
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      PreferencesController: {
-        selectedAddress: CURRENT_ACCOUNT,
-        identities: {
-          [CURRENT_ACCOUNT]: {
-            address: CURRENT_ACCOUNT,
-            name: 'Account 1',
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: CURRENT_ACCOUNT,
+          accounts: {
+            [CURRENT_ACCOUNT]: {
+              address: CURRENT_ACCOUNT,
+            },
           },
         },
       },
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [CURRENT_ACCOUNT]: [
+              {
+                address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                symbol: 'LINK',
+                decimals: 18,
+              },
+            ],
+          },
+        },
       },
     },
   },
@@ -112,6 +142,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -162,6 +194,23 @@ describe('Amount', () => {
               },
             },
           },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -205,6 +254,23 @@ describe('Amount', () => {
             accounts: {
               [CURRENT_ACCOUNT]: {
                 balance: '4563918244F40000',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
               },
             },
           },
@@ -272,6 +338,23 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -332,6 +415,29 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -372,8 +478,10 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
             },
           },
           CurrencyRateController: {
@@ -382,6 +490,29 @@ describe('Amount', () => {
               ETH: {
                 conversionRate: 3000,
                 usdConversionRate: 3000,
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
               },
             },
           },
@@ -433,6 +564,23 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
         },
       },
       settings: {
@@ -476,8 +624,33 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
             },
           },
           CurrencyRateController: {
@@ -531,7 +704,30 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
           },
           CurrencyRateController: {},
         },
@@ -572,8 +768,37 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              ...initialState.engine.backgroundState.AccountsController
+                .internalAccounts,
+              accounts: {
+                ...initialState.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
             },
           },
           CurrencyRateController: {},
@@ -601,6 +826,8 @@ describe('Amount', () => {
 
     try {
       await getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
@@ -615,8 +842,30 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            allTokens: {
+              '0x1': {
+                '0xAddress1': [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '0xAddress1',
+              accounts: {
+                '0xAddress1': {
+                  address: '0xAddress1',
+                },
+              },
+            },
+          },
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
           },
           CurrencyRateController: {},
         },
@@ -641,6 +890,8 @@ describe('Amount', () => {
 
     try {
       getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);

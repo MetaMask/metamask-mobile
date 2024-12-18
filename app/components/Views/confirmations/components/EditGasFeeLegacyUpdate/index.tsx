@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import BigNumber from 'bignumber.js';
 /* eslint-disable react/display-name */
 import React, { useCallback, useMemo, useState } from 'react';
@@ -41,6 +43,9 @@ import {
 } from '../../../../../util/gasUtils';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
+import { selectPrimaryCurrency } from '../../../../../selectors/settings';
+import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -57,7 +62,7 @@ const EditGasFeeLegacy = ({
   selectedGasObject,
   hasDappSuggestedGas,
 }: EditGasFeeLegacyUpdateProps) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
   const [gasPriceError, setGasPriceError] = useState<string>('');
@@ -77,16 +82,11 @@ const EditGasFeeLegacy = ({
   const styles = createStyles(colors);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
 
-  const primaryCurrency = useSelector(
-    (state: any) => state.settings.primaryCurrency,
-  );
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
 
-  const gasEstimateType = useSelector(
-    (state: any) =>
-      state.engine.backgroundState.GasFeeController.gasEstimateType,
-  );
+  const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
 
-  const chainId = useSelector((state: any) => selectChainId(state));
+  const chainId = useSelector(selectChainId);
 
   const gasTransaction = useGasTransaction({
     onlyGas,
@@ -95,12 +95,16 @@ const EditGasFeeLegacy = ({
   });
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
-      ...analyticsParams,
-      chain_id: getDecimalChainId(chainId),
-      function_type: view,
-      gas_mode: 'Basic',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties({
+          ...analyticsParams,
+          chain_id: getDecimalChainId(chainId),
+          function_type: view,
+          gas_mode: 'Basic',
+        })
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObjectLegacy?.suggestedGasPrice,
@@ -115,6 +119,7 @@ const EditGasFeeLegacy = ({
     chainId,
     view,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const changeGas = useCallback((gas) => {
@@ -255,7 +260,7 @@ const EditGasFeeLegacy = ({
   };
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID={EditGasViewSelectorsIDs.LEGACY_CONTAINER}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
           <View>

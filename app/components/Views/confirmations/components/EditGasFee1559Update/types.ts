@@ -38,22 +38,32 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Function to set the gas selected value
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onChange: any;
   /**
    * Function called when user cancels
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onCancel: any;
   /**
    * Function called when user saves the new gas data
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave: any;
   /**
    * Error message to show
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
   /**
    * Warning message to show
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   warning: any;
   /**
    * Boolean that specifies if the gas price was suggested by the dapp
@@ -66,10 +76,14 @@ export interface EditGasFee1559UpdateProps {
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extendOptions: any;
   /**
    * Recommended object with type and render function
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recommended: any;
   /**
    * Estimate option to compare with for too low warning

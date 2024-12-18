@@ -1,28 +1,29 @@
-import { fork, take, cancel, put, call } from 'redux-saga/effects';
+import { fork, take, cancel, put, call, all } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
-  LOCKED_APP,
-  AUTH_SUCCESS,
-  AUTH_ERROR,
+  AuthSuccessAction,
+  AuthErrorAction,
+  InterruptBiometricsAction,
   lockApp,
-  INTERRUPT_BIOMETRICS,
-  LOGOUT,
-  LOGIN,
+  UserActionType,
 } from '../../actions/user';
+import { NavigationActionType } from '../../actions/navigation';
 import { Task } from 'redux-saga';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import LockManagerService from '../../core/LockManagerService';
-import AppConstants from '../../../app/core/AppConstants';
-
-const originalSend = XMLHttpRequest.prototype.send;
-const originalOpen = XMLHttpRequest.prototype.open;
+import {
+  overrideXMLHttpRequest,
+  restoreXMLHttpRequest,
+} from './xmlHttpRequestOverride';
+import EngineService from '../../core/EngineService';
+import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
   while (true) {
-    yield take(LOCKED_APP);
+    yield take(UserActionType.LOCKED_APP);
     if (biometricsListenerTask) {
       yield cancel(biometricsListenerTask);
     }
@@ -45,11 +46,11 @@ export function* appLockStateMachine() {
 export function* authStateMachine() {
   // Start when the user is logged in.
   while (true) {
-    yield take(LOGIN);
+    yield take(UserActionType.LOGIN);
     const appLockStateMachineTask: Task<void> = yield fork(appLockStateMachine);
     LockManagerService.startListening();
     // Listen to app lock behavior.
-    yield take(LOGOUT);
+    yield take(UserActionType.LOGOUT);
     LockManagerService.stopListening();
     // Cancels appLockStateMachineTask, which also cancels nested sagas once logged out.
     yield cancel(appLockStateMachineTask);
@@ -78,76 +79,38 @@ export function* biometricsStateMachine(originalBioStateMachineId: string) {
   // Handle next three possible states.
   let shouldHandleAction = false;
   let action:
-    | {
-        type:
-          | typeof AUTH_SUCCESS
-          | typeof AUTH_ERROR
-          | typeof INTERRUPT_BIOMETRICS;
-        payload?: { bioStateMachineId: string };
-      }
+    | AuthSuccessAction
+    | AuthErrorAction
+    | InterruptBiometricsAction
     | undefined;
 
   // Only continue on INTERRUPT_BIOMETRICS action or when actions originated from corresponding state machine.
   while (!shouldHandleAction) {
-    action = yield take([AUTH_SUCCESS, AUTH_ERROR, INTERRUPT_BIOMETRICS]);
+    action = yield take([
+      UserActionType.AUTH_SUCCESS,
+      UserActionType.AUTH_ERROR,
+      UserActionType.INTERRUPT_BIOMETRICS,
+    ]);
     if (
-      action?.type === INTERRUPT_BIOMETRICS ||
+      action?.type === UserActionType.INTERRUPT_BIOMETRICS ||
       action?.payload?.bioStateMachineId === originalBioStateMachineId
     ) {
       shouldHandleAction = true;
     }
   }
 
-  if (action?.type === INTERRUPT_BIOMETRICS) {
+  if (action?.type === UserActionType.INTERRUPT_BIOMETRICS) {
     // Biometrics was most likely interrupted during authentication with a non-zero lock timer.
     yield fork(lockKeyringAndApp);
-  } else if (action?.type === AUTH_ERROR) {
+  } else if (action?.type === UserActionType.AUTH_ERROR) {
     // Authentication service will automatically log out.
-  } else if (action?.type === AUTH_SUCCESS) {
+  } else if (action?.type === UserActionType.AUTH_SUCCESS) {
     // Authentication successful. Navigate to wallet.
     NavigationService.navigation?.navigate(Routes.ONBOARDING.HOME_NAV);
   }
 }
 
 export function* basicFunctionalityToggle() {
-  const overrideXMLHttpRequest = () => {
-    // Store the URL of the current request
-    let currentUrl = '';
-    const blockList = AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST;
-
-    const shouldBlockRequest = (url: string) =>
-      blockList.some((blockedUrl) => url.includes(blockedUrl));
-
-    const handleError = () =>
-      Promise.reject(new Error(`Disallowed URL: ${currentUrl}`)).catch(
-        (error) => {
-          console.error(error);
-        },
-      );
-
-    // Override the 'open' method to capture the request URL
-    XMLHttpRequest.prototype.open = function (method, url) {
-      currentUrl = url.toString(); // Convert URL object to string
-      return originalOpen.apply(this, [method, currentUrl]);
-    };
-
-    // Override the 'send' method to implement the blocking logic
-    XMLHttpRequest.prototype.send = function (body) {
-      // Check if the current request should be blocked
-      if (shouldBlockRequest(currentUrl)) {
-        handleError(); // Trigger an error callback or handle the blocked request as needed
-        return; // Do not proceed with the request
-      }
-      // For non-blocked requests, proceed as normal
-      return originalSend.call(this, body);
-    };
-  };
-
-  function restoreXMLHttpRequest() {
-    XMLHttpRequest.prototype.open = originalOpen;
-    XMLHttpRequest.prototype.send = originalSend;
-  }
-
   while (true) {
     const { basicFunctionalityEnabled } = yield take(
       'TOGGLE_BASIC_FUNCTIONALITY',
@@ -156,13 +119,30 @@ export function* basicFunctionalityToggle() {
     if (basicFunctionalityEnabled) {
       restoreXMLHttpRequest();
     } else {
+      // apply global blocklist
       overrideXMLHttpRequest();
     }
   }
 }
 
+/**
+ * Handles initializing app services on start up
+ */
+export function* startAppServices() {
+  // Wait for persisted data to be loaded and navigation to be ready
+  yield all([
+    take(UserActionType.ON_PERSISTED_DATA_LOADED),
+    take(NavigationActionType.ON_NAVIGATION_READY),
+  ]);
+  // Start services
+  EngineService.start();
+  AppStateEventProcessor.start();
+  // TODO: Track a property in redux to gate keep the app until services are initialized
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
+  yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
 }

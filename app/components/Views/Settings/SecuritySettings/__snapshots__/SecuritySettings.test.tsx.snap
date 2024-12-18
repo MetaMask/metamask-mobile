@@ -4,7 +4,7 @@ exports[`SecuritySettings should render correctly 1`] = `
 <RCTScrollView
   style={
     {
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "paddingBottom": 48,
       "paddingHorizontal": 16,
       "paddingTop": 8,
@@ -36,8 +36,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -65,8 +65,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -96,8 +96,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -117,7 +117,12 @@ exports[`SecuritySettings should render correctly 1`] = `
           style={
             {
               "backgroundColor": "transparent",
-              "color": "#24272A",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
             }
           }
           suppressHighlighting={true}
@@ -126,8 +131,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376C9",
-                "fontFamily": "Euclid Circular B",
+                "color": "#0376c9",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -141,8 +146,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#D7384719",
-              "borderColor": "#D73847",
+              "backgroundColor": "#d738471a",
+              "borderColor": "#d73847",
               "borderLeftWidth": 4,
               "borderRadius": 4,
               "flexDirection": "row",
@@ -162,7 +167,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           >
             <SvgMock
-              color="#D73847"
+              color="#d73847"
               height={24}
               name="Danger"
               style={
@@ -185,8 +190,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -209,7 +214,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#0376C9",
+              "backgroundColor": "#0376c9",
               "borderRadius": 24,
               "flexDirection": "row",
               "height": 48,
@@ -218,14 +223,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#FFFFFF",
-                "fontFamily": "Euclid Circular B",
+                "color": "#ffffff",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -249,8 +253,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -264,8 +268,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -288,7 +292,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
-              "borderColor": "#0376C9",
+              "borderColor": "#0376c9",
               "borderRadius": 24,
               "borderWidth": 1,
               "flexDirection": "row",
@@ -299,14 +303,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
           testID="change-password-button"
-          variant="Secondary"
         >
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#0376C9",
-                "fontFamily": "Euclid Circular B",
+                "color": "#0376c9",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -330,8 +333,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -345,8 +348,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -360,7 +363,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View
           style={
             {
-              "borderColor": "#BBC0C5",
+              "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
               "marginTop": 16,
@@ -396,7 +399,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     style={
                       {
                         "alignSelf": "flex-start",
-                        "color": "#24272A",
+                        "color": "#141618",
                         "flex": 1,
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
@@ -412,7 +415,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#24272A",
+                          "color": "#141618",
                           "fontSize": 24,
                         },
                         {
@@ -489,9 +492,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -513,7 +516,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376C9"
+                onTintColor="#0376c9"
                 style={
                   [
                     {
@@ -525,15 +528,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#D6D9DC",
+                        "backgroundColor": "#bbc0c566",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 testID="turn-on-remember-me"
-                thumbTintColor="#FFFFFF"
-                tintColor="#D6D9DC"
+                thumbTintColor="#ffffff"
+                tintColor="#bbc0c566"
                 value={true}
               />
             </View>
@@ -542,8 +545,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -568,8 +571,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -577,14 +580,14 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Show private key for "[missing {{accountName}} value]"
+          Show private key for "Account 2"
         </Text>
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -593,7 +596,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          This is the private key for the current selected account: [missing {{accountName}} value]. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+          This is the private key for the current selected account: Account 2. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
         </Text>
         <TouchableOpacity
           accessibilityRole="button"
@@ -606,7 +609,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#0376C9",
+              "backgroundColor": "#0376c9",
               "borderRadius": 24,
               "flexDirection": "row",
               "height": 48,
@@ -615,14 +618,14 @@ exports[`SecuritySettings should render correctly 1`] = `
               "paddingHorizontal": 16,
             }
           }
-          variant="Primary"
+          testID="show-private-key"
         >
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#FFFFFF",
-                "fontFamily": "Euclid Circular B",
+                "color": "#ffffff",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -649,8 +652,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -665,7 +668,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          onTintColor="#0376C9"
+          onTintColor="#0376c9"
           style={
             [
               {
@@ -677,15 +680,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                   "alignSelf": "flex-end",
                 },
                 {
-                  "backgroundColor": "#D6D9DC",
+                  "backgroundColor": "#bbc0c566",
                   "borderRadius": 16,
                 },
               ],
             ]
           }
           testID="security-alerts-toggle"
-          thumbTintColor="#FFFFFF"
-          tintColor="#D6D9DC"
+          thumbTintColor="#ffffff"
+          tintColor="#bbc0c566"
           value={true}
         />
       </View>
@@ -693,8 +696,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -703,7 +706,24 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
         }
       >
-        Privacy preserving - no data is shared with third parties. Available on Arbitrum, Avalanche, BNB chain, Ethereum Mainnet, Optimism, Polygon, Sepolia and Base.
+        This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more.
+        </Text>
       </Text>
       <View
         style={
@@ -719,8 +739,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 24,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -737,8 +757,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -770,8 +790,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -786,7 +806,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -794,13 +814,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "width": 51,
                   },
                   {
-                    "backgroundColor": "#D6D9DC",
+                    "backgroundColor": "#bbc0c566",
                     "borderRadius": 16,
                   },
                 ]
               }
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={false}
             />
           </View>
@@ -808,8 +828,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -823,8 +843,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               onPress={[Function]}
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -842,8 +862,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -866,8 +886,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -881,8 +901,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -912,7 +932,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -921,14 +941,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -955,8 +974,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -970,8 +989,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1001,7 +1020,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -1010,14 +1029,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
+            testID="clear-privacy-data-button"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1071,8 +1090,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1086,8 +1105,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1118,7 +1137,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -1128,14 +1147,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1154,14 +1172,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="clear-cookies-section"
       >
         <Text
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1175,8 +1192,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1207,7 +1224,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -1217,14 +1234,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1270,8 +1286,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1302,9 +1318,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1326,7 +1342,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -1338,15 +1354,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
               testID="display-use-safe-list-validation"
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={true}
             />
           </View>
@@ -1355,8 +1371,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1370,8 +1386,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
-                "fontFamily": "Euclid Circular B",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 14,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -1390,8 +1406,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1422,9 +1438,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1446,7 +1462,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -1458,15 +1474,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
               testID="security-settings-multi-account-balances-switch"
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={true}
             />
           </View>
@@ -1475,8 +1491,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1485,7 +1501,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          We batch accounts and query Infura to responsively show your balances. If you turn this off, only active accounts will be queried. Some dApps won’t work unless you connect your wallet.
+          Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
         </Text>
       </View>
       <View
@@ -1500,8 +1516,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1515,8 +1531,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1540,24 +1556,25 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "uri": "MockImage",
+                  "default": {
+                    "uri": "MockImage",
+                  },
                 },
-                "name": "Ethereum Main Network",
+                "name": "Ethereum Mainnet",
                 "variant": "Network",
               }
             }
-            secondaryText="etherscan.io"
             style={
               {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#BBC0C5",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
                 "borderRadius": 4,
                 "borderWidth": 0,
                 "padding": 16,
               }
             }
             testID="celldisplay"
-            title="Ethereum Main Network"
+            title="Ethereum Mainnet"
           >
             <View
               style={
@@ -1570,7 +1587,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
                     "borderRadius": 16,
                     "height": 32,
                     "justifyContent": "center",
@@ -1586,7 +1603,9 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
@@ -1611,8 +1630,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1621,23 +1640,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Ethereum Main Network
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#535A61",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  etherscan.io
+                  Ethereum Mainnet
                 </Text>
               </View>
               <View
@@ -1652,7 +1655,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onChange={[Function]}
                   onResponderTerminationRequest={[Function]}
                   onStartShouldSetResponder={[Function]}
-                  onTintColor="#0376C9"
+                  onTintColor="#0376c9"
                   style={
                     [
                       {
@@ -1664,14 +1667,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                           "alignSelf": "flex-start",
                         },
                         {
-                          "backgroundColor": "#D6D9DC",
+                          "backgroundColor": "#bbc0c566",
                           "borderRadius": 16,
                         },
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
-                  tintColor="#D6D9DC"
+                  testID="incoming-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
                   value={true}
                 />
               </View>
@@ -1681,24 +1685,25 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "uri": "MockImage",
+                  "default": {
+                    "uri": "MockImage",
+                  },
                 },
-                "name": "Linea Main Network",
+                "name": "Linea",
                 "variant": "Network",
               }
             }
-            secondaryText="lineascan.build"
             style={
               {
-                "backgroundColor": "#FFFFFF",
-                "borderColor": "#BBC0C5",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#bbc0c5",
                 "borderRadius": 4,
                 "borderWidth": 0,
                 "padding": 16,
               }
             }
             testID="celldisplay"
-            title="Linea Main Network"
+            title="Linea"
           >
             <View
               style={
@@ -1711,7 +1716,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#FFFFFF",
+                    "backgroundColor": "#ffffff",
                     "borderRadius": 16,
                     "height": 32,
                     "justifyContent": "center",
@@ -1727,7 +1732,9 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "uri": "MockImage",
+                      "default": {
+                        "uri": "MockImage",
+                      },
                     }
                   }
                   style={
@@ -1752,8 +1759,8 @@ exports[`SecuritySettings should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1762,23 +1769,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="cellbase-avatar-title"
                 >
-                  Linea Main Network
-                </Text>
-                <Text
-                  accessibilityRole="text"
-                  numberOfLines={1}
-                  style={
-                    {
-                      "color": "#535A61",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 22,
-                    }
-                  }
-                >
-                  lineascan.build
+                  Linea
                 </Text>
               </View>
               <View
@@ -1793,7 +1784,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   onChange={[Function]}
                   onResponderTerminationRequest={[Function]}
                   onStartShouldSetResponder={[Function]}
-                  onTintColor="#0376C9"
+                  onTintColor="#0376c9"
                   style={
                     [
                       {
@@ -1805,14 +1796,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                           "alignSelf": "flex-start",
                         },
                         {
-                          "backgroundColor": "#D6D9DC",
+                          "backgroundColor": "#bbc0c566",
                           "borderRadius": 16,
                         },
                       ],
                     ]
                   }
-                  thumbTintColor="#FFFFFF"
-                  tintColor="#D6D9DC"
+                  testID="incoming-linea-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#bbc0c566"
                   value={true}
                 />
               </View>
@@ -1849,12 +1841,131 @@ exports[`SecuritySettings should render correctly 1`] = `
         transparent={true}
         visible={false}
       />
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "flex": 1,
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Estimate balance changes
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#0376c9"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#bbc0c566",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. 
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
+        </Text>
+      </View>
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1871,7 +1982,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 16,
           }
         }
-        testID="nft-display-media-mode-section"
       >
         <View
           style={
@@ -1885,9 +1995,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1909,7 +2019,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -1921,15 +2031,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
-              testID="display-nft-toggle"
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              testID="nft-display-media-mode-section"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={true}
             />
           </View>
@@ -1938,8 +2048,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1951,90 +2061,92 @@ exports[`SecuritySettings should render correctly 1`] = `
           Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
         </Text>
       </View>
-      <View
-        style={
-          {
-            "marginTop": 32,
-          }
-        }
-        testID="nft-opensea-autodetect-mode-section"
-      >
+      <View>
         <View
           style={
             {
-              "alignItems": "center",
-              "flexDirection": "row",
+              "marginTop": 32,
             }
           }
         >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "flex": 1,
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Autodetect NFTs
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#0376c9"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#bbc0c566",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="nft-opensea-autodetect-mode-section"
+                thumbTintColor="#ffffff"
+                tintColor="#bbc0c566"
+                value={true}
+              />
+            </View>
+          </View>
           <Text
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
-                "flex": 1,
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 16,
-                "fontWeight": "500",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 24,
+                "lineHeight": 22,
+                "marginTop": 8,
               }
             }
           >
-            Autodetect NFTs
+            Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
           </Text>
-          <View
-            style={
-              {
-                "marginLeft": 16,
-              }
-            }
-          >
-            <RCTSwitch
-              accessibilityRole="switch"
-              onChange={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
-              style={
-                [
-                  {
-                    "height": 31,
-                    "width": 51,
-                  },
-                  [
-                    {
-                      "alignSelf": "flex-start",
-                    },
-                    {
-                      "backgroundColor": "#D6D9DC",
-                      "borderRadius": 16,
-                    },
-                  ],
-                ]
-              }
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
-              value={false}
-            />
-          </View>
         </View>
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 22,
-              "marginTop": 8,
-            }
-          }
-        >
-          Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
-        </Text>
       </View>
       <View
         style={
@@ -2042,7 +2154,6 @@ exports[`SecuritySettings should render correctly 1`] = `
             "marginTop": 32,
           }
         }
-        testID="ipfs-gateway-section"
       >
         <View
           style={
@@ -2056,9 +2167,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2080,7 +2191,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -2092,14 +2203,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              testID="IPFS_GATEWAY_SECTION"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={true}
             />
           </View>
@@ -2108,8 +2220,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2131,8 +2243,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2146,7 +2258,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <View
             style={
               {
-                "borderColor": "#BBC0C5",
+                "borderColor": "#bbc0c5",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "marginTop": 16,
@@ -2165,8 +2277,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2197,9 +2309,9 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#24272A",
+                  "color": "#141618",
                   "flex": 1,
-                  "fontFamily": "Euclid Circular B",
+                  "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2221,7 +2333,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376C9"
+                onTintColor="#0376c9"
                 style={
                   [
                     {
@@ -2233,14 +2345,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#D6D9DC",
+                        "backgroundColor": "#bbc0c566",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
-                thumbTintColor="#FFFFFF"
-                tintColor="#D6D9DC"
+                thumbTintColor="#ffffff"
+                tintColor="#bbc0c566"
                 value={false}
               />
             </View>
@@ -2249,8 +2361,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2267,8 +2379,8 @@ exports[`SecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#535A61",
-            "fontFamily": "Euclid Circular B",
+            "color": "#6a737d",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2299,9 +2411,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2323,7 +2435,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -2335,15 +2447,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
               testID="metametrics-switch"
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={false}
             />
           </View>
@@ -2352,8 +2464,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2373,7 +2485,12 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#24272A",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2382,8 +2499,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2416,9 +2533,9 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#24272A",
+                "color": "#141618",
                 "flex": 1,
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2440,7 +2557,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               onChange={[Function]}
               onResponderTerminationRequest={[Function]}
               onStartShouldSetResponder={[Function]}
-              onTintColor="#0376C9"
+              onTintColor="#0376c9"
               style={
                 [
                   {
@@ -2452,15 +2569,15 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#D6D9DC",
+                      "backgroundColor": "#bbc0c566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
               testID="data-collection-switch"
-              thumbTintColor="#FFFFFF"
-              tintColor="#D6D9DC"
+              thumbTintColor="#ffffff"
+              tintColor="#bbc0c566"
               value={false}
             />
           </View>
@@ -2469,8 +2586,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2493,8 +2610,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2508,8 +2625,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2522,8 +2639,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2543,7 +2660,12 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#24272A",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2552,8 +2674,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2569,8 +2691,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2585,8 +2707,8 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#535A61",
-                "fontFamily": "Euclid Circular B",
+                "color": "#6a737d",
+                "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2606,7 +2728,12 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#24272A",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
               }
             }
             suppressHighlighting={true}
@@ -2615,8 +2742,8 @@ exports[`SecuritySettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2648,7 +2775,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -2658,14 +2785,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="delete-metrics-button"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2718,8 +2844,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#24272A",
-              "fontFamily": "Euclid Circular B",
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -2733,8 +2859,8 @@ exports[`SecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#535A61",
-              "fontFamily": "Euclid Circular B",
+              "color": "#6a737d",
+              "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2766,7 +2892,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376C9",
+                "borderColor": "#0376c9",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -2776,14 +2902,13 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
             }
             testID="security-settings-delete-wallet-buttons"
-            variant="Secondary"
           >
             <Text
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376C9",
-                  "fontFamily": "Euclid Circular B",
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2826,6 +2951,35 @@ exports[`SecuritySettings should render correctly 1`] = `
         visible={false}
       />
     </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
   </View>
 </RCTScrollView>
 `;

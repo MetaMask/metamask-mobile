@@ -4,13 +4,18 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { NetworkAddedModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/NetworkAddedModal.selectors';
+import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     buttonView: {
       flexDirection: 'row',
       paddingVertical: 16,
+    },
+    base: {
+      padding: 16,
     },
     button: {
       flex: 1,
@@ -39,7 +44,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
   const styles = createStyles(colors);
 
   return (
-    <View>
+    <View style={styles.base}>
       <Text centered bold black big>
         {strings('networks.new_network')}
       </Text>
@@ -52,7 +57,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       <View style={styles.buttonView}>
         <StyledButton
           type={'cancel'}
-          testID={NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON}
+          testID={NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON}
           onPress={closeModal}
           containerStyle={[styles.button, styles.cancel]}
         >
@@ -61,7 +66,7 @@ const NetworkAdded = (props: NetworkAddedProps) => {
         <StyledButton
           type={'confirm'}
           onPress={switchNetwork}
-          testID={NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON}
+          testID={NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON}
           containerStyle={[styles.button, styles.confirm]}
         >
           {strings('networks.switch_network')}

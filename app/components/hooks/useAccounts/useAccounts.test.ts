@@ -2,9 +2,19 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumAddress } from 'ethereumjs-util';
 import useAccounts from './useAccounts';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { Account } from './useAccounts.types';
+import { Hex } from '@metamask/utils';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
+import { getAccountBalances } from './utils';
+
+const mockReturnGetAccountBalances = getAccountBalances as jest.Mock;
+
+jest.mock('./utils', () => ({
+  getAccountBalances: jest.fn(),
+}));
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
 
@@ -16,7 +26,7 @@ const MOCK_ACCOUNT_ADDRESSES = Object.values(
 
 const MOCK_ACCOUNT_1: Account = {
   name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 0,
   isSelected: false,
@@ -27,7 +37,7 @@ const MOCK_ACCOUNT_1: Account = {
 };
 const MOCK_ACCOUNT_2: Account = {
   name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]),
+  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
   type: KeyringTypes.hd,
   yOffset: 78,
   isSelected: true,
@@ -41,21 +51,17 @@ const MOCK_STORE_STATE = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       AccountTrackerController: {
         accounts: {
           [MOCK_ACCOUNT_1.address]: {
             balance: '0x0',
+            stakedBalance: '0x0',
           },
           [MOCK_ACCOUNT_2.address]: {
             balance: '0x5',
           },
-        },
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: MOCK_CHAIN_ID,
         },
       },
     },
@@ -92,6 +98,16 @@ describe('useAccounts', () => {
   });
 
   it('populates balanceError property for accounts', async () => {
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x0',
+      balanceETH: 0,
+      balanceFiat: 0,
+    });
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x5',
+      balanceETH: '< 0.00001',
+      balanceFiat: 0,
+    });
     const expectedBalanceError = 'Insufficient funds';
     const { result, waitForNextUpdate } = renderHook(() =>
       useAccounts({
@@ -109,6 +125,17 @@ describe('useAccounts', () => {
   });
 
   it('returns internal accounts', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x0',
+      balanceETH: '0',
+      balanceFiat: '',
+    });
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x5',
+      balanceETH: '< 0.00001',
+      balanceFiat: '',
+    });
     const expectedInternalAccounts: Account[] = [
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,
@@ -121,6 +148,16 @@ describe('useAccounts', () => {
   });
 
   it('returns ENS name when available', async () => {
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x0',
+      balanceETH: '0',
+      balanceFiat: '',
+    });
+    mockReturnGetAccountBalances.mockReturnValueOnce({
+      balanceWeiHex: '0x5',
+      balanceETH: '< 0.00001',
+      balanceFiat: '',
+    });
     const expectedENSNames = {
       [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
     };

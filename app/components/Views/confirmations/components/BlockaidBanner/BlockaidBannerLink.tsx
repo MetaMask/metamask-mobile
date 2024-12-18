@@ -4,6 +4,8 @@ import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../compo
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { useTheme } from '../../../../../util/theme';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     attributionLink: { color: colors.primary.default },

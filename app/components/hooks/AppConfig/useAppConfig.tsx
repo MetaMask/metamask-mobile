@@ -30,6 +30,8 @@ const useAppConfig = (hasGithubPermissions: boolean): State => {
                 },
               };
               setState({ type: 'Success', data: appConfig });
+              // TODO: Replace "any" with type
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (e: any) {
               setState({
                 type: 'Error',
@@ -38,6 +40,8 @@ const useAppConfig = (hasGithubPermissions: boolean): State => {
               });
             }
           })
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .catch((e: any) => {
             setState({
               type: 'Error',

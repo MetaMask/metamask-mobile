@@ -6,6 +6,8 @@ import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     fill: {
@@ -23,6 +25,8 @@ const createStyles = (colors: any) =>
     },
     headerLabel: {
       textAlign: 'center',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.bold as any),
       fontSize: 24,
       marginBottom: 16,
@@ -31,6 +35,8 @@ const createStyles = (colors: any) =>
     description: {
       textAlign: 'center',
       fontSize: 16,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(fontStyles.normal as any),
       color: colors.text.default,
     },

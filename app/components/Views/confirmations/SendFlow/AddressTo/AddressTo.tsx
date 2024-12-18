@@ -8,9 +8,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { showAlert } from '../../../../../actions/alert';
 import { NetworkSwitchErrorType } from '../../../../../constants/error';
 import Routes from '../../../../../constants/navigation/Routes';
-import { handleNetworkSwitch } from '../../../../../util/networks';
+import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
 import { AddressTo } from '../../../../UI/AddressInputs';
-import { createQRScannerNavDetails } from '../../../QRScanner';
+import { createQRScannerNavDetails } from '../../../QRTabSwitcher';
 import { SFAddressToProps } from './AddressTo.types';
 
 const SendFlowAddressTo = ({
@@ -29,6 +29,8 @@ const SendFlowAddressTo = ({
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showAlertAction = (config: any) => dispatch(showAlert(config));
 
   const onHandleNetworkSwitch = (chain_id: string) => {
@@ -43,6 +45,8 @@ const SendFlowAddressTo = ({
         content: 'clipboard-alert',
         data: { msg: strings('send.warn_network_change') + networkName },
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       let alertMessage;
       switch (e.message) {

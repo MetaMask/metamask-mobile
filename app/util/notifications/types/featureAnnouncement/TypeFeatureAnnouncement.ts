@@ -2,7 +2,7 @@ import type { Entry, EntryFieldTypes } from 'contentful/dist/types';
 import type { TypeActionFields } from './TypeAction';
 import type { TypeLinkFields } from './TypeLink';
 
-interface ImageFields {
+export interface ImageFields {
   fields: {
     title?: EntryFieldTypes.Text;
     description?: EntryFieldTypes.Text;

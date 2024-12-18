@@ -1,4 +1,7 @@
 package io.metamask;
+import android.content.res.Configuration;
+import expo.modules.ApplicationLifecycleDispatcher;
+import expo.modules.ReactNativeHostWrapper;
 
 import android.app.Application;
 import com.facebook.react.ReactApplication;
@@ -24,6 +27,12 @@ import java.lang.reflect.Field;
 import io.metamask.nativesdk.NativeSDKPackage;
 import io.metamask.nativeModules.RNTar.RNTarPackage;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+import android.os.Build;
+
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
   @Override
@@ -31,7 +40,7 @@ public class MainApplication extends Application implements ShareApplication, Re
     return BuildConfig.APPLICATION_ID + ".provider";
   }
 
-	private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
+	private final ReactNativeHost mReactNativeHost = new ReactNativeHostWrapper(this, new DefaultReactNativeHost(this) {
 		@Override
 		public boolean getUseDeveloperSupport() {
 			return BuildConfig.DEBUG;
@@ -62,15 +71,23 @@ public class MainApplication extends Application implements ShareApplication, Re
 
 		@Override
 		protected String getJSMainModuleName() {
-			return "index";
+			return ".expo/.virtual-metro-entry";
 		}
-  	};
+  	});
 
 	@Override
 	public ReactNativeHost getReactNativeHost() {
 		return mReactNativeHost;
 	}
 
+	@Override
+	public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+		if (Build.VERSION.SDK_INT >= 34 && getApplicationInfo().targetSdkVersion >= 34) {
+			return super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+		} else {
+			return super.registerReceiver(receiver, filter);
+		}
+	}
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -98,5 +115,12 @@ public class MainApplication extends Application implements ShareApplication, Re
     }
 
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
+    ApplicationLifecycleDispatcher.onApplicationCreate(this);
+  }
+
+  @Override
+  public void onConfigurationChanged(Configuration newConfig) {
+    super.onConfigurationChanged(newConfig);
+    ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig);
   }
 }

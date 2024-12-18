@@ -37,7 +37,6 @@ import {
 } from '../../../../util/transactions';
 import Logger from '../../../../util/Logger';
 import { getAddress } from '../../../../util/address';
-import TransactionTypes from '../../../../core/TransactionTypes';
 import { MAINNET } from '../../../../constants/network';
 import BigNumber from 'bignumber.js';
 import { WalletDevice } from '@metamask/transaction-controller';
@@ -51,6 +50,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
 } from '../../../../selectors/networkController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -58,13 +58,16 @@ import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../selectors/preferencesController';
+  selectInternalAccounts,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
+import { toLowerCaseEquals } from '../../../../util/general';
+import { selectAddressBook } from '../../../../selectors/addressBookController';
+import TransactionTypes from '../../../../core/TransactionTypes';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -126,9 +129,13 @@ class Send extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * List of accounts from the PreferencesController
+     * ID of the global network client
      */
-    identities: PropTypes.object,
+    networkClientId: PropTypes.string,
+    /**
+     * List of accounts from the AccountsController
+     */
+    internalAccounts: PropTypes.array,
     /**
      * Selected address as string
      */
@@ -317,7 +324,8 @@ class Send extends PureComponent {
     function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, chainId, identities, selectedAddress } = this.props;
+    const { addressBook, chainId, internalAccounts, selectedAddress } =
+      this.props;
 
     let newTxMeta = {};
     let txRecipient;
@@ -328,7 +336,6 @@ class Send extends PureComponent {
         newTxMeta = {
           symbol: 'ETH',
           assetType: 'ETH',
-          type: 'ETHER_TRANSACTION',
           paymentRequest: true,
           selectedAsset: { symbol: 'ETH', isETH: true },
           ...txRecipient,
@@ -344,7 +351,7 @@ class Send extends PureComponent {
           addressBook,
           chainId,
           toAddress: newTxMeta.to,
-          identities,
+          internalAccounts,
           ensRecipient: newTxMeta.ensRecipient,
         });
 
@@ -363,7 +370,6 @@ class Send extends PureComponent {
           '0';
         newTxMeta = {
           assetType: 'ERC20',
-          type: 'INDIVIDUAL_TOKEN_TRANSACTION',
           paymentRequest: true,
           selectedAsset,
           ensRecipient,
@@ -384,7 +390,7 @@ class Send extends PureComponent {
           addressBook,
           chainId,
           toAddress: to,
-          identities,
+          internalAccounts,
           ensRecipient,
         });
         break;
@@ -418,7 +424,10 @@ class Send extends PureComponent {
     }
 
     newTxMeta.from = selectedAddress;
-    newTxMeta.transactionFromName = identities[selectedAddress].name;
+    const fromAccount = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, selectedAddress),
+    );
+    newTxMeta.transactionFromName = fromAccount.metadata.name;
     this.props.setTransactionObject(newTxMeta);
     this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
   };
@@ -547,6 +556,7 @@ class Send extends PureComponent {
     const {
       transaction: { selectedAsset, assetType },
       chainId,
+      networkClientId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -558,6 +568,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
@@ -632,7 +643,11 @@ class Send extends PureComponent {
         Logger.error(error, 'error while trying to send transaction (Send)');
       } else {
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+          this.props.metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
         );
       }
       this.setState({ transactionConfirmed: false });
@@ -648,8 +663,10 @@ class Send extends PureComponent {
    */
   trackConfirmScreen = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -658,13 +675,15 @@ class Send extends PureComponent {
    */
   trackEditScreen = async () => {
     const { transaction } = this.props;
-    const actionKey = await getTransactionReviewActionKey(transaction);
+    const actionKey = await getTransactionReviewActionKey({ transaction });
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION,
-      {
-        ...this.getTrackingParams(),
-        actionKey,
-      },
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .addProperties({
+          ...this.getTrackingParams(),
+          actionKey,
+        })
+        .build(),
     );
   };
 
@@ -673,8 +692,10 @@ class Send extends PureComponent {
    */
   trackOnCancel = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CANCEL_TRANSACTION)
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -683,8 +704,12 @@ class Send extends PureComponent {
    */
   trackOnConfirm = () => {
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
-      this.getTrackingParams(),
+      this.props.metrics
+        .createEventBuilder(
+          MetaMetricsEvents.TRANSACTIONS_COMPLETED_TRANSACTION,
+        )
+        .addProperties(this.getTrackingParams())
+        .build(),
     );
   };
 
@@ -776,15 +801,16 @@ class Send extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
   transaction: state.transaction,
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   chainId: selectChainId(state),
-  identities: selectIdentities(state),
-  selectedAddress: selectSelectedAddress(state),
+  networkClientId: selectNetworkClientId(state),
+  internalAccounts: selectInternalAccounts(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

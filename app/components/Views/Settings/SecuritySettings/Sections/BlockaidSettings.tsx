@@ -5,7 +5,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { Switch, View } from 'react-native';
+import { Linking, Switch, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectIsSecurityAlertsEnabled } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
@@ -17,7 +17,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 const BlockaidSettings = () => {
   const theme = useTheme();
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles();
   const securityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -26,9 +26,13 @@ const BlockaidSettings = () => {
 
     if (securityAlertsEnabled) {
       PreferencesController?.setSecurityAlertsEnabled(false);
-      trackEvent(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED, {
-        security_alerts_enabled: false,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_SECURITY_ALERTS_ENABLED)
+          .addProperties({
+            security_alerts_enabled: false,
+          })
+          .build(),
+      );
     } else {
       PreferencesController?.setSecurityAlertsEnabled(true);
     }
@@ -47,7 +51,7 @@ const BlockaidSettings = () => {
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           style={styles.switch}
           ios_backgroundColor={colors.border.muted}
           testID={SECURITY_ALERTS_TOGGLE_TEST_ID}
@@ -59,7 +63,17 @@ const BlockaidSettings = () => {
         variant={TextVariant.BodyMD}
         style={styles.desc}
       >
-        {strings('app_settings.blockaid_desc')}
+        {strings('app_settings.blockaid_desc')}{' '}
+        <Text
+          color={TextColor.Alternative}
+          onPress={() =>
+            Linking.openURL(
+              'https://support.metamask.io/privacy-and-security/how-to-turn-on-security-alerts/',
+            )
+          }
+        >
+          {strings('app_settings.learn_more')}
+        </Text>
       </Text>
     </>
   );

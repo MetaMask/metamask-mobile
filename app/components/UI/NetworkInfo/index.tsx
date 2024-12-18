@@ -8,7 +8,7 @@ import { connect, useSelector } from 'react-redux';
 import Description from './InfoDescription';
 import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import { NETWORK_EDUCATION_MODAL_CLOSE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids.js';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import {
@@ -19,7 +19,7 @@ import { selectUseTokenDetection } from '../../../selectors/preferencesControlle
 import Avatar, {
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar';
-import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Modals/NetworkEducationModal.selectors';
+import { NetworkEducationModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkEducationModal.selectors';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -211,6 +211,8 @@ const NetworkInfo = (props: NetworkInfoProps) => {
   );
 };
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
 });

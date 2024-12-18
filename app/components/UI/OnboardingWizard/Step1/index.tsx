@@ -1,5 +1,5 @@
 import React, { useCallback, useContext } from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useDispatch } from 'react-redux';
 
 import Coachmark from '../Coachmark';
@@ -12,8 +12,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_STEP_1_CONTAINER_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 const styles = StyleSheet.create({
@@ -39,7 +38,7 @@ const Step1 = ({ onClose }: Step1Props) => {
   const theme = useContext(ThemeContext) || mockTheme;
   const dynamicOnboardingStyles = onboardingStyles(theme.colors);
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const content = useCallback(
     () => (
@@ -55,16 +54,20 @@ const Step1 = ({ onClose }: Step1Props) => {
   const onNext = useCallback(() => {
     dispatch(setOnboardingWizardStep?.(2));
 
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STARTED, {
-      tutorial_step_count: 1,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
-    });
-  }, [dispatch, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STARTED)
+        .addProperties({
+          tutorial_step_count: 1,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[1],
+        })
+        .build(),
+    );
+  }, [dispatch, trackEvent, createEventBuilder]);
 
   return (
     <View
       style={styles.main}
-      {...generateTestId(Platform, ONBOARDING_WIZARD_STEP_1_CONTAINER_ID)}
+      testID={OnboardingWizardModalSelectorsIDs.STEP_ONE_CONTAINER}
     >
       <View style={styles.coachmarkContainer}>
         <Coachmark

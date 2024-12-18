@@ -25,7 +25,11 @@ interface AssetPillProperties extends ViewProps {
 }
 
 const getNetworkImage = (chainId: Hex) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const network: any = Object.values(NetworkList).find(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (nw: any) => nw.chainId === chainId,
   );
   return network?.imageSource || null;
@@ -53,15 +57,20 @@ const NativeAssetPill: React.FC = () => {
 const AssetPill: React.FC<AssetPillProperties> = ({ asset }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // TODO: Remove global network selector usage once simulations refactored.
+  const chainId = useSelector(selectChainId);
+
   return (
     <View style={styles.assetPill}>
       {asset.type === AssetType.Native ? (
         <NativeAssetPill />
       ) : (
         <Name
+          preferContractSymbol
           testID="simulation-details-asset-pill-name"
           type={NameType.EthereumAddress}
-          value={asset.address as Hex}
+          value={asset.address}
+          variation={chainId}
         />
       )}
     </View>

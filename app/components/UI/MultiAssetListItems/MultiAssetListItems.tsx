@@ -14,20 +14,26 @@ import AssetIcon from '../AssetIcon';
 import { useSelector } from 'react-redux';
 import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import { strings } from '../../../../locales/i18n';
-import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/ImportTokenView.selectors';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 interface Props {
   /**
    * Array of assets objects returned from the search
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   searchResults: any[];
   /**
    * Callback triggered when a token is selected
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handleSelectAsset: (asset: any) => void;
   /**
    * Object of the currently-selected token
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedAsset: any[];
   /**
    * Search query that generated "searchResults"
@@ -77,7 +83,7 @@ const MultiAssetListItems = ({
             style={styles.base}
             key={i}
             onPress={() => handleSelectAsset(searchResults[i])}
-            testID={ImportTokenViewSelectorsIDs.CONTAINER}
+            testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
           >
             <View style={styles.Icon}>
               <BadgeWrapper

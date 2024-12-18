@@ -60,6 +60,7 @@ jest.mock('../../hooks/useStyles', () => ({
 jest.mock('../AnimatedSpinner');
 jest.mock('./BalanceChangeList/BalanceChangeList', () => 'BalanceChangeList');
 jest.mock('./useBalanceChanges');
+jest.mock('./useSimulationMetrics');
 
 describe('SimulationDetails', () => {
   const useBalanceChangesMock = jest.mocked(useBalanceChanges);
@@ -82,6 +83,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 
@@ -98,6 +100,7 @@ describe('SimulationDetails', () => {
               error: { code: SimulationErrorCode.ChainNotSupported },
             }}
             transactionId={mockTransactionId}
+            enableMetrics={false}
           />,
         ).toJSON(),
       ).toBeNull();
@@ -112,6 +115,7 @@ describe('SimulationDetails', () => {
               error: { code: SimulationErrorCode.Disabled },
             }}
             transactionId={mockTransactionId}
+            enableMetrics={false}
           />,
         ).toJSON(),
       ).toBeNull();
@@ -127,6 +131,7 @@ describe('SimulationDetails', () => {
             error: { code: SimulationErrorCode.Reverted },
           }}
           transactionId={mockTransactionId}
+          enableMetrics={false}
         />,
       );
 
@@ -141,6 +146,7 @@ describe('SimulationDetails', () => {
             error: { code: SimulationErrorCode.InvalidResponse },
           }}
           transactionId={mockTransactionId}
+          enableMetrics={false}
         />,
       );
 
@@ -155,6 +161,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 
@@ -167,10 +174,12 @@ describe('SimulationDetails', () => {
       value: [
         {
           amount: new BigNumber('0x1', 16).times(-1),
+          fiatAmount: 10,
           asset: { type: AssetType.Native },
         },
         {
           amount: new BigNumber('0x123456', 16).times(1),
+          fiatAmount: 10,
           asset: {
             address: FIRST_PARTY_CONTRACT_ADDRESS_1_MOCK,
             tokenId: undefined,
@@ -179,6 +188,7 @@ describe('SimulationDetails', () => {
         },
         {
           amount: new BigNumber('0x123456789', 16).times(1),
+          fiatAmount: 10,
           asset: {
             address: FIRST_PARTY_CONTRACT_ADDRESS_2_MOCK,
             tokenId: undefined,
@@ -192,6 +202,7 @@ describe('SimulationDetails', () => {
       <SimulationDetails
         simulationData={simulationDataMock}
         transactionId={mockTransactionId}
+        enableMetrics={false}
       />,
     );
 

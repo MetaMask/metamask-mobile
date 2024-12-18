@@ -1,3 +1,4 @@
+import { NetworkState, RpcEndpointType } from '@metamask/network-controller';
 import {
   isENS,
   renderSlightlyLongAddress,
@@ -13,7 +14,38 @@ import {
   resemblesAddress,
   getKeyringByAddress,
   getLabelTextByAddress,
+  isSnapAccount,
+  toFormattedAddress,
 } from '.';
+import {
+  mockHDKeyringAddress,
+  mockQrKeyringAddress,
+  mockSimpleKeyringAddress,
+  mockSnapAddress1,
+  mockSnapAddress2,
+} from '../test/keyringControllerTestUtils';
+
+jest.mock('../../core/Engine', () => {
+  const { MOCK_KEYRING_CONTROLLER_STATE } = jest.requireActual(
+    '../test/keyringControllerTestUtils',
+  );
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES } =
+    jest.requireActual('../test/accountsControllerTestUtils');
+  return {
+    context: {
+      KeyringController: {
+        ...MOCK_KEYRING_CONTROLLER_STATE,
+        state: {
+          keyrings: [...MOCK_KEYRING_CONTROLLER_STATE.state.keyrings],
+        },
+      },
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+        state: MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_KEYRING_TYPES,
+      },
+    },
+  };
+});
 
 describe('isENS', () => {
   it('should return false by default', () => {
@@ -34,35 +66,100 @@ describe('isENS', () => {
 });
 
 describe('renderSlightlyLongAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return the address when the address do not exist', () => {
-    expect(renderSlightlyLongAddress(null)).toBeNull();
+  describe('with EVM addresses', () => {
+    const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+    it('returns 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
+        24,
+      );
+      expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(
+        4,
+      );
+    });
+    it('returns 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
+      expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
+        '0xC4955',
+      );
+      expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
+        '4D272',
+      );
+    });
   });
-  it('should return 5 characters before ellipsis and 4 final characters of the address after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[0].length).toBe(
-      24,
-    );
-    expect(renderSlightlyLongAddress(mockAddress).split('.')[3].length).toBe(4);
-  });
-  it('should return 0xC4955 before ellipsis and 4D272 after the ellipsis', () => {
-    expect(renderSlightlyLongAddress(mockAddress, 5, 2).split('.')[0]).toBe(
-      '0xC4955',
-    );
-    expect(renderSlightlyLongAddress(mockAddress, 5, 0).split('.')[3]).toBe(
-      '4D272',
-    );
+
+  describe('non-EVM addresses', () => {
+    it('does not checksum address and maintain original format', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(24); // Default initialChars (20) + chars (4)
+      expect(afterEllipsis.length).toBe(4);
+      expect(result).toBe('bc1qxy2kgdygjrsqtzq2n0yr...0wlh');
+    });
+
+    it('respects custom chars and initialChars parameters', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const result = renderSlightlyLongAddress(address, 5, 10);
+      const [beforeEllipsis, afterEllipsis] = result.split('...');
+      expect(beforeEllipsis.length).toBe(15); // Custom initialChars (10) + chars (5)
+      expect(afterEllipsis.length).toBe(5);
+      expect(result).toBe('bc1qxy2kgdygjrs...x0wlh');
+    });
   });
 });
 
 describe('formatAddress', () => {
-  const mockAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
-  it('should return address formatted for short type', () => {
-    const expectedValue = '0xC495...D272';
-    expect(formatAddress(mockAddress, 'short')).toBe(expectedValue);
+  const mockEvmAddress = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+  const mockBtcAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+
+  describe('with EVM addresses', () => {
+    it('returns checksummed address formatted for short type', () => {
+      const expectedValue = '0xC495...D272';
+      expect(formatAddress(mockEvmAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('returns checksummed address formatted for mid type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
+      expect(formatAddress(mockEvmAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('returns full checksummed address for full type', () => {
+      const expectedValue = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(formatAddress(mockEvmAddress, 'full')).toBe(expectedValue);
+    });
   });
-  it('should return address formatted for mid type', () => {
-    const expectedValue = '0xC4955C0d639D99699Bfd7E...D272';
-    expect(formatAddress(mockAddress, 'mid')).toBe(expectedValue);
+
+  describe('with non-EVM addresses', () => {
+    it('returns address formatted for short type without checksumming', () => {
+      const expectedValue = 'bc1qxy...0wlh';
+      expect(formatAddress(mockBtcAddress, 'short')).toBe(expectedValue);
+    });
+
+    it('returns address formatted for mid type without checksumming', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yr...0wlh';
+      expect(formatAddress(mockBtcAddress, 'mid')).toBe(expectedValue);
+    });
+
+    it('returns full address without checksumming for full type', () => {
+      const expectedValue = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(formatAddress(mockBtcAddress, 'full')).toBe(expectedValue);
+    });
+  });
+});
+
+describe('toFormattedAddress', () => {
+  describe('with EVM addresses', () => {
+    it('returns checksummed address for lowercase input', () => {
+      const input = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
+      const expected = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
+      expect(toFormattedAddress(input)).toBe(expected);
+    });
+  });
+
+  describe('with non-EVM addresses', () => {
+    it('returns original address without modification', () => {
+      const address = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      expect(toFormattedAddress(address)).toBe(address);
+    });
   });
 });
 
@@ -171,59 +268,82 @@ describe('getAddress', () => {
 });
 
 describe('shouldShowBlockExplorer', () => {
-  const networkConfigurations = {
-    networkId1: {
-      chainId: '1',
-      nickname: 'Main Ethereum Network',
-      rpcUrl: 'https://mainnet.infura.io/v3/123',
-      rpcPrefs: {},
-    },
-  };
+  const networkConfigurations: NetworkState['networkConfigurationsByChainId'] =
+    {
+      '0x1': {
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Main Ethereum Network',
+        nativeCurrency: 'USD',
+        rpcEndpoints: [
+          {
+            networkClientId: 'networkId1',
+            type: RpcEndpointType.Custom,
+            url: 'https://mainnet.infura.io/v3/123',
+          },
+        ],
+      },
+    };
 
   it('returns true if provider type is not rpc', () => {
     const providerType = 'mainnet';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
 
-    const result = shouldShowBlockExplorer({
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(true);
   });
 
   it('returns block explorer URL if defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
-    const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
-    networkConfigurations.networkId1.rpcPrefs = { blockExplorerUrl };
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
 
-    const result = shouldShowBlockExplorer({
+    const blockExplorerUrl = 'https://rpc.testnet.fantom.network';
+
+    networkConfigurations['0x1'].blockExplorerUrls = [blockExplorerUrl];
+    networkConfigurations['0x1'].defaultBlockExplorerUrlIndex = 0;
+
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(blockExplorerUrl);
   });
 
   it('returns undefined if block explorer URL is not defined', () => {
     const providerType = 'rpc';
-    const providerRpcTarget = networkConfigurations.networkId1.rpcUrl;
-    networkConfigurations.networkId1.rpcPrefs = {};
 
-    const result = shouldShowBlockExplorer({
+    const providerRpcTarget = networkConfigurations['0x1'].rpcEndpoints.find(
+      ({ networkClientId }) => networkClientId === 'networkId1',
+    )?.url as string;
+
+    networkConfigurations['0x1'].blockExplorerUrls = [];
+
+    const result = shouldShowBlockExplorer(
       providerType,
       providerRpcTarget,
       networkConfigurations,
-    });
+    );
 
     expect(result).toBe(undefined);
   });
 });
 describe('isQRHardwareAccount', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isQRHardwareAccount(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not exist on keyring', () => {
@@ -231,32 +351,26 @@ describe('isQRHardwareAccount', () => {
   });
 
   it('should return false if address is from keyring type simple', () => {
-    expect(
-      isQRHardwareAccount('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBeFalsy();
+    expect(isQRHardwareAccount(mockSimpleKeyringAddress)).toBeFalsy();
   });
   it('should return false if address is from keyring type hd', () => {
-    expect(
-      isQRHardwareAccount('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBeFalsy();
+    expect(isQRHardwareAccount(mockHDKeyringAddress)).toBeFalsy();
   });
   it('should return true if address is from keyring type qr', () => {
-    expect(
-      isQRHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBeTruthy();
+    expect(isQRHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
   });
 });
 describe('getKeyringByAddress', () => {
   it('should return undefined if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(getKeyringByAddress(undefined as any)).toBeUndefined();
   });
   it('should return undefined if argument address is not hex address', () => {
     expect(getKeyringByAddress('ens.eth')).toBeUndefined();
   });
   it('should return address if found', () => {
-    expect(
-      getKeyringByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).not.toBe(undefined);
+    expect(getKeyringByAddress(mockQrKeyringAddress)).not.toBe(undefined);
   });
   it('should return null if address not found', () => {
     expect(
@@ -266,9 +380,7 @@ describe('getKeyringByAddress', () => {
 });
 describe('isHardwareAccount,', () => {
   it('should return true if account is a QR keyring', () => {
-    expect(
-      isHardwareAccount('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBeTruthy();
+    expect(isHardwareAccount(mockQrKeyringAddress)).toBeTruthy();
   });
 
   it('should return false if account is not a hardware keyring', () => {
@@ -279,15 +391,21 @@ describe('isHardwareAccount,', () => {
 });
 describe('getLabelTextByAddress,', () => {
   it('should return accounts.qr_hardware if account is a QR keyring', () => {
-    expect(
-      getLabelTextByAddress('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBe('accounts.qr_hardware');
+    expect(getLabelTextByAddress(mockQrKeyringAddress)).toBe('QR hardware');
   });
 
   it('should return KeyringTypes.simple if address is a imported account', () => {
-    expect(
-      getLabelTextByAddress('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBe('accounts.imported');
+    expect(getLabelTextByAddress(mockSimpleKeyringAddress)).toBe('Imported');
+  });
+
+  it('returns "Snaps (Beta)" if account is a Snap keyring and there is no snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress1)).toBe('Snaps (Beta)');
+  });
+
+  it('returns the snap name if account is a Snap keyring and there is a snap name', () => {
+    expect(getLabelTextByAddress(mockSnapAddress2)).toBe(
+      'MetaMask Simple Snap Keyring',
+    );
   });
 
   it('should return null if address is empty', () => {
@@ -302,36 +420,43 @@ describe('getLabelTextByAddress,', () => {
 });
 describe('getAddressAccountType', () => {
   it('should throw an error if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => getAddressAccountType(undefined as any)).toThrow(
       'Invalid address: undefined',
     );
   });
   it('should return QR if address is from a keyring type qr', () => {
-    expect(
-      getAddressAccountType('0xB374Ca013934e498e5baD3409147F34E6c462389'),
-    ).toBe('QR');
+    expect(getAddressAccountType(mockQrKeyringAddress)).toBe('QR');
   });
   it('should return imported if address is from a keyring type simple', () => {
-    expect(
-      getAddressAccountType('0xd018538C87232FF95acbCe4870629b75640a78E7'),
-    ).toBe('Imported');
+    expect(getAddressAccountType(mockSimpleKeyringAddress)).toBe('Imported');
   });
   it('should return MetaMask if address is not qr or simple', () => {
-    expect(
-      getAddressAccountType('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBe('MetaMask');
+    expect(getAddressAccountType(mockHDKeyringAddress)).toBe('MetaMask');
   });
 });
 describe('resemblesAddress', () => {
   it('should return false if argument address is undefined', () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(resemblesAddress(undefined as any)).toBeFalsy();
   });
   it('should return false if address does not resemble an eth address', () => {
     expect(resemblesAddress('address-stub-1')).toBeFalsy();
   });
   it('should return true if address resemble an eth address', () => {
+    expect(resemblesAddress(mockHDKeyringAddress)).toBeTruthy();
+  });
+});
+describe('isSnapAccount,', () => {
+  it('should return true if account is of type Snap Keyring', () => {
+    expect(isSnapAccount(mockSnapAddress1)).toBeTruthy();
+  });
+
+  it('should return false if account is not of type Snap Keyring', () => {
     expect(
-      resemblesAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F'),
-    ).toBeTruthy();
+      isSnapAccount('0xD5955C0d639D99699Bfd7Ec54d9FaFEe40e4D278'),
+    ).toBeFalsy();
   });
 });

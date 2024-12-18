@@ -2,12 +2,12 @@
 
 exports[`PickerBase should render correctly 1`] = `
 <TouchableOpacity
-  onPress={[Function]}
+  onPress={[MockFunction]}
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
-      "borderColor": "#BBC0C5",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#bbc0c5",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -15,9 +15,11 @@ exports[`PickerBase should render correctly 1`] = `
     }
   }
 >
-  <View />
+  <Text>
+    Test Content
+  </Text>
   <SvgMock
-    color="#6A737D"
+    color="#141618"
     height={20}
     name="ArrowDown"
     style={

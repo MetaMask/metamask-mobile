@@ -19,6 +19,15 @@ import { QuizContent } from '../QuizContent';
 import stylesheet from './styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
+import {
+  SrpQuizGetStartedSelectorsIDs,
+  SrpQuizGetStartedSelectorsText,
+  SrpSecurityQuestionOneSelectorsIDs,
+  SrpSecurityQuestionOneSelectorsText,
+  SrpSecurityQuestionTwoSelectorsIDs,
+  SrpSecurityQuestionTwoSelectorsText,
+} from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
+
 const introductionImg = require('../../../../images/reveal-srp.png');
 
 const SRPQuiz = () => {
@@ -27,7 +36,7 @@ const SRPQuiz = () => {
   const { styles, theme } = useStyles(stylesheet, {});
   const { colors } = theme;
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const dismissModal = (): void => {
     modalRef.current?.dismissModal();
@@ -45,7 +54,7 @@ const SRPQuiz = () => {
   };
 
   const wrongAnswerIcon = useCallback(
-    (): Element => (
+    (): React.ReactElement => (
       <Icon
         size={IconSize.Xl}
         name={IconName.Danger}
@@ -56,7 +65,7 @@ const SRPQuiz = () => {
   );
 
   const rightAnswerIcon = useCallback(
-    (): Element => (
+    (): React.ReactElement => (
       <Icon
         size={IconSize.Xl}
         name={IconName.Confirmation}
@@ -67,30 +76,40 @@ const SRPQuiz = () => {
   );
 
   const goToRevealPrivateCredential = useCallback((): void => {
-    trackEvent(MetaMetricsEvents.REVEAL_SRP_INITIATED);
-    trackEvent(MetaMetricsEvents.REVEAL_SRP_CTA);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REVEAL_SRP_INITIATED).build(),
+    );
+    trackEvent(createEventBuilder(MetaMetricsEvents.REVEAL_SRP_CTA).build());
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
     });
-  }, [navigation, trackEvent]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const introduction = useCallback(() => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SRP_REVEAL_QUIZ_PROMPT_SEEN).build(),
+    );
     return (
       <QuizContent
         header={strings('srp_security_quiz.title')}
         image={introductionImg}
         title={{
           content: strings('srp_security_quiz.introduction'),
+          testID: SrpQuizGetStartedSelectorsText.INTRODUCTION,
         }}
         buttons={[
           {
             label: strings('srp_security_quiz.get_started'),
             onPress: () => {
-              trackEvent(MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED, {});
+              trackEvent(
+                createEventBuilder(
+                  MetaMetricsEvents.SRP_REVEAL_START_CTA_SELECTED,
+                ).build(),
+              );
               setStage(QuizStage.questionOne);
             },
+            testID: SrpQuizGetStartedSelectorsIDs.BUTTON,
             variant: ButtonVariants.Primary,
           },
           {
@@ -102,26 +121,33 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent]);
+  }, [trackEvent, createEventBuilder]);
 
-  const questionOne = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN, {});
+  const questionOne = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_SEEN,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
         title={{
           content: strings('srp_security_quiz.question_one.question'),
+          testID: SrpSecurityQuestionOneSelectorsText.QUESTION,
         }}
         buttons={[
           {
             label: strings('srp_security_quiz.question_one.wrong_answer'),
             onPress: () => setStage(QuizStage.wrongAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
+            testID: SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER,
           },
           {
             label: strings('srp_security_quiz.question_one.right_answer'),
             onPress: () => setStage(QuizStage.rightAnswerQuestionOne),
             variant: ButtonVariants.Secondary,
+            testID: SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -132,10 +158,14 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent]);
+  }, [trackEvent, createEventBuilder]);
 
-  const rightAnswerQuestionOne = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER, {});
+  const rightAnswerQuestionOne = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_RIGHT_ASNWER,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
@@ -143,6 +173,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_one.right_answer_title'),
           style: styles.rightText,
+          testID:
+            SrpSecurityQuestionOneSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.right_answer_description',
@@ -152,6 +184,7 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.continue'),
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
+            testID: SrpSecurityQuestionOneSelectorsIDs.RIGHT_CONTINUE,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -162,10 +195,14 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [rightAnswerIcon, styles.rightText, trackEvent]);
+  }, [rightAnswerIcon, styles.rightText, trackEvent, createEventBuilder]);
 
-  const wrongAnswerQuestionOne = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER, {});
+  const wrongAnswerQuestionOne = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_FIRST_QUESTION_WRONG_ANSWER,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`1 ${strings('srp_security_quiz.of')} 2`}
@@ -173,6 +210,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_one.wrong_answer_title'),
           style: styles.wrongText,
+          testID:
+            SrpSecurityQuestionOneSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_one.wrong_answer_description',
@@ -182,6 +221,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionOne),
             variant: ButtonVariants.Primary,
+            testID:
+              SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -192,26 +233,33 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [styles.wrongText, wrongAnswerIcon, trackEvent]);
+  }, [styles.wrongText, wrongAnswerIcon, trackEvent, createEventBuilder]);
 
-  const questionTwo = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN, {});
+  const questionTwo = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_SEEN,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
         title={{
           content: strings('srp_security_quiz.question_two.question'),
+          testID: SrpSecurityQuestionTwoSelectorsText.QUESTION,
         }}
         buttons={[
           {
             label: strings('srp_security_quiz.question_two.right_answer'),
             onPress: () => setStage(QuizStage.rightAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
+            testID: SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER,
           },
           {
             label: strings('srp_security_quiz.question_two.wrong_answer'),
             onPress: () => setStage(QuizStage.wrongAnswerQuestionTwo),
             variant: ButtonVariants.Secondary,
+            testID: SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -222,10 +270,14 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent]);
+  }, [trackEvent, createEventBuilder]);
 
-  const rightAnswerQuestionTwo = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER, {});
+  const rightAnswerQuestionTwo = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_RIGHT_ASNWER,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
@@ -233,6 +285,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_two.right_answer_title'),
           style: styles.rightText,
+          testID:
+            SrpSecurityQuestionTwoSelectorsText.RIGHT_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.right_answer_description',
@@ -242,6 +296,7 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.continue'),
             onPress: goToRevealPrivateCredential,
             variant: ButtonVariants.Primary,
+            testID: SrpSecurityQuestionTwoSelectorsIDs.RIGHT_CONTINUE,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -257,10 +312,15 @@ const SRPQuiz = () => {
     rightAnswerIcon,
     styles.rightText,
     trackEvent,
+    createEventBuilder,
   ]);
 
-  const wrongAnswerQuestionTwo = useCallback((): Element => {
-    trackEvent(MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER, {});
+  const wrongAnswerQuestionTwo = useCallback((): React.ReactElement => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SRP_REVEAL_SECOND_QUESTION_WRONG_ANSWER,
+      ).build(),
+    );
     return (
       <QuizContent
         header={`2 ${strings('srp_security_quiz.of')} 2`}
@@ -268,6 +328,8 @@ const SRPQuiz = () => {
         title={{
           content: strings('srp_security_quiz.question_two.wrong_answer_title'),
           style: styles.wrongText,
+          testID:
+            SrpSecurityQuestionTwoSelectorsText.WRONG_ANSWER_RESPONSE_TITLE,
         }}
         content={strings(
           'srp_security_quiz.question_two.wrong_answer_description',
@@ -277,6 +339,8 @@ const SRPQuiz = () => {
             label: strings('srp_security_quiz.try_again'),
             onPress: () => setStage(QuizStage.questionTwo),
             variant: ButtonVariants.Primary,
+            testID:
+              SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON,
           },
           {
             label: strings('srp_security_quiz.learn_more'),
@@ -287,7 +351,7 @@ const SRPQuiz = () => {
         dismiss={dismissModal}
       />
     );
-  }, [styles.wrongText, wrongAnswerIcon, trackEvent]);
+  }, [styles.wrongText, wrongAnswerIcon, trackEvent, createEventBuilder]);
 
   const quizPage = useCallback(() => {
     switch (stage) {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import { WebView } from 'react-native-webview';
+import { WebView } from '@metamask/react-native-webview';
 import type { NetworkState } from '@metamask/network-controller';
 
 import Text, {
@@ -34,11 +34,17 @@ interface ShowBlockExplorerProps {
   address: string;
   type: string;
   setIsBlockExplorerVisible: (isBlockExplorerVisible: boolean) => void;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerWrapperStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   headerTextStyle?: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   iconStyle?: any;
   providerRpcTarget?: string;
-  networkConfigurations: NetworkState['networkConfigurations'];
+  networkConfigurations: NetworkState['networkConfigurationsByChainId'];
   learnMoreURL?: string;
 }
 
@@ -61,6 +67,8 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
     learnMoreURL ||
     (type === RPC
       ? `${findBlockExplorerForRpc(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           providerRpcTarget,
           networkConfigurations,
         )}/address/${address}`
@@ -68,6 +76,8 @@ const ShowBlockExplorer = (props: ShowBlockExplorerProps) => {
   const title =
     type === RPC
       ? new URL(
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
           findBlockExplorerForRpc(providerRpcTarget, networkConfigurations),
         ).hostname
       : getEtherscanBaseUrl(type).replace('https://', '');

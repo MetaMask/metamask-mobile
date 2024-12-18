@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewProps } from 'react-native';
 import { useStyles } from '../../../hooks/useStyles';
 import Text, {
   TextColor,
@@ -9,6 +9,7 @@ import Text, {
 import { strings } from '../../../../../locales/i18n';
 import useFiatFormatter from './useFiatFormatter';
 import { FIAT_UNAVAILABLE, FiatAmount } from '../types';
+import useHideFiatForTestnet from '../../../hooks/useHideFiatForTestnet';
 
 const styleSheet = () =>
   StyleSheet.create({
@@ -45,11 +46,21 @@ export function calculateTotalFiat(fiatAmounts: FiatAmount[]): number {
  * @param props - Properties object.
  * @param props.fiatAmount - The fiat amount to display.
  */
-export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
+
+interface IndividualFiatDisplayProps extends ViewProps {
+  fiatAmount: FiatAmount;
+}
+
+export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   fiatAmount,
 }) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
+
+  if (hideFiatForTestnet) {
+    return null;
+  }
 
   if (fiatAmount === FIAT_UNAVAILABLE) {
     return <FiatNotAvailableDisplay />;
@@ -72,9 +83,14 @@ export const IndividualFiatDisplay: React.FC<{ fiatAmount: FiatAmount }> = ({
 export const TotalFiatDisplay: React.FC<{
   fiatAmounts: FiatAmount[];
 }> = ({ fiatAmounts }) => {
+  const hideFiatForTestnet = useHideFiatForTestnet();
   const { styles } = useStyles(styleSheet, {});
   const fiatFormatter = useFiatFormatter();
   const totalFiat = calculateTotalFiat(fiatAmounts);
+
+  if (hideFiatForTestnet) {
+    return null;
+  }
 
   return totalFiat === 0 ? (
     <FiatNotAvailableDisplay />

@@ -1,41 +1,82 @@
-// Third party dependencies.
+// Third party dependencies
 import React from 'react';
-import { shallow } from 'enzyme';
+import { View } from 'react-native';
+import { render } from '@testing-library/react-native';
 
-// External dependencies.
-import {
-  SAMPLE_AVATARNETWORK_NAME,
-  SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL,
-} from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+// External dependencies
+import { AVATARNETWORK_IMAGE_TESTID } from '../../../../Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.constants';
+import { AvatarSize } from '../../../../Avatars/Avatar';
 
-// Internal dependencies.
+// Internal dependencies
 import BadgeNetwork from './BadgeNetwork';
-import { BADGE_NETWORK_TEST_ID } from './BadgeNetwork.constants';
-
-describe('BadgeNetwork - snapshots', () => {
-  it('should render badge network correctly', () => {
-    const wrapper = shallow(
-      <BadgeNetwork
-        name={SAMPLE_AVATARNETWORK_NAME}
-        imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-});
+import {
+  BADGENETWORK_TEST_ID,
+  SAMPLE_BADGENETWORK_PROPS,
+} from './BadgeNetwork.constants';
+import getScaledStyles from './BadgeNetwork.utils';
 
 describe('BadgeNetwork', () => {
-  it('should render badge network with the given content', () => {
-    const wrapper = shallow(
-      <BadgeNetwork
-        name={SAMPLE_AVATARNETWORK_NAME}
-        imageSource={SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL}
-      />,
-    );
+  const renderComponent = (props = {}) =>
+    render(<BadgeNetwork {...SAMPLE_BADGENETWORK_PROPS} {...props} />);
 
-    const contentElement = wrapper.findWhere(
-      (node) => node.prop('testID') === BADGE_NETWORK_TEST_ID,
+  it('should render BadgeNetwork', () => {
+    const { toJSON, queryByTestId } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
+    expect(queryByTestId(BADGENETWORK_TEST_ID)).not.toBe(null);
+  });
+
+  it('should render with correct image source', () => {
+    const { getByTestId } = renderComponent();
+    const imgElement = getByTestId(AVATARNETWORK_IMAGE_TESTID);
+    expect(imgElement.props.source).toEqual(
+      SAMPLE_BADGENETWORK_PROPS.imageSource,
     );
-    expect(contentElement.exists()).toBe(true);
+  });
+
+  it('should apply scaled style only when isScaled is true', () => {
+    const containerSize = {
+      height: 32,
+      width: 32,
+    };
+    const sampleSize = AvatarSize.Md;
+    const { getByTestId } = render(
+      <View style={containerSize}>
+        <BadgeNetwork
+          {...SAMPLE_BADGENETWORK_PROPS}
+          isScaled
+          size={sampleSize}
+        />
+      </View>,
+    );
+    const scaledStyled = getScaledStyles(Number(sampleSize), containerSize);
+    const badgeNetworkElement = getByTestId(BADGENETWORK_TEST_ID);
+    expect(badgeNetworkElement.props.style.minHeight).toBe(
+      scaledStyled.minHeight,
+    );
+    expect(badgeNetworkElement.props.style.maxHeight).toBe(
+      scaledStyled.maxHeight,
+    );
+    expect(badgeNetworkElement.props.style.height).toBe(scaledStyled.height);
+  });
+
+  it('should not apply scaled style when isScaled is false', () => {
+    const containerSize = {
+      height: 32,
+      width: 32,
+    };
+    const sampleSize = AvatarSize.Md;
+    const { getByTestId } = render(
+      <View style={containerSize}>
+        <BadgeNetwork
+          {...SAMPLE_BADGENETWORK_PROPS}
+          isScaled={false}
+          size={sampleSize}
+        />
+      </View>,
+    );
+    const badgeNetworkElement = getByTestId(BADGENETWORK_TEST_ID);
+    expect(badgeNetworkElement.props.style.minHeight).not.toBeDefined();
+    expect(badgeNetworkElement.props.style.maxHeight).not.toBeDefined();
+    expect(badgeNetworkElement.props.style.height).not.toBeDefined();
   });
 });

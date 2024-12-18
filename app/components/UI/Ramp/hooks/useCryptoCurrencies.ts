@@ -12,6 +12,8 @@ export default function useCryptoCurrencies() {
     setSelectedAsset,
     selectedChainId,
     isBuy,
+    intent,
+    setIntent,
   } = useRampSDK();
 
   const [
@@ -35,8 +37,7 @@ export default function useCryptoCurrencies() {
       sdkCryptoCurrencies
     ) {
       const filteredTokens = sdkCryptoCurrencies.filter(
-        // TODO(ramp, chainId-string): remove once chainId is a string
-        (token) => `${token.network?.chainId}` === selectedChainId,
+        (token) => token.network?.chainId === selectedChainId,
       );
       return filteredTokens;
     }
@@ -55,19 +56,39 @@ export default function useCryptoCurrencies() {
    */
   useEffect(() => {
     if (cryptoCurrencies) {
+      if (intent?.address) {
+        const intentAsset = cryptoCurrencies.find(
+          (token) =>
+            token.address.toLowerCase() === intent.address?.toLowerCase(),
+        );
+        if (intentAsset) {
+          setSelectedAsset(intentAsset);
+          setIntent((prevIntent) => ({ ...prevIntent, address: undefined }));
+          return;
+        }
+      }
+
       if (
         !selectedAsset ||
+        `${selectedAsset.network?.chainId}` !== selectedChainId ||
         !cryptoCurrencies.find(
           (token) => token.address === selectedAsset.address,
         )
       ) {
-        setSelectedAsset(
-          cryptoCurrencies.find((a) => a.address === NATIVE_ADDRESS) ||
-            cryptoCurrencies?.[0],
+        const nativeAsset = cryptoCurrencies.find(
+          (a) => a.address === NATIVE_ADDRESS,
         );
+        setSelectedAsset(nativeAsset || cryptoCurrencies?.[0]);
       }
     }
-  }, [cryptoCurrencies, selectedAsset, setSelectedAsset]);
+  }, [
+    cryptoCurrencies,
+    intent?.address,
+    selectedAsset,
+    selectedChainId,
+    setSelectedAsset,
+    setIntent,
+  ]);
 
   return {
     cryptoCurrencies,

@@ -2,7 +2,11 @@
 
 import { getGanachePort } from './utils';
 import { merge } from 'lodash';
-import { PopularNetworksList } from '../resources/networks.e2e';
+import { CustomNetworks, PopularNetworksList } from '../resources/networks.e2e';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+
+export const DEFAULT_FIXTURE_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+
 const DAPP_URL = 'localhost';
 
 /**
@@ -48,6 +52,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     this.fixture = {
       state: {
+        legalNotices: {
+          newPrivacyPolicyToastClickedOrClosed: true,
+          newPrivacyPolicyToastShownDate: Date.now(),
+        },
         collectibles: {
           favorites: {},
         },
@@ -55,18 +63,18 @@ class FixtureBuilder {
           backgroundState: {
             AccountTrackerController: {
               accounts: {
-                '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                [DEFAULT_FIXTURE_ACCOUNT]: {
                   balance: '0x0',
                 },
               },
               accountsByChainId: {
                 64: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
                     balance: '0x0',
                   },
                 },
                 1: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
                     balance: '0x0',
                   },
                 },
@@ -78,7 +86,6 @@ class FixtureBuilder {
             AddressBookController: {
               addressBook: {},
             },
-            AssetsContractController: {},
             NftController: {
               allNftContracts: {},
               allNfts: {},
@@ -131,7 +138,7 @@ class FixtureBuilder {
                 '{"cipher":"ynNI8tAH4fcpmXo8S88A/3T3Dd1w0LY5ftpL59gW0ObYxovgFhrtKpRe/WD7WU42KwGBNKVicB9W9at4ePgOJGS6IMWr//C3jh0vKQTabkDzDy1ZfSvztRxGpVjmrnU3fC5B0eq/MBMSrgu8Bww309pk5jghyRfzp9YsG0ONo1CXUm2brQo/eRve7i9aDbiGXiEK0ch0BO7AvZPGMhHtYRrrOro4QrDVHGUgAF5SA1LD4dv/2AB8ctHwn4YbUmICieqlhJhprx3CNOJ086g7vPQOr21T4IbvtTumFaTibfoD3GWHQo11CvE04z3cN3rRERriP7bww/tZOe8OAMFGWANkmOJHwPPwEo1NBr6w3GD2VObEmqNhXeNc6rrM23Vm1JU40Hl+lVKubnbT1vujdGLmOpDY0GdekscQQrETEQJfhKlXIT0wwyPoLwR+Ja+GjyOhBr0nfWVoVoVrcTUwAk5pStBMt+5OwDRpP29L1+BL9eMwDgKpjVXRTh4MGagKYmFc6eKDf6jV0Yt9pG+jevv5IuyhwX0TRtfQCGgRTtS7oxhDQPxGqu01rr+aI7vGMfRQpaKEEXEWVmMaqCmktyUV35evK9h/xv1Yif00XBll55ShxN8t2/PnATvZxFKQfjJe5f/monbwf8rpfXHuFoh8M9hzjbcS5eh/TPYZZu1KltpeHSIAh5C+4aFyZw0e1DeAg/wdRO3PhBrVztsHSyISHlRdfEyw7QF4Lemr++2MVR1dTxS2I5mUEHjh+hmp64euH1Vb/RUppXlmE8t1RYYXfcsF2DlRwPswP739E/EpVtY3Syf/zOTyHyrOJBldzw22sauIzt8Q5Fe5qA/hGRWiejjK31P/P5j7wEKY7vrOJB1LWNXHSuSjffx9Ai9E","iv":"d5dc0252424ac0c08ca49ef320d09569","salt":"feAPSGdL4R2MVj2urJFl4A==","lib":"original"}',
               keyrings: [
                 {
-                  accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
+                  accounts: [DEFAULT_FIXTURE_ACCOUNT],
                   index: 0,
                   type: 'HD Key Tree',
                 },
@@ -139,43 +146,79 @@ class FixtureBuilder {
             },
             NetworkController: {
               selectedNetworkClientId: 'mainnet',
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-                ticker: 'ETH',
-              },
               networksMetadata: {
-                goerli: {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-goerli': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-sepolia': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
-                'linea-mainnet': {
-                  EIPS: {},
-                  status: 'unknown',
-                },
                 mainnet: {
-                  EIPS: {},
-                  status: 'unknown',
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
-                sepolia: {
-                  EIPS: {},
-                  status: 'unknown',
+                networkId1: {
+                  status: 'available',
+                  EIPS: {
+                    1559: true,
+                  },
                 },
               },
-              networkConfigurations: {
-                networkId1: {
-                  rpcUrl: `http://localhost:${getGanachePort()}`,
-                  chainId: '1338',
-                  ticker: 'ETH',
-                  nickname: 'Localhost',
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  chainId: '0x1',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'mainnet',
+                      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                      type: 'infura',
+                      name: 'Ethereum Network default RPC',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://etherscan.io'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Ethereum Main Network',
+                  nativeCurrency: 'ETH',
+                },
+                '0x539': {
+                  chainId: '0x539',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      url: `http://localhost:${getGanachePort()}`,
+                      type: 'custom',
+                      name: 'Local RPC',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: [],
+                  name: 'Localhost',
+                  nativeCurrency: 'ETH',
+                },
+                '0xaa36a7': {
+                  blockExplorerUrls: [],
+                  chainId: '0xaa36a7',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Sepolia',
+                  nativeCurrency: 'SepoliaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'sepolia',
+                      type: 'infura',
+                      url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
+                },
+                '0xe705': {
+                  blockExplorerUrls: [],
+                  chainId: '0xe705',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Linea Sepolia',
+                  nativeCurrency: 'LineaETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'linea-sepolia',
+                      type: 'infura',
+                      url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
+                    },
+                  ],
                 },
               },
             },
@@ -201,26 +244,50 @@ class FixtureBuilder {
               hotlistLastFetched: 1684231917,
               stalelistLastFetched: 1684231917,
             },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+                    address: DEFAULT_FIXTURE_ACCOUNT,
+                    id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+                    metadata: {
+                      name: 'Account 1',
+                      importTime: 1684232000456,
+                      keyring: {
+                        type: 'HD Key Tree',
+                      },
+                    },
+                    options: {},
+                    methods: [
+                      'personal_sign',
+                      'eth_signTransaction',
+                      'eth_signTypedData_v1',
+                      'eth_signTypedData_v3',
+                      'eth_signTypedData_v4',
+                    ],
+                    type: 'eip155:eoa',
+                  },
+                },
+                selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+              },
+            },
             PreferencesController: {
               featureFlags: {},
               identities: {
-                '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-                  address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                [DEFAULT_FIXTURE_ACCOUNT]: {
+                  address: DEFAULT_FIXTURE_ACCOUNT,
                   name: 'Account 1',
                   importTime: 1684232000456,
                 },
               },
-              ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+              ipfsGateway: 'https://dweb.link/ipfs/',
               lostIdentities: {},
-              selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+              selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
               useTokenDetection: true,
-              useNftDetection: false,
+              useNftDetection: true,
               displayNftMedia: true,
               useSafeChainsListValidation: false,
               isMultiAccountBalancesEnabled: true,
-              disabledRpcMethodPreferences: {
-                eth_sign: false,
-              },
               showTestNetworks: true,
               _U: 0,
               _V: 1,
@@ -228,23 +295,20 @@ class FixtureBuilder {
                 featureFlags: {},
                 frequentRpcList: [],
                 identities: {
-                  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
-                    address: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                    address: DEFAULT_FIXTURE_ACCOUNT,
                     name: 'Account 1',
                     importTime: 1684232000456,
                   },
                 },
-                ipfsGateway: 'https://cloudflare-ipfs.com/ipfs/',
+                ipfsGateway: 'https://dweb.link/ipfs/',
                 lostIdentities: {},
-                selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+                selectedAddress: DEFAULT_FIXTURE_ACCOUNT,
                 useTokenDetection: true,
                 useNftDetection: false,
                 displayNftMedia: true,
                 useSafeChainsListValidation: false,
                 isMultiAccountBalancesEnabled: true,
-                disabledRpcMethodPreferences: {
-                  eth_sign: false,
-                },
                 showTestNetworks: true,
                 showIncomingTransactions: {
                   '0x1': true,
@@ -275,7 +339,7 @@ class FixtureBuilder {
               contractBalances: {},
             },
             TokenRatesController: {
-              contractExchangeRates: {},
+              marketData: {},
             },
             TokensController: {
               tokens: [],
@@ -328,7 +392,7 @@ class FixtureBuilder {
               topAggId: null,
               tokensLastFetched: 0,
               isInPolling: false,
-              pollingCyclesLeft: 3,
+              pollingCyclesLeft: 4,
               quoteRefreshSeconds: null,
               usedGasEstimate: null,
               usedCustomGas: null,
@@ -348,9 +412,8 @@ class FixtureBuilder {
               estimatedGasFeeTimeBounds: {},
               gasEstimateType: 'none',
               gasFeeEstimatesByChainId: {},
+              nonRPCGasFeeApisDisabled: false,
             },
-            TokenDetectionController: {},
-            NftDetectionController: {},
             PermissionController: {
               subjects: {},
             },
@@ -358,6 +421,19 @@ class FixtureBuilder {
               pendingApprovals: {},
               pendingApprovalCount: 0,
               approvalFlows: [],
+            },
+            UserStorageController: {},
+            NotificationServicesController: {
+              subscriptionAccountsSeen: [],
+              isMetamaskNotificationsFeatureSeen: false,
+              isNotificationServicesEnabled: false,
+              isFeatureAnnouncementsEnabled: false,
+              metamaskNotificationsList: [],
+              metamaskNotificationsReadList: [],
+              isUpdatingMetamaskNotifications: false,
+              isFetchingMetamaskNotifications: false,
+              isUpdatingMetamaskNotificationsAccount: [],
+              isCheckingAccountsPresence: false,
             },
           },
         },
@@ -371,7 +447,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://home.metamask.io/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],
@@ -386,7 +462,7 @@ class FixtureBuilder {
           signMessageModalVisible: true,
         },
         settings: {
-          searchEngine: 'DuckDuckGo',
+          searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
           useBlockieIcon: true,
@@ -536,7 +612,7 @@ class FixtureBuilder {
             },
             {
               active: true,
-              chainId: 1338,
+              chainId: 1337,
               chainName: 'Localhost',
               shortName: 'Localhost',
               nativeTokenSupported: true,
@@ -591,7 +667,7 @@ class FixtureBuilder {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
-        '@MetaMask:WhatsNewAppVersionSeen': '6.5.0',
+        '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       },
     };
     return this;
@@ -613,51 +689,118 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withNetworkController(data) {
-    merge(this.fixture.state.engine.backgroundState.NetworkController, data);
+    const networkController =
+      this.fixture.state.engine.backgroundState.NetworkController;
 
-    if (data.providerConfig.ticker !== 'ETH')
+    // Extract providerConfig data
+    const { providerConfig } = data;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${Object.keys(networkController.networkConfigurationsByChainId).length + 1
+      }`;
+
+    // Define the network configuration
+    const networkConfig = {
+      chainId: providerConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: providerConfig.rpcUrl,
+          type: providerConfig.type,
+          name: providerConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: providerConfig.nickname,
+      nativeCurrency: providerConfig.ticker,
+    };
+
+    // Add the new network configuration to the object
+    networkController.networkConfigurationsByChainId[providerConfig.chainId] =
+      networkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    networkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Merge the rest of the data
+    merge(networkController, data);
+
+    if (data.providerConfig.ticker !== 'ETH') {
       this.fixture.state.engine.backgroundState.CurrencyRateController.pendingNativeCurrency =
         data.providerConfig.ticker;
-    return this;
-  }
+    }
 
-  withAddressBookController(data) {
-    merge(
-      this.fixture.state.engine.backgroundState.AddressBookController
-        ? this.fixture.state.engine.backgroundState.AddressBookController
-        : (this.fixture.state.engine.backgroundState.AddressBookController =
-            {}),
-      data,
-    );
     return this;
   }
 
   /**
-   * Connects the PermissionController to a test dapp with specific permissions and origins.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * Private helper method to create permission controller configuration
+   * @private
+   * @param {Object} additionalPermissions - Additional permissions to merge with eth_accounts
+   * @returns {Object} Permission controller configuration object
    */
-  withPermissionControllerConnectedToTestDapp() {
-    return this.withPermissionController({
+  createPermissionControllerConfig(additionalPermissions = {}) {
+    const basePermissions = {
+      eth_accounts: {
+        id: 'ZaqPEWxyhNCJYACFw93jE',
+        parentCapability: 'eth_accounts',
+        invoker: DAPP_URL,
+        caveats: [
+          {
+            type: 'restrictReturnedAccounts',
+            value: [DEFAULT_FIXTURE_ACCOUNT],
+          },
+        ],
+        date: 1664388714636,
+      },
+      ...additionalPermissions,
+    };
+
+    return {
       subjects: {
         [DAPP_URL]: {
           origin: DAPP_URL,
-          permissions: {
-            eth_accounts: {
-              id: 'ZaqPEWxyhNCJYACFw93jE',
-              parentCapability: 'eth_accounts',
-              invoker: DAPP_URL,
-              caveats: [
-                {
-                  type: 'restrictReturnedAccounts',
-                  value: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
-                },
-              ],
-              date: 1664388714636,
-            },
-          },
+          permissions: basePermissions,
         },
       },
-    });
+    };
+  }
+
+  /**
+   * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withPermissionControllerConnectedToTestDapp() {
+    this.withPermissionController(this.createPermissionControllerConfig());
+    return this;
+  }
+
+  /**
+   * Adds chain switching permission for specific chains.
+   * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withChainPermission(chainIds = ['0x1']) {
+    const chainPermission = {
+      'endowment:permitted-chains': {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: 'endowment:permitted-chains',
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: 'restrictNetworkSwitching',
+            value: chainIds,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(chainPermission),
+    );
+    return this;
   }
 
   /**
@@ -674,35 +817,126 @@ class FixtureBuilder {
   withGanacheNetwork() {
     const fixtures = this.fixture.state.engine.backgroundState;
 
-    fixtures.NetworkController = {
-      isCustomNetwork: true,
-      providerConfig: {
-        type: 'rpc',
-        chainId: '0x53a',
-        rpcUrl: `http://localhost:${getGanachePort()}`,
-        nickname: 'Localhost',
-        ticker: 'ETH',
-      },
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+      .length + 1
+      }`;
+
+    // Define the Ganache network configuration
+    const ganacheNetworkConfig = {
+      chainId: '0x539',
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: `http://localhost:${getGanachePort()}`,
+          type: 'custom',
+          name: 'Localhost',
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: 'Localhost',
+      nativeCurrency: 'ETH',
     };
+
+    // Add the new Ganache network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId['0x539'] =
+      ganacheNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    return this;
+  }
+
+  withSepoliaNetwork() {
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    // Extract Sepolia network configuration from CustomNetworks
+    const sepoliaConfig = CustomNetworks.Sepolia.providerConfig;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+      .length + 1
+      }`;
+
+    // Define the Sepolia network configuration
+    const sepoliaNetworkConfig = {
+      chainId: sepoliaConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: sepoliaConfig.rpcTarget,
+          type: 'custom',
+          name: sepoliaConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: sepoliaConfig.nickname,
+      nativeCurrency: sepoliaConfig.ticker,
+    };
+
+    // Add the new Sepolia network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId[
+      sepoliaConfig.chainId
+    ] = sepoliaNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+
+    // Set isCustomNetwork to true (if this property still exists in the new state)
+    fixtures.NetworkController.isCustomNetwork = true;
+
     return this;
   }
 
   withPopularNetworks() {
     const fixtures = this.fixture.state.engine.backgroundState;
-    const networkIDs = {}; // Object to store network configurations
+    const networkConfigurationsByChainId = {
+      ...fixtures.NetworkController.networkConfigurationsByChainId,
+    }; // Object to store network configurations
 
-    // Loop through each network in PopularNetworkList
+    // Loop through each network in PopularNetworksList
     for (const key in PopularNetworksList) {
       const network = PopularNetworksList[key];
-      const { rpcUrl, chainId, ticker, nickname } = network.providerConfig;
+      const {
+        rpcUrl: rpcTarget,
+        chainId,
+        ticker,
+        nickname,
+      } = network.providerConfig;
 
-      networkIDs[nickname] = { rpcUrl, chainId, ticker, nickname };
+      // Generate a unique key for the new network client ID
+      const newNetworkClientId = `networkClientId${Object.keys(networkConfigurationsByChainId).length + 1
+        }`;
+
+      // Define the network configuration
+      const networkConfig = {
+        chainId,
+        rpcEndpoints: [
+          {
+            networkClientId: newNetworkClientId,
+            url: rpcTarget,
+            type: 'custom',
+            name: nickname,
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: [],
+        name: nickname,
+        nativeCurrency: ticker,
+      };
+
+      // Add the new network configuration to the object
+      networkConfigurationsByChainId[chainId] = networkConfig;
     }
 
-    // Assign networkIDs object to NetworkController in fixtures
+    // Assign networkConfigurationsByChainId object to NetworkController in fixtures
     fixtures.NetworkController = {
+      ...fixtures.NetworkController,
       isCustomNetwork: true,
-      networkConfigurations: networkIDs,
+      networkConfigurationsByChainId,
     };
 
     return this;
@@ -713,6 +947,67 @@ class FixtureBuilder {
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
     );
+    return this;
+  }
+
+  withKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: ['0x37cc5ef6bfe753aeaf81f945efe88134b238face'],
+        },
+        { type: 'QR Hardware Wallet Device', accounts: [] },
+      ],
+      vault:
+        '{"cipher":"T+MXWPPwXOh8RLxpryUuoFCObwXqNQdwak7FafAoVeXOehhpuuUDbjWiHkeVs9slsy/uzG8z+4Va+qyz4dlRnd/Gvc/2RbHTAb/LG1ECk1rvLZW23JPGkBBVAu36FNGCTtT+xrF4gRzXPfIBVAAgg40YuLJWkcfVty6vGcHr3R3/9gpsqs3etrF5tF4tHYWPEhzhhx6HN6Tr4ts3G9sqgyEhyxTLCboAYWp4lsq2iTEl1vQ6T/UyBRNhfDj8RyQMF6hwkJ0TIq2V+aAYkr5NJguBBSi0YKPFI/SGLrin9/+d66gcOSFhIH0GhUbez3Yf54852mMtvOH8Vj7JZc664ukOvEdJIpvCw1CbtA9TItyVApkjQypLtE+IdV3sT5sy+v0mK7Xc054p6+YGiV8kTiTG5CdlI4HkKvCOlP9axwXP0aRwc4ffsvp5fKbnAVMf9+otqmOmlA5nCKdx4FOefTkr/jjhMlTGV8qUAJ2c6Soi5X02fMcrhAfdUtFxtUqHovOh3KzOe25XhjxZ6KCuix8OZZiGtbNDu3xJezPc3vzkTFwF75ubYozLDvw8HzwI+D5Ifn0S3q4/hiequ6NGiR3Dd0BIhWODSvFzbaD7BKdbgXhbJ9+3FXFF9Xkp74msFp6o7nLsx02ywv/pmUNqQhwtVBfoYhcFwqZZQlOPKcH8otguhSvZ7dPgt7VtUuf8gR23eAV4ffVsYK0Hll+5n0nZztpLX4jyFZiV/kSaBp+D2NZM2dnQbsWULKOkjo/1EpNBIjlzjXRBg5Ui3GgT3JXUDx/2GmJXceacrbMcos3HC2yfxwUTXC+yda4IrBx/81eYb7sIjEVNxDuoBxNdRLKoxwmAJztxoQLF3gRexS45QKoFZZ0kuQ9MqLyY6HDK","iv":"3271713c2b35a7c246a2a9b263365c3d","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"l4e+sn/jdsaofDWIB/cuGQ=="}',
+    });
+    return this;
+  }
+
+  withImportedAccountKeyringController() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          type: 'HD Key Tree',
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: ['0xDDFFa077069E1d4d478c5967809f31294E24E674'],
+        },
+      ],
+      vault:
+        '{"cipher":"vxFqPMlClX2xjUidoCTiwazr43W59dKIBp6ihT2lX66q8qPTeBRwv7xgBaGDIwDfk4DpJ3r5FBety1kFpS9ni3HtcoNQsDN60Pa80L94gta0Fp4b1jVeP8EJ7Ho71mJ360aDFyIgxPBSCcHWs+l27L3WqF2VpEuaQonK1UTF7c3WQ4pyio4jMAH9x2WQtB11uzyOYiXWmiD3FMmWizqYZY4tHuRlzJZTWrgE7njJLaGMlMmw86+ZVkMf55jryaDtrBVAoqVzPsK0bvo1cSsonxpTa6B15A5N2ANyEjDAP1YVl17roouuVGVWZk0FgDpP82i0YqkSI9tMtOTwthi7/+muDPl7Oc7ppj9LU91JYH6uHGomU/pYj9ufrjWBfnEH/+ZDvPoXl00H1SmX8FWs9NvOg7DZDB6ULs4vAi2/5KGs7b+Td2PLmDf75NKqt03YS2XeRGbajZQ/jjmRt4AhnWgnwRzsSavzyjySWTWiAgn9Vp/kWpd70IgXWdCOakVf2TtKQ6cFQcAf4JzP+vqC0EzgkfbOPRetrovD8FHEFXQ+crNUJ7s41qRw2sketk7FtYUDCz/Junpy5YnYgkfcOTRBHAoOy6BfDFSncuY+08E6eiRHzXsXtbmVXenor15pfbEp/wtfV9/vZVN7ngMpkho3eGQjiTJbwIeA9apIZ+BtC5b7TXWLtGuxSZPhomVkKvNx/GNntjD7ieLHvzCWYmDt6BA9hdfOt1T3UKTN4yLWG0v+IsnngRnhB6G3BGjJHUvdR6Zp5SzZraRse8B3z5ixgVl2hBxOS8+Uvr6LlfImaUcZLMMzkRdKeowS/htAACLowVJe3pU544IJ2CGTsnjwk9y3b5bUJKO3jXukWjDYtrLNKfdNuQjg+kqvIHaCQW40t+vfXGhC5IDBWC5kuev4DJAIFEcvJfJgRrm8ua6LrzEfH0GuhjLwYb+pnQ/eg8dmcXwzzggJF7xK56kxgnA4qLtOqKV4NgjVR0QsCqOBKb3l5LQMlSktdfgp9hlW","iv":"b09c32a79ed33844285c0f1b1b4d1feb","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"GYNFQCSCigu8wNp8cS8C3w=="}',
+    });
+    return this;
+  }
+
+  withTokens(tokens) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens: {
+        [CHAIN_IDS.MAINNET]: {
+          [DEFAULT_FIXTURE_ACCOUNT]: tokens,
+        }
+      }
+    });
+    return this;
+  }
+
+  withIncomingTransactionPreferences(incomingTransactionPreferences) {
+    merge(
+      this.fixture.state.engine.backgroundState.PreferencesController,
+      {
+        showIncomingTransactions: incomingTransactionPreferences,
+      },
+    );
+    return this;
+  }
+
+  withTransactions(transactions) {
+    merge(this.fixture.state.engine.backgroundState.TransactionController, {
+      transactions,
+    });
     return this;
   }
 

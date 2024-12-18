@@ -42,14 +42,6 @@ describe('handleClientsConnected', () => {
     );
   });
 
-  it('should set loading to true', async () => {
-    const handleConnected = handleClientsConnected(mockConnection);
-    await handleConnected();
-
-    expect(mockSetLoading).toHaveBeenCalledTimes(1);
-    expect(mockSetLoading).toHaveBeenCalledWith(true);
-  });
-
   it('should reset receivedDisconnect to false', async () => {
     mockConnection.receivedDisconnect = true;
 
@@ -68,18 +60,6 @@ describe('handleClientsConnected', () => {
       expect(waitForKeychainUnlocked).toHaveBeenCalledWith({
         keyringController: Engine.context.KeyringController,
       });
-    });
-
-    it('should set loading to false after 4 seconds if still loading', async () => {
-      jest.useFakeTimers();
-
-      const handleConnected = handleClientsConnected(mockConnection);
-      await handleConnected();
-
-      jest.runAllTimers();
-
-      expect(mockSetLoading).toHaveBeenCalledTimes(1);
-      expect(mockSetLoading).toHaveBeenCalledWith(true);
     });
   });
 });

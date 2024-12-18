@@ -1,22 +1,18 @@
-import {
-  EthAccountType,
-  InternalAccount,
-  EthMethod,
-} from '@metamask/keyring-api';
+import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
-import { v4 as uuid } from 'uuid';
-import { NativeModules } from 'react-native';
-const Aes = NativeModules.Aes;
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { ETH_EOA_METHODS } from '../../constants/eth-methods';
 
 export interface Identity {
   name: string;
   address: string;
   lastSelected?: number;
+  importTime?: number;
 }
 
-export default async function migrate(stateAsync: unknown) {
-  const state = await stateAsync;
+export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
       new Error(`Migration 36: Invalid root state: '${typeof state}'`),
@@ -42,6 +38,16 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
+
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
+  if (!isObject(keyringControllerState)) {
+    captureException(
+      new Error(
+        `Migration 36: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
+      ),
+    );
+  }
+
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
     captureException(
       new Error(
@@ -65,20 +71,14 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
-
   createDefaultAccountsController(state);
-  await createInternalAccountsForAccountsController(state);
+  createInternalAccountsForAccountsController(state);
   createSelectedAccountForAccountsController(state);
   return state;
 }
 
-export const sha256FromAddress = async (
-  address: string,
-): Promise<ArrayLike<number>> => {
-  const sha256: string = await Aes.sha256(address);
-  return Buffer.from(sha256).slice(0, 16);
-};
-
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createDefaultAccountsController(state: Record<string, any>) {
   state.engine.backgroundState.AccountsController = {
     internalAccounts: {
@@ -88,7 +88,9 @@ function createDefaultAccountsController(state: Record<string, any>) {
   };
 }
 
-async function createInternalAccountsForAccountsController(
+function createInternalAccountsForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const identities: {
@@ -105,9 +107,8 @@ async function createInternalAccountsForAccountsController(
   const accounts: Record<string, InternalAccount> = {};
 
   for (const identity of Object.values(identities)) {
-    const expectedId = uuid({
-      random: await sha256FromAddress(identity.address),
-    });
+    const lowerCaseAddress = identity.address.toLocaleLowerCase();
+    const expectedId = getUUIDFromAddressOfNormalAccount(lowerCaseAddress);
 
     accounts[expectedId] = {
       address: identity.address,
@@ -115,22 +116,16 @@ async function createInternalAccountsForAccountsController(
       options: {},
       metadata: {
         name: identity.name,
+        importTime: identity.importTime ?? Date.now(),
         lastSelected: identity.lastSelected ?? undefined,
         keyring: {
           // This is default HD Key Tree type because the keyring is encrypted
           // during migration, the type will get updated when the during the
           // initial updateAccounts call.
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
         },
       },
-      methods: [
-        EthMethod.PersonalSign,
-        EthMethod.Sign,
-        EthMethod.SignTransaction,
-        EthMethod.SignTypedDataV1,
-        EthMethod.SignTypedDataV3,
-        EthMethod.SignTypedDataV4,
-      ],
+      methods: ETH_EOA_METHODS,
 
       type: EthAccountType.Eoa,
     };
@@ -140,6 +135,8 @@ async function createInternalAccountsForAccountsController(
 }
 
 function findInternalAccountByAddress(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
   address: string,
 ): InternalAccount | undefined {
@@ -152,6 +149,8 @@ function findInternalAccountByAddress(
 }
 
 function createSelectedAccountForAccountsController(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   state: Record<string, any>,
 ) {
   const selectedAddress =

@@ -1,0 +1,114 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakingCta render matches snapshot 1`] = `
+<View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#141618",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "paddingBottom": 16,
+        "paddingTop": 14,
+      }
+    }
+  >
+    Stake ETH and earn
+  </Text>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "paddingRight": 3,
+        }
+      }
+    >
+      Stake your ETH with MetaMask Pool and earn
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c8234",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "paddingRight": 3,
+        }
+      }
+    >
+      2.6%
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      annually. 
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Learn more.
+      </Text>
+    </Text>
+  </View>
+</View>
+`;

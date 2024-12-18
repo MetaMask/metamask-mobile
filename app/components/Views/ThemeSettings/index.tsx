@@ -10,6 +10,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any, safeAreaPaddingBottom: number) =>
   StyleSheet.create({
     screen: { justifyContent: 'flex-end' },
@@ -54,6 +56,8 @@ const ThemeSettings = () => {
   const triggerSetAppTheme = (theme: AppThemeKey) =>
     dispatch(setAppTheme(theme));
   const appTheme: AppThemeKey = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.user.appTheme,
   );
   const { colors } = useTheme();

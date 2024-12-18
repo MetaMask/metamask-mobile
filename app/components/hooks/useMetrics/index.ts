@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IUseMetricsHook } from './useMetrics.types';
 import withMetricsAwareness from './withMetricsAwareness';

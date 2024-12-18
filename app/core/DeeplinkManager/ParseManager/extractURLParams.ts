@@ -14,9 +14,13 @@ export interface DeeplinkUrlParams {
   pubkey: string;
   scheme?: string;
   v?: string;
+  rpc?: string;
+  sdkVersion?: string;
   message?: string;
   originatorInfo?: string;
   request?: string;
+  attributionId?: string;
+  utm?: string;
   account?: string; // This is the format => "address@chainId"
 }
 
@@ -32,8 +36,13 @@ function extractURLParams(url: string) {
     uri: '',
     redirect: '',
     v: '',
+    sdkVersion: '',
+    rpc: '',
+    originatorInfo: '',
     channelId: '',
     comm: '',
+    attributionId: '',
+    utm: '',
   };
 
   DevLogger.log(`extractParams:: urlObj`, urlObj);

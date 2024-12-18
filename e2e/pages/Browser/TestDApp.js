@@ -42,10 +42,10 @@ class TestDApp {
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
-  get ethSignButton() {
+  get increaseAllowanceButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.ETH_SIGN,
+      TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
     );
   }
   get personalSignButton() {
@@ -72,11 +72,31 @@ class TestDApp {
       TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4,
     );
   }
+  get ethereumSignButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ETHEREUM_SIGN,
+    );
+  }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
   get nftTransferFromTokensButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
+    );
+  }
+
+  get nftSetApprovalForAllButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_BUTTON_ID,
+    );
+  }
+
+  get addTokensToWalletButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
     );
   }
 
@@ -88,8 +108,11 @@ class TestDApp {
     await this.tapButton(this.ApproveButton);
   }
 
-  async tapEthSignButton() {
-    await this.tapButton(this.ethSignButton);
+  async tapIncreaseAllowanceButton() {
+    await this.tapButton(this.increaseAllowanceButton);
+  }
+  async tapAddERC20TokenToWalletButton() {
+    await this.tapButton(this.addTokensToWalletButton);
   }
 
   async tapPersonalSignButton() {
@@ -107,11 +130,20 @@ class TestDApp {
   async tapTypedV4SignButton() {
     await this.tapButton(this.signTypedDataV4Button);
   }
+
+  async tapEthereumSignButton() {
+    await this.tapButton(this.ethereumSignButton);
+  }
+
   async tapERC20TransferButton() {
     await this.tapButton(this.erc20TransferTokensButton);
   }
   async tapNFTTransferButton() {
     await this.tapButton(this.nftTransferFromTokensButton);
+  }
+
+  async tapNFTSetApprovalForAllButton() {
+    await this.tapButton(this.nftSetApprovalForAllButton);
   }
 
   async tapConfirmButton() {

@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import { render, fireEvent } from '@testing-library/react-native';
 import AssetElement from './';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import { FIAT_BALANCE_TEST_ID, MAIN_BALANCE_TEST_ID } from './index.constants';
 
 describe('AssetElement', () => {
   const onPressMock = jest.fn();
@@ -17,7 +18,7 @@ describe('AssetElement', () => {
     balanceFiat: ' $1',
     logo: '',
     isETH: undefined,
-    balanceError: null,
+    hasBalanceError: false,
     decimals: 0,
     image: '',
   };
@@ -53,5 +54,35 @@ describe('AssetElement', () => {
     fireEvent(getByTestId(getAssetTestId(erc20Token.symbol)), 'onLongPress');
 
     expect(onLongPressMock).toHaveBeenCalledWith(erc20Token);
+  });
+
+  it('renders the fiat and token balance', () => {
+    const { getByTestId } = render(
+      <AssetElement
+        balance={erc20Token.balance}
+        mainBalance={erc20Token.balance}
+        asset={erc20Token}
+      />,
+    );
+
+    expect(getByTestId(FIAT_BALANCE_TEST_ID)).toBeDefined();
+    expect(getByTestId(MAIN_BALANCE_TEST_ID)).toBeDefined();
+  });
+
+  it('renders the fiat balance with privacy mode', () => {
+    const { getByTestId } = render(
+      <AssetElement
+        asset={erc20Token}
+        balance={erc20Token.balance}
+        mainBalance={erc20Token.balance}
+        privacyMode
+      />,
+    );
+
+    const fiatBalance = getByTestId(FIAT_BALANCE_TEST_ID);
+    const mainBalance = getByTestId(MAIN_BALANCE_TEST_ID);
+
+    expect(fiatBalance.props.children).toBe('•••••••••');
+    expect(mainBalance.props.children).toBe('••••••');
   });
 });

@@ -1,14 +1,14 @@
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
 import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
-} from '../../selectors/EditGasView.selectors.js';
+} from '../../selectors/SendFlow/EditGasView.selectors.js';
 import {
   TransactionConfirmViewSelectorsText,
   TransactionConfirmViewSelectorsIDs,
-} from '../../selectors/TransactionConfirmView.selectors.js';
+} from '../../selectors/SendFlow/TransactionConfirmView.selectors.js';
+import { ConfirmationTopSheetSelectorsIDs } from '../../selectors/Confirmation/ConfirmationView.selectors.js';
 
 class TransactionConfirmationView {
   get confirmButton() {
@@ -40,8 +40,8 @@ class TransactionConfirmationView {
   }
 
   get transactionAmount() {
-    return Matchers.getElementByText(
-      TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT,
+    return Matchers.getElementByID(
+      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
@@ -72,16 +72,35 @@ class TransactionConfirmationView {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
+  get editPriorityLegacyModal() {
+    return Matchers.getElementByID(
+      EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+    );
+  }
+
+  get securityAlertBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+    );
+  }
+
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByID(
+      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
+    );
+  }
+
   async tapConfirmButton() {
-    await Gestures.waitAndTap(await this.confirmButton);
+    await Gestures.waitAndTap(this.confirmButton);
   }
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
 
-  async tapEstimatedGasLink() {
-    await Gestures.waitAndTap(this.estimatedGasLink);
+  async tapEstimatedGasLink(index = 0) {
+    await Gestures.swipe(this.transactionAmount, 'up', 'fast');
+    await Gestures.TapAtIndex(this.estimatedGasLink, index);
   }
 
   async tapLowPriorityGasOption() {

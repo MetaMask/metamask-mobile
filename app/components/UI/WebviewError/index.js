@@ -4,7 +4,7 @@ import { Image, StyleSheet, View, Text, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
-import AnimatedFox from '@metamask/react-native-animated-fox';
+import AnimatedFox from '../../Base/AnimatedFox';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';

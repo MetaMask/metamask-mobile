@@ -59,6 +59,8 @@ describe('DeeplinkManager', () => {
       parameters: {},
       target_address: '0x...',
       chain_id: '1',
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 
     const origin = 'testOrigin';

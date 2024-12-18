@@ -25,7 +25,7 @@ import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
   const chainId = useSelector(selectChainId);
@@ -33,6 +33,8 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   /**
    * Current onboarding wizard step
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wizardStep = useSelector((reduxState: any) => reduxState.wizard.step);
   /**
    * Return current step of onboarding wizard if not step 5 nor 0
@@ -71,10 +73,14 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.MODAL.WALLET_ACTIONS,
             });
-            trackEvent(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED, {
-              text: '',
-              chain_id: getDecimalChainId(chainId),
-            });
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.ACTIONS_BUTTON_CLICKED)
+                .addProperties({
+                  text: '',
+                  chain_id: getDecimalChainId(chainId),
+                })
+                .build(),
+            );
             break;
           case Routes.BROWSER_VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
@@ -122,7 +128,15 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         />
       );
     },
-    [state, descriptors, navigation, colors, chainId, trackEvent],
+    [
+      state,
+      descriptors,
+      navigation,
+      colors,
+      chainId,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const renderTabBarItems = useCallback(

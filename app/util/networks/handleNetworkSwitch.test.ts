@@ -1,7 +1,7 @@
 import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
-import handleNetworkSwitch from './handleNetworkSwitch';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
@@ -31,26 +31,62 @@ function setupGetStateMock() {
         engine: {
           backgroundState: {
             NetworkController: {
-              isCustomNetwork: false,
-              networkConfigurations: {
-                networkId1: {
-                  rpcUrl: 'custom-testnet-rpc-url',
+              selectedNetworkClientId: 'networkId1',
+              networkConfigurationsByChainId: {
+                '0x1': {
+                  blockExplorerUrls: [],
+                  chainId: '0x1',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Mainnet',
+                  nativeCurrency: 'TEST',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      type: 'infura',
+                      url: 'custom-testnet-rpc-url',
+                    },
+                  ],
+                },
+                '0x53a': {
+                  blockExplorerUrls: [],
                   chainId: '0x53a',
-                  ticker: 'TEST',
-                  nickname: 'Testnet',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'Testnet',
+                  nativeCurrency: 'TEST',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      type: 'custom',
+                      url: 'custom-testnet-rpc-url-2',
+                    },
+                  ],
+                },
+                '0xaa36a7': {
+                  blockExplorerUrls: [],
+                  chainId: '0xaa36a7',
+                  defaultRpcEndpointIndex: 0,
+                  name: 'sepolia',
+                  nativeCurrency: 'ETH',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'networkId1',
+                      type: 'custom',
+                      url: 'custom-testnet-rpc-url-2',
+                    },
+                  ],
                 },
               },
-              providerConfig: {
-                type: 'mainnet',
-                chainId: '0x1',
-              },
-              networkDetails: {
-                EIPS: { 1559: false },
+              networksMetadata: {
+                networkId1: {
+                  EIPS: { 1559: false },
+                },
               },
             },
           },
         },
         // Cast to 'any' because we don't have a complete Redux mock to use
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any),
   );
 }
@@ -95,22 +131,11 @@ describe('useHandleNetworkSwitch', () => {
     expect(result).toBeUndefined();
   });
 
-  it('throws an error if the chain ID is not recognized', () => {
-    setupGetStateMock();
-
-    expect(() => handleNetworkSwitch('123456')).toThrow(
-      'Unknown network with id 123456',
-    );
-  });
-
   it('switches to a custom network', () => {
     setupGetStateMock();
 
     const nickname = handleNetworkSwitch('1338');
 
-    expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).toBeCalledWith('TEST');
     expect(
       mockEngine.context.NetworkController.setActiveNetwork,
     ).toBeCalledWith('networkId1');
@@ -125,16 +150,10 @@ describe('useHandleNetworkSwitch', () => {
 
     const networkType = handleNetworkSwitch('11155111');
 
-    // TODO: This is a bug, it should be set to SepoliaETH
     expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).toBeCalledWith('ETH');
-    expect(mockEngine.context.NetworkController.setProviderType).toBeCalledWith(
-      SEPOLIA,
-    );
-    expect(
-      mockEngine.context.NetworkController.setActiveNetwork,
-    ).not.toBeCalled();
+      mockEngine.context.NetworkController.setProviderType,
+    ).not.toBeCalledWith();
+    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
     expect(networkType).toBe(SEPOLIA);
   });
 });

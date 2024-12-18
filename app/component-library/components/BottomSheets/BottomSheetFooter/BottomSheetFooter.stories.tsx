@@ -23,6 +23,8 @@ const BottomSheetFooterMeta = {
 export default BottomSheetFooterMeta;
 
 export const BottomSheetFooter = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <BottomSheetFooterComponent
       {...args}

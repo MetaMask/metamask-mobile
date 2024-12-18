@@ -1,15 +1,13 @@
 import React from 'react';
 import OrderListItem from './OrderListItem';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {

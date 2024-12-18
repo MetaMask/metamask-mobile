@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import React from 'react';
 import { View } from 'react-native';
 import styleSheet from '../../InstallSnapApproval.styles';

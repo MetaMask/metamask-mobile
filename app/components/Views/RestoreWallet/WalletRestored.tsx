@@ -32,18 +32,23 @@ export const createWalletRestoredNavDetails = createNavigationDetails(
 const WalletRestored = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const { colors } = useAppThemeFromContext();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
   useEffect(() => {
     trackEvent(
-      MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
-      deviceMetaData,
+      createEventBuilder(
+        MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_SCREEN_VIEWED,
+      )
+        .addProperties({ ...deviceMetaData })
+        .build(),
     );
-  }, [deviceMetaData, trackEvent]);
+  }, [deviceMetaData, trackEvent, createEventBuilder]);
 
   const finishWalletRestore = useCallback(async (): Promise<void> => {
     try {
@@ -62,11 +67,14 @@ const WalletRestored = () => {
   const handleOnNext = useCallback(async (): Promise<void> => {
     setLoading(true);
     trackEvent(
-      MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
-      deviceMetaData,
+      createEventBuilder(
+        MetaMetricsEvents.VAULT_CORRUPTION_WALLET_SUCCESSFULLY_RESTORED_CONTINUE_BUTTON_PRESSED,
+      )
+        .addProperties({ ...deviceMetaData })
+        .build(),
     );
     await finishWalletRestore();
-  }, [deviceMetaData, finishWalletRestore, trackEvent]);
+  }, [deviceMetaData, finishWalletRestore, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.screen}>

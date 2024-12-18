@@ -35,6 +35,8 @@ const ApplePayButton = ({
   const dispatch = useDispatch();
   const [pay] = useApplePay(quote);
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lockTime = useSelector((state: any) => state.settings.lockTime);
 
   const handlePress = useCallback(async () => {
@@ -59,6 +61,8 @@ const ApplePayButton = ({
           handleSuccessfulOrder(fiatOrder, { isApplePay: true });
         }
       }
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       NotificationManager.showSimpleNotification({
         duration: 5000,

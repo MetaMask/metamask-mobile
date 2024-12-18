@@ -1,12 +1,8 @@
 import { Action } from 'redux';
 import { take, fork, cancel } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
 import {
-  AUTH_ERROR,
-  AUTH_SUCCESS,
-  INTERRUPT_BIOMETRICS,
-  LOGIN,
-  LOCKED_APP,
-  LOGOUT,
+  UserActionType,
   authError,
   authSuccess,
   interruptBiometrics,
@@ -17,15 +13,34 @@ import {
   authStateMachine,
   appLockStateMachine,
   lockKeyringAndApp,
+  startAppServices,
 } from './';
+import { NavigationActionType } from '../../actions/navigation';
+import EngineService from '../../core/EngineService';
+import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 
 const mockBioStateMachineId = '123';
+
 const mockNavigate = jest.fn();
+
 jest.mock('../../core/NavigationService', () => ({
   navigation: {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate: (screen: any, params?: any) => {
       params ? mockNavigate(screen, params) : mockNavigate(screen);
     },
+  },
+}));
+
+// Mock the services
+jest.mock('../../core/EngineService', () => ({
+  start: jest.fn(),
+}));
+
+jest.mock('../../core/AppStateEventListener', () => ({
+  AppStateEventProcessor: {
+    start: jest.fn(),
   },
 }));
 
@@ -36,7 +51,7 @@ describe('authStateMachine', () => {
 
   it('should fork appLockStateMachine when logged in', async () => {
     const generator = authStateMachine();
-    expect(generator.next().value).toEqual(take(LOGIN));
+    expect(generator.next().value).toEqual(take(UserActionType.LOGIN));
     expect(generator.next().value).toEqual(fork(appLockStateMachine));
   });
 
@@ -46,7 +61,7 @@ describe('authStateMachine', () => {
     generator.next();
     // Fork appLockStateMachine
     generator.next();
-    expect(generator.next().value).toEqual(take(LOGOUT));
+    expect(generator.next().value).toEqual(take(UserActionType.LOGOUT));
     expect(generator.next().value).toEqual(cancel());
   });
 });
@@ -58,7 +73,7 @@ describe('appLockStateMachine', () => {
 
   it('should fork biometricsStateMachine when app is locked', async () => {
     const generator = appLockStateMachine();
-    expect(generator.next().value).toEqual(take(LOCKED_APP));
+    expect(generator.next().value).toEqual(take(UserActionType.LOCKED_APP));
     // Fork biometrics listener.
     expect(generator.next().value).toEqual(
       fork(biometricsStateMachine, mockBioStateMachineId),
@@ -88,7 +103,11 @@ describe('biometricsStateMachine', () => {
     const generator = biometricsStateMachine(mockBioStateMachineId);
     // Take next step
     expect(generator.next().value).toEqual(
-      take([AUTH_SUCCESS, AUTH_ERROR, INTERRUPT_BIOMETRICS]),
+      take([
+        UserActionType.AUTH_SUCCESS,
+        UserActionType.AUTH_ERROR,
+        UserActionType.INTERRUPT_BIOMETRICS,
+      ]),
     );
     // Dispatch interrupt biometrics
     const nextFork = generator.next(interruptBiometrics() as Action).value;
@@ -123,5 +142,46 @@ describe('biometricsStateMachine', () => {
     generator.next(authError(mockBioStateMachineId) as Action);
     // Move to next step
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+});
+
+// TODO: Update all saga tests to use expectSaga (more intuitive and easier to read)
+describe('startAppServices', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should start app services', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .run();
+
+    // Verify services are started
+    expect(EngineService.start).toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).toHaveBeenCalled();
+  });
+
+  it('should not start app services if navigation is not ready', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .run();
+
+    // Verify services are not started
+    expect(EngineService.start).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
+  });
+
+  it('should not start app services if persisted data is not loaded', async () => {
+    await expectSaga(startAppServices)
+      // Dispatch both required actions
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .run();
+
+    // Verify services are not started
+    expect(EngineService.start).not.toHaveBeenCalled();
+    expect(AppStateEventProcessor.start).not.toHaveBeenCalled();
   });
 });

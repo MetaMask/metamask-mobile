@@ -31,6 +31,8 @@ const createStyles = (colors: Colors) =>
 
 interface AmountProps {
   amount: QuickAmount;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress: (amount: QuickAmount) => any;
   isBuy: boolean;
   disabled?: boolean;
@@ -74,6 +76,8 @@ interface Props {
   amounts: QuickAmount[];
   isBuy: boolean;
   disabled?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAmountPress: (amount: QuickAmount) => any;
 }
 

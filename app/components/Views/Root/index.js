@@ -1,5 +1,4 @@
 import React, { PureComponent } from 'react';
-import SplashScreen from '@metamask/react-native-splash-screen';
 import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
@@ -68,7 +67,6 @@ export default class Root extends PureComponent {
     if (isTest && isLoading) {
       return null;
     }
-    SplashScreen.hide();
 
     return (
       <Provider store={store}>

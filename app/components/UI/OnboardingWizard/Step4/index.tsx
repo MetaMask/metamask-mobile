@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import setOnboardingWizardStep from '../../../../actions/wizard';
 import { strings } from '../../../../../locales/i18n';
 import Coachmark from '../Coachmark';
@@ -13,8 +13,7 @@ import {
   ONBOARDING_WIZARD_STEP_DESCRIPTION,
 } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID } from '../../../../../wdio/screen-objects/testIDs/Components/OnboardingWizard.testIds';
+import { OnboardingWizardModalSelectorsIDs } from '../../../../../e2e/selectors/Onboarding/OnboardingWizardModal.selectors';
 
 import { useMetrics } from '../../../hooks/useMetrics';
 
@@ -36,7 +35,7 @@ interface Step4Props {
 
 const Step4 = ({ onClose }: Step4Props) => {
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dispatch = useDispatch();
   const [coachmarkTop, setCoachmarkTop] = useState(0);
 
@@ -51,18 +50,26 @@ const Step4 = ({ onClose }: Step4Props) => {
 
   const onNext = () => {
     dispatch(setOnboardingWizardStep?.(5));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_COMPLETED)
+        .addProperties({
+          tutorial_step_count: 4,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+        })
+        .build(),
+    );
   };
 
   const onBack = () => {
     dispatch(setOnboardingWizardStep?.(3));
-    trackEvent(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED, {
-      tutorial_step_count: 4,
-      tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_TOUR_STEP_REVISITED)
+        .addProperties({
+          tutorial_step_count: 4,
+          tutorial_step_name: ONBOARDING_WIZARD_STEP_DESCRIPTION[4],
+        })
+        .build(),
+    );
   };
 
   const getOnboardingStyles = () => onboardingStyles(colors);
@@ -74,10 +81,7 @@ const Step4 = ({ onClose }: Step4Props) => {
       <View style={dynamicOnboardingStyles.contentContainer}>
         <Text
           style={dynamicOnboardingStyles.content}
-          {...generateTestId(
-            Platform,
-            ONBOARDING_WIZARD_FOURTH_STEP_CONTENT_ID,
-          )}
+          testID={OnboardingWizardModalSelectorsIDs.STEP_FOUR_CONTAINER}
         >
           {strings('onboarding_wizard_new.step4.content1')}
         </Text>

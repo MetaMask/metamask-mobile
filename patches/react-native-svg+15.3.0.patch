@@ -1,0 +1,33 @@
+diff --git a/node_modules/react-native-svg/src/xml.tsx b/node_modules/react-native-svg/src/xml.tsx
+index 34fad47..c5cb578 100644
+--- a/node_modules/react-native-svg/src/xml.tsx
++++ b/node_modules/react-native-svg/src/xml.tsx
+@@ -124,6 +124,15 @@ export function SvgXml(props: XmlProps) {
+ 
+ export async function fetchText(uri: string) {
+   const response = await fetch(uri);
++  // This is a temporary fix for dapps with bad metadata icon urls
++  // Remove this once we replace WebsiteIcon with AvatarFavicon component
++  const excludeList = ['text/html', ''];
++  const contentType = response.headers.get('content-type') || '';
++
++  if (excludeList.includes(contentType)) {
++    throw new Error(`Fetching ${uri} resulted in invalid content-type ${contentType}`);
++  }
++
+   if (response.ok || (response.status === 0 && uri.startsWith('file://'))) {
+     return await response.text();
+   }
+@@ -298,7 +307,11 @@ const quotemarks = /['"]/;
+ 
+ export type Middleware = (ast: XmlAST) => XmlAST;
+ 
+-export function parse(source: string, middleware?: Middleware): JsxAST | null {
++export function parse(sourceUnmodified: string, middleware?: Middleware): JsxAST | null {
++  // Avoid crashes on malformed SVGs from URIs that use the HTML entity &quot; instead of "
++  // react-native-svg team acknowledges this parser needs more work to parse HTML entites correctly
++  // https://github.com/software-mansion/react-native-svg/pull/2426#issuecomment-2306692764
++  const source = sourceUnmodified.replace('&quot;','"');
+   const length = source.length;
+   let currentElement: XmlAST | null = null;
+   let state = metadata;

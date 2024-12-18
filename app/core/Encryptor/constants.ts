@@ -18,9 +18,33 @@ export enum KeyDerivationIteration {
 }
 
 /**
+ * Supported SHA algorithms in react-native-aes v3.0.3
+ */
+export enum ShaAlgorithm {
+  Sha256 = 'sha256',
+  Sha512 = 'sha512',
+}
+
+/**
+ * Supported cipher algorithms in react-native-aes v3.0.3
+ *
+ * Important Note: Make sure to validate the compatibility of the algorithm with the underlying library.
+ * The react-native-aes-crypto does a string validation for the algorithm, so it's important to make sure
+ * we're using the correct string.
+ *
+ * References:
+ * - encrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When-,encrypting,-and%20decypting%20the
+ * - decrypt: https://github.com/MetaMask/metamask-mobile/pull/9947#:~:text=When%20encrypting%20and-,decypting,-the%20library%20uses
+ */
+export enum CipherAlgorithm {
+  cbc = 'aes-cbc-pkcs7padding',
+  ctr = 'aes-ctr-pkcs5padding',
+}
+
+/**
  * Used as a "tag" to identify the underlying encryption library.
  *
- * When no tag is speficied, this means our "forked" encryption library has been used.
+ * When no tag is specified, this means our "forked" encryption library has been used.
  */
 export const ENCRYPTION_LIBRARY = {
   original: 'original',

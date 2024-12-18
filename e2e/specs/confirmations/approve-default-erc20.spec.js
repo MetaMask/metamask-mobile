@@ -9,12 +9,12 @@ import {
 } from '../../fixtures/fixture-helper';
 
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { ContractApprovalModalSelectorsText } from '../../selectors/Modals/ContractApprovalModal.selectors';
-import { ActivitiesViewSelectorsText } from '../../selectors/ActivitiesView.selectors';
+import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
-import ContractApprovalModal from '../../pages/modals/ContractApprovalModal';
+import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
@@ -53,24 +53,24 @@ describe(SmokeConfirmations('Approve ERC20 tokens'), () => {
         await TestDApp.tapApproveButton();
 
         await Assertions.checkIfVisible(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
         );
 
         await Assertions.checkIfElementToHaveText(
-          ContractApprovalModal.approveTokenAmount,
+          ContractApprovalBottomSheet.approveTokenAmount,
           EXPECTED_TOKEN_AMOUNT,
         );
         // Tap next button
         await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalModalSelectorsText.NEXT,
+          ContractApprovalBottomSheetSelectorsText.NEXT,
         );
-        await ContractApprovalModal.tapNextButton();
+        await ContractApprovalBottomSheet.tapNextButton();
 
         await Assertions.checkIfTextIsDisplayed(
-          ContractApprovalModalSelectorsText.APPROVE,
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
         );
         // Tap approve button
-        await ContractApprovalModal.tapApproveButton();
+        await ContractApprovalBottomSheet.tapApproveButton();
 
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();

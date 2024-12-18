@@ -11,7 +11,11 @@ jest.mock('../utils/wait.util');
 describe('handleBatchRpcResponse', () => {
   let batchRPCManager = {} as unknown as BatchRPCManager;
   let backgroundBridge = {} as unknown as BackgroundBridge;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let chainRpcs = {} as any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let msg = {} as any;
 
   const sendMessage = jest.fn();

@@ -8,6 +8,8 @@ jest.mock('redux-persist', () => {
     .mockImplementation((_, reducers) => reducers);
   const mockCombineReducers = jest
     .fn()
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .mockReturnValue((reducers: any) => reducers);
 
   return {

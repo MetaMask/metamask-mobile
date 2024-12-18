@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useIsOriginalNativeTokenSymbol from './useIsOriginalNativeTokenSymbol';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../app/util/test/initial-root-state';
 import axios from 'axios';
 
 jest.mock('react-redux', () => ({
@@ -14,6 +14,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     jest.clearAllMocks();
   });
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mockSelectorState = (state: any) => {
     (useSelector as jest.MockedFn<typeof useSelector>).mockImplementation(
       (selector) => selector(state),
@@ -23,7 +25,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -48,6 +50,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -65,7 +69,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -89,6 +93,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -106,7 +112,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -119,6 +125,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       throw new Error('error');
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -136,7 +144,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -161,6 +169,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -178,7 +188,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -203,6 +213,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -221,7 +233,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: false,
           },
@@ -246,6 +258,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {
@@ -262,7 +276,7 @@ describe('useIsOriginalNativeTokenSymbol', () => {
     mockSelectorState({
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           PreferencesController: {
             useSafeChainsListValidation: true,
           },
@@ -287,6 +301,8 @@ describe('useIsOriginalNativeTokenSymbol', () => {
       }),
     );
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
 
     await act(async () => {

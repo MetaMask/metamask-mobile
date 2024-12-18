@@ -4,14 +4,16 @@ import { useSelector } from 'react-redux';
 import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import AddCustomToken from '../../UI/AddCustomToken';
 import SearchTokenAutocomplete from '../../UI/SearchTokenAutocomplete';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ScrollableTabView, {
+  TabBarProps,
+} from 'react-native-scrollable-tab-view';
 import { strings } from '../../../../locales/i18n';
 import AddCustomCollectible from '../../UI/AddCustomCollectible';
 import {
   getImportTokenNavbarOptions,
   getNetworkNavbarOptions,
 } from '../../UI/Navbar';
-import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers/dist/assetsUtil';
+import { isTokenDetectionSupportedForNetwork } from '@metamask/assets-controllers';
 import {
   selectChainId,
   selectProviderConfig,
@@ -33,7 +35,7 @@ import styleSheet from './AddAsset.styles';
 import { AddAssetParams } from './AddAsset.types';
 import Routes from '../../../constants/navigation/Routes';
 import { NFT_TITLE, TOKEN, TOKEN_TITLE } from './AddAsset.constants';
-import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/AddAssetView.selectors';
+import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 
 const AddAsset = () => {
   const navigation = useNavigation();
@@ -83,7 +85,7 @@ const AddAsset = () => {
     });
   };
 
-  const renderTabBar = (props) => (
+  const renderTabBar = (props: TabBarProps) => (
     <View style={styles.base}>
       <DefaultTabBar
         underlineStyle={styles.tabUnderlineStyle}
@@ -135,7 +137,6 @@ const AddAsset = () => {
                 ? {
                     variant: ButtonVariants.Link,
                     onPress: goToSecuritySettings,
-                    textVariant: TextVariant.BodyMD,
                     label: strings('wallet.display_nft_media_cta'),
                   }
                 : undefined

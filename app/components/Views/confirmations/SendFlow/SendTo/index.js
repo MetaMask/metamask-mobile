@@ -11,10 +11,8 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getDecimalChainId,
-  handleNetworkSwitch,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
@@ -49,17 +47,20 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import {
-  selectIdentities,
-  selectSelectedAddress,
-} from '../../../../../selectors/preferencesController';
+  selectInternalAccounts,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
-import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
+import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
+import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { toLowerCaseEquals } from '../../../../../util/general';
+import { selectAddressBook } from '../../../../../selectors/addressBookController';
 
 const dummy = () => true;
 
@@ -89,9 +90,9 @@ class SendFlow extends PureComponent {
      */
     selectedAddress: PropTypes.string,
     /**
-     * List of accounts from the PreferencesController
+     * List of accounts from the AccountsController
      */
-    identities: PropTypes.object,
+    internalAccounts: PropTypes.array,
     /**
      * Current provider ticker
      */
@@ -219,11 +220,14 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, chainId, identities } = this.props;
+    const { addressBook, chainId, internalAccounts } = this.props;
     const networkAddressBook = addressBook[chainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
-      networkAddressBook[checksummedAddress] || identities[checksummedAddress]
+      networkAddressBook[checksummedAddress] ||
+      internalAccounts.find((account) =>
+        toLowerCaseEquals(account.address, checksummedAddress),
+      )
     );
   };
 
@@ -292,9 +296,14 @@ class SendFlow extends PureComponent {
       toEnsName,
       toSelectedAddressName,
     );
-    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT, {
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT)
+        .addProperties({
+          network: providerType,
+        })
+        .build(),
+    );
 
     navigation.navigate('Amount');
   };
@@ -305,13 +314,18 @@ class SendFlow extends PureComponent {
   };
 
   goToBuy = () => {
-    this.props.navigation.navigate(Routes.RAMP.BUY);
+    this.props.navigation.navigate(...createBuyNavigationDetails());
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      button_location: 'Send Flow warning',
-      button_copy: 'Buy Native Token',
-      chain_id_destination: this.props.chainId,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          button_location: 'Send Flow warning',
+          button_copy: 'Buy Native Token',
+          chain_id_destination: this.props.chainId,
+        })
+        .build(),
+    );
   };
 
   renderBuyEth = () => {
@@ -324,10 +338,13 @@ class SendFlow extends PureComponent {
 
     return (
       <>
-        <Text bold style={styles.buyEth} onPress={this.goToBuy}>
-          {strings('fiat_on_ramp.buy', {
-            ticker: getTicker(this.props.ticker),
-          })}
+        <Text> </Text>
+        <Text reset bold link underline onPress={this.goToBuy}>
+          {strings('fiat_on_ramp_aggregator.token_marketplace')}.
+        </Text>
+        <Text reset>
+          {'\n'}
+          {strings('transaction.you_can_also_send_funds')}
         </Text>
       </>
     );
@@ -356,23 +373,26 @@ class SendFlow extends PureComponent {
     this.setState({ fromSelectedAddress: address });
   };
 
-  getAddressNameFromBookOrIdentities = (toAccount) => {
-    const { addressBook, identities, chainId } = this.props;
+  getAddressNameFromBookOrInternalAccounts = (toAccount) => {
+    const { addressBook, internalAccounts, chainId } = this.props;
     if (!toAccount) return;
 
     const networkAddressBook = addressBook[chainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
+    const matchingAccount = internalAccounts.find((account) =>
+      toLowerCaseEquals(account.address, checksummedAddress),
+    );
 
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
-      : identities[checksummedAddress]
-      ? identities[checksummedAddress].name
+      : matchingAccount
+      ? matchingAccount.metadata.name
       : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, identities, chainId } = this.props;
+    const { addressBook, internalAccounts, chainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -383,12 +403,12 @@ class SendFlow extends PureComponent {
       errorContinue,
       isOnlyWarning,
       confusableCollection,
-    } = await validateAddressOrENS({
+    } = await validateAddressOrENS(
       toAccount,
       addressBook,
-      identities,
+      internalAccounts,
       chainId,
-    });
+    );
 
     this.setState({
       addressError,
@@ -411,13 +431,18 @@ class SendFlow extends PureComponent {
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
-        {
-          chain_id: getDecimalChainId(this.props.chainId),
-        },
+        this.props.metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
+          )
+          .addProperties({
+            chain_id: getDecimalChainId(this.props.chainId),
+          })
+          .build(),
       );
     }
-    const addressName = this.getAddressNameFromBookOrIdentities(toAccount);
+    const addressName =
+      this.getAddressNameFromBookOrInternalAccounts(toAccount);
 
     /**
      * If the address is from addressBook or identities
@@ -473,7 +498,7 @@ class SendFlow extends PureComponent {
     const styles = createStyles(colors);
 
     const checksummedAddress = toAccount && toChecksumAddress(toAccount);
-    const existingAddressName = this.getAddressNameFromBookOrIdentities(
+    const existingAddressName = this.getAddressNameFromBookOrInternalAccounts(
       toEnsAddressResolved || toAccount,
     );
     const existingContact =
@@ -659,11 +684,11 @@ class SendFlow extends PureComponent {
 SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
+  addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
-  identities: selectIdentities(state),
+  internalAccounts: selectInternalAccounts(state),
   ticker: selectTicker(state),
   providerType: selectProviderType(state),
   isPaymentRequest: state.transaction.paymentRequest,

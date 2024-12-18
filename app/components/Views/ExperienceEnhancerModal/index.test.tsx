@@ -6,12 +6,14 @@ import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import ExperienceEnhancerModal from './';
-import { ExperienceEnhancerModalSelectorsIDs } from '../../../../e2e/selectors/Modals/ExperienceEnhancerModal.selectors.js';
+import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ExperienceEnhancerModal.selectors.js';
 
 // Mock the BottomSheet component
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockBottomSheet = ({ children }: any) => <>{children}</>;
     return mockBottomSheet;
   },
@@ -50,7 +52,7 @@ describe('ExperienceEnhancerModal', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const cancelButton = getByTestId(
-      ExperienceEnhancerModalSelectorsIDs.CANCEL_BUTTON,
+      ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
     expect(cancelButton).toBeTruthy();
 
@@ -64,7 +66,7 @@ describe('ExperienceEnhancerModal', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const acceptButton = getByTestId(
-      ExperienceEnhancerModalSelectorsIDs.ACCEPT_BUTTON,
+      ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
     );
     expect(acceptButton).toBeTruthy();
 
@@ -78,7 +80,7 @@ describe('ExperienceEnhancerModal', () => {
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const linkButton = getByTestId(
-      ExperienceEnhancerModalSelectorsIDs.LINK_BUTTON,
+      ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON,
     );
     expect(linkButton).toBeTruthy();
 

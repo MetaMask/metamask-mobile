@@ -25,6 +25,8 @@ const AvatarFaviconMeta = {
 export default AvatarFaviconMeta;
 
 export const AvatarFavicon = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <AvatarFaviconComponent
       {...args}

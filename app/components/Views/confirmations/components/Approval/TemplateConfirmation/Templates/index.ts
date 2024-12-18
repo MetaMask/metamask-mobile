@@ -20,6 +20,8 @@ export interface ConfirmationTemplateValues {
 
 export interface ConfirmationTemplate {
   getValues: (
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pendingApproval: ApprovalRequest<any>,
     strings: (key: string) => string,
     actions: Actions,
@@ -48,6 +50,8 @@ const ALLOWED_TEMPLATE_KEYS: string[] = [
 ];
 
 export function getTemplateValues(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApproval: ApprovalRequest<any>,
   stringFn: (key: string) => string,
   actions: Actions,

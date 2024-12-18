@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import WebView from 'react-native-webview';
+import WebView from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
 import NotificationManager from '../../../core/NotificationManager';
 import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
@@ -92,12 +92,14 @@ export const getAggregatorAnalyticsPayload = (
   }
 
   const sharedCompletedPayload: Partial<
-    AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
+    | AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED']
+    | AnalyticsEvents['ONRAMP_PURCHASE_COMPLETED']
   > = {
     total_fee: Number(fiatOrder.fee),
     exchange_rate:
       (Number(fiatOrder.amount) - Number(fiatOrder.fee)) /
       Number(fiatOrder.cryptoAmount),
+    amount_in_usd: (fiatOrder.data as Order)?.fiatAmountInUsd,
   };
 
   const sellCompletePayload: AnalyticsEvents['OFFRAMP_PURCHASE_COMPLETED'] = {
@@ -220,8 +222,14 @@ function FiatOrders() {
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pendingOrders = useSelector<any, FiatOrder[]>(getPendingOrders);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const customOrderIds = useSelector<any, CustomIdData[]>(getCustomOrderIds);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const authenticationUrls = useSelector<any, string[]>(getAuthenticationUrls);
 
   const dispatchAddFiatOrder = useCallback(

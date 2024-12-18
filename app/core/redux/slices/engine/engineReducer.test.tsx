@@ -17,6 +17,8 @@ describe('engineReducer', () => {
     });
 
     const initialStatDefault = { backgroundState: {} };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nextState = engineReducer(undefined, {} as any);
     expect(nextState).toEqual(initialStatDefault);
   });
@@ -36,6 +38,8 @@ describe('engineReducer', () => {
 
     const key = 'AccountTrackerController';
     // changing the mock version to suit this test manually due to our current global mock
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Engine as any).state = {
       AccountTrackerController: { accounts: 'testValue' },
     };

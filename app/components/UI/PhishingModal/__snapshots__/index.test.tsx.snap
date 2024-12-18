@@ -31,7 +31,7 @@ exports[`PhishingModal should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#ffffff",
         "borderRadius": 4,
         "height": 495,
       }
@@ -41,7 +41,7 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "justifyContent": "center",
           "paddingVertical": 20,
@@ -57,7 +57,7 @@ exports[`PhishingModal should render correctly 1`] = `
               "fontSize": 15,
             },
             {
-              "color": "#D73847",
+              "color": "#d73847",
               "marginRight": 10,
             },
             {
@@ -74,7 +74,7 @@ exports[`PhishingModal should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#D73847",
+            "color": "#d73847",
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
             "textAlign": "center",
@@ -92,7 +92,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
       style={
         {
-          "backgroundColor": "#F2F4F6",
+          "backgroundColor": "#f2f4f6",
           "paddingHorizontal": 20,
           "paddingTop": 20,
         }
@@ -102,7 +102,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
               "fontWeight": "400",
@@ -123,7 +123,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
               "fontWeight": "400",
@@ -135,7 +135,7 @@ exports[`PhishingModal should render correctly 1`] = `
           <Text
             style={
               {
-                "textDecorationColor": "#24272A",
+                "textDecorationColor": "#141618",
                 "textDecorationLine": "underline",
               }
             }
@@ -148,7 +148,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
               "fontWeight": "400",
@@ -160,7 +160,7 @@ exports[`PhishingModal should render correctly 1`] = `
           <Text
             style={
               {
-                "textDecorationColor": "#24272A",
+                "textDecorationColor": "#141618",
                 "textDecorationLine": "underline",
               }
             }
@@ -171,7 +171,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
               "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`PhishingModal should render correctly 1`] = `
           <Text
             style={
               {
-                "textDecorationColor": "#24272A",
+                "textDecorationColor": "#141618",
                 "textDecorationLine": "underline",
               }
             }
@@ -194,7 +194,7 @@ exports[`PhishingModal should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#24272A",
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 11,
               "fontWeight": "400",
@@ -206,7 +206,7 @@ exports[`PhishingModal should render correctly 1`] = `
           <Text
             style={
               {
-                "textDecorationColor": "#24272A",
+                "textDecorationColor": "#141618",
                 "textDecorationLine": "underline",
               }
             }
@@ -238,8 +238,8 @@ exports[`PhishingModal should render correctly 1`] = `
               "padding": 15,
             },
             {
-              "backgroundColor": "#FFFFFF",
-              "borderColor": "#535A61",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#6a737d",
               "borderWidth": 1,
             },
             {
@@ -269,10 +269,10 @@ exports[`PhishingModal should render correctly 1`] = `
                 "textAlign": "center",
               },
               {
-                "color": "#535A61",
+                "color": "#6a737d",
               },
               {
-                "color": "#D73847",
+                "color": "#d73847",
                 "fontSize": 12,
               },
             ],

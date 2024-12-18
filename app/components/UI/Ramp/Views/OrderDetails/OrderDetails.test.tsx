@@ -1,9 +1,12 @@
 import React from 'react';
 import { processFiatOrder } from '../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -15,6 +18,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
 import { PROVIDER_LINKS } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  MOCK_ADDRESS_1,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,13 +49,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
-
 const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
-  account: '0x0',
+  account: MOCK_ADDRESS_1,
   network: '1',
   cryptoAmount: '0.01231324',
   orderType: OrderOrderTypeEnum.Buy,
@@ -136,7 +139,10 @@ function render(Component: React.ComponentType, orders = [mockOrder]) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
         fiatOrders: {
           orders: orders as FiatOrder[],

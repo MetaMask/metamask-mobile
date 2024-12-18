@@ -12,7 +12,7 @@ Variant of Avatar.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarVariant](./Avatar.types.ts)                                              | No                                                     |
+| [AvatarVariant](./Avatar.types.ts)                  | No                                                      |
 
 ### `size`
 
@@ -20,7 +20,15 @@ Optional enum to select between size variants.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarSize](./Avatar.types.ts)          | Yes                                                     | Md                                                     |
+| [AvatarSize](./Avatar.types.ts)                     | Yes                                                     | Md                                                     |
+
+### `includesBorder`
+
+Optional boolean to include a border or not.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| `boolean`                                           | No                                                      | `false`                                                |
 
 ## AvatarAccount Props
 
@@ -28,9 +36,9 @@ Optional enum to select between size variants.
 
 Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [AvatarAccountType](./variants/AvatarAccount.types.ts)    | Yes                                                     | JazzIcon                                               |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| [AvatarAccountType](./variants/AvatarAccount.types.ts) | Yes                                                     | JazzIcon                                               |
 
 ### `accountAddress`
 
@@ -82,9 +90,9 @@ Optional background color of the icon.
 
 Optional network name.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [name](./variants/AvatarNetwork/AvatarNetwork.types.ts)                | No                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span>     | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :------------------------------------------------------ | :------------------------------------------------------ |
+| [name](./variants/AvatarNetwork/AvatarNetwork.types.ts) | No                                                      |
 
 ### `imageSource`
 
@@ -100,9 +108,9 @@ Optional network image from either a local or remote source.
 
 Optional token name.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [tokenName](./variants/AvatarToken/AvatarToken.types.ts)             | No                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span>      | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :------------------------------------------------------- | :------------------------------------------------------ |
+| [tokenName](./variants/AvatarToken/AvatarToken.types.ts) | No                                                      |
 
 ### `imageSource`
 
@@ -116,9 +124,9 @@ Optional token image from either a local or remote source.
 
 Boolean value that activates halo effect (blurred image colors around).
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [isHaloEnabled](./variants/AvatarToken/AvatarToken.types.ts)         | No                                                      |
+| <span style="color:gray;font-size:14px">TYPE</span>          | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------------- | :------------------------------------------------------ |
+| [isHaloEnabled](./variants/AvatarToken/AvatarToken.types.ts) | No                                                      |
 
 ## Usage
 
@@ -134,7 +142,7 @@ Boolean value that activates halo effect (blurred image colors around).
 // AvatarFavicon
 <Avatar
   variant={AvatarVariant.Favicon}
-  size={AvatarSize.Md} 
+  size={AvatarSize.Md}
   imageSource={{ uri: IMAGE_URL }}
 />;
 

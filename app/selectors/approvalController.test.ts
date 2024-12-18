@@ -8,7 +8,7 @@ const PENDING_APPROVALS_MOCK: ApprovalControllerState['pendingApprovals'] = {
   testId1: {
     id: 'testId1',
     origin: 'testOrigin1',
-    type: 'eth_sign',
+    type: 'eth_signTypedData',
     time: 123456789,
     expectsResult: false,
     requestData: {
@@ -55,6 +55,8 @@ describe('Approval Controller Selectors', () => {
               },
             },
           },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).toEqual(PENDING_APPROVALS_MOCK);
     });
@@ -71,6 +73,8 @@ describe('Approval Controller Selectors', () => {
               },
             },
           },
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
       ).toEqual(APPROVAL_FLOWS_MOCK);
     });
