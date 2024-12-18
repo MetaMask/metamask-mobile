@@ -121,7 +121,7 @@ describe('Asset', () => {
     renderWithProvider(
       <Asset
         navigation={{ setOptions: mockSetOptions }}
-        route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
+        route={{ params: { symbol: 'BNB', address: 'something', isETH: true } }}
         transactions={[]}
       />,
       {
