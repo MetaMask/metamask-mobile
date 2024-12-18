@@ -31,18 +31,19 @@ const useTrackERC20WithoutDecimalInformation = (
       const parsedDecimals = parseTokenDetailDecimals(decimals);
       if (parsedDecimals === undefined) {
         trackEvent(createEventBuilder(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED)
-        .addProperties({
-          token_decimals_available: false,
-          asset_address: tokenAddress,
-          asset_type: TokenStandard.ERC20,
-          chain_id: chainId,
-          location: metricLocation,
-          ui_customizations: ['redesigned_confirmation'],
-        })
+          .addProperties({
+            token_decimals_available: false,
+            asset_address: tokenAddress,
+            asset_type: TokenStandard.ERC20,
+            chain_id: chainId,
+            location: metricLocation,
+            ui_customizations: ['redesigned_confirmation'],
+          })
         .build());
       }
     }
-  }, [tokenDetails, chainId, tokenAddress, trackEvent, createEventBuilder, metricLocation]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 };
 
 export default useTrackERC20WithoutDecimalInformation;
