@@ -997,11 +997,12 @@ export class Engine {
           'PhishingController:maybeUpdateState',
           'PhishingController:testOrigin',
         ],
-        allowedEvents: [],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
       });
 
     const snapInterfaceController = new SnapInterfaceController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: snapInterfaceControllerMessenger,
       state: initialState.SnapInterfaceController,
     });
