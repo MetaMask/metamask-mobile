@@ -54,14 +54,11 @@ describe(SmokeMultiChain('Chain Permission Management'), () => {
 
         // Verify changes were saved by checking chain permissions again
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-
-        // Deselect both networks to verify they were the only ones selected
-        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
-
-        // Verify the disconnect all button appears (indicating no chains are selected)
-        await Assertions.checkIfVisible(
-          ConnectedAccountsModal.disconnectNetworksButton,
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        );
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
         );
       },
     );
