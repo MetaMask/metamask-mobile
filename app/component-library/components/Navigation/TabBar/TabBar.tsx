@@ -94,6 +94,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.SETTINGS_VIEW, {
               screen: 'Settings',
             });
+            break;
+          case Routes.PROFILE_VIEW:
+            navigation.navigate(Routes.PROFILE_VIEW, {
+              screen: Routes.PROFILE.PROFILE_SETTINGS,
+            });
+            break;
         }
       };
 

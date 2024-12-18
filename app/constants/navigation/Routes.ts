@@ -3,6 +3,7 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
+  PROFILE_VIEW: 'ProfileView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -76,6 +77,9 @@ const Routes = {
   },
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
+  },
+  PROFILE: {
+    PROFILE_SETTINGS: 'ProfileSettings',
   },
   SETTINGS: {
     ADVANCED_SETTINGS: 'AdvancedSettings',
