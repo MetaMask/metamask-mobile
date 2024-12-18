@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { FlatList, TouchableHighlight } from 'react-native';
+import { TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { FlashList } from '@shopify/flash-list';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import OrderListItem from '../../components/OrderListItem';
@@ -85,7 +86,7 @@ function OrdersList() {
   );
 
   return (
-    <FlatList
+    <FlashList
       ListHeaderComponent={
         <ScrollView horizontal>
           <Row style={styles.filters}>
