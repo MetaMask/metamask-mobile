@@ -1770,20 +1770,6 @@ export class Engine {
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
-      const balanceBN = hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].balance,
-      );
-      const stakedBalanceBN = hexToBN(
-        accountsByChainId[toHexadecimal(chainId)][
-          selectSelectedInternalAccountChecksummedAddress
-        ].stakedBalance || '0x00',
-      );
-      const totalAccountBalance = balanceBN
-        .add(stakedBalanceBN)
-        .toString('hex');
-
       let ethFiat = 0;
       let ethFiat1dAgo = 0;
       let tokenFiat = 0;
