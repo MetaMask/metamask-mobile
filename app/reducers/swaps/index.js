@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress } from '../../util/address';
-import { toLowerCaseEquals } from '../../util/general';
+import { benchmark, toLowerCaseEquals } from '../../util/general';
 import { lte } from '../../util/lodash';
 import { selectChainId } from '../../selectors/networkController';
 import {
@@ -175,6 +175,10 @@ const swapsControllerAndUserTokens = createSelector(
   swapsControllerTokens,
   selectTokens,
   (swapsTokens, tokens) => {
+    const startTimestamp = Date.now();
+    // eslint-disable-next-line no-console
+    console.log(`[reducers/swaps] swapsControllerAndUserTokens START`);
+
     const values = [...(swapsTokens || []), ...(tokens || [])]
       .filter(Boolean)
       .reduce((map, { hasBalanceError, image, ...token }) => {
@@ -191,8 +195,13 @@ const swapsControllerAndUserTokens = createSelector(
         return map;
       }, new Map())
       .values();
+    const result = [...values];
 
-    return [...values];
+    const endTimestamp = Date.now();
+    // eslint-disable-next-line no-console
+    console.log(`[reducers/swaps] swapsControllerAndUserTokens END (${endTimestamp - startTimestamp} ms)`);
+
+    return result;
   },
 );
 
@@ -251,13 +260,27 @@ const topAssets = (state) =>
  */
 export const swapsTokensObjectSelector = createSelector(
   swapsControllerAndUserTokens,
-  (tokens) =>
-    tokens?.length > 0
-      ? tokens.reduce(
-          (acc, token) => ({ ...acc, [token.address]: undefined }),
-          {},
-        )
-      : {},
+  (tokens) => {
+    const startTimestamp = Date.now();
+    // eslint-disable-next-line no-console
+    console.log(`[reducers/swaps] swapsTokensObjectSelector START`);
+
+    if (!tokens || tokens.length === 0) {
+      const endTimestamp = Date.now();
+      // eslint-disable-next-line no-console
+      console.log(`[reducers/swaps] swapsTokensObjectSelector END (${endTimestamp - startTimestamp} ms)`);
+      return {};
+    }
+
+    const result = {};
+    for (const token of tokens) {
+      result[token.address] = undefined;
+    }
+    const endTimestamp = Date.now();
+    // eslint-disable-next-line no-console
+    console.log(`[reducers/swaps] swapsTokensObjectSelector END (${endTimestamp - startTimestamp} ms)`);
+    return result;
+  }
 );
 
 /**

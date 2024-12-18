@@ -141,9 +141,15 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     const { SwapsController } = Engine.context;
     const fetchTokenWithCache = async () => {
       try {
+        const startTimestamp = Date.now();
+        // eslint-disable-next-line no-console
+        console.log(`[AssetOverview] fetchTokenWithCache START`);
         await SwapsController.fetchTokenWithCache({
           networkClientId: selectedNetworkClientId,
         });
+        const endTimestamp = Date.now();
+        // eslint-disable-next-line no-console
+        console.log(`[AssetOverview] fetchTokenWithCache END (${endTimestamp - startTimestamp} ms)`);
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
