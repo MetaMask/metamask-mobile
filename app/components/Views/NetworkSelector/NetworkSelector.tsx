@@ -26,7 +26,10 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectIsAllNetworks,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
   getAllNetworks,
@@ -123,6 +126,7 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
+  const isAllNetwork = useSelector(selectIsAllNetworks);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -172,6 +176,23 @@ const NetworkSelector = () => {
     networkTypeOrRpcUrl: '',
     isReadOnly: false,
   });
+
+  const setTokenNetworkFilter = useCallback(
+    (chainId: string) => {
+      const isPopularNetwork =
+        chainId === CHAIN_IDS.MAINNET ||
+        chainId === CHAIN_IDS.LINEA_MAINNET ||
+        PopularList.some((network) => network.chainId === chainId);
+
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetwork && isPopularNetwork) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      }
+    },
+    [isAllNetwork],
+  );
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
@@ -262,6 +283,7 @@ const NetworkSelector = () => {
         await NetworkController.setActiveNetwork(networkClientId);
       }
 
+      setTokenNetworkFilter(chainId);
       sheetRef.current?.onCloseBottomSheet();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
@@ -376,12 +398,13 @@ const NetworkSelector = () => {
           networkConfiguration.defaultRpcEndpointIndex
         ].networkClientId ?? type;
 
+      setTokenNetworkFilter(networkConfiguration.chainId);
       NetworkController.setActiveNetwork(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
 
       setTimeout(async () => {
-        await updateIncomingTransactions();
+        await updateIncomingTransactions([networkConfiguration.chainId]);
       }, 1000);
     }
 
@@ -430,10 +453,10 @@ const NetworkSelector = () => {
   const renderMainnet = () => {
     const { name: mainnetName, chainId } = Networks.mainnet;
     const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
-
     const rpcUrl =
-      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
-        .url;
+      networkConfigurations?.[chainId]?.rpcEndpoints?.[
+        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      ].url;
     const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
@@ -497,8 +520,9 @@ const NetworkSelector = () => {
     const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
     const rpcEndpoints = networkConfigurations?.[chainId]?.rpcEndpoints;
     const rpcUrl =
-      rpcEndpoints?.[networkConfigurations?.[chainId]?.defaultRpcEndpointIndex]
-        .url;
+      networkConfigurations?.[chainId]?.rpcEndpoints?.[
+        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
+      ].url;
 
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;

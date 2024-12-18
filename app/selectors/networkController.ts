@@ -1,3 +1,4 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -11,6 +12,9 @@ import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { NETWORKS_CHAIN_ID } from '../constants/network';
 import { selectTokenNetworkFilter } from './preferencesController';
+import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
+import { PopularList } from '../util/networks/customNetworks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 interface InfuraRpcEndpoint {
   name?: string;
@@ -50,7 +54,7 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
 });
 
 // Helper function to create the provider config based on the network and endpoint
-const createProviderConfig = (
+export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
   rpcEndpoint: RpcEndpoint,
 ): ProviderConfig => {
@@ -80,7 +84,7 @@ const createProviderConfig = (
   };
 };
 
-const selectNetworkControllerState = (state: RootState) =>
+export const selectNetworkControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NetworkController;
 
 export const selectSelectedNetworkClientId = createSelector(
@@ -149,7 +153,7 @@ export const selectNetworkStatus = createSelector(
 export const selectNetworkConfigurations = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>
-    networkControllerState.networkConfigurationsByChainId,
+    networkControllerState?.networkConfigurationsByChainId,
 );
 
 export const selectNetworkClientId = createSelector(
@@ -166,10 +170,57 @@ export const selectIsEIP1559Network = createSelector(
     ].EIPS[1559] === true,
 );
 
-export const selectIsAllNetworks = createSelector(
+// Selector to get the popular network configurations, this filter also testnet networks
+export const selectAllPopularNetworkConfigurations = createSelector(
   selectNetworkConfigurations,
-  selectTokenNetworkFilter,
-  (networkConfigurations, tokenNetworkFilter) =>
-    Object.keys(tokenNetworkFilter).length ===
-    Object.keys(networkConfigurations).length,
+  (networkConfigurations: Record<Hex, NetworkConfiguration>) => {
+    const popularNetworksChainIds = PopularList.map(
+      (popular) => popular.chainId,
+    );
+
+    return Object.keys(networkConfigurations)
+      .filter(
+        (chainId) =>
+          popularNetworksChainIds.includes(chainId as Hex) ||
+          chainId === CHAIN_IDS.MAINNET ||
+          chainId === CHAIN_IDS.LINEA_MAINNET,
+      )
+      .reduce((acc: Record<Hex, NetworkConfiguration>, chainId) => {
+        acc[chainId as Hex] = networkConfigurations[chainId as Hex];
+        return acc;
+      }, {});
+  },
+);
+
+export const selectIsPopularNetwork = createSelector(
+  selectChainId,
+  (chainId) =>
+    chainId === CHAIN_IDS.MAINNET ||
+    chainId === CHAIN_IDS.LINEA_MAINNET ||
+    PopularList.some((network) => network.chainId === chainId),
+);
+
+export const selectIsAllNetworks = createSelector(
+  selectAllPopularNetworkConfigurations,
+  (state: RootState) => selectTokenNetworkFilter(state),
+  (popularNetworkConfigurations, tokenNetworkFilter) => {
+    if (Object.keys(tokenNetworkFilter).length === 1) {
+      return false;
+    }
+    const allNetworks = enableAllNetworksFilter(popularNetworkConfigurations);
+    return (
+      Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length
+    );
+  },
+);
+
+export const selectNetworkConfigurationByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) => networkConfigurations?.[chainId] || null,
+);
+
+export const selectNativeCurrencyByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
 );

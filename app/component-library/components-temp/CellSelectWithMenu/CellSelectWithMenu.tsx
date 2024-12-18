@@ -11,7 +11,7 @@ import Tag from '../../../component-library/components/Tags/Tag';
 // Internal dependencies.
 import styleSheet from './CellSelectWithMenu.styles';
 import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
-import { CellModalSelectorsIDs } from '../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
 import Avatar from '../../../component-library/components/Avatars/Avatar';
 import Text from '../../../component-library/components/Texts/Text';
@@ -44,7 +44,7 @@ const CellSelectWithMenu = ({
     <ListItemMultiSelectButton
       isSelected={isSelected}
       style={styles.base}
-      testID={CellModalSelectorsIDs.MULTISELECT}
+      testID={CellComponentSelectorsIDs.MULTISELECT}
       {...props}
     >
       <View style={styles.cellBase}>
@@ -52,7 +52,7 @@ const CellSelectWithMenu = ({
         {withAvatar ? (
           <Avatar
             style={styles.avatar}
-            testID={CellModalSelectorsIDs.BASE_AVATAR}
+            testID={CellComponentSelectorsIDs.BASE_AVATAR}
             size={DEFAULT_CELLBASE_AVATAR_SIZE}
             {...avatarProps}
           />
@@ -62,7 +62,7 @@ const CellSelectWithMenu = ({
           <Text
             numberOfLines={1}
             variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
-            testID={CellModalSelectorsIDs.BASE_TITLE}
+            testID={CellComponentSelectorsIDs.BASE_TITLE}
           >
             {title}
           </Text>
@@ -91,7 +91,7 @@ const CellSelectWithMenu = ({
           )}
           {!!tagLabel && (
             <Tag
-              testID={CellModalSelectorsIDs.TAG_LABEL}
+              testID={CellComponentSelectorsIDs.TAG_LABEL}
               label={tagLabel}
               style={
                 isSelected

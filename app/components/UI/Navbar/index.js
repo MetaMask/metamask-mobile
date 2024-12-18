@@ -46,7 +46,7 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
@@ -1361,6 +1361,7 @@ export function getNetworkNavbarOptions(
   onRightPress = undefined,
   disableNetwork = false,
   contentOffset = 0,
+  networkName = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1385,6 +1386,7 @@ export function getNetworkNavbarOptions(
         disableNetwork={disableNetwork}
         title={title}
         translate={translate}
+        networkName={networkName}
       />
     ),
     headerLeft: () => (
@@ -1738,8 +1740,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
-            ...trade,
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
             responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
           })
           .build(),
       );
@@ -1757,8 +1766,15 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
           MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
         )
           .addProperties({
-            ...trade,
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
             responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
           })
           .build(),
       );

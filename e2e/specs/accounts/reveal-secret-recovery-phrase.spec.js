@@ -3,7 +3,7 @@
 import { SmokeAccounts } from '../../tags.js';
 import TestHelpers from '../../helpers.js';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import SrpQuizModal from '../../pages/Settings/SecurityAndPrivacy/SrpQuizModal';
@@ -36,7 +36,7 @@ describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
     const fixture = new FixtureBuilder().withDefaultFixture().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

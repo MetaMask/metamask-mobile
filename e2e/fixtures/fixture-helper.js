@@ -6,9 +6,10 @@ import GanacheSeeder from '../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import path from 'path';
 import createStaticServer from '../create-static-server';
-import { getFixturesServerPort, getLocalTestDappPort } from './utils';
+import { DEFAULT_MOCKSERVER_PORT, getFixturesServerPort, getLocalTestDappPort, getMockServerPort } from './utils';
 import Utilities from '../utils/Utilities';
 import { device } from 'detox';
+import TestHelpers from '../helpers';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
@@ -104,9 +105,12 @@ export async function withFixtures(options, testSuite) {
   } = options;
 
   const fixtureServer = new FixtureServer();
+  let mockServer;
+  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
 
   if (testSpecificMock) {
-    await startMockServer(testSpecificMock);
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
   }
 
   let ganacheServer;
@@ -166,11 +170,12 @@ export async function withFixtures(options, testSuite) {
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
     if (restartDevice) {
-      await device.launchApp({
+      await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+          mockServerPort: `${mockServerPort}`,
         },
       });
     }
@@ -197,11 +202,12 @@ export async function withFixtures(options, testSuite) {
         }
       }
     }
-    await stopFixtureServer(fixtureServer);
 
     if (testSpecificMock) {
-      await stopMockServer();
+      await stopMockServer(mockServer);
     }
+
+    await stopFixtureServer(fixtureServer);
   }
 }
 

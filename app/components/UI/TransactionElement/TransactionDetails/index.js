@@ -47,6 +47,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
+import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -144,7 +145,7 @@ class TransactionDetails extends PureComponent {
   };
 
   fetchTxReceipt = async (transactionHash) => {
-    const ethQuery = Engine.getGlobalEthQuery();
+    const ethQuery = getGlobalEthQuery();
     return await query(ethQuery, 'getTransactionReceipt', [transactionHash]);
   };
 

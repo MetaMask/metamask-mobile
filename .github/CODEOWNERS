@@ -47,7 +47,7 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 
 # Accounts Team
 app/core/Encryptor/   @MetaMask/accounts-engineers
-app/core/Engine/controllers/accounts   @MetaMask/accounts-engineers
+app/core/Engine/controllers/AccountsController   @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
@@ -66,6 +66,7 @@ app/store/util/notifications @MetaMask/notifications
 app/actions/identity @MetaMask/identity
 app/util/identity @MetaMask/identity
 app/components/UI/ProfileSyncing @MetaMask/identity
+e2e/specs/identity @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain

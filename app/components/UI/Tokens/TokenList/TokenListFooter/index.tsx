@@ -25,10 +25,14 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../components/hooks/useMetrics';
-import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../../../util/networks';
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
 } from '../../../../../selectors/networkController';
 import { TokenI } from '../../types';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
@@ -40,19 +44,20 @@ interface TokenListFooterProps {
   isAddTokenEnabled: boolean;
 }
 
-const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
 const getDetectedTokensCount = (
   isPortfolioEnabled: boolean,
   isAllNetworksSelected: boolean,
   allTokens: TokenI[],
   filteredTokens: TokenI[] | undefined,
+  isPopularNetworks: boolean,
 ): number => {
   if (!isPortfolioEnabled) {
     return filteredTokens?.length ?? 0;
   }
 
-  return isAllNetworksSelected ? allTokens.length : filteredTokens?.length ?? 0;
+  return isAllNetworksSelected && isPopularNetworks
+    ? allTokens.length
+    : filteredTokens?.length ?? 0;
 };
 
 export const TokenListFooter = ({
@@ -73,8 +78,8 @@ export const TokenListFooter = ({
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-
   const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
 
   const styles = createStyles(colors);
 
@@ -99,10 +104,11 @@ export const TokenListFooter = ({
   };
 
   const tokenCount = getDetectedTokensCount(
-    isPortfolioViewEnabled,
+    isPortfolioViewEnabled(),
     isAllNetworks,
     allDetectedTokens,
     detectedTokens,
+    isPopularNetworks,
   );
 
   const areTokensDetected = tokenCount > 0;
