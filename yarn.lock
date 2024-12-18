@@ -4976,7 +4976,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/network-controller@^22.1.0", "@metamask/network-controller@^22.1.1":
+"@metamask/network-controller@^22.1.1":
   version "22.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.1.1.tgz#6c3b5aef07ae66ae4cec44a62dbbd7df4421f971"
   integrity sha512-NTIZjRuPqOynPfPDqy/tPc8ZeKnD2ys8i2ihxq1ODHwSAHBwQ0gogNHBda7PMLaKjuuPkfmh2EzkALiH07MKSg==
