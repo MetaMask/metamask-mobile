@@ -70,6 +70,7 @@ const AddAsset = () => {
             `add_asset.${assetType === TOKEN ? TOKEN_TITLE : NFT_TITLE}`,
             true,
             navigation,
+            colors,
           ),
     );
   }, [assetType, colors, navigation]);

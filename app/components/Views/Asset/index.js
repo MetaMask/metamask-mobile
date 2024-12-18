@@ -217,6 +217,7 @@ class Asset extends PureComponent {
         route.params?.symbol ?? '',
         false,
         navigation,
+        colors,
         shouldShowMoreOptionsInNavBar
           ? () =>
               navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

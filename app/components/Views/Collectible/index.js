@@ -59,7 +59,12 @@ class Collectible extends PureComponent {
   updateNavBar = () => {
     const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    getNetworkNavbarOptions(route.params?.name ?? '', false, navigation);
+    getNetworkNavbarOptions(
+      route.params?.name ?? '',
+      false,
+      navigation,
+      colors,
+    );
   };
 
   componentDidMount = () => {

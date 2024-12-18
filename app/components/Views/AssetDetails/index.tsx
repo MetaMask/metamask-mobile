@@ -197,6 +197,7 @@ const AssetDetails = (props: Props) => {
         'Token Details',
         false,
         navigation,
+        colors,
         undefined,
         true,
       ),

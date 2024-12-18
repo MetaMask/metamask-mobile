@@ -1364,6 +1364,7 @@ export function getNetworkNavbarOptions(
   title,
   translate,
   navigation,
+  themeColors,
   onRightPress = undefined,
   disableNetwork = false,
   contentOffset = 0,
