@@ -12,7 +12,7 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
 
-describe(SmokeCore('Buy Crypto'), () => {
+describe(SmokeCore('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -45,23 +45,22 @@ describe(SmokeCore('Buy Crypto'), () => {
         await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
 
         /* Uncomment this once the bug:
-            "when I update the token after deep linking"
-            is updated
+              "when I update the token after deep linking"
+              is updated
 
-          // await BuildQuoteView.tapDefaultToken();
-          // await TokenSelectBottomSheet.tapTokenByName('LINK');
-          // await Assertions.checkIfTextIsDisplayed('LINK');
-          */
+            // await BuildQuoteView.tapDefaultToken();
+            // await TokenSelectBottomSheet.tapTokenByName('LINK');
+            // await Assertions.checkIfTextIsDisplayed('LINK');
+            */
         // await Assertions.checkIfTextIsDisplayed('XCD');
         await Assertions.checkIfTextIsDisplayed('$275');
       },
     );
   });
 
-  it('should deep link to onramp on popular network', async () => {
+  it('should deep link to onramp on Linea network', async () => {
     const unaddedNetworkBuyDeepLink =
-      'metamask://buy?chainId=1&address=0xc00e94cb662c3520282e6f5717214004a7f26888&amount=270';
-    // 'metamask://buy?chainId=8453&amount=4';
+      'metamask://buy?chainId=59144&address=0x176211869cA2b568f2A7D4EE941E073a821EE1ff&amount=270';
     await withFixtures(
       {
         fixture: new FixtureBuilder()

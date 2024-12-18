@@ -10,12 +10,11 @@ import { SmokeCore } from '../../tags';
 
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
-import { PopularNetworksList } from '../../resources/networks.e2e';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-describe(SmokeCore('Buy Crypto'), () => {
+
+describe(SmokeCore('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
