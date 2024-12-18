@@ -356,8 +356,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -550,6 +550,7 @@ class Confirm extends PureComponent {
   };
 
   componentDidUpdate = (prevProps, prevState) => {
+    console.log('componentDidUpdate');
     const {
       accounts,
       transactionState: {
@@ -968,12 +969,7 @@ class Confirm extends PureComponent {
       transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
     } = this.props;
 
-    const {
-      legacyGasTransaction,
-      transactionConfirmed,
-      EIP1559GasTransaction,
-      isChangeInSimulationModalShown,
-    } = this.state;
+    const { transactionConfirmed, isChangeInSimulationModalShown } = this.state;
     if (transactionConfirmed) return;
 
     if (isUpdatedAfterSecurityCheck && !isChangeInSimulationModalShown) {
