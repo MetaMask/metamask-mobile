@@ -61,7 +61,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,
       );
       captureException(err);
-      return undefined;
+      throw err;
     }
     return account;
   },

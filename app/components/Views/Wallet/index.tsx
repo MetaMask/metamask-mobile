@@ -572,7 +572,7 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          {accountBalanceByChainId && <PortfolioBalance />}
+          <PortfolioBalance />
           <ScrollableTabView
             renderTabBar={renderTabBar}
             // eslint-disable-next-line react/jsx-no-bind
