@@ -261,18 +261,22 @@ export const swapsTokensObjectSelector = createSelector(
 );
 
 /**
- * Returns a memoized object that only has the addesses cross chains of the tokens as keys
+ * Returns a memoized object that only has the addresses cross chains of the tokens as keys
  * and undefined as value. Useful to check if a token is supported by swaps.
  */
 export const swapsTokensMultiChainObjectSelector = createSelector(
   swapsControllerAndUserTokensMultichain,
-  (tokens) =>
-    tokens?.length > 0
-      ? tokens.reduce(
-          (acc, token) => ({ ...acc, [token.address]: undefined }),
-          {},
-        )
-      : {},
+  (tokens) => {
+    if (!tokens || tokens.length === 0) {
+      return {};
+    }
+
+    const result = {};
+    for (const token of tokens) {
+      result[token.address] = undefined;
+    }
+    return result;
+  },
 );
 
 /**

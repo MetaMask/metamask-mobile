@@ -16,6 +16,8 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as multichain from '../../../selectors/multichain';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -597,13 +599,34 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
+    let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
+
     beforeEach(() => {
+      selectAccountTokensAcrossChainsSpy = jest.spyOn(
+        multichain,
+        'selectAccountTokensAcrossChains',
+      );
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     });
 
-    it('should match the snapshot when portfolio view is enabled  ', () => {
+    afterEach(() => {
+      selectAccountTokensAcrossChainsSpy.mockRestore();
+    });
+
+    it('should match the snapshot when portfolio view is enabled', () => {
       const { toJSON } = renderComponent(initialState);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should call selectAccountTokensAcrossChains when enabled', () => {
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
+    });
+
+    it('should not call selectAccountTokensAcrossChains when disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {

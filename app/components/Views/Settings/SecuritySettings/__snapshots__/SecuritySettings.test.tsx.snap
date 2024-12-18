@@ -1029,6 +1029,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 "paddingHorizontal": 16,
               }
             }
+            testID="clear-privacy-data-button"
           >
             <Text
               accessibilityRole="text"
