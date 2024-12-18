@@ -108,7 +108,9 @@ describe('Engine', () => {
 
   describe('getTotalFiatAccountBalance', () => {
     let engine: EngineClass;
-    afterEach(() => engine?.destroyEngineInstance());
+    afterEach(async () => {
+      await engine?.destroyEngineInstance();
+    });
 
     const selectedAddress = '0x9DeE4BF1dE9E3b930E511Db5cEBEbC8d6F855Db0';
     const chainId: Hex = '0x1';
@@ -372,8 +374,8 @@ describe('Transaction event handlers', () => {
     jest.spyOn(store, 'getState').mockReturnValue({} as RootState);
   });
 
-  afterEach(() => {
-    engine?.destroyEngineInstance();
+  afterEach(async () => {
+    await engine?.destroyEngineInstance();
     jest.clearAllMocks();
   });
 

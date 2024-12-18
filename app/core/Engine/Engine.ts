@@ -268,6 +268,8 @@ export class Engine {
 
   keyringController: KeyringController;
 
+  #promiseForNetworkProviderInitialization: Promise<void>;
+
   /**
    * Creates a CoreController instance
    */
@@ -333,6 +335,21 @@ export class Engine {
     };
     const networkController = new NetworkController(networkControllerOpts);
 
+    this.#promiseForNetworkProviderInitialization = new Promise<void>(
+      (resolve) => {
+        this.controllerMessenger.subscribe(
+          'NetworkController:stateChange',
+          (networksMetadata: NetworkState['networksMetadata']) => {
+            // `networksMetadata` starts out empty and is then updated for the
+            // currently selected network, which is Mainnet by default
+            if ('mainnet' in networksMetadata) {
+              resolve();
+            }
+          },
+          (networkControllerState) => networkControllerState.networksMetadata,
+        );
+      },
+    );
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -1948,6 +1965,7 @@ export class Engine {
   }
 
   async destroyEngineInstance() {
+    await this.#promiseForNetworkProviderInitialization;
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Object.values(this.context).forEach((controller: any) => {
