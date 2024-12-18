@@ -12,7 +12,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
 
-describe('Security Alert API - Signature', () => {
+describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
