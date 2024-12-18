@@ -69,7 +69,7 @@ describe(SmokeCore('Buy Crypto'), () => {
 
         await SellGetStartedView.tapGetStartedButton();
         await NetworkListModal.changeNetworkTo(
-          PopularNetworksList.Polygon.providerConfig.nickname,
+          PopularNetworksList.Avalanche.providerConfig.nickname,
         );
 
         await NetworkApprovalBottomSheet.tapApproveButton();
