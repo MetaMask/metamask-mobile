@@ -1,9 +1,9 @@
+import React, { useRef } from 'react';
 import WebView from '@metamask/react-native-webview';
 import {
   WebViewErrorEvent,
   WebViewNavigationEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
-import { useRef } from 'react';
 import {
   NativeSyntheticEvent,
   TextInput,
