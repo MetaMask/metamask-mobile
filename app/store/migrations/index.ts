@@ -62,7 +62,7 @@ import migration58 from './058';
 import migration59 from './059';
 import migration60 from './060';
 import migration61 from './061';
-
+./063
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
 export type MigrationsList = Record<
