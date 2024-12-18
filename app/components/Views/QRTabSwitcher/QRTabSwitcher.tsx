@@ -128,23 +128,18 @@ const QRTabSwitcher = () => {
               onPress={goBack}
             />
           }
-        />
-        {selectedIndex === QRTabSwitcherScreens.Receive ? (
-          <NavbarTitle
-            // @ts-expect-error proptypes components requires ts-expect-error
-            title={strings(`receive.title`)}
-            // @ts-expect-error proptypes components requires ts-expect-error
-            translate={false}
-            // @ts-expect-error proptypes components requires ts-expect-error
-            disableNetwork
-          />
-        ) : null}
-        <ButtonIcon
-          style={styles.closeIcon}
-          iconName={IconName.Close}
-          size={ButtonIconSizes.Md}
-          onPress={goBack}
-        />
+        >
+          {selectedIndex === QRTabSwitcherScreens.Receive ? (
+            <NavbarTitle
+              // @ts-expect-error proptypes components requires ts-expect-error
+              title={strings(`receive.title`)}
+              // @ts-expect-error proptypes components requires ts-expect-error
+              translate={false}
+              // @ts-expect-error proptypes components requires ts-expect-error
+              disableNetwork
+            />
+          ) : null}
+        </HeaderBase>
       </View>
 
       {disableTabber ? null : (
