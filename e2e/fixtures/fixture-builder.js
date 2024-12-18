@@ -779,8 +779,8 @@ class FixtureBuilder {
     return this;
   }
 
-  withRampsSelectedRegion() {
-    const regionAgg = {
+  withRampsSelectedRegion(region = null) {
+    const defaultRegion = {
       currencies: ['/currencies/fiat/xcd'],
       emoji: '🇱🇨',
       id: '/regions/lc',
@@ -792,8 +792,8 @@ class FixtureBuilder {
       selectedPaymentMethodAgg: '/payments/debit-credit-card',
     };
 
-    this.fixture.state.fiatOrders.selectedRegionAgg = regionAgg;
-
+    // Use the provided region or fallback to the default
+    this.fixture.state.fiatOrders.selectedRegionAgg = region ?? defaultRegion;
     return this;
   }
 

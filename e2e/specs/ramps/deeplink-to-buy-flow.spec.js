@@ -1,18 +1,22 @@
 'use strict';
-import { loginToApp } from '../../viewHelper';
-
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-
 import TestHelpers from '../../helpers';
+
+import { loginToApp } from '../../viewHelper';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import { SmokeAccounts } from '../../tags';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { SmokeCore } from '../../tags';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import Assertions from '../../utils/Assertions';
+import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
+import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
-describe(SmokeCore('Buy Crypto Deeplinks'), () => {
+describe(SmokeAccounts('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -43,46 +47,44 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
 
         await BuyGetStartedView.tapGetStartedButton();
         await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+        await BuildQuoteView.tapDefaultToken('Ethereum');
 
-        /* Uncomment this once the bug:
-              "when I update the token after deep linking"
-              is updated
-
-            // await BuildQuoteView.tapDefaultToken();
-            // await TokenSelectBottomSheet.tapTokenByName('LINK');
-            // await Assertions.checkIfTextIsDisplayed('LINK');
-            */
-        // await Assertions.checkIfTextIsDisplayed('XCD');
+        await TokenSelectBottomSheet.tapTokenByName('DAI');
+        await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
         await Assertions.checkIfTextIsDisplayed('$275');
       },
     );
   });
 
-  it('should deep link to onramp on Linea network', async () => {
-    const unaddedNetworkBuyDeepLink =
-      'metamask://buy?chainId=59144&address=0x176211869cA2b568f2A7D4EE941E073a821EE1ff&amount=270';
+  it('should deep link to onramp on Base network', async () => {
+    const BuyDeepLink =
+      'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=12';
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withPopularNetworks()
-          .withRampsSelectedRegion()
-          .build(),
+        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
         restartDevice: true,
       },
       async () => {
         await loginToApp();
         await device.sendToHome();
         await device.launchApp({
-          url: unaddedNetworkBuyDeepLink,
+          url: BuyDeepLink,
         });
+
         await Assertions.checkIfVisible(
           await SellGetStartedView.getStartedButton,
         );
 
         await BuyGetStartedView.tapGetStartedButton();
-        await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
 
-        await Assertions.checkIfTextIsDisplayed('$270');
+        await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
+        await NetworkApprovalBottomSheet.tapApproveButton();
+        await NetworkAddedBottomSheet.tapSwitchToNetwork();
+        await Assertions.checkIfVisible(NetworkEducationModal.container);
+        await NetworkEducationModal.tapGotItButton();
+        await Assertions.checkIfTextIsDisplayed('$12');
+        await Assertions.checkIfTextIsDisplayed('USD coin');
       },
     );
   });
