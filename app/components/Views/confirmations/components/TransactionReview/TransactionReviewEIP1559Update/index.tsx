@@ -71,6 +71,7 @@ const TransactionReviewEIP1559Update = ({
   });
 
   const {
+    gasFeeMaxNative,
     renderableGasFeeMinNative,
     renderableGasFeeMinConversion,
     renderableGasFeeMaxNative,
@@ -97,7 +98,7 @@ const TransactionReviewEIP1559Update = ({
     gasEstimationReady,
     updateTransactionState,
     suggestedGasLimit,
-    renderableGasFeeMaxNative,
+    gasFeeMaxNative,
   ]);
 
   const openLinkAboutGas = useCallback(
