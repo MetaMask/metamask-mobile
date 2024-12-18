@@ -486,6 +486,14 @@ class Amount extends PureComponent {
      * Type of gas fee estimate provided by the gas fee controller.
      */
     gasEstimateType: PropTypes.string,
+    /**
+     * Boolean that indicates if the max value mode is enabled
+     */
+    maxValueMode: PropTypes.bool,
+    /**
+     * Function that sets the transaction value
+     */
+    setTransactionValue: PropTypes.func,
   };
 
   state = {

@@ -1,6 +1,4 @@
 import React, { PureComponent } from 'react';
-import { BN } from 'ethereumjs-util';
-import convert from '@metamask/ethjs-unit';
 import { baseStyles } from '../../../../../styles/common';
 import {
   InteractionManager,
@@ -32,7 +30,6 @@ import StyledButton from '../../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
-import { remove0x } from '@metamask/utils';
 import {
   prepareTransaction,
   resetTransaction,
@@ -139,6 +136,7 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import { updateTransactionToMaxValue } from './utils';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -290,6 +288,14 @@ class Confirm extends PureComponent {
      * Object containing blockaid validation response for confirmation
      */
     securityAlertResponse: PropTypes.object,
+    /**
+     * Boolean that indicates if the max value mode is enabled
+     */
+    maxValueMode: PropTypes.bool,
+    /**
+     * Function that sets the transaction value
+     */
+    setTransactionValue: PropTypes.func,
   };
 
   state = {
@@ -629,26 +635,13 @@ class Confirm extends PureComponent {
         !isEmpty(gasFeeEstimates) &&
         haveGasFeeMaxNativeChanged
       ) {
-        const { TransactionController } = Engine.context;
-        const { gasFeeMaxNative } = isEIP1559Transaction
-          ? EIP1559GasTransaction
-          : legacyGasTransaction;
-
-        const accountBalanceBN = new BN(remove0x(accounts[from].balance), 16);
-        const transactionFeeMax = new BN(
-          convert.toWei(gasFeeMaxNative, 'ether'),
-          16,
-        );
-
-        const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
-
-        const maxTransactionValueHex =
-          '0x' + maxTransactionValueBN.toString(16);
-
-        TransactionController.updateEditableParams(transactionId, {
-          value: maxTransactionValueHex,
-        }).then((newMeta) => {
-          this.props.setTransactionValue(maxTransactionValueHex);
+        updateTransactionToMaxValue({
+          transactionId,
+          isEIP1559Transaction,
+          EIP1559GasTransaction,
+          legacyGasTransaction,
+          accountBalance: accounts[from].balance,
+          setTransactionValue: this.props.setTransactionValue,
         });
 
         // In order to prevent race condition do not remove this early return.
