@@ -1,5 +1,6 @@
 import WebView from '@metamask/react-native-webview';
 import {
+  ShouldStartLoadRequest,
   WebViewErrorEvent,
   WebViewNavigationEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
@@ -24,11 +25,39 @@ const LOGBROWSER = (...args: any[]) => {
 const BrowserTab = () => {
   const webViewRef = useRef<WebView>(null);
   const textInputRef = useRef<TextInput>(null);
+  const webStates = useRef<
+    Record<string, { requested: boolean; started: boolean; ended: boolean }>
+  >({});
+
+  LOGBROWSER('RERENDER');
+
+  const onLoadStart = (e: WebViewNavigationEvent) => {
+    const { loading, url } = e.nativeEvent;
+    webStates.current[url] = { ...webStates.current[url], started: true };
+    LOGBROWSER('LOAD START', e.nativeEvent);
+    if (loading) {
+    }
+  };
 
   const onLoadEnd = (e: WebViewNavigationEvent | WebViewErrorEvent) => {
-    const { url } = e.nativeEvent;
+    const { url, loading } = e.nativeEvent;
+    LOGBROWSER('LOAD END', e.nativeEvent);
     // Directly update url in text input
-    textInputRef.current?.setNativeProps({ text: url });
+    webStates.current[url] = { ...webStates.current[url], ended: true };
+    const { requested, started, ended } = webStates.current[url];
+    // TODO: Handle iOS case where uniswap.com/something needs to redirect to not-found
+    if (started && ended) {
+      delete webStates.current[url];
+      textInputRef.current?.setNativeProps({ text: url });
+    }
+  };
+
+  const onShouldStartLoadWithRequest = (e: ShouldStartLoadRequest) => {
+    const { url } = e;
+    webStates.current[url] = { ...webStates.current[url], requested: true };
+    LOGBROWSER('SHOULD START LOAD WITH REQUEST', e);
+
+    return true;
   };
 
   const onSubmitEditing = (
@@ -84,7 +113,9 @@ const BrowserTab = () => {
       </View>
       <WebView
         ref={webViewRef}
+        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         source={{ uri: 'https://www.google.com' }}
+        onLoadStart={onLoadStart}
         onLoadEnd={onLoadEnd}
       />
     </View>
