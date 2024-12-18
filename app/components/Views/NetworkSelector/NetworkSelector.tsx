@@ -27,8 +27,8 @@ import BottomSheet, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import { selectShowTestNetworks } from '../../../selectors/preferencesController';
 import Networks, {
@@ -126,7 +126,7 @@ const NetworkSelector = () => {
   const styles = createStyles(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
   const showTestNetworks = useSelector(selectShowTestNetworks);
-  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isAllNetwork = useSelector(selectIsAllNetworks);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
@@ -179,14 +179,19 @@ const NetworkSelector = () => {
 
   const setTokenNetworkFilter = useCallback(
     (chainId: string) => {
+      const isPopularNetwork =
+        chainId === CHAIN_IDS.MAINNET ||
+        chainId === CHAIN_IDS.LINEA_MAINNET ||
+        PopularList.some((network) => network.chainId === chainId);
+
       const { PreferencesController } = Engine.context;
-      if (!isAllNetworks) {
+      if (!isAllNetwork && isPopularNetwork) {
         PreferencesController.setTokenNetworkFilter({
           [chainId]: true,
         });
       }
     },
-    [isAllNetworks],
+    [isAllNetwork],
   );
 
   const onRpcSelect = useCallback(

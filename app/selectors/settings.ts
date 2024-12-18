@@ -22,4 +22,3 @@ export const selectBasicFunctionalityEnabled = createSelector(
   (settingsState: Record<string, unknown>) =>
     settingsState.basicFunctionalityEnabled as boolean,
 );
-

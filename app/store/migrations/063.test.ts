@@ -44,11 +44,6 @@ const expectedState = {
             },
             hash: '0x4',
             rawTx: '0x5',
-            error: {
-              name: 'SmartTransactionCancelled',
-              message:
-                'Smart transaction cancelled. Previous status: submitted',
-            },
           },
           {
             chainId: CHAIN_IDS.MAINNET,
@@ -63,7 +58,7 @@ const expectedState = {
             rawTx: '0x6',
             error: {
               name: 'SmartTransactionCancelled',
-              message: 'Smart transaction cancelled. Previous status: signed',
+              message: 'Smart transaction cancelled. Previous status: submitted',
             },
           },
           {
@@ -77,6 +72,22 @@ const expectedState = {
             },
             hash: '0x6',
             rawTx: '0x7',
+            error: {
+              name: 'SmartTransactionCancelled',
+              message: 'Smart transaction cancelled. Previous status: signed',
+            },
+          },
+          {
+            chainId: CHAIN_IDS.MAINNET,
+            id: '6',
+            origin: 'test2.com',
+            status: TransactionStatus.failed,
+            time: 1631714313,
+            txParams: {
+              from: '0x6',
+            },
+            hash: '0x7',
+            rawTx: '0x8',
             error: {
               name: 'SmartTransactionCancelled',
               message: 'Smart transaction cancelled. Previous status: signed',
@@ -103,6 +114,10 @@ const expectedState = {
               {
                 txHash: '0x6',
                 status: SmartTransactionStatuses.UNKNOWN,
+              },
+              {
+                txHash: '0x7',
+                status: SmartTransactionStatuses.RESOLVED,
               },
             ],
           },
@@ -228,7 +243,7 @@ describe('Migration #63', () => {
                 chainId: CHAIN_IDS.MAINNET,
                 id: '3',
                 origin: 'test2.com',
-                status: TransactionStatus.submitted,
+                status: TransactionStatus.failed,
                 time: 1631714313,
                 txParams: {
                   from: '0x6',
@@ -240,7 +255,7 @@ describe('Migration #63', () => {
                 chainId: CHAIN_IDS.MAINNET,
                 id: '4',
                 origin: 'test2.com',
-                status: TransactionStatus.signed,
+                status: TransactionStatus.submitted,
                 time: 1631714313,
                 txParams: {
                   from: '0x6',
@@ -259,6 +274,18 @@ describe('Migration #63', () => {
                 },
                 hash: '0x6',
                 rawTx: '0x7',
+              },
+              {
+                chainId: CHAIN_IDS.MAINNET,
+                id: '6',
+                origin: 'test2.com',
+                status: TransactionStatus.signed,
+                time: 1631714313,
+                txParams: {
+                  from: '0x6',
+                },
+                hash: '0x7',
+                rawTx: '0x8',
               },
             ],
           },
@@ -281,6 +308,10 @@ describe('Migration #63', () => {
                   {
                     txHash: '0x6',
                     status: SmartTransactionStatuses.UNKNOWN,
+                  },
+                  {
+                    txHash: '0x7',
+                    status: SmartTransactionStatuses.RESOLVED,
                   },
                 ],
               },

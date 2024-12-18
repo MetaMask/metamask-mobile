@@ -16,7 +16,6 @@ describe('RemoteFeatureFlagController utils', () => {
 
   describe('createRemoteFeatureFlagController', () => {
     it('creates controller with initial undefined state', () => {
-
       const controller = createRemoteFeatureFlagController({
         state: undefined,
         messenger,
