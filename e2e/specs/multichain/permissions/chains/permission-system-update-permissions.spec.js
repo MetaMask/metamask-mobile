@@ -1,26 +1,26 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { SmokeMultiChain } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
+import TestHelpers from '../../../../helpers';
+import { SmokeMultiChain } from '../../../../tags';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import { loginToApp } from '../../../../viewHelper';
+import Assertions from '../../../../utils/Assertions';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('should update chain permissions by granting and revoking network permissions simultaneously', async () => {
+  it('allows simultaneous granting and revoking of multiple chain permissions', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -67,7 +67,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     );
   });
 
-  fit('should fallback to Sepolia when removing permission for active Ethereum Mainnet, verifying fallback priority by having both Sepolia and Linea Sepolia as alternative permitted networks', async () => {
+  it('follows fallback priority when revoking permission for currently active chain', async () => {
     await withFixtures(
       {
         dapp: true,
