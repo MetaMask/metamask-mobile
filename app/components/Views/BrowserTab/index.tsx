@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { useRef } from 'react';
 import WebView from '@metamask/react-native-webview';
 import {

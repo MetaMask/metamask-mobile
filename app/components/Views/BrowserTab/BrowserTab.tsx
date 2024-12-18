@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React, {
   useState,
   useRef,
@@ -17,7 +16,6 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import { isEqual } from 'lodash';
-import { withNavigation } from '@react-navigation/compat';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -45,7 +43,7 @@ import {
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
-import URL from 'url-parse';
+import URLParse from 'url-parse';
 import Modal from 'react-native-modal';
 import WebviewError from '../../UI/WebviewError';
 import { addBookmark } from '../../../actions/bookmarks';
@@ -54,7 +52,6 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
@@ -121,12 +118,17 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
 import { type Dispatch } from 'redux';
-import { type SessionENSNames, type BrowserTabProps } from './types';
+import {
+  type SessionENSNames,
+  type BrowserTabProps,
+  WebViewErrorEvent,
+} from './types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -135,6 +137,9 @@ const ensIgnoreList: string[] = [];
 
 // Update the component definition
 export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
+  // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<StackNavigationProp<any>>();
   const {
     styles,
     theme: { colors },
@@ -144,7 +149,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<boolean | WebViewErrorEvent>(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
   const [showPhishingModal, setShowPhishingModal] = useState(false);
@@ -156,13 +161,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const allowList = useRef<string[]>([]); // TODO: Consider improving this type
 
   const url = useRef('');
-  const title = useRef<string | undefined>('');
-  const icon = useRef<ImageSourcePropType | null>();
+  const title = useRef<string>('');
+  const icon = useRef<ImageSourcePropType | undefined>();
   const backgroundBridges = useRef<
     {
       url: string;
       hostname: string;
-      sendNotification: (payload: any) => void;
+      sendNotification: (payload: unknown) => void;
       onDisconnect: () => void;
       onMessage: (message: Record<string, unknown>) => void;
     }[]
@@ -171,7 +176,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const wizardScrollAdjusted = useRef(false);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URL(url.current).hostname;
+    const hostname = new URLParse(url.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -195,39 +200,39 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Gets the url to be displayed to the user
    * For example, if it's ens then show [site].eth instead of ipfs url
    */
-  const getMaskedUrl = (url: string) => {
-    if (!url) return url;
+  const getMaskedUrl = (urlToMask: string) => {
+    if (!urlToMask) return urlToMask;
     let replace = null;
-    if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
+    if (urlToMask.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
       replace = (key: string) =>
         `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    } else if (url.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
+    } else if (urlToMask.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
       replace = (key: string) =>
         `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
-    } else if (url.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
+    } else if (urlToMask.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
       replace = (key: string) =>
         `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`; //TODO: This was SWARM_GATEWAY_URL before, it was broken, understand what it does
     }
 
     if (replace) {
       const key = Object.keys(sessionENSNames).find((ens) =>
-        url.startsWith(ens),
+        urlToMask.startsWith(ens),
       );
       if (key) {
-        url = url.replace(
+        urlToMask = urlToMask.replace(
           replace(key),
           `https://${sessionENSNames[key].hostname}/`,
         );
       }
     }
-    return url;
+    return urlToMask;
   };
 
   /**
    * Checks if it is a ENS website
    */
-  const isENSUrl = (url: string) => {
-    const { hostname } = new URL(url);
+  const isENSUrl = (urlToCheck: string) => {
+    const { hostname } = new URLParse(urlToCheck);
     const tld = hostname.split('.').pop();
     if (
       tld &&
@@ -256,7 +261,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, []);
 
   const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URL(url.current).hostname;
+    const fullHostname = new URLParse(url.current).hostname;
 
     // TODO:permissions move permissioning logic elsewhere
     backgroundBridges.current.forEach((bridge) => {
@@ -325,7 +330,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
-    current && current.goForward && current.goForward();
+    current?.goForward && current.goForward();
   };
 
   /**
@@ -349,7 +354,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      (allowList.current && allowList.current.includes(origin)) ||
+      allowList.current?.includes(origin) ||
       !phishingControllerTestResult.result
     );
   }, []);
@@ -418,33 +423,37 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           type,
         };
       } catch (err: unknown) {
-        const error = err as Error;
+        const handleIpfsContentError = err as Error;
         //if it's not a ENS but a TLD (Top Level Domain)
-        if (isTLD(hostname, err)) {
+        if (isTLD(hostname, handleIpfsContentError)) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
         }
         if (
-          error?.message?.startsWith(
+          handleIpfsContentError?.message?.startsWith(
             'EnsIpfsResolver - no known ens-ipfs registry for chainId',
           )
         ) {
           trackErrorAsAnalytics(
             'Browser: Failed to resolve ENS name for chainId',
-            error?.message,
+            handleIpfsContentError?.message,
           );
         } else {
-          Logger.error(error, 'Failed to resolve ENS name');
+          Logger.error(handleIpfsContentError, 'Failed to resolve ENS name');
         }
 
-        if (error?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
+        if (
+          handleIpfsContentError?.message?.startsWith(
+            IPFS_GATEWAY_DISABLED_ERROR,
+          )
+        ) {
           setIpfsBannerVisible(true);
           goBack();
-          throw new Error(error?.message);
+          throw new Error(handleIpfsContentError?.message);
         } else {
           Alert.alert(
             strings('browser.failed_to_resolve_ens_name'),
-            error.message,
+            handleIpfsContentError.message,
           );
         }
         goBack();
@@ -453,10 +462,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
-  const triggerDappViewedEvent = (url: string) => {
+  const triggerDappViewedEvent = (urlToTrigger: string) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const hostname = new URL(url).hostname;
+    const hostname = new URLParse(urlToTrigger).hostname;
     const connectedAccounts = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -479,12 +488,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const go: (url: string, initialCall?: boolean) => Promise<string | null> =
     useCallback(
-      async (url, initialCall) => {
+      async (goToUrl, initialCall) => {
         setIsResolvedIpfsUrl(false);
-        const prefixedUrl = prefixUrlWithProtocol(url);
-        const { hostname, query, pathname, origin } = new URL(prefixedUrl);
+        const prefixedUrl = prefixUrlWithProtocol(goToUrl);
+        const { hostname, query, pathname, origin } = new URLParse(prefixedUrl);
         let urlToGo = prefixedUrl;
-        const isEnsUrl = isENSUrl(url);
+        const isEnsUrl = isENSUrl(goToUrl);
         const { current } = webviewRef;
         if (isEnsUrl) {
           current && current.stopLoading();
@@ -498,7 +507,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
               hash,
               //@ts-expect-error - TODO: refactor handleIpfContent function
               reload,
-            } = await handleIpfsContent(url, { hostname, query, pathname });
+            } = await handleIpfsContent(goToUrl, { hostname, query, pathname });
             if (reload) return go(ensUrl);
             urlToGo = ensUrl;
             sessionENSNames[urlToGo] = { hostname, hash, type };
@@ -568,12 +577,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    const initialUrl = props.initialUrl || HOMEPAGE_URL;
-    go(initialUrl, true);
+    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
+    go(initialUrlOrHomepage, true);
 
     const getEntryScriptWeb3 = async () => {
-      const entryScriptWeb3 = await EntryScriptWeb3.get();
-      setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
+      const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
+      setEntryScriptWeb3(entryScriptWeb3Fetched + SPA_urlChangeListener);
     };
 
     getEntryScriptWeb3();
@@ -592,12 +601,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     return function cleanup() {
       if (Device.isAndroid()) {
-        DrawerStatusTracker &&
-          DrawerStatusTracker.hub &&
-          DrawerStatusTracker.hub.removeListener(
-            'drawer::open',
-            drawerOpenHandler,
-          );
+        DrawerStatusTracker?.hub?.removeListener(
+          'drawer::open',
+          drawerOpenHandler,
+        );
       }
     };
   }, [drawerOpenHandler]);
@@ -615,10 +622,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
 
     // Handle hardwareBackPress event only for browser, not components rendered on top
-    props.navigation.addListener('willFocus', () => {
+    navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
     });
-    props.navigation.addListener('willBlur', () => {
+    navigation.addListener('blur', () => {
       BackHandler.removeEventListener(
         'hardwareBackPress',
         handleAndroidBackPress,
@@ -631,7 +638,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         handleAndroidBackPress,
       );
     };
-  }, [goBack, isTabActive, props.navigation]);
+  }, [goBack, isTabActive, navigation]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
@@ -662,21 +669,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   /**
    * Handles state changes for when the url changes
-   * TODO: Consider improving this type to include nativeEvent
    */
   const changeUrl = async (siteInfo: {
     url: string;
-    title?: string;
+    title: string;
     icon: ImageSourcePropType;
   }) => {
     url.current = siteInfo.url;
-    title.current = siteInfo.title; // TODO: check why this is undefined in some scenarios
+    title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
 
   /**
    * Handles state changes for when the url changes
-   *  * TODO: Consider improving this type to include nativeEvent
    */
   const changeAddressBar = (siteInfo: {
     title: string;
@@ -689,7 +694,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     setForwardEnabled(siteInfo.canGoForward);
 
     isTabActive &&
-      props.navigation.setParams({
+      navigation.setParams({
         url: getMaskedUrl(siteInfo.url),
         icon: siteInfo.icon,
         silent: true,
@@ -716,7 +721,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
-    const urlObj = new URL(blockedUrl);
+    const urlObj = new URLParse(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
     blockedUrl !== url.current &&
@@ -793,21 +798,25 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, [trackEvent, createEventBuilder]);
 
   /**
-   *  Function that allows custom handling of any web view requests.
-   *  Return `true` to continue loading the request and `false` to stop loading.
+   * Function that allows custom handling of any web view requests.
+   * Return `true` to continue loading the request and `false` to stop loading.
    */
-  const onShouldStartLoadWithRequest = ({ url }: { url: string }) => {
-    const { origin } = new URL(url);
+  const onShouldStartLoadWithRequest = ({
+    url: urlToLoad,
+  }: {
+    url: string;
+  }) => {
+    const { origin } = new URLParse(urlToLoad);
 
     // Stops normal loading when it's ens, instead call go to be properly set up
-    if (isENSUrl(url)) {
-      go(url.replace(regex.urlHttpToHttps, 'https://'));
+    if (isENSUrl(urlToLoad)) {
+      go(urlToLoad.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(origin)) {
-      handleNotAllowedUrl(url);
+      handleNotAllowedUrl(urlToLoad);
       return false;
     }
 
@@ -817,7 +826,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
 
     // Continue request loading it the protocol is whitelisted
-    const { protocol } = new URL(url);
+    const { protocol } = new URLParse(urlToLoad);
     if (protocolAllowList.includes(protocol)) return true;
     Logger.log(`Protocol not allowed ${protocol}`);
 
@@ -825,7 +834,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     // warning alert. Allow the OS to deeplink the URL
     // and stop the webview from loading it.
     if (trustedProtocolToDeeplink.includes(protocol)) {
-      allowLinkOpen(url);
+      allowLinkOpen(urlToLoad);
       return false;
     }
 
@@ -844,7 +853,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       },
       {
         text: strings('browser.protocol_alert_options.allow'),
-        onPress: () => allowLinkOpen(url),
+        onPress: () => allowLinkOpen(urlToLoad),
         style: 'default',
       },
     ]);
@@ -856,11 +865,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Sets loading bar progress
    */
   const onLoadProgress = ({
-    nativeEvent: { progress },
+    nativeEvent: { progress: onLoadProgressProgress },
   }: {
     nativeEvent: { progress: number };
   }) => {
-    setProgress(progress);
+    setProgress(onLoadProgressProgress);
   };
 
   // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
@@ -877,7 +886,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
-      const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
+      const {
+        origin,
+        pathname = '',
+        query = '',
+      } = new URLParse(nativeEvent.url);
       const realUrl = `${origin}${pathname}${query}`;
       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
       changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -902,7 +915,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Handle message from website
    */
   const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
-    let data = nativeEvent.data;
+    const data = nativeEvent.data;
     try {
       if (data.length > MAX_MESSAGE_LENGTH) {
         console.warn(
@@ -918,16 +931,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         return;
       }
       if (dataParsed.name) {
-        const origin = new URL(nativeEvent.url).origin;
+        const origin = new URLParse(nativeEvent.url).origin;
         backgroundBridges.current.forEach((bridge) => {
-          const bridgeOrigin = new URL(bridge.url).origin;
+          const bridgeOrigin = new URLParse(bridge.url).origin;
           bridgeOrigin === origin && bridge.onMessage(dataParsed);
         });
         return;
       }
     } catch (e: unknown) {
-      const error = e as Error;
-      Logger.error(error, `Browser::onMessage on ${url.current}`);
+      const onMessageError = e as Error;
+      Logger.error(onMessageError, `Browser::onMessage on ${url.current}`);
     }
   };
 
@@ -984,14 +997,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const toggleUrlModal = useCallback(
     (shouldClearInput = false) => {
       const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-      props.navigation.navigate(
+      navigation.navigate(
         ...createBrowserUrlModalNavDetails({
           url: urlToShow,
           onUrlInputSubmit,
         }),
       );
     },
-    /* we do not want to depend on the props.navigation object
+    /* we do not want to depend on the navigation object
       - since we are changing it here, this would give us a circular dependency and infinite re renders
       */
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1016,12 +1029,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         getRpcMethodMiddleware({
           hostname,
           getProviderState,
-          navigation: props.navigation,
+          navigation,
           // Website info
           url,
-          //@ts-expect-error - TODO: change the type of getRpcMethodMiddleware
           title,
-          //@ts-expect-error - TODO: change the type of getRpcMethodMiddleware
           icon,
           // Bookmarks
           isHomepage,
@@ -1032,6 +1043,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           wizardScrollAdjusted,
           tabId: props.id,
           injectHomePageScripts,
+          // TODO: This properties were missing, and were not optional
+          isWalletConnect: false,
+          isMMSDK: false,
+          analytics: {},
         }),
       isMainFrame,
     });
@@ -1045,7 +1060,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     });
 
     if (isTabActive) {
-      props.navigation.setParams({
+      navigation.setParams({
         connectedAccounts: permittedAccountsList,
       });
     }
@@ -1066,7 +1081,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     };
   }) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
+    const { origin, pathname = '', query = '' } = new URLParse(nativeEvent.url);
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
@@ -1087,7 +1102,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     sendActiveAccount();
 
-    icon.current = null;
+    icon.current = undefined;
     if (isHomepage(nativeEvent.url)) {
       injectHomePageScripts();
     }
@@ -1102,9 +1117,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   useEffect(() => {
     const updateNavbar = async () => {
       if (isTabActive) {
-        const hostname = new URL(url.current).hostname;
+        const hostname = new URLParse(url.current).hostname;
         const accounts = await getPermittedAccounts(hostname);
-        props.navigation.setParams({
+        navigation.setParams({
           showUrlModal: toggleUrlModal,
           url: getMaskedUrl(url.current),
           icon: icon.current,
@@ -1118,12 +1133,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 })
                 .build(),
             );
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
                 hostInfo: {
                   metadata: {
-                    origin: url.current && new URL(url.current).hostname,
+                    origin: url.current && new URLParse(url.current).hostname,
                   },
                 },
               },
@@ -1177,9 +1192,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Handle error, for example, ssl certificate error
    * TODO: check why the nativeEvent is the errorInfo and what type is it
    */
-  const onError = ({ nativeEvent: errorInfo }: { nativeEvent: boolean }) => {
+  const onError = ({
+    nativeEvent: errorInfo,
+  }: {
+    nativeEvent: WebViewErrorEvent;
+  }) => {
     Logger.log(errorInfo);
-    props.navigation.setParams({
+    navigation.setParams({
       error: true,
     });
     setError(errorInfo);
@@ -1231,21 +1250,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Add bookmark
    */
-  const addBookmark = () => {
+  const navigateToAddBookmark = () => {
     toggleOptionsIfNeeded();
-    props.navigation.push('AddBookmarkView', {
+    navigation.push('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',
         url: getMaskedUrl(url.current),
-        onAddBookmark: async ({ name, url }: { name: string; url: string }) => {
-          props.addBookmark({ name, url });
+        onAddBookmark: async ({
+          name,
+          url: urlToAdd,
+        }: {
+          name: string;
+          url: string;
+        }) => {
+          props.addBookmark({ name, url: urlToAdd });
           if (Device.isIos()) {
             const item = {
               uniqueIdentifier: url,
-              title: name || getMaskedUrl(url),
-              contentDescription: `Launch ${name || url} on MetaMask`,
-              keywords: [name.split(' '), url, 'dapp'],
+              title: name || getMaskedUrl(urlToAdd),
+              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+              keywords: [name.split(' '), urlToAdd, 'dapp'],
               thumbnail: {
                 uri: icon.current || favicon,
               },
@@ -1253,8 +1278,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             try {
               SearchApi.indexSpotlightItem(item);
             } catch (e: unknown) {
-              const error = e as Error;
-              Logger.error(error, 'Error adding to spotlight');
+              const searchApiError = e as Error;
+              Logger.error(searchApiError, 'Error adding to spotlight');
             }
           }
         },
@@ -1284,10 +1309,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const openInBrowser = () => {
     toggleOptionsIfNeeded();
-    Linking.openURL(url.current).catch((error) =>
+    Linking.openURL(url.current).catch((openInBrowserError) =>
       Logger.log(
         `Error while trying to open external link: ${url.current}`,
-        error,
+        openInBrowserError,
       ),
     );
     trackEvent(
@@ -1343,7 +1368,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           </Text>
         </Button>
         {!isBookmark() && (
-          <Button onPress={addBookmark} style={styles.option}>
+          <Button onPress={navigateToAddBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
               <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
@@ -1470,7 +1495,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         }, 1);
         wizardScrollAdjusted.current = true;
       }
-      return <OnboardingWizard navigation={props.navigation} />;
+      return <OnboardingWizard navigation={navigation} />;
     }
     return null;
   };
@@ -1514,7 +1539,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           onPress: () =>
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SHOW_IPFS,
               params: {
                 setIpfsBannerVisible: () => setIpfsBannerVisible(false),
@@ -1537,7 +1562,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const checkTabPermissions = useCallback(() => {
     if (!url.current) return;
 
-    const hostname = new URL(url.current).hostname;
+    const hostname = new URLParse(url.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedAccountsByHostname(
@@ -1562,7 +1587,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           permittedChains.includes(currentChainId);
 
         if (!isCurrentChainIdAlreadyPermitted) {
-          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
             params: {
               isNonDappNetworkSwitch: true,
@@ -1577,11 +1602,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           });
         }
       } catch (e) {
-        const error = e as Error;
-        Logger.error(error, 'Error in checkTabPermissions');
+        const checkTabPermissionsError = e as Error;
+        Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [props.chainId, props.navigation]);
+  }, [props.chainId, navigation]);
 
   const urlRef = useRef(url.current);
   useEffect(() => {
@@ -1601,7 +1626,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Main render
    */
   return (
-    <ErrorBoundary navigation={props.navigation} view="BrowserTab">
+    <ErrorBoundary navigation={navigation} view="BrowserTab">
       <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
@@ -1637,7 +1662,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
-                // @ts-expect-error - TODO: change the type of onError
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 allowsInlineMediaPlayback
@@ -1680,12 +1704,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   addToBrowserHistory: ({ url, name }: { name: string; url: string }) =>
     dispatch(addToHistory({ url, name })),
   addToWhitelist: (url: string) => dispatch(addToWhitelist(url)),
-  setOnboardingWizardStep: (step: string) =>
-    dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  // @ts-expect-error - TODO: change BrowserTab type
-)(withNavigation(BrowserTab));
+export default connect(mapStateToProps, mapDispatchToProps)(BrowserTab);

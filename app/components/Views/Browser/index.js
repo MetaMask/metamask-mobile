@@ -37,7 +37,7 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import Tabs from '../../UI/Tabs';
-import BrowserTab from '../BrowserTab';
+import BrowserTab from '../BrowserTab/BrowserTab';
 
 import { isEqual } from 'lodash';
 import URL from 'url-parse';

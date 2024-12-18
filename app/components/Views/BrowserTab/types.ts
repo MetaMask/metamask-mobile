@@ -5,18 +5,18 @@ export interface IpfsContentResult {
   reload?: boolean;
 }
 
-export type SessionENSNames = {
+export interface SessionENSNames {
   [key: string]: {
     hostname: string;
     hash: string;
     type: string;
   };
-};
+}
 
 /**
  * The props for the BrowserTab component
  */
-export type BrowserTabProps = {
+export interface BrowserTabProps {
   /**
    * The ID of the current tab
    */
@@ -46,13 +46,9 @@ export type BrowserTabProps = {
    */
   transaction?: Record<string, unknown>;
   /**
-   * react-navigation object used to switch between screens
-   */
-  navigation: any; // Consider using proper react-navigation types
-  /**
    * A string that represents the selected address
    */
-  selectedAddress: string;
+  selectedAddress: string | undefined; // This should never be undefined, need to fix the accounts controller selector
   /**
    * whitelisted url to bypass the phishing detection
    */
@@ -73,7 +69,7 @@ export type BrowserTabProps = {
   /**
    * Array of bookmarks
    */
-  bookmarks: Array<{ name: string; url: string }>;
+  bookmarks: { name: string; url: string }[];
   /**
    * String representing the current search engine
    */
@@ -95,10 +91,6 @@ export type BrowserTabProps = {
    */
   showTabs: () => void;
   /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: (step: number) => void;
-  /**
    * Current onboarding wizard step
    */
   wizardStep: number;
@@ -118,4 +110,10 @@ export type BrowserTabProps = {
    * Boolean indicating if browser is in tabs view
    */
   isInTabsView: boolean;
-};
+}
+// This event should be exported from the webview package
+export interface WebViewErrorEvent {
+  domain?: string;
+  code: number;
+  description: string;
+}

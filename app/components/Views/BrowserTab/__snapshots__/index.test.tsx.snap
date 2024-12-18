@@ -1,61 +1,101 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Browser should render correctly 1`] = `
-<ContextProvider
-  value={
-    {
-      "getServerState": undefined,
-      "noopCheck": "once",
-      "stabilityCheck": "once",
-      "store": {
-        "clearActions": [Function],
-        "dispatch": [Function],
-        "getActions": [Function],
-        "getState": [Function],
-        "replaceReducer": [Function],
-        "subscribe": [Function],
+exports[`BrowserTab should render correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
       },
-      "subscription": {
-        "addNestedSub": [Function],
-        "getListeners": [Function],
-        "handleChangeWrapper": [Function],
-        "isSubscribed": [Function],
-        "notifyNestedSubs": [Function],
-        "trySubscribe": [Function],
-        "tryUnsubscribe": [Function],
+      {
+        "display": "none",
+        "flex": 0,
+        "height": 0,
+        "opacity": 0,
+        "width": 0,
       },
-    }
+    ]
   }
 >
-  <BrowserTab
-    activeTab={1}
-    addBookmark={[MockFunction]}
-    addToBrowserHistory={[MockFunction]}
-    addToWhitelist={[MockFunction]}
-    bookmarks={[]}
-    chainId="1"
-    defaultProtocol="https://"
-    id={1}
-    initialUrl="https://metamask.io"
-    ipfsGateway="https://gateway.ipfs.io/ipfs/"
-    isInTabsView={false}
-    isIpfsGatewayEnabled={false}
-    navigation={
+  <View
+    style={
       {
-        "canGoBack": true,
-        "canGoForward": true,
-        "goBack": [MockFunction],
-        "goForward": [MockFunction],
+        "flex": 1,
+        "zIndex": 1,
       }
     }
-    newTab={[MockFunction]}
-    searchEngine="Google"
-    selectedAddress="0x123"
-    setOnboardingWizardStep={[MockFunction]}
-    showTabs={[MockFunction]}
-    updateTabInfo={[MockFunction]}
-    whitelist={[]}
-    wizardStep={1}
   />
-</ContextProvider>
+  <View
+    style={
+      {
+        "height": 3,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": "100%",
+        "zIndex": 999999,
+      }
+    }
+  >
+    <View
+      collapsable={false}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
+      visible={true}
+    >
+      <View
+        animated={true}
+        animationConfig={
+          {
+            "bounciness": 0,
+          }
+        }
+        animationType="spring"
+        indeterminate={false}
+        onLayout={[Function]}
+        progress={0}
+        style={
+          [
+            {
+              "backgroundColor": undefined,
+              "borderColor": "#0376c9",
+              "borderRadius": 0,
+              "borderWidth": 0,
+              "overflow": "hidden",
+              "width": null,
+            },
+            undefined,
+          ]
+        }
+        useNativeDriver={true}
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "backgroundColor": "#0376c9",
+              "height": 3,
+              "transform": [
+                {
+                  "translateX": -0,
+                },
+                {
+                  "translateX": -0,
+                },
+                {
+                  "scaleX": 0.0001,
+                },
+              ],
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
 `;
