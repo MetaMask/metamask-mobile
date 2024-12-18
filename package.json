@@ -230,7 +230,7 @@
     "bignumber.js": "^9.0.1",
     "buffer": "6.0.3",
     "cockatiel": "^3.1.2",
-    "compare-versions": "^3.6.0",
+    "compare-versions": "^6.1.1",
     "content-hash": "2.5.2",
     "contentful": "^10.8.7",
     "crypto-js": "^4.2.0",
