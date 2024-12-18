@@ -956,7 +956,6 @@ class Confirm extends PureComponent {
       transactionState: { assetType },
       navigation,
       resetTransaction,
-      gasEstimateType,
       shouldUseSmartTransaction,
       transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
     } = this.props;
