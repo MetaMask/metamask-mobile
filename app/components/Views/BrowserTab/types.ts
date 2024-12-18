@@ -1,3 +1,10 @@
+export interface IpfsContentResult {
+  url?: string;
+  hash?: string;
+  type?: string;
+  reload?: boolean;
+}
+
 export type SessionENSNames = {
   [key: string]: {
     hostname: string;

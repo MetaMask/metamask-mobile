@@ -1,6 +1,5 @@
 import WebView from '@metamask/react-native-webview';
 import {
-  ShouldStartLoadRequest,
   WebViewErrorEvent,
   WebViewNavigationEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
@@ -26,28 +25,10 @@ const BrowserTab = () => {
   const webViewRef = useRef<WebView>(null);
   const textInputRef = useRef<TextInput>(null);
 
-  LOGBROWSER('RERENDER');
-
-  const onLoadStart = (e: WebViewNavigationEvent) => {
-    const { url, loading } = e.nativeEvent;
-
-    LOGBROWSER('LOAD START', e.nativeEvent);
-    if (loading) {
-    }
-  };
-
   const onLoadEnd = (e: WebViewNavigationEvent | WebViewErrorEvent) => {
-    const { url, loading } = e.nativeEvent;
-
+    const { url } = e.nativeEvent;
+    // Directly update url in text input
     textInputRef.current?.setNativeProps({ text: url });
-    if (!loading) {
-      LOGBROWSER('LOAD END', e.nativeEvent);
-    }
-  };
-
-  const onShouldStartLoadWithRequest = (e: ShouldStartLoadRequest) => {
-    LOGBROWSER('SHOULD START LOAD WITH REQUEST', e);
-    return true;
   };
 
   const onSubmitEditing = (
@@ -103,9 +84,7 @@ const BrowserTab = () => {
       </View>
       <WebView
         ref={webViewRef}
-        onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         source={{ uri: 'https://www.google.com' }}
-        onLoadStart={onLoadStart}
         onLoadEnd={onLoadEnd}
       />
     </View>
