@@ -3,14 +3,10 @@ import { BN } from 'ethereumjs-util';
 import { toWei } from '../../../../../util/number';
 
 // Mock the Engine and its context
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    TransactionController: {
-      updateEditableParams: jest.fn().mockResolvedValue({
-        txParams: { value: '0x0' },
-      }),
-    },
-  },
+jest.mock('../../../../../util/transaction-controller', () => ({
+  updateEditableParams: jest.fn().mockResolvedValue({
+    txParams: { value: '0x0' },
+  }),
 }));
 
 describe('updateTransactionToMaxValue', () => {

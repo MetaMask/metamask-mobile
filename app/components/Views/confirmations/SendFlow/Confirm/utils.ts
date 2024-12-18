@@ -1,8 +1,8 @@
 import { BN } from 'ethereumjs-util';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { remove0x, add0x } from '@metamask/utils';
-import Engine from '../../../../../core/Engine';
 import { toWei } from '../../../../../util/number';
+import { updateEditableParams } from '../../../../../util/transaction-controller';
 
 export const updateTransactionToMaxValue = async ({
   transactionId,
@@ -23,7 +23,6 @@ export const updateTransactionToMaxValue = async ({
   accountBalance: string;
   setTransactionValue: (value: string) => void;
 }) => {
-  const { TransactionController } = Engine.context;
   const { gasFeeMaxNative } = isEIP1559Transaction
     ? EIP1559GasTransaction
     : legacyGasTransaction;
@@ -35,12 +34,9 @@ export const updateTransactionToMaxValue = async ({
 
   const maxTransactionValueHex = add0x(maxTransactionValueBN.toString(16));
 
-  const txMeta = (await TransactionController.updateEditableParams(
-    transactionId,
-    {
-      value: maxTransactionValueHex,
-    },
-  )) as TransactionMeta;
+  const txMeta = (await updateEditableParams(transactionId, {
+    value: maxTransactionValueHex,
+  })) as TransactionMeta;
 
   setTransactionValue(txMeta.txParams.value as string);
 };
