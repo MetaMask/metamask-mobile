@@ -1,9 +1,9 @@
 import React from 'react';
 import NetworkVerificationInfo from './NetworkVerificationInfo';
-import { render } from '@testing-library/react-native';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import { render } from '@testing-library/react-native';
 
 const mockNetworkInfo = {
   chainName: 'Test Chain',

@@ -375,7 +375,7 @@ exports[`LearnMoreModal render matches snapshot 1`] = `
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
-                                "maxHeight": 1314,
+                                "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
                                 "shadowColor": "#0000001a",

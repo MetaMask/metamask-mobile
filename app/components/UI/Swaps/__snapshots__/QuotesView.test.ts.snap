@@ -155,7 +155,6 @@ exports[`QuotesView should render quote screen 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -166,9 +165,9 @@ exports[`QuotesView should render quote screen 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -184,23 +183,6 @@ exports[`QuotesView should render quote screen 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "transparent",
-                          "borderColor": "#bbc0c5",
-                          "borderWidth": 1,
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -208,10 +190,10 @@ exports[`QuotesView should render quote screen 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >

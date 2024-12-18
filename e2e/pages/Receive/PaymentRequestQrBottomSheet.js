@@ -8,7 +8,9 @@ class PaymentRequestQrBottomSheet {
   }
 
   get closeButton() {
-    return Matchers.getElementByID(SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON);
+    return Matchers.getElementByID(
+      SendLinkViewSelectorsIDs.CLOSE_QR_MODAL_BUTTON,
+    );
   }
 
   async tapCloseButton() {
