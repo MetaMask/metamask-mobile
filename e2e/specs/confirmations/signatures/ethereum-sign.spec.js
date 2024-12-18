@@ -19,7 +19,7 @@ describe(SmokeConfirmations('Ethereum Sign'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should sign personal message', async () => {
+  it('Sign in with Ethereum', async () => {
     await withFixtures(
       {
         dapp: true,
