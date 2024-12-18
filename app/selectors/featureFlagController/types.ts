@@ -6,4 +6,3 @@ export type StateWithPartialEngine = RootState | {
     backgroundState: Partial<EngineState>
   }
 };
-

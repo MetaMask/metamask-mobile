@@ -4,6 +4,7 @@ import { TokenFilterBottomSheet } from './TokenFilterBottomSheet';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
+  selectAllPopularNetworkConfigurations,
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
@@ -102,6 +103,8 @@ describe('TokenFilterBottomSheet', () => {
         return {}; // default to show all networks
       } else if (selector === selectNetworkConfigurations) {
         return mockNetworks; // default to show all networks
+      } else if (selector === selectAllPopularNetworkConfigurations) {
+        return mockNetworks; // default to show all networks
       }
       return null;
     });
@@ -114,14 +117,14 @@ describe('TokenFilterBottomSheet', () => {
   it('renders correctly with the default option (All Networks) selected', () => {
     const { queryByText } = render(<TokenFilterBottomSheet />);
 
-    expect(queryByText('All Networks')).toBeTruthy();
+    expect(queryByText('Popular networks')).toBeTruthy();
     expect(queryByText('Current Network')).toBeTruthy();
   });
 
   it('sets filter to All Networks and closes bottom sheet when first option is pressed', async () => {
     const { queryByText } = render(<TokenFilterBottomSheet />);
 
-    fireEvent.press(queryByText('All Networks'));
+    fireEvent.press(queryByText('Popular networks'));
 
     await waitFor(() => {
       expect(
@@ -151,6 +154,8 @@ describe('TokenFilterBottomSheet', () => {
       } else if (selector === selectTokenNetworkFilter) {
         return { '0x1': true }; // filter by current network
       } else if (selector === selectNetworkConfigurations) {
+        return mockNetworks;
+      } else if (selector === selectAllPopularNetworkConfigurations) {
         return mockNetworks;
       }
       return null;

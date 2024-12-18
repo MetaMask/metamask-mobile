@@ -53,6 +53,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 
 const AccountPermissionsConnected = ({
@@ -215,6 +216,9 @@ const AccountPermissionsConnected = ({
           style={styles.managePermissionsButton}
           variant={ButtonVariants.Secondary}
           label={strings('permissions.edit_permissions')}
+          testID={
+            NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON
+          }
           size={ButtonSize.Lg}
           onPress={() => {
             onSetPermissionsScreen(

@@ -18,7 +18,9 @@ import {
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
 import {
+  swapsLivenessMultichainSelector,
   swapsLivenessSelector,
+  swapsTokensMultiChainObjectSelector,
   swapsTokensObjectSelector,
 } from '../../../reducers/swaps';
 import {
@@ -34,6 +36,7 @@ import { toLowerCaseEquals } from '../../../util/general';
 import {
   findBlockExplorerForRpc,
   isMainnetByChainId,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { addAccountTimeFlagFilter } from '../../../util/transactions';
@@ -165,10 +168,6 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
-    /**
-     * ID of the global network client
-     */
-    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -192,8 +191,14 @@ class Asset extends PureComponent {
   );
 
   updateNavBar = (contentOffset = 0) => {
-    const { navigation, route, chainId, rpcUrl, networkConfigurations } =
-      this.props;
+    const {
+      route: { params },
+      navigation,
+      route,
+      chainId,
+      rpcUrl,
+      networkConfigurations,
+    } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     const isNativeToken = route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
@@ -204,7 +209,9 @@ class Asset extends PureComponent {
 
     const shouldShowMoreOptionsInNavBar =
       isMainnet || !isNativeToken || (isNativeToken && blockExplorer);
-
+    const asset = navigation && params;
+    const currentNetworkName =
+      this.props.networkConfigurations[asset.chainId]?.name;
     navigation.setOptions(
       getNetworkNavbarOptions(
         route.params?.symbol ?? '',
@@ -224,6 +231,7 @@ class Asset extends PureComponent {
           : undefined,
         true,
         contentOffset,
+        currentNetworkName,
       ),
     );
   };
@@ -441,11 +449,11 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { networkClientId } = this.props;
+    const { chainId } = this.props;
 
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([networkClientId]);
+    await updateIncomingTransactions([chainId]);
 
     this.setState({ refreshing: false });
   };
@@ -469,7 +477,10 @@ class Asset extends PureComponent {
     const styles = createStyles(colors);
     const asset = navigation && params;
     const isSwapsFeatureLive = this.props.swapsIsLive;
-    const isNetworkAllowed = isSwapsAllowed(chainId);
+    const isNetworkAllowed = isPortfolioViewEnabled()
+      ? isSwapsAllowed(asset.chainId)
+      : isSwapsAllowed(chainId);
+
     const isAssetAllowed =
       asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
 
@@ -511,6 +522,7 @@ class Asset extends PureComponent {
             loading={!transactionsUpdated}
             headerHeight={280}
             onScrollThroughContent={this.onScrollThroughContent}
+            tokenChainId={asset.chainId}
           />
         )}
       </View>
@@ -520,9 +532,13 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  swapsIsLive: swapsLivenessSelector(state),
-  swapsTokens: swapsTokensObjectSelector(state),
+const mapStateToProps = (state, { route }) => ({
+  swapsIsLive: isPortfolioViewEnabled()
+    ? swapsLivenessMultichainSelector(state, route.params.chainId)
+    : swapsLivenessSelector(state),
+  swapsTokens: isPortfolioViewEnabled()
+    ? swapsTokensMultiChainObjectSelector(state)
+    : swapsTokensObjectSelector(state),
   swapsTransactions: selectSwapsTransactions(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),

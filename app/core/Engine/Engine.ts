@@ -154,9 +154,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts/constants';
+} from './controllers/AccountsController/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/accounts/utils';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -1042,12 +1042,17 @@ export class Engine {
           'NotificationServicesController:selectIsNotificationServicesEnabled',
           AccountsControllerListAccountsAction,
           AccountsControllerUpdateAccountMetadataAction,
+          'NetworkController:getState',
+          'NetworkController:addNetwork',
+          'NetworkController:removeNetwork',
+          'NetworkController:updateNetwork',
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           AccountsControllerAccountAddedEvent,
           AccountsControllerAccountRenamedEvent,
+          'NetworkController:networkRemoved',
         ],
       }),
       nativeScryptCrypto: scrypt,
@@ -1168,7 +1173,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1501,9 +1506,9 @@ export class Engine {
     }
 
     this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionBlockReceived',
-      (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
+      'TransactionController:incomingTransactionsReceived',
+      (incomingTransactions: TransactionMeta[]) => {
+        NotificationManager.gotIncomingTransaction(incomingTransactions);
       },
     );
 
@@ -1661,10 +1666,12 @@ export class Engine {
   startPolling() {
     const { NetworkController, TransactionController } = this.context;
 
-    const networkClientId = getGlobalNetworkClientId(NetworkController);
+    const chainId = getGlobalChainId(NetworkController);
+
+    TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([networkClientId]);
+    TransactionController.startIncomingTransactionPolling([chainId]);
   }
 
   configureControllersOnNetworkChange() {
@@ -1773,7 +1780,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1784,9 +1791,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case

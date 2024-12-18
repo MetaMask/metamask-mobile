@@ -178,7 +178,6 @@ class Browser {
   }
 
   async navigateToURL(url) {
-    await Gestures.waitAndTap(this.clearURLButton);
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);

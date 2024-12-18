@@ -362,6 +362,69 @@ describe('submitSmartTransactionHook', () => {
     );
   });
 
+  it('submits a smart transaction without the smart transaction status page', async () => {
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
+
+        expect(result).toEqual({ transactionHash });
+        const { txParams, chainId } = request.transactionMeta;        
+
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledWith(
+          [
+            {
+              ...txParams,
+              maxFeePerGas: '0x2fd8a58d7',
+              maxPriorityFeePerGas: '0xaa0f8a94',
+              chainId,
+              value: undefined,
+            },
+          ],
+          { hasNonce: true },
+        );
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
+          signedTransactions: [createSignedTransaction()],
+          signedCanceledTransactions: [],
+          txParams,
+          transactionMeta: request.transactionMeta,
+        });
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).not.toHaveBeenCalled();
+        expect(
+          request.approvalController.updateRequestState,
+        ).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe('MM Swaps', () => {
     it('starts an approval and does not end it if there is an swap tx that requires allowance', async () => {
       withRequest(

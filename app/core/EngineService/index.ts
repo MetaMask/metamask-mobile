@@ -1,2 +1,1 @@
-import EngineService from './EngineService';
-export default EngineService;
+export { default } from './EngineService';

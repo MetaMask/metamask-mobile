@@ -26,4 +26,3 @@ describe('featureFlagController selector', () => {
     expect(result).toBeUndefined();
   });
 });
-

@@ -20,8 +20,21 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: [
+        './node_modules/**/@metamask/rpc-errors/**',
+        './node_modules/@metamask/rpc-errors/**',
+      ],
+      plugins: [['@babel/plugin-transform-classes', { loose: true }]],
+    },
+    {
       test: './app/lib/snaps',
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
+    },
+    // TODO: Remove this once we have a fix for the private methods
+    // Do not apply this plugin globally since it breaks FlatList props.getItem
+    {
+      test: './app/core/redux/ReduxService.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],
   env: {

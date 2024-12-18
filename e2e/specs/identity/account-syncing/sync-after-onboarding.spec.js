@@ -16,6 +16,7 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(SmokeIdentity('Account syncing'), () => {
   beforeAll(async () => {
@@ -27,9 +28,13 @@ describe(SmokeIdentity('Account syncing'), () => {
       mockServer,
     );
 
-    userStorageMockttpControllerInstance.setupPath('accounts', mockServer, {
-      getResponse: accountsSyncMockResponse,
-    });
+    userStorageMockttpControllerInstance.setupPath(
+      USER_STORAGE_FEATURE_NAMES.accounts,
+      mockServer,
+      {
+        getResponse: accountsSyncMockResponse,
+      },
+    );
 
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();

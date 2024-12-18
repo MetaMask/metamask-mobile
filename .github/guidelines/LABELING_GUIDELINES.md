@@ -25,7 +25,8 @@ To merge your PR one of the following QA labels are required:
 - **Run E2E Smoke**: This label will kick-off E2E testing and trigger a check to make sure the E2E tests pass. 
 
 ### Optional labels:
-- **regression-develop**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on the development branch, i.e., `main`, but is not yet released in production.
+- **regression-main**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on the development branch, i.e., `main`, but is not yet released in production.
+- **feature-branch-bug**: This label can manually be added to a bug report issue at the time of its creation if the bug is present on a feature branch, i.e., before merging to `main`.
 
 ### Labels prohibited when PR needs to be merged:
 Any PR that includes one of the following labels can not be merged:

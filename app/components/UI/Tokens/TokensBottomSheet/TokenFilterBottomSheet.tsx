@@ -2,7 +2,8 @@ import React, { useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
-  selectNetworkConfigurations,
+  selectIsAllNetworks,
+  selectAllPopularNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { selectTokenNetworkFilter } from '../../../../selectors/preferencesController';
 import BottomSheet, {
@@ -19,6 +20,7 @@ import ListItemSelect from '../../../../component-library/components/List/ListIt
 import { VerticalAlignment } from '../../../../component-library/components/List/ListItem';
 import { strings } from '../../../../../locales/i18n';
 import { enableAllNetworksFilter } from '../util/enableAllNetworksFilter';
+import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 enum FilterOption {
   AllNetworks,
@@ -27,12 +29,13 @@ enum FilterOption {
 
 const TokenFilterBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const allNetworks = useSelector(selectNetworkConfigurations);
+  const allNetworks = useSelector(selectAllPopularNetworkConfigurations);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const chainId = useSelector(selectChainId);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
   const allNetworksEnabled = useMemo(
     () => enableAllNetworksFilter(allNetworks),
     [allNetworks],
@@ -59,8 +62,6 @@ const TokenFilterBottomSheet = () => {
   const isCurrentNetwork = Boolean(
     tokenNetworkFilter[chainId] && Object.keys(tokenNetworkFilter).length === 1,
   );
-  const isAllNetworks =
-    Object.keys(tokenNetworkFilter).length === Object.keys(allNetworks).length;
 
   return (
     <BottomSheet shouldNavigateBack ref={sheetRef}>
@@ -69,6 +70,7 @@ const TokenFilterBottomSheet = () => {
           {strings('wallet.filter_by')}
         </Text>
         <ListItemSelect
+          testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.AllNetworks)
           }
@@ -77,10 +79,13 @@ const TokenFilterBottomSheet = () => {
           verticalAlignment={VerticalAlignment.Center}
         >
           <Text style={styles.bottomSheetText}>
-            {strings('wallet.all_networks')}
+            {`${strings('app_settings.popular')} ${strings(
+              'app_settings.networks',
+            )}`}
           </Text>
         </ListItemSelect>
         <ListItemSelect
+          testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT}
           onPress={() =>
             onFilterControlsBottomSheetPress(FilterOption.CurrentNetwork)
           }

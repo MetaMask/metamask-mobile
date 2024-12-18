@@ -44,6 +44,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   setCurrentBottomNavRoute,
   setCurrentRoute,
+  onNavigationReady,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -880,6 +881,11 @@ const App = (props) => {
     }
   };
 
+  /**
+   * Triggers when the navigation is ready
+   */
+  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
+
   return supressRender ? null : (
     <>
       {
@@ -905,6 +911,7 @@ const App = (props) => {
           const currentRoute = findRouteNameFromNavigatorState(state.routes);
           triggerSetCurrentRoute(currentRoute);
         }}
+        onReady={onNavigationReadyHandler}
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}

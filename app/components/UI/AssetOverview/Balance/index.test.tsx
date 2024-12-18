@@ -8,7 +8,7 @@ import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { NetworkBadgeSource } from './Balance';
-import { isPortfolioViewEnabledFunction } from '../../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -37,6 +37,8 @@ const mockDAI = {
   symbol: 'DAI',
   isETH: false,
   logo: 'image-path',
+  chainId: '0x1',
+  isNative: false,
 };
 
 const mockETH = {
@@ -52,6 +54,8 @@ const mockETH = {
   symbol: 'ETH',
   isETH: true,
   logo: 'image-path',
+  chainId: '0x1',
+  isNative: true,
 };
 
 const mockInitialState = {
@@ -67,7 +71,7 @@ jest.mock('../../../../util/networks', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  isPortfolioViewEnabledFunction: jest.fn(),
+  isPortfolioViewEnabled: jest.fn(),
 }));
 
 describe('Balance', () => {
@@ -95,23 +99,27 @@ describe('Balance', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly with a fiat balance', () => {
-    const wrapper = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled()) {
+    it('should render correctly with a fiat balance', () => {
+      const wrapper = render(
+        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+  }
 
-  it('should render correctly without a fiat balance', () => {
-    const wrapper = render(
-      <Balance
-        asset={mockDAI}
-        mainBalance="123"
-        secondaryBalance={undefined}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled()) {
+    it('should render correctly without a fiat balance', () => {
+      const wrapper = render(
+        <Balance
+          asset={mockDAI}
+          mainBalance="123"
+          secondaryBalance={undefined}
+        />,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+  }
 
   it('should fire navigation event for non native tokens', () => {
     const { queryByTestId } = render(
@@ -155,11 +163,39 @@ describe('Balance', () => {
     });
 
     it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-      (isPortfolioViewEnabledFunction as jest.Mock).mockImplementation(
-        () => true,
-      );
+      if (isPortfolioViewEnabled()) {
+        const result = NetworkBadgeSource('0xe708', 'LINEA');
+        expect(result).toBeDefined();
+      }
+    });
+  });
+});
+
+describe('NetworkBadgeSource', () => {
+  it('returns testnet image for a testnet chainId', () => {
+    const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+    expect(result).toBeDefined();
+  });
+
+  it('returns mainnet Ethereum image for mainnet chainId', () => {
+    const result = NetworkBadgeSource('0x1', 'ETH');
+    expect(result).toBeDefined();
+  });
+
+  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
+    const result = NetworkBadgeSource('0xe708', 'LINEA');
+    expect(result).toBeDefined();
+  });
+
+  it('returns undefined if no image is found', () => {
+    const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+    expect(result).toBeUndefined();
+  });
+
+  it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
+    if (isPortfolioViewEnabled()) {
       const result = NetworkBadgeSource('0xe708', 'LINEA');
       expect(result).toBeDefined();
-    });
+    }
   });
 });

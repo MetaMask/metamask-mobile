@@ -1,6 +1,7 @@
 import { AuthenticationController } from '@metamask/profile-sync-controller';
 import { UserStorageMockttpController } from './user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
+import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 const AuthMocks = AuthenticationController.Mocks;
 
@@ -20,8 +21,14 @@ export async function mockIdentityServices(server) {
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
 
-  userStorageMockttpControllerInstance.setupPath('accounts', server);
-  userStorageMockttpControllerInstance.setupPath('networks', server);
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.accounts,
+    server,
+  );
+  userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.networks,
+    server,
+  );
 
   return {
     userStorageMockttpControllerInstance,

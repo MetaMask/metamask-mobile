@@ -63,7 +63,27 @@ const transaction = {
 
 const initialState = {
   engine: {
-    backgroundState,
+    backgroundState: {
+      ...backgroundState,
+      TokensController: {
+        tokens: [],
+        allTokens: {
+          '0x1': {
+            '0xAddress1': [],
+          },
+        },
+      },
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: '0xAddress1',
+          accounts: {
+            '0xAddress1': {
+              address: '0xAddress1',
+            },
+          },
+        },
+      },
+    },
   },
   transaction,
   settings: {

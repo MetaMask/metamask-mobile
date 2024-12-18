@@ -152,7 +152,7 @@ const WatchAssetRequest = ({
   const { address, symbol, decimals, standard } = asset;
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID={AssetWatcherSelectorsIDs.CONTAINER}>
       <View style={styles.approveTransactionHeaderWrapper}>
         <ApproveTransactionHeader
           origin={currentPageInformation?.url}

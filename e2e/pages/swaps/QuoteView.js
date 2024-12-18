@@ -10,6 +10,10 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.GET_QUOTES);
   }
 
+  get cancelButton() {
+    return Matchers.getElementByText(QuoteViewSelectorText.CANCEL);
+  }
+
   get sourceToken() {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN);
   }
@@ -57,6 +61,10 @@ class QuoteView {
   async tapOnGetQuotes() {
     await device.disableSynchronization();
     await Gestures.waitAndTap(this.getQuotes);
+  }
+
+  async tapOnCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

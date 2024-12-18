@@ -9,4 +9,3 @@ export const selectRemoteFeatureFlags = createSelector(
   (remoteFeatureFlagControllerState) =>
     remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {}
 );
-

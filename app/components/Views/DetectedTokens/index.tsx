@@ -12,6 +12,7 @@ import { Token as TokenType } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
+
 // External Dependencies
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles } from '../../../styles/common';
@@ -22,7 +23,10 @@ import NotificationManager from '../../../core/NotificationManager';
 import { strings } from '../../../../locales/i18n';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
-import { getDecimalChainId } from '../../../util/networks';
+import {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -32,6 +36,7 @@ import {
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkClientId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
@@ -84,8 +89,6 @@ interface IgnoredTokensByAddress {
   [address: string]: true;
 }
 
-const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
 const DetectedTokens = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -96,18 +99,18 @@ const DetectedTokens = () => {
   ) as TokenI[];
   const allNetworks = useSelector(selectNetworkConfigurations);
   const chainId = useSelector(selectChainId);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(
     {},
   );
-
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   const currentDetectedTokens =
-    isPortfolioViewEnabled && isAllNetworks
+    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
       ? allDetectedTokens
       : detectedTokens;
 
@@ -193,7 +196,7 @@ const DetectedTokens = () => {
             await Promise.all(ignorePromises);
           }
           if (tokensToImport.length > 0) {
-            if (isPortfolioViewEnabled) {
+            if (isPortfolioViewEnabled()) {
               // Group tokens by their `chainId` using a plain object
               const tokensByChainId: Record<Hex, TokenType[]> = {};
 
