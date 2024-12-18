@@ -13,7 +13,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import Assertions from '../../utils/Assertions';
 import { SmokeConfirmations } from '../../tags';
 
-describe(SmokeConfirmations('Security Alert API - Send flow'), () => {
+describe('Security Alert API - Send flow', () => {
   const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
   beforeAll(async () => {
