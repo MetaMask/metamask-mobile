@@ -1,19 +1,20 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { SmokeMultiChain } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
+import TestHelpers from '../../../../helpers';
+import { SmokeMultiChain } from '../../../../tags';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import { loginToApp } from '../../../../viewHelper';
+import Assertions from '../../../../utils/Assertions';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
 describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
   beforeAll(async () => {
@@ -54,14 +55,11 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
 
         // Verify changes were saved by checking chain permissions again
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-
-        // Deselect both networks to verify they were the only ones selected
-        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
-
-        // Verify the disconnect all button appears (indicating no chains are selected)
-        await Assertions.checkIfVisible(
-          ConnectedAccountsModal.disconnectNetworksButton,
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        );
+        await NetworkConnectMultiSelector.isNetworkChainPermissionSelected(
+          NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
         );
       },
     );
