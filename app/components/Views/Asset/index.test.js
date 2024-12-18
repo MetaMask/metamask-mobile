@@ -1,4 +1,5 @@
 import React from 'react';
+import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
@@ -59,10 +60,14 @@ const mockInitialState = {
         transactions: [
           {
             txParams: {
-              from: '0x1',
-              to: '0x2',
+              from: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+              to: '0x0000000000000000000000000000000000000000',
             },
-            hash: '0x1',
+            hash: '0x3148',
+            status: 'confirmed',
+            chainId: '0x1',
+            networkID: '0x1',
+            type: TransactionType.simpleSend,
           },
         ],
       },
