@@ -9,7 +9,6 @@ import {
   EmitterSubscription,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
 } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
@@ -32,14 +31,6 @@ import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
 
 const styles = StyleSheet.create({
-  leftButton: {
-    marginTop: 12,
-    marginRight: Device.isAndroid() ? 7 : 16,
-    marginLeft: Device.isAndroid() ? 7 : 0,
-    marginBottom: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   placeholderInput: {
     height: 0,
     width: 0,

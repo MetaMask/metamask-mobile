@@ -167,10 +167,12 @@ export function getTransactionsNavbarOptions(
       <HeaderBase
         includesTopInset
         endAccessory={
-          <AccountRightButton
-            selectedAddress={selectedAddress}
-            onPress={handleRightButtonPress}
-          />
+          <View style={styles.headerRightButton}>
+            <AccountRightButton
+              selectedAddress={selectedAddress}
+              onPress={handleRightButtonPress}
+            />
+          </View>
         }
       >
         <NavbarTitle title={title} />
