@@ -1,11 +1,8 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
-import AppConstants from '../../../core/AppConstants';
-import { mockTheme } from '../../../util/theme';
 
 const mockInitialState = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
@@ -18,6 +15,9 @@ const mockInitialState = {
         nativeTokenSupported: true,
       },
     ],
+  },
+  inpageProvider: {
+    networkId: '0x1',
   },
   engine: {
     backgroundState: {
@@ -55,9 +55,26 @@ const mockInitialState = {
           },
         },
       },
+      TransactionController: {
+        transactions: [
+          {
+            txParams: {
+              from: '0x1',
+              to: '0x2',
+            },
+            hash: '0x1',
+          },
+        ],
+      },
     },
   },
 };
+
+jest.mock('../../../store', () => ({
+  store: {
+    getState: () => mockInitialState,
+  },
+}));
 
 jest.unmock('react-native/Libraries/Interaction/InteractionManager');
 
@@ -91,16 +108,6 @@ describe('Asset', () => {
       <Asset
         navigation={{ setOptions: jest.fn() }}
         route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
-        transactions={[
-          {
-            id: '1',
-            status: 'confirmed',
-            chainId: '0x1',
-            txParams: {
-              from: '0x1',
-            },
-          },
-        ]}
       />,
       {
         state: mockInitialState,
