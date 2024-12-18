@@ -945,9 +945,6 @@ class Amount extends PureComponent {
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
 
-    console.log('useMax', useMax);
-    console.log({ setMaxValueMode });
-
     if (useMax) {
       setMaxValueMode(true);
     } else if (currentMaxValueMode) {

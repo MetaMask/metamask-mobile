@@ -1,6 +1,6 @@
 import { updateTransactionToMaxValue } from './utils';
 import { BN } from 'ethereumjs-util';
-import convert from '@metamask/ethjs-unit';
+import { toWei } from '../../../../../util/number';
 
 // Mock the Engine and its context
 jest.mock('../../../../../core/Engine', () => ({
@@ -33,7 +33,7 @@ describe('updateTransactionToMaxValue', () => {
 
     // Calculate expected max transaction value
     const accountBalanceBN = new BN('2386f26fc10000', 16); // 0.1 ether in wei
-    const transactionFeeMax = new BN(convert.toWei('0.01', 'ether'), 10);
+    const transactionFeeMax = new BN(toWei('0.01', 'ether'), 10);
     const expectedMaxTransactionValueBN =
       accountBalanceBN.sub(transactionFeeMax);
     const expectedMaxTransactionValueHex =

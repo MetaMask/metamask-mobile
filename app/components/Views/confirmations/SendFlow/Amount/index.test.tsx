@@ -69,6 +69,7 @@ jest.mock('../../../../../util/transaction-controller', () => ({
 }));
 
 jest.mock('../../../../../actions/transaction', () => ({
+  ...jest.requireActual('../../../../../actions/transaction'),
   setMaxValueMode: jest.fn().mockReturnValue({
     type: 'SET_MAX_VALUE_MODE',
   }),
