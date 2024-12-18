@@ -512,17 +512,20 @@ export function addCurrencySymbol(
     amount = parseFloat(amount).toFixed(2);
   }
 
+  const prefix = parseFloat(amount) < 0 ? '-' : '';
+  const absAmount = Math.abs(parseFloat(amount));
+
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[currencyCode]}${absAmount}`;
   }
 
   const lowercaseCurrencyCode = currencyCode?.toLowerCase();
 
   if (currencySymbols[lowercaseCurrencyCode]) {
-    return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[lowercaseCurrencyCode]}${absAmount}`;
   }
 
-  return `${amount} ${currencyCode}`;
+  return `${prefix}${absAmount} ${currencyCode}`;
 }
 
 /**
