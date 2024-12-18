@@ -1,5 +1,5 @@
 import { prefixUrlWithProtocol } from '../../../util/browser';
-import URL from 'url-parse';
+import URLParse from 'url-parse';
 
 /**
  * Validates url for browser
@@ -12,7 +12,7 @@ import URL from 'url-parse';
  * @param url - The url to validate
  * @returns
  */
-export const isValidUrl = (url: URL<string>): boolean => {
+export const isValidUrl = (url: URLParse<string>): boolean => {
   const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/\S*)?$/;
   try {
     return (
@@ -32,7 +32,7 @@ export const isValidUrl = (url: URL<string>): boolean => {
  */
 export const processUrlForBrowser = (urlString: string): string => {
   const urlWithProtocol = prefixUrlWithProtocol(urlString);
-  const url = new URL(urlWithProtocol);
+  const url = new URLParse(urlWithProtocol);
   if (!isValidUrl(url)) {
     return `https://www.google.com/search?q=${encodeURIComponent(urlString)}`;
   }
