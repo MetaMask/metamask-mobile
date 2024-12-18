@@ -985,16 +985,9 @@ class Confirm extends PureComponent {
     try {
       const transaction = this.prepareTransactionToSend();
 
-      let error;
-      if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
-        error = this.validateAmount({
-          transaction,
-        });
-      } else {
-        error = this.validateAmount({
-          transaction,
-        });
-      }
+      const error = this.validateAmount({
+        transaction,
+      });
       this.setError(error);
       if (error) {
         this.setState({ transactionConfirmed: false, stopUpdateGas: true });
