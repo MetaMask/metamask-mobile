@@ -190,29 +190,3 @@ export const getUniqueList = (...arrays) => {
 
   return uniqueArray;
 };
-
-export async function benchmark(event, ...args) {
-  const [options, fn] = args.length === 2 ? args : [{}, args[0]];
-  const { alwaysShowStartAndEnd = false, slowThreshold = 100 } = options;
-
-  if (alwaysShowStartAndEnd) {
-    const startTimestamp = Date.now();
-    // eslint-disable-next-line no-console
-    console.log(`${event} START`);
-    const value = await fn();
-    const endTimestamp = Date.now();
-    // eslint-disable-next-line no-console
-    console.log(`${event} END (${endTimestamp - startTimestamp} ms)`);
-    return value;
-  }
-
-  const startTimestamp = Date.now();
-  const value = await fn();
-  const endTimestamp = Date.now();
-  const elapsedTime = endTimestamp - startTimestamp;
-  if (elapsedTime > slowThreshold) {
-    // eslint-disable-next-line no-console
-    console.log(`${event} BENCH (${endTimestamp - startTimestamp} ms)`);
-  }
-  return value;
-}

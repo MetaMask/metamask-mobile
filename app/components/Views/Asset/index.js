@@ -532,40 +532,31 @@ class Asset extends PureComponent {
 
 Asset.contextType = ThemeContext;
 
-const mapStateToProps = (state, { route }) => {
-  const startTimestamp = Date.now();
-  // eslint-disable-next-line no-console
-  console.log('[Asset] mapStateToProps START');
-  const props = {
-    swapsIsLive: isPortfolioViewEnabled()
-      ? swapsLivenessMultichainSelector(state, route.params.chainId)
-      : swapsLivenessSelector(state),
-    swapsTokens: isPortfolioViewEnabled()
-      ? swapsTokensMultiChainObjectSelector(state)
-      : swapsTokensObjectSelector(state),
-    swapsTransactions: selectSwapsTransactions(state),
-    conversionRate: selectConversionRate(state),
-    currentCurrency: selectCurrentCurrency(state),
-    selectedInternalAccount: selectSelectedInternalAccount(state),
-    chainId: selectChainId(state),
-    tokens: selectTokens(state),
-    transactions: state.engine.backgroundState.TransactionController.transactions,
-    rpcUrl: selectRpcUrl(state),
-    networkConfigurations: selectNetworkConfigurations(state),
-    isNetworkRampSupported: isNetworkRampSupported(
-      selectChainId(state),
-      getRampNetworks(state),
-    ),
-    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-      selectChainId(state),
-      getRampNetworks(state),
-    ),
-    networkClientId: selectNetworkClientId(state),
-  };
-  const endTimestamp = Date.now();
-  // eslint-disable-next-line no-console
-  console.log(`[Asset] mapStateToProps END (${endTimestamp - startTimestamp} ms)`);
-  return props;
-};
+const mapStateToProps = (state, { route }) => ({
+  swapsIsLive: isPortfolioViewEnabled()
+    ? swapsLivenessMultichainSelector(state, route.params.chainId)
+    : swapsLivenessSelector(state),
+  swapsTokens: isPortfolioViewEnabled()
+    ? swapsTokensMultiChainObjectSelector(state)
+    : swapsTokensObjectSelector(state),
+  swapsTransactions: selectSwapsTransactions(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedInternalAccount: selectSelectedInternalAccount(state),
+  chainId: selectChainId(state),
+  tokens: selectTokens(state),
+  transactions: state.engine.backgroundState.TransactionController.transactions,
+  rpcUrl: selectRpcUrl(state),
+  networkConfigurations: selectNetworkConfigurations(state),
+  isNetworkRampSupported: isNetworkRampSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+    selectChainId(state),
+    getRampNetworks(state),
+  ),
+  networkClientId: selectNetworkClientId(state),
+});
 
 export default connect(mapStateToProps)(withMetricsAwareness(Asset));
