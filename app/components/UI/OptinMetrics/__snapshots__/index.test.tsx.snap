@@ -694,7 +694,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                We'll use this data to learn how you interact with our marketing communications. We may share relavent news (like product features).
+                                We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                               </Text>
                             </TouchableOpacity>
                             <View>
