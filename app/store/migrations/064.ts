@@ -4,7 +4,7 @@ import { ensureValidState } from './util';
 
 /**
  * This migration checks if `selectedNetworkClientId` exists in any entry within `networkConfigurationsByChainId`.
- * If it does not, it sets `selectedNetworkClientId` to `'mainnet'`.
+ * If it does not, or if `selectedNetworkClientId` is undefined or invalid, it sets `selectedNetworkClientId` to `'mainnet'`.
  * @param {unknown} stateAsync - Redux state.
  * @returns Migrated Redux state.
  */
@@ -23,19 +23,7 @@ export default async function migrate(stateAsync: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 62: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
-      ),
-    );
-    return state;
-  }
-
-  if (
-    !hasProperty(networkControllerState, 'selectedNetworkClientId') ||
-    typeof networkControllerState.selectedNetworkClientId !== 'string'
-  ) {
-    captureException(
-      new Error(
-        `Migration 62: Missing or invalid 'selectedNetworkClientId': '${networkControllerState.selectedNetworkClientId}'`,
+        `Migration: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -47,14 +35,23 @@ export default async function migrate(stateAsync: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration 62: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
+        `Migration: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
       ),
     );
     return state;
   }
 
-  const { selectedNetworkClientId, networkConfigurationsByChainId } =
-    networkControllerState;
+  const { networkConfigurationsByChainId } = networkControllerState;
+
+  // Ensure selectedNetworkClientId exists and is a string
+  if (
+    !hasProperty(networkControllerState, 'selectedNetworkClientId') ||
+    typeof networkControllerState.selectedNetworkClientId !== 'string'
+  ) {
+    networkControllerState.selectedNetworkClientId = 'mainnet';
+  }
+
+  const { selectedNetworkClientId } = networkControllerState;
 
   // Check if selectedNetworkClientId exists in any network configuration
   let networkClientIdExists = false;
@@ -81,7 +78,7 @@ export default async function migrate(stateAsync: unknown) {
     } else {
       captureException(
         new Error(
-          `Migration 62: Invalid network configuration or missing 'rpcEndpoints' for chainId: '${chainId}'`,
+          `Migration: Invalid network configuration or missing 'rpcEndpoints' for chainId: '${chainId}'`,
         ),
       );
     }
