@@ -133,10 +133,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const isAllNetworks = useSelector(selectIsAllNetworks);
 
-  console.log('==============');
-  console.log('selected account tokens chains');
-  console.log(selectedAccountTokensChains);
-  console.log('==============');
   // multi chain
   const selectedInternalAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,

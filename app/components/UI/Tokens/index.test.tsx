@@ -613,6 +613,11 @@ describe('Tokens', () => {
       selectAccountTokensAcrossChainsSpy.mockRestore();
     });
 
+    it('should match the snapshot when portfolio view is enabled', () => {
+      const { toJSON } = renderComponent(initialState);
+      expect(toJSON()).toMatchSnapshot();
+    });
+
     it('should call selectAccountTokensAcrossChains when enabled', () => {
       renderComponent(initialState);
       expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
@@ -622,11 +627,6 @@ describe('Tokens', () => {
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
       renderComponent(initialState);
       expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
-    });
-
-    it('should match the snapshot when portfolio view is enabled', () => {
-      const { toJSON } = renderComponent(initialState);
-      expect(toJSON()).toMatchSnapshot();
     });
 
     it('should handle network filtering correctly', () => {
