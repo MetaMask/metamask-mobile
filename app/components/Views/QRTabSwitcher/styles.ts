@@ -21,8 +21,6 @@ const createStyles = (theme: Theme) => {
       justifyContent: 'flex-start',
     },
     overlay: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
       position: 'absolute',
       width: '100%',
       top: navbarTop,
