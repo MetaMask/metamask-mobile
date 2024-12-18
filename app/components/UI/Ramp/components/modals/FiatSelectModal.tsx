@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
-  FlatList,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -24,6 +23,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { FlashList } from '@shopify/flash-list';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -56,7 +56,7 @@ function FiatSelectModal({
   const { colors } = useTheme();
   const styles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
-  const list = useRef<FlatList<FiatCurrency>>(null);
+  const list = useRef<FlashList<FiatCurrency>>(null);
   const [searchString, setSearchString] = useState('');
 
   const excludedAddresses = useMemo(
@@ -195,7 +195,7 @@ function FiatSelectModal({
 
           <ScreenLayout.Body>
             <View style={styles.resultsView}>
-              <FlatList
+              <FlashList
                 ref={list}
                 style={styles.resultsView}
                 keyboardDismissMode="none"

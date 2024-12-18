@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  FlatList,
   InteractionManager,
   ScrollView,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { FlashList } from '@shopify/flash-list';
 import {
   setSelectedAsset,
   prepareTransaction,
@@ -1207,7 +1207,7 @@ class Amount extends PureComponent {
           <View style={styles.titleWrapper}>
             <View style={styles.dragger} />
           </View>
-          <FlatList
+          <FlashList
             data={[...this.tokens, ...tradableCollectibles]}
             keyExtractor={this.assetKeyExtractor}
             renderItem={this.renderAsset}

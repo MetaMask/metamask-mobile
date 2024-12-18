@@ -1,15 +1,11 @@
 import React from 'react';
-import {
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import { SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { storiesOf } from '@storybook/react-native';
 import { action } from '@storybook/addon-actions';
 import { text, boolean } from '@storybook/addon-knobs';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FlashList } from '@shopify/flash-list';
 
 import ListItem from './ListItem';
 import Text from './Text';
@@ -72,8 +68,8 @@ storiesOf('Components / Base / ListItem', module)
             </ListItem.Amounts>
           </ListItem.Content>
         </ListItem>
-        <Text primary>FlatList Example</Text>
-        <FlatList
+        <Text primary>FlashList Example</Text>
+        <FlashList
           data={exampleItems}
           renderItem={({ item }) => (
             <TouchableOpacity

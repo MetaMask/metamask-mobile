@@ -4,7 +4,6 @@ import {
   Alert,
   ScrollView,
   RefreshControl,
-  FlatList,
   StyleSheet,
   Text,
   View,
@@ -16,6 +15,7 @@ import Engine from '../../../core/Engine';
 import CollectibleMedia from '../CollectibleMedia';
 import AssetElement from '../AssetElement';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { FlashList } from '@shopify/flash-list';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -194,7 +194,7 @@ export default class Collectibles extends PureComponent {
     const { collectibles } = this.props;
 
     return (
-      <FlatList
+      <FlashList
         data={collectibles}
         extraData={this.state}
         keyExtractor={this.keyExtractor}

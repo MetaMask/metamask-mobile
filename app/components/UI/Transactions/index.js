@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
   InteractionManager,
   RefreshControl,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
+import { FlashList } from '@shopify/flash-list';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import Button, {
@@ -195,7 +195,7 @@ class Transactions extends PureComponent {
      */
     loading: PropTypes.bool,
     /**
-     * Pass the flatlist ref to the parent
+     * Pass the flashlist ref to the parent
      */
     onRefSet: PropTypes.func,
     /**
@@ -247,14 +247,14 @@ class Transactions extends PureComponent {
   speedUpTxId = null;
   selectedTx = null;
 
-  flatList = React.createRef();
+  flashList = React.createRef();
 
   componentDidMount = () => {
     this.mounted = true;
     setTimeout(() => {
       this.mounted && this.setState({ ready: true });
       this.init();
-      this.props.onRefSet && this.props.onRefSet(this.flatList);
+      this.props.onRefSet && this.props.onRefSet(this.flashList);
     }, 100);
     this.setState({
       isQRHardwareAccount: isHardwareAccount(this.props.selectedAddress),
@@ -319,7 +319,7 @@ class Transactions extends PureComponent {
     if (!this.scrolling && (this.props.headerHeight || index)) {
       this.scrolling = true;
       // eslint-disable-next-line no-unused-expressions
-      this.flatList?.current?.scrollToIndex({ index, animated: true });
+      this.flashList?.current?.scrollToIndex({ index, animated: true });
       setTimeout(() => {
         this.scrolling = false;
       }, 300);
@@ -800,9 +800,9 @@ class Transactions extends PureComponent {
       <View style={styles.wrapper}>
         <PriceChartContext.Consumer>
           {({ isChartBeingTouched }) => (
-            <FlatList
+            <FlashList
               testID={ActivitiesViewSelectorsIDs.CONTAINER}
-              ref={this.flatList}
+              ref={this.flashList}
               getItemLayout={this.getItemLayout}
               data={transactions}
               extraData={this.state}
