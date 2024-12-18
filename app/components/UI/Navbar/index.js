@@ -35,6 +35,9 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 
 import {
   default as MorphText,
@@ -1558,36 +1561,27 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
 }
 
 export function getSwapsAmountNavbar(navigation, route, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerButtonText: {
-      color: themeColors.primary.default,
-      fontSize: 14,
-      ...fontStyles.normal,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-  const title = route.params?.title ?? 'Swap';
   return {
-    headerTitle: () => (
-      <NavbarTitle title={title} disableNetwork translate={false} />
-    ),
-    headerLeft: () => <View />,
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={() => navigation.dangerouslyGetParent()?.pop()}
-        style={styles.closeButton}
+    header: () => (
+      <HeaderBase
+        includesTopInset
+        endAccessory={
+          <View style={styles.headerRightButton}>
+            <Button
+              variant={ButtonVariants.Link}
+              label={strings('navigation.cancel')}
+              onPress={() => navigation.dangerouslyGetParent()?.pop()}
+            />
+          </View>
+        }
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('navigation.cancel')}
-        </Text>
-      </TouchableOpacity>
+        <NavbarTitle
+          title={route.params?.title ?? 'Swap'}
+          disableNetwork
+          translate={false}
+        />
+      </HeaderBase>
     ),
-    headerStyle: innerStyles.headerStyle,
   };
 }
 
