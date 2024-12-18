@@ -15,7 +15,7 @@ import {
  * @param tokenAddress
  * @returns
  */
-export const useGetTokenStandardAndDetails = (
+const useGetTokenStandardAndDetails = (
   tokenAddress?: Hex | string | undefined,
 ) => {
   const { value: details } =
@@ -43,3 +43,5 @@ export const useGetTokenStandardAndDetails = (
 
   return details;
 };
+
+export default useGetTokenStandardAndDetails;
