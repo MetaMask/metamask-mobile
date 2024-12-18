@@ -797,10 +797,6 @@ class FixtureBuilder {
     return this;
   }
 
-  withUserLoggedIn() {
-    this.fixture.state.security.allowLoginWithRememberMe = false;
-    return this;
-  }
   /**
    * Adds chain switching permission for specific chains.
    * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
