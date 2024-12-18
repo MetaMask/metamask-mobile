@@ -141,6 +141,9 @@ const styles = StyleSheet.create({
   headerRightButton: {
     marginHorizontal: 16,
   },
+  headerContainer: {
+    paddingVertical: 16,
+  },
 });
 
 const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
@@ -1329,55 +1332,31 @@ export function getWebviewNavbar(navigation, route, themeColors) {
   const title = route.params?.title ?? '';
   const share = route.params?.dispatch;
   return {
-    headerTitle: () => (
-      <Text style={innerStyles.headerTitleStyle}>{title}</Text>
+    header: () => (
+      <HeaderBase
+        style={styles.headerContainer}
+        includesTopInset
+        startAccessory={
+          <View style={styles.headerLeftButton}>
+            <ButtonIcon
+              iconName={IconName.ArrowLeft}
+              onPress={() => navigation.pop()}
+            />
+          </View>
+        }
+        endAccessory={
+          <View style={styles.headerRightButton}>
+            <ButtonIcon iconName={IconName.Share} onPress={share} />
+          </View>
+        }
+      >
+        <NavbarTitle
+          title={title}
+          translate={false}
+          showSelectedNetwork={false}
+        />
+      </HeaderBase>
     ),
-    headerLeft: () =>
-      Device.isAndroid() ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-          {...generateTestId(Platform, BACK_BUTTON_SIMPLE_WEBVIEW)}
-        >
-          <IonicIcon
-            name={'md-arrow-back'}
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={() => navigation.pop()}
-          style={styles.backButton}
-        >
-          <IonicIcon
-            name="ios-close"
-            size={38}
-            style={[innerStyles.headerIcon, styles.backIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerRight: () =>
-      Device.isAndroid() ? (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <MaterialCommunityIcon
-            name="share-variant"
-            size={24}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity onPress={share} style={styles.backButton}>
-          <EvilIcons
-            name="share-apple"
-            size={32}
-            style={[innerStyles.headerIcon, styles.shareIconIOS]}
-          />
-        </TouchableOpacity>
-      ),
-    headerStyle: innerStyles.headerStyle,
   };
 }
 
