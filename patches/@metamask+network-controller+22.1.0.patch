@@ -1,29 +1,47 @@
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.cjs b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
-index cc9793f..b94112a 100644
+index cc9793f..e7334e4 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.cjs
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
-@@ -525,7 +525,11 @@ class NetworkController extends base_controller_1.BaseController {
+@@ -525,7 +525,20 @@ class NetworkController extends base_controller_1.BaseController {
          let networkChanged = false;
          const listener = () => {
              networkChanged = true;
 -            this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
 +            try {
 +                this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
-+            } catch {
-+                // The controller may have been destroyed, so don't worry about it
++            } catch (error) {
++                if (
++                  typeof error === 'object' &&
++                  error !== null &&
++                  'message' in error &&
++                  error.message === 'Subscription not found for event: NetworkController:networkDidChange'
++                ) {
++                  // The controller may have been destroyed, so don't worry about it
++                } else {
++                  throw error;
++                }
 +            }
          };
          this.messagingSystem.subscribe('NetworkController:networkDidChange', listener);
          let updatedNetworkStatus;
-@@ -575,7 +579,11 @@ class NetworkController extends base_controller_1.BaseController {
+@@ -575,7 +588,20 @@ class NetworkController extends base_controller_1.BaseController {
              // in the process of being called, so we don't need to go further.
              return;
          }
 -        this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
 +        try {
 +            this.messagingSystem.unsubscribe('NetworkController:networkDidChange', listener);
-+        } catch {
-+            // The controller may have been destroyed, so don't worry about it
++        } catch (error) {
++            if (
++              typeof error === 'object' &&
++              error !== null &&
++              'message' in error &&
++              error.message === 'Subscription not found for event: NetworkController:networkDidChange'
++            ) {
++              // The controller may have been destroyed, so don't worry about it
++            } else {
++              throw error;
++            }
 +        }
          this.update((state) => {
              const meta = state.networksMetadata[state.selectedNetworkClientId];
