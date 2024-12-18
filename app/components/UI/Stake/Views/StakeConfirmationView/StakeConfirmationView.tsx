@@ -5,19 +5,14 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import styleSheet from './StakeConfirmationView.styles';
 import TokenValueStack from '../../components/StakingConfirmation/TokenValueStack/TokenValueStack';
-import AccountHeaderCard from '../../components/StakingConfirmation/AccountHeaderCard/AccountHeaderCard';
+import AccountCard from '../../components/StakingConfirmation/AccountCard/AccountCard';
 import RewardsCard from '../../components/StakingConfirmation/RewardsCard/RewardsCard';
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { StakeConfirmationViewProps } from './StakeConfirmationView.types';
-import { MOCK_GET_VAULT_RESPONSE } from '../../components/StakingBalance/mockData';
 import { strings } from '../../../../../../locales/i18n';
-
-const MOCK_REWARD_DATA = {
-  REWARDS: {
-    ETH: '0.13 ETH',
-    FIAT: '$334.93',
-  },
-};
+import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
+import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
+import { ScrollView } from 'react-native-gesture-handler';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -36,7 +31,7 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
   }, [navigation, theme.colors]);
 
   return (
-    <View style={styles.mainContainer}>
+    <ScrollView contentContainerStyle={styles.mainContainer}>
       <View>
         <TokenValueStack
           amountWei={route.params.amountWei}
@@ -44,16 +39,24 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           tokenSymbol="ETH"
         />
         <View style={styles.cardsContainer}>
-          <AccountHeaderCard contractName={MOCK_STAKING_CONTRACT_NAME} />
-          <RewardsCard
-            rewardRate={MOCK_GET_VAULT_RESPONSE.apy}
-            rewardsEth={MOCK_REWARD_DATA.REWARDS.ETH}
-            rewardsFiat={MOCK_REWARD_DATA.REWARDS.FIAT}
+          <AccountCard
+            contractName={MOCK_STAKING_CONTRACT_NAME}
+            primaryLabel={strings('stake.staking_from')}
+            secondaryLabel={strings('stake.interacting_with')}
           />
+          <RewardsCard
+            rewardRate={route.params.annualRewardRate}
+            rewardsEth={route.params.annualRewardsETH}
+            rewardsFiat={route.params.annualRewardsFiat}
+          />
+          <UnstakingTimeCard />
         </View>
       </View>
-      <ConfirmationFooter />
-    </View>
+      <ConfirmationFooter
+        valueWei={route.params.amountWei}
+        action={FooterButtonGroupActions.STAKE}
+      />
+    </ScrollView>
   );
 };
 

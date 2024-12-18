@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  CHAIN_IDS,
   SimulationData,
   SimulationErrorCode,
 } from '@metamask/transaction-controller';
@@ -22,10 +23,14 @@ import {
   useSimulationMetrics,
 } from './useSimulationMetrics';
 import useLoadingTime from './useLoadingTime';
+import { selectChainId } from '../../../selectors/networkController';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useSelector: (fn: any) => fn(),
 }));
 
 jest.mock('react', () => ({
@@ -38,6 +43,22 @@ jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
 jest.mock('../../../core/redux/slices/transactionMetrics');
 jest.mock('../../../components/hooks/useMetrics');
+const mockTrackEvent = jest.fn();
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
+
+jest.mock('../../../selectors/networkController');
 
 const TRANSACTION_ID_MOCK = 'testTransactionId';
 const LOADING_TIME_MOCK = 0.123;
@@ -51,7 +72,6 @@ const BALANCE_CHANGE_MOCK = {
 } as unknown as BalanceChange;
 
 const DISPLAY_NAME_UNKNOWN_MOCK = {
-  name: null,
   variant: DisplayNameVariant.Unknown,
 };
 
@@ -63,18 +83,13 @@ const DISPLAY_NAME_SAVED_MOCK = {
 
 describe('useSimulationMetrics', () => {
   const updateTransactionMetricsMock = jest.mocked(updateTransactionMetrics);
-
   const useDispatchMock = jest.mocked(useDispatch);
   const useStateMock = jest.mocked(useState);
   const useEffectMock = jest.mocked(useEffect);
   const useDisplayNamesMock = jest.mocked(useDisplayNames);
   const useLoadingTimeMock = jest.mocked(useLoadingTime);
-  const useMetricsMock = jest.mocked(useMetrics);
   const setLoadingCompleteMock = jest.fn();
-
-  // TODO: Replace `any` with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let trackEventMock: jest.MockedFunction<any>;
+  const selectChainIdMock = jest.mocked(selectChainId);
 
   function expectUpdateTransactionMetricsCalled(
     {
@@ -108,9 +123,7 @@ describe('useSimulationMetrics', () => {
   }
 
   beforeEach(() => {
-    jest.resetAllMocks();
-
-    trackEventMock = jest.fn();
+    jest.clearAllMocks();
 
     // TODO: Replace `any` with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,9 +141,7 @@ describe('useSimulationMetrics', () => {
       loadingTime: LOADING_TIME_MOCK,
       setLoadingComplete: setLoadingCompleteMock,
     });
-    // TODO: Replace `any` with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    useMetricsMock.mockReturnValue({ trackEvent: trackEventMock } as any);
+    selectChainIdMock.mockReturnValue(CHAIN_IDS.MAINNET);
   });
 
   describe('updates transaction simulation metrics', () => {
@@ -379,17 +390,20 @@ describe('useSimulationMetrics', () => {
         transactionId: TRANSACTION_ID_MOCK,
       });
 
-      expect(trackEventMock).toHaveBeenCalledTimes(1);
-      expect(trackEventMock).toHaveBeenCalledWith(
-        MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED,
-        {
-          asset_address: ADDRESS_MOCK,
-          asset_symbol: SYMBOL_MOCK,
-          asset_petname: 'unknown',
-          asset_type: AssetType.ERC20,
-          fiat_conversion_available: FiatType.NotAvailable,
-          location: 'confirmation',
-        },
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED,
+        )
+          .addProperties({
+            asset_address: ADDRESS_MOCK,
+            asset_symbol: SYMBOL_MOCK,
+            asset_petname: 'unknown',
+            asset_type: AssetType.ERC20,
+            fiat_conversion_available: FiatType.NotAvailable,
+            location: 'confirmation',
+          })
+          .build(),
       );
     });
   });

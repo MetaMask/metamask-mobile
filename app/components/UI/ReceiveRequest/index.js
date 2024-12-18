@@ -23,15 +23,12 @@ import GlobalAlert from '../GlobalAlert';
 import StyledButton from '../StyledButton';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { isNetworkRampSupported } from '../Ramp/utils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
-import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Modals/RequestPaymentModal.selectors';
+import { RequestPaymentModalSelectorsIDs } from '../../../../e2e/selectors/Receive/RequestPaymentModal.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import QRAccountDisplay from '../../Views/QRAccountDisplay';
@@ -179,7 +176,9 @@ class ReceiveRequest extends PureComponent {
       });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_SHARE_ADDRESS)
+        .build(),
     );
   };
 
@@ -196,11 +195,16 @@ class ReceiveRequest extends PureComponent {
     } else {
       navigation.navigate(...createBuyNavigationDetails());
 
-      this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-        text: 'Buy Native Token',
-        location: 'Receive Modal',
-        chain_id_destination: getDecimalChainId(this.props.chainId),
-      });
+      this.props.metrics.trackEvent(
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+          .addProperties({
+            text: 'Buy Native Token',
+            location: 'Receive Modal',
+            chain_id_destination: getDecimalChainId(this.props.chainId),
+          })
+          .build(),
+      );
     }
   };
 
@@ -226,7 +230,9 @@ class ReceiveRequest extends PureComponent {
     });
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -271,8 +277,7 @@ ReceiveRequest.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
-  ticker: selectTicker(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   receiveAsset: state.modals.receiveAsset,
   seedphraseBackedUp: state.user.seedphraseBackedUp,
   isNetworkBuySupported: isNetworkRampSupported(

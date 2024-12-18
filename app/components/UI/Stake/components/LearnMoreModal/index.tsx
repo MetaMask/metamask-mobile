@@ -17,6 +17,8 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import createLearnMoreModalStyles from './LearnMoreModal.styles';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 
 const styles = createLearnMoreModalStyles();
 
@@ -44,6 +46,16 @@ const LearnMoreModal = () => {
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
+  };
+
+  const handleLearnMoreBrowserRedirect = () => {
+    // Take to the faq page
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: POOLED_STAKING_FAQ_URL,
+      },
+    });
   };
 
   return (
@@ -84,14 +96,14 @@ const LearnMoreModal = () => {
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
           <Button
-            onPress={() => {
-              navigation.navigate('Webview', {
-                screen: 'SimpleWebview',
-                params: {
-                  url: POOLED_STAKING_FAQ_URL,
-                },
-              });
-            }} // Take to the faq page
+            onPress={withMetaMetrics(handleLearnMoreBrowserRedirect, {
+              event: MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
+              properties: {
+                selected_provider: 'consensys',
+                text: 'Learn More',
+                location: 'Learn More Modal',
+              },
+            })}
             label={strings('stake.learn_more')}
             variant={ButtonVariants.Secondary}
             width={ButtonWidthTypes.Full}

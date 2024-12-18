@@ -1,9 +1,12 @@
 import { createSelector } from 'reselect';
 import { PreferencesState } from '@metamask/preferences-controller';
 import { RootState } from '../reducers';
+import { selectChainId } from './networkController';
+import { createDeepEqualSelector } from './util';
+import { Hex } from '@metamask/utils';
 
 const selectPreferencesControllerState = (state: RootState) =>
-  state.engine.backgroundState.PreferencesController;
+  state.engine?.backgroundState?.PreferencesController;
 
 export const selectIpfsGateway = createSelector(
   selectPreferencesControllerState,
@@ -40,6 +43,35 @@ export const selectUseSafeChainsListValidation = createSelector(
   (preferencesControllerState: PreferencesState) =>
     preferencesControllerState.useSafeChainsListValidation,
 );
+
+export const selectTokenSortConfig = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenSortConfig,
+);
+
+export const selectTokenNetworkFilter = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.tokenNetworkFilter,
+);
+
+export const selectIsTokenNetworkFilterEqualCurrentNetwork =
+  createDeepEqualSelector(
+    selectPreferencesControllerState,
+    (state: RootState) => selectChainId(state),
+    (preferencesControllerState: PreferencesState, chainId: Hex) => {
+      const tokenNetworkFilter =
+        preferencesControllerState.tokenNetworkFilter || {};
+      if (
+        Object.keys(tokenNetworkFilter).length === 1 &&
+        Object.keys(tokenNetworkFilter)[0] === chainId
+      ) {
+        return true;
+      }
+      return false;
+    },
+  );
 
 // isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
@@ -107,4 +139,10 @@ export const selectUseTransactionSimulations = createSelector(
         useTransactionSimulations: boolean;
       }
     ).useTransactionSimulations,
+);
+
+export const selectPrivacyMode = createSelector(
+  selectPreferencesControllerState,
+  (preferencesControllerState: PreferencesState) =>
+    preferencesControllerState.privacyMode,
 );

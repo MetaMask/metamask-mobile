@@ -74,13 +74,10 @@ import trackErrorAsAnalytics from '../../../../util/metrics/TrackError/trackErro
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ProfileSyncingComponent from '../../../UI/ProfileSyncing/ProfileSyncing';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetrics } from '../../../../core/Analytics';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
-import {
-  selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
 import { useDisableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -91,6 +88,8 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import IncomingTransactionsSettings from '../../Settings/IncomingTransactionsSettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
+import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
+import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -105,7 +104,7 @@ const Heading: React.FC<HeadingProps> = ({ children, first }) => {
 };
 
 const Settings: React.FC = () => {
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
@@ -136,13 +135,12 @@ const Settings: React.FC = () => {
     loading: disableNotificationsLoading,
     error: disableNotificationsError,
   } = useDisableNotifications();
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const browserHistory = useSelector((state: any) => state.browser.history);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
+  const browserHistory = useSelector(
+    (state: RootState) => state.browser.history,
+  );
+
+  const lockTime = useSelector((state: RootState) => state.settings.lockTime);
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
@@ -152,11 +150,21 @@ const Settings: React.FC = () => {
   );
 
   const seedphraseBackedUp = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.user.seedphraseBackedUp,
+    (state: RootState) => state.user.seedphraseBackedUp,
   );
+
+  /**
+   * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
+   */
+  useCheckNftAutoDetectionModal();
+
+  /**
+   * Show multi rpc modal if there are networks duplicated and if never showed before
+   */
+  useCheckMultiRpcModal();
+
   const type = useSelector(selectProviderType);
+
   const isMainnet = type === MAINNET;
 
   const updateNavBar = useCallback(() => {
@@ -186,14 +194,7 @@ const Settings: React.FC = () => {
     updateNavBar();
     handleHintText();
     setAnalyticsEnabled(isEnabled());
-    trackEvent(MetaMetricsEvents.VIEW_SECURITY_SETTINGS, {});
-  }, [
-    handleHintText,
-    updateNavBar,
-    setAnalyticsEnabled,
-    isEnabled,
-    trackEvent,
-  ]);
+  }, [handleHintText, updateNavBar, setAnalyticsEnabled, isEnabled]);
 
   useEffect(() => {
     const triggerCascadeBasicFunctionalityDisable = async () => {
@@ -473,13 +474,14 @@ const Settings: React.FC = () => {
             size={ButtonSize.Auto}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
-              MetaMetrics.getInstance().trackEvent(
-                MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
-                {
-                  location: 'app_settings',
-                  text: strings('app_settings.simulation_details_learn_more'),
-                  url_domain: SIMULATION_DETALS_ARTICLE_URL,
-                },
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
+                  .addProperties({
+                    location: 'app_settings',
+                    text: strings('app_settings.simulation_details_learn_more'),
+                    url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                  })
+                  .build(),
               );
             }}
             label={strings('app_settings.simulation_details_learn_more')}
@@ -487,7 +489,14 @@ const Settings: React.FC = () => {
         </Text>
       </View>
     ),
-    [colors, styles, useTransactionSimulations, theme.brandColors.white],
+    [
+      colors,
+      styles,
+      useTransactionSimulations,
+      theme.brandColors.white,
+      createEventBuilder,
+      trackEvent,
+    ],
   );
 
   const handleChangeText = (text: string) => setHintText(text);
@@ -510,13 +519,17 @@ const Settings: React.FC = () => {
       });
     } else {
       await enableProfileSyncing();
-      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-        settings_group: 'security_privacy',
-        settings_type: 'profile_syncing',
-        old_value: isProfileSyncingEnabled,
-        new_value: !isProfileSyncingEnabled,
-        was_notifications_on: isNotificationEnabled,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+          .addProperties({
+            settings_group: 'security_privacy',
+            settings_type: 'profile_syncing',
+            old_value: isProfileSyncingEnabled,
+            new_value: !isProfileSyncingEnabled,
+            was_notifications_on: isNotificationEnabled,
+          })
+          .build(),
+      );
     }
   };
 

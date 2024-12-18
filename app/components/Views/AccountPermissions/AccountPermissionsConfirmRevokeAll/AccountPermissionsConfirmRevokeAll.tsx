@@ -19,6 +19,7 @@ import UntypedEngine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './AccountPermissionsConfirmRevokeAll.styles';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 interface AccountPermissionsConfirmRevokeAllProps {
   route: {
@@ -26,6 +27,7 @@ interface AccountPermissionsConfirmRevokeAllProps {
       hostInfo: {
         metadata: { origin: string };
       };
+      onRevokeAll?: () => void;
     };
   };
 }
@@ -37,6 +39,7 @@ const AccountPermissionsConfirmRevokeAll = (
     hostInfo: {
       metadata: { origin: hostname },
     },
+    onRevokeAll,
   } = props.route.params;
 
   const { styles } = useStyles(styleSheet, {});
@@ -48,12 +51,18 @@ const AccountPermissionsConfirmRevokeAll = (
 
   const revokeAllAccounts = useCallback(async () => {
     try {
-      await Engine.context.PermissionController.revokeAllPermissions(hostname);
-      sheetRef.current?.onCloseBottomSheet();
+      if (onRevokeAll) {
+        onRevokeAll();
+      } else {
+        await Engine.context.PermissionController.revokeAllPermissions(
+          hostname,
+        );
+        sheetRef.current?.onCloseBottomSheet();
+      }
     } catch (e) {
       Logger.log(`Failed to revoke all accounts for ${hostname}`, e);
     }
-  }, [hostname, Engine.context.PermissionController]);
+  }, [hostname, Engine.context.PermissionController, onRevokeAll]);
 
   const onCancel = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -89,6 +98,9 @@ const AccountPermissionsConfirmRevokeAll = (
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
             onPress={revokeAllAccounts}
+            testID={
+              ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON
+            }
             isDanger
           />
         </View>

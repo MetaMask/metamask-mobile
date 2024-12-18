@@ -1,3 +1,4 @@
+import { MarketDataDetails } from '@metamask/assets-controllers';
 import {
   renderFromTokenMinimalUnit,
   addCurrencySymbol,
@@ -7,7 +8,6 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../constants';
 import { TokenI } from '../types';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '..';
 
 export const deriveBalanceFromAssetMarketDetails = (
   asset: TokenI,
@@ -42,8 +42,10 @@ export const deriveBalanceFromAssetMarketDetails = (
       balanceValueFormatted: TOKEN_BALANCE_LOADING,
     };
   }
-
-  const balanceValueFormatted = `${balance} ${asset.symbol}`;
+  let balanceValueFormatted = `${balance} ${asset.symbol}`;
+  if (asset.isNative) {
+    balanceValueFormatted = `${balance} ${asset.ticker}`;
+  }
 
   if (!conversionRate)
     return {
@@ -53,10 +55,12 @@ export const deriveBalanceFromAssetMarketDetails = (
 
   if (!tokenMarketData || tokenMarketData === TOKEN_RATE_UNDEFINED)
     return {
-      balanceFiat: asset.isETH ? asset.balanceFiat : TOKEN_RATE_UNDEFINED,
+      balanceFiat:
+        asset.isETH || asset.isNative
+          ? asset.balanceFiat
+          : TOKEN_RATE_UNDEFINED,
       balanceValueFormatted,
     };
-
   const balanceFiatCalculation = Number(
     asset.balanceFiat ||
       balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
@@ -67,5 +71,5 @@ export const deriveBalanceFromAssetMarketDetails = (
       ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
       : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
 
-  return { balanceFiat, balanceValueFormatted };
+  return { balanceFiat, balanceValueFormatted, balanceFiatCalculation };
 };

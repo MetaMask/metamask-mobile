@@ -91,7 +91,13 @@ interface InfoViewProps {
   };
 }
 
-const InfoView: React.FC<InfoViewProps> = ({ message, urlText, url, onClose, style }) => {
+const InfoView: React.FC<InfoViewProps> = ({
+  message,
+  urlText,
+  url,
+  onClose,
+  style,
+}) => {
   if (!message) {
     return <CloseButton onPress={onClose} style={style} />;
   }

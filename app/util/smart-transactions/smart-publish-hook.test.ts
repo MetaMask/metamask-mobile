@@ -11,7 +11,8 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import type { SmartTransaction } from '@metamask/smart-transactions-controller/dist/types';
+import { type SmartTransaction, ClientId } from '@metamask/smart-transactions-controller/dist/types';
+
 import {
   AllowedActions,
   AllowedEvents,
@@ -100,18 +101,8 @@ const defaultTransactionMeta: TransactionMeta = {
   },
   type: TransactionType.simpleSend,
   chainId: ChainId.mainnet,
+  networkClientId: 'testNetworkClientId',
   time: 1624408066355,
-  // defaultGasEstimates: {
-  //   gas: '0x7b0d',
-  //   gasPrice: '0x77359400',
-  // },
-  // error: {
-  //   name: 'Error',
-  //   message: 'Details of the error',
-  // },
-  // securityProviderResponse: {
-  //   flagAsDangerous: 0,
-  // },
 };
 
 type WithRequestOptions = {
@@ -148,7 +139,6 @@ function withRequest<ReturnValue>(
   >();
 
   const smartTransactionsController = new SmartTransactionsController({
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     messenger: controllerMessenger.getRestricted({
       name: 'SmartTransactionsController',
       allowedActions: ['NetworkController:getNetworkClientById'],
@@ -159,6 +149,9 @@ function withRequest<ReturnValue>(
     trackMetaMetricsEvent: jest.fn(),
     getTransactions: jest.fn(),
     getMetaMetricsProps: jest.fn(),
+    getFeatureFlags: jest.fn(),
+    updateTransaction: jest.fn(),
+    clientId: ClientId.Mobile,
   });
 
   const getFeesSpy = jest
@@ -200,7 +193,7 @@ function withRequest<ReturnValue>(
       smartTransactions: {
         expectedDeadline: 45,
         maxDeadline: 150,
-        returnTxHashAsap: false,
+        mobileReturnTxHashAsap: false,
       },
       mobile_active: true,
       extension_active: true,
@@ -231,7 +224,7 @@ describe('submitSmartTransactionHook', () => {
 
   it('returns a txHash asap if the feature flag requires it', async () => {
     withRequest(async ({ request }) => {
-      request.featureFlags.smartTransactions.returnTxHashAsap = true;
+      request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
       const result = await submitSmartTransactionHook(request);
       expect(result).toEqual({ transactionHash });
     });
@@ -365,6 +358,69 @@ describe('submitSmartTransactionHook', () => {
             isSwapTransaction: false,
           },
         });
+      },
+    );
+  });
+
+  it('submits a smart transaction without the smart transaction status page', async () => {
+    withRequest(
+      async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
+        request.featureFlags.smartTransactions.mobileReturnTxHashAsap = true;
+        setImmediate(() => {
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'pending',
+              statusMetadata: {
+                minedHash: '',
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+
+          controllerMessenger.publish(
+            'SmartTransactionsController:smartTransaction',
+            {
+              status: 'success',
+              statusMetadata: {
+                minedHash: transactionHash,
+              },
+              uuid: 'uuid',
+            } as SmartTransaction,
+          );
+        });
+        const result = await submitSmartTransactionHook(request);
+
+        expect(result).toEqual({ transactionHash });
+        const { txParams, chainId } = request.transactionMeta;        
+
+        expect(
+          request.transactionController.approveTransactionsWithSameNonce,
+        ).toHaveBeenCalledWith(
+          [
+            {
+              ...txParams,
+              maxFeePerGas: '0x2fd8a58d7',
+              maxPriorityFeePerGas: '0xaa0f8a94',
+              chainId,
+              value: undefined,
+            },
+          ],
+          { hasNonce: true },
+        );
+        expect(submitSignedTransactionsSpy).toHaveBeenCalledWith({
+          signedTransactions: [createSignedTransaction()],
+          signedCanceledTransactions: [],
+          txParams,
+          transactionMeta: request.transactionMeta,
+        });
+
+        expect(
+          request.approvalController.addAndShowApprovalRequest,
+        ).not.toHaveBeenCalled();
+        expect(
+          request.approvalController.updateRequestState,
+        ).not.toHaveBeenCalled();
       },
     );
   });

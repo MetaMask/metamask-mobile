@@ -21,7 +21,7 @@ import { tlc } from '../../../util/general';
 import { useTheme } from '../../../util/theme';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Modals/DeleteWalletModal.selectors';
+import { DeleteWalletModalSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/DeleteWalletModal.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -38,7 +38,7 @@ if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
 const DeleteWalletModal = () => {
   const navigation = useNavigation();
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const modalRef = useRef<ReusableModalRef>(null);
@@ -94,7 +94,11 @@ const DeleteWalletModal = () => {
     triggerClose();
     await resetWalletState();
     await deleteUser();
-    trackEvent(MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED, {});
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.DELETE_WALLET_MODAL_WALLET_DELETED,
+      ).build(),
+    );
     InteractionManager.runAfterInteractions(() => {
       navigateOnboardingRoot();
     });

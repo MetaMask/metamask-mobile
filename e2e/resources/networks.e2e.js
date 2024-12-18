@@ -1,4 +1,4 @@
-import { toHex } from '@metamask/controller-utils';
+import { BlockExplorerUrl, toHex } from '@metamask/controller-utils';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -36,7 +36,7 @@ const PopularNetworksList = {
     providerConfig: {
       type: 'rpc',
       chainId: toHex('8453'),
-      rpcUrl: `https://mainnet.base.org`,
+      rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
       nickname: 'Base',
       ticker: 'ETH',
     },
@@ -109,6 +109,7 @@ const CustomNetworks = {
       rpcUrl: 'https://rpc.gnosischain.com',
       nickname: 'Gnosis',
       ticker: 'xDAI',
+      BlockExplorerUrl: 'https://gnosisscan.io',
     },
   },
 };

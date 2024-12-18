@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 // External dependencies.
@@ -35,8 +35,7 @@ import styleSheet from './AccountConnectSingle.styles';
 import { AccountConnectSingleProps } from './AccountConnectSingle.types';
 
 import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
-import { ConnectAccountModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectAccountModal.selectors';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 
 const AccountConnectSingle = ({
   defaultSelectedAccount,
@@ -146,7 +145,7 @@ const AccountConnectSingle = ({
           type: accountAvatarType,
           accountAddress: address,
         }}
-        tagLabel={tagLabel ? strings(tagLabel) : ''}
+        tagLabel={tagLabel || ''}
         disabled={isLoading}
         style={isLoading && styles.disabled}
       >
@@ -168,7 +167,7 @@ const AccountConnectSingle = ({
       <SheetHeader title={strings('accounts.connect_account_title')} />
       <View
         style={styles.body}
-        {...generateTestId(Platform, ConnectAccountModalSelectorsIDs.CONTAINER)}
+        testID={ConnectAccountBottomSheetSelectorsIDs.CONTAINER}
       >
         <TagUrl
           imageSource={favicon}

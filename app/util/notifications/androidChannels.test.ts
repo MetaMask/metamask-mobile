@@ -15,9 +15,9 @@ describe('notificationChannels', () => {
     expect(firstChannel).toEqual({
       id: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
       name: 'Transaction Complete',
-      lights: false,
-      vibration: false,
-      importance: AndroidImportance.DEFAULT,
+      lights: true,
+      vibration: true,
+      importance: AndroidImportance.HIGH,
       title: 'Transaction',
       subtitle: 'Transaction Complete',
     });
@@ -28,9 +28,9 @@ describe('notificationChannels', () => {
     expect(secondChannel).toEqual({
       id: ChannelId.ANNOUNCEMENT_NOTIFICATION_CHANNEL_ID,
       name: 'MetaMask Announcement',
-      lights: false,
-      vibration: false,
-      importance: AndroidImportance.DEFAULT,
+      lights: true,
+      vibration: true,
+      importance: AndroidImportance.HIGH,
       title: 'Announcement',
       subtitle: 'MetaMask Announcement',
     });

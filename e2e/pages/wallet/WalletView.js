@@ -2,7 +2,6 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../selectors/wallet/WalletView.selectors';
-import { CommonSelectorsText } from '../../selectors/Common.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 
@@ -35,6 +34,12 @@ class WalletView {
     );
   }
 
+  async getNavbarNetworkPicker() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+    );
+  }
+
   get nftTab() {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -48,9 +53,13 @@ class WalletView {
   }
 
   get importTokensButton() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText(WalletViewSelectorsText.IMPORT_TOKENS)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+  }
+
+  get importTokensFooterLink() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK,
+    );
   }
 
   get networkName() {
@@ -71,12 +80,34 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
   }
 
-  get mainWalletAccountActions() {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+  get currentMainWalletAccountActions() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+    );
   }
 
-  async tapMainWalletAccountActions() {
-    await Gestures.waitAndTap(this.mainWalletAccountActions);
+  get tokenNetworkFilter() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  }
+
+  get tokenNetworkFilterAll() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+    );
+  }
+
+  get tokenNetworkFilterCurrent() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+    );
+  }
+
+  get cancelButton() {
+    return Matchers.getElementByText('Cancel');
+  }
+
+  async tapCurrentMainWalletAccountActions() {
+    await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
   async tapOnToken(token) {
@@ -124,6 +155,10 @@ class WalletView {
     await Gestures.waitAndTap(this.importTokensButton);
   }
 
+  async tapImportTokensFooterLink() {
+    await Gestures.waitAndTap(this.importTokensFooterLink);
+  }
+
   async tapOnNFTInWallet(nftName) {
     const elem = Matchers.getElementByText(nftName);
     await Gestures.waitAndTap(elem);
@@ -149,6 +184,22 @@ class WalletView {
 
   async tapPortfolio() {
     await Gestures.waitAndTap(this.portfolioButton);
+  }
+
+  async tapTokenNetworkFilter() {
+    await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapTokenNetworkFilterAll() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterAll);
+  }
+
+  async tapTokenNetworkFilterCurrent() {
+    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
+  }
+
+  async tapCancelButton() {
+    await Gestures.waitAndTap(this.cancelButton);
   }
 }
 

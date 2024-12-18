@@ -1,3 +1,5 @@
+import { NotificationServicesController } from '@metamask/notification-services-controller';
+
 import ERC20SentReceivedState from './erc20-sent-received/erc20-sent-received';
 import ERC721SentReceivedState from './erc721-sent-received/erc721-sent-received';
 import ERC1155SentReceivedState from './erc1155-sent-received/erc1155-sent-received';
@@ -8,7 +10,9 @@ import SwapCompletedState from './swap-completed/swap-completed';
 import LidoWithdrawalRequestedState from './lido-withdrawal-requested/lido-withdrawal-requested';
 import LidoStakeReadyToBeWithdrawnState from './lido-stake-ready-to-be-withdrawn/lido-stake-ready-to-be-withdrawn';
 import { NotificationState } from './types/NotificationState';
-import { TRIGGER_TYPES } from '../constants';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+type TRIGGER_TYPES = NotificationServicesController.Constants.TRIGGER_TYPES;
 
 /**
  * Each notification component has a specific shape it follows.
@@ -60,5 +64,9 @@ export const hasNotificationComponents = (
 ): t is keyof typeof NotificationComponentState =>
   t in NotificationComponentState;
 
-export const hasNotificationModal = (t: TRIGGER_TYPES) =>
-  !!NotificationComponentState[t]?.createModalDetails;
+  export const hasNotificationModal = (t: TRIGGER_TYPES) => {
+    if (!hasNotificationComponents(t)) {
+      return false;
+    }
+    return !!NotificationComponentState[t]?.createModalDetails;
+  };

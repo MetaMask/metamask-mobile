@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FooterButtonGroup navigates to previous page when cancel button is pressed 1`] = `
+exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
 <View
   style={
     {
@@ -15,6 +15,7 @@ exports[`FooterButtonGroup navigates to previous page when cancel button is pres
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
+    disabled={true}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -56,6 +57,180 @@ exports[`FooterButtonGroup navigates to previous page when cancel button is pres
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
+    disabled={true}
+    loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "#0376c9",
+        "borderRadius": 24,
+        "flexBasis": 0,
+        "flexDirection": "row",
+        "flexGrow": 1,
+        "flexShrink": 0,
+        "height": 48,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#ffffff"
+      size="small"
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "gap": 16,
+      "justifyContent": "center",
+      "paddingTop": 24,
+    }
+  }
+>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    disabled={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "transparent",
+        "borderColor": "#0376c9",
+        "borderRadius": 24,
+        "borderWidth": 1,
+        "flexBasis": 0,
+        "flexDirection": "row",
+        "flexGrow": 1,
+        "flexShrink": 0,
+        "height": 48,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#0376c9",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Cancel
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    disabled={true}
+    loading={true}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "#0376c9",
+        "borderRadius": 24,
+        "flexBasis": 0,
+        "flexDirection": "row",
+        "flexGrow": 1,
+        "flexShrink": 0,
+        "height": 48,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#ffffff"
+      size="small"
+    />
+  </TouchableOpacity>
+</View>
+`;
+
+exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "gap": 16,
+      "justifyContent": "center",
+      "paddingTop": 24,
+    }
+  }
+>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "transparent",
+        "borderColor": "#0376c9",
+        "borderRadius": 24,
+        "borderWidth": 1,
+        "flexBasis": 0,
+        "flexDirection": "row",
+        "flexGrow": 1,
+        "flexShrink": 0,
+        "height": 48,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#0376c9",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Cancel
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    disabled={false}
+    loading={false}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -88,7 +263,7 @@ exports[`FooterButtonGroup navigates to previous page when cancel button is pres
         }
       }
     >
-      Confirm
+      Continue
     </Text>
   </TouchableOpacity>
 </View>
@@ -109,6 +284,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
+    disabled={false}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -150,6 +326,8 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
     accessibilityRole="button"
     accessible={true}
     activeOpacity={1}
+    disabled={false}
+    loading={false}
     onPress={[Function]}
     onPressIn={[Function]}
     onPressOut={[Function]}
@@ -182,7 +360,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
         }
       }
     >
-      Confirm
+      Continue
     </Text>
   </TouchableOpacity>
 </View>

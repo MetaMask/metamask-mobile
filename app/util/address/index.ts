@@ -49,15 +49,16 @@ const {
   ASSET: { ERC721, ERC1155 },
 } = TransactionTypes;
 /**
- * Returns full checksummed address
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - String corresponding to full checksummed address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
  */
 export function renderFullAddress(address: string) {
-  return address
-    ? toChecksumAddress(address)
-    : strings('transactions.tx_details_not_available');
+  if (address) {
+    return toFormattedAddress(address);
+  }
+  return strings('transactions.tx_details_not_available');
 }
 
 /**
@@ -69,10 +70,6 @@ export function renderFullAddress(address: string) {
 type FormatAddressType = 'short' | 'mid' | 'full';
 export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
   let formattedAddress = rawAddress;
-
-  if (!isValidAddress(rawAddress)) {
-    return rawAddress;
-  }
 
   if (type && type === 'short') {
     formattedAddress = renderShortAddress(rawAddress);
@@ -86,6 +83,16 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
 };
 
 /**
+ * Returns full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - String corresponding to full formatted address. EVM addresses are checksummed, non EVM addresses are not.
+ */
+export function toFormattedAddress(address: string) {
+  return isEthAddress(address) ? toChecksumAddress(address) : address;
+}
+
+/**
  * Returns short address format
  *
  * @param {String} address - String corresponding to an address
@@ -95,11 +102,10 @@ export const formatAddress = (rawAddress: string, type: FormatAddressType) => {
  */
 export function renderShortAddress(address: string, chars = 4) {
   if (!address) return address;
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.substr(
-    0,
-    chars + 2,
-  )}...${checksummedAddress.substr(-chars)}`;
+  const formattedAddress = toFormattedAddress(address);
+  return `${formattedAddress.substr(0, chars + 2)}...${formattedAddress.substr(
+    -chars,
+  )}`;
 }
 
 export function renderSlightlyLongAddress(
@@ -107,11 +113,11 @@ export function renderSlightlyLongAddress(
   chars = 4,
   initialChars = 20,
 ) {
-  const checksummedAddress = toChecksumAddress(address);
-  return `${checksummedAddress.slice(
+  const formattedAddress = toFormattedAddress(address);
+  return `${formattedAddress.slice(
     0,
     chars + initialChars,
-  )}...${checksummedAddress.slice(-chars)}`;
+  )}...${formattedAddress.slice(-chars)}`;
 }
 
 /**
@@ -223,6 +229,17 @@ export function isHardwareAccount(
 }
 
 /**
+ * Determines if an address belongs to a snap account
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {Boolean} - Returns a boolean
+ */
+export function isSnapAccount(address: string) {
+  const keyring = getKeyringByAddress(address);
+  return keyring && keyring.type === KeyringTypes.snap;
+}
+
+/**
  * judge address is a hardware account that require external operation or not
  *
  * @param {String} address - String corresponding to an address
@@ -233,25 +250,54 @@ export function isExternalHardwareAccount(address: string) {
 }
 
 /**
- * gets i18n account label tag text based on address
+ * Checks if an address is an ethereum one.
+ *
+ * @param address - An address.
+ * @returns True if the address is an ethereum one, false otherwise.
+ */
+export function isEthAddress(address: string): boolean {
+  return isValidHexAddress(address as Hex);
+}
+
+/**
+ * gets the internal account by address
  *
  * @param {String} address - String corresponding to an address
- * @returns {String} - Returns address's i18n label text
+ * @returns {InternalAccount | undefined} - Returns the internal account by address
+ */
+function getInternalAccountByAddress(
+  address: string,
+): InternalAccount | undefined {
+  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
+  return Object.values(accounts).find(
+    (a: InternalAccount) => a.address.toLowerCase() === address.toLowerCase(),
+  );
+}
+
+/**
+ * gets account label tag text based on address
+ *
+ * @param {String} address - String corresponding to an address
+ * @returns {String} - Returns address's translated label text
  */
 export function getLabelTextByAddress(address: string) {
   if (!address) return null;
-  const keyring = getKeyringByAddress(address);
+  const internalAccount = getInternalAccountByAddress(address);
+  const keyring = internalAccount?.metadata?.keyring;
   if (keyring) {
     switch (keyring.type) {
       case ExtendedKeyringTypes.ledger:
-        return 'accounts.ledger';
+        return strings('accounts.ledger');
       case ExtendedKeyringTypes.qr:
-        return 'accounts.qr_hardware';
+        return strings('accounts.qr_hardware');
       case ExtendedKeyringTypes.simple:
-        return 'accounts.imported';
+        return strings('accounts.imported');
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       case KeyringTypes.snap:
-        return 'accounts.snap_account_tag';
+        return (
+          internalAccount?.metadata.snap?.name ||
+          strings('accounts.snap_account_tag')
+        );
       ///: END:ONLY_INCLUDE_IF
     }
   }

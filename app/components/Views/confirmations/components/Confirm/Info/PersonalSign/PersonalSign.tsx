@@ -1,12 +1,9 @@
 import React from 'react';
 
-import { strings } from '../../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
-import InfoSection from '../../../UI/InfoRow/InfoSection';
-import InfoRow from '../../../UI/InfoRow';
-import InfoURL from '../../../UI/InfoRow/InfoValue/InfoURL';
+import NoChangeSimulation from '../../NoChangeSimulation';
+import InfoRowOrigin from '../Shared/InfoRowOrigin';
 import Message from './Message';
-import Simulation from './Simulation';
 
 const PersonalSign = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -17,15 +14,8 @@ const PersonalSign = () => {
 
   return (
     <>
-      <Simulation />
-      <InfoSection>
-        <InfoRow
-          label={strings('confirm.request_from')}
-          tooltip={strings('confirm.personal_sign_tooltip')}
-        >
-          <InfoURL url={approvalRequest.origin} />
-        </InfoRow>
-      </InfoSection>
+      <NoChangeSimulation />
+      <InfoRowOrigin />
       <Message />
     </>
   );

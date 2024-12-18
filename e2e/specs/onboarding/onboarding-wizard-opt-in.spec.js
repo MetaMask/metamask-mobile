@@ -8,18 +8,18 @@ import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselVie
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import WalletView from '../../pages/wallet/WalletView';
-import EnableAutomaticSecurityChecksView from '../../pages/EnableAutomaticSecurityChecksView';
+import EnableAutomaticSecurityChecksView from '../../pages/Onboarding/EnableAutomaticSecurityChecksView';
 import SettingsView from '../../pages/Settings/SettingsView';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
-import LoginView from '../../pages/LoginView';
-import SkipAccountSecurityModal from '../../pages/modals/SkipAccountSecurityModal';
-import OnboardingWizardModal from '../../pages/modals/OnboardingWizardModal';
-import ProtectYourWalletModal from '../../pages/modals/ProtectYourWalletModal';
+import LoginView from '../../pages/wallet/LoginView';
+import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurityModal';
+import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
+import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { acceptTermOfUse } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
-import ExperienceEnhancerModal from '../../pages/modals/ExperienceEnhancerModal';
+import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
 
 const PASSWORD = '12345678';
 
@@ -28,7 +28,7 @@ describe(
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await device.launchApp();
+      await TestHelpers.launchApp();
     });
 
     it('should be able to opt-in of the onboarding-wizard', async () => {
@@ -58,7 +58,7 @@ describe(
 
     it('Should dismiss Automatic Security checks screen', async () => {
       await TestHelpers.delay(3500);
-      await EnableAutomaticSecurityChecksView.isVisible();
+      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
@@ -80,8 +80,8 @@ describe(
       // dealing with flakiness on bitrise.
       await TestHelpers.delay(1000);
       try {
-        await Assertions.checkIfVisible(ExperienceEnhancerModal.container);
-        await ExperienceEnhancerModal.tapIagree();
+        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await ExperienceEnhancerBottomSheet.tapIAgree();
       } catch {
         /* eslint-disable no-console */
 
