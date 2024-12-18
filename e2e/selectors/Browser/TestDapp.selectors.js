@@ -1,5 +1,6 @@
 export const TestDappSelectorsWebIDs = {
-  APPROVE_TOKENS_BUTTON_ID: 'approveTokens',
+  APPROVE_ERC_20_TOKENS_BUTTON_ID: 'approveTokens',
+  APPROVE_ERC_721_TOKEN_BUTTON_ID: 'approveButton',
   CONNECT_BUTTON: 'connectButton',
   ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID: 'transferTokens',
   INCREASE_ALLOWANCE_BUTTON_ID: 'increaseTokenAllowance',

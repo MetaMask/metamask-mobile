@@ -12,6 +12,7 @@ import Matchers from '../../utils/Matchers';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
+const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 
 class TestDApp {
   get androidContainer() {
@@ -22,6 +23,10 @@ class TestDApp {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
 
+  get approveButtonText() {
+    return Matchers.getElementByText(APPROVE_BUTTON_TEXT);
+  }
+
   get DappConnectButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -29,10 +34,17 @@ class TestDApp {
     );
   }
 
-  get ApproveButton() {
+  get ApproveERC20TokensButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.APPROVE_TOKENS_BUTTON_ID,
+      TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
+    );
+  }
+
+  get ApproveERC721TokenButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID,
     );
   }
   // This taps on the transfer tokens button under the "SEND TOKENS section"
@@ -98,8 +110,12 @@ class TestDApp {
     await this.tapButton(this.DappConnectButton);
   }
 
-  async tapApproveButton() {
-    await this.tapButton(this.ApproveButton);
+  async tapApproveERC20TokensButton() {
+    await this.tapButton(this.ApproveERC20TokensButton);
+  }
+
+  async tapApproveERC721TokenButton() {
+    await this.tapButton(this.ApproveERC721TokenButton);
   }
 
   async tapIncreaseAllowanceButton() {
@@ -137,6 +153,10 @@ class TestDApp {
 
   async tapConfirmButton() {
     await Gestures.tap(this.confirmButtonText, 0);
+  }
+
+  async tapApproveButton() {
+    await Gestures.tap(this.approveButtonText, 0);
   }
 
   async tapButton(elementId) {
