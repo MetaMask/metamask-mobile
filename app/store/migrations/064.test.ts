@@ -2,6 +2,7 @@ import migration from './064';
 import { merge } from 'lodash';
 import initialRootState from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { RootState } from '../../reducers';
 
 const oldState = {
   engine: {
@@ -106,6 +107,67 @@ describe('Migration #64', () => {
     });
     const newState = await migration(validState);
 
+    expect(newState).toStrictEqual(validState);
+  });
+
+  it('should set selectedNetworkClientId to the default mainnet client ID if mainnet configuration exists but selectedNetworkClientId is invalid', async () => {
+    const invalidClientState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'invalid-client-id',
+          },
+        },
+      },
+    });
+
+    const newState = await migration(invalidClientState);
+    expect(
+      (newState as RootState).engine.backgroundState.NetworkController
+        .selectedNetworkClientId,
+    ).toBe('mainnet');
+  });
+
+  it('should handle the absence of mainnet configuration gracefully', async () => {
+    const noMainnetState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                defaultRpcEndpointIndex: 0,
+                rpcEndpoints: [{ networkClientId: 'another-mainnet' }],
+              },
+              '0x5': {
+                rpcEndpoints: [{ networkClientId: 'goerli' }],
+              },
+            },
+            selectedNetworkClientId: 'unknown-client-id',
+          },
+        },
+      },
+    });
+
+    const newState = await migration(noMainnetState);
+    expect(
+      (newState as RootState).engine.backgroundState.NetworkController
+        .selectedNetworkClientId,
+    ).toBe('another-mainnet');
+  });
+
+  it('should not modify the state if it is already valid', async () => {
+    const validState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+          },
+        },
+      },
+    });
+
+    const newState = await migration(validState);
     expect(newState).toStrictEqual(validState);
   });
 });

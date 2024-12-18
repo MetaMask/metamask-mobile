@@ -1,6 +1,13 @@
 import { captureException } from '@sentry/react-native';
-import { isObject, hasProperty } from '@metamask/utils';
+import { isObject, hasProperty, Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  NetworkClientId,
+  NetworkConfiguration,
+  NetworkState,
+} from '@metamask/network-controller';
 import { ensureValidState } from './util';
+import { RootState } from '../../reducers';
 
 /**
  * This migration checks if `selectedNetworkClientId` exists in any entry within `networkConfigurationsByChainId`.
@@ -10,15 +17,56 @@ import { ensureValidState } from './util';
  */
 export default async function migrate(stateAsync: unknown) {
   const migrationVersion = 64;
+  const mainnetChainId = CHAIN_IDS.MAINNET;
 
   const state = await stateAsync;
 
-  if (!ensureValidState(state, 64)) {
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const networkControllerState = state.engine.backgroundState.NetworkController;
+  const networkControllerState = state.engine.backgroundState
+    .NetworkController as NetworkState;
 
+  if (
+    !isValidNetworkControllerState(
+      networkControllerState,
+      state as RootState,
+      migrationVersion,
+    )
+  ) {
+    return state;
+  }
+
+  const { networkConfigurationsByChainId, selectedNetworkClientId } =
+    networkControllerState;
+
+  const networkClientIdExists = doesNetworkClientIdExist(
+    selectedNetworkClientId,
+    networkConfigurationsByChainId,
+    migrationVersion,
+  );
+
+  const isMainnetRpcExists = isMainnetRpcConfigured(
+    networkConfigurationsByChainId,
+  );
+
+  ensureSelectedNetworkClientId(
+    networkControllerState,
+    networkClientIdExists,
+    isMainnetRpcExists,
+    networkConfigurationsByChainId,
+    mainnetChainId,
+  );
+
+  return state;
+}
+
+function isValidNetworkControllerState(
+  networkControllerState: NetworkState,
+  state: RootState,
+  migrationVersion: number,
+) {
   if (
     !isObject(networkControllerState) ||
     !hasProperty(state.engine.backgroundState, 'NetworkController')
@@ -28,7 +76,7 @@ export default async function migrate(stateAsync: unknown) {
         `Migration ${migrationVersion}: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
       ),
     );
-    return state;
+    return false;
   }
 
   if (
@@ -40,26 +88,19 @@ export default async function migrate(stateAsync: unknown) {
         `Migration ${migrationVersion}: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
       ),
     );
-    return state;
+    return false;
   }
 
-  const { networkConfigurationsByChainId } = networkControllerState;
+  return true;
+}
 
-  // Ensure selectedNetworkClientId exists and is a string
-  if (
-    !hasProperty(networkControllerState, 'selectedNetworkClientId') ||
-    typeof networkControllerState.selectedNetworkClientId !== 'string'
-  ) {
-    networkControllerState.selectedNetworkClientId = 'mainnet';
-  }
-
-  const { selectedNetworkClientId } = networkControllerState;
-
-  // Check if selectedNetworkClientId exists in any network configuration
-  let networkClientIdExists = false;
-
+function doesNetworkClientIdExist(
+  selectedNetworkClientId: NetworkClientId,
+  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+  migrationVersion: number,
+) {
   for (const chainId in networkConfigurationsByChainId) {
-    const networkConfig = networkConfigurationsByChainId[chainId];
+    const networkConfig = networkConfigurationsByChainId[chainId as Hex];
 
     if (
       isObject(networkConfig) &&
@@ -74,8 +115,7 @@ export default async function migrate(stateAsync: unknown) {
             endpoint.networkClientId === selectedNetworkClientId,
         )
       ) {
-        networkClientIdExists = true;
-        break;
+        return true;
       }
     } else {
       captureException(
@@ -86,10 +126,42 @@ export default async function migrate(stateAsync: unknown) {
     }
   }
 
-  // If no matching networkClientId was found, set selectedNetworkClientId to 'mainnet'
-  if (!networkClientIdExists) {
-    networkControllerState.selectedNetworkClientId = 'mainnet';
+  return false;
+}
+
+function isMainnetRpcConfigured(
+  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+) {
+  return Object.values(networkConfigurationsByChainId).some((networkConfig) =>
+    networkConfig.rpcEndpoints.some(
+      (endpoint) => endpoint.networkClientId === 'mainnet',
+    ),
+  );
+}
+
+function ensureSelectedNetworkClientId(
+  networkControllerState: NetworkState,
+  networkClientIdExists: boolean,
+  isMainnetRpcExists: boolean,
+  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
+  mainnetChainId: Hex,
+) {
+  const setDefaultMainnetClientId = () => {
+    networkControllerState.selectedNetworkClientId = isMainnetRpcExists
+      ? 'mainnet'
+      : networkConfigurationsByChainId[mainnetChainId].rpcEndpoints[
+          networkConfigurationsByChainId[mainnetChainId].defaultRpcEndpointIndex
+        ].networkClientId;
+  };
+
+  if (
+    !hasProperty(networkControllerState, 'selectedNetworkClientId') ||
+    typeof networkControllerState.selectedNetworkClientId !== 'string'
+  ) {
+    setDefaultMainnetClientId();
   }
 
-  return state;
+  if (!networkClientIdExists) {
+    setDefaultMainnetClientId();
+  }
 }
