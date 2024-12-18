@@ -35,6 +35,9 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 
 import {
   default as MorphText,
@@ -564,31 +567,35 @@ export function getSendFlowTitle(
   const titleToRender = title;
 
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
-    headerRight: () => (
-      // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
-        onPress={rightAction}
-        style={styles.closeButton}
-        testID={SendViewSelectorsIDs.SEND_CANCEL_BUTTON}
+    header: () => (
+      <HeaderBase
+        includesTopInset
+        startAccessory={
+          canGoBack && (
+            <View style={styles.headerLeftButton}>
+              <Button
+                variant={ButtonVariants.Link}
+                onPress={leftAction}
+                testID={SendViewSelectorsIDs.SEND_CANCEL_BUTTON}
+                label={strings('transaction.back')}
+              />
+            </View>
+          )
+        }
+        endAccessory={
+          <View style={styles.headerRightButton}>
+            <Button
+              variant={ButtonVariants.Link}
+              onPress={rightAction}
+              testID={SendViewSelectorsIDs.SEND_CANCEL_BUTTON}
+              label={strings('transaction.cancel')}
+            />
+          </View>
+        }
       >
-        <Text style={innerStyles.headerButtonText}>
-          {strings('transaction.cancel')}
-        </Text>
-      </TouchableOpacity>
+        <NavbarTitle title={titleToRender} disableNetwork />
+      </HeaderBase>
     ),
-    headerLeft: () =>
-      canGoBack ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-          <Text style={innerStyles.headerButtonText}>
-            {strings('transaction.back')}
-          </Text>
-        </TouchableOpacity>
-      ) : (
-        <View />
-      ),
-    headerStyle: innerStyles.headerStyle,
   };
 }
 
