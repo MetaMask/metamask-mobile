@@ -1,4 +1,6 @@
 import React, { PureComponent } from 'react';
+import BN from 'bn.js';
+import convert from '@metamask/ethjs-unit';
 import { baseStyles } from '../../../../../styles/common';
 import {
   InteractionManager,
@@ -30,12 +32,14 @@ import StyledButton from '../../../../UI/StyledButton';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { ChainId } from '@metamask/controller-utils';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
+import { remove0x } from '@metamask/utils';
 import {
   prepareTransaction,
   resetTransaction,
   setNonce,
   setProposedNonce,
   setTransactionId,
+  setTransactionValue,
 } from '../../../../../actions/transaction';
 import { getGasLimit } from '../../../../../util/custom-gas';
 import Engine from '../../../../../core/Engine';
@@ -320,7 +324,8 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -546,13 +551,20 @@ class Confirm extends PureComponent {
 
   componentDidUpdate = (prevProps, prevState) => {
     const {
+      accounts,
       transactionState: {
         transactionTo,
-        transaction: { value, gas },
+        transaction: { value, gas, from },
       },
       contractBalances,
       selectedAsset,
+      maxValueMode,
+      gasFeeEstimates,
     } = this.props;
+
+    const { transactionMeta } = this.state;
+    const { id: transactionId } = transactionMeta;
+
     this.updateNavBar();
 
     const transaction = this.prepareTransactionToSend();
@@ -575,6 +587,13 @@ class Confirm extends PureComponent {
     const haveEIP1559TotalMaxHexChanged =
       EIP1559GasTransaction.totalMaxHex !==
       prevState.EIP1559GasTransaction.totalMaxHex;
+    const isEIP1559Transaction =
+      this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
+    const haveGasFeeMaxNativeChanged = isEIP1559Transaction
+      ? EIP1559GasTransaction.gasFeeMaxNative !==
+        prevState.EIP1559GasTransaction.gasFeeMaxNative
+      : legacyGasTransaction.gasFeeMaxNative !==
+        prevState.legacyGasTransaction.gasFeeMaxNative;
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -605,13 +624,45 @@ class Confirm extends PureComponent {
         : this.state.gasSelected;
 
       if (
+        maxValueMode &&
+        selectedAsset.isETH &&
+        !isEmpty(gasFeeEstimates) &&
+        haveGasFeeMaxNativeChanged
+      ) {
+        const { TransactionController } = Engine.context;
+        const { gasFeeMaxNative } = isEIP1559Transaction
+          ? EIP1559GasTransaction
+          : legacyGasTransaction;
+
+        const accountBalanceBN = new BN(remove0x(accounts[from].balance), 16);
+        const transactionFeeMax = new BN(
+          convert.toWei(gasFeeMaxNative, 'ether'),
+          16,
+        );
+
+        const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
+
+        const maxTransactionValueHex =
+          '0x' + maxTransactionValueBN.toString(16);
+
+        TransactionController.updateEditableParams(transactionId, {
+          value: maxTransactionValueHex,
+        }).then((newMeta) => {
+          this.props.setTransactionValue(maxTransactionValueHex);
+        });
+
+        // In order to prevent race condition do not remove this early return.
+        // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
+        return;
+      }
+
+      if (
         (!this.state.stopUpdateGas && !this.state.advancedGasInserted) ||
         gasEstimateTypeChanged
       ) {
         if (this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
           error = this.validateAmount({
             transaction,
-            total: EIP1559GasTransaction.totalMaxHex,
           });
           this.setError(error);
           // eslint-disable-next-line react/no-did-update-set-state
@@ -641,7 +692,6 @@ class Confirm extends PureComponent {
         } else {
           error = this.validateAmount({
             transaction,
-            total: legacyGasTransaction.totalHex,
           });
           this.setError(error);
         }
@@ -805,7 +855,7 @@ class Confirm extends PureComponent {
    * Validates transaction balances
    * @returns - Whether there is an error with the amount
    */
-  validateAmount = ({ transaction, total }) => {
+  validateAmount = ({ transaction }) => {
     const {
       accounts,
       contractBalances,
@@ -821,7 +871,7 @@ class Confirm extends PureComponent {
 
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
-    const totalTransactionValue = hexToBN(total);
+    const totalTransactionValue = hexToBN(value);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
@@ -951,12 +1001,10 @@ class Confirm extends PureComponent {
       if (gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET) {
         error = this.validateAmount({
           transaction,
-          total: EIP1559GasTransaction.totalMaxHex,
         });
       } else {
         error = this.validateAmount({
           transaction,
-          total: legacyGasTransaction.totalHex,
         });
       }
       this.setError(error);
@@ -1244,15 +1292,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          advancedGasInserted: !gasSelect,
-          stopUpdateGas: false,
-        }
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
         : {
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-        }),
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 
@@ -1579,6 +1627,7 @@ const mapStateToProps = (state) => ({
     selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  maxValueMode: state.transaction.maxValueMode,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1594,6 +1643,7 @@ const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
   updateTransactionMetrics: ({ transactionId, params }) =>
     dispatch(updateTransactionMetrics({ transactionId, params })),
+  setTransactionValue: (value) => dispatch(setTransactionValue(value)),
 });
 
 export default connect(

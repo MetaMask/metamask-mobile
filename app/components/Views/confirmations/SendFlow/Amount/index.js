@@ -17,6 +17,7 @@ import {
   prepareTransaction,
   setTransactionObject,
   resetTransaction,
+  setMaxValueMode,
 } from '../../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -926,9 +927,22 @@ class Amount extends PureComponent {
   };
 
   onInputChange = (inputValue, selectedAsset, useMax) => {
-    const { contractExchangeRates, conversionRate, currentCurrency, ticker } =
-      this.props;
+    const {
+      contractExchangeRates,
+      conversionRate,
+      currentCurrency,
+      ticker,
+      maxValueMode: currentMaxValueMode,
+      setMaxValueMode,
+    } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
+
+    if (useMax) {
+      setMaxValueMode(true);
+    } else if (currentMaxValueMode) {
+      setMaxValueMode(false);
+    }
+
     let inputValueConversion,
       renderableInputValueConversion,
       hasExchangeRate,
@@ -1557,6 +1571,7 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
+  maxValueMode: state.transaction.maxValueMode,
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1567,6 +1582,7 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   resetTransaction: () => dispatch(resetTransaction()),
+  setMaxValueMode: (maxValueMode) => dispatch(setMaxValueMode(maxValueMode)),
 });
 
 export default connect(
