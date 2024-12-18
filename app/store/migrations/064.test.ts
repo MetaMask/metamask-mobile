@@ -44,7 +44,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #62', () => {
+describe('Migration #64', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -60,20 +60,8 @@ describe('Migration #62', () => {
         },
       }),
       errorMessage:
-        "Migration 62: Invalid or missing 'NetworkController' in backgroundState: 'object'",
+        "Migration 64: Invalid or missing 'NetworkController' in backgroundState: 'object'",
       scenario: 'NetworkController state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {
-            NetworkController: { selectedNetworkClientId: null },
-          },
-        },
-      }),
-      errorMessage:
-        "Migration 62: Missing or invalid 'selectedNetworkClientId': 'null'",
-      scenario: 'selectedNetworkClientId is invalid',
     },
     {
       state: merge({}, initialRootState, {
@@ -84,7 +72,7 @@ describe('Migration #62', () => {
         },
       }),
       errorMessage:
-        "Migration 62: Missing or invalid 'networkConfigurationsByChainId' in NetworkController",
+        "Migration 64: Missing or invalid 'networkConfigurationsByChainId' in NetworkController",
       scenario: 'networkConfigurationsByChainId is invalid',
     },
   ];

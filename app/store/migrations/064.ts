@@ -9,6 +9,8 @@ import { ensureValidState } from './util';
  * @returns Migrated Redux state.
  */
 export default async function migrate(stateAsync: unknown) {
+  const migrationVersion = 64;
+
   const state = await stateAsync;
 
   if (!ensureValidState(state, 64)) {
@@ -23,7 +25,7 @@ export default async function migrate(stateAsync: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
+        `Migration ${migrationVersion}: Invalid or missing 'NetworkController' in backgroundState: '${typeof networkControllerState}'`,
       ),
     );
     return state;
@@ -35,7 +37,7 @@ export default async function migrate(stateAsync: unknown) {
   ) {
     captureException(
       new Error(
-        `Migration: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
+        `Migration ${migrationVersion}: Missing or invalid 'networkConfigurationsByChainId' in NetworkController`,
       ),
     );
     return state;
@@ -78,7 +80,7 @@ export default async function migrate(stateAsync: unknown) {
     } else {
       captureException(
         new Error(
-          `Migration: Invalid network configuration or missing 'rpcEndpoints' for chainId: '${chainId}'`,
+          `Migration ${migrationVersion}: Invalid network configuration or missing 'rpcEndpoints' for chainId: '${chainId}'`,
         ),
       );
     }
