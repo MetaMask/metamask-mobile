@@ -491,9 +491,9 @@ class Amount extends PureComponent {
      */
     maxValueMode: PropTypes.bool,
     /**
-     * Function that sets the transaction value
+     * Function that sets the max value mode
      */
-    setTransactionValue: PropTypes.func,
+    setMaxValueMode: PropTypes.func,
   };
 
   state = {
@@ -944,6 +944,9 @@ class Amount extends PureComponent {
       setMaxValueMode,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
+
+    console.log('useMax', useMax);
+    console.log({ setMaxValueMode });
 
     if (useMax) {
       setMaxValueMode(true);
