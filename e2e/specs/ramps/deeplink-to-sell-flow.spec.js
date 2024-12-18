@@ -28,7 +28,6 @@ describe(SmokeCore('Buy Crypto'), () => {
       'metamask://sell?chainId=1&address=0x0000000000000000000000000000000000000000&amount=50';
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
         restartDevice: true,
       },
@@ -50,10 +49,9 @@ describe(SmokeCore('Buy Crypto'), () => {
     );
   });
   it('Should deep link to an unsupported network in the off-ramp flow', async () => {
-    const unsupportedNetworkSellDeepLink = 'metamask://sell?chainId=2';
+    const unsupportedNetworkSellDeepLink = 'metamask://sell?chainId=56';
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
         restartDevice: true,
       },
@@ -68,12 +66,10 @@ describe(SmokeCore('Buy Crypto'), () => {
         );
 
         await SellGetStartedView.tapGetStartedButton();
-        await NetworkListModal.changeNetworkTo(
-          PopularNetworksList.Avalanche.providerConfig.nickname,
-        );
 
         await NetworkApprovalBottomSheet.tapApproveButton();
         await NetworkAddedBottomSheet.tapSwitchToNetwork();
+        await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
       },
     );

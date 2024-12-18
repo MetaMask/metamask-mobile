@@ -25,7 +25,6 @@ describe(SmokeCore('Buy Crypto'), () => {
 
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder()
           .withPopularNetworks()
           .withRampsSelectedRegion()
@@ -65,7 +64,6 @@ describe(SmokeCore('Buy Crypto'), () => {
     // 'metamask://buy?chainId=8453&amount=4';
     await withFixtures(
       {
-        dapp: true,
         fixture: new FixtureBuilder()
           .withPopularNetworks()
           .withRampsSelectedRegion()
@@ -85,11 +83,7 @@ describe(SmokeCore('Buy Crypto'), () => {
         await BuyGetStartedView.tapGetStartedButton();
         await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
 
-        // await NetworkEducationModal.tapGotItButton();
-
         await Assertions.checkIfTextIsDisplayed('$270');
-
-        // await Assertions.checkIfTextIsDisplayed('Brett');
       },
     );
   });
