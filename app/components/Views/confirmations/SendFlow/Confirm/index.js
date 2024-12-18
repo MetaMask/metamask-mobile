@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import BN from 'bn.js';
+import { BN } from 'ethereumjs-util';
 import convert from '@metamask/ethjs-unit';
 import { baseStyles } from '../../../../../styles/common';
 import {
