@@ -21,7 +21,7 @@ describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should connect multiple accounts and revoke them', async () => {
+  it('revokes all account permissions simultaneously', async () => {
     await withFixtures(
       {
         dapp: true,
