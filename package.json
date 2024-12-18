@@ -180,7 +180,7 @@
     "@metamask/keyring-controller": "^19.0.1",
     "@metamask/logging-controller": "^6.0.1",
     "@metamask/message-signing-snap": "^0.3.3",
-    "@metamask/network-controller": "^22.1.1",
+    "@metamask/network-controller": "^22.1.0",
     "@metamask/notification-services-controller": "^0.15.0",
     "@metamask/permission-controller": "^11.0.0",
     "@metamask/phishing-controller": "^12.0.3",
