@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -11,7 +11,6 @@ import AssetElement from '../../../AssetElement';
 import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { useSelector } from 'react-redux';
-import images from '../../../../../images/image-icons';
 import styleSheet from './StakingBalance.styles';
 import { View } from 'react-native';
 import StakingButtons from './StakingButtons/StakingButtons';
@@ -35,28 +34,49 @@ import {
 } from '../../utils/value';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
-import {
-  MOCK_GET_POOLED_STAKES_API_RESPONSE,
-  MOCK_GET_VAULT_RESPONSE,
-  MOCK_STAKED_ETH_ASSET,
-} from './mockData';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useStakingChain from '../../hooks/useStakingChain';
+import usePooledStakes from '../../hooks/usePooledStakes';
+import useVaultData from '../../hooks/useVaultData';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import type { TokenI } from '../../../Tokens/types';
+import useBalance from '../../hooks/useBalance';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import { selectChainId } from '../../../../../selectors/networkController';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
-const StakingBalance = () => {
+export interface StakingBalanceProps {
+  asset: TokenI;
+}
+
+const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
-
+  const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
-  const [isGeoBlocked] = useState(false);
-  const [hasStakedPositions] = useState(false);
+  const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
-  const { unstakingRequests, claimableRequests } = useMemo(
-    () =>
-      filterExitRequests(
-        MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].exitRequests,
-        MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate,
-      ),
-    [],
-  );
+  const { isStakingSupportedChain } = useStakingChain();
+
+  const {
+    pooledStakesData,
+    exchangeRate,
+    hasStakedPositions,
+    hasEthToUnstake,
+    isLoadingPooledStakesData,
+  } = usePooledStakes();
+  const { vaultData } = useVaultData();
+  const annualRewardRate = vaultData?.apy || '';
+
+  const {
+    formattedStakedBalanceETH: stakedBalanceETH,
+    formattedStakedBalanceFiat: stakedBalanceFiat,
+  } = useBalance();
+
+  const { unstakingRequests, claimableRequests } = useMemo(() => {
+    const exitRequests = pooledStakesData?.exitRequests ?? [];
+    return filterExitRequests(exitRequests, exchangeRate);
+  }, [pooledStakesData, exchangeRate]);
 
   const claimableEth = useMemo(
     () =>
@@ -72,20 +92,92 @@ const StakingBalance = () => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
+  if (!isStakingSupportedChain) {
+    return <></>;
+  }
+
+  const renderStakingContent = () => {
+    if (isLoadingPooledStakesData) {
+      return (
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholder.Item height={50} borderRadius={6} />
+        </SkeletonPlaceholder>
+      );
+    }
+
+    if (!isEligibleForPooledStaking) {
+      return (
+        <Banner
+          variant={BannerVariant.Alert}
+          severity={BannerAlertSeverity.Info}
+          description={strings('stake.banner_text.geo_blocked')}
+          style={styles.bannerStyles}
+        />
+      );
+    }
+
+    return (
+      <>
+        {unstakingRequests.map(
+          ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
+            assetsToDisplay && (
+              <UnstakingBanner
+                key={positionTicket}
+                amountEth={fixDisplayAmount(
+                  multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
+                  4,
+                )}
+                timeRemaining={
+                  !Number(withdrawalTimestamp)
+                    ? { days: 0, hours: 0, minutes: 0 } // default to 0 days.
+                    : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
+                }
+                style={styles.bannerStyles}
+              />
+            ),
+        )}
+
+        {hasClaimableEth && (
+          <ClaimBanner
+            claimableAmount={claimableEth}
+            style={styles.bannerStyles}
+          />
+        )}
+
+        {!hasStakedPositions && (
+          <StakingCta
+            style={styles.stakingCta}
+            estimatedRewardRate={formatPercent(annualRewardRate, {
+              inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+              outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+              fixed: 1,
+            })}
+          />
+        )}
+
+        <StakingButtons
+          style={styles.buttonsContainer}
+          hasEthToUnstake={hasEthToUnstake}
+          hasStakedPositions={hasStakedPositions}
+        />
+      </>
+    );
+  };
+
   return (
     <View>
-      {Boolean(MOCK_STAKED_ETH_ASSET.balance) && !isGeoBlocked && (
+      {hasEthToUnstake && (
         <AssetElement
-          asset={MOCK_STAKED_ETH_ASSET}
-          mainBalance={MOCK_STAKED_ETH_ASSET.balance}
-          balance={MOCK_STAKED_ETH_ASSET.balanceFiat}
+          asset={asset}
+          mainBalance={stakedBalanceETH}
+          balance={stakedBalanceFiat}
         >
           <BadgeWrapper
             style={styles.badgeWrapper}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={images.ETHEREUM}
+                imageSource={NetworkBadgeSource(chainId, asset.symbol)}
                 name={networkName}
               />
             }
@@ -93,67 +185,20 @@ const StakingBalance = () => {
             <NetworkMainAssetLogo style={styles.ethLogo} />
           </BadgeWrapper>
           <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
-            {MOCK_STAKED_ETH_ASSET.name || MOCK_STAKED_ETH_ASSET.symbol}
+            {strings('stake.staked_ethereum')}
           </Text>
         </AssetElement>
       )}
 
-      <View style={styles.container}>
-        {isGeoBlocked ? (
-          <Banner
-            variant={BannerVariant.Alert}
-            severity={BannerAlertSeverity.Warning}
-            description={strings('stake.banner_text.geo_blocked')}
-            style={styles.bannerStyles}
-          />
-        ) : (
-          <>
-            {unstakingRequests.map(
-              ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
-                assetsToDisplay && (
-                  <UnstakingBanner
-                    key={positionTicket}
-                    amountEth={fixDisplayAmount(
-                      multiplyValueByPowerOfTen(new bn(assetsToDisplay), -18),
-                      4,
-                    )}
-                    timeRemaining={
-                      !Number(withdrawalTimestamp)
-                        ? { days: 11, hours: 0, minutes: 0 } // default to 11 days.
-                        : getTimeDifferenceFromNow(Number(withdrawalTimestamp))
-                    }
-                    style={styles.bannerStyles}
-                  />
-                ),
-            )}
-
-            {hasClaimableEth && (
-              <ClaimBanner
-                claimableAmount={claimableEth}
-                style={styles.bannerStyles}
-              />
-            )}
-
-            {!hasStakedPositions && (
-              <StakingCta
-                style={styles.stakingCta}
-                estimatedRewardRate={formatPercent(
-                  MOCK_GET_VAULT_RESPONSE.apy,
-                  {
-                    inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                    outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                    fixed: 1,
-                  },
-                )}
-              />
-            )}
-
-            <StakingButtons style={styles.buttonsContainer} />
-          </>
-        )}
-      </View>
+      <View style={styles.container}>{renderStakingContent()}</View>
     </View>
   );
 };
+
+export const StakingBalance = ({ asset }: StakingBalanceProps) => (
+  <StakeSDKProvider>
+    <StakingBalanceContent asset={asset} />
+  </StakeSDKProvider>
+);
 
 export default StakingBalance;

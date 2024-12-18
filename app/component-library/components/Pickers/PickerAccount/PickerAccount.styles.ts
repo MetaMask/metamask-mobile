@@ -3,7 +3,6 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
-import { fontStyles } from '../../../../styles/common';
 
 // Internal dependencies.
 import { PickerAccountStyleSheetVars } from './PickerAccount.types';
@@ -24,34 +23,39 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style, cellAccountContainerStyle } = vars;
   return StyleSheet.create({
-    base: Object.assign({} as ViewStyle, style) as ViewStyle,
+    base: {
+      ...(style as ViewStyle),
+      flexDirection: 'row',
+      padding: 0,
+      borderWidth: 0,
+    },
     accountAvatar: {
-      marginRight: 16,
+      marginRight: 8,
     },
     accountAddressLabel: {
       color: colors.text.alternative,
+      textAlign: 'center',
     },
     cellAccount: {
-      flex: 1,
       flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
       ...cellAccountContainerStyle,
     },
     accountNameLabel: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    accountNameAvatar: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'flex-start',
     },
-    accountNameLabelText: {
-      marginTop: 4,
-      marginHorizontal: 5,
-      paddingHorizontal: 5,
-      ...fontStyles.bold,
-      color: colors.text.alternative,
-      borderWidth: 1,
-      borderRadius: 10,
-      borderColor: colors.border.default,
+    pickerAccountContainer: {
       justifyContent: 'center',
-      textAlign: 'center',
+      alignItems: 'center',
+    },
+    dropDownIcon: {
+      marginLeft: 8,
     },
   });
 };

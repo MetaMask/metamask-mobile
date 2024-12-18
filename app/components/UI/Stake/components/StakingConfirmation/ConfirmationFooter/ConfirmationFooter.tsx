@@ -4,14 +4,15 @@ import styleSheet from './ConfirmationFooter.styles';
 import { View } from 'react-native';
 import FooterLegalLinks from './LegalLinks/LegalLinks';
 import FooterButtonGroup from './FooterButtonGroup/FooterButtonGroup';
+import { ConfirmationFooterProps } from './ConfirmationFooter.types';
 
-const ConfirmationFooter = () => {
+const ConfirmationFooter = ({ valueWei, action }: ConfirmationFooterProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.footerContainer}>
       <FooterLegalLinks />
-      <FooterButtonGroup />
+      <FooterButtonGroup valueWei={valueWei} action={action} />
     </View>
   );
 };

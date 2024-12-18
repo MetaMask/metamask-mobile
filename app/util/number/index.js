@@ -3,7 +3,7 @@
  */
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
-import convert from 'ethjs-unit';
+import convert from '@metamask/ethjs-unit';
 import {
   BNToHex,
   hexToBN as controllerHexToBN,

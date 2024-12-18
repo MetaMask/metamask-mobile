@@ -85,7 +85,7 @@ const styleSheet = (params: {
       paddingTop: 32,
     },
     buttonIcon: {
-      paddingHorizontal: 20,
+      paddingRight: 20,
     },
   });
 };

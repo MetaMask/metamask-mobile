@@ -10,20 +10,18 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
-import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { selectChainId } from '../../../../../../../selectors/networkController';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import {
-  selectNetworkImageSource,
-  selectNetworkName,
-} from '../../../../../../../selectors/networkInfos';
+import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import styleSheet from './AccountNetworkInfoCollapsed.styles';
 
 const AccountNetworkInfoCollapsed = () => {
   const { approvalRequest } = useApprovalRequest();
-  const networkName = useSelector(selectNetworkName);
-  const networkImage = useSelector(selectNetworkImageSource);
+  const chainId = useSelector(selectChainId);
+  const { networkName, networkImage } = useNetworkInfo(chainId);
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );

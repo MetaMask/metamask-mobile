@@ -44,6 +44,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
     ticker: 'ETH',
     addTokenList: jest.fn(),
   }),
+  createNavigationDetails: jest.fn(),
 }));
 
 const mockUseBalanceInitialValue: Partial<ReturnType<typeof useBalance>> = {
@@ -101,14 +102,12 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeTruthy();
     expect(getByText('$27.02')).toBeTruthy();
   });
-
   it('handles cancel button click', () => {
     const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
     const cancelButton = getByText('Cancel');
     fireEvent.press(cancelButton);
-
     expect(getByText('Are you sure you want to exit?')).toBeTruthy();
     expect(
       getByText('Your search information will not be saved.'),

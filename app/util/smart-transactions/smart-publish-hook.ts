@@ -52,7 +52,7 @@ export interface SubmitSmartTransactionRequest {
       | {
           expectedDeadline: number;
           maxDeadline: number;
-          returnTxHashAsap: boolean;
+          mobileReturnTxHashAsap: boolean;
         }
       | Record<string, never>;
   };
@@ -74,7 +74,7 @@ class SmartTransactionHook {
     smartTransactions: {
       expectedDeadline?: number;
       maxDeadline?: number;
-      returnTxHashAsap?: boolean;
+      mobileReturnTxHashAsap?: boolean;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -94,6 +94,7 @@ class SmartTransactionHook {
 
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
+  #mobileReturnTxHashAsap: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -116,6 +117,8 @@ class SmartTransactionHook {
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
+    this.#mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
 
     const {
       isDapp,
@@ -143,11 +146,13 @@ class SmartTransactionHook {
       this.#isSend,
       this.#isSwapApproveTx,
       Boolean(approvalIdForPendingSwapApproveTx),
+      this.#mobileReturnTxHashAsap,
     );
     this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapTransaction,
+      this.#mobileReturnTxHashAsap,
     );
   }
 
@@ -221,7 +226,9 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      this.#cleanup();
+      if (!this.#mobileReturnTxHashAsap) {
+        this.#cleanup();
+      }
     }
   }
 
@@ -262,10 +269,8 @@ class SmartTransactionHook {
     uuid: string,
   ) => {
     let transactionHash: string | undefined | null;
-    const returnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.returnTxHashAsap;
 
-    if (returnTxHashAsap && submitTransactionResponse?.txHash) {
+    if (this.#mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
       transactionHash = submitTransactionResponse.txHash;
     } else {
       transactionHash = await this.#waitForTransactionHash({
@@ -400,6 +405,7 @@ class SmartTransactionHook {
               smartTransaction,
             });
           }
+          this.#cleanup();
         }
       },
     );

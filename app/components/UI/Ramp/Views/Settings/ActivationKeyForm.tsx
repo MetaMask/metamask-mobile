@@ -116,6 +116,7 @@ function ActivationKeyForm() {
               returnKeyType={'done'}
               onSubmitEditing={handleSubmit}
               isReadonly={Boolean(key)}
+              autoFocus
             />
           </Row>
 

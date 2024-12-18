@@ -63,7 +63,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { enableProfileSyncing } from '../../../actions/notification/helpers';
+import { enableProfileSyncing } from '../../../actions/identity';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -194,8 +194,8 @@ const createStyles = (colors) =>
     },
     showMatchingPasswords: {
       position: 'absolute',
-      top: 52,
-      right: 17,
+      top: 36,
+      right: 10,
       alignSelf: 'flex-end',
     },
   });

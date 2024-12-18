@@ -6,7 +6,6 @@ import { PreferencesState } from '@metamask/preferences-controller';
 import { SelectedNetworkControllerState } from '@metamask/selected-network-controller';
 
 const version = 55;
-const oldVersion = 55;
 
 interface EngineState {
   engine: {
@@ -32,7 +31,6 @@ describe(`migration #${version}`, () => {
 
   it('captures an exception if the network controller state is not defined', async () => {
     const oldState = {
-      meta: { version: oldVersion },
       engine: { backgroundState: {} },
     };
 
@@ -48,7 +46,6 @@ describe(`migration #${version}`, () => {
   it('captures an exception if the network controller state is not an object', async () => {
     for (const NetworkController of [undefined, null, 1, 'foo']) {
       const oldState = {
-        meta: { version: oldVersion },
         engine: { backgroundState: { NetworkController } },
       };
 
@@ -65,7 +62,6 @@ describe(`migration #${version}`, () => {
 
   it('captures an exception if the transaction controller state is not defined', async () => {
     const oldState = {
-      meta: { version: oldVersion },
       engine: { backgroundState: { NetworkController: {} } },
     };
 
@@ -131,7 +127,6 @@ describe(`migration #${version}`, () => {
     };
 
     const oldState = {
-      meta: { version: oldVersion },
       engine: {
         backgroundState: {
           NetworkController: {
@@ -268,7 +263,6 @@ describe(`migration #${version}`, () => {
     const randomChainId = '0x123456';
 
     const oldState = {
-      meta: { version: oldVersion },
       engine: {
         backgroundState: {
           NetworkController: {
@@ -322,7 +316,6 @@ describe(`migration #${version}`, () => {
     const randomChainId = '0x123456';
 
     const oldState = {
-      meta: { version: oldVersion },
       engine: {
         backgroundState: {
           NetworkController: {
@@ -352,7 +345,6 @@ describe(`migration #${version}`, () => {
 
   it('handles the case where selectedNetworkClientId does not point to any endpoint', async () => {
     const oldState = {
-      meta: { version: oldVersion },
       engine: {
         backgroundState: {
           NetworkController: {

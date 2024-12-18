@@ -45,6 +45,7 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectPrimaryCurrency } from '../../../../../selectors/settings';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
 
 const EditGasFeeLegacy = ({
   onCancel,
@@ -61,7 +62,7 @@ const EditGasFeeLegacy = ({
   selectedGasObject,
   hasDappSuggestedGas,
 }: EditGasFeeLegacyUpdateProps) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
   const [infoText, setInfoText] = useState<string>('');
   const [gasPriceError, setGasPriceError] = useState<string>('');
@@ -94,12 +95,16 @@ const EditGasFeeLegacy = ({
   });
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, {
-      ...analyticsParams,
-      chain_id: getDecimalChainId(chainId),
-      function_type: view,
-      gas_mode: 'Basic',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties({
+          ...analyticsParams,
+          chain_id: getDecimalChainId(chainId),
+          function_type: view,
+          gas_mode: 'Basic',
+        })
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedGasPrice: gasObjectLegacy?.suggestedGasPrice,
@@ -114,6 +119,7 @@ const EditGasFeeLegacy = ({
     chainId,
     view,
     trackEvent,
+    createEventBuilder,
   ]);
 
   const changeGas = useCallback((gas) => {
@@ -254,7 +260,7 @@ const EditGasFeeLegacy = ({
   };
 
   return (
-    <View style={styles.root}>
+    <View style={styles.root} testID={EditGasViewSelectorsIDs.LEGACY_CONTAINER}>
       <ScrollView style={styles.wrapper}>
         <TouchableWithoutFeedback>
           <View>

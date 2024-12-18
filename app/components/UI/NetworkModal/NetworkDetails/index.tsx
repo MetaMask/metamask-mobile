@@ -60,7 +60,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
     },
   ];
 
-  const DetailsView = () => (
+  const renderDetailsView = () => (
     <>
       {DisplayData.map((item, index) => (
         <View key={index}>
@@ -79,9 +79,7 @@ const NetworkDetails = (props: NetworkDetailsProps) => {
         action={goBack}
         title={strings('networks.network_details')}
       />
-      <View style={styles.accountInformation}>
-        <DetailsView />
-      </View>
+      <View style={styles.accountInformation}>{renderDetailsView()}</View>
     </View>
   );
 };

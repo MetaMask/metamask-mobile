@@ -30,6 +30,7 @@ export const mockedEngine = {
           },
         };
       },
+      removeNetwork: () => ({}),
       state: {
         ...mockNetworkState({
           chainId: CHAIN_IDS.MAINNET,

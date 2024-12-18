@@ -1,12 +1,12 @@
 'use strict';
 import TestHelpers from '../../helpers';
 import Browser from '../../pages/Browser/BrowserView';
-import AccountListView from '../../pages/AccountListView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import ToastModal from '../../pages/modals/ToastModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
-import AddAccountModal from '../../pages/modals/AddAccountModal';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ToastModal from '../../pages/wallet/ToastModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -15,7 +15,7 @@ import { Regression } from '../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(Regression('Connecting to multiple dapps and revoking permission on one but staying connected to the other'), () => {
+describe(Regression('Permission System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -45,13 +45,13 @@ describe(Regression('Connecting to multiple dapps and revoking permission on one
 
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await AccountListView.tapAddAccountButton();
-        await AddAccountModal.tapCreateAccount();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
         if (device.getPlatform() === 'android') {
           await Assertions.checkIfTextIsDisplayed(AccountTwoText);
         }
-        await AccountListView.tapAccountIndex(0);
-        await AccountListView.tapConnectAccountsButton();
+        await AccountListBottomSheet.tapAccountIndex(0);
+        await AccountListBottomSheet.tapConnectAccountsButton();
 
         // should revoke accounts
         await Browser.tapNetworkAvatarButtonOnBrowser();

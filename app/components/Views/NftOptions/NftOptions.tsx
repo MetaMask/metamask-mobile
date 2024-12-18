@@ -18,7 +18,7 @@ import Text, {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -42,9 +42,9 @@ const NftOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const chainId = useSelector(selectChainId);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
 
   const goToWalletPage = () => {
@@ -96,9 +96,13 @@ const NftOptions = (props: Props) => {
       collectible.address,
       collectible.tokenId.toString(),
     );
-    trackEvent(MetaMetricsEvents.COLLECTIBLE_REMOVED, {
-      chain_id: getDecimalChainId(chainId),
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
     Alert.alert(
       strings('wallet.collectible_removed_title'),
       strings('wallet.collectible_removed_desc'),

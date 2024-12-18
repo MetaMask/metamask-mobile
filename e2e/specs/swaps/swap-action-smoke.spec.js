@@ -3,10 +3,10 @@ import { loginToApp } from '../../viewHelper';
 import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import ActivitiesView from '../../pages/ActivitiesView';
-import DetailsModal from '../../pages/modals/DetailsModal';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import DetailsBottomSheet from '../../pages/Transactions/TransactionDetailsModal';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -31,7 +31,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -55,7 +55,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     async ({ quantity, sourceTokenSymbol, destTokenSymbol }) => {
       await TabBarComponent.tapWallet();
       await TabBarComponent.tapActions();
-      await WalletActionsModal.tapSwapButton();
+      await WalletActionsBottomSheet.tapSwapButton();
 
       if (!swapOnboarded) {
         await Onboarding.tapStartSwapping();
@@ -115,21 +115,21 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       );
 
       try {
-        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsBottomSheet.title);
       } catch (e) {
         await ActivitiesView.tapOnSwapActivity(
           sourceTokenSymbol,
           destTokenSymbol,
         );
-        await Assertions.checkIfVisible(DetailsModal.title);
+        await Assertions.checkIfVisible(DetailsBottomSheet.title);
       }
       await Assertions.checkIfElementToHaveText(
-        DetailsModal.title,
-        DetailsModal.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+        DetailsBottomSheet.title,
+        DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      await Assertions.checkIfVisible(DetailsModal.statusConfirmed);
-      await DetailsModal.tapOnCloseIcon();
-      await Assertions.checkIfNotVisible(DetailsModal.title);
+      await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
+      await DetailsBottomSheet.tapOnCloseIcon();
+      await Assertions.checkIfNotVisible(DetailsBottomSheet.title);
     },
   );
 });
