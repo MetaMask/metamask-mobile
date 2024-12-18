@@ -70,8 +70,8 @@ const PermitSimulation = () => {
 
   const isNFT = tokenId !== undefined;
   const labelChangeType = isNFT
-    ? strings('confirm.simulation.label_change_type_permit')
-    : strings('confirm.simulation.label_change_type_permit_nft');
+    ? strings('confirm.simulation.label_change_type_permit_nft')
+    : strings('confirm.simulation.label_change_type_permit');
 
   return (
     <InfoSection>
