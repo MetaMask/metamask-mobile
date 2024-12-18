@@ -550,7 +550,6 @@ class Confirm extends PureComponent {
   };
 
   componentDidUpdate = (prevProps, prevState) => {
-    console.log('componentDidUpdate');
     const {
       accounts,
       transactionState: {
