@@ -121,20 +121,30 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
 import { type Dispatch } from 'redux';
-import { type SessionENSNames, type BrowserTabProps } from './types';
+import {
+  type SessionENSNames,
+  type BrowserTabProps,
+  WebViewErrorEvent,
+} from './types';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
 
 const ensIgnoreList: string[] = [];
 
+const LOGBROWSER = (...args: any[]) => {
+  console.log(`BROWSER TAB:`, ...args);
+};
+
 // Update the component definition
 export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
+  const navigation = useNavigation<StackNavigationProp<any>>();
   const {
     styles,
     theme: { colors },
@@ -144,7 +154,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<WebViewErrorEvent | boolean>(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
   const [showPhishingModal, setShowPhishingModal] = useState(false);
@@ -154,6 +164,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
   const allowList = useRef<string[]>([]); // TODO: Consider improving this type
+  const webStates = useRef<
+    Record<string, { requested: boolean; started: boolean; ended: boolean }>
+  >({});
 
   const url = useRef('');
   const title = useRef<string | undefined>('');
@@ -615,10 +628,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
 
     // Handle hardwareBackPress event only for browser, not components rendered on top
-    props.navigation.addListener('willFocus', () => {
+    navigation.addListener('willFocus', () => {
       BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
     });
-    props.navigation.addListener('willBlur', () => {
+    navigation.addListener('willBlur', () => {
       BackHandler.removeEventListener(
         'hardwareBackPress',
         handleAndroidBackPress,
@@ -631,7 +644,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         handleAndroidBackPress,
       );
     };
-  }, [goBack, isTabActive, props.navigation]);
+  }, [goBack, isTabActive, navigation]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
@@ -662,21 +675,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   /**
    * Handles state changes for when the url changes
-   * TODO: Consider improving this type to include nativeEvent
    */
   const changeUrl = async (siteInfo: {
     url: string;
-    title?: string;
+    title: string;
     icon: ImageSourcePropType;
   }) => {
     url.current = siteInfo.url;
-    title.current = siteInfo.title; // TODO: check why this is undefined in some scenarios
+    title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
 
   /**
    * Handles state changes for when the url changes
-   *  * TODO: Consider improving this type to include nativeEvent
    */
   const changeAddressBar = (siteInfo: {
     title: string;
@@ -689,7 +700,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     setForwardEnabled(siteInfo.canGoForward);
 
     isTabActive &&
-      props.navigation.setParams({
+      navigation.setParams({
         url: getMaskedUrl(siteInfo.url),
         icon: siteInfo.icon,
         silent: true,
@@ -818,7 +829,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     // Continue request loading it the protocol is whitelisted
     const { protocol } = new URL(url);
-    if (protocolAllowList.includes(protocol)) return true;
+    if (protocolAllowList.includes(protocol)) {
+      webStates.current[url] = { ...webStates.current[url], requested: true };
+
+      return true;
+    }
     Logger.log(`Protocol not allowed ${protocol}`);
 
     // If it is a trusted deeplink protocol, do not show the
@@ -865,7 +880,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
   // We should check if this is fixed on the newest versions of react-native-webview
-  const onLoad = ({
+  /*  const onLoad = ({
     nativeEvent,
   }: {
     nativeEvent: {
@@ -878,11 +893,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     //For iOS url on the navigation bar should only update upon load.
     if (Device.isIos()) {
       const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
-      const realUrl = `${origin}${pathname}${query}`;
-      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+        const realUrl = `${origin}${pathname}${query}`;
+       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon }); 
     }
-  };
+  }; */
 
   /**
    * When website finished loading
@@ -890,11 +905,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const onLoadEnd = ({
     nativeEvent,
   }: {
-    nativeEvent: { loading: boolean };
+    nativeEvent: { loading: boolean; url: string };
   }) => {
-    // Do not update URL unless website has successfully completed loading.
     if (nativeEvent.loading) {
       return;
+    }
+    webStates.current[nativeEvent.url] = {
+      ...webStates.current[nativeEvent.url],
+      ended: true,
+    };
+
+    LOGBROWSER('LOAD END', nativeEvent);
+    const { requested, started, ended } = webStates.current[nativeEvent.url];
+
+    // TODO: Handle iOS case where uniswap.com/something needs to redirect to not-found
+    if (started && ended) {
+      console.log('ENTER webStates onLoadEnd', webStates.current);
+
+      delete webStates.current[nativeEvent.url];
+      changeUrl({ ...nativeEvent, url: nativeEvent.url, icon: favicon });
+      changeAddressBar({ ...nativeEvent, url: nativeEvent.url, icon: favicon });
     }
   };
 
@@ -984,14 +1014,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const toggleUrlModal = useCallback(
     (shouldClearInput = false) => {
       const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-      props.navigation.navigate(
+      navigation.navigate(
         ...createBrowserUrlModalNavDetails({
           url: urlToShow,
           onUrlInputSubmit,
         }),
       );
     },
-    /* we do not want to depend on the props.navigation object
+    /* we do not want to depend on the navigation object
       - since we are changing it here, this would give us a circular dependency and infinite re renders
       */
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1016,7 +1046,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         getRpcMethodMiddleware({
           hostname,
           getProviderState,
-          navigation: props.navigation,
+          navigation: navigation,
           // Website info
           url,
           //@ts-expect-error - TODO: change the type of getRpcMethodMiddleware
@@ -1045,7 +1075,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     });
 
     if (isTabActive) {
-      props.navigation.setParams({
+      navigation.setParams({
         connectedAccounts: permittedAccountsList,
       });
     }
@@ -1078,12 +1108,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       return false;
     }
 
-    const realUrl = `${origin}${pathname}${query}`;
-    if (nativeEvent.url !== url.current) {
+    /*const realUrl = `${origin}${pathname}${query}`;
+      if (nativeEvent.url !== url.current) {
       // Update navigation bar address with title of loaded url.
       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
       changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    }
+    } */
+
+    webStates.current[nativeEvent.url] = {
+      ...webStates.current[nativeEvent.url],
+      started: true,
+    };
+    LOGBROWSER('SHOULD START LOAD WITH REQUEST', nativeEvent);
 
     sendActiveAccount();
 
@@ -1104,7 +1140,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       if (isTabActive) {
         const hostname = new URL(url.current).hostname;
         const accounts = await getPermittedAccounts(hostname);
-        props.navigation.setParams({
+        navigation.setParams({
           showUrlModal: toggleUrlModal,
           url: getMaskedUrl(url.current),
           icon: icon.current,
@@ -1118,7 +1154,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 })
                 .build(),
             );
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
               params: {
                 hostInfo: {
@@ -1175,11 +1211,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   /**
    * Handle error, for example, ssl certificate error
-   * TODO: check why the nativeEvent is the errorInfo and what type is it
    */
-  const onError = ({ nativeEvent: errorInfo }: { nativeEvent: boolean }) => {
+  const onError = ({
+    nativeEvent: errorInfo,
+  }: {
+    nativeEvent: WebViewErrorEvent;
+  }) => {
     Logger.log(errorInfo);
-    props.navigation.setParams({
+    navigation.setParams({
       error: true,
     });
     setError(errorInfo);
@@ -1233,7 +1272,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const addBookmark = () => {
     toggleOptionsIfNeeded();
-    props.navigation.push('AddBookmarkView', {
+    navigation.push('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',
@@ -1470,7 +1509,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         }, 1);
         wizardScrollAdjusted.current = true;
       }
-      return <OnboardingWizard navigation={props.navigation} />;
+      return <OnboardingWizard navigation={navigation} />;
     }
     return null;
   };
@@ -1514,7 +1553,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           onPress: () =>
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SHOW_IPFS,
               params: {
                 setIpfsBannerVisible: () => setIpfsBannerVisible(false),
@@ -1562,7 +1601,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           permittedChains.includes(currentChainId);
 
         if (!isCurrentChainIdAlreadyPermitted) {
-          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
             params: {
               isNonDappNetworkSwitch: true,
@@ -1581,7 +1620,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         Logger.error(error, 'Error in checkTabPermissions');
       }
     }
-  }, [props.chainId, props.navigation]);
+  }, [props.chainId, navigation]);
 
   const urlRef = useRef(url.current);
   useEffect(() => {
@@ -1601,7 +1640,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Main render
    */
   return (
-    <ErrorBoundary navigation={props.navigation} view="BrowserTab">
+    <ErrorBoundary navigation={navigation} view="BrowserTab">
       <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
@@ -1637,7 +1676,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
-                // @ts-expect-error - TODO: change the type of onError
                 onError={onError}
                 onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 allowsInlineMediaPlayback
@@ -1654,7 +1692,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
-
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
@@ -1684,8 +1721,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(setOnboardingWizardStep(step)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  // @ts-expect-error - TODO: change BrowserTab type
-)(withNavigation(BrowserTab));
+export default connect(mapStateToProps, mapDispatchToProps)(BrowserTab);
