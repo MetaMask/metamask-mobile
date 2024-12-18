@@ -13,6 +13,7 @@ export default function useCryptoCurrencies() {
     selectedChainId,
     isBuy,
     intent,
+    setIntent,
   } = useRampSDK();
 
   const [
@@ -62,6 +63,7 @@ export default function useCryptoCurrencies() {
         );
         if (intentAsset) {
           setSelectedAsset(intentAsset);
+          setIntent((prevIntent) => ({ ...prevIntent, address: undefined }));
           return;
         }
       }
@@ -85,6 +87,7 @@ export default function useCryptoCurrencies() {
     selectedAsset,
     selectedChainId,
     setSelectedAsset,
+    setIntent,
   ]);
 
   return {

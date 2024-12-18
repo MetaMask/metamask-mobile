@@ -1,25 +1,28 @@
-import { SmokeMultiChain } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import WalletView from '../../pages/wallet/WalletView';
-import NetworkListModal from '../../pages/Network/NetworkListModal';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import Assertions from '../../utils/Assertions';
-import TestHelpers from '../../helpers';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { stopFixtureServer, withFixtures } from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import { CustomNetworks } from '../../resources/networks.e2e';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
+import { SmokeMultiChain } from '../../../../tags';
+import { loginToApp } from '../../../../viewHelper';
+import WalletView from '../../../../pages/wallet/WalletView';
+import NetworkListModal from '../../../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
+import Assertions from '../../../../utils/Assertions';
+import TestHelpers from '../../../../helpers';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import {
+  stopFixtureServer,
+  withFixtures,
+} from '../../../../fixtures/fixture-helper';
+import FixtureServer from '../../../../fixtures/fixture-server';
+import { CustomNetworks } from '../../../../resources/networks.e2e';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 
 const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  SmokeMultiChain('Network Permission System, non-permitted chain, '),
+  SmokeMultiChain('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
@@ -33,7 +36,7 @@ describe(
       await stopFixtureServer(fixtureServer);
     });
 
-    it('should show bottom sheet when switching to non-permitted network', async () => {
+    it('should show bottom sheet when switching to non-permitted chain', async () => {
       await withFixtures(
         {
           dapp: true,
@@ -186,7 +189,7 @@ describe(
       );
     });
 
-    it('should allow adding new network permission through edit permissions', async () => {
+    it('should allow adding new chain permission through edit permissions', async () => {
       await withFixtures(
         {
           dapp: true,

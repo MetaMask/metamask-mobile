@@ -540,7 +540,7 @@ describe('Network Selector', () => {
     it('renders the linea mainnet cell correctly', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const { getByText } = renderComponent(initialState);
-      const lineaRpcUrl = getByText('https://linea-rpc.publicnode.com');
+      const lineaRpcUrl = getByText('linea-rpc.publicnode.com');
       const lineaCell = getByText('Linea');
       expect(lineaCell).toBeTruthy();
       expect(lineaRpcUrl).toBeTruthy();
@@ -572,7 +572,7 @@ describe('Network Selector', () => {
     it('renders the  mainnet cell correctly', () => {
       (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
       const { getByText } = renderComponent(initialState);
-      const mainnetRpcUrl = getByText('https://mainnet-rpc.publicnode.com');
+      const mainnetRpcUrl = getByText('mainnet-rpc.publicnode.com');
       const mainnetCell = getByText('Ethereum Mainnet');
       expect(mainnetCell).toBeTruthy();
       expect(mainnetRpcUrl).toBeTruthy();
