@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { SmokeAccounts } from '../../tags';
+import { SmokeCore } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
@@ -12,11 +12,8 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import Assertions from '../../utils/Assertions';
-import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
-import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
-describe(SmokeAccounts('Buy Crypto Deeplinks'), () => {
+describe(SmokeCore('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

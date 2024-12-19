@@ -6,7 +6,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 
 import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { SmokeAccounts } from '../../tags';
+import { SmokeCore } from '../../tags';
 
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
@@ -14,7 +14,7 @@ import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBotto
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 
-describe(SmokeAccounts('Sell Crypto Deeplinks'), () => {
+describe(SmokeCore('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
