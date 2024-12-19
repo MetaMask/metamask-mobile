@@ -40,6 +40,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
     );
   }
+  get invalidSignature() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      'signInvalidType',
+    );
+  }
 
   get ApproveERC721TokenButton() {
     return Matchers.getElementByWebID(
@@ -130,7 +136,9 @@ class TestDApp {
   async tapApproveERC721TokenButton() {
     await this.tapButton(this.ApproveERC721TokenButton);
   }
-
+  async tapInvalidSigButton() {
+    await this.tapButton(this.invalidSignature);
+  }
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
   }
