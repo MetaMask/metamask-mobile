@@ -54,9 +54,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: failingAddress,
         });
-
-        await TestHelpers.delay(99999999);
-
+        
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
         await TestHelpers.delay(3000);
