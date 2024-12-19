@@ -212,7 +212,11 @@ const BrowserFlow = () => (
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
+    <Stack.Screen
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name={Routes.BROWSER.URL_MODAL}
       component={BrowserUrlModal}

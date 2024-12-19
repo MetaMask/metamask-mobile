@@ -7,31 +7,29 @@ import React, {
 } from 'react';
 import {
   Text,
-  StyleSheet,
   View,
   TouchableWithoutFeedback,
   Alert,
   Linking,
   BackHandler,
   Platform,
+  ImageSourcePropType,
+  TextInput,
 } from 'react-native';
 import { isEqual } from 'lodash';
-import { withNavigation } from '@react-navigation/compat';
-import { WebView } from '@metamask/react-native-webview';
+import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
-import PropTypes from 'prop-types';
 import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
-import { baseStyles, fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, {
-  prefixUrlWithProtocol,
+import {
+  /* onUrlSubmit ,*/ prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
   trustedProtocolToDeeplink,
@@ -46,37 +44,33 @@ import {
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
-import URL from 'url-parse';
+import URLParse from 'url-parse';
 import Modal from 'react-native-modal';
-import WebviewError from '../../UI/WebviewError';
+import WebviewErrorComponent from '../../UI/WebviewError';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { useTheme } from '../../../util/theme';
 import downloadFile from '../../../util/browser/downloadFile';
-import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+/* import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal'; */
 import {
   MM_PHISH_DETECT_URL,
   MM_BLOCKLIST_ISSUE_URL,
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
-import {
-  MAX_MESSAGE_LENGTH,
-} from '../../../constants/dapp';
+import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
-  getPermittedAccounts,
+  /*   getPermittedAccounts, */
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
@@ -96,7 +90,14 @@ import {
 } from '../../../selectors/preferencesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { IPFS_GATEWAY_DISABLED_ERROR } from './constants';
+import {
+  HOMEPAGE_HOST,
+  IPFS_GATEWAY_DISABLED_ERROR,
+  OLD_HOMEPAGE_URL_HOST,
+  NOTIFICATION_NAMES,
+  HOMEPAGE_URL,
+  MM_MIXPANEL_TOKEN,
+} from './constants';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import {
   BannerAlertSeverity,
@@ -118,185 +119,81 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
-import { useIsFocused } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './styles';
+import { type RootState } from '../../../reducers';
+import { type Dispatch } from 'redux';
+import { type SessionENSNames, type BrowserTabProps } from './types';
+import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  WebViewNavigationEvent,
+  WebViewErrorEvent,
+  WebViewError,
+  WebViewProgressEvent,
+} from '@metamask/react-native-webview/lib/WebViewTypes';
+import BrowserUrlBar from '../../UI/BrowserUrlBar';
+import AccountRightButton from '../../UI/AccountRightButton';
+import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
+import { getURLProtocol } from '../../../util/general';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
-const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
-  AppConstants;
-const HOMEPAGE_HOST = new URL(HOMEPAGE_URL)?.hostname;
-const MM_MIXPANEL_TOKEN = process.env.MM_MIXPANEL_TOKEN;
+// Update the declaration
+const sessionENSNames: SessionENSNames = {};
 
-const createStyles = (colors, shadows) =>
-  StyleSheet.create({
-    wrapper: {
-      ...baseStyles.flexGrow,
-      backgroundColor: colors.background.default,
-    },
-    hide: {
-      flex: 0,
-      opacity: 0,
-      display: 'none',
-      width: 0,
-      height: 0,
-    },
-    progressBarWrapper: {
-      height: 3,
-      width: '100%',
-      left: 0,
-      right: 0,
-      top: 0,
-      position: 'absolute',
-      zIndex: 999999,
-    },
-    optionsOverlay: {
-      position: 'absolute',
-      zIndex: 99999998,
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-    },
-    optionsWrapper: {
-      position: 'absolute',
-      zIndex: 99999999,
-      width: 200,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      backgroundColor: colors.background.default,
-      borderRadius: 10,
-      paddingBottom: 5,
-      paddingTop: 10,
-    },
-    optionsWrapperAndroid: {
-      ...shadows.size.xs,
-      bottom: 65,
-      right: 5,
-    },
-    optionsWrapperIos: {
-      ...shadows.size.xs,
-      bottom: 90,
-      right: 5,
-    },
-    option: {
-      paddingVertical: 10,
-      height: 'auto',
-      minHeight: 44,
-      paddingHorizontal: 15,
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-start',
-      marginTop: Device.isAndroid() ? 0 : -5,
-    },
-    optionText: {
-      fontSize: 16,
-      lineHeight: 16,
-      alignSelf: 'center',
-      justifyContent: 'center',
-      marginTop: 3,
-      color: colors.primary.default,
-      flex: 1,
-      ...fontStyles.fontPrimary,
-    },
-    optionIconWrapper: {
-      flex: 0,
-      borderRadius: 5,
-      backgroundColor: colors.primary.muted,
-      padding: 3,
-      marginRight: 10,
-      alignSelf: 'center',
-    },
-    optionIcon: {
-      color: colors.primary.default,
-      textAlign: 'center',
-      alignSelf: 'center',
-      fontSize: 18,
-    },
-    webview: {
-      ...baseStyles.flexGrow,
-      zIndex: 1,
-    },
-    urlModalContent: {
-      flexDirection: 'row',
-      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
-      paddingHorizontal: 10,
-      height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
-      backgroundColor: colors.background.default,
-    },
-    searchWrapper: {
-      flexDirection: 'row',
-      borderRadius: 30,
-      backgroundColor: colors.background.alternative,
-      height: Device.isAndroid() ? 40 : 30,
-      flex: 1,
-    },
-    clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
-    urlModal: {
-      justifyContent: 'flex-start',
-      margin: 0,
-    },
-    urlInput: {
-      ...fontStyles.normal,
-      fontSize: Device.isAndroid() ? 16 : 14,
-      paddingLeft: 15,
-      flex: 1,
-      color: colors.text.default,
-    },
-    cancelButton: {
-      marginTop: -6,
-      marginLeft: 10,
-      justifyContent: 'center',
-    },
-    cancelButtonText: {
-      fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    bottomModal: {
-      justifyContent: 'flex-end',
-      margin: 0,
-    },
-    fullScreenModal: {
-      flex: 1,
-    },
-    bannerContainer: {
-      backgroundColor: colors.background.default,
-      position: 'absolute',
-      bottom: 16,
-      left: 16,
-      right: 16,
-      borderRadius: 4,
-    },
-  });
+const ensIgnoreList: string[] = [];
 
-const sessionENSNames = {};
-const ensIgnoreList = [];
-
-export const BrowserTab = (props) => {
+// Update the component definition
+export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
+  // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<boolean | WebViewError>(false);
   const [showOptions, setShowOptions] = useState(false);
-  const [entryScriptWeb3, setEntryScriptWeb3] = useState(null);
+  const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
   const [showPhishingModal, setShowPhishingModal] = useState(false);
-  const [blockedUrl, setBlockedUrl] = useState(undefined);
+  const [blockedUrl, setBlockedUrl] = useState<string>();
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
-  const webviewRef = useRef(null);
-  const blockListType = useRef('');
-  const allowList = useRef([]);
+  const webviewRef = useRef<WebView>(null);
+  const blockListType = useRef<string>(''); // TODO: Consider improving this type
+  const allowList = useRef<string[]>([]); // TODO: Consider improving this type
+  const webStates = useRef<
+    Record<string, { requested: boolean; started: boolean; ended: boolean }>
+  >({});
+  const urlBarRef = useRef<TextInput>(null);
+  const [isSecureConnection, setIsSecureConnection] = useState(false);
 
-  const url = useRef('');
-  const title = useRef('');
-  const icon = useRef(null);
-  const backgroundBridges = useRef([]);
+  const activeUrl = useRef('');
+  const title = useRef<string>('');
+  const icon = useRef<ImageSourcePropType | undefined>();
+  const backgroundBridges = useRef<
+    {
+      url: string;
+      hostname: string;
+      sendNotification: (payload: unknown) => void;
+      onDisconnect: () => void;
+      onMessage: (message: Record<string, unknown>) => void;
+    }[]
+  >([]); // TODO: This type can be improved and updated with typing the BackgroundBridge.js file
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
-  const permittedAccountsList = useSelector((state) => {
+  const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URL(url.current).hostname;
+    const hostname = new URLParse(activeUrl.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -304,72 +201,23 @@ export const BrowserTab = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const { colors, shadows } = useTheme();
-  const styles = createStyles(colors, shadows);
-  const favicon = useFavicon(url.current);
+  const favicon = useFavicon(activeUrl.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
   /**
    * Is the current tab the active tab
    */
   const isTabActive = useSelector(
-    (state) => state.browser.activeTab === props.id,
+    (state: RootState) => state.browser.activeTab === props.id,
   );
 
   const isFocused = useIsFocused();
 
   /**
-   * Gets the url to be displayed to the user
-   * For example, if it's ens then show [site].eth instead of ipfs url
-   */
-  const getMaskedUrl = (url) => {
-    if (!url) return url;
-    let replace = null;
-    if (url.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    } else if (url.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
-    } else if (url.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
-      replace = (key) =>
-        `${AppConstants.SWARM_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    }
-
-    if (replace) {
-      const key = Object.keys(sessionENSNames).find((ens) =>
-        url.startsWith(ens),
-      );
-      if (key) {
-        url = url.replace(
-          replace(key),
-          `https://${sessionENSNames[key].hostname}/`,
-        );
-      }
-    }
-    return url;
-  };
-
-  /**
-   * Checks if it is a ENS website
-   */
-  const isENSUrl = (url) => {
-    const { hostname } = new URL(url);
-    const tld = hostname.split('.').pop();
-    if (AppConstants.supportedTLDs.indexOf(tld.toLowerCase()) !== -1) {
-      // Make sure it's not in the ignore list
-      if (ensIgnoreList.indexOf(hostname) === -1) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  /**
    * Checks if a given url or the current url is the homepage
    */
   const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || url.current;
+    const currentPage = checkUrl || activeUrl.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
     return (
@@ -377,8 +225,8 @@ export const BrowserTab = (props) => {
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload, restricted = true) => {
-    const fullHostname = new URL(url.current).hostname;
+  const notifyAllConnections = useCallback((payload) => {
+    const fullHostname = new URLParse(activeUrl.current).hostname;
 
     // TODO:permissions move permissioning logic elsewhere
     backgroundBridges.current.forEach((bridge) => {
@@ -447,7 +295,7 @@ export const BrowserTab = (props) => {
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
-    current && current.goForward && current.goForward();
+    current?.goForward && current.goForward();
   };
 
   /**
@@ -464,34 +312,48 @@ export const BrowserTab = (props) => {
     const phishingControllerTestResult = PhishingController.test(origin);
 
     // Only assign the if the hostname is on the block list
-    if (phishingControllerTestResult.result)
+    if (
+      phishingControllerTestResult.result &&
+      phishingControllerTestResult.name
+    )
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      (allowList.current && allowList.current.includes(origin)) ||
+      allowList.current?.includes(origin) ||
       !phishingControllerTestResult.result
     );
   }, []);
 
   const isBookmark = () => {
     const { bookmarks } = props;
-    const maskedUrl = getMaskedUrl(url.current);
+    const maskedUrl = getMaskedUrl(activeUrl.current, sessionENSNames);
     return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
   };
 
   /**
    * Show a phishing modal when a url is not allowed
    */
-  const handleNotAllowedUrl = (urlToGo) => {
+  const handleNotAllowedUrl = (urlToGo: string) => {
     setBlockedUrl(urlToGo);
     setTimeout(() => setShowPhishingModal(true), 1000);
   };
 
+  interface IpfsContentResult {
+    url?: string;
+    hash?: string;
+    type?: string;
+    reload?: boolean;
+  }
+
   /**
    * Get IPFS info from a ens url
+   * TODO: Consider improving this function and it's types
    */
   const handleIpfsContent = useCallback(
-    async (fullUrl, { hostname, pathname, query }) => {
+    async (
+      fullUrl,
+      { hostname, pathname, query },
+    ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
       let gatewayUrl;
@@ -525,33 +387,38 @@ export const BrowserTab = (props) => {
           hash,
           type,
         };
-      } catch (err) {
+      } catch (err: unknown) {
+        const handleIpfsContentError = err as Error;
         //if it's not a ENS but a TLD (Top Level Domain)
-        if (isTLD(hostname, err)) {
+        if (isTLD(hostname, handleIpfsContentError)) {
           ensIgnoreList.push(hostname);
           return { url: fullUrl, reload: true };
         }
         if (
-          err?.message?.startsWith(
+          handleIpfsContentError?.message?.startsWith(
             'EnsIpfsResolver - no known ens-ipfs registry for chainId',
           )
         ) {
           trackErrorAsAnalytics(
             'Browser: Failed to resolve ENS name for chainId',
-            err?.message,
+            handleIpfsContentError?.message,
           );
         } else {
-          Logger.error(err, 'Failed to resolve ENS name');
+          Logger.error(handleIpfsContentError, 'Failed to resolve ENS name');
         }
 
-        if (err?.message?.startsWith(IPFS_GATEWAY_DISABLED_ERROR)) {
+        if (
+          handleIpfsContentError?.message?.startsWith(
+            IPFS_GATEWAY_DISABLED_ERROR,
+          )
+        ) {
           setIpfsBannerVisible(true);
           goBack();
-          throw new Error(err?.message);
+          throw new Error(handleIpfsContentError?.message);
         } else {
           Alert.alert(
             strings('browser.failed_to_resolve_ens_name'),
-            err.message,
+            handleIpfsContentError.message,
           );
         }
         goBack();
@@ -560,10 +427,10 @@ export const BrowserTab = (props) => {
     [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
-  const triggerDappViewedEvent = (url) => {
+  const triggerDappViewedEvent = (urlToTrigger: string) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
-    const hostname = new URL(url).hostname;
+    const hostname = new URLParse(urlToTrigger).hostname;
     const connectedAccounts = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -584,67 +451,72 @@ export const BrowserTab = (props) => {
   /**
    * Go to a url
    */
-  const go = useCallback(
-    async (url, initialCall) => {
-      setIsResolvedIpfsUrl(false);
-      const prefixedUrl = prefixUrlWithProtocol(url);
-      const { hostname, query, pathname, origin } = new URL(prefixedUrl);
-      let urlToGo = prefixedUrl;
-      const isEnsUrl = isENSUrl(url);
-      const { current } = webviewRef;
-      if (isEnsUrl) {
-        current && current.stopLoading();
-        try {
-          const {
-            url: ensUrl,
-            type,
-            hash,
-            reload,
-          } = await handleIpfsContent(url, { hostname, query, pathname });
-          if (reload) return go(ensUrl);
-          urlToGo = ensUrl;
-          sessionENSNames[urlToGo] = { hostname, hash, type };
-          setIsResolvedIpfsUrl(true);
-        } catch (error) {
-          return null;
-        }
-      }
-
-      if (isAllowedOrigin(origin)) {
-        if (initialCall || !firstUrlLoaded) {
-          setInitialUrl(urlToGo);
-          setFirstUrlLoaded(true);
-        } else {
-          current &&
-            current.injectJavaScript(
-              `(function(){window.location.href = '${sanitizeUrlInput(
-                urlToGo,
-              )}' })()`,
-            );
+  const go: (url: string, initialCall?: boolean) => Promise<string | null> =
+    useCallback(
+      async (goToUrl, initialCall) => {
+        setIsResolvedIpfsUrl(false);
+        const prefixedUrl = prefixUrlWithProtocol(goToUrl);
+        const { hostname, query, pathname, origin } = new URLParse(prefixedUrl);
+        let urlToGo = prefixedUrl;
+        const isEnsUrl = isENSUrl(goToUrl, ensIgnoreList);
+        const { current } = webviewRef;
+        if (isEnsUrl) {
+          current && current.stopLoading();
+          try {
+            const {
+              //@ts-expect-error - TODO: refactor handleIpfContent function
+              url: ensUrl,
+              //@ts-expect-error - TODO: refactor handleIpfContent function
+              type,
+              //@ts-expect-error - TODO: refactor handleIpfContent function
+              hash,
+              //@ts-expect-error - TODO: refactor handleIpfContent function
+              reload,
+            } = await handleIpfsContent(goToUrl, { hostname, query, pathname });
+            if (reload) return go(ensUrl);
+            urlToGo = ensUrl;
+            sessionENSNames[urlToGo] = { hostname, hash, type };
+            setIsResolvedIpfsUrl(true);
+          } catch (_) {
+            return null;
+          }
         }
 
-        // Skip tracking on initial open
-        if (!initialCall) {
-          triggerDappViewedEvent(urlToGo);
-        }
+        if (isAllowedOrigin(origin)) {
+          if (initialCall || !firstUrlLoaded) {
+            setInitialUrl(urlToGo);
+            setFirstUrlLoaded(true);
+          } else {
+            current &&
+              current.injectJavaScript(
+                `(function(){window.location.href = '${sanitizeUrlInput(
+                  urlToGo,
+                )}' })()`,
+              );
+          }
 
-        setProgress(0);
-        return prefixedUrl;
-      }
-      handleNotAllowedUrl(urlToGo);
-      return null;
-    },
-    [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
-  );
+          // Skip tracking on initial open
+          if (!initialCall) {
+            triggerDappViewedEvent(urlToGo);
+          }
+
+          setProgress(0);
+          return prefixedUrl;
+        }
+        handleNotAllowedUrl(urlToGo);
+        return null;
+      },
+      [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
+    );
 
   /**
    * Open a new tab
    */
   const openNewTab = useCallback(
-    (url) => {
+    (newTabUrl?: string) => {
       toggleOptionsIfNeeded();
       dismissTextSelectionIfNeeded();
-      props.newTab(url);
+      props.newTab(newTabUrl);
     },
     [dismissTextSelectionIfNeeded, props, toggleOptionsIfNeeded],
   );
@@ -656,7 +528,7 @@ export const BrowserTab = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
-    triggerDappViewedEvent(url.current);
+    triggerDappViewedEvent(activeUrl.current);
   }, []);
 
   /**
@@ -670,12 +542,12 @@ export const BrowserTab = (props) => {
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
-    const initialUrl = props.initialUrl || HOMEPAGE_URL;
-    go(initialUrl, true);
+    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
+    go(initialUrlOrHomepage, true);
 
     const getEntryScriptWeb3 = async () => {
-      const entryScriptWeb3 = await EntryScriptWeb3.get();
-      setEntryScriptWeb3(entryScriptWeb3 + SPA_urlChangeListener);
+      const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
+      setEntryScriptWeb3(entryScriptWeb3Fetched + SPA_urlChangeListener);
     };
 
     getEntryScriptWeb3();
@@ -694,12 +566,10 @@ export const BrowserTab = (props) => {
 
     return function cleanup() {
       if (Device.isAndroid()) {
-        DrawerStatusTracker &&
-          DrawerStatusTracker.hub &&
-          DrawerStatusTracker.hub.removeListener(
-            'drawer::open',
-            drawerOpenHandler,
-          );
+        DrawerStatusTracker?.hub?.removeListener(
+          'drawer::open',
+          drawerOpenHandler,
+        );
       }
     };
   }, [drawerOpenHandler]);
@@ -717,10 +587,10 @@ export const BrowserTab = (props) => {
     BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
 
     // Handle hardwareBackPress event only for browser, not components rendered on top
-    props.navigation.addListener('willFocus', () => {
+    navigation.addListener('focus', () => {
       BackHandler.addEventListener('hardwareBackPress', handleAndroidBackPress);
     });
-    props.navigation.addListener('willBlur', () => {
+    navigation.addListener('blur', () => {
       BackHandler.removeEventListener(
         'hardwareBackPress',
         handleAndroidBackPress,
@@ -733,38 +603,44 @@ export const BrowserTab = (props) => {
         handleAndroidBackPress,
       );
     };
-  }, [goBack, isTabActive, props.navigation]);
+  }, [goBack, isTabActive, navigation]);
 
   /**
    * Inject home page scripts to get the favourites and set analytics key
    */
-  const injectHomePageScripts = async (bookmarks) => {
+  const injectHomePageScripts = async (bookmarks?: string[]) => {
     const { current } = webviewRef;
     const analyticsEnabled = isEnabled();
     const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
-			window.__mmFavorites = ${JSON.stringify(bookmarks || props.bookmarks)};
-			window.__mmSearchEngine = "${props.searchEngine}";
-			window.__mmMetametrics = ${analyticsEnabled};
-			window.__mmDistinctId = "${disctinctId}";
-			window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
-			(function () {
-				try {
-					window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
-				} catch (e) {
-					//Nothing to do
-				}
-			})()
-		`;
+              window.__mmFavorites = ${JSON.stringify(
+                bookmarks || props.bookmarks,
+              )};
+              window.__mmSearchEngine = "${props.searchEngine}";
+              window.__mmMetametrics = ${analyticsEnabled};
+              window.__mmDistinctId = "${disctinctId}";
+              window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
+              (function () {
+                  try {
+                      window.dispatchEvent(new Event('metamask_onHomepageScriptsInjected'));
+                  } catch (e) {
+                      //Nothing to do
+                  }
+              })()
+          `;
 
-    current.injectJavaScript(homepageScripts);
+    current?.injectJavaScript(homepageScripts);
   };
 
   /**
    * Handles state changes for when the url changes
    */
-  const changeUrl = async (siteInfo) => {
-    url.current = siteInfo.url;
+  const changeUrl = async (siteInfo: {
+    url: string;
+    title: string;
+    icon: ImageSourcePropType;
+  }) => {
+    activeUrl.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
@@ -772,22 +648,28 @@ export const BrowserTab = (props) => {
   /**
    * Handles state changes for when the url changes
    */
-  const changeAddressBar = (siteInfo) => {
+  const changeAddressBar = (siteInfo: {
+    title: string;
+    url: string;
+    icon: ImageSourcePropType;
+    canGoBack: boolean;
+    canGoForward: boolean;
+  }) => {
     setBackEnabled(siteInfo.canGoBack);
     setForwardEnabled(siteInfo.canGoForward);
 
     isTabActive &&
-      props.navigation.setParams({
-        url: getMaskedUrl(siteInfo.url),
+      navigation.setParams({
+        url: getMaskedUrl(siteInfo.url, sessionENSNames),
         icon: siteInfo.icon,
         silent: true,
       });
 
-    props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
+    props.updateTabInfo(getMaskedUrl(siteInfo.url, sessionENSNames), props.id);
 
     props.addToBrowserHistory({
       name: siteInfo.title,
-      url: getMaskedUrl(siteInfo.url),
+      url: getMaskedUrl(siteInfo.url, sessionENSNames),
     });
   };
 
@@ -803,10 +685,11 @@ export const BrowserTab = (props) => {
    * Continue to phishing website
    */
   const continueToPhishingSite = () => {
-    const urlObj = new URL(blockedUrl);
+    if (!blockedUrl) return;
+    const urlObj = new URLParse(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
-    blockedUrl !== url.current &&
+    blockedUrl !== activeUrl.current &&
       setTimeout(() => {
         go(blockedUrl);
         setBlockedUrl(undefined);
@@ -835,7 +718,7 @@ export const BrowserTab = (props) => {
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    blockedUrl === url.current && goBack();
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
@@ -868,6 +751,7 @@ export const BrowserTab = (props) => {
     </Modal>
   );
 
+  /*  
   const trackEventSearchUsed = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
@@ -877,24 +761,33 @@ export const BrowserTab = (props) => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder]); */
 
   /**
-   *  Function that allows custom handling of any web view requests.
-   *  Return `true` to continue loading the request and `false` to stop loading.
+   * Function that allows custom handling of any web view requests.
+   * Return `true` to continue loading the request and `false` to stop loading.
    */
-  const onShouldStartLoadWithRequest = ({ url }) => {
-    const { origin } = new URL(url);
+  const onShouldStartLoadWithRequest = ({
+    url: urlToLoad,
+  }: {
+    url: string;
+  }) => {
+    const { origin } = new URLParse(urlToLoad);
+
+    webStates.current[urlToLoad] = {
+      ...webStates.current[urlToLoad],
+      requested: true,
+    };
 
     // Stops normal loading when it's ens, instead call go to be properly set up
-    if (isENSUrl(url)) {
-      go(url.replace(regex.urlHttpToHttps, 'https://'));
+    if (isENSUrl(urlToLoad, ensIgnoreList)) {
+      go(urlToLoad.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(origin)) {
-      handleNotAllowedUrl(url);
+      handleNotAllowedUrl(urlToLoad);
       return false;
     }
 
@@ -904,7 +797,7 @@ export const BrowserTab = (props) => {
     }
 
     // Continue request loading it the protocol is whitelisted
-    const { protocol } = new URL(url);
+    const { protocol } = new URLParse(urlToLoad);
     if (protocolAllowList.includes(protocol)) return true;
     Logger.log(`Protocol not allowed ${protocol}`);
 
@@ -912,7 +805,7 @@ export const BrowserTab = (props) => {
     // warning alert. Allow the OS to deeplink the URL
     // and stop the webview from loading it.
     if (trustedProtocolToDeeplink.includes(protocol)) {
-      allowLinkOpen(url);
+      allowLinkOpen(urlToLoad);
       return false;
     }
 
@@ -931,7 +824,7 @@ export const BrowserTab = (props) => {
       },
       {
         text: strings('browser.protocol_alert_options.allow'),
-        onPress: () => allowLinkOpen(url),
+        onPress: () => allowLinkOpen(urlToLoad),
         style: 'default',
       },
     ]);
@@ -942,37 +835,62 @@ export const BrowserTab = (props) => {
   /**
    * Sets loading bar progress
    */
-  const onLoadProgress = ({ nativeEvent: { progress } }) => {
-    setProgress(progress);
+  const onLoadProgress = ({
+    nativeEvent: { progress: onLoadProgressProgress },
+  }: WebViewProgressEvent) => {
+    setProgress(onLoadProgressProgress);
   };
 
   // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
   // We should check if this is fixed on the newest versions of react-native-webview
-  const onLoad = ({ nativeEvent }) => {
-    //For iOS url on the navigation bar should only update upon load.
-    if (Device.isIos()) {
-      const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
-      const realUrl = `${origin}${pathname}${query}`;
-      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    }
-  };
+  //   const onLoad = ({ nativeEvent }: WebViewNavigationEvent) => {
+  //     //For iOS url on the navigation bar should only update upon load.
+  //     if (Device.isIos()) {
+  //       const {
+  //         origin,
+  //         pathname = '',
+  //         query = '',
+  //       } = new URLParse(nativeEvent.url);
+  //       const realUrl = `${origin}${pathname}${query}`;
+  //       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+  //       changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+  //     }
+  //   };
 
   /**
    * When website finished loading
    */
-  const onLoadEnd = ({ nativeEvent }) => {
+  const onLoadEnd = ({
+    nativeEvent: { url, title, canGoBack, canGoForward },
+  }: WebViewNavigationEvent | WebViewErrorEvent) => {
     // Do not update URL unless website has successfully completed loading.
-    if (nativeEvent.loading) {
-      return;
+    webStates.current[url] = { ...webStates.current[url], ended: true };
+    const { requested, started, ended } = webStates.current[url];
+    const incomingOrigin = new URLParse(url).origin;
+    const activeOrigin = new URLParse(activeUrl.current).origin;
+    if ((started && ended) || incomingOrigin === activeOrigin) {
+      delete webStates.current[url];
+      // Update navigation bar address with title of loaded url.
+      changeUrl({ title, url, icon: favicon });
+      changeAddressBar({
+        title,
+        url,
+        icon: favicon,
+        canGoBack,
+        canGoForward,
+      });
+      const contentProtocol = getURLProtocol(url);
+      const isHttps = contentProtocol === PROTOCOLS.HTTPS;
+      setIsSecureConnection(isHttps);
+      urlBarRef.current?.setNativeProps({ text: url });
     }
   };
 
   /**
    * Handle message from website
    */
-  const onMessage = ({ nativeEvent }) => {
-    let data = nativeEvent.data;
+  const onMessage = ({ nativeEvent }: WebViewMessageEvent) => {
+    const data = nativeEvent.data;
     try {
       if (data.length > MAX_MESSAGE_LENGTH) {
         console.warn(
@@ -983,20 +901,24 @@ export const BrowserTab = (props) => {
         );
         return;
       }
-      data = typeof data === 'string' ? JSON.parse(data) : data;
-      if (!data || (!data.type && !data.name)) {
+      const dataParsed = typeof data === 'string' ? JSON.parse(data) : data;
+      if (!dataParsed || (!dataParsed.type && !dataParsed.name)) {
         return;
       }
-      if (data.name) {
-        const origin = new URL(nativeEvent.url).origin;
+      if (dataParsed.name) {
+        const origin = new URLParse(nativeEvent.url).origin;
         backgroundBridges.current.forEach((bridge) => {
-          const bridgeOrigin = new URL(bridge.url).origin;
-          bridgeOrigin === origin && bridge.onMessage(data);
+          const bridgeOrigin = new URLParse(bridge.url).origin;
+          bridgeOrigin === origin && bridge.onMessage(dataParsed);
         });
         return;
       }
-    } catch (e) {
-      Logger.error(e, `Browser::onMessage on ${url.current}`);
+    } catch (e: unknown) {
+      const onMessageError = e as Error;
+      Logger.error(
+        onMessageError,
+        `Browser::onMessage on ${activeUrl.current}`,
+      );
     }
   };
 
@@ -1005,7 +927,7 @@ export const BrowserTab = (props) => {
    */
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
-    if (url.current === HOMEPAGE_URL) return reload();
+    if (activeUrl.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
@@ -1015,7 +937,7 @@ export const BrowserTab = (props) => {
    */
   const goToFavorites = async () => {
     toggleOptionsIfNeeded();
-    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    if (activeUrl.current === OLD_HOMEPAGE_URL_HOST) return reload();
     await go(OLD_HOMEPAGE_URL_HOST);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
@@ -1025,59 +947,82 @@ export const BrowserTab = (props) => {
   /**
    * Handle url input submit
    */
-  const onUrlInputSubmit = useCallback(
-    async (inputValue = undefined) => {
-      trackEventSearchUsed();
-      if (!inputValue) {
-        return;
-      }
-      const { defaultProtocol, searchEngine } = props;
-      const sanitizedInput = onUrlSubmit(
-        inputValue,
-        searchEngine,
-        defaultProtocol,
-      );
-      await go(sanitizedInput);
-    },
-    /* we do not want to depend on the props object
-    - since we are changing it here, this would give us a circular dependency and infinite re renders
-    */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  //   const onUrlInputSubmit = useCallback(
+  //     async (inputValue = undefined) => {
+  //       trackEventSearchUsed();
+  //       if (!inputValue) {
+  //         return;
+  //       }
+  //       const { defaultProtocol, searchEngine } = props;
+  //       const sanitizedInput = onUrlSubmit(
+  //         inputValue,
+  //         searchEngine,
+  //         defaultProtocol ?? 'https://',
+  //       );
+
+  //       console.log('BROWSER TAB: onUrlInputSubmit', inputValue, sanitizedInput);
+
+  //       isTabActive &&
+  //         navigation.setParams({
+  //           url: inputValue,
+  //           icon: icon.current,
+  //           silent: true,
+  //         });
+
+  //       await go(sanitizedInput);
+  //     },
+  //     /* we do not want to depend on the props object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //     [isTabActive],
+  //   );
 
   /**
    * Shows or hides the url input modal.
    * When opened it sets the current website url on the input.
    */
-  const toggleUrlModal = useCallback(
-    (shouldClearInput = false) => {
-      const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-      props.navigation.navigate(
-        ...createBrowserUrlModalNavDetails({
-          url: urlToShow,
-          onUrlInputSubmit,
-        }),
-      );
-    },
-    /* we do not want to depend on the props.navigation object
-    - since we are changing it here, this would give us a circular dependency and infinite re renders
-    */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onUrlInputSubmit],
-  );
+  //   const toggleUrlModal = useCallback(
+  //     (shouldClearInput = false) => {
+  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(activeUrl.current,sessionENSNames);
+  //       navigation.navigate(
+  //         ...createBrowserUrlModalNavDetails({
+  //           url: urlToShow,
+  //           onUrlInputSubmit,
+  //         }),
+  //       );
+  //     },
+  //     /* we do not want to depend on the navigation object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //     [onUrlInputSubmit],
+  //   );
+  const toggleUrlModal = () => {
+    urlBarRef.current?.focus();
+  };
 
-  const initializeBackgroundBridge = (urlBridge, isMainFrame) => {
+  const initializeBackgroundBridge = (
+    urlBridge: string,
+    isMainFrame: boolean,
+  ) => {
+    //@ts-expect-error - We should type bacgkround bridge js file
     const newBridge = new BackgroundBridge({
       webview: webviewRef,
       url: urlBridge,
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+      getRpcMethodMiddleware: ({
+        hostname,
+        getProviderState,
+      }: {
+        hostname: string;
+        getProviderState: () => void;
+      }) =>
         getRpcMethodMiddleware({
           hostname,
           getProviderState,
-          navigation: props.navigation,
+          navigation,
           // Website info
-          url,
+          url: activeUrl,
           title,
           icon,
           // Bookmarks
@@ -1089,6 +1034,10 @@ export const BrowserTab = (props) => {
           wizardScrollAdjusted,
           tabId: props.id,
           injectHomePageScripts,
+          // TODO: This properties were missing, and were not optional
+          isWalletConnect: false,
+          isMMSDK: false,
+          analytics: {},
         }),
       isMainFrame,
     });
@@ -1102,7 +1051,7 @@ export const BrowserTab = (props) => {
     });
 
     if (isTabActive) {
-      props.navigation.setParams({
+      navigation.setParams({
         connectedAccounts: permittedAccountsList,
       });
     }
@@ -1112,9 +1061,15 @@ export const BrowserTab = (props) => {
   /**
    * Website started to load
    */
-  const onLoadStart = async ({ nativeEvent }) => {
+  const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const { origin, pathname = '', query = '' } = new URL(nativeEvent.url);
+    const { origin, pathname = '', query = '' } = new URLParse(nativeEvent.url);
+    console.log('BROWSER TAB: onLoadStart', origin, pathname, query);
+
+    webStates.current[nativeEvent.url] = {
+      ...webStates.current[nativeEvent.url],
+      started: true,
+    };
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
@@ -1122,20 +1077,20 @@ export const BrowserTab = (props) => {
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(origin)) {
-      handleNotAllowedUrl(url);
+      handleNotAllowedUrl(activeUrl.current); // should this be activeUrl.current instead of url?
       return false;
     }
 
-    const realUrl = `${origin}${pathname}${query}`;
-    if (nativeEvent.url !== url.current) {
-      // Update navigation bar address with title of loaded url.
-      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    }
+    // const realUrl = `${origin}${pathname}${query}`;
+    // if (nativeEvent.url !== activeUrl.current) {
+    //   // Update navigation bar address with title of loaded url.
+    //   changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+    //   changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+    // }
 
     sendActiveAccount();
 
-    icon.current = null;
+    icon.current = undefined;
     if (isHomepage(nativeEvent.url)) {
       injectHomePageScripts();
     }
@@ -1147,47 +1102,47 @@ export const BrowserTab = (props) => {
   /**
    * Enable the header to toggle the url modal and update other header data
    */
-  useEffect(() => {
-    const updateNavbar = async () => {
-      if (isTabActive) {
-        const hostname = new URL(url.current).hostname;
-        const accounts = await getPermittedAccounts(hostname);
-        props.navigation.setParams({
-          showUrlModal: toggleUrlModal,
-          url: getMaskedUrl(url.current),
-          icon: icon.current,
-          error,
-          setAccountsPermissionsVisible: () => {
-            // Track Event: "Opened Acount Switcher"
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-                .addProperties({
-                  number_of_accounts: accounts?.length,
-                })
-                .build(),
-            );
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-              params: {
-                hostInfo: {
-                  metadata: {
-                    origin: url.current && new URL(url.current).hostname,
-                  },
-                },
-              },
-            });
-          },
-          connectedAccounts: accounts,
-        });
-      }
-    };
+  //   useEffect(() => {
+  //     const updateNavbar = async () => {
+  //       if (isTabActive) {
+  //         const hostname = new URLParse(activeUrl.current).hostname;
+  //         const accounts = await getPermittedAccounts(hostname);
+  //         navigation.setParams({
+  //           showUrlModal: toggleUrlModal,
+  //           url: getMaskedUrl(activeUrl.current, sessionENSNames),
+  //           icon: icon.current,
+  //           error,
+  //           setAccountsPermissionsVisible: () => {
+  //             // Track Event: "Opened Acount Switcher"
+  //             trackEvent(
+  //               createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+  //                 .addProperties({
+  //                   number_of_accounts: accounts?.length,
+  //                 })
+  //                 .build(),
+  //             );
+  //             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+  //               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+  //               params: {
+  //                 hostInfo: {
+  //                   metadata: {
+  //                     origin: activeUrl.current && new URLParse(activeUrl.current).hostname,
+  //                   },
+  //                 },
+  //               },
+  //             });
+  //           },
+  //           connectedAccounts: accounts,
+  //         });
+  //       }
+  //     };
 
-    updateNavbar();
-    /* we do not want to depend on the entire props object
-    - since we are changing it here, this would give us a circular dependency and infinite re renders
-    */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error, isTabActive, toggleUrlModal]);
+  //     updateNavbar();
+  //     /* we do not want to depend on the entire props object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   }, [error, isTabActive, toggleUrlModal]);
 
   /**
    * Check whenever permissions change / account changes for Dapp
@@ -1224,9 +1179,9 @@ export const BrowserTab = (props) => {
   /**
    * Handle error, for example, ssl certificate error
    */
-  const onError = ({ nativeEvent: errorInfo }) => {
+  const onError = ({ nativeEvent: errorInfo }: WebViewErrorEvent) => {
     Logger.log(errorInfo);
-    props.navigation.setParams({
+    navigation.setParams({
       error: true,
     });
     setError(errorInfo);
@@ -1278,29 +1233,36 @@ export const BrowserTab = (props) => {
   /**
    * Add bookmark
    */
-  const addBookmark = () => {
+  const navigateToAddBookmark = () => {
     toggleOptionsIfNeeded();
-    props.navigation.push('AddBookmarkView', {
+    navigation.push('AddBookmarkView', {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',
-        url: getMaskedUrl(url.current),
-        onAddBookmark: async ({ name, url }) => {
-          props.addBookmark({ name, url });
+        url: getMaskedUrl(activeUrl.current, sessionENSNames),
+        onAddBookmark: async ({
+          name,
+          url: urlToAdd,
+        }: {
+          name: string;
+          url: string;
+        }) => {
+          props.addBookmark({ name, url: urlToAdd });
           if (Device.isIos()) {
             const item = {
-              uniqueIdentifier: url,
-              title: name || getMaskedUrl(url),
-              contentDescription: `Launch ${name || url} on MetaMask`,
-              keywords: [name.split(' '), url, 'dapp'],
+              uniqueIdentifier: activeUrl,
+              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
+              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
+              keywords: [name.split(' '), urlToAdd, 'dapp'],
               thumbnail: {
                 uri: icon.current || favicon,
               },
             };
             try {
               SearchApi.indexSpotlightItem(item);
-            } catch (e) {
-              Logger.error(e, 'Error adding to spotlight');
+            } catch (e: unknown) {
+              const searchApiError = e as Error;
+              Logger.error(searchApiError, 'Error adding to spotlight');
             }
           }
         },
@@ -1318,7 +1280,7 @@ export const BrowserTab = (props) => {
   const share = () => {
     toggleOptionsIfNeeded();
     Share.open({
-      url: url.current,
+      url: activeUrl.current,
     }).catch((err) => {
       Logger.log('Error while trying to share address', err);
     });
@@ -1330,10 +1292,10 @@ export const BrowserTab = (props) => {
    */
   const openInBrowser = () => {
     toggleOptionsIfNeeded();
-    Linking.openURL(url.current).catch((error) =>
+    Linking.openURL(activeUrl.current).catch((openInBrowserError) =>
       Logger.log(
-        `Error while trying to open external link: ${url.current}`,
-        error,
+        `Error while trying to open external link: ${activeUrl.current}`,
+        openInBrowserError,
       ),
     );
     trackEvent(
@@ -1389,7 +1351,7 @@ export const BrowserTab = (props) => {
           </Text>
         </Button>
         {!isBookmark() && (
-          <Button onPress={addBookmark} style={styles.option}>
+          <Button onPress={navigateToAddBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
               <Icon name="plus-square" size={16} style={styles.optionIcon} />
             </View>
@@ -1516,7 +1478,7 @@ export const BrowserTab = (props) => {
         }, 1);
         wizardScrollAdjusted.current = true;
       }
-      return <OnboardingWizard navigation={props.navigation} />;
+      return <OnboardingWizard navigation={navigation} />;
     }
     return null;
   };
@@ -1560,13 +1522,12 @@ export const BrowserTab = (props) => {
         actionButtonProps={{
           variant: ButtonVariants.Link,
           onPress: () =>
-            props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
               screen: Routes.SHEET.SHOW_IPFS,
               params: {
                 setIpfsBannerVisible: () => setIpfsBannerVisible(false),
               },
             }),
-          textVariant: TextVariant.BodyMD,
           label: 'Turn on IPFS gateway',
         }}
         variant={BannerVariant.Alert}
@@ -1582,9 +1543,9 @@ export const BrowserTab = (props) => {
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (!url.current) return;
+    if (!activeUrl.current) return;
 
-    const hostname = new URL(url.current).hostname;
+    const hostname = new URLParse(activeUrl.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedAccountsByHostname(
@@ -1609,7 +1570,7 @@ export const BrowserTab = (props) => {
           permittedChains.includes(currentChainId);
 
         if (!isCurrentChainIdAlreadyPermitted) {
-          props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
             screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
             params: {
               isNonDappNetworkSwitch: true,
@@ -1624,14 +1585,15 @@ export const BrowserTab = (props) => {
           });
         }
       } catch (e) {
-        Logger.error(e, 'Error in checkTabPermissions');
+        const checkTabPermissionsError = e as Error;
+        Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [props.chainId, props.navigation]);
+  }, [props.chainId, navigation]);
 
-  const urlRef = useRef(url.current);
+  const urlRef = useRef(activeUrl.current);
   useEffect(() => {
-    urlRef.current = url.current;
+    urlRef.current = activeUrl.current;
     if (
       isMultichainVersion1Enabled &&
       urlRef.current &&
@@ -1643,15 +1605,77 @@ export const BrowserTab = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
+  const route = useRoute();
+  const connectedAccounts = route.params?.connectedAccounts;
+  const handleAccountRightButtonPress = () => {
+    // rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
+
+    // Track Event: "Opened Acount Switcher"
+    // trackEvent(
+    //   createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+    //     .addProperties({
+    //       number_of_accounts: accounts?.length,
+    //     })
+    //     .build(),
+    // );
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin:
+              activeUrl.current && new URLParse(activeUrl.current).hostname,
+          },
+        },
+      },
+    });
+  };
+
+  const onSubmitEditing = (text: string) => {
+    webviewRef.current?.stopLoading();
+    // Format url for browser to be navigatable by webview
+    const url = processUrlForBrowser(text);
+    // Directly update url in webview
+    webviewRef.current?.injectJavaScript(`
+      window.location.href = '${url}';
+      true;  // Required for iOS
+    `);
+  };
+
+  const onCancel = () => {
+    // Reset the url bar to the current url
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
+  };
+
   /**
    * Main render
    */
   return (
-    <ErrorBoundary navigation={props.navigation} view="BrowserTab">
+    <ErrorBoundary navigation={navigation} view="BrowserTab">
       <View
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          <BrowserUrlBar
+            ref={urlBarRef}
+            onPress={toggleUrlModal}
+            isSecureConnection={isSecureConnection}
+            onSubmitEditing={onSubmitEditing}
+            onCancel={onCancel}
+          />
+          <AccountRightButton
+            selectedAddress={connectedAccounts?.[0]}
+            isNetworkVisible
+            onPress={handleAccountRightButtonPress}
+          />
+        </View>
+        {renderProgressBar()}
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
@@ -1670,7 +1694,10 @@ export const BrowserTab = (props) => {
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
-                  <WebviewError error={error} returnHome={returnHome} />
+                  <WebviewErrorComponent
+                    error={error}
+                    returnHome={returnHome}
+                  />
                 )}
                 source={{
                   uri: initialUrl,
@@ -1679,7 +1706,6 @@ export const BrowserTab = (props) => {
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
-                onLoad={onLoad}
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
@@ -1696,7 +1722,6 @@ export const BrowserTab = (props) => {
           )}
         </View>
         {updateAllowList()}
-        {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
 
@@ -1707,115 +1732,7 @@ export const BrowserTab = (props) => {
   );
 };
 
-BrowserTab.propTypes = {
-  /**
-   * The ID of the current tab
-   */
-  id: PropTypes.number,
-  /**
-   * The ID of the active tab
-   */
-  activeTab: PropTypes.number,
-  /**
-   * InitialUrl
-   */
-  initialUrl: PropTypes.string,
-  /**
-   * linkType - type of link to open
-   */
-  linkType: PropTypes.string,
-  /**
-   * Protocol string to append to URLs that have none
-   */
-  defaultProtocol: PropTypes.string,
-  /**
-   * A string that of the chosen ipfs gateway
-   */
-  ipfsGateway: PropTypes.string,
-  /**
-   * Object containing the information for the current transaction
-   */
-  transaction: PropTypes.object,
-  /**
-   * react-navigation object used to switch between screens
-   */
-  navigation: PropTypes.object,
-  /**
-   * A string that represents the selected address
-   */
-  selectedAddress: PropTypes.string,
-  /**
-   * whitelisted url to bypass the phishing detection
-   */
-  whitelist: PropTypes.array,
-  /**
-   * Url coming from an external source
-   * For ex. deeplinks
-   */
-  url: PropTypes.string,
-  /**
-   * Function to open a new tab
-   */
-  newTab: PropTypes.func,
-  /**
-   * Function to store bookmarks
-   */
-  addBookmark: PropTypes.func,
-  /**
-   * Array of bookmarks
-   */
-  bookmarks: PropTypes.array,
-  /**
-   * String representing the current search engine
-   */
-  searchEngine: PropTypes.string,
-  /**
-   * Function to store the a page in the browser history
-   */
-  addToBrowserHistory: PropTypes.func,
-  /**
-   * Function to store the a website in the browser whitelist
-   */
-  addToWhitelist: PropTypes.func,
-  /**
-   * Function to update the tab information
-   */
-  updateTabInfo: PropTypes.func,
-  /**
-   * Function to update the tab information
-   */
-  showTabs: PropTypes.func,
-  /**
-   * Action to set onboarding wizard step
-   */
-  setOnboardingWizardStep: PropTypes.func,
-  /**
-   * Current onboarding wizard step
-   */
-  wizardStep: PropTypes.number,
-  /**
-   * the current version of the app
-   */
-  app_version: PropTypes.string,
-  /**
-   * Represents ipfs gateway toggle
-   */
-  isIpfsGatewayEnabled: PropTypes.bool,
-  /**
-   * Represents the current chain id
-   */
-  chainId: PropTypes.string,
-  /**
-   * Boolean indicating if browser is in tabs view
-   */
-  isInTabsView: PropTypes.bool,
-};
-
-BrowserTab.defaultProps = {
-  defaultProtocol: 'https://',
-};
-
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state: RootState) => ({
   bookmarks: state.bookmarks,
   ipfsGateway: selectIpfsGateway(state),
   selectedAddress:
@@ -1827,14 +1744,12 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-  addBookmark: (bookmark) => dispatch(addBookmark(bookmark)),
-  addToBrowserHistory: ({ url, name }) => dispatch(addToHistory({ url, name })),
-  addToWhitelist: (url) => dispatch(addToWhitelist(url)),
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  addBookmark: (bookmark: { name: string; url: string }) =>
+    dispatch(addBookmark(bookmark)),
+  addToBrowserHistory: ({ url, name }: { name: string; url: string }) =>
+    dispatch(addToHistory({ url, name })),
+  addToWhitelist: (url: string) => dispatch(addToWhitelist(url)),
 });
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(withNavigation(BrowserTab));
+export default connect(mapStateToProps, mapDispatchToProps)(BrowserTab);

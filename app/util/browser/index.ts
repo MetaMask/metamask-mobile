@@ -123,7 +123,7 @@ export const trustedProtocolToDeeplink = [
  */
 export const getAlertMessage = (
   protocol: string,
-  i18nService: (id: string) => void,
+  i18nService: (id: string) => string,
 ) => {
   switch (protocol) {
     case 'tel:':
