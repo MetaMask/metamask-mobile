@@ -20,7 +20,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeCore('Custom RPC Tests'), () => {
+describe('Custom RPC Tests', () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();
