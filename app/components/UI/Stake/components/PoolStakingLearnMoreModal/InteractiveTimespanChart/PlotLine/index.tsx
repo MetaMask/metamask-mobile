@@ -20,7 +20,7 @@ const PlotLine = ({ line, doesChartHaveData, color }: Partial<LineProps>) => {
       key="line"
       d={line}
       stroke={doesChartHaveData ? lineColor : themeColors.text.alternative}
-      strokeWidth={1.5}
+      strokeWidth={1.75}
       fill="none"
       opacity={doesChartHaveData ? 1 : 0.85}
     />
