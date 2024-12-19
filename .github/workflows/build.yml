@@ -1,0 +1,53 @@
+name: Build MetaMask Mobile
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [android, ios]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install Yarn
+      run: npm install -g yarn
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        if [ "${{ matrix.platform }}" == "android" ]; then
+          cd android && ./gradlew assembleRelease
+        elif [ "${{ matrix.platform }}" == "ios" ]; then
+          cd ios && pod install && cd .. && yarn ios
+        fi
+
+    - name: Upload Android APK
+      if: matrix.platform == 'android'
+      uses: actions/upload-artifact@v2
+      with:
+        name: android-apk
+        path: android/app/build/outputs/apk/release/app-release.apk
+
+    - name: Upload iOS Build
+      if: matrix.platform == 'ios'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ios-build
+        path: ios/build/
