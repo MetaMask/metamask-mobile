@@ -71,7 +71,7 @@ pipelines:
     stages:
       - create_build_qa_android: {}
       - app_upgrade_test_stage: {}
-  multichain_e2e_pipeline:
+  multichain_permissions_e2e_pipeline:
     stages:
       - build_multichain_e2e_ios_android_stage: {}
       - run_multichain_e2e_ios_android_stage: {}
@@ -1831,4 +1831,4 @@ trigger_map:
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
   - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_e2e_pipeline
+    pipeline: multichain_permissions_e2e_pipeline
