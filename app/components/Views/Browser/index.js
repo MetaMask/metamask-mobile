@@ -50,6 +50,7 @@ import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -116,19 +117,19 @@ export const Browser = (props) => {
     );
   };
 
-  useEffect(
-    () =>
-      navigation.setOptions(
-        getBrowserViewNavbarOptions(
-          route,
-          colors,
-          handleRightTopButtonAnalyticsEvent,
-          !route.params?.showTabs,
-        ),
-      ),
-    /* eslint-disable-next-line */
-    [navigation, route, colors],
-  );
+  // useEffect(
+  //   () =>
+  //     navigation.setOptions(
+  //       getBrowserViewNavbarOptions(
+  //         route,
+  //         colors,
+  //         handleRightTopButtonAnalyticsEvent,
+  //         !route.params?.showTabs,
+  //       ),
+  //     ),
+  //   /* eslint-disable-next-line */
+  //   [navigation, route, colors],
+  // );
 
   const newTab = (url, linkType) => {
     createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
@@ -386,9 +387,11 @@ export const Browser = (props) => {
       />
     ));
 
+  const { top: topInset } = useSafeAreaInsets();
+
   return (
     <View
-      style={baseStyles.flexGrow}
+      style={{ flex: 1, paddingTop: topInset }}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}

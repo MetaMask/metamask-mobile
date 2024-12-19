@@ -14,6 +14,7 @@ import {
   BackHandler,
   Platform,
   ImageSourcePropType,
+  TextInput,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -45,7 +46,7 @@ import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
 import Modal from 'react-native-modal';
-import WebviewError from '../../UI/WebviewError';
+import WebviewErrorComponent from '../../UI/WebviewError';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
@@ -118,17 +119,28 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
 import { type Dispatch } from 'redux';
-import {
-  type SessionENSNames,
-  type BrowserTabProps,
-  WebViewErrorEvent,
-} from './types';
+import { type SessionENSNames, type BrowserTabProps } from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  WebViewNavigationEvent,
+  WebViewErrorEvent,
+  WebViewError,
+  WebViewProgressEvent,
+} from '@metamask/react-native-webview/lib/WebViewTypes';
+import BrowserUrlBar from '../../UI/BrowserUrlBar';
+import AccountRightButton from '../../UI/AccountRightButton';
+import { processUrlForBrowser } from './utils';
+import { getURLProtocol } from '../../../util/general';
+import { PROTOCOLS } from '../../../constants/deeplinks';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -149,7 +161,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [progress, setProgress] = useState(0);
   const [initialUrl, setInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
-  const [error, setError] = useState<boolean | WebViewErrorEvent>(false);
+  const [error, setError] = useState<boolean | WebViewError>(false);
   const [showOptions, setShowOptions] = useState(false);
   const [entryScriptWeb3, setEntryScriptWeb3] = useState<string>();
   const [showPhishingModal, setShowPhishingModal] = useState(false);
@@ -159,6 +171,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
   const allowList = useRef<string[]>([]); // TODO: Consider improving this type
+  const webStates = useRef<
+    Record<string, { requested: boolean; started: boolean; ended: boolean }>
+  >({});
+  const urlBarRef = useRef<TextInput>(null);
+  const [isSecureConnection, setIsSecureConnection] = useState(false);
 
   const url = useRef('');
   const title = useRef<string>('');
@@ -808,6 +825,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }) => {
     const { origin } = new URLParse(urlToLoad);
 
+    webStates.current[urlToLoad] = {
+      ...webStates.current[urlToLoad],
+      requested: true,
+    };
+
     // Stops normal loading when it's ens, instead call go to be properly set up
     if (isENSUrl(urlToLoad)) {
       go(urlToLoad.replace(regex.urlHttpToHttps, 'https://'));
@@ -866,48 +888,51 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const onLoadProgress = ({
     nativeEvent: { progress: onLoadProgressProgress },
-  }: {
-    nativeEvent: { progress: number };
-  }) => {
+  }: WebViewProgressEvent) => {
     setProgress(onLoadProgressProgress);
   };
 
   // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
   // We should check if this is fixed on the newest versions of react-native-webview
-  const onLoad = ({
-    nativeEvent,
-  }: {
-    nativeEvent: {
-      url: string;
-      title: string;
-      canGoBack: boolean;
-      canGoForward: boolean;
-    };
-  }) => {
-    //For iOS url on the navigation bar should only update upon load.
-    if (Device.isIos()) {
-      const {
-        origin,
-        pathname = '',
-        query = '',
-      } = new URLParse(nativeEvent.url);
-      const realUrl = `${origin}${pathname}${query}`;
-      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    }
-  };
+  //   const onLoad = ({ nativeEvent }: WebViewNavigationEvent) => {
+  //     //For iOS url on the navigation bar should only update upon load.
+  //     if (Device.isIos()) {
+  //       const {
+  //         origin,
+  //         pathname = '',
+  //         query = '',
+  //       } = new URLParse(nativeEvent.url);
+  //       const realUrl = `${origin}${pathname}${query}`;
+  //       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+  //       changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+  //     }
+  //   };
 
   /**
    * When website finished loading
    */
   const onLoadEnd = ({
-    nativeEvent,
-  }: {
-    nativeEvent: { loading: boolean };
-  }) => {
+    nativeEvent: { url, title, canGoBack, canGoForward },
+  }: WebViewNavigationEvent | WebViewErrorEvent) => {
     // Do not update URL unless website has successfully completed loading.
-    if (nativeEvent.loading) {
-      return;
+    webStates.current[url] = { ...webStates.current[url], ended: true };
+    const { requested, started, ended } = webStates.current[url];
+    // TODO: Handle iOS case where uniswap.com/something needs to redirect to not-found
+    if (started && ended) {
+      delete webStates.current[url];
+      // Update navigation bar address with title of loaded url.
+      changeUrl({ title, url, icon: favicon });
+      changeAddressBar({
+        title,
+        url,
+        icon: favicon,
+        canGoBack,
+        canGoForward,
+      });
+      const contentProtocol = getURLProtocol(url);
+      const isHttps = contentProtocol === PROTOCOLS.HTTPS;
+      setIsSecureConnection(isHttps);
+      urlBarRef.current?.setNativeProps({ text: url });
     }
   };
 
@@ -969,47 +994,60 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Handle url input submit
    */
-  const onUrlInputSubmit = useCallback(
-    async (inputValue = undefined) => {
-      trackEventSearchUsed();
-      if (!inputValue) {
-        return;
-      }
-      const { defaultProtocol, searchEngine } = props;
-      const sanitizedInput = onUrlSubmit(
-        inputValue,
-        searchEngine,
-        defaultProtocol ?? 'https://',
-      );
-      await go(sanitizedInput);
-    },
-    /* we do not want to depend on the props object
-      - since we are changing it here, this would give us a circular dependency and infinite re renders
-      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  //   const onUrlInputSubmit = useCallback(
+  //     async (inputValue = undefined) => {
+  //       trackEventSearchUsed();
+  //       if (!inputValue) {
+  //         return;
+  //       }
+  //       const { defaultProtocol, searchEngine } = props;
+  //       const sanitizedInput = onUrlSubmit(
+  //         inputValue,
+  //         searchEngine,
+  //         defaultProtocol ?? 'https://',
+  //       );
+
+  //       console.log('BROWSER TAB: onUrlInputSubmit', inputValue, sanitizedInput);
+
+  //       isTabActive &&
+  //         navigation.setParams({
+  //           url: inputValue,
+  //           icon: icon.current,
+  //           silent: true,
+  //         });
+
+  //       await go(sanitizedInput);
+  //     },
+  //     /* we do not want to depend on the props object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //     [isTabActive],
+  //   );
 
   /**
    * Shows or hides the url input modal.
    * When opened it sets the current website url on the input.
    */
-  const toggleUrlModal = useCallback(
-    (shouldClearInput = false) => {
-      const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
-      navigation.navigate(
-        ...createBrowserUrlModalNavDetails({
-          url: urlToShow,
-          onUrlInputSubmit,
-        }),
-      );
-    },
-    /* we do not want to depend on the navigation object
-      - since we are changing it here, this would give us a circular dependency and infinite re renders
-      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onUrlInputSubmit],
-  );
+  //   const toggleUrlModal = useCallback(
+  //     (shouldClearInput = false) => {
+  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
+  //       navigation.navigate(
+  //         ...createBrowserUrlModalNavDetails({
+  //           url: urlToShow,
+  //           onUrlInputSubmit,
+  //         }),
+  //       );
+  //     },
+  //     /* we do not want to depend on the navigation object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //     [onUrlInputSubmit],
+  //   );
+  const toggleUrlModal = () => {
+    urlBarRef.current?.focus();
+  };
 
   const initializeBackgroundBridge = (
     urlBridge: string,
@@ -1070,18 +1108,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Website started to load
    */
-  const onLoadStart = async ({
-    nativeEvent,
-  }: {
-    nativeEvent: {
-      url: string;
-      canGoBack: boolean;
-      canGoForward: boolean;
-      title: string;
-    };
-  }) => {
+  const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
     const { origin, pathname = '', query = '' } = new URLParse(nativeEvent.url);
+    console.log('BROWSER TAB: onLoadStart', origin, pathname, query);
+
+    webStates.current[nativeEvent.url] = {
+      ...webStates.current[nativeEvent.url],
+      started: true,
+    };
 
     // Reset the previous bridges
     backgroundBridges.current.length &&
@@ -1093,12 +1128,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       return false;
     }
 
-    const realUrl = `${origin}${pathname}${query}`;
-    if (nativeEvent.url !== url.current) {
-      // Update navigation bar address with title of loaded url.
-      changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-      changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    }
+    // const realUrl = `${origin}${pathname}${query}`;
+    // if (nativeEvent.url !== url.current) {
+    //   // Update navigation bar address with title of loaded url.
+    //   changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
+    //   changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
+    // }
 
     sendActiveAccount();
 
@@ -1114,47 +1149,47 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Enable the header to toggle the url modal and update other header data
    */
-  useEffect(() => {
-    const updateNavbar = async () => {
-      if (isTabActive) {
-        const hostname = new URLParse(url.current).hostname;
-        const accounts = await getPermittedAccounts(hostname);
-        navigation.setParams({
-          showUrlModal: toggleUrlModal,
-          url: getMaskedUrl(url.current),
-          icon: icon.current,
-          error,
-          setAccountsPermissionsVisible: () => {
-            // Track Event: "Opened Acount Switcher"
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-                .addProperties({
-                  number_of_accounts: accounts?.length,
-                })
-                .build(),
-            );
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-              params: {
-                hostInfo: {
-                  metadata: {
-                    origin: url.current && new URLParse(url.current).hostname,
-                  },
-                },
-              },
-            });
-          },
-          connectedAccounts: accounts,
-        });
-      }
-    };
+  //   useEffect(() => {
+  //     const updateNavbar = async () => {
+  //       if (isTabActive) {
+  //         const hostname = new URLParse(url.current).hostname;
+  //         const accounts = await getPermittedAccounts(hostname);
+  //         navigation.setParams({
+  //           showUrlModal: toggleUrlModal,
+  //           url: getMaskedUrl(url.current),
+  //           icon: icon.current,
+  //           error,
+  //           setAccountsPermissionsVisible: () => {
+  //             // Track Event: "Opened Acount Switcher"
+  //             trackEvent(
+  //               createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+  //                 .addProperties({
+  //                   number_of_accounts: accounts?.length,
+  //                 })
+  //                 .build(),
+  //             );
+  //             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+  //               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+  //               params: {
+  //                 hostInfo: {
+  //                   metadata: {
+  //                     origin: url.current && new URLParse(url.current).hostname,
+  //                   },
+  //                 },
+  //               },
+  //             });
+  //           },
+  //           connectedAccounts: accounts,
+  //         });
+  //       }
+  //     };
 
-    updateNavbar();
-    /* we do not want to depend on the entire props object
-      - since we are changing it here, this would give us a circular dependency and infinite re renders
-      */
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error, isTabActive, toggleUrlModal]);
+  //     updateNavbar();
+  //     /* we do not want to depend on the entire props object
+  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
+  //       */
+  //     // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   }, [error, isTabActive, toggleUrlModal]);
 
   /**
    * Check whenever permissions change / account changes for Dapp
@@ -1192,11 +1227,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Handle error, for example, ssl certificate error
    * TODO: check why the nativeEvent is the errorInfo and what type is it
    */
-  const onError = ({
-    nativeEvent: errorInfo,
-  }: {
-    nativeEvent: WebViewErrorEvent;
-  }) => {
+  const onError = ({ nativeEvent: errorInfo }: WebViewErrorEvent) => {
     Logger.log(errorInfo);
     navigation.setParams({
       error: true,
@@ -1622,6 +1653,47 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
+  const route = useRoute();
+  const connectedAccounts = route.params?.connectedAccounts;
+  const handleAccountRightButtonPress = () => {
+    // rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
+
+    // Track Event: "Opened Acount Switcher"
+    // trackEvent(
+    //   createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+    //     .addProperties({
+    //       number_of_accounts: accounts?.length,
+    //     })
+    //     .build(),
+    // );
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin: url.current && new URLParse(url.current).hostname,
+          },
+        },
+      },
+    });
+  };
+
+  const onSubmitEditing = (text: string) => {
+    webviewRef.current?.stopLoading();
+    // Format url for browser to be navigatable by webview
+    const url = processUrlForBrowser(text);
+    // Directly update url in webview
+    webviewRef.current?.injectJavaScript(`
+      window.location.href = '${url}';
+      true;  // Required for iOS
+    `);
+  };
+
+  const onCancel = () => {
+    // Reset the url bar to the current url
+    urlBarRef.current?.setNativeProps({ text: url.current });
+  };
+
   /**
    * Main render
    */
@@ -1631,6 +1703,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}
+        >
+          <BrowserUrlBar
+            ref={urlBarRef}
+            onPress={toggleUrlModal}
+            isSecureConnection={isSecureConnection}
+            onSubmitEditing={onSubmitEditing}
+            onCancel={onCancel}
+          />
+          <AccountRightButton
+            selectedAddress={connectedAccounts?.[0]}
+            isNetworkVisible
+            onPress={handleAccountRightButtonPress}
+          />
+        </View>
+        {renderProgressBar()}
         <View style={styles.webview}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
@@ -1649,7 +1741,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 decelerationRate={'normal'}
                 ref={webviewRef}
                 renderError={() => (
-                  <WebviewError error={error} returnHome={returnHome} />
+                  <WebviewErrorComponent
+                    error={error}
+                    returnHome={returnHome}
+                  />
                 )}
                 source={{
                   uri: initialUrl,
@@ -1658,7 +1753,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
                 onLoadStart={onLoadStart}
-                onLoad={onLoad}
                 onLoadEnd={onLoadEnd}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
@@ -1675,7 +1769,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           )}
         </View>
         {updateAllowList()}
-        {renderProgressBar()}
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
 

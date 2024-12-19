@@ -19,11 +19,8 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
     progressBarWrapper: {
       height: 3,
       width: '100%',
-      left: 0,
-      right: 0,
-      top: 0,
-      position: 'absolute',
-      zIndex: 999999,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border.default,
     },
     optionsOverlay: {
       position: 'absolute',
