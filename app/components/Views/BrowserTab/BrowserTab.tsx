@@ -718,7 +718,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    blockedUrl === activeUrl.current && goBack();
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
