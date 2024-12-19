@@ -14,6 +14,7 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
@@ -24,6 +25,12 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   });
 
   it('sends a failing contract transaction', async () => {
+
+    const testSpecificMock  = {
+        GET: [
+          mockEvents.GET.suggestedGasFeesApiGanache
+        ],
+      };
     await withFixtures(
       {
         dapp: true,
@@ -34,6 +41,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
         smartContract: FAILING_CONTRACT,
+        testSpecificMock,
       },
       async ({ contractRegistry }) => {
         const failingAddress = await contractRegistry.getContractAddress(
@@ -46,6 +54,8 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: failingAddress,
         });
+
+        await TestHelpers.delay(99999999);
 
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
