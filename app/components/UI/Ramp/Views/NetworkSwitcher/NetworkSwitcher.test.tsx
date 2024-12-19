@@ -275,12 +275,12 @@ describe('NetworkSwitcher View', () => {
     expect(cancelButtons3.length).toBe(1);
   });
 
-  it('switches network by calling setProviderType', async () => {
+  it('switches network by calling setActiveNetwork', async () => {
     render(NetworkSwitcher);
     const lineaNetworkText = screen.getByText('Linea Main Network');
     fireEvent.press(lineaNetworkText);
     expect(
-      (Engine.context.NetworkController.setProviderType as jest.Mock).mock
+      (Engine.context.NetworkController.setActiveNetwork as jest.Mock).mock
         .calls,
     ).toMatchInlineSnapshot(`
       [
@@ -290,6 +290,7 @@ describe('NetworkSwitcher View', () => {
       ]
     `);
 
+    jest.clearAllMocks();
     render(NetworkSwitcher);
     const polygonNetworkTest = screen.getByText('Polygon Mainnet');
     fireEvent.press(polygonNetworkTest);

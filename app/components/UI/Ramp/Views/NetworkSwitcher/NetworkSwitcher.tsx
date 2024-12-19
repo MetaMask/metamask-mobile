@@ -145,7 +145,7 @@ function NetworkSwitcher() {
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
       const { NetworkController } = Engine.context;
-      NetworkController.setProviderType(type);
+      NetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
