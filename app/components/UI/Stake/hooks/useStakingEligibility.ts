@@ -19,14 +19,12 @@ const useStakingEligibility = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchStakingEligibility = useCallback(async () => {
-    if (!stakingApiService) {
-      throw new Error('Staking API service is unavailable');
-    }
-
-    setIsLoading(true);
-    setError(null);
-
     try {
+      if (!stakingApiService) {
+        return { isEligible: false };
+      }
+      setIsLoading(true);
+      setError(null);
       const { eligible } = await stakingApiService.getPooledStakingEligibility([
         selectedAddress,
       ]);
