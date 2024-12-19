@@ -49,7 +49,7 @@ export const parseTypedDataMessage = (dataToParse: string) => {
  *
  * @param request - The confirmation request to check
  */
-export const isRecognizedPermit = (approvalRequest: ApprovalRequest<{ data: string } & Record<string, any>>) => {
-  const { primaryType } = parseTypedDataMessage(approvalRequest?.requestData?.data);
+export const isRecognizedPermit = (approvalRequest: ApprovalRequest<{ data: string }>) => {
+  const { primaryType } = parseTypedDataMessage(approvalRequest.requestData.data);
   return PRIMARY_TYPES_PERMIT.includes(primaryType);
 };
