@@ -66,7 +66,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it.skip('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();

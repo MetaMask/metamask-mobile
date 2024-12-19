@@ -18,6 +18,8 @@ import {
 } from '../../../constants/transaction';
 import AppConstants from '../../../core/AppConstants';
 import {
+  getFeatureFlagChainId,
+  setSwapsLiveness,
   swapsLivenessMultichainSelector,
   swapsLivenessSelector,
   swapsTokensMultiChainObjectSelector,
@@ -61,6 +63,8 @@ import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import Logger from '../../../util/Logger';
+import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -168,6 +172,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Function to set the swaps liveness
+     */
+    setLiveness: PropTypes.func,
   };
 
   state = {
@@ -240,8 +248,27 @@ class Asset extends PureComponent {
     this.updateNavBar(contentOffset);
   };
 
+  checkLiveness = async (chainId) => {
+    try {
+      const featureFlags = await swapsUtils.fetchSwapsFeatureFlags(
+        getFeatureFlagChainId(chainId),
+        AppConstants.SWAPS.CLIENT_ID,
+      );
+      this.props.setLiveness(chainId, featureFlags);
+    } catch (error) {
+      Logger.error(error, 'Swaps: error while fetching swaps liveness');
+      this.props.setLiveness(chainId, null);
+    }
+  };
+
   componentDidMount() {
     this.updateNavBar();
+
+    const tokenChainId = this.props.route?.params?.chainId;
+    if (tokenChainId) {
+      this.checkLiveness(tokenChainId);
+    }
+
     InteractionManager.runAfterInteractions(() => {
       this.normalizeTransactions();
       this.mounted = true;
@@ -482,7 +509,9 @@ class Asset extends PureComponent {
       : isSwapsAllowed(chainId);
 
     const isAssetAllowed =
-      asset.isETH || asset.address?.toLowerCase() in this.props.swapsTokens;
+      asset.isETH ||
+      asset.isNative ||
+      asset.address?.toLowerCase() in this.props.swapsTokens;
 
     const displaySwapsButton =
       isSwapsFeatureLive &&
@@ -559,4 +588,12 @@ const mapStateToProps = (state, { route }) => ({
   networkClientId: selectNetworkClientId(state),
 });
 
-export default connect(mapStateToProps)(withMetricsAwareness(Asset));
+const mapDispatchToProps = (dispatch) => ({
+  setLiveness: (chainId, featureFlags) =>
+    dispatch(setSwapsLiveness(chainId, featureFlags)),
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(withMetricsAwareness(Asset));
