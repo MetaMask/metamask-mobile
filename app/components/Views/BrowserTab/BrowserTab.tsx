@@ -364,9 +364,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
-            query || ''
-          }`;
+          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''
+            }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -374,13 +373,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -454,6 +451,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const go: (url: string, initialCall?: boolean) => Promise<string | null> =
     useCallback(
       async (goToUrl, initialCall) => {
+        console.log('GO', goToUrl);
         setIsResolvedIpfsUrl(false);
         const prefixedUrl = prefixUrlWithProtocol(goToUrl);
         const {
@@ -492,8 +490,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             setInitialUrl(urlToGo);
             setFirstUrlLoaded(true);
           } else {
-            current &&
-              current.injectJavaScript(
+              webviewRef?.current?.injectJavaScript(
                 `(function(){window.location.href = '${sanitizeUrlInput(
                   urlToGo,
                 )}' })()`,
@@ -619,8 +616,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                bookmarks || props.bookmarks,
-              )};
+      bookmarks || props.bookmarks,
+    )};
               window.__mmSearchEngine = "${props.searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -757,7 +754,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     </Modal>
   );
 
-  /*  
+  /*
   const trackEventSearchUsed = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
