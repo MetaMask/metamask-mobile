@@ -7,7 +7,7 @@ const {
   lintTransformedFile,
 } = require('@metamask/build-utils');
 const { ESLint } = require('eslint');
-const defaultTransformer = require('metro-react-native-babel-transformer');
+const defaultTransformer = require('@react-native/metro-babel-transformer');
 const svgTransformer = require('react-native-svg-transformer');
 
 // Code fence removal variables
