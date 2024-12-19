@@ -566,7 +566,7 @@
     "description_content_1": "Nais naming mangalap ng data para sa batayang paggamit upang mapahusay ang MetaMask. Dapat mong malaman na hindi namin ibebenta ang data na iyong ibibigay rito.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
-    "checkbox": "Gagamitin namin ang data na ito upang matutunan paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
     "action_description_3_prefix": "Opsyonal:",
@@ -3340,9 +3340,9 @@
     "user_reject_transaction": "Tinanggihan ng user ang transaksyon",
     "user_reject_transaction_message": "Tinanggihan ng user ang transaksyon sa Ledger device.",
     "multiple_devices_error_message": "Hindi pa sinusuportahan ang maraming device. Para magdagdag ng bagong Ledger device, kakailanganin mong mag-alis ng lumang device.",
-    "hd_path_error": "HD Path is invalid: {{path}}",
-    "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "hd_path_error": "Hindi balido ang HD Path: {{path}}",
+    "unspecified_error_during_connect": "Hindi tiyak na error sa pagkonekta ng Ledger Hardware,",
+    "account_name_existed": "Mayroon nang account na {{accountName}}"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
@@ -3351,8 +3351,8 @@
     "add_new_account": "Magdagdag ng bagong account",
     "add_hardware_wallet": "Magdagdag ng wallet na hardware",
     "import_account": "Mag-import ng account",
-    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_testnet": "Magdagdag ng bagong Bitcoin Account (Testnet)",
+    "add_bitcoin_account_mainnet": "Magdagdag ng bagong Bitcoin Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Ipakita ang NFT",
