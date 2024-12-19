@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -17,11 +16,79 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import { Colors } from '../../../util/theme/models';
 
-const createStyles = (colors, titleColor) =>
+const isSettingsRedesignEnabled =
+  process.env.MM_SETTINGS_REDESIGN_ENABLE === 'true';
+
+interface SettingsDrawerProps {
+  title: string;
+  /**
+   * Additional descriptive text about this option
+   */
+  description?: string;
+  /**
+   * Disable bottom border
+   */
+  noBorder?: boolean;
+  /**
+   * Handler called when this drawer is pressed
+   */
+  onPress?: () => void;
+  /**
+   * Display SettingsNotification
+   */
+  warning?: string;
+  /**
+   * Icon name
+   */
+  iconName?: IconName;
+  /**
+   * Icon color
+   */
+  iconColor?: string;
+  /**
+   * Display arrow right
+   */
+  renderArrowRight?: boolean;
+  /**
+   * First item
+   */
+  isFirst?: boolean;
+  /**
+   * Last item
+   */
+  isLast?: boolean;
+  /**
+   * Test id for testing purposes
+   */
+  testID?: string;
+  /**
+   * Title color
+   */
+  titleColor?: TextColor;
+}
+
+const createStyles = (
+  colors: Colors,
+  { isFirst, isLast }: { isFirst: boolean; isLast: boolean },
+) =>
   StyleSheet.create({
     root: {
-      backgroundColor: colors.background.default,
+      backgroundColor: isSettingsRedesignEnabled
+        ? colors.background.alternative
+        : colors.background.default,
+      padding: 16,
+      ...(isFirst && { borderTopLeftRadius: 8, borderTopRightRadius: 8 }),
+      ...(!isFirst && {
+        borderTopWidth: 1,
+        borderTopColor: colors.primary.inverse,
+      }),
+      ...(isLast && { borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }),
+    },
+    settingsCard: {
+      alignItems: 'center',
+      backgroundColor: colors.background.alternative,
       padding: 16,
     },
     action: {
@@ -45,64 +112,53 @@ const createStyles = (colors, titleColor) =>
       fontSize: 12,
       ...fontStyles.normal,
     },
+    icon: {
+      marginRight: 12,
+    },
+    separator: {
+      borderTopWidth: 1,
+      borderTopColor: colors.primary.inverse,
+    },
   });
 
-const propTypes = {
-  title: PropTypes.string,
-  /**
-   * Additional descriptive text about this option
-   */
-  description: PropTypes.string,
-  /**
-   * Disable bottom border
-   */
-  noBorder: PropTypes.bool,
-  /**
-   * Handler called when this drawer is pressed
-   */
-  onPress: PropTypes.func,
-  /**
-   * Display SettingsNotification
-   */
-  warning: PropTypes.string,
-  /**
-   * Display arrow right
-   */
-  renderArrowRight: PropTypes.bool,
-  /**
-   * Test id for testing purposes
-   */
-  testID: PropTypes.string,
-  /**
-   * Title color
-   */
-  titleColor: PropTypes.string,
-};
-
-const defaultProps = {
-  onPress: undefined,
-};
-
-const SettingsDrawer = ({
+const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
   title,
   description,
   onPress,
+  iconName,
+  iconColor,
   warning,
   renderArrowRight = true,
+  isFirst = false,
+  isLast = false,
   testID,
   titleColor = TextColor.Default,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors, titleColor);
+  const styles = createStyles(colors, { isFirst, isLast });
+  const titleVariant = isSettingsRedesignEnabled
+    ? TextVariant.BodyMDMedium
+    : TextVariant.BodyLGMedium;
+  const descriptionVariant = isSettingsRedesignEnabled
+    ? TextVariant.BodySM
+    : TextVariant.BodyMD;
+
   return (
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root} gap={16}>
+        {iconName && isSettingsRedesignEnabled && (
+          <Icon
+            name={iconName}
+            size={IconSize.Md}
+            color={colors.text.default}
+          />
+        )}
         <ListItemColumn widthType={WidthType.Fill}>
-          <Text variant={TextVariant.BodyLGMedium} color={titleColor}>
+          <Text variant={titleVariant} color={titleColor}>
             {title}
           </Text>
           {description && (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={descriptionVariant} color={TextColor.Alternative}>
               {description}
             </Text>
           )}
@@ -129,6 +185,7 @@ const SettingsDrawer = ({
               style={styles.action}
               size={IconSize.Md}
               name={IconName.ArrowRight}
+              color={iconColor || IconColor.Default}
             />
           </ListItemColumn>
         )}
@@ -136,8 +193,5 @@ const SettingsDrawer = ({
     </TouchableOpacity>
   );
 };
-
-SettingsDrawer.propTypes = propTypes;
-SettingsDrawer.defaultProps = defaultProps;
 
 export default SettingsDrawer;
