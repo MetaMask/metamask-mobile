@@ -107,7 +107,10 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
@@ -141,6 +144,7 @@ import AccountRightButton from '../../UI/AccountRightButton';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -200,6 +204,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     );
     return permittedAcc;
   }, isEqual);
+  const accountsLength = useSelector(selectAccountsLength);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const favicon = useFavicon(activeUrl.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
@@ -1055,14 +1061,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       method: NOTIFICATION_NAMES.accountsChanged,
       params: permittedAccountsList,
     });
-
-    if (isTabActive) {
-      navigation.setParams({
-        connectedAccounts: permittedAccountsList,
-      });
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList, isTabActive]);
+  }, [notifyAllConnections, permittedAccountsList]);
 
   /**
    * Website started to load
@@ -1615,19 +1615,28 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
-  const route = useRoute();
-  const connectedAccounts = route.params?.connectedAccounts;
   const handleAccountRightButtonPress = () => {
-    // rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
+    const nonTestnetNetworks = Object.keys(networkConfigurations).length + 1;
 
+    // TODO: This is currently tracking two events, we should consolidate
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
+        .addProperties({
+          number_of_accounts: accountsLength,
+          number_of_accounts_connected: permittedAccountsList.length,
+          number_of_networks: nonTestnetNetworks,
+        })
+        .build(),
+    );
     // Track Event: "Opened Acount Switcher"
-    // trackEvent(
-    //   createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-    //     .addProperties({
-    //       number_of_accounts: accounts?.length,
-    //     })
-    //     .build(),
-    // );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
+        .addProperties({
+          number_of_accounts: permittedAccountsList.length,
+        })
+        .build(),
+    );
+
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
       params: {
@@ -1681,7 +1690,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             onCancel={onCancel}
           />
           <AccountRightButton
-            selectedAddress={connectedAccounts?.[0]}
+            selectedAddress={permittedAccountsList?.[0]}
             isNetworkVisible
             onPress={handleAccountRightButtonPress}
           />
