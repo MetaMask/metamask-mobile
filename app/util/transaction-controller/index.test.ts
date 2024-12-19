@@ -37,6 +37,7 @@ jest.mock('../../core/Engine', () => ({
       updateSecurityAlertResponse: jest.fn(),
       updateTransaction: jest.fn(),
       wipeTransactions: jest.fn(),
+      updateEditableParams: jest.fn(),
     },
   },
 }));

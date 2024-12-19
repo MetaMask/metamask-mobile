@@ -9,6 +9,7 @@ import TransactionTypes from '../../../../../core/TransactionTypes';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { setMaxValueMode } from '../../../../../actions/transaction';
 
 const mockTransactionTypes = TransactionTypes;
 
@@ -65,6 +66,13 @@ jest.mock('../../../../../util/transaction-controller', () => ({
       gas: mockTransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
     }),
   ),
+}));
+
+jest.mock('../../../../../actions/transaction', () => ({
+  ...jest.requireActual('../../../../../actions/transaction'),
+  setMaxValueMode: jest.fn().mockReturnValue({
+    type: 'SET_MAX_VALUE_MODE',
+  }),
 }));
 
 const mockNavigate = jest.fn();
@@ -234,6 +242,15 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 1 ETH');
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should set max value mode when toggled on', () => {
+    const { getByText } = renderComponent(initialState);
+
+    const useMaxButton = getByText(/Use max/);
+    fireEvent.press(useMaxButton);
+
+    expect(setMaxValueMode).toHaveBeenCalled();
   });
 
   it('should proceed if balance is sufficient while on Native primary currency', async () => {
