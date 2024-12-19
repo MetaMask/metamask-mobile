@@ -119,6 +119,13 @@ class TestDApp {
     );
   }
 
+  get erc1155BatchTransferButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -179,6 +186,10 @@ class TestDApp {
 
   async tapApproveButton() {
     await Gestures.tap(this.approveButtonText, 0);
+  }
+
+  async tapERC1155BatchTransferButton() {
+    await this.tapButton(this.erc1155BatchTransferButton);
   }
 
   async tapButton(elementId) {
