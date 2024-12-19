@@ -151,6 +151,7 @@ const Routes = {
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
     UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
+    EARNINGS_HISTORY: 'EarningsHistory',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
