@@ -11,8 +11,9 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
   selectChainId,
-  selectTicker,
   selectNativeCurrencyByChainId,
+  selectSelectedNetworkClientId,
+  selectTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -58,7 +59,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import useGoToBridge from '../Bridge/utils/useGoToBridge';
-import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
+import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   getDecimalChainId,
@@ -114,6 +115,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     ? (asset.chainId as Hex)
     : selectedChainId;
   const ticker = isPortfolioViewEnabled() ? nativeCurrency : selectedTicker;
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   let currentAddress: Hex;
 
@@ -136,12 +138,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const { SwapsController: SwapsControllerFromEngine } = Engine.context as {
-      SwapsController: SwapsController;
-    };
+    const { SwapsController } = Engine.context;
     const fetchTokenWithCache = async () => {
       try {
-        await SwapsControllerFromEngine.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -152,7 +154,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       }
     };
     fetchTokenWithCache();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   const onReceive = () => {
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
