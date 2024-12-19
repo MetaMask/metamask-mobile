@@ -176,7 +176,10 @@ function NetworkSwitcher() {
       if (networkConfiguration.isAdded) {
         switchNetwork(networkConfiguration);
       } else {
-        setNetworkToBeAdded(networkConfiguration);
+        setNetworkToBeAdded({
+          ...networkConfiguration,
+          chainId: toHex(networkConfiguration.chainId),
+        });
       }
     },
     [switchNetwork],
