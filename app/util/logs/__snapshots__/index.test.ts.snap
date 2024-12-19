@@ -266,6 +266,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "snaps": {},
         "unencryptedSnapStates": {},
       },
+      "SnapInterfaceController": {
+        "interfaces": {},
+      },
       "SnapsRegistry": {
         "database": null,
         "databaseUnavailable": false,

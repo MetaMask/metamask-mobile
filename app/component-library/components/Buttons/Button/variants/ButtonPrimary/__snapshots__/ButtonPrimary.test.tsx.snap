@@ -22,19 +22,6 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
     }
   }
 >
-  <SvgMock
-    color="#ffffff"
-    height={16}
-    name="Add"
-    style={
-      {
-        "height": 16,
-        "marginRight": 8,
-        "width": 16,
-      }
-    }
-    width={16}
-  />
   <Text
     accessibilityRole="text"
     style={
@@ -50,18 +37,5 @@ exports[`ButtonPrimary render matches latest snapshot 1`] = `
   >
     Sample label
   </Text>
-  <SvgMock
-    color="#ffffff"
-    height={16}
-    name="AddSquare"
-    style={
-      {
-        "height": 16,
-        "marginLeft": 8,
-        "width": 16,
-      }
-    }
-    width={16}
-  />
 </TouchableOpacity>
 `;
