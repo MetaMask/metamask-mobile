@@ -145,7 +145,7 @@ function NetworkSwitcher() {
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
       const { NetworkController } = Engine.context;
-      NetworkController.setProviderType(type);
+      NetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
@@ -176,7 +176,10 @@ function NetworkSwitcher() {
       if (networkConfiguration.isAdded) {
         switchNetwork(networkConfiguration);
       } else {
-        setNetworkToBeAdded(networkConfiguration);
+        setNetworkToBeAdded({
+          ...networkConfiguration,
+          chainId: toHex(networkConfiguration.chainId),
+        });
       }
     },
     [switchNetwork],
