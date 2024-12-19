@@ -9,8 +9,12 @@ const styleSheet = (params: { theme: Theme }) =>
       alignItems: 'center',
     },
     text: {
-      marginLeft: 8,
       color: params.theme.colors.text.alternative,
+      flex: 1,
+      height: 44,
+      padding: 0,
+      margin: 0,
+      paddingLeft: 8,
     },
   });
 
