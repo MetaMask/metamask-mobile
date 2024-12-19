@@ -73,8 +73,8 @@ pipelines:
       - app_upgrade_test_stage: {}
   multichain_permissions_e2e_pipeline:
     stages:
-      - build_multichain_e2e_ios_android_stage: {}
-      - run_multichain_e2e_ios_android_stage: {}
+      - build_multichain_permissions_e2e_ios_android_stage: {}
+      - run_multichain_permissions_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
@@ -140,12 +140,12 @@ stages:
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
-  build_multichain_e2e_ios_android_stage:
+  build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
       - build_ios_multichain_e2e: {}
       - build_android_multichain_e2e: {}
-  run_multichain_e2e_ios_android_stage:
+  run_multichain_permissions_e2e_ios_android_stage:
     workflows:
       - run_tag_multichain_ios: {}
       - run_tag_multichain_android: {}
