@@ -23,9 +23,7 @@ class AmountView {
   }
 
   get backButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AmountViewSelectorsIDs.SEND_BACK_BUTTON)
-      : Matchers.getElementByLabel(AmountViewSelectorsIDs.SEND_BACK_BUTTON);
+    return Matchers.getElementByID(AmountViewSelectorsIDs.SEND_BACK_BUTTON);
   }
 
   get amountInputField() {

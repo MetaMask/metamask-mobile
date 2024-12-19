@@ -24,9 +24,7 @@ class SendView {
   }
 
   get backButton() {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(SendViewSelectorsIDs.SEND_BACK_BUTTON)
-      : Matchers.getElementByLabel(SendViewSelectorsIDs.SEND_BACK_BUTTON);
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_BACK_BUTTON);
   }
 
   get addAddressButton() {
