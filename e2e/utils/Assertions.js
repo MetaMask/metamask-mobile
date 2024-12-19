@@ -54,8 +54,7 @@ class Assertions {
    * @param {string} label - The label content to check.
    * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
    */
-  static async checkIfElementHasLabel(elementId, label, timeout = TIMEOUT) {
-    // Rename me. The naming convention here is terrible.
+  static async elementHasLabel(elementId, label, timeout = TIMEOUT) {
 
     return await waitFor(await elementId)
       .toHaveLabel(label)

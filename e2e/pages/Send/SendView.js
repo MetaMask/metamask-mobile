@@ -2,6 +2,9 @@ import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
+import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors'
+import Assertions from '../../utils/Assertions';
+
 
 class SendView {
   get cancelButton() {
@@ -20,8 +23,14 @@ class SendView {
         );
   }
 
+  get backButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(SendViewSelectorsIDs.SEND_BACK_BUTTON)
+      : Matchers.getElementByLabel(SendViewSelectorsIDs.SEND_BACK_BUTTON);
+  }
+
   get addAddressButton() {
-    return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
   get removeAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
@@ -40,6 +49,11 @@ class SendView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapBackButton() {
+    // await Gestures.waitAndTap(this.backButton);
+    await Gestures.TapAtIndex(this.backButton, 0);
   }
 
   async scrollToSavedAccount() {
@@ -66,10 +80,19 @@ class SendView {
   async tapAddAddressToAddressBook() {
     await Gestures.waitAndTap(this.addAddressButton);
   }
+  async tapAddAddressAtIndex() {
+    await Gestures.TapAtIndex(this.addAddressButton, 0);
+  }
 
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
+  }
+
+  async assertAddressText(expectedAddress){
+    const attributes = await (await this.addAddressButton).getAttributes();
+    const splitAddress = await attributes.label.split(' ');
+    await Assertions.checkIfTextMatches(splitAddress[0], expectedAddress);
   }
 }
 export default new SendView();

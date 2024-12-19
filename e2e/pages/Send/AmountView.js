@@ -4,6 +4,8 @@ import {
   AmountViewSelectorsIDs,
   AmountViewSelectorsText
 } from '../../selectors/SendFlow/AmountView.selectors';
+import TestHelpers from '../../helpers';
+
 
 class AmountView {
   get currencySwitch() {
@@ -20,6 +22,12 @@ class AmountView {
       : Matchers.getElementByLabel(AmountViewSelectorsIDs.NEXT_BUTTON);
   }
 
+  get backButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(AmountViewSelectorsIDs.SEND_BACK_BUTTON)
+      : Matchers.getElementByLabel(AmountViewSelectorsIDs.SEND_BACK_BUTTON);
+  }
+
   get amountInputField() {
     return Matchers.getElementByID(AmountViewSelectorsIDs.AMOUNT_INPUT);
   }
@@ -28,7 +36,12 @@ class AmountView {
     await Gestures.waitAndTap(this.nextButton);
   }
 
+  async tapBackButton() {
+    await Gestures.waitAndTap(this.backButton);
+  }
+
   async typeInTransactionAmount(amount) {
+    await TestHelpers.delay(1000);
     device.getPlatform() === 'android'
       ? await Gestures.typeTextAndHideKeyboard(this.amountInputField, amount)
       : await Gestures.replaceTextInField(this.amountInputField, amount);
