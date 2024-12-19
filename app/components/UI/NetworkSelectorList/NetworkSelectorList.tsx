@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
-import { ListRenderItem, ImageSourcePropType } from 'react-native';
+import { ListRenderItem, ImageSourcePropType, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 
 // External dependencies.
@@ -53,23 +53,26 @@ const NetworkSelectorList = ({
       if (selectedChainIds) {
         isSelectedNetwork = selectedChainIds.includes(id);
       }
-
       return (
-        <Cell
-          variant={cellVariant}
-          isSelected={isSelectedNetwork}
-          title={name}
-          onPress={() => onSelectNetwork?.(id, isSelectedNetwork)}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name,
-            imageSource: imageSource as ImageSourcePropType,
-            size: AvatarSize.Sm,
-          }}
-          disabled={isDisabled}
+        <View
+          testID={`${name}-${isSelectedNetwork ? 'selected' : 'not-selected'}`}
         >
-          {renderRightAccessory?.(id, name)}
-        </Cell>
+          <Cell
+            variant={cellVariant}
+            isSelected={isSelectedNetwork}
+            title={name}
+            onPress={() => onSelectNetwork?.(id, isSelectedNetwork)}
+            avatarProps={{
+              variant: AvatarVariant.Network,
+              name,
+              imageSource: imageSource as ImageSourcePropType,
+              size: AvatarSize.Sm,
+            }}
+            disabled={isDisabled}
+          >
+            {renderRightAccessory?.(id, name)}
+          </Cell>
+        </View>
       );
     },
     [
