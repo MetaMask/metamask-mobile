@@ -28,8 +28,8 @@ import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import Logger from '../../../util/Logger';
-import onUrlSubmit, {
-  prefixUrlWithProtocol,
+import {
+  /* onUrlSubmit ,*/ prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
   trustedProtocolToDeeplink,
@@ -60,7 +60,7 @@ import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import downloadFile from '../../../util/browser/downloadFile';
-import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal';
+/* import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal'; */
 import {
   MM_PHISH_DETECT_URL,
   MM_BLOCKLIST_ISSUE_URL,
@@ -70,7 +70,7 @@ import {
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
-  getPermittedAccounts,
+  /*   getPermittedAccounts, */
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
@@ -138,7 +138,7 @@ import {
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import BrowserUrlBar from '../../UI/BrowserUrlBar';
 import AccountRightButton from '../../UI/AccountRightButton';
-import { processUrlForBrowser } from './utils';
+import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 
@@ -212,58 +212,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   );
 
   const isFocused = useIsFocused();
-
-  /**
-   * Gets the url to be displayed to the user
-   * For example, if it's ens then show [site].eth instead of ipfs url
-   */
-  const getMaskedUrl = (urlToMask: string) => {
-    if (!urlToMask) return urlToMask;
-    let replace = null;
-    if (urlToMask.startsWith(AppConstants.IPFS_DEFAULT_GATEWAY_URL)) {
-      replace = (key: string) =>
-        `${AppConstants.IPFS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`;
-    } else if (urlToMask.startsWith(AppConstants.IPNS_DEFAULT_GATEWAY_URL)) {
-      replace = (key: string) =>
-        `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hostname}/`;
-    } else if (urlToMask.startsWith(AppConstants.SWARM_DEFAULT_GATEWAY_URL)) {
-      replace = (key: string) =>
-        `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${sessionENSNames[key].hash}/`; //TODO: This was SWARM_GATEWAY_URL before, it was broken, understand what it does
-    }
-
-    if (replace) {
-      const key = Object.keys(sessionENSNames).find((ens) =>
-        urlToMask.startsWith(ens),
-      );
-      if (key) {
-        urlToMask = urlToMask.replace(
-          replace(key),
-          `https://${sessionENSNames[key].hostname}/`,
-        );
-      }
-    }
-    return urlToMask;
-  };
-
-  /**
-   * Checks if it is a ENS website
-   */
-  const isENSUrl = (urlToCheck: string) => {
-    const { hostname } = new URLParse(urlToCheck);
-    const tld = hostname.split('.').pop();
-    if (
-      tld &&
-      AppConstants.supportedTLDs.indexOf(
-        tld.toLowerCase() as 'eth' | 'xyz' | 'test',
-      ) !== -1
-    ) {
-      // Make sure it's not in the ignore list
-      if (ensIgnoreList.indexOf(hostname) === -1) {
-        return true;
-      }
-    }
-    return false;
-  };
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -378,7 +326,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const isBookmark = () => {
     const { bookmarks } = props;
-    const maskedUrl = getMaskedUrl(activeUrl.current);
+    const maskedUrl = getMaskedUrl(activeUrl.current, sessionENSNames);
     return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
   };
 
@@ -510,7 +458,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         const prefixedUrl = prefixUrlWithProtocol(goToUrl);
         const { hostname, query, pathname, origin } = new URLParse(prefixedUrl);
         let urlToGo = prefixedUrl;
-        const isEnsUrl = isENSUrl(goToUrl);
+        const isEnsUrl = isENSUrl(goToUrl, ensIgnoreList);
         const { current } = webviewRef;
         if (isEnsUrl) {
           current && current.stopLoading();
@@ -712,16 +660,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     isTabActive &&
       navigation.setParams({
-        url: getMaskedUrl(siteInfo.url),
+        url: getMaskedUrl(siteInfo.url, sessionENSNames),
         icon: siteInfo.icon,
         silent: true,
       });
 
-    props.updateTabInfo(getMaskedUrl(siteInfo.url), props.id);
+    props.updateTabInfo(getMaskedUrl(siteInfo.url, sessionENSNames), props.id);
 
     props.addToBrowserHistory({
       name: siteInfo.title,
-      url: getMaskedUrl(siteInfo.url),
+      url: getMaskedUrl(siteInfo.url, sessionENSNames),
     });
   };
 
@@ -803,6 +751,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     </Modal>
   );
 
+  /*  
   const trackEventSearchUsed = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
@@ -812,7 +761,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder]); */
 
   /**
    * Function that allows custom handling of any web view requests.
@@ -831,7 +780,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     };
 
     // Stops normal loading when it's ens, instead call go to be properly set up
-    if (isENSUrl(urlToLoad)) {
+    if (isENSUrl(urlToLoad, ensIgnoreList)) {
       go(urlToLoad.replace(regex.urlHttpToHttps, 'https://'));
       return false;
     }
@@ -1035,7 +984,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   //   const toggleUrlModal = useCallback(
   //     (shouldClearInput = false) => {
-  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(activeUrl.current);
+  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(activeUrl.current,sessionENSNames);
   //       navigation.navigate(
   //         ...createBrowserUrlModalNavDetails({
   //           url: urlToShow,
@@ -1160,7 +1109,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   //         const accounts = await getPermittedAccounts(hostname);
   //         navigation.setParams({
   //           showUrlModal: toggleUrlModal,
-  //           url: getMaskedUrl(activeUrl.current),
+  //           url: getMaskedUrl(activeUrl.current, sessionENSNames),
   //           icon: icon.current,
   //           error,
   //           setAccountsPermissionsVisible: () => {
@@ -1229,7 +1178,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   /**
    * Handle error, for example, ssl certificate error
-   * TODO: check why the nativeEvent is the errorInfo and what type is it
    */
   const onError = ({ nativeEvent: errorInfo }: WebViewErrorEvent) => {
     Logger.log(errorInfo);
@@ -1291,7 +1239,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',
-        url: getMaskedUrl(activeUrl.current),
+        url: getMaskedUrl(activeUrl.current, sessionENSNames),
         onAddBookmark: async ({
           name,
           url: urlToAdd,
@@ -1303,7 +1251,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           if (Device.isIos()) {
             const item = {
               uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd),
+              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
               keywords: [name.split(' '), urlToAdd, 'dapp'],
               thumbnail: {
