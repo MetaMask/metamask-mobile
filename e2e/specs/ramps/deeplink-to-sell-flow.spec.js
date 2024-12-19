@@ -34,7 +34,6 @@ describe(SmokeCore('Sell Crypto Deeplinks'), () => {
       unsupported: false,
       recommended: false,
       detected: false,
-      selectedPaymentMethodAgg: '/payments/debit-credit-card',
     };
     await withFixtures(
       {

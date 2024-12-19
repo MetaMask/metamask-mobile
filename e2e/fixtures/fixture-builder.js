@@ -448,7 +448,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://metamask.github.io/test-dapp/',
+              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
               id: 1692550481062,
             },
           ],
@@ -789,11 +789,17 @@ class FixtureBuilder {
       unsupported: false,
       recommended: false,
       detected: false,
-      selectedPaymentMethodAgg: '/payments/debit-credit-card',
     };
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedRegionAgg = region ?? defaultRegion;
+    return this;
+  }
+  withRampsSelectedPaymentMethod() {
+    const paymentType = '/payments/debit-credit-card';
+
+    // Use the provided region or fallback to the default
+    this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
     return this;
   }
 

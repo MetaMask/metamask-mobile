@@ -27,7 +27,7 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withPopularNetworks()
+          .withRampsSelectedPaymentMethod()
           .withRampsSelectedRegion()
           .build(),
         restartDevice: true,
