@@ -112,7 +112,14 @@ describe('Asset', () => {
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}
-        route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
+        route={{
+          params: {
+            symbol: 'ETH',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
       />,
       {
         state: mockInitialState,
@@ -126,7 +133,14 @@ describe('Asset', () => {
     renderWithProvider(
       <Asset
         navigation={{ setOptions: mockSetOptions }}
-        route={{ params: { symbol: 'BNB', address: 'something', isETH: true } }}
+        route={{
+          params: {
+            symbol: 'BNB',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
         transactions={[]}
       />,
       {
