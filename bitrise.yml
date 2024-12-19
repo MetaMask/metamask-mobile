@@ -686,7 +686,7 @@ workflows:
   run_tag_multichain_permissions_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - ios_e2e_test
   run_tag_multichain_permissions_android:
@@ -696,7 +696,7 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
-      - TEST_SUITE_TAG: '.*SmokeMultiChain.*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
