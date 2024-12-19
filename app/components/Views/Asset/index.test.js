@@ -1,5 +1,6 @@
 import React from 'react';
 import { TransactionType } from '@metamask/transaction-controller';
+import { swapsUtils } from '@metamask/swaps-controller/';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Asset from './';
@@ -112,7 +113,14 @@ describe('Asset', () => {
     const { toJSON } = renderWithProvider(
       <Asset
         navigation={{ setOptions: jest.fn() }}
-        route={{ params: { symbol: 'ETH', address: 'something', isETH: true } }}
+        route={{
+          params: {
+            symbol: 'ETH',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
       />,
       {
         state: mockInitialState,
@@ -126,7 +134,14 @@ describe('Asset', () => {
     renderWithProvider(
       <Asset
         navigation={{ setOptions: mockSetOptions }}
-        route={{ params: { symbol: 'BNB', address: 'something', isETH: true } }}
+        route={{
+          params: {
+            symbol: 'BNB',
+            address: 'something',
+            isETH: true,
+            chainId: '0x1',
+          },
+        }}
         transactions={[]}
       />,
       {
@@ -135,5 +150,27 @@ describe('Asset', () => {
     );
 
     expect(mockSetOptions).toHaveBeenCalled();
+  });
+
+  it('should not display swaps button if the asset is not allowed', () => {
+    jest.spyOn(swapsUtils, 'fetchSwapsFeatureFlags').mockRejectedValue('error');
+    const { toJSON } = renderWithProvider(
+      <Asset
+        navigation={{ setOptions: jest.fn() }}
+        route={{
+          params: {
+            symbol: 'AVAX',
+            address: 'something',
+            isETH: false,
+            chainId: '0x1',
+          },
+        }}
+      />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
   });
 });
