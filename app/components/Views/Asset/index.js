@@ -64,6 +64,7 @@ import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
+import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -274,6 +275,7 @@ class Asset extends PureComponent {
     });
     this.navSymbol = (this.props.route.params?.symbol ?? '').toLowerCase();
     this.navAddress = (this.props.route.params?.address ?? '').toLowerCase();
+
     if (this.navSymbol.toUpperCase() !== 'ETH' && this.navAddress !== '') {
       this.filter = this.noEthFilter;
     } else {
@@ -313,6 +315,7 @@ class Asset extends PureComponent {
       txParams: { from, to },
       isTransfer,
       transferInformation,
+      type,
     } = tx;
 
     if (
@@ -321,10 +324,15 @@ class Asset extends PureComponent {
       (chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID)) &&
       tx.status !== 'unapproved'
     ) {
-      if (isTransfer)
+      if (TOKEN_CATEGORY_HASH[type]) {
+        return false;
+      }
+      if (isTransfer) {
         return this.props.tokens.find(({ address }) =>
           toLowerCaseEquals(address, transferInformation.contractAddress),
         );
+      }
+
       return true;
     }
     return false;
@@ -521,7 +529,6 @@ class Asset extends PureComponent {
     const displayBuyButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
-
     return (
       <View style={styles.wrapper}>
         {loading ? (
