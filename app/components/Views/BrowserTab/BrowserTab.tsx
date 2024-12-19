@@ -25,7 +25,6 @@ import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
-import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import Logger from '../../../util/Logger';
 import {
@@ -136,6 +135,7 @@ import {
   WebViewError,
   WebViewProgressEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
+import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar from '../../UI/BrowserUrlBar';
 import AccountRightButton from '../../UI/AccountRightButton';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
@@ -364,8 +364,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''
-            }`;
+          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
+            query || ''
+          }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -373,11 +374,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
+            pathname || '/'
+          }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
+            pathname || '/'
+          }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -490,11 +493,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             setInitialUrl(urlToGo);
             setFirstUrlLoaded(true);
           } else {
-              webviewRef?.current?.injectJavaScript(
-                `(function(){window.location.href = '${sanitizeUrlInput(
-                  urlToGo,
-                )}' })()`,
-              );
+            webviewRef?.current?.injectJavaScript(
+              `(function(){window.location.href = '${sanitizeUrlInput(
+                urlToGo,
+              )}' })()`,
+            );
           }
 
           // Skip tracking on initial open
@@ -616,8 +619,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-      bookmarks || props.bookmarks,
-    )};
+                bookmarks || props.bookmarks,
+              )};
               window.__mmSearchEngine = "${props.searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -675,86 +678,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     });
   };
 
-  /**
-   * Go to eth-phishing-detect page
-   */
-  const goToETHPhishingDetector = () => {
-    setShowPhishingModal(false);
-    go(MM_PHISH_DETECT_URL);
-  };
-
-  /**
-   * Continue to phishing website
-   */
-  const continueToPhishingSite = () => {
-    if (!blockedUrl) return;
-    const { origin: urlOrigin } = new URLParse(blockedUrl);
-    props.addToWhitelist(urlOrigin);
-    setShowPhishingModal(false);
-    blockedUrl !== activeUrl.current &&
-      setTimeout(() => {
-        onSubmitEditing(blockedUrl);
-        // go(blockedUrl);
-        setBlockedUrl(undefined);
-      }, 1000);
-  };
-
-  /**
-   * Go to etherscam websiter
-   */
-  const goToEtherscam = () => {
-    setShowPhishingModal(false);
-    go(MM_ETHERSCAN_URL);
-  };
-
-  /**
-   * Go to eth-phishing-detect issue
-   */
-  const goToFilePhishingIssue = () => {
-    setShowPhishingModal(false);
-    blockListType.current === 'MetaMask'
-      ? go(MM_BLOCKLIST_ISSUE_URL)
-      : go(PHISHFORT_BLOCKLIST_ISSUE_URL);
-  };
-
-  /**
-   * Go back from phishing website alert
-   */
-  const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
-    setTimeout(() => {
-      setShowPhishingModal(false);
-      setBlockedUrl(undefined);
-    }, 500);
-  };
-
-  /**
-   * Renders the phishing modal
-   */
-  const renderPhishingModal = () => (
-    <Modal
-      isVisible={showPhishingModal}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.fullScreenModal}
-      backdropOpacity={1}
-      backdropColor={colors.error.default}
-      animationInTiming={300}
-      animationOutTiming={300}
-      useNativeDriver
-    >
-      <PhishingModal
-        fullUrl={blockedUrl}
-        goToETHPhishingDetector={goToETHPhishingDetector}
-        continueToPhishingSite={continueToPhishingSite}
-        goToEtherscam={goToEtherscam}
-        goToFilePhishingIssue={goToFilePhishingIssue}
-        goBackToSafety={goBackToSafety}
-      />
-    </Modal>
-  );
-
-  /*
+  /*  
   const trackEventSearchUsed = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
@@ -1730,7 +1654,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           )}
         </View>
         {updateAllowList()}
-        {isTabActive && renderPhishingModal()}
+        {isTabActive && (
+          <PhishingModal
+            blockedUrl={blockedUrl}
+            showPhishingModal={showPhishingModal}
+            setShowPhishingModal={setShowPhishingModal}
+            setBlockedUrl={setBlockedUrl}
+            go={go}
+            urlBarRef={urlBarRef}
+            addToWhitelist={props.addToWhitelist}
+            activeUrl={activeUrl}
+            blockListType={blockListType}
+            onSubmitEditing={onSubmitEditing}
+          />
+        )}
         {isTabActive && renderOptions()}
 
         {isTabActive && renderBottomBar()}

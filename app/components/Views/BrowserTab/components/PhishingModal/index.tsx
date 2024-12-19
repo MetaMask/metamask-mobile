@@ -1,0 +1,125 @@
+import React from 'react';
+import PhishingModalUI from '../../../../UI/PhishingModal';
+import URLParse from 'url-parse';
+import {
+  MM_PHISH_DETECT_URL,
+  PHISHFORT_BLOCKLIST_ISSUE_URL,
+  MM_ETHERSCAN_URL,
+  MM_BLOCKLIST_ISSUE_URL,
+} from '../../../../../constants/urls';
+import Modal from 'react-native-modal';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './styles';
+import { TextInput } from 'react-native';
+
+interface PhishingModalProps {
+  blockedUrl?: string;
+  showPhishingModal: boolean;
+  setShowPhishingModal: (show: boolean) => void;
+  setBlockedUrl: (url: string | undefined) => void;
+  go: (url: string) => void;
+  urlBarRef: React.MutableRefObject<TextInput | null>;
+  addToWhitelist: (hostname: string) => void;
+  activeUrl: React.MutableRefObject<string>;
+  blockListType: React.MutableRefObject<string>;
+  onSubmitEditing: (url: string) => void;
+}
+
+const PhishingModal = ({
+  blockedUrl,
+  showPhishingModal,
+  setShowPhishingModal,
+  setBlockedUrl,
+  go,
+  urlBarRef,
+  addToWhitelist,
+  activeUrl,
+  blockListType,
+  onSubmitEditing,
+}: PhishingModalProps) => {
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
+  /**
+   * Go to eth-phishing-detect page
+   */
+  const goToETHPhishingDetector = () => {
+    setShowPhishingModal(false);
+    go(MM_PHISH_DETECT_URL);
+  };
+
+  /**
+   * Continue to phishing website
+   */
+  const continueToPhishingSite = () => {
+    if (!blockedUrl) return;
+    const { origin: urlOrigin } = new URLParse(blockedUrl);
+
+    addToWhitelist(urlOrigin);
+    setShowPhishingModal(false);
+
+    blockedUrl !== activeUrl.current &&
+      setTimeout(() => {
+        onSubmitEditing(blockedUrl);
+        setBlockedUrl(undefined);
+      }, 1000);
+  };
+
+  /**
+   * Go to etherscam websiter
+   */
+  const goToEtherscam = () => {
+    setShowPhishingModal(false);
+    go(MM_ETHERSCAN_URL);
+  };
+
+  /**
+   * Go to eth-phishing-detect issue
+   */
+  const goToFilePhishingIssue = () => {
+    setShowPhishingModal(false);
+    blockListType.current === 'MetaMask'
+      ? go(MM_BLOCKLIST_ISSUE_URL)
+      : go(PHISHFORT_BLOCKLIST_ISSUE_URL);
+  };
+
+  /**
+   * Go back from phishing website alert
+   */
+  const goBackToSafety = () => {
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
+
+    setTimeout(() => {
+      setShowPhishingModal(false);
+      setBlockedUrl(undefined);
+    }, 500);
+  };
+
+  if (!showPhishingModal) return null;
+
+  return (
+    <Modal
+      isVisible={showPhishingModal}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={styles.fullScreenModal}
+      backdropOpacity={1}
+      backdropColor={colors.error.default}
+      animationInTiming={300}
+      animationOutTiming={300}
+      useNativeDriver
+    >
+      <PhishingModalUI
+        fullUrl={blockedUrl}
+        goToETHPhishingDetector={goToETHPhishingDetector}
+        continueToPhishingSite={continueToPhishingSite}
+        goToEtherscam={goToEtherscam}
+        goToFilePhishingIssue={goToFilePhishingIssue}
+        goBackToSafety={goBackToSafety}
+      />
+    </Modal>
+  );
+};
+
+export default PhishingModal;
