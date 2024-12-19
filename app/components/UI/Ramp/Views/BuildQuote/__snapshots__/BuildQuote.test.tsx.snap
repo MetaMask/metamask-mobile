@@ -157,7 +157,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -168,9 +167,9 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -186,21 +185,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -208,10 +192,10 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -858,7 +842,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -869,9 +852,9 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -887,21 +870,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -909,10 +877,10 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1559,7 +1527,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -1570,9 +1537,9 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -1588,21 +1555,6 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -1610,10 +1562,10 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -2231,7 +2183,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -2242,9 +2193,9 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -2260,21 +2211,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -2282,10 +2218,10 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3179,7 +3115,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -3190,9 +3125,9 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -3208,21 +3143,6 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -3230,10 +3150,10 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3851,7 +3771,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -3862,9 +3781,9 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -3880,21 +3799,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -3902,10 +3806,10 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -4799,7 +4703,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -4810,9 +4713,9 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -4828,21 +4731,6 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -4850,10 +4738,10 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -5471,7 +5359,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -5482,9 +5369,9 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -5500,21 +5387,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -5522,10 +5394,10 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -6419,7 +6291,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -6430,9 +6301,9 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -6448,21 +6319,6 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -6470,10 +6326,10 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -7091,7 +6947,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -7102,9 +6957,9 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -7120,21 +6975,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -7142,10 +6982,10 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -8039,7 +7879,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -8050,9 +7889,9 @@ exports[`BuildQuote View renders correctly 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -8068,21 +7907,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -8090,10 +7914,10 @@ exports[`BuildQuote View renders correctly 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -11094,7 +10918,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -11105,9 +10928,9 @@ exports[`BuildQuote View renders correctly 2`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -11123,21 +10946,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -11145,10 +10953,10 @@ exports[`BuildQuote View renders correctly 2`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -14129,7 +13937,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -14140,9 +13947,9 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -14158,21 +13965,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -14180,10 +13972,10 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -14801,7 +14593,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -14812,9 +14603,9 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -14830,21 +14621,6 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -14852,10 +14628,10 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >

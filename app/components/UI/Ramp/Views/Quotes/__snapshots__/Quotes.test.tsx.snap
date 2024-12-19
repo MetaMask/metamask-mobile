@@ -681,7 +681,6 @@ exports[`Quotes renders animation on first fetching 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -692,9 +691,9 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -710,21 +709,6 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -732,10 +716,10 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -2920,7 +2904,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -2931,9 +2914,9 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -2949,21 +2932,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -2971,10 +2939,10 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3315,7 +3283,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
@@ -4291,7 +4258,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -4302,9 +4268,9 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -4320,21 +4286,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -4342,10 +4293,10 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -4667,7 +4618,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                           <View
                             style={
                               {
-                                "alignItems": "center",
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
                                 "padding": 16,
@@ -6046,7 +5996,6 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -6057,9 +6006,9 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -6075,21 +6024,6 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -6097,10 +6031,10 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -6804,7 +6738,6 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -6815,9 +6748,9 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -6833,21 +6766,6 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -6855,10 +6773,10 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -7562,7 +7480,6 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -7573,9 +7490,9 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -7591,21 +7508,6 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -7613,10 +7515,10 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -8320,7 +8222,6 @@ exports[`Quotes renders quotes expired screen 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -8331,9 +8232,9 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -8349,21 +8250,6 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     }
                   }
                 >
-                  <View
-                    style={
-                      [
-                        {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "width": 5,
-                        },
-                        {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
@@ -8371,10 +8257,10 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       {
                         "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
