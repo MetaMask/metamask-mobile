@@ -1,7 +1,7 @@
 /** @type {Detox.DetoxConfig} */
 module.exports = {
   artifacts: {
-    rootDir: "./artifacts/screenshots",
+    rootDir: "./artifacts",
     plugins: {
       screenshot: {
         shouldTakeAutomaticSnapshots: true,
@@ -9,10 +9,15 @@ module.exports = {
         takeWhen: {
           testStart: false,
           testDone: false,
-        }
+        },
+      },
+      video: {
+        enabled: true,  // Enable video recording
+        keepOnlyFailedTestsArtifacts: true,  // Keep only failed tests' videos
       },
     },
   },
+  
   testRunner: {
     args: {
       $0: 'jest',
@@ -26,7 +31,7 @@ module.exports = {
   configurations: {
     'ios.sim.apiSpecs': {
       device: 'ios.simulator',
-      app: 'ios.qa',
+      app: process.env.CI ? 'ios.qa' :'ios.debug',
       testRunner: {
         args: {
           "$0": "node e2e/api-specs/run-api-spec-tests.js",

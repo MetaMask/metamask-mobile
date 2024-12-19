@@ -65,6 +65,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
 
     expect(result).toEqual({
       balanceFiat: '$4.00',
+      balanceFiatCalculation: 50,
       balanceValueFormatted: '100 ABC',
     });
   });
@@ -150,6 +151,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
 
     expect(result).toEqual({
       balanceFiat: '< $0.01',
+      balanceFiatCalculation: 0.00001,
       balanceValueFormatted: '100 ABC',
     });
     expect(addCurrencySymbol).toHaveBeenCalledWith('0.01', 'USD');

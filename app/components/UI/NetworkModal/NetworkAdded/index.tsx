@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import { NetworkAddedModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/NetworkAddedModal.selectors';
+import { NetworkAddedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkAddedBottomSheet.selectors';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
@@ -50,14 +50,14 @@ const NetworkAdded = (props: NetworkAddedProps) => {
       size: ButtonSize.Lg,
       onPress: closeModal,
       label: strings('networks.close'),
-      testID: NetworkAddedModalSelectorsIDs.CLOSE_NETWORK_BUTTON,
+      testID: NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: switchNetwork,
       label: strings('networks.switch_network'),
-      testID: NetworkAddedModalSelectorsIDs.SWITCH_NETWORK_BUTTON,
+      testID: NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     },
   ];
   return (

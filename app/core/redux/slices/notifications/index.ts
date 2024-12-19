@@ -1,4 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { isEqual } from 'lodash';
 
 export const REFECHING_ACCOUNTS_STATES = 'loading';
 
@@ -24,8 +25,12 @@ const slice = createSlice({
       state,
       action: PayloadAction<NotificationsAccountsState>,
     ) => {
-      if (JSON.stringify(state) !== JSON.stringify(action.payload)) {
-        return action.payload;
+      // Check if the payload is not an empty object
+      if (Object.keys(action.payload).length > 0) {
+        // Only update if there are differences
+        if (!isEqual(state, action.payload)) {
+          return { ...state, ...action.payload };
+        }
       }
       return state;
     },

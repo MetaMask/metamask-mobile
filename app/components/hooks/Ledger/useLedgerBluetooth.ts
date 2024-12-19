@@ -214,6 +214,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
             setLedgerError(LedgerCommunicationErrors.LedgerIsLocked);
             break;
           default:
+            setLedgerError(LedgerCommunicationErrors.UserRefusedConfirmation);
             break;
         }
       } else if (e.name === 'TransportRaceCondition') {

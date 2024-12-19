@@ -44,6 +44,7 @@ import { updateIncomingTransactions } from '../../../../util/transaction-control
 import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getGlobalChainId } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -186,13 +187,12 @@ class NetworksSettings extends PureComponent {
   };
 
   switchToMainnet = () => {
-    const { NetworkController, CurrencyRateController } = Engine.context;
+    const { NetworkController } = Engine.context;
 
-    CurrencyRateController.updateExchangeRate(NetworksTicker.mainnet);
     NetworkController.setProviderType(MAINNET);
 
     setTimeout(async () => {
-      await updateIncomingTransactions();
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -341,10 +341,32 @@ class NetworksSettings extends PureComponent {
 
   renderRpcNetworksView = () => {
     const { networkConfigurations } = this.props;
+    // Define the chainIds to exclude (Mainnet and Linea)
+    const excludedChainIds = [
+      CHAIN_IDS.MAINNET,
+      CHAIN_IDS.LINEA_MAINNET,
+      CHAIN_IDS.GOERLI,
+      CHAIN_IDS.LINEA_GOERLI,
+      CHAIN_IDS.SEPOLIA,
+      CHAIN_IDS.LINEA_SEPOLIA,
+    ];
+
+    const filteredChain = Object.keys(networkConfigurations).reduce(
+      (filtered, key) => {
+        const network = networkConfigurations[key];
+        // If the chainId is not in the excludedChainIds, add it to the result
+        if (!excludedChainIds.includes(network.chainId)) {
+          filtered[key] = network;
+        }
+        return filtered;
+      },
+      {},
+    );
+
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (Object.keys(networkConfigurations).length > 0) {
+    if (Object.keys(filteredChain).length > 0) {
       return (
         <View testID={NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST}>
           <Text style={styles.sectionLabel}>
@@ -430,7 +452,7 @@ class NetworksSettings extends PureComponent {
       (networkConfiguration, i) => {
         const defaultRpcEndpoint =
           networkConfiguration.rpcEndpoints[
-            networkConfiguration.defaultRpcEndpointIndex
+          networkConfiguration.defaultRpcEndpointIndex
           ];
         const { color, name, url, chainId } = {
           name: networkConfiguration.name || defaultRpcEndpoint.url,

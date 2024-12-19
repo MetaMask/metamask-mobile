@@ -6,7 +6,7 @@ class SelectRegionView {
   get selectRegionDropdown() {
     return Matchers.getElementByText(SelectRegionSelectors.SELECT_REGION);
   }
-  
+
   get continueButton() {
     return Matchers.getElementByText(SelectRegionSelectors.CONTINUE_BUTTON);
   }

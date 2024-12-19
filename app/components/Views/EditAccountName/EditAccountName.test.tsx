@@ -7,13 +7,13 @@ import EditAccountName from './EditAccountName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
-import EditAccountNameSelectorIDs from '../../../../e2e/selectors/EditAccountName.selectors';
+import { EditAccountNameSelectorIDs } from '../../../../e2e/selectors/wallet/EditAccountName.selectors';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
 const mockAccountsControllerSetAccountName = jest.fn();
 
-const MOCK_ADDRESS = '0x0';
+const MOCK_ADDRESS = '0x49a016E6736F9Ad381605c75220d4e78C40372A6';
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
   MOCK_ADDRESS,
 ]);
@@ -60,6 +60,17 @@ const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 
+const mockRoute = {
+  params: {
+    selectedAccount: {
+      address: MOCK_ADDRESS,
+      metadata: {
+        name: 'Test Account',
+      },
+    },
+  },
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -69,6 +80,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
+    useRoute: () => mockRoute,
   };
 });
 

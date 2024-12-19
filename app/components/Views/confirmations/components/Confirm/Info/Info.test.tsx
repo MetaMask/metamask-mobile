@@ -5,10 +5,11 @@ import { personalSignatureConfirmationState } from '../../../../../../util/test/
 import Info from './Info';
 
 describe('Info', () => {
-  it('should match snapshot for personal sign', async () => {
-    const container = renderWithProvider(<Info />, {
+  it('should render correctly for personal sign', async () => {
+    const { getByText } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot();
+    expect(getByText('Message')).toBeDefined();
+    expect(getByText('Example `personal_sign` message')).toBeDefined();
   });
 });

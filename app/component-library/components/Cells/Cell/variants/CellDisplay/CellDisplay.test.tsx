@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 //External dependencies
-import { CellModalSelectorsIDs } from '../../../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import CellDisplay from './CellDisplay';
@@ -18,6 +18,6 @@ describe('CellDisplay', () => {
     const { queryByTestId } = render(
       <CellDisplay {...SAMPLE_CELLDISPLAY_PROPS} />,
     );
-    expect(queryByTestId(CellModalSelectorsIDs.DISPLAY)).not.toBe(null);
+    expect(queryByTestId(CellComponentSelectorsIDs.DISPLAY)).not.toBe(null);
   });
 });

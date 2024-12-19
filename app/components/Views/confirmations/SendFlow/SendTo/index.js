@@ -11,10 +11,8 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getDecimalChainId,
-  handleNetworkSwitch,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
@@ -50,7 +48,7 @@ import {
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
@@ -59,7 +57,7 @@ import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
@@ -298,9 +296,14 @@ class SendFlow extends PureComponent {
       toEnsName,
       toSelectedAddressName,
     );
-    this.props.metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT, {
-      network: providerType,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.SEND_FLOW_ADDS_RECIPIENT)
+        .addProperties({
+          network: providerType,
+        })
+        .build(),
+    );
 
     navigation.navigate('Amount');
   };
@@ -313,11 +316,16 @@ class SendFlow extends PureComponent {
   goToBuy = () => {
     this.props.navigation.navigate(...createBuyNavigationDetails());
 
-    this.props.metrics.trackEvent(MetaMetricsEvents.BUY_BUTTON_CLICKED, {
-      button_location: 'Send Flow warning',
-      button_copy: 'Buy Native Token',
-      chain_id_destination: this.props.chainId,
-    });
+    this.props.metrics.trackEvent(
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          button_location: 'Send Flow warning',
+          button_copy: 'Buy Native Token',
+          chain_id_destination: this.props.chainId,
+        })
+        .build(),
+    );
   };
 
   renderBuyEth = () => {
@@ -330,10 +338,13 @@ class SendFlow extends PureComponent {
 
     return (
       <>
-        <Text bold style={styles.buyEth} onPress={this.goToBuy}>
-          {strings('fiat_on_ramp.buy', {
-            ticker: getTicker(this.props.ticker),
-          })}
+        <Text> </Text>
+        <Text reset bold link underline onPress={this.goToBuy}>
+          {strings('fiat_on_ramp_aggregator.token_marketplace')}.
+        </Text>
+        <Text reset>
+          {'\n'}
+          {strings('transaction.you_can_also_send_funds')}
         </Text>
       </>
     );
@@ -420,10 +431,14 @@ class SendFlow extends PureComponent {
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
       this.props.metrics.trackEvent(
-        MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
-        {
-          chain_id: getDecimalChainId(this.props.chainId),
-        },
+        this.props.metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
+          )
+          .addProperties({
+            chain_id: getDecimalChainId(this.props.chainId),
+          })
+          .build(),
       );
     }
     const addressName =
@@ -671,7 +686,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
   internalAccounts: selectInternalAccounts(state),
   ticker: selectTicker(state),

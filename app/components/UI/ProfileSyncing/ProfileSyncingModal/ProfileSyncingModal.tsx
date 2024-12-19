@@ -14,16 +14,14 @@ import {
   IconName,
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
-import {
-  selectIsProfileSyncingEnabled,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
-import { useProfileSyncing } from '../../../../util/notifications/hooks/useProfileSyncing';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
+import { useProfileSyncing } from '../../../../util/identity/hooks/useProfileSyncing';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import ModalContent from '../../Notification/Modal';
 
 const ProfileSyncingModal = () => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isChecked, setIsChecked] = React.useState(false);
   const { disableProfileSyncing } = useProfileSyncing();
@@ -39,13 +37,17 @@ const ProfileSyncingModal = () => {
       if (isProfileSyncingEnabled) {
         await disableProfileSyncing();
       }
-      trackEvent(MetaMetricsEvents.SETTINGS_UPDATED, {
-        settings_group: 'security_privacy',
-        settings_type: 'profile_syncing',
-        old_value: isProfileSyncingEnabled,
-        new_value: !isProfileSyncingEnabled,
-        was_notifications_on: isMetamaskNotificationsEnabled,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.SETTINGS_UPDATED)
+          .addProperties({
+            settings_group: 'security_privacy',
+            settings_type: 'profile_syncing',
+            old_value: isProfileSyncingEnabled,
+            new_value: !isProfileSyncingEnabled,
+            was_notifications_on: isMetamaskNotificationsEnabled,
+          })
+          .build(),
+      );
     });
   };
 
@@ -93,7 +95,7 @@ const ProfileSyncingModal = () => {
         hascheckBox={isProfileSyncingEnabled}
         handleCta={handleCta}
         handleCancel={handleCancel}
-        />
+      />
     </BottomSheet>
   );
 };

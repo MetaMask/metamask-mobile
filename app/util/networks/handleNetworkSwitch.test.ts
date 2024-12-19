@@ -1,7 +1,7 @@
 import Engine from '../../core/Engine';
 import { SEPOLIA } from '../../constants/network';
 import { store } from '../../store';
-import handleNetworkSwitch from './handleNetworkSwitch';
+import { handleNetworkSwitch } from './handleNetworkSwitch';
 
 const mockEngine = Engine;
 const mockStore = jest.mocked(store);
@@ -137,9 +137,6 @@ describe('useHandleNetworkSwitch', () => {
     const nickname = handleNetworkSwitch('1338');
 
     expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).toBeCalledWith('TEST');
-    expect(
       mockEngine.context.NetworkController.setActiveNetwork,
     ).toBeCalledWith('networkId1');
     expect(
@@ -153,10 +150,6 @@ describe('useHandleNetworkSwitch', () => {
 
     const networkType = handleNetworkSwitch('11155111');
 
-    // TODO: This is a bug, it should be set to SepoliaETH
-    expect(
-      mockEngine.context.CurrencyRateController.updateExchangeRate,
-    ).toBeCalledWith('ETH');
     expect(
       mockEngine.context.NetworkController.setProviderType,
     ).not.toBeCalledWith();

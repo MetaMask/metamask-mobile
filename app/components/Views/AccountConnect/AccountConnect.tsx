@@ -13,7 +13,6 @@ import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -29,22 +28,25 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
 import Logger from '../../../util/Logger';
-import getAccountNameWithENS from '../../../util/accounts';
 import {
   getAddressAccountType,
   safeToChecksumAddress,
 } from '../../../util/address';
-import { getHost, getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
+import {
+  getHost,
+  getUrlObj,
+  prefixUrlWithProtocol,
+} from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import { ImageURISource, StyleSheet } from 'react-native';
+import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -61,7 +63,6 @@ import { RootState } from '../../../reducers';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import { useTheme } from '../../../util/theme';
 import useFavicon from '../../hooks/useFavicon/useFavicon';
-import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import {
   AccountConnectProps,
   AccountConnectScreens,
@@ -71,8 +72,18 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
+import {
+  isMultichainVersion1Enabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
+import useOriginSource from '../../hooks/useOriginSource';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -87,16 +98,19 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
   const selectedWalletAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
+    selectSelectedInternalAccountFormattedAddress,
   );
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
     selectedWalletAddress ? [selectedWalletAddress] : [],
   );
+  const [confirmedAddresses, setConfirmedAddresses] =
+    useState<string[]>(selectedAddresses);
+
   const sheetRef = useRef<BottomSheetRef>(null);
   const [screen, setScreen] = useState<AccountConnectScreens>(
     AccountConnectScreens.SingleConnect,
@@ -109,28 +123,26 @@ const AccountConnect = (props: AccountConnectProps) => {
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
 
+  const [selectedNetworkAvatars, setSelectedNetworkAvatars] = useState<
+    {
+      size: AvatarSize;
+      name: string;
+      imageSource: ImageSourcePropType;
+    }[]
+  >([]);
+
   const { toastRef } = useContext(ToastContext);
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
 
   // origin is set to the last active tab url in the browser which can conflict with sdk
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const isOriginWalletConnect = wc2Metadata?.id && wc2Metadata?.id.length > 0;
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
   const { origin: channelIdOrHostname } = hostInfo.metadata as {
     id: string;
     origin: string;
-  };
-
-  const isUUID = (str: string) => {
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(str);
   };
 
   const isChannelId = isUUID(channelIdOrHostname);
@@ -141,8 +153,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isOriginMMSDKRemoteConn = sdkConnection !== undefined;
 
+  const isOriginWalletConnect =
+    !isOriginMMSDKRemoteConn && wc2Metadata?.id && wc2Metadata?.id.length > 0;
+
   const dappIconUrl = sdkConnection?.originatorInfo?.icon;
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+
+  const [isSdkUrlUnknown, setIsSdkUrlUnknown] = useState(false);
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
@@ -163,6 +180,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = inappBrowserOrigin;
     } else {
       title = strings('sdk.unknown');
+      setIsSdkUrlUnknown(true);
     }
 
     return { domainTitle: title, hostname: dappHostname };
@@ -179,6 +197,72 @@ const AccountConnect = (props: AccountConnectProps) => {
     hostname && !isUUID(hostname)
       ? prefixUrlWithProtocol(getHost(hostname))
       : domainTitle;
+
+  const { chainId } = useNetworkInfo(hostname);
+
+  const [selectedChainIds, setSelectedChainIds] = useState<string[]>(() =>
+    chainId ? [chainId] : [],
+  );
+  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>(() =>
+    chainId ? [chainId] : [],
+  );
+
+  useEffect(() => {
+    if (chainId) {
+      const initialNetworkAvatar = {
+        size: AvatarSize.Xs,
+        name: networkConfigurations[chainId]?.name || '',
+        // @ts-expect-error getNetworkImageSourcenot yet typed
+        imageSource: getNetworkImageSource({ chainId }),
+      };
+      setSelectedNetworkAvatars([initialNetworkAvatar]);
+
+      setSelectedChainIds([chainId]);
+    }
+  }, [chainId, networkConfigurations]);
+
+  const handleUpdateNetworkPermissions = useCallback(async () => {
+    let hasPermittedChains = false;
+    let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
+    if (chainId && chainsToPermit.length === 0) {
+      chainsToPermit = [chainId];
+    }
+
+    try {
+      hasPermittedChains = Engine.context.PermissionController.hasCaveat(
+        new URL(hostname).hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+      );
+    } catch {
+      // noop
+    }
+
+    if (hasPermittedChains) {
+      Engine.context.PermissionController.updateCaveat(
+        new URL(hostname).hostname,
+        PermissionKeys.permittedChains,
+        CaveatTypes.restrictNetworkSwitching,
+        chainsToPermit,
+      );
+    } else {
+      Engine.context.PermissionController.grantPermissionsIncremental({
+        subject: {
+          origin: new URL(hostname).hostname,
+        },
+        approvedPermissions: {
+          [PermissionKeys.permittedChains]: {
+            caveats: [
+              {
+                type: CaveatTypes.restrictNetworkSwitching,
+                value: chainsToPermit,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }, [selectedChainIds, chainId, hostname]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
@@ -234,20 +318,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     [hostname],
   );
 
-  const eventSource = useMemo(() => {
-    // walletconnect channelId format: app.name.org
-    // sdk channelId format: uuid
-    // inappbrowser channelId format: app.name.org but origin is set
-    if (isOriginWalletConnect) {
-      return SourceType.WALLET_CONNECT;
-    }
-
-    if (sdkConnection) {
-      return SourceType.SDK;
-    }
-
-    return SourceType.IN_APP_BROWSER;
-  }, [isOriginWalletConnect, sdkConnection]);
+  const eventSource = useOriginSource({ origin: channelIdOrHostname });
 
   // Refreshes selected addresses based on the addition and removal of accounts.
   useEffect(() => {
@@ -280,12 +351,22 @@ const AccountConnect = (props: AccountConnectProps) => {
         });
       }
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED, {
-        number_of_accounts: accountsLength,
-        source: SourceType.PERMISSION_SYSTEM,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_CANCELLED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            source: eventSource,
+          })
+          .build(),
+      );
     },
-    [accountsLength, channelIdOrHostname, trackEvent],
+    [
+      accountsLength,
+      channelIdOrHostname,
+      trackEvent,
+      createEventBuilder,
+      eventSource,
+    ],
   );
 
   const navigateToUrlInEthPhishingModal = useCallback(
@@ -344,14 +425,8 @@ const AccountConnect = (props: AccountConnectProps) => {
       },
       approvedAccounts: selectedAddresses,
     };
-
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
-    const activeAccountName = getAccountNameWithENS({
-      accountAddress: activeAddress,
-      accounts,
-      ensByAccountAddress,
-    });
 
     try {
       setIsLoading(true);
@@ -364,33 +439,26 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       triggerDappViewedEvent(connectedAccountLength);
 
-      trackEvent(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED, {
-        number_of_accounts: accountsLength,
-        number_of_accounts_connected: connectedAccountLength,
-        account_type: getAddressAccountType(activeAddress),
-        source: eventSource,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_COMPLETED)
+          .addProperties({
+            number_of_accounts: accountsLength,
+            number_of_accounts_connected: connectedAccountLength,
+            account_type: getAddressAccountType(activeAddress),
+            source: eventSource,
+          })
+          .build(),
+      );
       let labelOptions: ToastOptions['labelOptions'] = [];
-      if (connectedAccountLength > 1) {
-        labelOptions = [
-          { label: `${connectedAccountLength} `, isBold: true },
-          {
-            label: `${strings('toast.accounts_connected')}`,
-          },
-          { label: `\n${activeAccountName} `, isBold: true },
-          { label: strings('toast.now_active') },
-        ];
-      } else {
-        labelOptions = [
-          { label: `${activeAccountName} `, isBold: true },
-          { label: strings('toast.connected_and_active') },
-        ];
+
+      if (connectedAccountLength >= 1) {
+        labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
       }
+
       toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
+        variant: ToastVariants.Network,
         labelOptions,
-        accountAddress: activeAddress,
-        accountAvatarType,
+        networkImageSource: faviconSource,
         hasNoTimeout: false,
       });
     } catch (e) {
@@ -404,14 +472,13 @@ const AccountConnect = (props: AccountConnectProps) => {
     eventSource,
     selectedAddresses,
     hostInfo,
-    accounts,
-    ensByAccountAddress,
-    accountAvatarType,
     toastRef,
     accountsLength,
     channelIdOrHostname,
     triggerDappViewedEvent,
     trackEvent,
+    faviconSource,
+    createEventBuilder,
   ]);
 
   const handleCreateAccount = useCallback(
@@ -424,7 +491,11 @@ const AccountConnect = (props: AccountConnectProps) => {
           addedAccountAddress,
         ) as string;
         !isMultiSelect && setSelectedAddresses([checksummedAddress]);
-        trackEvent(MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT);
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
+          ).build(),
+        );
       } catch (e) {
         if (e instanceof Error) {
           Logger.error(e, 'error while trying to add a new account');
@@ -433,7 +504,28 @@ const AccountConnect = (props: AccountConnectProps) => {
         setIsLoading(false);
       }
     },
-    [trackEvent],
+    [trackEvent, createEventBuilder],
+  );
+
+  const handleNetworksSelected = useCallback(
+    (newSelectedChainIds: string[]) => {
+      setSelectedChainIds(newSelectedChainIds);
+      setSelectedNetworkIds(newSelectedChainIds);
+
+      const newNetworkAvatars = newSelectedChainIds.map(
+        (newSelectedChainId) => ({
+          size: AvatarSize.Xs,
+          // @ts-expect-error - networkConfigurations is not typed
+          name: networkConfigurations[newSelectedChainId]?.name || '',
+          // @ts-expect-error - getNetworkImageSource is not typed
+          imageSource: getNetworkImageSource({ chainId: newSelectedChainId }),
+        }),
+      );
+      setSelectedNetworkAvatars(newNetworkAvatars);
+
+      setScreen(AccountConnectScreens.SingleConnect);
+    },
+    [networkConfigurations, setScreen],
   );
 
   const hideSheet = (callback?: () => void) =>
@@ -455,6 +547,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       switch (action) {
         case USER_INTENT.Confirm: {
           handleConnect();
+          handleUpdateNetworkPermissions();
           hideSheet();
           break;
         }
@@ -473,13 +566,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         case USER_INTENT.Import: {
           navigation.navigate('ImportPrivateKeyView');
           // TODO: Confirm if this is where we want to track importing an account or within ImportPrivateKeyView screen.
-          trackEvent(MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+            ).build(),
+          );
           break;
         }
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.
-          trackEvent(MetaMetricsEvents.CONNECT_HARDWARE_WALLET);
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+            ).build(),
+          );
 
           break;
         }
@@ -498,6 +599,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     handleCreateAccount,
     handleConnect,
     trackEvent,
+    handleUpdateNetworkPermissions,
+    createEventBuilder,
   ]);
 
   const handleSheetDismiss = () => {
@@ -564,9 +667,19 @@ const AccountConnect = (props: AccountConnectProps) => {
         setScreen(AccountConnectScreens.MultiConnectNetworkSelector),
       onUserAction: setUserIntent,
       isAlreadyConnected: false,
+      accountAddresses: confirmedAddresses,
+      accounts,
+      // @ts-expect-error imageSource not yet typed
+      networkAvatars: selectedNetworkAvatars,
     };
     return <PermissionsSummary {...permissionsSummaryProps} />;
-  }, [faviconSource, urlWithProtocol]);
+  }, [
+    faviconSource,
+    urlWithProtocol,
+    confirmedAddresses,
+    selectedNetworkAvatars,
+    accounts,
+  ]);
 
   const renderSingleConnectSelectorScreen = useCallback(
     () => (
@@ -603,15 +716,26 @@ const AccountConnect = (props: AccountConnectProps) => {
         secureIcon={secureIcon}
         urlWithProtocol={urlWithProtocol}
         onUserAction={setUserIntent}
-        onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onBack={() => {
+          setSelectedAddresses(confirmedAddresses);
+          setScreen(AccountConnectScreens.SingleConnect);
+        }}
         connection={sdkConnection}
         hostname={hostname}
+        onPrimaryActionButtonPress={() => {
+          setConfirmedAddresses(selectedAddresses);
+          return isMultichainVersion1Enabled
+            ? setScreen(AccountConnectScreens.SingleConnect)
+            : undefined;
+        }}
+        screenTitle={strings('accounts.edit_accounts_title')}
       />
     ),
     [
       accounts,
       ensByAccountAddress,
       selectedAddresses,
+      confirmedAddresses,
       isLoading,
       faviconSource,
       secureIcon,
@@ -628,11 +752,21 @@ const AccountConnect = (props: AccountConnectProps) => {
         isLoading={isLoading}
         onUserAction={setUserIntent}
         urlWithProtocol={urlWithProtocol}
-        hostname={hostname}
+        hostname={new URL(urlWithProtocol).hostname}
         onBack={() => setScreen(AccountConnectScreens.SingleConnect)}
+        onNetworksSelected={handleNetworksSelected}
+        initialChainId={chainId}
+        selectedChainIds={selectedNetworkIds}
+        isInitializedWithPermittedChains={false}
       />
     ),
-    [isLoading, urlWithProtocol, hostname],
+    [
+      isLoading,
+      urlWithProtocol,
+      chainId,
+      handleNetworksSelected,
+      selectedNetworkIds,
+    ],
   );
 
   const renderPhishingModal = useCallback(
@@ -674,7 +808,9 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderConnectScreens = useCallback(() => {
     switch (screen) {
       case AccountConnectScreens.SingleConnect:
-        return isMultichainVersion1Enabled
+        return isSdkUrlUnknown
+          ? renderSingleConnectScreen()
+          : isMultichainVersion1Enabled
           ? renderPermissionsSummaryScreen()
           : renderSingleConnectScreen();
       case AccountConnectScreens.SingleConnectSelector:
@@ -686,6 +822,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [
     screen,
+    isSdkUrlUnknown,
     renderSingleConnectScreen,
     renderPermissionsSummaryScreen,
     renderSingleConnectSelectorScreen,

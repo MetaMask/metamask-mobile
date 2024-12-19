@@ -5,6 +5,7 @@ export interface ValidState {
   engine: {
     backgroundState: Record<string, unknown>;
   };
+  settings: Record<string, unknown>;
 }
 
 export function ensureValidState<T>(

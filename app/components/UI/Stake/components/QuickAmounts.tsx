@@ -39,44 +39,61 @@ const createStyles = (colors: Colors) =>
 interface AmountProps {
   amount: QuickAmount;
   onPress: (amount: QuickAmount) => void;
-
+  onMaxPress?: () => void;
   disabled?: boolean;
 }
 
-const Amount = ({ amount, onPress }: AmountProps) => {
+const Amount = ({ amount, onPress, onMaxPress }: AmountProps) => {
   const { value, label } = amount;
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
   const handlePress = useCallback(() => {
+    if (value === 1 && onMaxPress) {
+      onMaxPress();
+      return;
+    }
     onPress(amount);
-  }, [onPress, amount]);
+  }, [value, onMaxPress, amount, onPress]);
 
   return (
-    <ButtonBase
-      onPress={handlePress}
-      size={ButtonSize.Md}
-      width={ButtonWidthTypes.Full}
-      label={label}
-      labelColor={TextColor.Default}
-      labelTextVariant={TextVariant.BodyMDMedium}
-      {...(value === 1 ? { startIconName: IconName.Sparkle } : {})}
-      style={styles.amount}
-    />
+    <>
+      <ButtonBase
+        onPress={handlePress}
+        size={ButtonSize.Md}
+        width={ButtonWidthTypes.Full}
+        label={label}
+        labelColor={TextColor.Default}
+        labelTextVariant={TextVariant.BodyMDMedium}
+        {...(value === 1 ? { startIconName: IconName.Sparkle } : {})}
+        style={styles.amount}
+      />
+    </>
   );
 };
 
 interface QuickAmountsProps {
   amounts: QuickAmount[];
   onAmountPress: (amount: QuickAmount) => void;
+  onMaxPress?: () => void;
 }
 
-const QuickAmounts = ({ amounts, onAmountPress }: QuickAmountsProps) => {
+const QuickAmounts = ({
+  amounts,
+  onAmountPress,
+  onMaxPress,
+}: QuickAmountsProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
     <View style={styles.content}>
       {amounts.map((amount, index: number) => (
-        <Amount amount={amount} onPress={onAmountPress} key={index} />
+        <Amount
+          amount={amount}
+          onPress={onAmountPress}
+          onMaxPress={onMaxPress}
+          key={index}
+        />
       ))}
     </View>
   );

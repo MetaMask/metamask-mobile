@@ -1,52 +1,17 @@
 import { createSelector } from 'reselect';
 
-import { TRIGGER_TYPES } from '../../util/notifications';
+import { TRIGGER_TYPES, Notification } from '../../util/notifications';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
 import { NotificationServicesController } from '@metamask/notification-services-controller';
-import {
-  AuthenticationController,
-  UserStorageController,
-} from '@metamask/profile-sync-controller';
 
 type NotificationServicesState =
   NotificationServicesController.NotificationServicesControllerState;
-type AuthenticationState =
-  AuthenticationController.AuthenticationControllerState;
-type UserStorageState = UserStorageController.UserStorageControllerState;
-
-const selectAuthenticationControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.AuthenticationController;
-
-const selectUserStorageControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.UserStorageController;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.NotificationServicesController;
-
-export const selectIsProfileSyncingEnabled = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingEnabled,
-);
-export const selectIsProfileSyncingUpdateLoading = createSelector(
-  selectUserStorageControllerState,
-  (userStorageControllerState: UserStorageState) =>
-    userStorageControllerState.isProfileSyncingUpdateLoading,
-);
-
-export const selectIsSignedIn = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    authenticationControllerState.isSignedIn,
-);
-
-export const selectSessionData = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    authenticationControllerState.sessionData,
-);
+  state?.engine?.backgroundState?.NotificationServicesController ??
+  NotificationServicesController.defaultState;
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
@@ -99,14 +64,14 @@ export const getMetamaskNotificationsUnreadCount = createSelector(
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification) => !notification.isRead).length,
+    ).filter((notification: Notification) => !notification.isRead).length,
 );
 export const getMetamaskNotificationsReadCount = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
-    ).filter((notification) => notification.isRead).length,
+    ).filter((notification: Notification) => notification.isRead).length,
 );
 export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
   selectNotificationServicesControllerState,
@@ -114,7 +79,7 @@ export const getOnChainMetamaskNotificationsUnreadCount = createSelector(
     (
       notificationServicesControllerState.metamaskNotificationsList ?? []
     ).filter(
-      (notification) =>
+      (notification: Notification) =>
         !notification.isRead &&
         notification.type !== TRIGGER_TYPES.FEATURES_ANNOUNCEMENT,
     ).length,

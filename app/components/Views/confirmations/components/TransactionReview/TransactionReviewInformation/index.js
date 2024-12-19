@@ -32,7 +32,6 @@ import { sumHexWEIs } from '../../../../../../util/conversions';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   TESTNET_FAUCETS,
-  getNetworkNonce,
   isTestNet,
   isTestNetworkWithFaucet,
 } from '../../../../../../util/networks';
@@ -50,6 +49,7 @@ import AppConstants from '../../../../../../core/AppConstants';
 import WarningMessage from '../../../SendFlow/WarningMessage';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectTicker,
 } from '../../../../../../selectors/networkController';
 import {
@@ -63,6 +63,7 @@ import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils';
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import { getNetworkNonce } from '../../../../../../util/transaction-controller';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -193,6 +194,10 @@ class TransactionReviewInformation extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
+    /**
      * Indicates whether custom nonce should be shown in transaction editor
      */
     showCustomNonce: PropTypes.bool,
@@ -256,8 +261,8 @@ class TransactionReviewInformation extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -309,7 +314,9 @@ class TransactionReviewInformation extends PureComponent {
     }
 
     this.props.metrics.trackEvent(
-      MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST,
+      this.props.metrics
+        .createEventBuilder(MetaMetricsEvents.RECEIVE_OPTIONS_PAYMENT_REQUEST)
+        .build(),
     );
   };
 
@@ -355,16 +362,14 @@ class TransactionReviewInformation extends PureComponent {
           currentCurrency,
           amountToken,
         );
-        const totalValue = `${
-          amountToken + ' ' + selectedAsset.symbol
-        } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${amountToken + ' ' + selectedAsset.symbol
+          } + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       ERC721: () => {
         const totalFiat = totalGasFiat;
-        const totalValue = `${selectedAsset.name}  (#${
-          selectedAsset.tokenId
-        }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
+        const totalValue = `${selectedAsset.name}  (#${selectedAsset.tokenId
+          }) + ${renderFromWei(totalGas)} ${getTicker(ticker)}`;
         return [totalFiat, totalValue];
       },
       default: () => [undefined, undefined],
@@ -514,13 +519,11 @@ class TransactionReviewInformation extends PureComponent {
           totalMaxConversion,
         });
 
-        renderableTotalMinNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMinNative}`;
+        renderableTotalMinNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMinNative}`;
 
-        renderableTotalMaxNative = `${selectedAsset.name} ${
-          ' (#' + selectedAsset.tokenId + ')'
-        } + ${renderableTotalMaxNative}`;
+        renderableTotalMaxNative = `${selectedAsset.name} ${' (#' + selectedAsset.tokenId + ')'
+          } + ${renderableTotalMaxNative}`;
 
         return [
           renderableTotalMinNative,
@@ -666,7 +669,7 @@ class TransactionReviewInformation extends PureComponent {
     const errorPress = this.isTestNetwork() ? this.goToFaucet : this.buyEth;
     const errorLinkText = this.isTestNetwork()
       ? strings('transaction.go_to_faucet')
-      : strings('transaction.buy_more');
+      : strings('transaction.token_marketplace');
 
     const showFeeMarket =
       (!gasEstimateType ||
@@ -741,6 +744,7 @@ class TransactionReviewInformation extends PureComponent {
 
 const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
   contractExchangeRates: selectContractExchangeRates(state),

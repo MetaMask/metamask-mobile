@@ -10,7 +10,11 @@ import {
   SnapKeyringBuilderMessenger,
 } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
+import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethodMiddleware';
 
+const mockAddRequest = jest.fn();
+const mockStartFlow = jest.fn();
+const mockEndFlow = jest.fn();
 const mockGetAccounts = jest.fn();
 const mockSnapId: SnapId = 'snapId' as SnapId;
 const mockSnapName = 'mock-snap';
@@ -19,7 +23,9 @@ const mockPersisKeyringHelper = jest.fn();
 const mockSetSelectedAccount = jest.fn();
 const mockRemoveAccountHelper = jest.fn();
 const mockGetAccountByAddress = jest.fn();
+const mockSetAccountName = jest.fn();
 
+const mockFlowId = '123';
 const address = '0x2a4d4b667D5f12C3F9Bf8F14a7B9f8D8d9b8c8fA';
 const accountNameSuggestion = 'Suggested Account Name';
 const mockAccount = {
@@ -77,15 +83,20 @@ const createControllerMessenger = ({
     const [actionType, ...params]: any[] = args;
 
     switch (actionType) {
+      case 'ApprovalController:startFlow':
+        return mockStartFlow.mockReturnValue({ id: mockFlowId })();
+      case 'ApprovalController:addRequest':
+        return mockAddRequest(params);
+      case 'ApprovalController:endFlow':
+        return mockEndFlow.mockReturnValue(true)(params);
       case 'KeyringController:getAccounts':
         return mockGetAccounts.mockResolvedValue([])();
-
       case 'AccountsController:getAccountByAddress':
         return mockGetAccountByAddress.mockReturnValue(account)(params);
-
       case 'AccountsController:setSelectedAccount':
         return mockSetSelectedAccount(params);
-
+      case 'AccountsController:setAccountName':
+        return mockSetAccountName.mockReturnValue(null)(params);
       default:
         throw new Error(
           `MOCK_FAIL - unsupported messenger call: ${actionType}`,
@@ -110,6 +121,9 @@ describe('Snap Keyring Methods', () => {
   });
 
   describe('addAccount', () => {
+    beforeEach(() => {
+      mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
+    });
     afterEach(() => {
       jest.resetAllMocks();
     });
@@ -120,14 +134,69 @@ describe('Snap Keyring Methods', () => {
         method: KeyringEvent.AccountCreated,
         params: {
           account: mockAccount,
-          displayConfirmation: true,
+          displayConfirmation: false,
         },
       });
+
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
+        {
+          origin: mockSnapId,
+          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+          requestData: {
+            snapSuggestedAccountName: '',
+          },
+        },
+        true,
+      ]);
       expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
       expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
       expect(mockGetAccountByAddress).toHaveBeenCalledWith([
         mockAccount.address.toLowerCase(),
       ]);
+      expect(mockSetAccountName).not.toHaveBeenCalled();
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+    });
+
+    it('handles account creation with user defined name', async () => {
+      const mockNameSuggestion = 'suggested name';
+      mockAddRequest.mockReturnValueOnce({
+        success: true,
+        name: mockNameSuggestion,
+      });
+      const builder = createSnapKeyringBuilder();
+      await builder().handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+          accountNameSuggestion: mockNameSuggestion,
+        },
+      });
+
+      expect(mockStartFlow).toHaveBeenCalledTimes(1);
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+      expect(mockAddRequest).toHaveBeenNthCalledWith(1, [
+        {
+          origin: mockSnapId,
+          type: SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount,
+          requestData: {
+            snapSuggestedAccountName: mockNameSuggestion,
+          },
+        },
+        true,
+      ]);
+      expect(mockGetAccountByAddress).toHaveBeenCalledTimes(1);
+      expect(mockGetAccountByAddress).toHaveBeenCalledWith([
+        mockAccount.address.toLowerCase(),
+      ]);
+      expect(mockSetAccountName).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountName).toHaveBeenCalledWith([
+        mockAccount.id,
+        mockNameSuggestion,
+      ]);
+      expect(mockEndFlow).toHaveBeenCalledTimes(1);
+      expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
     });
   });
 });
