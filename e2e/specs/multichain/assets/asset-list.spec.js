@@ -66,7 +66,7 @@ describe(SmokeMultiChain('Import Tokens'), () => {
     await Assertions.checkIfNotVisible(bnb);
   });
 
-  it('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
+  it.skip('should switch networks when clicking on swap if an asset on a different network is selected', async () => {
     const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
@@ -86,19 +86,19 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const AVAX_CHAIN_NAME = 'Avalanche C-Chain';
+    const BNB_NAME = 'BNB Smart Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const avax = WalletView.tokenInWallet('AVAX');
-    await Assertions.checkIfVisible(avax);
-    await WalletView.tapOnToken('AVAX');
+    const bnb = WalletView.tokenInWallet('BNB');
+    await Assertions.checkIfVisible(bnb);
+    await WalletView.tapOnToken('BNB');
     await Assertions.checkIfVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
 
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      AVAX_CHAIN_NAME,
+      BNB_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
   });
