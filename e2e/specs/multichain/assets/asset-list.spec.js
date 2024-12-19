@@ -86,19 +86,19 @@ describe(SmokeMultiChain('Import Tokens'), () => {
   });
 
   it('should switch networks when clicking on send if an asset on a different network is selected', async () => {
-    const BNB_NAME = 'BNB Smart Chain';
+    const AVAX_CHAIN_NAME = 'Avalanche C-Chain';
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
-    const bnb = WalletView.tokenInWallet('BNB');
-    await Assertions.checkIfVisible(bnb);
-    await WalletView.tapOnToken('BNB');
+    const avax = WalletView.tokenInWallet('AVAX');
+    await Assertions.checkIfVisible(avax);
+    await WalletView.tapOnToken('AVAX');
     await Assertions.checkIfVisible(TokenOverview.sendButton);
     await TokenOverview.tapSendButton();
 
     await Assertions.checkIfVisible(NetworkEducationModal.container);
     await Assertions.checkIfElementToHaveText(
       NetworkEducationModal.networkName,
-      BNB_NAME,
+      AVAX_CHAIN_NAME,
     );
     await NetworkEducationModal.tapGotItButton();
   });
