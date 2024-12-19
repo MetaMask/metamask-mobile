@@ -1,7 +1,7 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
-import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import ScrollableTabView, {
   DefaultTabBar,
   DefaultTabBarProps,
@@ -25,6 +25,7 @@ import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
@@ -134,7 +135,7 @@ function useNotificationListProps(props: {
   const { listNotifications, isLoading } = useListNotifications();
   const getListProps = useCallback(
     (data: Notification[], tabLabel?: string) => {
-      const listProps: FlatListProps<Notification> = {
+      const listProps: FlashListProps<Notification> = {
         keyExtractor: (item: Notification) => item.id,
         data,
         ListEmptyComponent: (
@@ -167,7 +168,7 @@ function useNotificationListProps(props: {
 function SingleNotificationList(props: NotificationsListProps) {
   const getListProps = useNotificationListProps(props);
 
-  return <FlatList {...getListProps(props.allNotifications)} />;
+  return <FlashList {...getListProps(props.allNotifications)} />;
 }
 
 function TabbedNotificationList(props: NotificationsListProps) {
@@ -223,7 +224,7 @@ function TabbedNotificationList(props: NotificationsListProps) {
       onChangeTab={(val) => onTabClick(val.ref.props.tabLabel)}
     >
       {/* Tab 1 - All Notifications */}
-      <FlatList
+      <FlashList
         {...getListProps(
           props.allNotifications,
           strings(`notifications.list.0`),
@@ -231,7 +232,7 @@ function TabbedNotificationList(props: NotificationsListProps) {
       />
 
       {/* Tab 2 - Wallet Notifications */}
-      <FlatList
+      <FlashList
         {...getListProps(
           props.allNotifications,
           strings(`notifications.list.1`),
@@ -239,7 +240,7 @@ function TabbedNotificationList(props: NotificationsListProps) {
       />
 
       {/* Tab 3 - Web 3 Notifications */}
-      <FlatList
+      <FlashList
         {...getListProps(
           props.web3Notifications,
           strings(`notifications.list.2`),

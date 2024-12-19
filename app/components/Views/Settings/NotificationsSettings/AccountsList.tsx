@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { FlatList, View } from 'react-native';
+import { View } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import NotificationOptionToggle from './NotificationOptionToggle';
 import { Account } from '../../../../components/hooks/useAccounts/useAccounts.types';
 import { NotificationsToggleTypes } from './NotificationsSettings.constants';
@@ -16,10 +17,11 @@ export const AccountsList = ({
   accounts: Account[];
   accountAvatarType: AvatarAccountType;
   accountSettingsData: NotificationsAccountsState;
-  updateAndfetchAccountSettings: () => Promise<Record<string, boolean> | undefined>;
+  updateAndfetchAccountSettings: () => Promise<
+    Record<string, boolean> | undefined
+  >;
   isUpdatingMetamaskNotificationsAccount: string[];
 }) => {
-
   useEffect(() => {
     const fetchInitialData = async () => {
       await updateAndfetchAccountSettings();
@@ -29,25 +31,25 @@ export const AccountsList = ({
 
   return (
     <View>
-      <FlatList
-      data={accounts}
-      keyExtractor={(item) => `address-${item.address}`}
-      renderItem={({ item }) => (
-        <NotificationOptionToggle
-          type={NotificationsToggleTypes.ACCOUNT}
-          icon={accountAvatarType}
-          key={item.address}
-          title={item.name}
-          address={item.address}
-          disabledSwitch={isUpdatingMetamaskNotificationsAccount.length > 0}
-          isLoading={isUpdatingMetamaskNotificationsAccount.includes(
-            item.address.toLowerCase(),
-          )}
-          isEnabled={accountSettingsData?.[item.address.toLowerCase()]}
-          updateAndfetchAccountSettings={updateAndfetchAccountSettings}
+      <FlashList
+        data={accounts}
+        keyExtractor={(item) => `address-${item.address}`}
+        renderItem={({ item }) => (
+          <NotificationOptionToggle
+            type={NotificationsToggleTypes.ACCOUNT}
+            icon={accountAvatarType}
+            key={item.address}
+            title={item.name}
+            address={item.address}
+            disabledSwitch={isUpdatingMetamaskNotificationsAccount.length > 0}
+            isLoading={isUpdatingMetamaskNotificationsAccount.includes(
+              item.address.toLowerCase(),
+            )}
+            isEnabled={accountSettingsData?.[item.address.toLowerCase()]}
+            updateAndfetchAccountSettings={updateAndfetchAccountSettings}
           />
-    )}
-  />
-  </View>
+        )}
+      />
+    </View>
   );
 };
