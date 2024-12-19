@@ -1,7 +1,13 @@
-import { BrowserActionTypes } from '../../actions/browser';
+import { type BrowserAction, BrowserActionTypes } from '../../actions/browser';
+import { type BrowserState } from './types';
 import AppConstants from '../../core/AppConstants';
 
-const initialState = {
+export * from './types';
+
+/**
+ * Initial browser state
+ */
+export const initialBrowserState: BrowserState = {
   history: [],
   whitelist: [],
   tabs: [],
@@ -10,7 +16,15 @@ const initialState = {
   // Keep track of viewed Dapps, which is used for MetaMetricsEvents.DAPP_VIEWED event
   visitedDappsByHostname: {},
 };
-const browserReducer = (state = initialState, action) => {
+
+/**
+ * Browser reducer
+ */
+/* eslint-disable @typescript-eslint/default-param-last */
+const browserReducer = (
+  state: BrowserState = initialBrowserState,
+  action: BrowserAction,
+): BrowserState => {
   switch (action.type) {
     case BrowserActionTypes.ADD_TO_VIEWED_DAPP: {
       const { hostname } = action;
@@ -22,7 +36,7 @@ const browserReducer = (state = initialState, action) => {
         },
       };
     }
-    case 'ADD_TO_BROWSER_HISTORY': {
+    case BrowserActionTypes.ADD_TO_BROWSER_HISTORY: {
       const { url, name } = action;
 
       return {
@@ -30,12 +44,15 @@ const browserReducer = (state = initialState, action) => {
         history: [...state.history, { url, name }].slice(0, 50),
       };
     }
-    case 'ADD_TO_BROWSER_WHITELIST':
+    case BrowserActionTypes.ADD_TO_BROWSER_WHITELIST: {
+      const { url } = action;
+
       return {
         ...state,
-        whitelist: [...state.whitelist, action.url],
+        whitelist: [...state.whitelist, url],
       };
-    case 'CLEAR_BROWSER_HISTORY':
+    }
+    case BrowserActionTypes.CLEAR_BROWSER_HISTORY: {
       return {
         ...state,
         history: [],
@@ -43,34 +60,45 @@ const browserReducer = (state = initialState, action) => {
         tabs: [{ url: AppConstants.HOMEPAGE_URL, id: action.id }],
         activeTab: action.id,
       };
-    case 'CLOSE_ALL_TABS':
+    }
+    case BrowserActionTypes.CLOSE_ALL_TABS: {
       return {
         ...state,
         tabs: [],
       };
-    case 'CREATE_NEW_TAB':
+    }
+    case BrowserActionTypes.CREATE_NEW_TAB: {
+      const { url, linkType, id } = action;
+
       return {
         ...state,
         tabs: [
           ...state.tabs,
           {
-            url: action.url,
-            ...(action.linkType && { linkType: action.linkType }),
-            id: action.id,
+            url,
+            id,
+            ...(linkType && { linkType }),
           },
         ],
       };
-    case 'CLOSE_TAB':
+    }
+    case BrowserActionTypes.CLOSE_TAB: {
+      const { id } = action;
+
       return {
         ...state,
-        tabs: state.tabs.filter((tab) => tab.id !== action.id),
+        tabs: state.tabs.filter((tab) => tab.id !== id),
       };
-    case 'SET_ACTIVE_TAB':
+    }
+    case BrowserActionTypes.SET_ACTIVE_TAB: {
+      const { id } = action;
+
       return {
         ...state,
-        activeTab: action.id,
+        activeTab: id,
       };
-    case 'UPDATE_TAB':
+    }
+    case BrowserActionTypes.UPDATE_TAB: {
       return {
         ...state,
         tabs: state.tabs.map((tab) => {
@@ -80,7 +108,10 @@ const browserReducer = (state = initialState, action) => {
           return { ...tab };
         }),
       };
-    case 'STORE_FAVICON_URL':
+    }
+    case BrowserActionTypes.STORE_FAVICON_URL: {
+      const { origin, url } = action;
+
       return {
         ...state,
         favicons: [
@@ -88,6 +119,7 @@ const browserReducer = (state = initialState, action) => {
           ...state.favicons,
         ].slice(0, AppConstants.FAVICON_CACHE_MAX_SIZE),
       };
+    }
     default:
       return state;
   }

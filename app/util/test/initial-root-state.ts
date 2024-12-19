@@ -8,6 +8,7 @@ import { initialState as originThrottling } from '../../core/redux/slices/origin
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
+import { initialBrowserState } from '../../reducers/browser';
 import { initialState as initialStakingState } from '../../core/redux/slices/staking';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
@@ -24,7 +25,7 @@ const initialRootState: RootState = {
   engine: { backgroundState },
   privacy: undefined,
   bookmarks: undefined,
-  browser: undefined,
+  browser: initialBrowserState,
   modals: undefined,
   settings: undefined,
   alert: undefined,
