@@ -122,8 +122,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ),
     ),
   ];
-  const selectedAccountTokensChains = useSelector(
-    selectAccountTokensAcrossChains,
+
+  const selectedAccountTokensChains = useSelector((state: RootState) =>
+    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -153,7 +154,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const allTokens = Object.values(
         selectedAccountTokensChains,
       ).flat() as TokenI[];
-
       /*
         If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
         If user is on "current Network" we want to show native tokens, even with zero balance
