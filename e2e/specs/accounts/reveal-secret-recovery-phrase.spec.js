@@ -30,7 +30,7 @@ const INCORRECT_PASSWORD = 'wrongpassword';
 const QUIZ_QUESTION_1 = 1;
 const QUIZ_QUESTION_2 = 2;
 
-describe('Secret Recovery Phrase Reveal from Settings', () => {
+describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withDefaultFixture().build();

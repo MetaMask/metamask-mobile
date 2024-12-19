@@ -10,7 +10,7 @@ import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import TestHelpers from '../../helpers';
 
-describe('Import account via private to wallet', () => {
+describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
   // I should NEVER hold any eth or token
   const TEST_PRIVATE_KEY =
