@@ -11,7 +11,13 @@ import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
 import handleUniversalLink from './handleUniversalLink';
 import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../NavigationService';
 
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 jest.mock('../../../core/SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../core/AppConstants');
 jest.mock('../../../core/SDKConnect/SDKConnect');
@@ -186,14 +192,14 @@ describe('handleUniversalLinks', () => {
       // Set Platform.Version to '17' to ensure it's greater than 17
       Object.defineProperty(Platform, 'Version', { get: () => '17' });
 
-      const mockNavigate = jest.fn();
-      mockSDKConnectGetInstance.mockImplementation(() => ({
-        state: {
-          navigation: {
-            navigate: mockNavigate,
-          },
-        },
-      }));
+      // const mockNavigate = jest.fn();
+      // mockSDKConnectGetInstance.mockImplementation(() => ({
+      //   state: {
+      //     navigation: {
+      //       navigate: mockNavigate,
+      //     },
+      //   },
+      // }));
 
       urlObj = {
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
@@ -212,9 +218,12 @@ describe('handleUniversalLinks', () => {
       });
 
       expect(handled).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      });
+      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        },
+      );
       expect(Minimizer.goBack).not.toHaveBeenCalled();
     });
 

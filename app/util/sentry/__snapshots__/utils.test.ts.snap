@@ -139,10 +139,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "shouldNetworkSwitchPopToWallet": true,
     "signMessageModalVisible": true,
   },
-  "navigation": {
-    "currentBottomNavRoute": "Wallet",
-    "currentRoute": "Login",
-  },
   "networkOnboarded": {
     "networkOnboardedState": {},
     "networkState": {

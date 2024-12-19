@@ -13,6 +13,8 @@ import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../AppConstants';
+import NavigationService from '../../NavigationService';
+
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -44,10 +46,10 @@ export function handleMetaMaskDeeplink({
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
       if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
         });
-      }  else {
+      } else {
         Minimizer.goBack();
       }
     } else if (params.channelId) {

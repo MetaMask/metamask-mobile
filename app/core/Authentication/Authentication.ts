@@ -29,7 +29,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+// import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
 
 /**
@@ -367,12 +367,12 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
+      // trace({
+      //   name: TraceName.VaultCreation,
+      //   op: TraceOperation.VaultCreation,
+      // });
       await this.loginVaultCreation(password);
-      endTrace({ name: TraceName.VaultCreation });
+      // endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
@@ -417,12 +417,12 @@ class AuthenticationService {
           this.authData,
         );
       }
-      trace({
-        name: TraceName.VaultCreation,
-        op: TraceOperation.VaultCreation,
-      });
+      // trace({
+      //   name: TraceName.VaultCreation,
+      //   op: TraceOperation.VaultCreation,
+      // });
       await this.loginVaultCreation(password);
-      endTrace({ name: TraceName.VaultCreation });
+      // endTrace({ name: TraceName.VaultCreation });
 
       this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));

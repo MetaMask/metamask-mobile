@@ -13,7 +13,6 @@ jest.mock('../../handlers/handleConnectionReady');
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/device');
 jest.mock('../../../NativeModules');
-jest.mock('../../../../constants/navigation/Routes');
 jest.mock('../../utils/DevLogger');
 
 describe('handleClientsReady', () => {
@@ -22,7 +21,6 @@ describe('handleClientsReady', () => {
   const mockDisapprove = jest.fn();
   const mockUpdateOriginatorInfos = jest.fn();
   const mockApproveHost = jest.fn();
-  const mockNavigate = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -30,7 +28,6 @@ describe('handleClientsReady', () => {
     mockInstance = {
       channelId: 'testChannelId',
       trigger: 'deeplink',
-      navigation: { navigate: mockNavigate },
       // other properties of Connection as needed
     } as unknown as Connection;
 

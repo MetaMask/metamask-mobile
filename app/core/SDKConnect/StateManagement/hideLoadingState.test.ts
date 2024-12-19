@@ -1,16 +1,21 @@
 import hideLoadingState from './hideLoadingState'; // Adjust the import path as necessary
 import Routes from '../../../constants/navigation/Routes';
 import SDKConnect from '../SDKConnect';
+import NavigationService from '../../NavigationService';
 
-jest.mock('../../../constants/navigation/Routes');
+jest.mock('../../NavigationService', () => ({
+  navigation: {
+    canGoBack: jest.fn(),
+    goBack: jest.fn(),
+    getCurrentRoute: jest.fn().mockReturnValue({
+      name: 'dummy',
+    }),
+  },
+}));
 jest.mock('../SDKConnect');
 
 describe('hideLoadingState', () => {
   let mockInstance = {} as unknown as SDKConnect;
-
-  const mockGetCurrentRoute = jest.fn();
-  const mockCanGoBack = jest.fn();
-  const mockGoBack = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -18,21 +23,14 @@ describe('hideLoadingState', () => {
     mockInstance = {
       state: {
         sdkLoadingState: {},
-        navigation: {
-          getCurrentRoute: mockGetCurrentRoute,
-          canGoBack: mockCanGoBack,
-          goBack: mockGoBack,
-        },
       },
     } as unknown as SDKConnect;
   });
 
   it('should clear the SDK loading state', async () => {
-    const mockRouteName = 'mockRouteName';
-    const mockCanGoBackValue = true;
-    mockGetCurrentRoute.mockReturnValue({ name: mockRouteName });
-    mockCanGoBack.mockReturnValue(mockCanGoBackValue);
-
+    mockInstance.state.sdkLoadingState = {
+      channelId: true,
+    };
     await hideLoadingState({
       instance: mockInstance,
     });
@@ -42,53 +40,58 @@ describe('hideLoadingState', () => {
 
   describe('Navigation handling', () => {
     it('should check the current route name', async () => {
-      const mockRouteName = 'mockRouteName';
-      mockGetCurrentRoute.mockReturnValue({ name: mockRouteName });
-
       await hideLoadingState({
         instance: mockInstance,
       });
 
-      expect(mockGetCurrentRoute).toHaveBeenCalled();
+      expect(NavigationService.navigation.getCurrentRoute).toHaveBeenCalled();
     });
 
     it('should go back if the current route is SDK_LOADING and can go back', async () => {
-      const mockRouteName = Routes.SHEET.SDK_LOADING;
-      const mockCanGoBackValue = true;
-      mockGetCurrentRoute.mockReturnValue({ name: mockRouteName });
-      mockCanGoBack.mockReturnValue(mockCanGoBackValue);
+      (
+        NavigationService.navigation?.getCurrentRoute as jest.Mock
+      ).mockReturnValue({
+        name: Routes.SHEET.SDK_LOADING,
+      });
+      (NavigationService.navigation?.canGoBack as jest.Mock).mockReturnValue(
+        true,
+      );
 
       await hideLoadingState({
         instance: mockInstance,
       });
 
-      expect(mockGoBack).toHaveBeenCalled();
+      expect(NavigationService.navigation.goBack).toHaveBeenCalled();
     });
 
     it('should not go back if the current route is not SDK_LOADING', async () => {
-      const mockRouteName = 'mockRouteName';
-      const mockCanGoBackValue = true;
-      mockGetCurrentRoute.mockReturnValue({ name: mockRouteName });
-      mockCanGoBack.mockReturnValue(mockCanGoBackValue);
+      (
+        NavigationService.navigation?.getCurrentRoute as jest.Mock
+      ).mockReturnValue({
+        name: 'mockRouteName',
+      });
 
       await hideLoadingState({
         instance: mockInstance,
       });
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
     });
 
     it('should not go back if cannot go back', async () => {
-      const mockRouteName = Routes.SHEET.SDK_LOADING;
-
-      mockGetCurrentRoute.mockReturnValue({ name: mockRouteName });
-      mockCanGoBack.mockReturnValue(false);
-
+      (
+        NavigationService.navigation?.getCurrentRoute as jest.Mock
+      ).mockReturnValue({
+        name: Routes.SHEET.SDK_LOADING,
+      });
+      (NavigationService.navigation?.canGoBack as jest.Mock).mockReturnValue(
+        false,
+      );
       await hideLoadingState({
         instance: mockInstance,
       });
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(NavigationService.navigation.goBack).not.toHaveBeenCalled();
     });
   });
 });
