@@ -209,7 +209,6 @@
     "@metamask/swaps-controller": "^11.0.0",
     "@metamask/transaction-controller": "^42.0.0",
     "@metamask/utils": "^10.0.1",
-    "@metamask/swaps-controller": "^11.0.0",
     "@ngraveio/bc-ur": "^1.1.6",
     "@notifee/react-native": "^9.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
