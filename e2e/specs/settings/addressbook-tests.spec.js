@@ -141,4 +141,18 @@ describe(SmokeCore('Addressbook Tests'), () => {
     await WalletActionsBottomSheet.tapSendButton();
     await Assertions.checkIfTextIsDisplayed('Ibrahim');
   });
+
+  it('shouldrelaunch app to verify newly added contact did not disappear', async () => {
+    /* Running this test locally may fail because of expo limitation.
+       You would need to ensure that once the app relaunches, you would need to
+       select the proper expo server so the app loads. Once that is done. The test will pass
+    */
+    await device.terminateApp();
+    await device.launchApp();
+    await loginToApp();
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapContacts();
+    await Assertions.checkIfVisible(ContactsView.container);
+    await ContactsView.isContactAliasVisible('Ibrahim');
+  });
 });
