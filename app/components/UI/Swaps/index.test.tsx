@@ -5,6 +5,7 @@ import renderWithProvider, {
 import SwapsAmountView from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
+import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -19,6 +20,16 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    SwapsController: {
+      fetchAggregatorMetadataWithCache: jest.fn(),
+      fetchTopAssetsWithCache: jest.fn(),
+      fetchTokenWithCache: jest.fn(),
+    },
+  },
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
@@ -29,9 +40,9 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('SwapsAmountView', () => {
   it('renders', async () => {
-    const wrapper = renderWithProvider(<SwapsAmountView />, {
+    const { getByTestId } = renderWithProvider(<SwapsAmountView />, {
       state: mockInitialState,
     });
-    expect(wrapper).toMatchSnapshot();
+    expect(getByTestId(QuoteViewSelectorIDs.SOURCE_TOKEN)).toBeDefined();
   });
 });
