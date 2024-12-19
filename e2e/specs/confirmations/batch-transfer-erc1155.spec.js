@@ -49,7 +49,6 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
         });
 
         // Send batch transfer for ERC1155 tokens
-        await TestHelpers.delay(9999999);
         await TestDApp.tapERC1155BatchTransferButton();
         await Assertions.checkIfTextIsDisplayed(
           ContractApprovalBottomSheetSelectorsText.CONFIRM,
