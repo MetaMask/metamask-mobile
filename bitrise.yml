@@ -550,6 +550,17 @@ workflows:
         machine_type_id: elite-xl
     after_run:
       - android_e2e_build
+  workflows:
+  build_ios_multichain_assets_e2e:
+    after_run:
+      - ios_e2e_build
+  build_android_multichain_assets_e2e:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    after_run:
+      - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
       - TEST_TYPE: 'performance'
@@ -697,6 +708,22 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
+    after_run:
+      - android_e2e_test
+  run_tag_multichain_assets_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainAssets.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_multichain_assets_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
+      - TEST_SUITE_TAG: '.*SmokeMultiChainAssets.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
