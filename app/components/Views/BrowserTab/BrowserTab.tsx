@@ -25,7 +25,6 @@ import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
-import PhishingModal from '../../UI/PhishingModal';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import Logger from '../../../util/Logger';
 import {
@@ -139,6 +138,7 @@ import {
   WebViewError,
   WebViewProgressEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
+import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar from '../../UI/BrowserUrlBar';
 import AccountRightButton from '../../UI/AccountRightButton';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
@@ -460,6 +460,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const go: (url: string, initialCall?: boolean) => Promise<string | null> =
     useCallback(
       async (goToUrl, initialCall) => {
+        console.log('GO', goToUrl);
         setIsResolvedIpfsUrl(false);
         const prefixedUrl = prefixUrlWithProtocol(goToUrl);
         const {
@@ -498,12 +499,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             setInitialUrl(urlToGo);
             setFirstUrlLoaded(true);
           } else {
-            current &&
-              current.injectJavaScript(
-                `(function(){window.location.href = '${sanitizeUrlInput(
-                  urlToGo,
-                )}' })()`,
-              );
+            webviewRef?.current?.injectJavaScript(
+              `(function(){window.location.href = '${sanitizeUrlInput(
+                urlToGo,
+              )}' })()`,
+            );
           }
 
           // Skip tracking on initial open
@@ -683,85 +683,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       url: getMaskedUrl(siteInfo.url, sessionENSNames),
     });
   };
-
-  /**
-   * Go to eth-phishing-detect page
-   */
-  const goToETHPhishingDetector = () => {
-    setShowPhishingModal(false);
-    go(MM_PHISH_DETECT_URL);
-  };
-
-  /**
-   * Continue to phishing website
-   */
-  const continueToPhishingSite = () => {
-    if (!blockedUrl) return;
-    const { origin: urlOrigin } = new URLParse(blockedUrl);
-    props.addToWhitelist(urlOrigin);
-    setShowPhishingModal(false);
-    blockedUrl !== activeUrl.current &&
-      setTimeout(() => {
-        onSubmitEditing(blockedUrl);
-        // go(blockedUrl);
-        setBlockedUrl(undefined);
-      }, 1000);
-  };
-
-  /**
-   * Go to etherscam websiter
-   */
-  const goToEtherscam = () => {
-    setShowPhishingModal(false);
-    go(MM_ETHERSCAN_URL);
-  };
-
-  /**
-   * Go to eth-phishing-detect issue
-   */
-  const goToFilePhishingIssue = () => {
-    setShowPhishingModal(false);
-    blockListType.current === 'MetaMask'
-      ? go(MM_BLOCKLIST_ISSUE_URL)
-      : go(PHISHFORT_BLOCKLIST_ISSUE_URL);
-  };
-
-  /**
-   * Go back from phishing website alert
-   */
-  const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
-    setTimeout(() => {
-      setShowPhishingModal(false);
-      setBlockedUrl(undefined);
-    }, 500);
-  };
-
-  /**
-   * Renders the phishing modal
-   */
-  const renderPhishingModal = () => (
-    <Modal
-      isVisible={showPhishingModal}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      style={styles.fullScreenModal}
-      backdropOpacity={1}
-      backdropColor={colors.error.default}
-      animationInTiming={300}
-      animationOutTiming={300}
-      useNativeDriver
-    >
-      <PhishingModal
-        fullUrl={blockedUrl}
-        goToETHPhishingDetector={goToETHPhishingDetector}
-        continueToPhishingSite={continueToPhishingSite}
-        goToEtherscam={goToEtherscam}
-        goToFilePhishingIssue={goToFilePhishingIssue}
-        goBackToSafety={goBackToSafety}
-      />
-    </Modal>
-  );
 
   /*  
   const trackEventSearchUsed = useCallback(() => {
@@ -1742,7 +1663,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           )}
         </View>
         {updateAllowList()}
-        {isTabActive && renderPhishingModal()}
+        {isTabActive && (
+          <PhishingModal
+            blockedUrl={blockedUrl}
+            showPhishingModal={showPhishingModal}
+            setShowPhishingModal={setShowPhishingModal}
+            setBlockedUrl={setBlockedUrl}
+            go={go}
+            urlBarRef={urlBarRef}
+            addToWhitelist={props.addToWhitelist}
+            activeUrl={activeUrl}
+            blockListType={blockListType}
+            onSubmitEditing={onSubmitEditing}
+          />
+        )}
         {isTabActive && renderOptions()}
 
         {isTabActive && renderBottomBar()}
