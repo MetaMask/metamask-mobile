@@ -64,7 +64,6 @@ import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
-import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
