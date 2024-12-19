@@ -101,7 +101,7 @@ class TestDApp {
   get nftSetApprovalForAllButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_BUTTON_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID,
     );
   }
 
@@ -109,6 +109,13 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
+    );
+  }
+
+  get erc1155SetApprovalForAllButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID,
     );
   }
 
@@ -160,6 +167,10 @@ class TestDApp {
 
   async tapNFTSetApprovalForAllButton() {
     await this.tapButton(this.nftSetApprovalForAllButton);
+  }
+
+  async tapERC1155SetApprovalForAllButton() {
+    await this.tapButton(this.erc1155SetApprovalForAllButton);
   }
 
   async tapConfirmButton() {
