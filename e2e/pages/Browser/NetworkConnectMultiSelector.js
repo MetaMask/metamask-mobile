@@ -1,7 +1,7 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-
+import { waitFor } from 'detox';
 class NetworkConnectMultiSelector {
   get updateButton() {
     return Matchers.getElementByID(

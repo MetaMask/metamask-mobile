@@ -14,6 +14,7 @@ import { CustomNetworks } from '../../../../resources/networks.e2e';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
 describe(SmokeMultiChain('Chain Permission Management'), () => {
   beforeAll(async () => {
