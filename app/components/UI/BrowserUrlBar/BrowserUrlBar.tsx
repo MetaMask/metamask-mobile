@@ -48,7 +48,10 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     const { styles, theme } = useStyles(stylesheet, {});
 
     return (
-      <TouchableOpacity style={{ flex: 1, paddingLeft: 16 }} onPress={onPress}>
+      <TouchableOpacity
+        style={{ flex: 1, paddingHorizontal: 16 }}
+        onPress={onPress}
+      >
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
           <Icon
             color={theme.colors.icon.alternative}

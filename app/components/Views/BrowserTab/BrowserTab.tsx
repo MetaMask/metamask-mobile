@@ -301,7 +301,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Check if an origin is allowed
    */
-  const isAllowedOrigin = useCallback((origin) => {
+  const isAllowedOrigin = useCallback((urlOrigin: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -309,7 +309,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(origin);
+    const phishingControllerTestResult = PhishingController.test(urlOrigin);
 
     // Only assign the if the hostname is on the block list
     if (
@@ -319,7 +319,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       blockListType.current = phishingControllerTestResult.name;
 
     return (
-      allowList.current?.includes(origin) ||
+      allowList.current?.includes(urlOrigin) ||
       !phishingControllerTestResult.result
     );
   }, []);
@@ -333,8 +333,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Show a phishing modal when a url is not allowed
    */
-  const handleNotAllowedUrl = (urlToGo: string) => {
-    setBlockedUrl(urlToGo);
+  const handleNotAllowedUrl = (urlOrigin: string) => {
+    setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   };
 
@@ -456,12 +456,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       async (goToUrl, initialCall) => {
         setIsResolvedIpfsUrl(false);
         const prefixedUrl = prefixUrlWithProtocol(goToUrl);
-        const { hostname, query, pathname, origin } = new URLParse(prefixedUrl);
+        const {
+          hostname,
+          query,
+          pathname,
+          origin: urlOrigin,
+        } = new URLParse(prefixedUrl);
         let urlToGo = prefixedUrl;
         const isEnsUrl = isENSUrl(goToUrl, ensIgnoreList);
-        const { current } = webviewRef;
         if (isEnsUrl) {
-          current && current.stopLoading();
+          // Stop loading webview
+          webviewRef.current?.stopLoading();
           try {
             const {
               //@ts-expect-error - TODO: refactor handleIpfContent function
@@ -482,7 +487,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           }
         }
 
-        if (isAllowedOrigin(origin)) {
+        if (isAllowedOrigin(urlOrigin)) {
           if (initialCall || !firstUrlLoaded) {
             setInitialUrl(urlToGo);
             setFirstUrlLoaded(true);
@@ -686,12 +691,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
-    const urlObj = new URLParse(blockedUrl);
-    props.addToWhitelist(urlObj.hostname);
+    const { origin: urlOrigin } = new URLParse(blockedUrl);
+    props.addToWhitelist(urlOrigin);
     setShowPhishingModal(false);
     blockedUrl !== activeUrl.current &&
       setTimeout(() => {
-        go(blockedUrl);
+        onSubmitEditing(blockedUrl);
+        // go(blockedUrl);
         setBlockedUrl(undefined);
       }, 1000);
   };
@@ -718,7 +724,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    blockedUrl === activeUrl.current && goBack();
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
@@ -772,7 +778,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }: {
     url: string;
   }) => {
-    const { origin } = new URLParse(urlToLoad);
+    const { origin: urlOrigin } = new URLParse(urlToLoad);
 
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
@@ -786,8 +792,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(origin)) {
-      handleNotAllowedUrl(urlToLoad);
+    if (!isAllowedOrigin(urlOrigin)) {
+      handleNotAllowedUrl(urlOrigin);
       return false;
     }
 
@@ -906,10 +912,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         return;
       }
       if (dataParsed.name) {
-        const origin = new URLParse(nativeEvent.url).origin;
+        const urlOrigin = new URLParse(nativeEvent.url).origin;
         backgroundBridges.current.forEach((bridge) => {
           const bridgeOrigin = new URLParse(bridge.url).origin;
-          bridgeOrigin === origin && bridge.onMessage(dataParsed);
+          bridgeOrigin === urlOrigin && bridge.onMessage(dataParsed);
         });
         return;
       }
@@ -1063,8 +1069,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const { origin, pathname = '', query = '' } = new URLParse(nativeEvent.url);
-    console.log('BROWSER TAB: onLoadStart', origin, pathname, query);
+    const {
+      origin: urlOrigin,
+      pathname = '',
+      query = '',
+      hostname,
+    } = new URLParse(nativeEvent.url);
 
     webStates.current[nativeEvent.url] = {
       ...webStates.current[nativeEvent.url],
@@ -1076,7 +1086,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
 
     // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(origin)) {
+    if (!isAllowedOrigin(urlOrigin)) {
       handleNotAllowedUrl(activeUrl.current); // should this be activeUrl.current instead of url?
       return false;
     }
@@ -1096,7 +1106,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
 
     backgroundBridges.current = [];
-    initializeBackgroundBridge(origin, true);
+    initializeBackgroundBridge(urlOrigin, true);
   };
 
   /**
@@ -1623,6 +1633,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       params: {
         hostInfo: {
           metadata: {
+            // TODO: This is not an origin, it's a hostname
             origin:
               activeUrl.current && new URLParse(activeUrl.current).hostname,
           },
@@ -1634,10 +1645,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const onSubmitEditing = (text: string) => {
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
-    const url = processUrlForBrowser(text);
+    const processedUrl = processUrlForBrowser(text);
     // Directly update url in webview
     webviewRef.current?.injectJavaScript(`
-      window.location.href = '${url}';
+      window.location.href = '${processedUrl}';
       true;  // Required for iOS
     `);
   };
