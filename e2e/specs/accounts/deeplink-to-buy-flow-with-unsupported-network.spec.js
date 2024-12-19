@@ -53,7 +53,7 @@ describe(SmokeAccounts('Buy Crypto Deeplinks'), () => {
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
         // await Assertions.checkIfTextIsDisplayed('$12');
-        await Assertions.checkIfTextIsDisplayed('USD coin');
+        await Assertions.checkIfTextIsDisplayed('USD Coin');
       },
     );
   });
