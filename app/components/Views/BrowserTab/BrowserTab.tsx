@@ -177,7 +177,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const urlBarRef = useRef<TextInput>(null);
   const [isSecureConnection, setIsSecureConnection] = useState(false);
 
-  const url = useRef('');
+  const activeUrl = useRef('');
   const title = useRef<string>('');
   const icon = useRef<ImageSourcePropType | undefined>();
   const backgroundBridges = useRef<
@@ -193,7 +193,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const wizardScrollAdjusted = useRef(false);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(url.current).hostname;
+    const hostname = new URLParse(activeUrl.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -201,7 +201,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const favicon = useFavicon(url.current);
+  const favicon = useFavicon(activeUrl.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
   /**
@@ -269,7 +269,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Checks if a given url or the current url is the homepage
    */
   const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || url.current;
+    const currentPage = checkUrl || activeUrl.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
     return (
@@ -278,7 +278,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, []);
 
   const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(url.current).hostname;
+    const fullHostname = new URLParse(activeUrl.current).hostname;
 
     // TODO:permissions move permissioning logic elsewhere
     backgroundBridges.current.forEach((bridge) => {
@@ -378,7 +378,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const isBookmark = () => {
     const { bookmarks } = props;
-    const maskedUrl = getMaskedUrl(url.current);
+    const maskedUrl = getMaskedUrl(activeUrl.current);
     return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
   };
 
@@ -580,7 +580,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
-    triggerDappViewedEvent(url.current);
+    triggerDappViewedEvent(activeUrl.current);
   }, []);
 
   /**
@@ -692,7 +692,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     title: string;
     icon: ImageSourcePropType;
   }) => {
-    url.current = siteInfo.url;
+    activeUrl.current = siteInfo.url;
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
@@ -741,7 +741,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const urlObj = new URLParse(blockedUrl);
     props.addToWhitelist(urlObj.hostname);
     setShowPhishingModal(false);
-    blockedUrl !== url.current &&
+    blockedUrl !== activeUrl.current &&
       setTimeout(() => {
         go(blockedUrl);
         setBlockedUrl(undefined);
@@ -770,7 +770,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    blockedUrl === url.current && goBack();
+    blockedUrl === activeUrl.current && goBack();
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
@@ -917,8 +917,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     // Do not update URL unless website has successfully completed loading.
     webStates.current[url] = { ...webStates.current[url], ended: true };
     const { requested, started, ended } = webStates.current[url];
-    // TODO: Handle iOS case where uniswap.com/something needs to redirect to not-found
-    if (started && ended) {
+    const incomingOrigin = new URLParse(url).origin;
+    const activeOrigin = new URLParse(activeUrl.current).origin;
+    if ((started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
       changeUrl({ title, url, icon: favicon });
@@ -965,7 +966,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       }
     } catch (e: unknown) {
       const onMessageError = e as Error;
-      Logger.error(onMessageError, `Browser::onMessage on ${url.current}`);
+      Logger.error(
+        onMessageError,
+        `Browser::onMessage on ${activeUrl.current}`,
+      );
     }
   };
 
@@ -974,7 +978,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
-    if (url.current === HOMEPAGE_URL) return reload();
+    if (activeUrl.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
@@ -984,7 +988,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const goToFavorites = async () => {
     toggleOptionsIfNeeded();
-    if (url.current === OLD_HOMEPAGE_URL_HOST) return reload();
+    if (activeUrl.current === OLD_HOMEPAGE_URL_HOST) return reload();
     await go(OLD_HOMEPAGE_URL_HOST);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
@@ -1031,7 +1035,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   //   const toggleUrlModal = useCallback(
   //     (shouldClearInput = false) => {
-  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(url.current);
+  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(activeUrl.current);
   //       navigation.navigate(
   //         ...createBrowserUrlModalNavDetails({
   //           url: urlToShow,
@@ -1069,7 +1073,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           getProviderState,
           navigation,
           // Website info
-          url,
+          url: activeUrl,
           title,
           icon,
           // Bookmarks
@@ -1124,12 +1128,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(origin)) {
-      handleNotAllowedUrl(url.current); // should this be url.current instead of url?
+      handleNotAllowedUrl(activeUrl.current); // should this be activeUrl.current instead of url?
       return false;
     }
 
     // const realUrl = `${origin}${pathname}${query}`;
-    // if (nativeEvent.url !== url.current) {
+    // if (nativeEvent.url !== activeUrl.current) {
     //   // Update navigation bar address with title of loaded url.
     //   changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
     //   changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
@@ -1152,11 +1156,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   //   useEffect(() => {
   //     const updateNavbar = async () => {
   //       if (isTabActive) {
-  //         const hostname = new URLParse(url.current).hostname;
+  //         const hostname = new URLParse(activeUrl.current).hostname;
   //         const accounts = await getPermittedAccounts(hostname);
   //         navigation.setParams({
   //           showUrlModal: toggleUrlModal,
-  //           url: getMaskedUrl(url.current),
+  //           url: getMaskedUrl(activeUrl.current),
   //           icon: icon.current,
   //           error,
   //           setAccountsPermissionsVisible: () => {
@@ -1173,7 +1177,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   //               params: {
   //                 hostInfo: {
   //                   metadata: {
-  //                     origin: url.current && new URLParse(url.current).hostname,
+  //                     origin: activeUrl.current && new URLParse(activeUrl.current).hostname,
   //                   },
   //                 },
   //               },
@@ -1287,7 +1291,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       screen: 'AddBookmark',
       params: {
         title: title.current || '',
-        url: getMaskedUrl(url.current),
+        url: getMaskedUrl(activeUrl.current),
         onAddBookmark: async ({
           name,
           url: urlToAdd,
@@ -1298,7 +1302,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           props.addBookmark({ name, url: urlToAdd });
           if (Device.isIos()) {
             const item = {
-              uniqueIdentifier: url,
+              uniqueIdentifier: activeUrl,
               title: name || getMaskedUrl(urlToAdd),
               contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
               keywords: [name.split(' '), urlToAdd, 'dapp'],
@@ -1328,7 +1332,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const share = () => {
     toggleOptionsIfNeeded();
     Share.open({
-      url: url.current,
+      url: activeUrl.current,
     }).catch((err) => {
       Logger.log('Error while trying to share address', err);
     });
@@ -1340,9 +1344,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const openInBrowser = () => {
     toggleOptionsIfNeeded();
-    Linking.openURL(url.current).catch((openInBrowserError) =>
+    Linking.openURL(activeUrl.current).catch((openInBrowserError) =>
       Logger.log(
-        `Error while trying to open external link: ${url.current}`,
+        `Error while trying to open external link: ${activeUrl.current}`,
         openInBrowserError,
       ),
     );
@@ -1591,9 +1595,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (!url.current) return;
+    if (!activeUrl.current) return;
 
-    const hostname = new URLParse(url.current).hostname;
+    const hostname = new URLParse(activeUrl.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedAccountsByHostname(
@@ -1639,9 +1643,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [props.chainId, navigation]);
 
-  const urlRef = useRef(url.current);
+  const urlRef = useRef(activeUrl.current);
   useEffect(() => {
-    urlRef.current = url.current;
+    urlRef.current = activeUrl.current;
     if (
       isMultichainVersion1Enabled &&
       urlRef.current &&
@@ -1671,7 +1675,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       params: {
         hostInfo: {
           metadata: {
-            origin: url.current && new URLParse(url.current).hostname,
+            origin:
+              activeUrl.current && new URLParse(activeUrl.current).hostname,
           },
         },
       },
@@ -1691,7 +1696,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onCancel = () => {
     // Reset the url bar to the current url
-    urlBarRef.current?.setNativeProps({ text: url.current });
+    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
   };
 
   /**
