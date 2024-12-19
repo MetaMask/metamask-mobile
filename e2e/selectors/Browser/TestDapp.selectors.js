@@ -1,5 +1,6 @@
 export const TestDappSelectorsWebIDs = {
-  APPROVE_TOKENS_BUTTON_ID: 'approveTokens',
+  APPROVE_ERC_20_TOKENS_BUTTON_ID: 'approveTokens',
+  APPROVE_ERC_721_TOKEN_BUTTON_ID: 'approveButton',
   CONNECT_BUTTON: 'connectButton',
   ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID: 'transferTokens',
   INCREASE_ALLOWANCE_BUTTON_ID: 'increaseTokenAllowance',
@@ -9,5 +10,6 @@ export const TestDappSelectorsWebIDs = {
   SIGN_TYPE_DATA: 'signTypedData',
   SIGN_TYPE_DATA_V3: 'signTypedDataV3',
   SIGN_TYPE_DATA_V4: 'signTypedDataV4',
-  SIWE: 'siwe',
+  ETHEREUM_SIGN: 'siwe',
+  ADD_TOKENS_TO_WALLET_BUTTON: 'watchAssets',
 };
