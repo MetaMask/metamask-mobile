@@ -1671,7 +1671,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController, SwapsController } =
+    const { AccountTrackerController, NetworkController } =
       this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
