@@ -11,9 +11,9 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
   selectChainId,
-  selectNetworkClientId,
-  selectTicker,
   selectNativeCurrencyByChainId,
+  selectSelectedNetworkClientId,
+  selectTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -115,7 +115,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     ? (asset.chainId as Hex)
     : selectedChainId;
   const ticker = isPortfolioViewEnabled() ? nativeCurrency : selectedTicker;
-  const selectedNetworkClientId = useSelector(selectNetworkClientId);
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   let currentAddress: Hex;
 
