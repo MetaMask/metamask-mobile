@@ -17,6 +17,7 @@ const styleSheet = (params: {
       marginTop: 24,
       paddingBottom: 16,
       paddingHorizontal: 16,
+      flexWrap: 'wrap',
     },
     chartTimespanButton: {
       flexDirection: 'column',

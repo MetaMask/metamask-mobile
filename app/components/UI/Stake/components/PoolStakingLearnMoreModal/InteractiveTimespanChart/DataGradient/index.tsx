@@ -10,24 +10,12 @@ interface DataGradientProps {
 const getGradientOpacityByDataSetSize = (dataSetSize: number) => {
   let opacityTop, opacityBottom;
 
-  if (dataSetSize <= 10) {
+  if (dataSetSize <= 30) {
     opacityTop = 0.2;
-    opacityBottom = 0;
-  }
-
-  if (dataSetSize >= 30) {
-    opacityTop = 0.35;
-    opacityBottom = 0;
-  }
-
-  if (dataSetSize >= 60) {
+    opacityBottom = 0.2;
+  } else {
     opacityTop = 0.4;
-    opacityBottom = 0;
-  }
-
-  if (dataSetSize >= 100) {
-    opacityTop = 0.7;
-    opacityBottom = 0.25;
+    opacityBottom = 0.2;
   }
 
   return { opacityTop, opacityBottom };
@@ -48,7 +36,7 @@ const DataGradient = ({ dataPoints, color }: DataGradientProps) => {
   return (
     <Defs key="dataGradient">
       <LinearGradient id="dataGradient" x1={0} y1={0} x2={0} y2={'100%'}>
-        <Stop stopColor={defaultColor} stopOpacity={opacityTop} />
+        <Stop stopColor={color ?? defaultColor} stopOpacity={opacityTop} />
         <Stop
           offset={1}
           stopColor={colors.background.default}
