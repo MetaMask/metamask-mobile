@@ -853,7 +853,6 @@ export class Engine {
           getRpcMethodMiddleware({
             hostname,
             getProviderState,
-            navigation: null,
             getApprovedHosts: () => null,
             setApprovedHosts: () => null,
             approveHost: () => null,
@@ -971,8 +970,8 @@ export class Engine {
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
       clientCryptography: {
-        pbkdf2Sha512: pbkdf2
-      }
+        pbkdf2Sha512: pbkdf2,
+      },
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1302,7 +1301,9 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+                chain_id: getDecimalChainId(
+                  getGlobalChainId(networkController),
+                ),
               })
               .build(),
           ),
@@ -1518,7 +1519,7 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1538,7 +1539,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(
+              networkController,
+            )}`,
           );
         }
       },

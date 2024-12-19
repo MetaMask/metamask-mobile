@@ -1,4 +1,3 @@
-import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import AndroidService from '../AndroidSDK/AndroidService';
 import SDKConnect from '../SDKConnect';
@@ -7,11 +6,9 @@ import asyncInit from './asyncInit';
 import DeeplinkProtocolService from '../SDKDeeplinkProtocol/DeeplinkProtocolService';
 
 async function init({
-  navigation,
   context,
   instance,
 }: {
-  navigation: NavigationContainerRef;
   context?: string;
   instance: SDKConnect;
 }) {
@@ -41,7 +38,6 @@ async function init({
   }
 
   instance.state._initializing = asyncInit({
-    navigation,
     instance,
     context,
   });

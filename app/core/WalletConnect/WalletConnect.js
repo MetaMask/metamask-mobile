@@ -186,7 +186,8 @@ class WalletConnect {
               });
 
               const { NetworkController } = Engine.context;
-              const networkClientId = NetworkController.findNetworkClientIdByChainId(chainId);
+              const networkClientId =
+                NetworkController.findNetworkClientIdByChainId(chainId);
 
               const trx = await addTransaction(payload.params[0], {
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
@@ -342,11 +343,10 @@ class WalletConnect {
         rejectRequest: this.rejectRequest,
         updateSession: this.updateSession,
       },
-      getRpcMethodMiddleware: ({ hostname, getProviderState }) =>
+      getRpcMethodMiddleware: ({ _, getProviderState }) =>
         getRpcMethodMiddleware({
           hostname: WALLET_CONNECT_ORIGIN + this.hostname,
           getProviderState,
-          navigation: null, //props.navigation,
           // Website info
           url: this.url,
           title: this.title,
