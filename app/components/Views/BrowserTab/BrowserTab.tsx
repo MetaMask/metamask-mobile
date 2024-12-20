@@ -70,14 +70,6 @@ import {
   HOMEPAGE_URL,
   MM_MIXPANEL_TOKEN,
 } from './constants';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
-import {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import CLText from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import {
   selectChainId,
@@ -114,6 +106,7 @@ import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import Options from './components/Options';
+import IpfsBanner from './components/IpfsBanner';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -1147,40 +1140,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     [reload],
   );
 
-  const renderIpfsBanner = () => (
-    <View style={styles.bannerContainer}>
-      <Banner
-        title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
-        description={
-          <CLText>
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
-            <CLText variant={TextVariant.BodyMDBold}>
-              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
-            </CLText>{' '}
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
-            <CLText variant={TextVariant.BodyMDBold}>
-              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
-            </CLText>
-          </CLText>
-        }
-        actionButtonProps={{
-          variant: ButtonVariants.Link,
-          onPress: () =>
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SHOW_IPFS,
-              params: {
-                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-              },
-            }),
-          label: 'Turn on IPFS gateway',
-        }}
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Info}
-        onClose={() => setIpfsBannerVisible(false)}
-      />
-    </View>
-  );
-
   const isExternalLink = useMemo(
     () => props.linkType === EXTERNAL_LINK_TYPE,
     [props.linkType],
@@ -1371,7 +1330,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                 onFileDownload={handleOnFileDownload}
                 webviewDebuggingEnabled={isTest}
               />
-              {ipfsBannerVisible && renderIpfsBanner()}
+              {ipfsBannerVisible && (
+                <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
+              )}
             </>
           )}
         </View>
