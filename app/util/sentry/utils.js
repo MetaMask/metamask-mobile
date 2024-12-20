@@ -76,6 +76,16 @@ export const sentryStateMask = {
       },
       KeyringController: {
         isUnlocked: true,
+        vault: false,
+        keyrings: {
+          [AllProperties]: {
+            type: true,
+            // Each keyring contains an array of accounts (addresses), all of which should be masked
+            accounts: {
+              [AllProperties]: false,
+            },
+          },
+        },
       },
       LoggingController: {
         [AllProperties]: false,

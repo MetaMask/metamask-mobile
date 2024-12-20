@@ -228,8 +228,15 @@ describe('captureSentryFeedback', () => {
             isUnlocked: true,
             keyrings: [
               {
-                accounts: ['0x6312c98831d74754f86dd4936668a13b7e9ba411'],
+                accounts: [
+                  '0x6312c98831d74754f86dd4936668a13b7e9ba411',
+                  '0xf2ecb579d1225711c2c117f3ab22554357372c822',
+                ],
                 type: 'HD Key Tree',
+              },
+              {
+                type: 'QR Hardware Wallet Device',
+                accounts: [],
               },
             ],
             vault: '{"cipher":""}',
@@ -649,6 +656,52 @@ describe('captureSentryFeedback', () => {
         maskedState.engine.backgroundState.AccountsController.internalAccounts
           .selectedAccount;
       expect(selectedAccountId).toBe('1be55f5b-eba9-41a7-a9ed-a6a8274aca27');
+    });
+
+    it('masks sensitive data in KeyringController while preserving type', () => {
+      const maskedState = maskObject(rootState, sentryStateMask) as any;
+
+      const maskedKeyringController =
+        maskedState.engine.backgroundState.KeyringController;
+
+      expect(maskedKeyringController.keyrings).toEqual({
+        '0': {
+          accounts: {
+            '0': 'string',
+            '1': 'string',
+          },
+          type: 'HD Key Tree',
+        },
+        '1': {
+          accounts: {},
+          type: 'QR Hardware Wallet Device',
+        },
+      });
+
+      // Verify vault is masked
+      expect(maskedKeyringController.vault).toBe('string');
+
+      // keyrings should now be an object with numeric keys instead of an array
+      expect(typeof maskedKeyringController.keyrings).toBe('object');
+
+      const firstKeyring = maskedKeyringController.keyrings['0'];
+      const secondKeyring = maskedKeyringController.keyrings['1'];
+
+      // Verify first keyring type is preserved
+      expect(firstKeyring.type).toBe('HD Key Tree');
+
+      // Accounts are now an object as well
+      expect(typeof firstKeyring.accounts).toBe('object');
+      // Check that accounts have numeric keys and their values are masked
+      expect(firstKeyring.accounts['0']).toBe('string');
+      expect(firstKeyring.accounts['1']).toBe('string');
+
+      // Verify second keyring type is preserved
+      expect(secondKeyring.type).toBe('QR Hardware Wallet Device');
+
+      // The second keyring has no accounts, so it should be an empty object
+      expect(typeof secondKeyring.accounts).toBe('object');
+      expect(Object.keys(secondKeyring.accounts).length).toBe(0);
     });
   });
 
