@@ -78,7 +78,7 @@ function useGasPriceEstimation({
     gasPrice = gasFeeControllerState.gasFeeEstimates.gasPrice;
   }
 
-  const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as string, 'hex');
+  const weiGasPrice = new BN(decGWEIToHexWEI(gasPrice) as unknown as string, 'hex');
   const estimatedGasFee = weiGasPrice.muln(gasLimit);
 
   return {
