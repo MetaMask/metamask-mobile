@@ -28,7 +28,6 @@ export const createAccountsController = ({
   initialState?: AccountsControllerState;
 }): AccountsController => {
   try {
-    // Add logging for AccountsController creation
     if (!initialState) {
       Logger.log('Creating AccountsController with default state', {
         defaultState: defaultAccountsControllerState,
