@@ -1,4 +1,5 @@
 import AppConstants from '../../core/AppConstants';
+// eslint-disable-next-line import/no-nodejs-modules
 import punycode from 'punycode';
 
 export function isPortfolioUrl(url: string) {
