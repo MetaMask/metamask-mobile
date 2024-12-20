@@ -103,7 +103,19 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       },
       "KeyringController": {
         "isUnlocked": true,
-        "keyrings": "object",
+        "keyrings": {
+          "0": {
+            "accounts": {
+              "0": "string",
+              "1": "string",
+            },
+            "type": "HD Key Tree",
+          },
+          "1": {
+            "accounts": {},
+            "type": "QR Hardware Wallet Device",
+          },
+        },
         "vault": "string",
       },
       "LoggingController": {
