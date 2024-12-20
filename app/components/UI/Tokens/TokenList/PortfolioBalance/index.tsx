@@ -54,6 +54,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-api';
 import { getChainIdsToPoll } from '../../../../../selectors/tokensController';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
+import { selectMultichainSelectedAccountCachedBalance } from '../../../../../selectors/multichain';
 
 export const PortfolioBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -101,6 +102,15 @@ export const PortfolioBalance = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const privacyMode = useSelector(selectPrivacyMode);
+
+  const multichainSelectedAccountCachedBalance = useSelector(
+    selectMultichainSelectedAccountCachedBalance,
+  );
+
+  console.log(
+    'multichainSelectedAccountCachedBalance',
+    multichainSelectedAccountCachedBalance,
+  );
 
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,

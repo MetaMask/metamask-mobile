@@ -1,22 +1,39 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
-import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  MultichainNativeAssets,
+  Token,
+  getNativeTokenAddress,
+} from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
 } from './accountsController';
 import { selectAllTokens } from './tokensController';
-import { selectAccountsByChainId } from './accountTrackerController';
-import { selectNetworkConfigurations } from './networkController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from './accountTrackerController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from './networkController';
 import { TokenI } from '../components/UI/Tokens/types';
 import { renderFromWei } from '../util/number';
 import { toHex } from '@metamask/controller-utils';
 import {
+  selectConversionRate,
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
+import { isBtcMainnetAddress } from '../core/Multichain/utils';
 import { selectTokenMarketData } from './tokenRatesController';
+import { isMainNet } from '../util/networks';
+import { isEvmAccountType } from '@metamask/keyring-api';
+import { createDeepEqualSelector } from './util';
+import Engine from '../core/Engine/Engine';
 
 interface NativeTokenBalance {
   balance: string;
@@ -232,3 +249,115 @@ export function selectIsBitcoinSupportEnabled(state: RootState) {
 export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
   return state.multichainSettings.bitcoinTestnetSupportEnabled;
 }
+
+export const selectMultichainIsEvm = createSelector(
+  selectSelectedInternalAccount,
+  (selectedAccount) => {
+    // If no account selected, assume EVM for onboarding scenario
+    if (!selectedAccount) {
+      return true;
+    }
+    return isEvmAccountType(selectedAccount.type);
+  },
+);
+
+export const selectMultichainDefaultToken = createSelector(
+  selectMultichainIsEvm,
+  selectProviderConfig,
+  (isEvm, providerConfig) => {
+    const symbol = isEvm
+      ? providerConfig?.ticker ?? 'ETH'
+      : providerConfig?.ticker;
+    return { symbol };
+  },
+);
+
+export const selectMultichainIsBitcoin = createSelector(
+  selectMultichainIsEvm,
+  selectMultichainDefaultToken,
+  (isEvm, token) => !isEvm && token.symbol === 'BTC',
+);
+
+export const selectMultichainIsMainnet = createSelector(
+  selectMultichainIsEvm,
+  selectSelectedInternalAccount,
+  selectChainId,
+  selectMultichainIsBitcoin,
+  (isEvm, selectedAccount, chainId, isBitcoin) => {
+    if (isEvm) {
+      return isMainNet(chainId);
+    }
+
+    // Non-EVM: Currently only Bitcoin
+    if (isBitcoin && selectedAccount) {
+      return isBtcMainnetAddress(selectedAccount.address);
+    }
+    return false;
+  },
+);
+
+/**
+ *
+ * @param state - Root redux state
+ * @returns - MultichainBalancesController state
+ */
+const selectMultichainBalancesControllerState = (state: RootState) => {
+  console.log(
+    'selectMultichainBalancesControllerState',
+    JSON.stringify(state.engine.backgroundState.MultichainBalancesController),
+  );
+  return state.engine.backgroundState.MultichainBalancesController;
+};
+
+export const selectMultichainBalances = createDeepEqualSelector(
+  selectMultichainBalancesControllerState,
+  (multichainBalancesControllerState) =>
+    multichainBalancesControllerState.balances,
+);
+
+const selectBtcCachedBalance = createDeepEqualSelector(
+  selectMultichainBalances,
+  selectSelectedInternalAccount,
+  selectMultichainIsMainnet,
+  (multichainBalances, selectedInternalAccount, multichainIsMainnet) => {
+    const asset = multichainIsMainnet
+      ? MultichainNativeAssets.Bitcoin
+      : MultichainNativeAssets.BitcoinTestnet;
+
+    return multichainBalances?.[selectedInternalAccount.id]?.[asset]?.amount;
+  },
+);
+
+export const selectMultichainSelectedAccountCachedBalance =
+  createDeepEqualSelector(
+    selectMultichainIsEvm,
+    selectAccountBalanceByChainId,
+    selectBtcCachedBalance,
+    (isEvm, accountBalanceByChainId, btcCachedBalance) =>
+      isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
+  );
+
+export const selectMultichainSelectedAccountCachedBalanceIsZero =
+  createDeepEqualSelector(
+    selectMultichainSelectedAccountCachedBalance,
+    selectMultichainIsEvm,
+    (balance, isEvm) => {
+      const base = isEvm ? 16 : 10;
+      const numericValue = parseInt(balance, base);
+      return numericValue === 0;
+    },
+  );
+
+export const selectMultichainConversionRate = createDeepEqualSelector(
+  selectMultichainIsEvm,
+  selectConversionRate,
+  selectCurrencyRates,
+  selectProviderConfig,
+  (isEvm, evmConversionRate, currencyRates, providerConfig) => {
+    if (isEvm) {
+      return evmConversionRate;
+    }
+    const ticker = providerConfig?.ticker?.toLowerCase();
+    return ticker ? currencyRates?.[ticker]?.conversionRate : undefined;
+  },
+);
