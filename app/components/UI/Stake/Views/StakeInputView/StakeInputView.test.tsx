@@ -246,6 +246,8 @@ describe('StakeInputView', () => {
           annualRewardRate: '2.5%',
           annualRewardsETH: '0.00938 ETH',
           annualRewardsFiat: '18.75 USD',
+          estimatedGasFee: '0.25',
+          estimatedGasFeePercentage: '66%',
         },
       });
     });
