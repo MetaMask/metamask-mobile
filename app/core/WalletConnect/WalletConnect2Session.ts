@@ -1,7 +1,6 @@
 import Client, { SingleEthereumTypes } from '@walletconnect/se-sdk';
 import { WalletDevice } from '@metamask/transaction-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
 import { Platform, Linking } from 'react-native';
@@ -28,7 +27,7 @@ import { hideWCLoadingState, showWCLoadingState } from './wc-utils';
 import { getDefaultNetworkByChainId } from '../../util/networks';
 import { ERROR_MESSAGES } from './WalletConnectV2';
 import { getGlobalNetworkClientId } from '../../util/networks/global-network';
-
+import NavigationService from '../NavigationService';
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
 };
@@ -42,7 +41,6 @@ interface BackgroundBridgeFactory {
 
 class WalletConnect2Session {
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef;
   private web3Wallet: Client;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
@@ -59,7 +57,6 @@ class WalletConnect2Session {
   constructor({
     web3Wallet,
     session,
-    navigation,
     channelId,
     deeplink,
     backgroundBridgeFactory = {
@@ -71,7 +68,6 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef;
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.web3Wallet = web3Wallet;
@@ -79,9 +75,7 @@ class WalletConnect2Session {
     this.session = session;
     DevLogger.log(
       `WalletConnect2Session::constructor channelId=${channelId} deeplink=${deeplink}`,
-      navigation,
     );
-    this.navigation = navigation;
 
     const url = session.peer.metadata.url;
     const name = session.peer.metadata.name;
@@ -121,7 +115,6 @@ class WalletConnect2Session {
           fromHomepage: { current: false },
           approveHost: () => false,
           injectHomePageScripts: () => false,
-          navigation: this.navigation,
           // Website info
           url: {
             current: url,
@@ -180,16 +173,12 @@ class WalletConnect2Session {
 
   redirect = (context?: string) => {
     DevLogger.log(
-      `WC2::redirect context=${context} isDeeplink=${
-        this.deeplink
-      } navigation=${this.navigation !== undefined}`,
+      `WC2::redirect context=${context} isDeeplink=${this.deeplink}`,
     );
     if (!this.deeplink) return;
 
-    const navigation = this.navigation;
-
     const showReturnModal = () => {
-      navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       });
     };
@@ -399,7 +388,7 @@ class WalletConnect2Session {
       clearTimeout(this.timeoutRef);
     }
 
-    hideWCLoadingState({ navigation: this.navigation });
+    hideWCLoadingState();
     const verified = requestEvent.verifyContext?.verified;
     const hostname = verified?.origin;
     const origin = WALLET_CONNECT_ORIGIN + hostname; // allow correct origin for analytics with eth_sendTransaction
@@ -463,10 +452,10 @@ class WalletConnect2Session {
           error: { code: 32603, message: ERROR_MESSAGES.INVALID_CHAIN },
         });
 
-        showWCLoadingState({ navigation: this.navigation });
+        showWCLoadingState();
         this.timeoutRef = setTimeout(() => {
           DevLogger.log(`wc2::timeoutRef redirecting...`);
-          hideWCLoadingState({ navigation: this.navigation });
+          hideWCLoadingState();
           // Redirect or do nothing if timer gets cleared upon receiving wallet_addEthereumChain after automatic reject
           this.redirect('handleRequestTimeout');
         }, 3000);

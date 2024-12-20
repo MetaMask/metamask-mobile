@@ -178,9 +178,7 @@ jest.mock('react-native-keychain', () => ({
 
 jest.mock('react-native-share', () => 'RNShare');
 jest.mock('react-native-branch', () => ({
-  BranchSubscriber: () => {
-    () => 'RNBranch';
-  },
+  subscribe: jest.fn(),
 }));
 jest.mock('react-native-sensors', () => 'RNSensors');
 jest.mock('@metamask/react-native-search-api', () => 'SearchApi');
@@ -323,14 +321,23 @@ jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   },
 }));
 
-jest.mock('redux-persist', () => ({
-  persistStore: jest.fn(),
-  persistReducer: (_, reducer) => {
-    return reducer || ((state) => state);
-  },
-  createTransform: jest.fn(),
-  createMigrate: jest.fn(),
-}));
+jest.mock('redux-persist', () => {
+  const mockPersistor = {
+    subscribe: jest.fn(),
+    purge: jest.fn(),
+    pause: jest.fn(),
+    persist: jest.fn(),
+    flush: jest.fn(),
+  };
+  return {
+    persistStore: jest.fn(() => mockPersistor),
+    persistReducer: (_, reducer) => {
+      return reducer || ((state) => state);
+    },
+    createTransform: jest.fn(),
+    createMigrate: jest.fn(),
+  };
+});
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
@@ -362,34 +369,39 @@ global.crypto = {
 };
 
 jest.mock('@react-native-firebase/messaging', () => {
-
   const module = () => {
-      return {
-          getToken: jest.fn(() => Promise.resolve('fcmToken')),
-          deleteToken: jest.fn(() => Promise.resolve()),
-          subscribeToTopic: jest.fn(),
-          unsubscribeFromTopic: jest.fn(),
-          hasPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
-          requestPermission: jest.fn(() => Promise.resolve(module.AuthorizationStatus.AUTHORIZED)),
-          setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
-          isDeviceRegisteredForRemoteMessages: jest.fn(() => Promise.resolve(false)),
-          registerDeviceForRemoteMessages: jest.fn(() =>
-            Promise.resolve('registered'),
-          ),
-          unregisterDeviceForRemoteMessages: jest.fn(() =>
-            Promise.resolve('unregistered'),
-          ),
-          onMessage: jest.fn(),
-          onTokenRefresh: jest.fn(),
+    return {
+      getToken: jest.fn(() => Promise.resolve('fcmToken')),
+      deleteToken: jest.fn(() => Promise.resolve()),
+      subscribeToTopic: jest.fn(),
+      unsubscribeFromTopic: jest.fn(),
+      hasPermission: jest.fn(() =>
+        Promise.resolve(module.AuthorizationStatus.AUTHORIZED),
+      ),
+      requestPermission: jest.fn(() =>
+        Promise.resolve(module.AuthorizationStatus.AUTHORIZED),
+      ),
+      setBackgroundMessageHandler: jest.fn(() => Promise.resolve()),
+      isDeviceRegisteredForRemoteMessages: jest.fn(() =>
+        Promise.resolve(false),
+      ),
+      registerDeviceForRemoteMessages: jest.fn(() =>
+        Promise.resolve('registered'),
+      ),
+      unregisterDeviceForRemoteMessages: jest.fn(() =>
+        Promise.resolve('unregistered'),
+      ),
+      onMessage: jest.fn(),
+      onTokenRefresh: jest.fn(),
     };
   };
 
   module.AuthorizationStatus = {
-      NOT_DETERMINED: -1,
-      DENIED: 0,
-      AUTHORIZED: 1,
-      PROVISIONAL: 2,
-  }
+    NOT_DETERMINED: -1,
+    DENIED: 0,
+    AUTHORIZED: 1,
+    PROVISIONAL: 2,
+  };
 
-  return module
+  return module;
 });

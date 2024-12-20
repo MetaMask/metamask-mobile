@@ -4,7 +4,6 @@ import {
   OriginatorInfo,
   RemoteCommunication,
 } from '@metamask/sdk-communication-layer';
-import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
 import AppConstants from '../../AppConstants';
 import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
@@ -41,7 +40,6 @@ export interface ConnectionProps {
   // Only userful in case of reconnection
   trigger?: 'deeplink' | 'resume' | 'reconnect';
   initialConnection?: boolean;
-  navigation?: NavigationContainerRef;
   originatorInfo?: OriginatorInfo;
   connected?: boolean;
   validUntil?: number;
@@ -57,7 +55,6 @@ export class Connection extends EventEmitter2 {
   remote: RemoteCommunication;
   origin: string;
   host: string;
-  navigation?: NavigationContainerRef;
   protocolVersion: number;
   originatorInfo?: OriginatorInfo;
   isReady = false;
@@ -132,7 +129,6 @@ export class Connection extends EventEmitter2 {
     originatorInfo,
     socketServerUrl,
     trigger,
-    navigation,
     lastAuthorized,
     approveHost,
     getApprovedHosts,
@@ -161,7 +157,6 @@ export class Connection extends EventEmitter2 {
     this.origin = origin;
     this.trigger = trigger;
     this.channelId = id;
-    this.navigation = navigation;
     this.lastAuthorized = lastAuthorized;
     this.reconnect = reconnect || false;
     this.isResumed = false;
@@ -317,7 +312,13 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
+  disconnect({
+    terminate,
+    context,
+  }: {
+    terminate: boolean;
+    context?: string;
+  }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 
