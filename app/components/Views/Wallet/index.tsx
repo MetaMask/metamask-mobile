@@ -55,7 +55,6 @@ import {
   selectTokens,
   selectTokensByChainIdAndAddress,
 } from '../../../selectors/tokensController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -93,6 +92,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -310,6 +310,7 @@ const Wallet = ({
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */

@@ -1,13 +1,13 @@
 const tags = {
-  regression: 'Regression',
-  smokeAccounts: 'SmokeAccounts',
-  smokeCore: 'SmokeCore',
-  smokeConfirmations: 'SmokeConfirmations',
-  SmokeSwaps: 'SmokeSwaps',
-  SmokeRest: 'SmokeRest',
-  smokeAssets: 'smokeAssets',
-  smokeIdentity: 'smokeIdentity',
-  smokeMultiChain: 'SmokeMultiChain',
+  regression: 'Regression:',
+  smokeAccounts: 'SmokeAccounts:',
+  smokeCore: 'SmokeCore:',
+  smokeConfirmations: 'SmokeConfirmations:',
+  SmokeSwaps: 'SmokeSwaps:',
+  SmokeRest: 'SmokeRest:',
+  smokeAssets: 'smokeAssets:',
+  smokeIdentity: 'smokeIdentity:',
+  smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -19,7 +19,8 @@ const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
 
-const SmokeMultiChain = (testName) => `${tags.smokeMultiChain} ${testName}`;
+const SmokeMultiChainPermissions = (testName) =>
+  `${tags.smokeMultiChainPermissions} ${testName}`;
 export {
   Regression,
   SmokeAccounts,
@@ -28,5 +29,5 @@ export {
   SmokeSwaps,
   SmokeAssets,
   SmokeIdentity,
-  SmokeMultiChain,
+  SmokeMultiChainPermissions,
 };

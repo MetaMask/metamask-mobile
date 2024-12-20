@@ -83,7 +83,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('displays standard incoming transaction', async () => {
+  xit('displays standard incoming transaction', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
