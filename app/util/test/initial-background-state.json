@@ -270,7 +270,8 @@
         "decimals": 0,
         "address": "",
         "symbol": ""
-      }
+      },
+      "networkClientId": "mainnet"
     },
     "topAggSavings": null,
     "aggregatorMetadata": null,
