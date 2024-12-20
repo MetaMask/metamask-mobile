@@ -117,20 +117,6 @@ export const Browser = (props) => {
     );
   };
 
-  // useEffect(
-  //   () =>
-  //     navigation.setOptions(
-  //       getBrowserViewNavbarOptions(
-  //         route,
-  //         colors,
-  //         handleRightTopButtonAnalyticsEvent,
-  //         !route.params?.showTabs,
-  //       ),
-  //     ),
-  //   /* eslint-disable-next-line */
-  //   [navigation, route, colors],
-  // );
-
   const newTab = (url, linkType) => {
     createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
   };
