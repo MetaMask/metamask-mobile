@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { SmokeCore } from '../../tags';
+import { SmokeRamps } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
@@ -13,8 +13,10 @@ import Assertions from '../../utils/Assertions';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { PopularNetworksList } from '../../resources/networks.e2e';
 
-describe(SmokeCore('Buy Crypto Deeplinks'), () => {
+describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -23,9 +25,8 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should deep link to onramp on Base network', async () => {
-    const BuyDeepLink =
-      'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=12';
+  it('should deep link to onramp to unsupported network', async () => {
+    const BuyDeepLink = 'metamask://buy?chainId=2';
 
     await withFixtures(
       {
@@ -45,12 +46,16 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
 
         await BuyGetStartedView.tapGetStartedButton();
 
-        await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
+        await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
+        await NetworkListModal.changeNetworkTo(
+          PopularNetworksList.Avalanche.providerConfig.nickname,
+        );
         await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapSwitchToNetwork();
+        await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('USD Coin');
+        await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
+        await Assertions.checkIfTextIsDisplayed('Avalanche');
       },
     );
   });
