@@ -48,14 +48,14 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
 
         await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
         await NetworkListModal.changeNetworkTo(
-          PopularNetworksList.Polygon.providerConfig.nickname,
+          PopularNetworksList.Avalanche.providerConfig.nickname,
         );
         await NetworkApprovalBottomSheet.tapApproveButton();
         await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
         await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
-        await Assertions.checkIfTextIsDisplayed('Polygon Ecosystem Token');
+        await Assertions.checkIfTextIsDisplayed('Avalanche');
       },
     );
   });
