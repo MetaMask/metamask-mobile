@@ -29,7 +29,6 @@ import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
-import BrowserUrlBar from '../BrowserUrlBar';
 import { NAV_ANDROID_BACK_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/NetworksScreen.testids';
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from '../../../../wdio/screen-objects/testIDs/Components/SimpleWebView.testIds';
 import Routes from '../../../constants/navigation/Routes';
@@ -608,62 +607,6 @@ export function getSendFlowTitle(
         <View />
       ),
     headerStyle: innerStyles.headerStyle,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by views that will show our custom navbar
- * which contains accounts icon, Title or MetaMask Logo and current network, and settings icon
- *
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options containing headerTitle, headerLeft and headerRight
- */
-export function getBrowserViewNavbarOptions(
-  route,
-  themeColors,
-  rightButtonAnalyticsEvent,
-  headerShown = true,
-) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-      borderBottomWidth: 0.5,
-      borderColor: themeColors.border.muted,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
-
-  const url = route.params?.url ?? '';
-
-  const handleUrlPress = () => route.params?.showUrlModal?.();
-
-  const handleAccountRightButtonPress = (permittedAccounts, currentUrl) => {
-    rightButtonAnalyticsEvent(permittedAccounts, currentUrl);
-    route.params?.setAccountsPermissionsVisible();
-  };
-
-  const connectedAccounts = route.params?.connectedAccounts;
-
-  return {
-    gestureEnabled: false,
-    headerTitleAlign: 'left',
-    headerTitle: () => (
-      <BrowserUrlBar url={url} route={route} onPress={handleUrlPress} />
-    ),
-    headerRight: () => (
-      <AccountRightButton
-        selectedAddress={connectedAccounts?.[0]}
-        isNetworkVisible
-        onPress={handleAccountRightButtonPress}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerShown,
   };
 }
 

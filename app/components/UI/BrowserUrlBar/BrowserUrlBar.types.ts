@@ -1,7 +1,13 @@
-export interface BrowserUrlBarProps {
-  url: string;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  route: any;
-  onPress: () => void;
-}
+/**
+ * BrowserUrlBar props
+ */
+export type BrowserUrlBarProps = {
+  isSecureConnection: boolean;
+  onSubmitEditing: (text: string) => void;
+  onCancel: () => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  onChangeText: (text: string) => void;
+  connectedAccounts: string[];
+  activeUrl: string;
+};
