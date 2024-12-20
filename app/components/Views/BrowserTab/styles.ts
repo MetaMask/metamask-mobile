@@ -88,7 +88,7 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
     },
     webview: {
       ...baseStyles.flexGrow,
-      zIndex: 1,
+      // zIndex: 1,
     },
     urlModalContent: {
       flexDirection: 'row',
@@ -115,16 +115,6 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
       paddingLeft: 15,
       flex: 1,
       color: colors.text.default,
-    },
-    cancelButton: {
-      marginTop: -6,
-      marginLeft: 10,
-      justifyContent: 'center',
-    },
-    cancelButtonText: {
-      fontSize: 14,
-      color: colors.primary.default,
-      ...fontStyles.normal,
     },
     bottomModal: {
       justifyContent: 'flex-end',

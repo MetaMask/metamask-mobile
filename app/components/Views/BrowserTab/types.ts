@@ -1,22 +1,22 @@
-export interface IpfsContentResult {
+export type IpfsContentResult = {
   url?: string;
   hash?: string;
   type?: string;
   reload?: boolean;
-}
+};
 
-export interface SessionENSNames {
+export type SessionENSNames = {
   [key: string]: {
     hostname: string;
     hash: string;
     type: string;
   };
-}
+};
 
 /**
  * The props for the BrowserTab component
  */
-export interface BrowserTabProps {
+export type BrowserTabProps = {
   /**
    * The ID of the current tab
    */
@@ -110,7 +110,7 @@ export interface BrowserTabProps {
    * Boolean indicating if browser is in tabs view
    */
   isInTabsView: boolean;
-}
+};
 // This event should be exported from the webview package
 export interface WebViewErrorEvent {
   domain?: string;
