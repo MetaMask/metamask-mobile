@@ -44,7 +44,7 @@ interface OptionsProps {
   activeUrl: MutableRefObject<string>;
   isHomepage: () => boolean;
   getMaskedUrl: (urlToMask: string, sessionENSNames: SessionENSNames) => string;
-  go: (url: string) => void;
+  onSubmitEditing: (url: string) => void;
   title: MutableRefObject<string>;
   reload: () => void;
   sessionENSNames: SessionENSNames;
@@ -62,7 +62,7 @@ const Options = ({
   activeUrl,
   isHomepage,
   getMaskedUrl,
-  go,
+  onSubmitEditing,
   title,
   reload,
   sessionENSNames,
@@ -99,7 +99,7 @@ const Options = ({
   const goToFavorites = async () => {
     toggleOptionsIfNeeded();
     if (activeUrl.current === OLD_HOMEPAGE_URL_HOST) return reload();
-    await go(OLD_HOMEPAGE_URL_HOST);
+    await onSubmitEditing(OLD_HOMEPAGE_URL_HOST);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
     );

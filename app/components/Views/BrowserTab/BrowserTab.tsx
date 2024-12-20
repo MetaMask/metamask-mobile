@@ -1196,7 +1196,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             activeUrl={activeUrl}
             isHomepage={isHomepage}
             getMaskedUrl={getMaskedUrl}
-            go={go}
+            onSubmitEditing={onSubmitEditing}
             title={title}
             reload={reload}
             sessionENSNames={sessionENSNames}
