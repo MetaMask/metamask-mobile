@@ -775,16 +775,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   };
 
-  /**
-   * Go to home page, reload if already on homepage
-   */
-  const goToHomepage = async () => {
-    toggleOptionsIfNeeded();
-    if (activeUrl === HOMEPAGE_URL) return reload();
-    await go(HOMEPAGE_URL);
-    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
-  };
-
   const toggleUrlModal = () => {
     urlBarRef.current?.focus();
   };
@@ -836,7 +826,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       method: NOTIFICATION_NAMES.accountsChanged,
       params: permittedAccountsList,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notifyAllConnections, permittedAccountsList]);
 
   /**
@@ -946,22 +935,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () => (
-    <BrowserBottomBar
-      canGoBack={backEnabled}
-      canGoForward={forwardEnabled}
-      goForward={goForward}
-      goBack={goBack}
-      showTabs={showTabs}
-      showUrlModal={toggleUrlModal}
-      toggleOptions={toggleOptions}
-      goHome={goToHomepage}
-    />
-  );
-
-  /**
    * Render the onboarding wizard browser step
    */
   const renderOnboardingWizard = () => {
@@ -976,13 +949,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       return <OnboardingWizard navigation={navigation} />;
     }
     return null;
-  };
-
-  /**
-   * Return to the MetaMask Dapp Homepage
-   */
-  const returnHome = () => {
-    go(HOMEPAGE_HOST);
   };
 
   const handleOnFileDownload = useCallback(
@@ -1080,6 +1046,39 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       true;  // Required for iOS
     `);
   };
+
+  /**
+   * Return to the MetaMask Dapp Homepage
+   */
+  const returnHome = () => {
+    onSubmitEditing(HOMEPAGE_HOST);
+  };
+
+  /**
+   * Go to home page, reload if already on homepage
+   */
+  const goToHomepage = async () => {
+    toggleOptionsIfNeeded();
+    if (activeUrl === HOMEPAGE_URL) return reload();
+    await onSubmitEditing(HOMEPAGE_URL);
+    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
+  };
+
+  /**
+   * Render the bottom (navigation/options) bar
+   */
+  const renderBottomBar = () => (
+    <BrowserBottomBar
+      canGoBack={backEnabled}
+      canGoForward={forwardEnabled}
+      goForward={goForward}
+      goBack={goBack}
+      showTabs={showTabs}
+      showUrlModal={toggleUrlModal}
+      toggleOptions={toggleOptions}
+      goHome={goToHomepage}
+    />
+  );
 
   const onDismissAutocomplete = () => {
     // Unfocus the url bar and hide the autocomplete results
@@ -1268,12 +1267,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             showPhishingModal={showPhishingModal}
             setShowPhishingModal={setShowPhishingModal}
             setBlockedUrl={setBlockedUrl}
-            go={go}
             urlBarRef={urlBarRef}
             addToWhitelist={props.addToWhitelist}
             activeUrl={activeUrl}
             blockListType={blockListType}
-            onSubmitEditing={onSubmitEditing}
+            goToUrl={onSubmitEditing}
           />
         )}
         {isTabActive && showOptions && (
