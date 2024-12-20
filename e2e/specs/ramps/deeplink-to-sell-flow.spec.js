@@ -13,6 +13,8 @@ import Assertions from '../../utils/Assertions';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { PopularNetworksList } from '../../resources/networks.e2e';
 
 describe(SmokeCore('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
@@ -73,12 +75,10 @@ describe(SmokeCore('Sell Crypto Deeplinks'), () => {
         await device.launchApp({
           url: SellDeepLink,
         });
-
         await Assertions.checkIfVisible(
           await SellGetStartedView.getStartedButton,
         );
-
-        await BuyGetStartedView.tapGetStartedButton();
+        await SellGetStartedView.tapGetStartedButton();
         await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
         await NetworkApprovalBottomSheet.tapCancelButton();
         await NetworkListModal.changeNetworkTo(
