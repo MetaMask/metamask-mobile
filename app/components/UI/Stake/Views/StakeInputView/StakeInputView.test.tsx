@@ -220,7 +220,7 @@ describe('StakeInputView', () => {
       render(StakeInputView);
       fireEvent.press(screen.getByLabelText('Learn More'));
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
-        screen: Routes.STAKING.MODALS.LEARN_MORE,
+        screen: Routes.STAKING.MODALS.POOL_STAKING_LEARN_MORE,
       });
     });
 
