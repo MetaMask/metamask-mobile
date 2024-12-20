@@ -101,7 +101,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
           <Icon
             name={iconName}
             size={IconSize.Md}
-            color={colors.text.default}
+            color={iconColor || colors.text.default}
           />
         )}
         <ListItemColumn widthType={WidthType.Fill}>
@@ -136,7 +136,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
               style={styles.action}
               size={IconSize.Md}
               name={IconName.ArrowRight}
-              color={iconColor || IconColor.Default}
+              color={IconColor.Default}
             />
           </ListItemColumn>
         )}

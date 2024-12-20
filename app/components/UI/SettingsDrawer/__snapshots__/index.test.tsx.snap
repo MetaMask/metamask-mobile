@@ -180,7 +180,7 @@ exports[`SettingsDrawer SettingsDrawer should render with redesign enabled 1`] =
         testID="listitemcolumn"
       >
         <SvgMock
-          color="red"
+          color="#141618"
           height={20}
           name="ArrowRight"
           style={
