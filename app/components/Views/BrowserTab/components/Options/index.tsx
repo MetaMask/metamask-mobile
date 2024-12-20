@@ -198,8 +198,6 @@ const Options = ({
 
   const isBookmark = () => {
     const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
-    console.log('ENTER maskedUrl', maskedUrl);
-
     return bookmarks.some(
       ({ url: bookmark }: { url: string }) => bookmark === maskedUrl,
     );
