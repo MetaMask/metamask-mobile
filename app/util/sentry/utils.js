@@ -32,7 +32,30 @@ export const sentryStateMask = {
       },
       AccountsController: {
         internalAccounts: {
-          [AllProperties]: false,
+          accounts: {
+            [AllProperties]: {
+              id: true,
+              address: false,
+              type: true,
+              options: true,
+              methods: true,
+              metadata: {
+                name: true,
+                importTime: true,
+                keyring: {
+                  type: true,
+                },
+                nameLastUpdatedAt: true,
+                snap: {
+                  id: true,
+                  name: true,
+                  enabled: true,
+                },
+                lastSelected: true,
+              },
+            },
+          },
+          selectedAccount: true,
         },
       },
       AddressBookController: {
@@ -53,6 +76,16 @@ export const sentryStateMask = {
       },
       KeyringController: {
         isUnlocked: true,
+        vault: false,
+        keyrings: {
+          [AllProperties]: {
+            type: true,
+            // Each keyring contains an array of accounts (addresses), all of which should be masked
+            accounts: {
+              [AllProperties]: false,
+            },
+          },
+        },
       },
       LoggingController: {
         [AllProperties]: false,
@@ -336,29 +369,39 @@ function removeSES(report) {
  */
 export function maskObject(objectToMask, mask = {}) {
   if (!objectToMask) return {};
-  let maskAllProperties = false;
-  if (Object.keys(mask).includes(AllProperties)) {
-    if (Object.keys(mask).length > 1) {
-      throw new Error('AllProperties mask key does not support sibling keys');
-    }
-    maskAllProperties = true;
-  }
+
+  // Include both string and symbol keys.
+  const maskKeys = Reflect.ownKeys(mask);
+  const allPropertiesMask = maskKeys.includes(AllProperties)
+    ? mask[AllProperties]
+    : undefined;
 
   return Object.keys(objectToMask).reduce((maskedObject, key) => {
-    const maskKey = maskAllProperties ? mask[AllProperties] : mask[key];
+    // Start with the AllProperties mask if available
+    let maskKey = allPropertiesMask;
+
+    // If a key-specific mask exists, it overrides the AllProperties mask
+    if (mask[key] !== undefined && mask[key] !== AllProperties) {
+      maskKey = mask[key];
+    }
+
     const shouldPrintValue = maskKey === true;
     const shouldIterateSubMask =
-      Boolean(maskKey) && typeof maskKey === 'object';
+      Boolean(maskKey) &&
+      typeof maskKey === 'object' &&
+      maskKey !== AllProperties;
     const shouldPrintType = maskKey === undefined || maskKey === false;
+
     if (shouldPrintValue) {
       maskedObject[key] = objectToMask[key];
     } else if (shouldIterateSubMask) {
       maskedObject[key] = maskObject(objectToMask[key], maskKey);
     } else if (shouldPrintType) {
-      // Since typeof null is object, it is more valuable to us having the null instead of object
+      // For excluded fields, return their type or a placeholder
       maskedObject[key] =
         objectToMask[key] === null ? 'null' : typeof objectToMask[key];
     }
+
     return maskedObject;
   }, {});
 }

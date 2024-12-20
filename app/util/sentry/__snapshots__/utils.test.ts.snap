@@ -32,8 +32,48 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       },
       "AccountsController": {
         "internalAccounts": {
-          "accounts": "object",
-          "selectedAccount": "string",
+          "accounts": {
+            "1be55f5b-eba9-41a7-a9ed-a6a8274aca27": {
+              "address": "string",
+              "id": "1be55f5b-eba9-41a7-a9ed-a6a8274aca27",
+              "metadata": {
+                "importTime": 1720023898234,
+                "keyring": {
+                  "type": "HD Key Tree",
+                },
+                "lastSelected": 1720023898236,
+                "name": "Account 1",
+              },
+              "methods": [
+                "personal_sign",
+                "eth_signTransaction",
+                "eth_signTypedData_v1",
+                "eth_signTypedData_v3",
+                "eth_signTypedData_v4",
+              ],
+              "options": {},
+              "type": "eip155:eoa",
+            },
+            "2be55f5b-eba9-41a7-a9ed-a6a8274aca28": {
+              "address": "string",
+              "id": "2be55f5b-eba9-41a7-a9ed-a6a8274aca28",
+              "metadata": {
+                "importTime": 1720023898235,
+                "keyring": {
+                  "type": "HD Key Tree",
+                },
+                "lastSelected": 1720023898237,
+                "name": "Account 2",
+              },
+              "methods": [
+                "personal_sign",
+                "eth_signTransaction",
+              ],
+              "options": {},
+              "type": "eip155:eoa",
+            },
+          },
+          "selectedAccount": "1be55f5b-eba9-41a7-a9ed-a6a8274aca27",
         },
       },
       "AddressBookController": {
@@ -63,7 +103,19 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
       },
       "KeyringController": {
         "isUnlocked": true,
-        "keyrings": "object",
+        "keyrings": {
+          "0": {
+            "accounts": {
+              "0": "string",
+              "1": "string",
+            },
+            "type": "HD Key Tree",
+          },
+          "1": {
+            "accounts": {},
+            "type": "QR Hardware Wallet Device",
+          },
+        },
         "vault": "string",
       },
       "LoggingController": {
