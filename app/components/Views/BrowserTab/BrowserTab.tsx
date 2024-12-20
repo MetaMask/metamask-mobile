@@ -95,6 +95,7 @@ import {
   WebViewErrorEvent,
   WebViewError,
   WebViewProgressEvent,
+  WebViewNavigation,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar from '../../UI/BrowserUrlBar';
@@ -249,6 +250,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
+    if (!current) {
+      Logger.log('WebviewRef current is not defined!');
+    }
     current && current.goBack();
   }, [backEnabled, toggleOptionsIfNeeded]);
 
@@ -316,9 +320,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
-            query || ''
-          }`;
+          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''
+            }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -326,13 +329,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -570,8 +571,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                bookmarks || props.bookmarks,
-              )};
+      bookmarks || props.bookmarks,
+    )};
               window.__mmSearchEngine = "${props.searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -1098,6 +1099,75 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     // Search the autocomplete results
     urlBarResultsRef.current?.search(text);
 
+
+  enum WebviewNavigationEventName {
+    OnLoad,
+    OnLoadEnd,
+    OnLoadProgress,
+    OnLoadStart,
+  };
+
+
+  const handleWebviewNavigationChange = (eventName: WebviewNavigationEventName) => (syntheticEvent: WebViewNavigationEvent | WebViewProgressEvent | WebViewErrorEvent) => {
+    const {
+      OnLoad,
+      OnLoadEnd,
+      OnLoadProgress,
+      OnLoadStart,
+    } = WebviewNavigationEventName;
+
+    const mappingEventNameString = () => {
+      switch (eventName) {
+        case OnLoad: return 'onLoad';
+        case OnLoadProgress: return 'onLoadProgress';
+        case OnLoadEnd: return 'onLoadEnd';
+        case OnLoadStart: return 'onLoadStart';
+        default: return 'Invalid navigation name';
+      }
+
+    };
+
+    Logger.log(`WEBVIEW NAVIGATING: ${mappingEventNameString()} \n Values: ${JSON.stringify(syntheticEvent.nativeEvent)}`);
+
+    switch (eventName) {
+      case OnLoad: {
+        const { nativeEvent } = syntheticEvent;
+        console.log('WebView onLoad', nativeEvent);
+        return;
+      }
+      case OnLoadProgress: return onLoadProgress(syntheticEvent as WebViewProgressEvent);
+      case OnLoadEnd: return onLoadEnd(syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent);
+      case OnLoadStart: return onLoadStart(syntheticEvent as WebViewNavigationEvent);
+      default: return;
+    }
+  };
+
+  const {
+    OnLoad,
+    OnLoadEnd,
+    OnLoadProgress,
+    OnLoadStart,
+  } = WebviewNavigationEventName;
+
+  const handleOnNavigationStateChange = (event: WebViewNavigation) => {
+
+    const {
+      title,
+      loading,
+      canGoForward,
+      canGoBack,
+      navigationType,
+      url,
+    } = event
+    Logger.log(`WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(event)}`);
+
+    if (navigationType === 'backforward' && loading) {
+      const payload = {
+        nativeEvent: { url, title, canGoBack, canGoForward },
+      };
+      onLoadEnd(payload as WebViewNavigationEvent | WebViewErrorEvent);
+    }
+  };
   /**
    * Main render
    */
@@ -1149,9 +1219,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                   }}
                   injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                   style={styles.webview}
-                  onLoadStart={onLoadStart}
-                  onLoadEnd={onLoadEnd}
-                  onLoadProgress={onLoadProgress}
+                  onLoad={handleWebviewNavigationChange(OnLoad)}
+                  onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
+                  onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
+                  onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
+                  onNavigationStateChange={handleOnNavigationStateChange}
                   onMessage={onMessage}
                   onError={onError}
                   onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
