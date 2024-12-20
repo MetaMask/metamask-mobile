@@ -21,6 +21,8 @@ import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../utils/Assertions';
+import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView';
+import AutoLockModal from '../../pages/Settings/SecurityAndPrivacy/AutoLockModal';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -147,9 +149,17 @@ describe(SmokeCore('Addressbook Tests'), () => {
        You would need to ensure that once the app relaunches, you would need to
        select the proper expo server so the app loads. Once that is done. The test will pass
     */
-    await device.terminateApp();
-    await device.launchApp();
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapSecurityAndPrivacy();
+    await SecurityAndPrivacy.scrollToAutoLockSection();
+    await SecurityAndPrivacy.tapAutoLock30Seconds();
+    await AutoLockModal.tapAutoLockImmediately();
+    await TabBarComponent.tapWallet();
+
+    await device.sendToHome();
+    await TestHelpers.launchApp();
     await loginToApp();
+
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
