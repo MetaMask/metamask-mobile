@@ -180,6 +180,21 @@ describe('captureSentryFeedback', () => {
                   options: {},
                   type: 'eip155:eoa',
                 },
+                '2be55f5b-eba9-41a7-a9ed-a6a8274aca28': {
+                  address: '0x1234567890abcdef1234567890abcdef12345678',
+                  id: '2be55f5b-eba9-41a7-a9ed-a6a8274aca28',
+                  metadata: {
+                    importTime: 1720023898235,
+                    keyring: {
+                      type: 'HD Key Tree',
+                    },
+                    lastSelected: 1720023898237,
+                    name: 'Account 2',
+                  },
+                  methods: ['personal_sign', 'eth_signTransaction'],
+                  options: {},
+                  type: 'eip155:eoa',
+                },
               },
               selectedAccount: '1be55f5b-eba9-41a7-a9ed-a6a8274aca27',
             },
@@ -467,9 +482,9 @@ describe('captureSentryFeedback', () => {
 
     it('masks initial root state fixture', () => {
       const maskedState = maskObject(rootState, sentryStateMask);
-
       expect(maskedState).toMatchSnapshot();
     });
+
     it('handles undefined mask', () => {
       const maskedState = maskObject(rootState, undefined);
       expect(maskedState).toEqual({
@@ -502,10 +517,12 @@ describe('captureSentryFeedback', () => {
         wizard: 'object',
       });
     });
+
     it('handles empty rootState', () => {
       const maskedState = maskObject({}, sentryStateMask);
       expect(maskedState).toEqual({});
     });
+
     it('handles rootState with more keys than what is defined in the mask', () => {
       const maskedState = maskObject(rootState, { legalNotices: true });
       expect(maskedState).toEqual({
@@ -541,6 +558,7 @@ describe('captureSentryFeedback', () => {
         wizard: 'object',
       });
     });
+
     it('handles submask with { [AllProperties]: false, enabled: true }', () => {
       const submask = {
         [AllProperties]: false,
@@ -577,13 +595,66 @@ describe('captureSentryFeedback', () => {
         wizard: 'object',
       });
     });
+
+    it('masks sensitive data in AccountsController while preserving other fields', () => {
+      const maskedState = maskObject(rootState, sentryStateMask) as any;
+      const maskedAccounts =
+        maskedState.engine.backgroundState.AccountsController.internalAccounts
+          .accounts;
+
+      const maskedAccount1 =
+        maskedAccounts['1be55f5b-eba9-41a7-a9ed-a6a8274aca27'];
+      const maskedAccount2 =
+        maskedAccounts['2be55f5b-eba9-41a7-a9ed-a6a8274aca28'];
+
+      // Verify addresses are masked
+      expect(maskedAccount1.address).toBe('string');
+      expect(maskedAccount2.address).toBe('string');
+
+      // Verify non-sensitive data is preserved for account 1
+      expect(maskedAccount1.id).toBe('1be55f5b-eba9-41a7-a9ed-a6a8274aca27');
+      expect(maskedAccount1.type).toBe('eip155:eoa');
+      expect(maskedAccount1.options).toEqual({});
+      expect(maskedAccount1.methods).toEqual([
+        'personal_sign',
+        'eth_signTransaction',
+        'eth_signTypedData_v1',
+        'eth_signTypedData_v3',
+        'eth_signTypedData_v4',
+      ]);
+      expect(maskedAccount1.metadata).toEqual({
+        importTime: 1720023898234,
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: 1720023898236,
+        name: 'Account 1',
+      });
+
+      // Verify non-sensitive data is preserved for account 2
+      expect(maskedAccount2.id).toBe('2be55f5b-eba9-41a7-a9ed-a6a8274aca28');
+      expect(maskedAccount2.type).toBe('eip155:eoa');
+      expect(maskedAccount2.options).toEqual({});
+      expect(maskedAccount2.methods).toEqual([
+        'personal_sign',
+        'eth_signTransaction',
+      ]);
+      expect(maskedAccount2.metadata).toEqual({
+        importTime: 1720023898235,
+        keyring: { type: 'HD Key Tree' },
+        lastSelected: 1720023898237,
+        name: 'Account 2',
+      });
+
+      // Verify selected account is preserved
+      const selectedAccountId =
+        maskedState.engine.backgroundState.AccountsController.internalAccounts
+          .selectedAccount;
+      expect(selectedAccountId).toBe('1be55f5b-eba9-41a7-a9ed-a6a8274aca27');
+    });
   });
 
   it('handle root state with value null and mask false', () => {
     const submask = {
-      SnapsController: {
-        [AllProperties]: false,
-      },
+      [AllProperties]: false,
     };
     const maskedState = maskObject(
       {
@@ -593,7 +664,9 @@ describe('captureSentryFeedback', () => {
           exampleObj: {},
         },
       },
-      submask,
+      {
+        SnapsController: submask,
+      },
     );
     expect(maskedState).toEqual({
       SnapsController: {
