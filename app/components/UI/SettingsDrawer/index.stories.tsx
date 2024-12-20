@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-native/no-inline-styles */
+/* eslint-disable no-alert */
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
