@@ -14,4 +14,5 @@ export const TestDappSelectorsWebIDs = {
   ETHEREUM_SIGN: 'siwe',
   ADD_TOKENS_TO_WALLET_BUTTON: 'watchAssets',
   SEND_FAILING_TRANSACTION_BUTTON_ID: 'sendFailingButton',
+  BATCH_TRANSFER_ERC1155_BUTTON_ID: 'batchTransferFromButton',
 };
