@@ -1,0 +1,62 @@
+name: Manual Build MetaMask Mobile
+
+on:
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # 确保使用与项目兼容的 Node.js 版本
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 33
+          ndk-version: 23.1.7779620
+
+      - name: Build Android APK
+        run: yarn run android
+
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: build-android
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Set up Xcode
+        run: sudo xcode-select -switch /Applications/Xcode.app/Contents/Developer
+
+      - name: Install CocoaPods dependencies
+        run: pod install --project-directory=ios
+
+      - name: Build iOS
+        run: yarn run ios
