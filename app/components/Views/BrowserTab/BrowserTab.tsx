@@ -190,16 +190,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     [activeUrl],
   );
 
-  const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(activeUrl).hostname;
+  const notifyAllConnections = useCallback(
+    (payload) => {
+      const fullHostname = new URLParse(activeUrl).hostname;
 
-    // TODO:permissions move permissioning logic elsewhere
-    backgroundBridges.current.forEach((bridge) => {
-      if (bridge.hostname === fullHostname) {
-        bridge.sendNotification(payload);
-      }
-    });
-  }, []);
+      // TODO:permissions move permissioning logic elsewhere
+      backgroundBridges.current.forEach((bridge) => {
+        if (bridge.hostname === fullHostname) {
+          bridge.sendNotification(payload);
+        }
+      });
+    },
+    [activeUrl],
+  );
 
   /**
    * Dismiss the text selection on the current website
@@ -250,6 +253,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
     current && current.goBack();
+
+    // we need to update the activeUrl state to the previous url
   }, [backEnabled, toggleOptionsIfNeeded]);
 
   /**
