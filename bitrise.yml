@@ -75,10 +75,6 @@ pipelines:
     stages:
       - build_multichain_permissions_e2e_ios_android_stage: {}
       - run_multichain_permissions_e2e_ios_android_stage: {}
-  multichain_assets_e2e_pipeline:
-    stages:
-      - build_multichain_assets_e2e_ios_android_stage: {}
-      - run_multichain_assets_e2e_ios_android_stage: {}
   # Pipeline for Flask
   create_flask_release_builds_pipeline:
     stages:
