@@ -17,12 +17,11 @@ interface PhishingModalProps {
   showPhishingModal: boolean;
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
-  go: (url: string) => void;
   urlBarRef: React.MutableRefObject<TextInput | null>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: string;
   blockListType: React.MutableRefObject<string>;
-  onSubmitEditing: (url: string) => void;
+  goToUrl: (url: string) => void;
 }
 
 const PhishingModal = ({
@@ -30,12 +29,11 @@ const PhishingModal = ({
   showPhishingModal,
   setShowPhishingModal,
   setBlockedUrl,
-  go,
   urlBarRef,
   addToWhitelist,
   activeUrl,
   blockListType,
-  onSubmitEditing,
+  goToUrl,
 }: PhishingModalProps) => {
   const {
     styles,
@@ -46,7 +44,7 @@ const PhishingModal = ({
    */
   const goToETHPhishingDetector = () => {
     setShowPhishingModal(false);
-    go(MM_PHISH_DETECT_URL);
+    goToUrl(MM_PHISH_DETECT_URL);
   };
 
   /**
@@ -61,7 +59,7 @@ const PhishingModal = ({
 
     blockedUrl !== activeUrl &&
       setTimeout(() => {
-        onSubmitEditing(blockedUrl);
+        goToUrl(blockedUrl);
         setBlockedUrl(undefined);
       }, 1000);
   };
@@ -71,7 +69,7 @@ const PhishingModal = ({
    */
   const goToEtherscam = () => {
     setShowPhishingModal(false);
-    go(MM_ETHERSCAN_URL);
+    goToUrl(MM_ETHERSCAN_URL);
   };
 
   /**
@@ -80,8 +78,8 @@ const PhishingModal = ({
   const goToFilePhishingIssue = () => {
     setShowPhishingModal(false);
     blockListType.current === 'MetaMask'
-      ? go(MM_BLOCKLIST_ISSUE_URL)
-      : go(PHISHFORT_BLOCKLIST_ISSUE_URL);
+      ? goToUrl(MM_BLOCKLIST_ISSUE_URL)
+      : goToUrl(PHISHFORT_BLOCKLIST_ISSUE_URL);
   };
 
   /**
