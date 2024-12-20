@@ -1106,7 +1106,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     urlBarResultsRef.current?.search(text);
 
   enum WebviewNavigationEventName {
-    OnLoad,
     OnLoadEnd,
     OnLoadProgress,
     OnLoadStart,
@@ -1120,13 +1119,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         | WebViewProgressEvent
         | WebViewErrorEvent,
     ) => {
-      const { OnLoad, OnLoadEnd, OnLoadProgress, OnLoadStart } =
+      const { OnLoadEnd, OnLoadProgress, OnLoadStart } =
         WebviewNavigationEventName;
 
       const mappingEventNameString = () => {
         switch (eventName) {
-          case OnLoad:
-            return 'onLoad';
           case OnLoadProgress:
             return 'onLoadProgress';
           case OnLoadEnd:
@@ -1158,8 +1155,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       }
     };
 
-  const { OnLoad, OnLoadEnd, OnLoadProgress, OnLoadStart } =
-    WebviewNavigationEventName;
+  const { OnLoadEnd, OnLoadProgress, OnLoadStart } = WebviewNavigationEventName;
 
   const handleOnNavigationStateChange = (event: WebViewNavigation) => {
     const {
@@ -1239,7 +1235,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                   }}
                   injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                   style={styles.webview}
-                  onLoad={handleWebviewNavigationChange(OnLoad)}
                   onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                   onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
                   onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
