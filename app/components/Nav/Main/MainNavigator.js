@@ -91,7 +91,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
-import { MM_SETTINGS_REDESIGN_ENABLED } from '../../Views/Profile/index.constants';
+import { isSettingsRedesignEnabled } from '../../Views/Profile/index.constants';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -581,16 +581,14 @@ const HomeTabs = () => {
 
           <Tab.Screen
             name={
-              MM_SETTINGS_REDESIGN_ENABLED
+              isSettingsRedesignEnabled
                 ? Routes.PROFILE_VIEW
                 : Routes.SETTINGS_VIEW
             }
             options={
-              MM_SETTINGS_REDESIGN_ENABLED ? options.profile : options.settings
+              isSettingsRedesignEnabled ? options.profile : options.settings
             }
-            component={
-              MM_SETTINGS_REDESIGN_ENABLED ? ProfileFlow : SettingsFlow
-            }
+            component={isSettingsRedesignEnabled ? ProfileFlow : SettingsFlow}
           />
         </Tab.Navigator>
       </Drawer>

@@ -18,9 +18,7 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import { Colors } from '../../../util/theme/models';
 import { SettingsDrawerProps } from './index.types';
-
-const isSettingsRedesignEnabled =
-  process.env.MM_SETTINGS_REDESIGN_ENABLE === 'true';
+import { isSettingsRedesignEnabled } from '../../Views/Profile/index.constants';
 
 const createStyles = (
   colors: Colors,
