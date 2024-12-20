@@ -14,9 +14,25 @@ import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddAccountActionsProps } from './AddAccountActions.types';
-import { AddAccountModalSelectorsIDs } from '../../../../e2e/selectors/Modals/AddAccountModal.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { CaipChainId } from '@metamask/utils';
+import { KeyringClient } from '@metamask/keyring-api';
+import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { MultichainNetworks } from '../../../core/Multichain/constants';
+import { useSelector } from 'react-redux';
+import {
+  hasCreatedBtcMainnetAccount,
+  hasCreatedBtcTestnetAccount,
+} from '../../../selectors/accountsController';
+import {
+  selectIsBitcoinSupportEnabled,
+  selectIsBitcoinTestnetSupportEnabled,
+} from '../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { navigate } = useNavigation();
@@ -64,6 +80,38 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     }
   }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
+
+  const isBitcoinTestnetSupportEnabled = useSelector(
+    selectIsBitcoinTestnetSupportEnabled,
+  );
+
+  const isBtcMainnetAccountAlreadyCreated = useSelector(
+    hasCreatedBtcMainnetAccount,
+  );
+  const isBtcTestnetAccountAlreadyCreated = useSelector(
+    hasCreatedBtcTestnetAccount,
+  );
+  const createBitcoinAccount = async (scope: CaipChainId) => {
+    try {
+      setIsLoading(true);
+      // Client to create the account using the Bitcoin Snap
+      const client = new KeyringClient(new BitcoinWalletSnapSender());
+
+      // This will trigger the Snap account creation flow (+ account renaming)
+      await client.createAccount({
+        scope,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'Bitcoin account creation failed');
+    } finally {
+      onBack();
+      setIsLoading(false);
+    }
+  };
+  ///: END:ONLY_INCLUDE_IF
+
   return (
     <SafeAreaView>
       <Fragment>
@@ -77,14 +125,44 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Add}
             onPress={createNewAccount}
             disabled={isLoading}
-            testID={AddAccountModalSelectorsIDs.NEW_ACCOUNT_BUTTON}
+            testID={AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON}
           />
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          }
+          {isBitcoinSupportEnabled && (
+            <AccountAction
+              actionTitle={strings(
+                'account_actions.add_bitcoin_account_mainnet',
+              )}
+              iconName={IconName.Add}
+              onPress={async () => {
+                await createBitcoinAccount(MultichainNetworks.BITCOIN);
+              }}
+              disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+            />
+          )}
+          {isBitcoinTestnetSupportEnabled && (
+            <AccountAction
+              actionTitle={strings(
+                'account_actions.add_bitcoin_account_testnet',
+              )}
+              iconName={IconName.Add}
+              onPress={async () => {
+                await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
+              }}
+              disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+            />
+          )}
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
           <AccountAction
             actionTitle={strings('account_actions.import_account')}
             iconName={IconName.Import}
             onPress={openImportAccount}
             disabled={isLoading}
-            testID={AddAccountModalSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
+            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
           />
           <AccountAction
             actionTitle={strings('account_actions.add_hardware_wallet')}

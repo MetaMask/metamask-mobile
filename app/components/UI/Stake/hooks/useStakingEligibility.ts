@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useCallback, useState } from 'react';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useStakeContext } from './useStakeContext';
 import {
   selectStakingEligibility,
@@ -10,7 +10,7 @@ import {
 const useStakingEligibility = () => {
   const dispatch = useDispatch();
   const selectedAddress =
-    useSelector(selectSelectedInternalAccountChecksummedAddress) || '';
+    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
   const { isEligible } = useSelector(selectStakingEligibility);
 
   const { stakingApiService } = useStakeContext();
@@ -19,14 +19,12 @@ const useStakingEligibility = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchStakingEligibility = useCallback(async () => {
-    if (!stakingApiService) {
-      throw new Error('Staking API service is unavailable');
-    }
-
-    setIsLoading(true);
-    setError(null);
-
     try {
+      if (!stakingApiService) {
+        return { isEligible: false };
+      }
+      setIsLoading(true);
+      setError(null);
       const { eligible } = await stakingApiService.getPooledStakingEligibility([
         selectedAddress,
       ]);

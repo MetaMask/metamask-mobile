@@ -2,55 +2,17 @@ import { getErrorMessage } from '@metamask/utils';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
-import { Notification, mmStorage, getAllUUIDs } from '../../../util/notifications';
-import { UserStorage } from '@metamask/notification-services-controller/dist/NotificationServicesController/types/user-storage/index.cjs';
+import {
+  Notification,
+  mmStorage,
+  getAllUUIDs,
+} from '../../../util/notifications';
+import type { UserStorage } from '@metamask/notification-services-controller/notification-services';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
   'id' | 'type' | 'isRead'
 >[];
-
-export const signIn = async () => {
-  try {
-    const accessToken =
-      await Engine.context.AuthenticationController.performSignIn();
-    if (!accessToken) {
-      return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
-    }
-
-    const profile =
-      await Engine.context.AuthenticationController.getSessionProfile();
-    if (!profile) {
-      return getErrorMessage(notificationsErrors.PERFORM_SIGN_IN);
-    }
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const signOut = async () => {
-  try {
-    await Engine.context.AuthenticationController.performSignOut();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const enableProfileSyncing = async () => {
-  try {
-    await Engine.context.UserStorageController.enableProfileSyncing();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const disableProfileSyncing = async () => {
-  try {
-    await Engine.context.UserStorageController.disableProfileSyncing();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
 
 export const enableNotificationServices = async () => {
   try {
@@ -176,14 +138,6 @@ export const markMetamaskNotificationsAsRead = async (
   }
 };
 
-export const syncInternalAccountsWithUserStorage = async () => {
-  try {
-    await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
 /**
  * Perform the deletion of the notifications storage key and the creation of on chain triggers to reset the notifications.
  *
@@ -201,7 +155,11 @@ export const performDeleteStorage = async (): Promise<string | undefined> => {
     return getErrorMessage(error);
   }
 };
-export const enablePushNotifications = async (userStorage: UserStorage, fcmToken?: string) => {
+
+export const enablePushNotifications = async (
+  userStorage: UserStorage,
+  fcmToken?: string,
+) => {
   try {
     const uuids = getAllUUIDs(userStorage);
     await Engine.context.NotificationServicesPushController.enablePushNotifications(
@@ -224,7 +182,9 @@ export const disablePushNotifications = async (userStorage: UserStorage) => {
   }
 };
 
-export const updateTriggerPushNotifications = async (userStorage: UserStorage) => {
+export const updateTriggerPushNotifications = async (
+  userStorage: UserStorage,
+) => {
   try {
     const uuids = getAllUUIDs(userStorage);
     await Engine.context.NotificationServicesPushController.updateTriggerPushNotifications(

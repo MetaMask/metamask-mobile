@@ -4,9 +4,6 @@ import { persistStore, persistReducer } from 'redux-persist';
 import createSagaMiddleware from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
-import EngineService from '../core/EngineService';
-import { Authentication } from '../core';
-import LockManagerService from '../core/LockManagerService';
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import { isE2E } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
@@ -14,8 +11,9 @@ import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 
 import persistConfig from './persistConfig';
-import { AppStateEventProcessor } from '../core/AppStateEventListener';
 import getUIStartupSpan from '../core/Performance/UIStartup';
+import ReduxService from '../core/redux';
+import { onPersistedDataLoaded } from '../actions/user';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -59,6 +57,8 @@ const createStoreAndPersistor = async () => {
     middleware: middlewares,
     preloadedState: initialState,
   });
+  // Set the store in the Redux class
+  ReduxService.store = store;
 
   sagaMiddleware.run(rootSaga);
 
@@ -66,6 +66,7 @@ const createStoreAndPersistor = async () => {
    * Initialize services after persist is completed
    */
   const onPersistComplete = () => {
+<<<<<<< HEAD
     /**
      * EngineService.initalizeEngine(store) with SES/lockdown:
      * Requires ethjs nested patches (lib->src)
@@ -93,7 +94,11 @@ const createStoreAndPersistor = async () => {
     Authentication.init(store);
     AppStateEventProcessor.init(store);
     LockManagerService.init(store);
+=======
+>>>>>>> main
     endTrace({ name: TraceName.StoreInit });
+    // Signal that persisted data has been loaded
+    store.dispatch(onPersistedDataLoaded());
   };
 
   persistor = persistStore(store, null, onPersistComplete);

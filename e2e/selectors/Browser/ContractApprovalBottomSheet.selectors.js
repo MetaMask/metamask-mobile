@@ -6,6 +6,7 @@ export const ContractApprovalBottomSheetSelectorsText = {
   APPROVE: enContent.transactions.tx_review_approve,
   REJECT: enContent.transaction.reject,
   NEXT: enContent.transaction.next,
+  CONFIRM: enContent.transaction.confirm,
 };
 
 export const ContractApprovalBottomSheetSelectorsIDs = {

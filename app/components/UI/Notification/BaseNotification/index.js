@@ -9,7 +9,7 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import Text from '../../../Base/Text';
 import { useTheme } from '../../../../util/theme';
-import { ToastSelectorsIDs } from '../../../../../e2e/selectors/Modals/ToastModal.selectors';
+import { ToastSelectorsIDs } from '../../../../../e2e/selectors/wallet/ToastModal.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -154,7 +154,7 @@ const getTitle = (status, { nonce, amount, assetType }) => {
 };
 
 export const getDescription = (status, { amount = null, type = null }) => {
-  if (amount && typeof amount !== 'object') {
+  if (amount && typeof amount !== 'object' && type) {
     return strings(`notifications.${type}_${status}_message`, { amount });
   }
   return strings(`notifications.${status}_message`);

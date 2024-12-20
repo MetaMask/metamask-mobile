@@ -5,7 +5,7 @@ import {
   BrowserViewSelectorsText,
   BrowserViewSelectorsXPaths,
 } from '../../selectors/Browser/BrowserView.selectors';
-import { AccountOverviewSelectorsIDs } from '../../selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
@@ -178,7 +178,6 @@ class Browser {
   }
 
   async navigateToURL(url) {
-    await Gestures.waitAndTap(this.clearURLButton);
     await device.disableSynchronization(); // because animations makes typing into the browser slow
 
     await Gestures.typeTextAndHideKeyboard(this.urlInputBoxID, url);

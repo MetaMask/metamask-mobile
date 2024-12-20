@@ -31,10 +31,8 @@ import Logger from '../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import Device from '../../../../../util/device';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  isMultiLayerFeeNetwork,
-} from '../../../../../util/networks';
+import { isMultiLayerFeeNetwork } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
   fromTokenMinimalUnit,
@@ -263,10 +261,6 @@ class TransactionReview extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
-    /**
-     * Transaction simulation data
-     */
-    transactionSimulationData: PropTypes.object,
     /**
      * Boolean that indicates if transaction simulations should be enabled
      */
@@ -525,9 +519,11 @@ class TransactionReview extends PureComponent {
       transaction,
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
-      transactionSimulationData,
+      transactionMetadata,
       useTransactionSimulations,
     } = this.props;
+
+    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const {
       actionKey,
@@ -621,9 +617,8 @@ class TransactionReview extends PureComponent {
                     {useTransactionSimulations && transactionSimulationData && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
-                          simulationData={transactionSimulationData}
+                          transaction={transactionMetadata}
                           enableMetrics
-                          transactionId={transactionId}
                         />
                       </View>
                     )}
@@ -722,8 +717,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionSimulationData:
-    selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   transactionMetadata: selectCurrentTransactionMetadata(state),
