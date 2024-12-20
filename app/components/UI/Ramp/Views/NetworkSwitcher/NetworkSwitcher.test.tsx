@@ -181,6 +181,7 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   isBuy: true,
   isSell: false,
   rampType: RampType.BUY,
+  setIntent: jest.fn(),
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {
