@@ -11,15 +11,16 @@ class PermissionSummaryBottomSheet {
       PermissionSummaryBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get addNetworkPermissionContainer() {
-    return Matchers.getElementByID(
-      PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER,
+
+  get ethereumMainnetText() {
+    return Matchers.getElementByText(
+      PermissionSummaryBottomSheetSelectorsText.ETHEREUM_MAINNET_TEXT,
     );
   }
 
-  get connectedAccountsText() {
-    return Matchers.getElementByText(
-      PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
+  get accountPermissionText() {
+    return Matchers.getElementByID(
+      PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_TEXT,
     );
   }
 

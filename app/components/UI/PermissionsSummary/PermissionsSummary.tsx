@@ -271,6 +271,7 @@ const PermissionsSummary = ({
   }, [networkAvatars, isAlreadyConnected]);
 
   function renderAccountPermissionsRequestInfoCard() {
+    console.log('>>> getAccountLabel()', getAccountLabel() === 'Account 1');
     return (
       <TouchableOpacity onPress={handleEditAccountsButtonPress}>
         <View
@@ -292,7 +293,12 @@ const PermissionsSummary = ({
             <View style={styles.permissionRequestAccountInfo}>
               <View style={styles.permissionRequestAccountName}>
                 <TextComponent numberOfLines={1} ellipsizeMode="tail">
-                  <TextComponent variant={TextVariant.BodySM}>
+                  <TextComponent
+                    testID={
+                      PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_TEXT
+                    }
+                    variant={TextVariant.BodySM}
+                  >
                     {getAccountLabel()}
                   </TextComponent>
                 </TextComponent>
