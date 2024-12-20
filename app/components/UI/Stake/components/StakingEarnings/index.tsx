@@ -23,8 +23,10 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
+import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/StakingEarningsHistoryButton';
+import { TokenI } from '../../../Tokens/types';
 
-const StakingEarningsContent = () => {
+const StakingEarningsContent = ({ asset }: { asset: TokenI }) => {
   const { styles } = useStyles(styleSheet, {});
 
   const { openTooltipModal } = useTooltipModal();
@@ -176,14 +178,15 @@ const StakingEarningsContent = () => {
             )}
           </View>
         </View>
+        <StakingEarningsHistoryButton asset={asset} />
       </View>
     </View>
   );
 };
 
-export const StakingEarnings = () => (
+export const StakingEarnings = (props: { asset: TokenI }) => (
   <StakeSDKProvider>
-    <StakingEarningsContent />
+    <StakingEarningsContent {...props} />
   </StakeSDKProvider>
 );
 

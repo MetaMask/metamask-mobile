@@ -3507,7 +3507,9 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit.",
+    "view_earnings_history": "View earnings history",
+    "earnings_history_title": "{{symbol}} earnings"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
