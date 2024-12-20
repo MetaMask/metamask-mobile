@@ -14,11 +14,14 @@ jest.mock('../FiatDisplay/FiatDisplay', () => ({
   TotalFiatDisplay: 'TotalFiatDisplay',
 }));
 
+const CHAIN_ID_MOCK = '0x123';
+
 const balanceChangesMock = [
   {
     asset: {
       type: 'ERC20',
       address: '0xabc123',
+      chainId: CHAIN_ID_MOCK,
     },
     amount: new BigNumber(100),
     fiatAmount: 100,
@@ -68,6 +71,7 @@ describe('BalanceChangeList', () => {
         asset: {
           type: 'ERC20',
           address: '0xabc123',
+          chainId: CHAIN_ID_MOCK,
         },
         amount: new BigNumber(100),
         fiatAmount: 100,
