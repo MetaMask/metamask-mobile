@@ -59,42 +59,4 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
       },
     );
   });
-
-  it('should deep link to onramp with Base but switch network to OP Mainnet', async () => {
-    const BuyDeepLink =
-      'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=12';
-
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
-        restartDevice: true,
-      },
-      async () => {
-        await loginToApp();
-        await device.sendToHome();
-        await device.launchApp({
-          url: BuyDeepLink,
-        });
-
-        await Assertions.checkIfVisible(
-          await SellGetStartedView.getStartedButton,
-        );
-
-        await BuyGetStartedView.tapGetStartedButton();
-        await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
-        await NetworkApprovalBottomSheet.tapCancelButton();
-        await NetworkListModal.changeNetworkTo(
-          PopularNetworksList.Optimism.providerConfig.nickname,
-        );
-        await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapCloseButton();
-        await Assertions.checkIfVisible(NetworkEducationModal.container);
-        await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('Ethereum');
-        await Assertions.checkIfTextIsDisplayed(
-          PopularNetworksList.Optimism.providerConfig.nickname,
-        );
-      },
-    );
-  });
 });

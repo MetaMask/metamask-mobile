@@ -59,8 +59,8 @@ describe(SmokeCore('Sell Crypto Deeplinks'), () => {
       },
     );
   });
-  it('Should deep link to an unsupported network in the off-ramp flow', async () => {
-    const unsupportedNetworkSellDeepLink = 'metamask://sell?chainId=56';
+  it('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
+    const SellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
       {
@@ -69,20 +69,29 @@ describe(SmokeCore('Sell Crypto Deeplinks'), () => {
       },
       async () => {
         await loginToApp();
-
-        await device.openURL({
-          url: unsupportedNetworkSellDeepLink,
+        await device.sendToHome();
+        await device.launchApp({
+          url: SellDeepLink,
         });
+
         await Assertions.checkIfVisible(
           await SellGetStartedView.getStartedButton,
         );
 
-        await SellGetStartedView.tapGetStartedButton();
-
+        await BuyGetStartedView.tapGetStartedButton();
+        await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
+        await NetworkApprovalBottomSheet.tapCancelButton();
+        await NetworkListModal.changeNetworkTo(
+          PopularNetworksList.Optimism.providerConfig.nickname,
+        );
         await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapSwitchToNetwork();
+        await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
+        await Assertions.checkIfTextIsDisplayed('Ethereum');
+        await Assertions.checkIfTextIsDisplayed(
+          PopularNetworksList.Optimism.providerConfig.nickname,
+        );
       },
     );
   });
