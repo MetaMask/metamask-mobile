@@ -28,6 +28,20 @@ export const createAccountsController = ({
   initialState?: AccountsControllerState;
 }): AccountsController => {
   try {
+    // Add logging for AccountsController creation
+    if (!initialState) {
+      Logger.log('Creating AccountsController with default state', {
+        defaultState: defaultAccountsControllerState,
+      });
+    } else {
+      Logger.log('Creating AccountsController with provided initial state', {
+        hasSelectedAccount: !!initialState.internalAccounts?.selectedAccount,
+        accountsCount: Object.keys(
+          initialState.internalAccounts?.accounts || {},
+        ).length,
+      });
+    }
+
     const accountsController = new AccountsController({
       messenger,
       state: initialState ?? defaultAccountsControllerState,

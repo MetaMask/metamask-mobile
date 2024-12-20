@@ -49,9 +49,7 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
+    const Engine = UntypedEngine;
     try {
       Engine.init(state);
       this.updateControllers(Engine);
@@ -235,6 +233,32 @@ export class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState || {};
+
+    // Log the state we're initializing with
+    Logger.log(
+      'Initializing Engine from backup vault',
+      {
+        hasKeyringState: !!keyringState,
+        hasReduxState: Object.keys(state).length > 0,
+        hasAccountsState: !!state.AccountsController,
+      },
+      true,
+    );
+
+    if (state.AccountsController) {
+      Logger.log(
+        'Initializing Engine from backup with AccountsController state',
+        {
+          hasSelectedAccount:
+            !!state.AccountsController.internalAccounts?.selectedAccount,
+          accountsCount: Object.keys(
+            state.AccountsController.internalAccounts?.accounts || {},
+          ).length,
+        },
+        true,
+      );
+    }
+
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Engine = UntypedEngine as any;
