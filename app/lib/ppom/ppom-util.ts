@@ -34,6 +34,8 @@ export interface PPOMRequest {
 
 const TRANSACTION_METHOD = 'eth_sendTransaction';
 const TRANSACTION_METHODS = [TRANSACTION_METHOD, 'eth_sendRawTransaction'];
+export const METHOD_SIGN_TYPED_DATA_V3 = 'eth_signTypedData_v3';
+export const METHOD_SIGN_TYPED_DATA_V4 = 'eth_signTypedData_v4';
 
 const CONFIRMATION_METHODS = Object.freeze([
   'eth_sendRawTransaction',
@@ -155,7 +157,7 @@ async function validateWithController(
   ppomController: PPOMController,
   request: PPOMRequest,
 ): Promise<SecurityAlertResponse> {
-  try{
+  try {
     const response = (await ppomController.usePPOM((ppom) =>
       ppom.validateJsonRpc(request as unknown as Record<string, unknown>),
     )) as SecurityAlertResponse;
@@ -166,7 +168,10 @@ async function validateWithController(
     };
   } catch (e) {
     Logger.log(`Error validating request with PPOM: ${e}`);
-    return {...SECURITY_ALERT_RESPONSE_FAILED, source: SecurityAlertSource.Local,};
+    return {
+      ...SECURITY_ALERT_RESPONSE_FAILED,
+      source: SecurityAlertSource.Local,
+    };
   }
 }
 
@@ -212,9 +217,25 @@ function isTransactionRequest(request: PPOMRequest) {
   return TRANSACTION_METHODS.includes(request.method);
 }
 
+function sanitizeRequest(request: PPOMRequest): PPOMRequest {
+  // This is a temporary fix to prevent a PPOM bypass
+  if (
+    request.method === METHOD_SIGN_TYPED_DATA_V4 ||
+    request.method === METHOD_SIGN_TYPED_DATA_V3
+  ) {
+    if (Array.isArray(request.params)) {
+      return {
+        ...request,
+        params: request.params.slice(0, 2),
+      };
+    }
+  }
+  return request;
+}
+
 function normalizeRequest(request: PPOMRequest): PPOMRequest {
   if (request.method !== TRANSACTION_METHOD) {
-    return request;
+    return sanitizeRequest(request);
   }
 
   request.origin = request.origin
