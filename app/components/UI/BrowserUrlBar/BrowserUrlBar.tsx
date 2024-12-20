@@ -19,7 +19,6 @@ import Icon, {
 import { BrowserUrlBarProps } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
-import Url from 'url-parse';
 import { regex } from '../../../../app/util/regex';
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
@@ -44,7 +43,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       onBlur,
       onChangeText,
       connectedAccounts,
-      activeUrlRef,
+      activeUrl,
     },
     ref,
   ) => {
@@ -147,9 +146,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
           hostInfo: {
             metadata: {
               // TODO: This is not an origin, it's a hostname
-              origin:
-                activeUrlRef.current &&
-                new URLParse(activeUrlRef.current).hostname,
+              origin: activeUrl && new URLParse(activeUrl).hostname,
             },
           },
         },

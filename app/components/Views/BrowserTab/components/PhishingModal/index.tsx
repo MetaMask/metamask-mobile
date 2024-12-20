@@ -20,7 +20,7 @@ interface PhishingModalProps {
   go: (url: string) => void;
   urlBarRef: React.MutableRefObject<TextInput | null>;
   addToWhitelist: (hostname: string) => void;
-  activeUrl: React.MutableRefObject<string>;
+  activeUrl: string;
   blockListType: React.MutableRefObject<string>;
   onSubmitEditing: (url: string) => void;
 }
@@ -59,7 +59,7 @@ const PhishingModal = ({
     addToWhitelist(urlOrigin);
     setShowPhishingModal(false);
 
-    blockedUrl !== activeUrl.current &&
+    blockedUrl !== activeUrl &&
       setTimeout(() => {
         onSubmitEditing(blockedUrl);
         setBlockedUrl(undefined);
@@ -88,7 +88,7 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
+    urlBarRef.current?.setNativeProps({ text: activeUrl });
 
     setTimeout(() => {
       setShowPhishingModal(false);

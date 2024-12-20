@@ -138,7 +138,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
   const [isSecureConnection, setIsSecureConnection] = useState(false);
 
-  const activeUrl = useRef('');
+  //  const activeUrl = useRef('');
+  const [activeUrl, setActiveUrl] = useState('');
   const title = useRef<string>('');
   const icon = useRef<ImageSourcePropType | undefined>();
   const backgroundBridges = useRef<
@@ -154,7 +155,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const wizardScrollAdjusted = useRef(false);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(activeUrl.current).hostname;
+    const hostname = new URLParse(activeUrl).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -162,7 +163,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const favicon = useFavicon(activeUrl.current);
+  const favicon = useFavicon(activeUrl);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
   /**
@@ -177,17 +178,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || activeUrl.current;
-    const prefixedUrl = prefixUrlWithProtocol(currentPage);
-    const { host: currentHost } = getUrlObj(prefixedUrl);
-    return (
-      currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
-    );
-  }, []);
+  const isHomepage = useCallback(
+    (checkUrl = null) => {
+      const currentPage = checkUrl || activeUrl;
+      const prefixedUrl = prefixUrlWithProtocol(currentPage);
+      const { host: currentHost } = getUrlObj(prefixedUrl);
+      return (
+        currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
+      );
+    },
+    [activeUrl],
+  );
 
   const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(activeUrl.current).hostname;
+    const fullHostname = new URLParse(activeUrl).hostname;
 
     // TODO:permissions move permissioning logic elsewhere
     backgroundBridges.current.forEach((bridge) => {
@@ -480,8 +484,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
-    triggerDappViewedEvent(activeUrl.current);
-  }, []);
+    triggerDappViewedEvent(activeUrl);
+  }, [activeUrl]);
 
   /**
    * Handle when the drawer (app menu) is opened
@@ -592,7 +596,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     title: string;
     icon: ImageSourcePropType;
   }) => {
-    activeUrl.current = siteInfo.url;
+    setActiveUrl(siteInfo.url);
     title.current = siteInfo.title;
     if (siteInfo.icon) icon.current = siteInfo.icon;
   };
@@ -712,7 +716,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     webStates.current[url] = { ...webStates.current[url], ended: true };
     const { started, ended } = webStates.current[url];
     const incomingOrigin = new URLParse(url).origin;
-    const activeOrigin = new URLParse(activeUrl.current).origin;
+    const activeOrigin = new URLParse(activeUrl).origin;
     if ((started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
@@ -760,10 +764,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       }
     } catch (e: unknown) {
       const onMessageError = e as Error;
-      Logger.error(
-        onMessageError,
-        `Browser::onMessage on ${activeUrl.current}`,
-      );
+      Logger.error(onMessageError, `Browser::onMessage on ${activeUrl}`);
     }
   };
 
@@ -772,7 +773,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
-    if (activeUrl.current === HOMEPAGE_URL) return reload();
+    if (activeUrl === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
@@ -801,7 +802,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           getProviderState,
           navigation,
           // Website info
-          url: activeUrl,
+          url: { current: activeUrl },
           title,
           icon,
           // Bookmarks
@@ -849,7 +850,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(urlOrigin)) {
-      handleNotAllowedUrl(activeUrl.current); // should this be activeUrl.current instead of url?
+      handleNotAllowedUrl(activeUrl); // should this be activeUrl instead of url?
       return false;
     }
 
@@ -996,9 +997,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (!activeUrl.current) return;
+    if (!activeUrl) return;
 
-    const hostname = new URLParse(activeUrl.current).hostname;
+    const hostname = new URLParse(activeUrl).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedAccountsByHostname(
@@ -1042,7 +1043,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
       }
     }
-  }, [props.chainId, navigation]);
+  }, [props.chainId, navigation, activeUrl]);
 
   useEffect(() => {
     if (
@@ -1080,7 +1081,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onCancel = () => {
     // Reset the url bar to the current url
-    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
+    urlBarRef.current?.setNativeProps({ text: activeUrl });
   };
 
   const onFocusUrlBar = () => {
@@ -1115,7 +1116,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           onBlur={onBlurUrlBar}
           onChangeText={onChangeUrlBar}
           connectedAccounts={permittedAccountsList}
-          activeUrlRef={activeUrl}
+          activeUrl={activeUrl}
         />
         <View style={styles.wrapper}>
           {renderProgressBar()}
