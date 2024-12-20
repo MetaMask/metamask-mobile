@@ -28,7 +28,7 @@ import Engine from '../../../core/Engine';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import Logger from '../../../util/Logger';
 import {
-  /* onUrlSubmit ,*/ prefixUrlWithProtocol,
+  prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
   trustedProtocolToDeeplink,
@@ -44,7 +44,6 @@ import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
-import Modal from 'react-native-modal';
 import WebviewErrorComponent from '../../UI/WebviewError';
 import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
@@ -59,19 +58,9 @@ import ErrorBoundary from '../ErrorBoundary';
 
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import downloadFile from '../../../util/browser/downloadFile';
-/* import { createBrowserUrlModalNavDetails } from '../BrowserUrlModal/BrowserUrlModal'; */
-import {
-  MM_PHISH_DETECT_URL,
-  MM_BLOCKLIST_ISSUE_URL,
-  PHISHFORT_BLOCKLIST_ISSUE_URL,
-  MM_ETHERSCAN_URL,
-} from '../../../constants/urls';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import {
-  /*   getPermittedAccounts, */
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
+import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
@@ -106,10 +95,7 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
@@ -121,16 +107,16 @@ import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { isMultichainVersion1Enabled } from '../../../util/networks';
-import {
-  useIsFocused,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
 import { type Dispatch } from 'redux';
-import { type SessionENSNames, type BrowserTabProps } from './types';
+import {
+  type SessionENSNames,
+  type BrowserTabProps,
+  type IpfsContentResult,
+} from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
   WebViewNavigationEvent,
@@ -140,11 +126,10 @@ import {
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar from '../../UI/BrowserUrlBar';
-import AccountRightButton from '../../UI/AccountRightButton';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -156,10 +141,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   // This any can be removed when react navigation is bumped to v6 - issue https://github.com/react-navigation/react-navigation/issues/9037#issuecomment-735698288
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
-  const {
-    styles,
-    theme: { colors },
-  } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -179,6 +161,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     Record<string, { requested: boolean; started: boolean; ended: boolean }>
   >({});
   const urlBarRef = useRef<TextInput>(null);
+  const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
   const [isSecureConnection, setIsSecureConnection] = useState(false);
 
   const activeUrl = useRef('');
@@ -204,8 +187,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     );
     return permittedAcc;
   }, isEqual);
-  const accountsLength = useSelector(selectAccountsLength);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const favicon = useFavicon(activeUrl.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
@@ -344,13 +325,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     setTimeout(() => setShowPhishingModal(true), 1000);
   };
 
-  interface IpfsContentResult {
-    url?: string;
-    hash?: string;
-    type?: string;
-    reload?: boolean;
-  }
-
   /**
    * Get IPFS info from a ens url
    * TODO: Consider improving this function and it's types
@@ -460,7 +434,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const go: (url: string, initialCall?: boolean) => Promise<string | null> =
     useCallback(
       async (goToUrl, initialCall) => {
-        console.log('GO', goToUrl);
         setIsResolvedIpfsUrl(false);
         const prefixedUrl = prefixUrlWithProtocol(goToUrl);
         const {
@@ -684,18 +657,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     });
   };
 
-  /*  
-  const trackEventSearchUsed = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
-        .addProperties({
-          option_chosen: 'Search on URL',
-          number_of_tabs: undefined,
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]); */
-
   /**
    * Function that allows custom handling of any web view requests.
    * Return `true` to continue loading the request and `false` to stop loading.
@@ -744,7 +705,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     // TODO: add logging for untrusted protocol being used
     // Sentry
-    //
     const alertMsg = getAlertMessage(protocol, strings);
 
     // Pop up an alert dialog box to prompt the user for permission
@@ -774,22 +734,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     setProgress(onLoadProgressProgress);
   };
 
-  // We need to be sure we can remove this property https://github.com/react-native-webview/react-native-webview/issues/2970
-  // We should check if this is fixed on the newest versions of react-native-webview
-  //   const onLoad = ({ nativeEvent }: WebViewNavigationEvent) => {
-  //     //For iOS url on the navigation bar should only update upon load.
-  //     if (Device.isIos()) {
-  //       const {
-  //         origin,
-  //         pathname = '',
-  //         query = '',
-  //       } = new URLParse(nativeEvent.url);
-  //       const realUrl = `${origin}${pathname}${query}`;
-  //       changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-  //       changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-  //     }
-  //   };
-
   /**
    * When website finished loading
    */
@@ -798,7 +742,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }: WebViewNavigationEvent | WebViewErrorEvent) => {
     // Do not update URL unless website has successfully completed loading.
     webStates.current[url] = { ...webStates.current[url], ended: true };
-    const { requested, started, ended } = webStates.current[url];
+    const { started, ended } = webStates.current[url];
     const incomingOrigin = new URLParse(url).origin;
     const activeOrigin = new URLParse(activeUrl.current).origin;
     if ((started && ended) || incomingOrigin === activeOrigin) {
@@ -877,60 +821,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     );
   };
 
-  /**
-   * Handle url input submit
-   */
-  //   const onUrlInputSubmit = useCallback(
-  //     async (inputValue = undefined) => {
-  //       trackEventSearchUsed();
-  //       if (!inputValue) {
-  //         return;
-  //       }
-  //       const { defaultProtocol, searchEngine } = props;
-  //       const sanitizedInput = onUrlSubmit(
-  //         inputValue,
-  //         searchEngine,
-  //         defaultProtocol ?? 'https://',
-  //       );
-
-  //       console.log('BROWSER TAB: onUrlInputSubmit', inputValue, sanitizedInput);
-
-  //       isTabActive &&
-  //         navigation.setParams({
-  //           url: inputValue,
-  //           icon: icon.current,
-  //           silent: true,
-  //         });
-
-  //       await go(sanitizedInput);
-  //     },
-  //     /* we do not want to depend on the props object
-  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
-  //       */
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //     [isTabActive],
-  //   );
-
-  /**
-   * Shows or hides the url input modal.
-   * When opened it sets the current website url on the input.
-   */
-  //   const toggleUrlModal = useCallback(
-  //     (shouldClearInput = false) => {
-  //       const urlToShow = shouldClearInput ? '' : getMaskedUrl(activeUrl.current,sessionENSNames);
-  //       navigation.navigate(
-  //         ...createBrowserUrlModalNavDetails({
-  //           url: urlToShow,
-  //           onUrlInputSubmit,
-  //         }),
-  //       );
-  //     },
-  //     /* we do not want to depend on the navigation object
-  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
-  //       */
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //     [onUrlInputSubmit],
-  //   );
   const toggleUrlModal = () => {
     urlBarRef.current?.focus();
   };
@@ -990,12 +880,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
     // Use URL to produce real url. This should be the actual website that the user is viewing.
-    const {
-      origin: urlOrigin,
-      pathname = '',
-      query = '',
-      hostname,
-    } = new URLParse(nativeEvent.url);
+    const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
     webStates.current[nativeEvent.url] = {
       ...webStates.current[nativeEvent.url],
@@ -1012,13 +897,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       return false;
     }
 
-    // const realUrl = `${origin}${pathname}${query}`;
-    // if (nativeEvent.url !== activeUrl.current) {
-    //   // Update navigation bar address with title of loaded url.
-    //   changeUrl({ ...nativeEvent, url: realUrl, icon: favicon });
-    //   changeAddressBar({ ...nativeEvent, url: realUrl, icon: favicon });
-    // }
-
     sendActiveAccount();
 
     icon.current = undefined;
@@ -1029,51 +907,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     backgroundBridges.current = [];
     initializeBackgroundBridge(urlOrigin, true);
   };
-
-  /**
-   * Enable the header to toggle the url modal and update other header data
-   */
-  //   useEffect(() => {
-  //     const updateNavbar = async () => {
-  //       if (isTabActive) {
-  //         const hostname = new URLParse(activeUrl.current).hostname;
-  //         const accounts = await getPermittedAccounts(hostname);
-  //         navigation.setParams({
-  //           showUrlModal: toggleUrlModal,
-  //           url: getMaskedUrl(activeUrl.current, sessionENSNames),
-  //           icon: icon.current,
-  //           error,
-  //           setAccountsPermissionsVisible: () => {
-  //             // Track Event: "Opened Acount Switcher"
-  //             trackEvent(
-  //               createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-  //                 .addProperties({
-  //                   number_of_accounts: accounts?.length,
-  //                 })
-  //                 .build(),
-  //             );
-  //             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-  //               screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-  //               params: {
-  //                 hostInfo: {
-  //                   metadata: {
-  //                     origin: activeUrl.current && new URLParse(activeUrl.current).hostname,
-  //                   },
-  //                 },
-  //               },
-  //             });
-  //           },
-  //           connectedAccounts: accounts,
-  //         });
-  //       }
-  //     };
-
-  //     updateNavbar();
-  //     /* we do not want to depend on the entire props object
-  //       - since we are changing it here, this would give us a circular dependency and infinite re renders
-  //       */
-  //     // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   }, [error, isTabActive, toggleUrlModal]);
 
   /**
    * Check whenever permissions change / account changes for Dapp
@@ -1522,12 +1355,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [props.chainId, navigation]);
 
-  const urlRef = useRef(activeUrl.current);
   useEffect(() => {
-    urlRef.current = activeUrl.current;
     if (
       isMultichainVersion1Enabled &&
-      urlRef.current &&
       isFocused &&
       !props.isInTabsView &&
       isTabActive
@@ -1536,43 +1366,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
-  const handleAccountRightButtonPress = () => {
-    const nonTestnetNetworks = Object.keys(networkConfigurations).length + 1;
-
-    // TODO: This is currently tracking two events, we should consolidate
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
-        .addProperties({
-          number_of_accounts: accountsLength,
-          number_of_accounts_connected: permittedAccountsList.length,
-          number_of_networks: nonTestnetNetworks,
-        })
-        .build(),
-    );
-    // Track Event: "Opened Acount Switcher"
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_OPEN_ACCOUNT_SWITCH)
-        .addProperties({
-          number_of_accounts: permittedAccountsList.length,
-        })
-        .build(),
-    );
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
-      params: {
-        hostInfo: {
-          metadata: {
-            // TODO: This is not an origin, it's a hostname
-            origin:
-              activeUrl.current && new URLParse(activeUrl.current).hostname,
-          },
-        },
-      },
-    });
-  };
-
   const onSubmitEditing = (text: string) => {
+    //TODO: Sanitize input
+    //       const { defaultProtocol, searchEngine } = props;
+    //       const sanitizedInput = onUrlSubmit(
+    //         inputValue,
+    //         searchEngine,
+    //         defaultProtocol ?? 'https://',
+    //       );
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
     const processedUrl = processUrlForBrowser(text);
@@ -1583,10 +1384,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     `);
   };
 
+  const onDismissAutocomplete = () => {
+    // Unfocus the url bar and hide the autocomplete results
+    urlBarRef.current?.blur();
+  };
+
   const onCancel = () => {
     // Reset the url bar to the current url
     urlBarRef.current?.setNativeProps({ text: activeUrl.current });
   };
+
+  const onFocusUrlBar = () => {
+    // Show the autocomplete results
+    urlBarResultsRef.current?.show();
+  };
+
+  const onBlurUrlBar = () => {
+    // Hide the autocomplete results
+    urlBarResultsRef.current?.hide();
+  };
+
+  const onChangeUrlBar = (text: string) =>
+    // Search the autocomplete results
+    urlBarResultsRef.current?.search(text);
 
   /**
    * Main render
@@ -1597,70 +1417,69 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         style={[styles.wrapper, !isTabActive && styles.hide]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-          }}
-        >
-          <BrowserUrlBar
-            ref={urlBarRef}
-            onPress={toggleUrlModal}
-            isSecureConnection={isSecureConnection}
-            onSubmitEditing={onSubmitEditing}
-            onCancel={onCancel}
+        <BrowserUrlBar
+          ref={urlBarRef}
+          isSecureConnection={isSecureConnection}
+          onSubmitEditing={onSubmitEditing}
+          onCancel={onCancel}
+          onFocus={onFocusUrlBar}
+          onBlur={onBlurUrlBar}
+          onChangeText={onChangeUrlBar}
+          connectedAccounts={permittedAccountsList}
+          activeUrlRef={activeUrl}
+        />
+        <View style={styles.wrapper}>
+          {renderProgressBar()}
+          <View style={styles.webview}>
+            {!!entryScriptWeb3 && firstUrlLoaded && (
+              <>
+                <WebView
+                  originWhitelist={[
+                    'https://',
+                    'http://',
+                    'metamask://',
+                    'dapp://',
+                    'wc://',
+                    'ethereum://',
+                    'file://',
+                    // Needed for Recaptcha
+                    'about:srcdoc',
+                  ]}
+                  decelerationRate={'normal'}
+                  ref={webviewRef}
+                  renderError={() => (
+                    <WebviewErrorComponent
+                      error={error}
+                      returnHome={returnHome}
+                    />
+                  )}
+                  source={{
+                    uri: initialUrl,
+                    ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                  }}
+                  injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                  style={styles.webview}
+                  onLoadStart={onLoadStart}
+                  onLoadEnd={onLoadEnd}
+                  onLoadProgress={onLoadProgress}
+                  onMessage={onMessage}
+                  onError={onError}
+                  onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+                  allowsInlineMediaPlayback
+                  testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
+                  applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                  onFileDownload={handleOnFileDownload}
+                  webviewDebuggingEnabled={isTest}
+                />
+                {ipfsBannerVisible && renderIpfsBanner()}
+              </>
+            )}
+          </View>
+          <UrlAutocomplete
+            ref={urlBarResultsRef}
+            onSubmit={onSubmitEditing}
+            onDismiss={onDismissAutocomplete}
           />
-          <AccountRightButton
-            selectedAddress={permittedAccountsList?.[0]}
-            isNetworkVisible
-            onPress={handleAccountRightButtonPress}
-          />
-        </View>
-        {renderProgressBar()}
-        <View style={styles.webview}>
-          {!!entryScriptWeb3 && firstUrlLoaded && (
-            <>
-              <WebView
-                originWhitelist={[
-                  'https://',
-                  'http://',
-                  'metamask://',
-                  'dapp://',
-                  'wc://',
-                  'ethereum://',
-                  'file://',
-                  // Needed for Recaptcha
-                  'about:srcdoc',
-                ]}
-                decelerationRate={'normal'}
-                ref={webviewRef}
-                renderError={() => (
-                  <WebviewErrorComponent
-                    error={error}
-                    returnHome={returnHome}
-                  />
-                )}
-                source={{
-                  uri: initialUrl,
-                  ...(isExternalLink ? { headers: { Cookie: '' } } : null),
-                }}
-                injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-                style={styles.webview}
-                onLoadStart={onLoadStart}
-                onLoadEnd={onLoadEnd}
-                onLoadProgress={onLoadProgress}
-                onMessage={onMessage}
-                onError={onError}
-                onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-                allowsInlineMediaPlayback
-                testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
-                applicationNameForUserAgent={'WebView MetaMaskMobile'}
-                onFileDownload={handleOnFileDownload}
-                webviewDebuggingEnabled={isTest}
-              />
-              {ipfsBannerVisible && renderIpfsBanner()}
-            </>
-          )}
         </View>
         {updateAllowList()}
         {isTabActive && (
