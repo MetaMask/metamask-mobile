@@ -61,6 +61,7 @@ import {
   JsonSnapsRegistry,
   SnapController,
   SnapsRegistryMessenger,
+  SnapInterfaceController,
 } from '@metamask/snaps-controllers';
 
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
@@ -682,6 +683,20 @@ export class Engine {
           origin,
         );
       },
+      createInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:createInterface',
+      ),
+      getInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:getInterface',
+      ),
+      updateInterface: this.controllerMessenger.call.bind(
+        this.controllerMessenger,
+        'SnapInterfaceController:updateInterface',
+      ),
+      requestUserApproval:
+        approvalController.addAndShowApprovalRequest.bind(approvalController),
       hasPermission: (origin: string, target: string) =>
         this.controllerMessenger.call<'PermissionController:hasPermission'>(
           'PermissionController:hasPermission',
@@ -971,8 +986,25 @@ export class Engine {
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
       clientCryptography: {
-        pbkdf2Sha512: pbkdf2
-      }
+        pbkdf2Sha512: pbkdf2,
+      },
+    });
+
+    const snapInterfaceControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'SnapInterfaceController',
+        allowedActions: [
+          'PhishingController:maybeUpdateState',
+          'PhishingController:testOrigin',
+        ],
+        allowedEvents: [
+          'NotificationServicesController:notificationsListUpdated',
+        ],
+      });
+
+    const snapInterfaceController = new SnapInterfaceController({
+      messenger: snapInterfaceControllerMessenger,
+      state: initialState.SnapInterfaceController,
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1173,7 +1205,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-            showIncomingTransactions?.[currentHexChainId],
+              showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1302,7 +1334,9 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+                chain_id: getDecimalChainId(
+                  getGlobalChainId(networkController),
+                ),
               })
               .build(),
           ),
@@ -1446,6 +1480,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -1518,7 +1553,7 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1538,7 +1573,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(
+              networkController,
+            )}`,
           );
         }
       },
@@ -1780,7 +1817,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-          chainId
+            chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1791,9 +1828,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                  tokenBalances[item.address as Hex],
-                  item.decimals,
-                )
+                    tokenBalances[item.address as Hex],
+                    item.decimals,
+                  )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case
@@ -2067,6 +2104,8 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
@@ -2101,6 +2140,8 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AssetsContractController,
+      SnapInterfaceController,
       NftController,
       TokenListController,
       CurrencyRateController,
