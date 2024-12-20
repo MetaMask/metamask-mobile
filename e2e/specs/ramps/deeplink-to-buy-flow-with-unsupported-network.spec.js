@@ -3,7 +3,7 @@ import TestHelpers from '../../helpers';
 
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { SmokeCore } from '../../tags';
+import { SmokeRamps } from '../../tags';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
@@ -16,7 +16,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
-describe(SmokeCore('Buy Crypto Deeplinks'), () => {
+describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });

@@ -6,7 +6,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 
 import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { SmokeCore } from '../../tags';
+import { SmokeRamps } from '../../tags';
 
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
@@ -16,7 +16,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 
-describe(SmokeCore('Sell Crypto Deeplinks'), () => {
+describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
