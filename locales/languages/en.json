@@ -3596,6 +3596,7 @@
     },
     "request_from": "Request from",
     "message": "Message",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
     "account": "Account",
