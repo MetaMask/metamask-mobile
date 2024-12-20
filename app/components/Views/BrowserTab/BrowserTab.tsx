@@ -6,22 +6,15 @@ import React, {
   useMemo,
 } from 'react';
 import {
-  Text,
   View,
-  TouchableWithoutFeedback,
   Alert,
-  Linking,
   BackHandler,
-  Platform,
   ImageSourcePropType,
   TextInput,
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
-import Share from 'react-native-share';
 import { connect, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
@@ -41,15 +34,12 @@ import {
   JS_DESELECT_TEXT,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
-import Button from '../../UI/Button';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
 import WebviewErrorComponent from '../../UI/WebviewError';
-import { addBookmark } from '../../../actions/bookmarks';
 import { addToHistory, addToWhitelist } from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
-import SearchApi from '@metamask/react-native-search-api';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import OnboardingWizard from '../../UI/OnboardingWizard';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
@@ -62,16 +52,6 @@ import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  ADD_FAVORITES_OPTION,
-  OPEN_FAVORITES_OPTION,
-  MENU_ID,
-  NEW_TAB_OPTION,
-  OPEN_IN_BROWSER_OPTION,
-  RELOAD_OPTION,
-  SHARE_OPTION,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -86,14 +66,6 @@ import {
   HOMEPAGE_URL,
   MM_MIXPANEL_TOKEN,
 } from './constants';
-import Banner from '../../../component-library/components/Banners/Banner/Banner';
-import {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import CLText from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { regex } from '../../../../app/util/regex';
 import { selectChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
@@ -129,6 +101,8 @@ import BrowserUrlBar from '../../UI/BrowserUrlBar';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import Options from './components/Options';
+import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 
 // Update the declaration
@@ -310,12 +284,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       !phishingControllerTestResult.result
     );
   }, []);
-
-  const isBookmark = () => {
-    const { bookmarks } = props;
-    const maskedUrl = getMaskedUrl(activeUrl.current, sessionENSNames);
-    return bookmarks.some(({ url: bookmark }) => bookmark === maskedUrl);
-  };
 
   /**
    * Show a phishing modal when a url is not allowed
@@ -809,18 +777,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
 
-  /**
-   * Go to favorites page
-   */
-  const goToFavorites = async () => {
-    toggleOptionsIfNeeded();
-    if (activeUrl.current === OLD_HOMEPAGE_URL_HOST) return reload();
-    await go(OLD_HOMEPAGE_URL_HOST);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
-    );
-  };
-
   const toggleUrlModal = () => {
     urlBarRef.current?.focus();
   };
@@ -966,244 +922,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Track add site to favorites event
-   */
-  const trackAddToFavoritesEvent = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_ADD_FAVORITES)
-        .addProperties({
-          dapp_name: title.current || '',
-        })
-        .build(),
-    );
-  };
-
-  /**
-   * Track share site event
-   */
-  const trackShareEvent = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BROWSER_SHARE_SITE).build(),
-    );
-  };
-
-  /**
-   * Track reload site event
-   */
-  const trackReloadEvent = () => {
-    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
-  };
-
-  /**
-   * Add bookmark
-   */
-  const navigateToAddBookmark = () => {
-    toggleOptionsIfNeeded();
-    navigation.push('AddBookmarkView', {
-      screen: 'AddBookmark',
-      params: {
-        title: title.current || '',
-        url: getMaskedUrl(activeUrl.current, sessionENSNames),
-        onAddBookmark: async ({
-          name,
-          url: urlToAdd,
-        }: {
-          name: string;
-          url: string;
-        }) => {
-          props.addBookmark({ name, url: urlToAdd });
-          if (Device.isIos()) {
-            const item = {
-              uniqueIdentifier: activeUrl,
-              title: name || getMaskedUrl(urlToAdd, sessionENSNames),
-              contentDescription: `Launch ${name || urlToAdd} on MetaMask`,
-              keywords: [name.split(' '), urlToAdd, 'dapp'],
-              thumbnail: {
-                uri: icon.current || favicon,
-              },
-            };
-            try {
-              SearchApi.indexSpotlightItem(item);
-            } catch (e: unknown) {
-              const searchApiError = e as Error;
-              Logger.error(searchApiError, 'Error adding to spotlight');
-            }
-          }
-        },
-      },
-    });
-    trackAddToFavoritesEvent();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
-    );
-  };
-
-  /**
-   * Share url
-   */
-  const share = () => {
-    toggleOptionsIfNeeded();
-    Share.open({
-      url: activeUrl.current,
-    }).catch((err) => {
-      Logger.log('Error while trying to share address', err);
-    });
-    trackShareEvent();
-  };
-
-  /**
-   * Open external link
-   */
-  const openInBrowser = () => {
-    toggleOptionsIfNeeded();
-    Linking.openURL(activeUrl.current).catch((openInBrowserError) =>
-      Logger.log(
-        `Error while trying to open external link: ${activeUrl.current}`,
-        openInBrowserError,
-      ),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
-    );
-  };
-
-  /**
-   * Handles reload button press
-   */
-  const onReloadPress = () => {
-    toggleOptionsIfNeeded();
-    reload();
-    trackReloadEvent();
-  };
-
-  /**
-   * Renders Go to Favorites option
-   */
-  const renderGoToFavorites = () => (
-    <Button onPress={goToFavorites} style={styles.option}>
-      <View style={styles.optionIconWrapper}>
-        <Icon name="star" size={16} style={styles.optionIcon} />
-      </View>
-      <Text
-        style={styles.optionText}
-        numberOfLines={2}
-        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
-      >
-        {strings('browser.go_to_favorites')}
-      </Text>
-    </Button>
-  );
-
-  /**
-   * Render non-homepage options menu
-   */
-  const renderNonHomeOptions = () => {
-    if (isHomepage()) return renderGoToFavorites();
-
-    return (
-      <React.Fragment>
-        <Button onPress={onReloadPress} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="refresh" size={15} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, RELOAD_OPTION)}
-          >
-            {strings('browser.reload')}
-          </Text>
-        </Button>
-        {!isBookmark() && (
-          <Button onPress={navigateToAddBookmark} style={styles.option}>
-            <View style={styles.optionIconWrapper}>
-              <Icon name="plus-square" size={16} style={styles.optionIcon} />
-            </View>
-            <Text
-              style={styles.optionText}
-              numberOfLines={2}
-              {...generateTestId(Platform, ADD_FAVORITES_OPTION)}
-            >
-              {strings('browser.add_to_favorites')}
-            </Text>
-          </Button>
-        )}
-        {renderGoToFavorites()}
-        <Button onPress={share} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="share" size={15} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, SHARE_OPTION)}
-          >
-            {strings('browser.share')}
-          </Text>
-        </Button>
-        <Button onPress={openInBrowser} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="expand" size={16} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
-          >
-            {strings('browser.open_in_browser')}
-          </Text>
-        </Button>
-      </React.Fragment>
-    );
-  };
-
-  /**
    * Handle new tab button press
    */
   const onNewTabPress = () => {
     openNewTab();
     trackNewTabEvent();
-  };
-
-  /**
-   * Render options menu
-   */
-  const renderOptions = () => {
-    if (showOptions) {
-      return (
-        <TouchableWithoutFeedback onPress={toggleOptions}>
-          <View style={styles.optionsOverlay}>
-            <View
-              style={[
-                styles.optionsWrapper,
-                Device.isAndroid()
-                  ? styles.optionsWrapperAndroid
-                  : styles.optionsWrapperIos,
-              ]}
-              {...generateTestId(Platform, MENU_ID)}
-            >
-              <Button onPress={onNewTabPress} style={styles.option}>
-                <View style={styles.optionIconWrapper}>
-                  <MaterialCommunityIcon
-                    name="plus"
-                    size={18}
-                    style={styles.optionIcon}
-                  />
-                </View>
-                <Text
-                  style={styles.optionText}
-                  numberOfLines={1}
-                  {...generateTestId(Platform, NEW_TAB_OPTION)}
-                >
-                  {strings('browser.new_tab')}
-                </Text>
-              </Button>
-              {renderNonHomeOptions()}
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
-      );
-    }
   };
 
   /**
@@ -1265,40 +988,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       }
     },
     [reload],
-  );
-
-  const renderIpfsBanner = () => (
-    <View style={styles.bannerContainer}>
-      <Banner
-        title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
-        description={
-          <CLText>
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content1')}{' '}
-            <CLText variant={TextVariant.BodyMDBold}>
-              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content2')}
-            </CLText>{' '}
-            {strings('ipfs_gateway_banner.ipfs_gateway_banner_content3')}{' '}
-            <CLText variant={TextVariant.BodyMDBold}>
-              {strings('ipfs_gateway_banner.ipfs_gateway_banner_content4')}
-            </CLText>
-          </CLText>
-        }
-        actionButtonProps={{
-          variant: ButtonVariants.Link,
-          onPress: () =>
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SHOW_IPFS,
-              params: {
-                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-              },
-            }),
-          label: 'Turn on IPFS gateway',
-        }}
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Info}
-        onClose={() => setIpfsBannerVisible(false)}
-      />
-    </View>
   );
 
   const isExternalLink = useMemo(
@@ -1471,7 +1160,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                   onFileDownload={handleOnFileDownload}
                   webviewDebuggingEnabled={isTest}
                 />
-                {ipfsBannerVisible && renderIpfsBanner()}
+                {ipfsBannerVisible && (
+                  <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
+                )}
               </>
             )}
           </View>
@@ -1481,6 +1172,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             onDismiss={onDismissAutocomplete}
           />
         </View>
+
         {updateAllowList()}
         {isTabActive && (
           <PhishingModal
@@ -1496,7 +1188,22 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             onSubmitEditing={onSubmitEditing}
           />
         )}
-        {isTabActive && renderOptions()}
+        {isTabActive && showOptions && (
+          <Options
+            toggleOptions={toggleOptions}
+            onNewTabPress={onNewTabPress}
+            toggleOptionsIfNeeded={toggleOptionsIfNeeded}
+            activeUrl={activeUrl}
+            isHomepage={isHomepage}
+            getMaskedUrl={getMaskedUrl}
+            go={go}
+            title={title}
+            reload={reload}
+            sessionENSNames={sessionENSNames}
+            favicon={favicon}
+            icon={icon}
+          />
+        )}
 
         {isTabActive && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
@@ -1518,8 +1225,6 @@ const mapStateToProps = (state: RootState) => ({
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  addBookmark: (bookmark: { name: string; url: string }) =>
-    dispatch(addBookmark(bookmark)),
   addToBrowserHistory: ({ url, name }: { name: string; url: string }) =>
     dispatch(addToHistory({ url, name })),
   addToWhitelist: (url: string) => dispatch(addToWhitelist(url)),
