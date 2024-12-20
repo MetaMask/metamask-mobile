@@ -1,105 +1,139 @@
+// Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
-import { Meta, StoryObj } from '@storybook/react-native';
-import SettingsDrawer from './';
+
+// External dependencies.
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../component-library/components/Texts/Text';
+import { mockTheme } from '../../../util/theme';
 
-const backdropStyle = { backgroundColor: 'white', padding: 16 };
+// Internal dependencies.
+import { default as SettingsDrawerComponent } from './';
+import { SettingsDrawerProps } from './index.types';
 
-const meta: Meta<typeof SettingsDrawer> = {
-  title: 'Components/UI/SettingsDrawer',
-  component: SettingsDrawer,
-  decorators: [(Story) => <View style={backdropStyle}>{Story()}</View>],
-};
-
-export default meta;
-
-type Story = StoryObj<React.ComponentProps<typeof SettingsDrawer>>;
-
-const mockPress = () => undefined;
-
-export const Default: Story = {
-  args: {
-    title: 'Settings Option',
-    description: 'This is a description of the settings option',
-    onPress: mockPress,
+const SettingsDrawerMeta = {
+  title: 'Settings / Settings Drawers',
+  component: SettingsDrawerComponent,
+  argTypes: {
+    title: {
+      control: { type: 'text' },
+      defaultValue: 'Settings Option',
+    },
+    description: {
+      control: { type: 'text' },
+      defaultValue: 'This is a description of the settings option',
+    },
+    warning: {
+      control: { type: 'text' },
+    },
+    iconName: {
+      options: Object.values(IconName),
+      control: {
+        type: 'select',
+      },
+    },
+    iconColor: {
+      control: { type: 'color' },
+    },
+    renderArrowRight: {
+      control: { type: 'boolean' },
+      defaultValue: true,
+    },
+    isFirst: {
+      control: { type: 'boolean' },
+      defaultValue: false,
+    },
+    isLast: {
+      control: { type: 'boolean' },
+      defaultValue: false,
+    },
+    titleColor: {
+      options: Object.values(TextColor),
+      control: {
+        type: 'select',
+      },
+      defaultValue: TextColor.Default,
+    },
   },
+  decorators: [
+    (Story: any) => (
+      <View
+        style={{
+          backgroundColor: mockTheme.colors.background.default,
+          padding: 16,
+        }}
+      >
+        <Story />
+      </View>
+    ),
+  ],
 };
 
-export const WithWarning: Story = {
+export default SettingsDrawerMeta;
+
+export const SettingsDrawer = {
+  render: (
+    args: JSX.IntrinsicAttributes &
+      SettingsDrawerProps & { children?: React.ReactNode },
+  ) => <SettingsDrawerComponent {...args} onPress={() => alert('Pressed!')} />,
+};
+
+// Variant Stories
+export const WithWarning = {
+  ...SettingsDrawer,
   args: {
-    ...Default.args,
+    title: 'Settings with Warning',
+    description: 'This setting needs attention',
     warning: 'Important warning message',
   },
 };
 
-export const WithIcon: Story = {
+export const WithIcon = {
+  ...SettingsDrawer,
   args: {
-    ...Default.args,
+    title: 'Settings with Icon',
+    description: 'This setting has an icon',
     iconName: IconName.Setting,
-    iconColor: '#037DD6',
+    iconColor: mockTheme.colors.primary.default,
   },
 };
 
-export const WithoutArrow: Story = {
+export const WithoutArrow = {
+  ...SettingsDrawer,
   args: {
-    ...Default.args,
+    title: 'Settings without Arrow',
+    description: 'This setting has no arrow',
     renderArrowRight: false,
   },
 };
 
-export const CustomTitleColor: Story = {
+export const FirstAndLastItem = {
+  ...SettingsDrawer,
   args: {
-    ...Default.args,
-    titleColor: TextColor.Primary,
-  },
-};
-
-export const FirstItem: Story = {
-  args: {
-    ...Default.args,
-    isFirst: true,
-  },
-};
-
-export const LastItem: Story = {
-  args: {
-    ...Default.args,
-    isLast: true,
-  },
-};
-
-export const FirstAndLastItem: Story = {
-  args: {
-    ...Default.args,
+    title: 'First and Last Item',
+    description: 'This is both first and last item',
     isFirst: true,
     isLast: true,
   },
 };
 
-export const LongContent: Story = {
+export const LongContent = {
+  ...SettingsDrawer,
   args: {
     title:
       'Very Long Settings Option Title That Might Need to Wrap to Multiple Lines',
     description:
       'This is a very long description that contains a lot of text to demonstrate how the component handles long content and wrapping behavior in real-world scenarios.',
-    onPress: () => mockPress,
   },
 };
 
-export const WithoutDescription: Story = {
+export const WarningWithIcon = {
+  ...SettingsDrawer,
   args: {
-    title: 'Settings Option',
-    onPress: () => mockPress,
-  },
-};
-
-export const WithWarningAndIcon: Story = {
-  args: {
-    ...Default.args,
+    title: 'Warning with Icon',
+    description: 'This setting has both warning and icon',
     warning: 'Important warning message',
     iconName: IconName.Danger,
-    iconColor: '#D73847',
+    iconColor: mockTheme.colors.error.default,
   },
 };
