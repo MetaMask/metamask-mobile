@@ -119,6 +119,13 @@ class TestDApp {
     );
   }
 
+  get sendFailingTransactionButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
+    );
+  }
+
   get erc1155BatchTransferButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
@@ -186,6 +193,10 @@ class TestDApp {
 
   async tapApproveButton() {
     await Gestures.tap(this.approveButtonText, 0);
+  }
+
+  async tapSendFailingTransactionButton() {
+    await this.tapButton(this.sendFailingTransactionButton);
   }
 
   async tapERC1155BatchTransferButton() {
