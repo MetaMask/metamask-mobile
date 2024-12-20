@@ -153,6 +153,7 @@ stages:
     workflows:
       - run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
+  stages:
   build_multichain_assets_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
