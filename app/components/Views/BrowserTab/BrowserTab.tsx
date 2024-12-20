@@ -191,16 +191,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     [activeUrl],
   );
 
-  const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(activeUrl).hostname;
+  const notifyAllConnections = useCallback(
+    (payload) => {
+      const fullHostname = new URLParse(activeUrl).hostname;
 
-    // TODO:permissions move permissioning logic elsewhere
-    backgroundBridges.current.forEach((bridge) => {
-      if (bridge.hostname === fullHostname) {
-        bridge.sendNotification(payload);
-      }
-    });
-  }, []);
+      // TODO:permissions move permissioning logic elsewhere
+      backgroundBridges.current.forEach((bridge) => {
+        if (bridge.hostname === fullHostname) {
+          bridge.sendNotification(payload);
+        }
+      });
+    },
+    [activeUrl],
+  );
 
   /**
    * Dismiss the text selection on the current website
@@ -320,8 +323,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           chainId: props.chainId,
         });
         if (type === 'ipfs-ns') {
-          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${query || ''
-            }`;
+          gatewayUrl = `${props.ipfsGateway}${hash}${pathname || '/'}${
+            query || ''
+          }`;
           const response = await fetch(gatewayUrl);
           const statusCode = response.status;
           if (statusCode >= 400) {
@@ -329,11 +333,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
+            pathname || '/'
+          }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
-            }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
+            pathname || '/'
+          }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -571,8 +577,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const disctinctId = await getMetaMetricsId();
     const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-      bookmarks || props.bookmarks,
-    )};
+                bookmarks || props.bookmarks,
+              )};
               window.__mmSearchEngine = "${props.searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -711,7 +717,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * When website finished loading
    */
   const onLoadEnd = ({
-    nativeEvent: { url, title, canGoBack, canGoForward },
+    nativeEvent: { url, title: titleFromNativeEvent, canGoBack, canGoForward },
   }: WebViewNavigationEvent | WebViewErrorEvent) => {
     // Do not update URL unless website has successfully completed loading.
     webStates.current[url] = { ...webStates.current[url], ended: true };
@@ -721,9 +727,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     if ((started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
-      changeUrl({ title, url, icon: favicon });
+      changeUrl({ title: titleFromNativeEvent, url, icon: favicon });
       changeAddressBar({
-        title,
+        title: titleFromNativeEvent,
         url,
         icon: favicon,
         canGoBack,
@@ -1099,71 +1105,85 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     // Search the autocomplete results
     urlBarResultsRef.current?.search(text);
 
-
   enum WebviewNavigationEventName {
     OnLoad,
     OnLoadEnd,
     OnLoadProgress,
     OnLoadStart,
-  };
+  }
 
+  const handleWebviewNavigationChange =
+    (eventName: WebviewNavigationEventName) =>
+    (
+      syntheticEvent:
+        | WebViewNavigationEvent
+        | WebViewProgressEvent
+        | WebViewErrorEvent,
+    ) => {
+      const { OnLoad, OnLoadEnd, OnLoadProgress, OnLoadStart } =
+        WebviewNavigationEventName;
 
-  const handleWebviewNavigationChange = (eventName: WebviewNavigationEventName) => (syntheticEvent: WebViewNavigationEvent | WebViewProgressEvent | WebViewErrorEvent) => {
-    const {
-      OnLoad,
-      OnLoadEnd,
-      OnLoadProgress,
-      OnLoadStart,
-    } = WebviewNavigationEventName;
+      const mappingEventNameString = () => {
+        switch (eventName) {
+          case OnLoad:
+            return 'onLoad';
+          case OnLoadProgress:
+            return 'onLoadProgress';
+          case OnLoadEnd:
+            return 'onLoadEnd';
+          case OnLoadStart:
+            return 'onLoadStart';
+          default:
+            return 'Invalid navigation name';
+        }
+      };
 
-    const mappingEventNameString = () => {
+      Logger.log(
+        `WEBVIEW NAVIGATING: ${mappingEventNameString()} \n Values: ${JSON.stringify(
+          syntheticEvent.nativeEvent,
+        )}`,
+      );
+
       switch (eventName) {
-        case OnLoad: return 'onLoad';
-        case OnLoadProgress: return 'onLoadProgress';
-        case OnLoadEnd: return 'onLoadEnd';
-        case OnLoadStart: return 'onLoadStart';
-        default: return 'Invalid navigation name';
+        case OnLoadProgress:
+          return onLoadProgress(syntheticEvent as WebViewProgressEvent);
+        case OnLoadEnd:
+          return onLoadEnd(
+            syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent,
+          );
+        case OnLoadStart:
+          return onLoadStart(syntheticEvent as WebViewNavigationEvent);
+        default:
+          return;
       }
-
     };
 
-    Logger.log(`WEBVIEW NAVIGATING: ${mappingEventNameString()} \n Values: ${JSON.stringify(syntheticEvent.nativeEvent)}`);
-
-    switch (eventName) {
-      case OnLoad: {
-        const { nativeEvent } = syntheticEvent;
-        console.log('WebView onLoad', nativeEvent);
-        return;
-      }
-      case OnLoadProgress: return onLoadProgress(syntheticEvent as WebViewProgressEvent);
-      case OnLoadEnd: return onLoadEnd(syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent);
-      case OnLoadStart: return onLoadStart(syntheticEvent as WebViewNavigationEvent);
-      default: return;
-    }
-  };
-
-  const {
-    OnLoad,
-    OnLoadEnd,
-    OnLoadProgress,
-    OnLoadStart,
-  } = WebviewNavigationEventName;
+  const { OnLoad, OnLoadEnd, OnLoadProgress, OnLoadStart } =
+    WebviewNavigationEventName;
 
   const handleOnNavigationStateChange = (event: WebViewNavigation) => {
-
     const {
-      title,
+      title: titleFromNativeEvent,
       loading,
       canGoForward,
       canGoBack,
       navigationType,
       url,
-    } = event
-    Logger.log(`WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(event)}`);
+    } = event;
+    Logger.log(
+      `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
+        event,
+      )}`,
+    );
 
     if (navigationType === 'backforward' && loading) {
       const payload = {
-        nativeEvent: { url, title, canGoBack, canGoForward },
+        nativeEvent: {
+          url,
+          title: titleFromNativeEvent,
+          canGoBack,
+          canGoForward,
+        },
       };
       onLoadEnd(payload as WebViewNavigationEvent | WebViewErrorEvent);
     }
