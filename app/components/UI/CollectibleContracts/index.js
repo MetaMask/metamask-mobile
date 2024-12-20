@@ -5,7 +5,6 @@ import {
   StyleSheet,
   View,
   Image,
-  FlatList,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
@@ -43,6 +42,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
 import { debounce } from 'lodash';
+import { FlashList } from '@shopify/flash-list';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -333,7 +333,7 @@ const CollectibleContracts = ({
 
   const renderList = useCallback(
     () => (
-      <FlatList
+      <FlashList
         ListHeaderComponent={
           <>
             {isCollectionDetectionBannerVisible && (

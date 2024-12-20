@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, FlatList, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { FlashList } from '@shopify/flash-list';
 import {
   useMetrics,
   MetaMetricsEvents,
@@ -77,7 +78,7 @@ export const TokenList = ({
   };
 
   return tokens?.length ? (
-    <FlatList
+    <FlashList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
       renderItem={({ item }) => (

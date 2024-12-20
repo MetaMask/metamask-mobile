@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
   TouchableWithoutFeedback,
-  FlatList,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -27,6 +26,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { FlashList } from '@shopify/flash-list';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -70,7 +70,7 @@ function TokenSelectModal({
   const styles = createStyles(colors);
   const modalStyles = createModalStyles(colors);
   const searchInput = useRef<TextInput>(null);
-  const list = useRef<FlatList<CryptoCurrency>>(null);
+  const list = useRef<FlashList<CryptoCurrency>>(null);
   const [searchString, setSearchString] = useState('');
 
   const excludedAddresses = useMemo(
@@ -225,7 +225,7 @@ function TokenSelectModal({
 
           <ScreenLayout.Body>
             <View style={modalStyles.resultsView}>
-              <FlatList
+              <FlashList
                 ref={list}
                 style={modalStyles.resultsView}
                 keyboardDismissMode="none"

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
@@ -18,6 +18,7 @@ import {
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+import { FlashList } from '@shopify/flash-list';
 
 interface ISelectQRAccountsProps {
   accounts: IAccount[];
@@ -85,7 +86,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
   return (
     <View style={styles.container}>
       {title && <Text style={styles.title}>{title}</Text>}
-      <FlatList
+      <FlashList
         data={formattedAccounts}
         keyExtractor={(item) => `address-${item.index}`}
         renderItem={({ item }) => (
