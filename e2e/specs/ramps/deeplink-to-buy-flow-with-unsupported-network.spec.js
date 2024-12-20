@@ -13,6 +13,8 @@ import Assertions from '../../utils/Assertions';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import { PopularNetworksList } from '../../resources/networks.e2e';
 
 describe(SmokeCore('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
@@ -23,7 +25,42 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should deep link to onramp on Base network', async () => {
+  it('should deep link to onramp to unsupported network', async () => {
+    const BuyDeepLink = 'metamask://buy?chainId=2';
+
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await device.sendToHome();
+        await device.launchApp({
+          url: BuyDeepLink,
+        });
+
+        await Assertions.checkIfVisible(
+          await SellGetStartedView.getStartedButton,
+        );
+
+        await BuyGetStartedView.tapGetStartedButton();
+
+        await Assertions.checkIfTextIsDisplayed('Unsupported buy Network');
+        await NetworkListModal.changeNetworkTo(
+          PopularNetworksList.Polygon.providerConfig.nickname,
+        );
+        await NetworkApprovalBottomSheet.tapApproveButton();
+        await NetworkAddedBottomSheet.tapCloseButton();
+        await Assertions.checkIfVisible(NetworkEducationModal.container);
+        await NetworkEducationModal.tapGotItButton();
+        await Assertions.checkIfTextIsNotDisplayed('Unsupported buy Network');
+        await Assertions.checkIfTextIsDisplayed('Polygon Ecosystem Token');
+      },
+    );
+  });
+
+  it('should deep link to onramp with Base but switch network to OP Mainnet', async () => {
     const BuyDeepLink =
       'metamask://buy?chainId=8453&address=0x833589fcd6edb6e08f4c7c32d4f71b54bda02913&amount=12';
 
@@ -44,13 +81,19 @@ describe(SmokeCore('Buy Crypto Deeplinks'), () => {
         );
 
         await BuyGetStartedView.tapGetStartedButton();
-
         await Assertions.checkIfVisible(NetworkApprovalBottomSheet.container);
+        await NetworkApprovalBottomSheet.tapCancelButton();
+        await NetworkListModal.changeNetworkTo(
+          PopularNetworksList.Optimism.providerConfig.nickname,
+        );
         await NetworkApprovalBottomSheet.tapApproveButton();
-        await NetworkAddedBottomSheet.tapSwitchToNetwork();
+        await NetworkAddedBottomSheet.tapCloseButton();
         await Assertions.checkIfVisible(NetworkEducationModal.container);
         await NetworkEducationModal.tapGotItButton();
-        await Assertions.checkIfTextIsDisplayed('USD Coin');
+        await Assertions.checkIfTextIsDisplayed('Ethereum');
+        await Assertions.checkIfTextIsDisplayed(
+          PopularNetworksList.Optimism.providerConfig.nickname,
+        );
       },
     );
   });

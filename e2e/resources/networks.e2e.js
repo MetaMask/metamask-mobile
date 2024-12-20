@@ -46,7 +46,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('10'),
       rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-      nickname: 'Optimism',
+      nickname: 'OP Mainnet',
       ticker: 'ETH',
     },
   },
