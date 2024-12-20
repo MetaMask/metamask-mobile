@@ -1368,9 +1368,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#0376c9",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "EuclidCircularB-Medium",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
+                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
@@ -1408,9 +1408,9 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     {
                                                       "color": "#ffffff",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "EuclidCircularB-Medium",
                                                       "fontSize": 14,
-                                                      "fontWeight": "400",
+                                                      "fontWeight": "500",
                                                       "letterSpacing": 0,
                                                       "lineHeight": 22,
                                                     }
