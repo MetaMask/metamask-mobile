@@ -213,6 +213,7 @@ import {
   getGlobalChainId,
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
+import { logEngineCreation } from './utils/logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -276,14 +277,7 @@ export class Engine {
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
   ) {
-    if (Object.keys(initialState).length === 0) {
-      Logger.log('Engine initialized with empty state');
-    } else {
-      Logger.log('Engine initialized with non-empty state', {
-        hasAccountsState: !!initialState.AccountsController,
-        hasKeyringState: !!initialState.KeyringController,
-      });
-    }
+    logEngineCreation(initialState, initialKeyringState);
 
     this.controllerMessenger = new ExtendedControllerMessenger();
 
