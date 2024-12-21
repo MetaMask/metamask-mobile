@@ -604,6 +604,7 @@ describe('captureSentryFeedback', () => {
     });
 
     it('masks sensitive data in AccountsController while preserving other fields', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const maskedState = maskObject(rootState, sentryStateMask) as any;
       const maskedAccounts =
         maskedState.engine.backgroundState.AccountsController.internalAccounts
@@ -659,6 +660,7 @@ describe('captureSentryFeedback', () => {
     });
 
     it('masks sensitive data in KeyringController while preserving type', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const maskedState = maskObject(rootState, sentryStateMask) as any;
 
       const maskedKeyringController =
