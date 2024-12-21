@@ -1,4 +1,4 @@
-import { ViewProps } from 'react-native';
+import { ViewProps, ViewStyle } from 'react-native';
 
 /**
  * The name types supported by the NameController.
@@ -15,4 +15,5 @@ export interface NameProperties extends ViewProps {
   type: NameType;
   value: string;
   variation: string;
+  style?: ViewStyle;
 }
