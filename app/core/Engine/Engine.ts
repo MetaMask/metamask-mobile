@@ -2104,7 +2104,6 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
-      AssetsContractController,
       SnapInterfaceController,
       NftController,
       TokenListController,

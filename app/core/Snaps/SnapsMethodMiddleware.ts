@@ -76,6 +76,13 @@ const snapMethodMiddlewareBuilder = (
       origin,
     ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getInterfaceContext: (...args: any) =>
+      controllerMessenger.call(
+        'SnapInterfaceController:getInterface',
+        origin,
+        ...args,
+      ).context,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getInterfaceState: (...args: any) =>
       controllerMessenger.call(
         'SnapInterfaceController:getInterface',

@@ -108,7 +108,7 @@ export const mapTextToTemplate = (
     return mapToTemplate({ ...params, element });
   }) as NonEmptyArray<UIComponent | string>;
 
-import { FormState, InterfaceState } from '@metamask/snaps-sdk';
+import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
 import { UIComponent } from './components/types';
 
 /**
@@ -121,10 +121,10 @@ import { UIComponent } from './components/types';
  * Optional if the input is not contained in a form.
  * @returns The interface state with the new value merged in.
  */
-export const mergeValue = (
+export const mergeValue = <Type extends State>(
   state: InterfaceState,
   name: string,
-  value: string | null,
+  value: Type | null,
   form?: string,
 ): InterfaceState => {
   if (form) {
