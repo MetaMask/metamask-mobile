@@ -566,7 +566,7 @@
     "description_content_1": "MetaMaskの改善を目的に、基本的な使用状況データを収集したいと思います。ここで提供されるデータが販売されることはありません。",
     "description_content_2": "指標を収集する際、常に次の条件が適用されます...",
     "description_content_3": "当社がプロファイル用に使用状況データを収集しつつ、どのようにユーザーのプライバシーを守るのかご覧ください。",
-    "checkbox": "このデータは、ユーザーによる当社のマーケティングコミュニケーションとのインタラクションを把握するために使用されます。また、関連ニュースをお伝えする場合もあります (製品の機能など)。",
+    "checkbox": "We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).",
     "action_description_1_prefix": "非公開:",
     "action_description_2_prefix": "一般:",
     "action_description_3_prefix": "任意:",
