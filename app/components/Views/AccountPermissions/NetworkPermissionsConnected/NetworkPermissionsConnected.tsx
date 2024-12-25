@@ -56,7 +56,7 @@ import Button, {
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 
-const AccountPermissionsConnected = ({
+const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
   onDismissSheet,
   hostname,
@@ -128,9 +128,6 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {!isMultichainVersion1Enabled && (
-        <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      )}
       {isMultichainVersion1Enabled && (
         <View style={styles.header}>
           <Avatar
@@ -141,17 +138,6 @@ const AccountPermissionsConnected = ({
         </View>
       )}
       <View style={styles.body}>
-        {!isMultichainVersion1Enabled && (
-          <TagUrl
-            imageSource={favicon}
-            label={urlWithProtocol}
-            cta={{
-              label: strings('accounts.permissions'),
-              onPress: openRevokePermissions,
-            }}
-            iconName={secureIcon}
-          />
-        )}
         {isMultichainVersion1Enabled && (
           <View style={styles.sectionTitleContainer}>
             <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
@@ -170,15 +156,6 @@ const AccountPermissionsConnected = ({
               />
             </View>
           </View>
-        )}
-        {!isMultichainVersion1Enabled && (
-          <PickerNetwork
-            label={providerConfig?.nickname || networkName}
-            imageSource={networkImageSource}
-            onPress={switchNetwork}
-            style={styles.networkPicker}
-            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-          />
         )}
       </View>
       <View style={styles.networkSelectorListContainer}>
@@ -232,4 +209,4 @@ const AccountPermissionsConnected = ({
   );
 };
 
-export default AccountPermissionsConnected;
+export default NetworkPermissionsConnected;
