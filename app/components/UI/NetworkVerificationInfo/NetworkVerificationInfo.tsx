@@ -116,13 +116,7 @@ const NetworkVerificationInfo = ({
 
   const renderCurrencySymbol = () => (
     <>
-      <Text
-        variant={
-          !isMultichainVersion1Enabled
-            ? TextVariant.BodyMDBold
-            : TextVariant.BodyMDMedium
-        }
-      >
+      <Text variant={TextVariant.BodyMDMedium}>
         {strings('add_custom_network.currency_symbol')}
       </Text>
       <Text style={styles.textSection}>{customNetworkInformation.ticker}</Text>
@@ -131,13 +125,7 @@ const NetworkVerificationInfo = ({
 
   const renderChainId = () => (
     <>
-      <Text
-        variant={
-          !isMultichainVersion1Enabled
-            ? TextVariant.BodyMDBold
-            : TextVariant.BodyMDMedium
-        }
-      >
+      <Text variant={TextVariant.BodyMDMedium}>
         {strings('add_custom_network.chain_id')}
       </Text>
       <Text style={styles.textSection}>
@@ -148,13 +136,7 @@ const NetworkVerificationInfo = ({
 
   const renderNetworkDisplayName = () => (
     <>
-      <Text
-        variant={
-          !isMultichainVersion1Enabled
-            ? TextVariant.BodyMDBold
-            : TextVariant.BodyMDMedium
-        }
-      >
+      <Text variant={TextVariant.BodyMDMedium}>
         {strings('add_custom_network.display_name')}
       </Text>
       <Text style={styles.textSection}>
@@ -215,22 +197,12 @@ const NetworkVerificationInfo = ({
         networkDetailsExpanded ? styles.nestedScrollContent : undefined
       }
     >
-      {!isMultichainVersion1Enabled && renderNetworkDisplayName()}
-
       {isMultichainVersion1Enabled && renderCurrencySymbol()}
-
-      {!isMultichainVersion1Enabled && renderChainId()}
 
       {isMultichainVersion1Enabled ? (
         renderNetworkRpcUrlLabel()
       ) : (
-        <Text
-          variant={
-            !isMultichainVersion1Enabled
-              ? TextVariant.BodyMDBold
-              : TextVariant.BodyMDMedium
-          }
-        >
+        <Text variant={TextVariant.BodyMDMedium}>
           {isMultichainVersion1Enabled
             ? strings('networks.network_rpc_url_label')
             : strings('add_custom_network.network_url')}
@@ -248,15 +220,7 @@ const NetworkVerificationInfo = ({
 
         {isMultichainVersion1Enabled && renderNetworkDisplayName()}
 
-        {!isMultichainVersion1Enabled && renderCurrencySymbol()}
-
-        <Text
-          variant={
-            !isMultichainVersion1Enabled
-              ? TextVariant.BodyMDBold
-              : TextVariant.BodyMDMedium
-          }
-        >
+        <Text variant={TextVariant.BodyMDMedium}>
           {strings('add_custom_network.block_explorer_url')}
         </Text>
         <Text>{customNetworkInformation.blockExplorerUrl}</Text>
