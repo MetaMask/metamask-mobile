@@ -318,59 +318,52 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       let connectedAccountLength = 0;
       let removedAccountCount = 0;
 
-      if (!isMultichainVersion1Enabled) {
-        newActiveAddress = addPermittedAccounts(hostname, selectedAddresses);
-        connectedAccountLength = selectedAddresses.length;
+      // Function to normalize Ethereum addresses using checksum
+      const normalizeAddresses = (addresses: string[]) =>
+        addresses.map((address) => toChecksumHexAddress(address));
+
+      // Retrieve the list of permitted accounts for the given hostname
+      const permittedAccounts = getPermittedAccountsByHostname(
+        permittedAccountsList,
+        hostname,
+      );
+
+      // Normalize permitted accounts and selected addresses to checksummed format
+      const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
+      const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
+
+      let accountsToRemove: string[] = [];
+      let accountsToAdd: string[] = [];
+
+      // Identify accounts to be added
+      accountsToAdd = normalizedSelectedAddresses.filter(
+        (account) => !normalizedPermittedAccounts.includes(account),
+      );
+
+      // Add newly selected accounts
+      if (accountsToAdd.length > 0) {
+        newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
       } else {
-        // Function to normalize Ethereum addresses using checksum
-        const normalizeAddresses = (addresses: string[]) =>
-          addresses.map((address) => toChecksumHexAddress(address));
-
-        // Retrieve the list of permitted accounts for the given hostname
-        const permittedAccounts = getPermittedAccountsByHostname(
-          permittedAccountsList,
-          hostname,
-        );
-
-        // Normalize permitted accounts and selected addresses to checksummed format
-        const normalizedPermittedAccounts =
-          normalizeAddresses(permittedAccounts);
-        const normalizedSelectedAddresses =
-          normalizeAddresses(selectedAddresses);
-
-        let accountsToRemove: string[] = [];
-        let accountsToAdd: string[] = [];
-
-        // Identify accounts to be added
-        accountsToAdd = normalizedSelectedAddresses.filter(
-          (account) => !normalizedPermittedAccounts.includes(account),
-        );
-
-        // Add newly selected accounts
-        if (accountsToAdd.length > 0) {
-          newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
-        } else {
-          // If no new accounts were added, set the first selected address as active
-          newActiveAddress = normalizedSelectedAddresses[0];
-        }
-
-        // Identify accounts to be removed
-        accountsToRemove = normalizedPermittedAccounts.filter(
-          (account) => !normalizedSelectedAddresses.includes(account),
-        );
-        removedAccountCount = accountsToRemove.length;
-
-        // Remove accounts that are no longer selected
-        if (accountsToRemove.length > 0) {
-          removePermittedAccounts(hostname, accountsToRemove);
-        }
-
-        // Calculate the number of connected accounts after changes
-        connectedAccountLength =
-          normalizedPermittedAccounts.length +
-          accountsToAdd.length -
-          accountsToRemove.length;
+        // If no new accounts were added, set the first selected address as active
+        newActiveAddress = normalizedSelectedAddresses[0];
       }
+
+      // Identify accounts to be removed
+      accountsToRemove = normalizedPermittedAccounts.filter(
+        (account) => !normalizedSelectedAddresses.includes(account),
+      );
+      removedAccountCount = accountsToRemove.length;
+
+      // Remove accounts that are no longer selected
+      if (accountsToRemove.length > 0) {
+        removePermittedAccounts(hostname, accountsToRemove);
+      }
+
+      // Calculate the number of connected accounts after changes
+      connectedAccountLength =
+        normalizedPermittedAccounts.length +
+        accountsToAdd.length -
+        accountsToRemove.length;
 
       const activeAccountName = getAccountNameWithENS({
         accountAddress: newActiveAddress,
@@ -430,10 +423,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   ]);
 
   useEffect(() => {
-    if (!isMultichainVersion1Enabled) {
-      return;
-    }
-
     if (networkSelectorUserIntent === USER_INTENT.Confirm) {
       if (isNonDappNetworkSwitch) {
         setPermissionsScreen(
