@@ -223,29 +223,188 @@ export enum BlockSize {
   Full = 'full',
 }
 
-// export enum BorderColor {
-// TODO: These colours need adding
-// borderDefault = colors.border.default,
-// borderMuted = colors.border.muted,
-// primaryDefault = colors.primary.default,
-// primaryAlternative = colors.primary.alternative,
-// primaryMuted = colors.primary.muted,
-// errorDefault = colors.error.default,
-// errorAlternative = colors.error.alternative,
-// errorMuted = colors.error.muted,
-// warningDefault = colors.warning.default,
-// warningMuted = colors.warning.muted,
-// successDefault = colors.success.default,
-// successMuted = colors.success.muted,
-// infoDefault = colors.info.default,
-// infoMuted = colors.info.muted,
-// mainnet = colors.network.mainnet,
-// goerli = colors.network.goerli,
-// sepolia = colors.network.sepolia,
-// lineaGoerli = colors.network.lineaGoerli,
-// lineaSepolia = colors.network.lineaSepolia,
-// lineaMainnet = colors.network.lineaMainnet,
-// transparent = 'transparent',
-// localhost = colors.network.localhost,
-// backgroundDefault = colors.background.default,
-// }
+export enum Color {
+  backgroundDefault = 'background-default',
+  backgroundAlternative = 'background-alternative',
+  backgroundMuted = 'background-muted',
+  textDefault = 'text-default',
+  textAlternative = 'text-alternative',
+  textMuted = 'text-muted',
+  iconDefault = 'icon-default',
+  iconAlternative = 'icon-alternative',
+  iconMuted = 'icon-muted',
+  borderDefault = 'border-default',
+  borderMuted = 'border-muted',
+  overlayDefault = 'overlay-default',
+  overlayInverse = 'overlay-inverse',
+  primaryDefault = 'primary-default',
+  primaryAlternative = 'primary-alternative',
+  primaryMuted = 'primary-muted',
+  primaryInverse = 'primary-inverse',
+  errorDefault = 'error-default',
+  errorAlternative = 'error-alternative',
+  errorMuted = 'error-muted',
+  errorInverse = 'error-inverse',
+  warningDefault = 'warning-default',
+  warningMuted = 'warning-muted',
+  warningInverse = 'warning-inverse',
+  successDefault = 'success-default',
+  successMuted = 'success-muted',
+  successInverse = 'success-inverse',
+  infoDefault = 'info-default',
+  infoMuted = 'info-muted',
+  infoInverse = 'info-inverse',
+  mainnet = 'mainnet',
+  goerli = 'goerli',
+  sepolia = 'sepolia',
+  lineaGoerli = 'linea-goerli',
+  lineaGoerliInverse = 'linea-goerli-inverse',
+  lineaSepolia = 'linea-sepolia',
+  lineaSepoliaInverse = 'linea-sepolia-inverse',
+  lineaMainnet = 'linea-mainnet',
+  lineaMainnetInverse = 'linea-mainnet-inverse',
+  transparent = 'transparent',
+  localhost = 'localhost',
+  inherit = 'inherit',
+  goerliInverse = 'goerli-inverse',
+  sepoliaInverse = 'sepolia-inverse',
+}
+
+export enum IconColor {
+  iconDefault = 'icon-default',
+  iconAlternative = 'icon-alternative',
+  iconAlternativeSoft = 'icon-alternative-soft',
+  iconMuted = 'icon-muted',
+  overlayInverse = 'overlay-inverse',
+  primaryDefault = 'primary-default',
+  primaryInverse = 'primary-inverse',
+  errorDefault = 'error-default',
+  errorInverse = 'error-inverse',
+  successDefault = 'success-default',
+  successInverse = 'success-inverse',
+  warningDefault = 'warning-default',
+  warningInverse = 'warning-inverse',
+  infoDefault = 'info-default',
+  infoInverse = 'info-inverse',
+  inherit = 'inherit',
+  goerli = 'goerli',
+  sepolia = 'sepolia',
+  lineaGoerli = 'linea-goerli',
+  lineaGoerliInverse = 'linea-goerli-inverse',
+  lineaSepolia = 'linea-sepolia',
+  lineaSepoliaInverse = 'linea-sepolia-inverse',
+  lineaMainnet = 'linea-mainnet',
+  lineaMainnetInverse = 'linea-mainnet-inverse',
+  goerliInverse = 'goerli-inverse',
+  sepoliaInverse = 'sepolia-inverse',
+  transparent = 'transparent',
+}
+
+export enum BackgroundColor {
+  backgroundDefault = 'background-default',
+  backgroundAlternative = 'background-alternative',
+  backgroundMuted = 'background-muted',
+  backgroundAlternativeSoft = 'background-alternative-soft',
+  backgroundHover = 'background-hover',
+  backgroundPressed = 'background-pressed',
+  iconDefault = 'icon-default',
+  iconAlternative = 'icon-alternative',
+  iconMuted = 'icon-muted',
+  overlayDefault = 'overlay-default',
+  overlayAlternative = 'overlay-alternative',
+  primaryDefault = 'primary-default',
+  primaryAlternative = 'primary-alternative',
+  primaryMuted = 'primary-muted',
+  errorDefault = 'error-default',
+  errorAlternative = 'error-alternative',
+  errorMuted = 'error-muted',
+  warningDefault = 'warning-default',
+  warningMuted = 'warning-muted',
+  successDefault = 'success-default',
+  successMuted = 'success-muted',
+  infoDefault = 'info-default',
+  infoMuted = 'info-muted',
+  mainnet = 'mainnet',
+  goerli = 'goerli',
+  sepolia = 'sepolia',
+  lineaGoerli = 'linea-goerli',
+  lineaSepolia = 'linea-sepolia',
+  lineaMainnet = 'linea-mainnet',
+  transparent = 'transparent',
+  localhost = 'localhost',
+}
+
+export enum BorderColor {
+  borderDefault = 'border-default',
+  borderMuted = 'border-muted',
+  primaryDefault = 'primary-default',
+  primaryAlternative = 'primary-alternative',
+  primaryMuted = 'primary-muted',
+  errorDefault = 'error-default',
+  errorAlternative = 'error-alternative',
+  errorMuted = 'error-muted',
+  warningDefault = 'warning-default',
+  warningMuted = 'warning-muted',
+  successDefault = 'success-default',
+  successMuted = 'success-muted',
+  infoDefault = 'info-default',
+  infoMuted = 'info-muted',
+  mainnet = 'mainnet',
+  goerli = 'goerli',
+  sepolia = 'sepolia',
+  lineaGoerli = 'linea-goerli',
+  lineaSepolia = 'linea-sepolia',
+  lineaMainnet = 'linea-mainnet',
+  transparent = 'transparent',
+  localhost = 'localhost',
+  backgroundDefault = 'background-default', // exception for border color when element is meant to look "cut out"
+}
+
+export enum BorderStyle {
+  dashed = 'dashed',
+  solid = 'solid',
+  dotted = 'dotted',
+  double = 'double',
+  none = 'none',
+}
+
+export enum BorderRadius {
+  /**
+   * 2px
+   */
+  XS = 'xs',
+  /**
+   * 4px
+   */
+  SM = 'sm',
+  /**
+   * 6px
+   */
+  MD = 'md',
+  /**
+   * 8px
+   */
+  LG = 'lg',
+  /**
+   * 12px
+   */
+  XL = 'xl',
+  /**
+   * 0
+   */
+  none = 'none',
+  /**
+   * 9999px
+   */
+  pill = 'pill',
+  /**
+   * 50%
+   */
+  full = 'full',
+}
+
+export enum FlexWrap {
+  Wrap = 'wrap',
+  WrapReverse = 'wrap-reverse',
+  NoWrap = 'nowrap',
+}

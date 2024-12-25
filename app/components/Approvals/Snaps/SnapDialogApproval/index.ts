@@ -1,3 +1,3 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps)
-export { default } from './SnapDialogApproval';
+export { default } from './SnapsDialogApproval';
 ///: END:ONLY_INCLUDE_IF

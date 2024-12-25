@@ -1,6 +1,7 @@
 import { TextFieldProps } from 'react-native-material-textfield';
 import { HelpTextProps } from '../../../component-library/components/Form/HelpText/HelpText.types';
 import { LabelProps } from '../../../component-library/components/Form/Label/Label.types';
+import { TextFieldStyleUtilityProps } from './text-field-types';
 
 export enum FormTextFieldSize {
   Sm = 'sm',

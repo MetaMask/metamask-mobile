@@ -19,7 +19,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
     return {
       label: buttonChildren as string,
       variant: (props.variant as ButtonVariants) || ButtonVariants.Primary,
-      onPress: () => {}, // Add a default empty function for onPress
+      onPress: () => {},
       ...props,
     };
   });

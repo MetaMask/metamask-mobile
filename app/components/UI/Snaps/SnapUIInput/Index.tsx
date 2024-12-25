@@ -29,7 +29,7 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
    */
   useEffect(() => {
     if (inputRef.current && name === focusedInput) {
-      (inputRef.current.children[0] as HTMLInputElement).focus();
+      (inputRef.current.querySelector('input') as HTMLInputElement).focus();
     }
   }, [inputRef]);
 

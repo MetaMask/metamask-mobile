@@ -7,9 +7,6 @@ export const input: UIComponentFactory<InputElement> = ({ element, form }) => ({
   props: {
     id: element.props.name,
     placeholder: element.props.placeholder,
-    textFieldProps: {
-      type: element.props.type,
-    },
     name: element.props.name,
     form,
   },
