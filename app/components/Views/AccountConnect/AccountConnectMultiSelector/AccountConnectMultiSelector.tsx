@@ -105,50 +105,6 @@ const AccountConnectMultiSelector = ({
     });
   }, [navigate, urlWithProtocol, isRenderedAsBottomSheet, onRevokeAllHandler]);
 
-  const renderSelectAllButton = useCallback(
-    () =>
-      Boolean(accounts.length) &&
-      !isMultichainVersion1Enabled && (
-        <Button
-          variant={ButtonVariants.Link}
-          onPress={() => {
-            if (isLoading) return;
-            const allSelectedAccountAddresses = accounts.map(
-              ({ address }) => address,
-            );
-            onSelectAddress(allSelectedAccountAddresses);
-          }}
-          style={{
-            ...styles.selectAllButton,
-            ...(isLoading && styles.disabled),
-          }}
-          label={strings('accounts.select_all')}
-          testID={ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON}
-        />
-      ),
-    [accounts, isLoading, onSelectAddress, styles],
-  );
-
-  const renderUnselectAllButton = useCallback(
-    () =>
-      Boolean(accounts.length) &&
-      !isMultichainVersion1Enabled && (
-        <Button
-          variant={ButtonVariants.Link}
-          onPress={() => {
-            if (isLoading) return;
-            onSelectAddress([]);
-          }}
-          style={{
-            ...styles.selectAllButton,
-            ...(isLoading && styles.disabled),
-          }}
-          label={strings('accounts.unselect_all')}
-        />
-      ),
-    [accounts, isLoading, onSelectAddress, styles],
-  );
-
   const areAllAccountsSelected = accounts
     .map(({ address }) => address)
     .every((address) => selectedAddresses.includes(address));
@@ -207,18 +163,6 @@ const AccountConnectMultiSelector = ({
     return (
       <View style={styles.ctaButtonsContainer}>
         <View style={styles.connectOrUpdateButtonContainer}>
-          {!isMultichainVersion1Enabled && (
-            <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('accounts.cancel')}
-              onPress={() => onUserAction(USER_INTENT.Cancel)}
-              size={ButtonSize.Lg}
-              style={styles.button}
-            />
-          )}
-          {!isMultichainVersion1Enabled && (
-            <View style={styles.buttonSeparator} />
-          )}
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
@@ -233,13 +177,9 @@ const AccountConnectMultiSelector = ({
                 },
               )}
               onPress={() => {
-                if (!isMultichainVersion1Enabled) {
-                  onUserAction(USER_INTENT.Confirm);
-                } else {
-                  onPrimaryActionButtonPress
-                    ? onPrimaryActionButtonPress()
-                    : onUserAction(USER_INTENT.Confirm);
-                }
+                onPrimaryActionButtonPress
+                  ? onPrimaryActionButtonPress()
+                  : onUserAction(USER_INTENT.Confirm);
               }}
               size={ButtonSize.Lg}
               style={{
@@ -307,13 +247,6 @@ const AccountConnectMultiSelector = ({
             onBack={onBack}
           />
           <View style={styles.body}>
-            {!isMultichainVersion1Enabled && (
-              <TagUrl
-                imageSource={favicon}
-                label={urlWithProtocol}
-                iconName={secureIcon}
-              />
-            )}
             <Text style={styles.description}>
               {isMultichainVersion1Enabled
                 ? accounts?.length > 0 &&
@@ -323,9 +256,6 @@ const AccountConnectMultiSelector = ({
             {isMultichainVersion1Enabled &&
               accounts?.length > 0 &&
               renderSelectAllCheckbox()}
-            {areAllAccountsSelected
-              ? renderUnselectAllButton()
-              : renderSelectAllButton()}
           </View>
           <AccountSelectorList
             onSelectAccount={onSelectAccount}
@@ -355,7 +285,9 @@ const AccountConnectMultiSelector = ({
               onPress={() =>
                 setScreen(AccountConnectMultiSelectorScreens.AddAccountActions)
               }
-              testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID}
+              testID={
+                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID
+              }
             />
           </View>
           <View style={styles.body}>{renderCtaButtons()}</View>
