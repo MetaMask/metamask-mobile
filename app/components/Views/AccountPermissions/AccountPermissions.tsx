@@ -54,10 +54,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { RootState } from '../../../reducers';
-import {
-  isMultichainVersion1Enabled,
-  getNetworkImageSource,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -122,7 +119,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [permissionsScreen, setPermissionsScreen] =
     useState<AccountPermissionsScreens>(
-      isNonDappNetworkSwitch && isMultichainVersion1Enabled
+      isNonDappNetworkSwitch
         ? AccountPermissionsScreens.PermissionsSummary
         : initialScreen,
     );
@@ -207,14 +204,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       previousPermittedAccounts.current === undefined &&
       permittedAccountsByHostname.length === 0
     ) {
-      // TODO - Figure out better UX instead of auto dismissing. However, we cannot be in this state as long as accounts are not connected.
       hideSheet();
-
-      const plainToastProps: ToastOptions = {
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: strings('toast.disconnected_all') }],
-        hasNoTimeout: false,
-      };
 
       const networkToastProps: ToastOptions = {
         variant: ToastVariants.Network,
@@ -229,9 +219,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         networkImageSource: faviconSource,
       };
 
-      toastRef?.current?.showToast(
-        isMultichainVersion1Enabled ? networkToastProps : plainToastProps,
-      );
+      toastRef?.current?.showToast(networkToastProps);
 
       previousPermittedAccounts.current = permittedAccountsByHostname.length;
     }
@@ -645,16 +633,12 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         accounts={accountsFilteredByPermissions.unpermitted}
         ensByAccountAddress={ensByAccountAddress}
         selectedAddresses={selectedAddresses}
-        onSelectAddress={
-          isMultichainVersion1Enabled
-            ? (checkedAddresses) => {
-                setSelectedAddresses([
-                  ...checkedAddresses,
-                  ...permittedAccountsByHostname,
-                ]);
-              }
-            : setSelectedAddresses
-        }
+        onSelectAddress={(checkedAddresses) => {
+          setSelectedAddresses([
+            ...checkedAddresses,
+            ...permittedAccountsByHostname,
+          ]);
+        }}
         isLoading={isLoading}
         onUserAction={setUserIntent}
         favicon={faviconSource}
