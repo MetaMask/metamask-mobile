@@ -14,6 +14,7 @@ import {
   Linking,
   BackHandler,
   Platform,
+  StatusBar
 } from 'react-native';
 import { isEqual } from 'lodash';
 import { withNavigation } from '@react-navigation/compat';
@@ -89,6 +90,7 @@ import {
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
+  EXPAND_OPTION
 } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/OptionMenu.testIds';
 import {
   selectIpfsGateway,
@@ -284,9 +286,13 @@ export const BrowserTab = (props) => {
   const [blockedUrl, setBlockedUrl] = useState(undefined);
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
+
+  // The height of the statusbar on Android or iOS devices
+  const statusBarHeight = Device.isAndroid() ? StatusBar.currentHeight : Device.isIphoneX() ? 44 : 20;
 
   const url = useRef('');
   const title = useRef('');
@@ -1342,6 +1348,24 @@ export const BrowserTab = (props) => {
   };
 
   /**
+  * Hide the header and the controls 
+  */
+  const expandBrowser = () => {
+    toggleOptionsIfNeeded();
+    setIsExpanded(true);
+    props.navigation.setOptions({ headerShown: false })
+  }
+
+  /**
+  * Show the header and the controls 
+  */
+  const unExpandBrowser = () => {
+    toggleOptionsIfNeeded();
+    setIsExpanded(false);
+    props.navigation.setOptions({ headerShown: true })
+  }
+
+  /**
    * Handles reload button press
    */
   const onReloadPress = () => {
@@ -1417,7 +1441,7 @@ export const BrowserTab = (props) => {
         </Button>
         <Button onPress={openInBrowser} style={styles.option}>
           <View style={styles.optionIconWrapper}>
-            <Icon name="expand" size={16} style={styles.optionIcon} />
+            <Icon name="external-link" size={16} style={styles.optionIcon} />
           </View>
           <Text
             style={styles.optionText}
@@ -1425,6 +1449,18 @@ export const BrowserTab = (props) => {
             {...generateTestId(Platform, OPEN_IN_BROWSER_OPTION)}
           >
             {strings('browser.open_in_browser')}
+          </Text>
+        </Button>
+        <Button onPress={expandBrowser} style={styles.option}>
+          <View style={styles.optionIconWrapper}>
+            <Icon name="expand" size={16} style={styles.optionIcon} />
+          </View>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, EXPAND_OPTION)}
+          >
+            {strings('browser.expand')}
           </Text>
         </Button>
       </React.Fragment>
@@ -1576,6 +1612,21 @@ export const BrowserTab = (props) => {
     </View>
   );
 
+  const renderUnExpandButton = () => (
+    <TouchableWithoutFeedback onPress={() => unExpandBrowser()}>
+      <View style={{
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: colors.primary.muted,
+        borderRadius: 20,
+        padding: 5,
+      }}>
+        <Icon name="compress" size={24} color="colors.primary" />
+      </View>
+    </TouchableWithoutFeedback>
+  );
+
   const isExternalLink = useMemo(
     () => props.linkType === EXTERNAL_LINK_TYPE,
     [props.linkType],
@@ -1649,10 +1700,13 @@ export const BrowserTab = (props) => {
   return (
     <ErrorBoundary navigation={props.navigation} view="BrowserTab">
       <View
-        style={[styles.wrapper, !isTabActive && styles.hide]}
+        style={[
+          styles.wrapper,
+          !isTabActive && styles.hide,
+        ]}
         {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
-        <View style={styles.webview}>
+        <View style={[styles.webview, isExpanded && { marginTop: statusBarHeight }]}>
           {!!entryScriptWeb3 && firstUrlLoaded && (
             <>
               <WebView
@@ -1692,6 +1746,7 @@ export const BrowserTab = (props) => {
                 webviewDebuggingEnabled={isTest}
               />
               {ipfsBannerVisible && renderIpfsBanner()}
+              {isExpanded && renderUnExpandButton()}
             </>
           )}
         </View>
@@ -1700,7 +1755,7 @@ export const BrowserTab = (props) => {
         {isTabActive && renderPhishingModal()}
         {isTabActive && renderOptions()}
 
-        {isTabActive && renderBottomBar()}
+        {isTabActive && !isExpanded && renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>
