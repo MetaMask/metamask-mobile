@@ -34,7 +34,6 @@ import {
 } from './AccountConnectMultiSelector.types';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
-import { isMultichainVersion1Enabled } from '../../../../util/networks';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
@@ -166,16 +165,7 @@ const AccountConnectMultiSelector = ({
           {areAnyAccountsSelected && (
             <Button
               variant={ButtonVariants.Primary}
-              label={strings(
-                isMultichainVersion1Enabled
-                  ? 'networks.update'
-                  : 'accounts.connect_with_count',
-                {
-                  countLabel: selectedAddresses.length
-                    ? ` (${selectedAddresses.length})`
-                    : '',
-                },
-              )}
+              label={strings('networks.update')}
               onPress={() => {
                 onPrimaryActionButtonPress
                   ? onPrimaryActionButtonPress()
@@ -192,32 +182,30 @@ const AccountConnectMultiSelector = ({
             />
           )}
         </View>
-        {isMultichainVersion1Enabled &&
-          areNoAccountsSelected &&
-          showDisconnectAllButton && (
-            <View style={styles.disconnectAllContainer}>
-              <View style={styles.helpTextContainer}>
-                <HelpText severity={HelpTextSeverity.Error}>
-                  {strings('common.disconnect_you_from', {
-                    dappUrl: hostname,
-                  })}
-                </HelpText>
-              </View>
-              <View style={styles.disconnectAllButtonContainer}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('accounts.disconnect')}
-                  testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
-                  onPress={toggleRevokeAllAccountPermissionsModal}
-                  isDanger
-                  size={ButtonSize.Lg}
-                  style={{
-                    ...styles.button,
-                  }}
-                />
-              </View>
+        {areNoAccountsSelected && showDisconnectAllButton && (
+          <View style={styles.disconnectAllContainer}>
+            <View style={styles.helpTextContainer}>
+              <HelpText severity={HelpTextSeverity.Error}>
+                {strings('common.disconnect_you_from', {
+                  dappUrl: hostname,
+                })}
+              </HelpText>
             </View>
-          )}
+            <View style={styles.disconnectAllButtonContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('accounts.disconnect')}
+                testID={ConnectedAccountsSelectorsIDs.DISCONNECT}
+                onPress={toggleRevokeAllAccountPermissionsModal}
+                isDanger
+                size={ButtonSize.Lg}
+                style={{
+                  ...styles.button,
+                }}
+              />
+            </View>
+          </View>
+        )}
       </View>
     );
   }, [
@@ -239,23 +227,15 @@ const AccountConnectMultiSelector = ({
       <SafeAreaView>
         <View style={styles.container}>
           <SheetHeader
-            title={
-              isMultichainVersion1Enabled
-                ? screenTitle
-                : strings('accounts.connect_accounts_title')
-            }
+            title={screenTitle || strings('accounts.connect_accounts_title')}
             onBack={onBack}
           />
           <View style={styles.body}>
             <Text style={styles.description}>
-              {isMultichainVersion1Enabled
-                ? accounts?.length > 0 &&
-                  strings('accounts.select_accounts_description')
-                : strings('accounts.connect_description')}
+              {accounts?.length > 0 &&
+                strings('accounts.select_accounts_description')}
             </Text>
-            {isMultichainVersion1Enabled &&
-              accounts?.length > 0 &&
-              renderSelectAllCheckbox()}
+            {accounts?.length > 0 && renderSelectAllCheckbox()}
           </View>
           <AccountSelectorList
             onSelectAccount={onSelectAccount}
@@ -303,8 +283,6 @@ const AccountConnectMultiSelector = ({
       isLoading,
       onSelectAccount,
       renderCtaButtons,
-      renderSelectAllButton,
-      renderUnselectAllButton,
       secureIcon,
       selectedAddresses,
       styles.addAccountButtonContainer,
