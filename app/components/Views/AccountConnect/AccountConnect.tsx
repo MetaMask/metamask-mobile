@@ -79,10 +79,8 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import {
-  PermissionKeys,
-  CaveatTypes,
-} from '../../../core/Permissions/specifications';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
@@ -727,7 +725,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         hostname={hostname}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
-          return undefined;
+          setScreen(AccountConnectScreens.SingleConnect);
         }}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
