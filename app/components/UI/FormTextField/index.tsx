@@ -1,6 +1,31 @@
-import { StyleSheet, TextInput, View } from 'react-native';
+import {
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  TextStyle,
+  View,
+  TextInputProps,
+} from 'react-native';
 import { FormTextFieldProps, FormTextFieldSize } from './form-text-field.types';
 import Text from '../../../component-library/components/Texts/Text';
+import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
+
+type MobileFormTextFieldProps = FormTextFieldProps & {
+  ref?: React.RefObject<TextInput>;
+  style?: StyleProp<TextStyle>;
+  isDisabled?: boolean;
+  onChangeText?: (text: string) => void;
+  onBlur?: () => void;
+  onFocus?: () => void;
+  value?: string;
+  type?: string;
+  truncate?: boolean;
+  textFieldProps?: Omit<TextFieldProps, 'autoComplete'>;
+  autoComplete?: TextInputProps['autoComplete'];
+  defaultValue?: TextInputProps['defaultValue'];
+  maxLength?: TextInputProps['maxLength'];
+  placeholder?: TextInputProps['placeholder'];
+};
 
 export const FormTextField = ({
   autoComplete,
@@ -13,7 +38,7 @@ export const FormTextField = ({
   helpTextProps,
   id,
   inputProps,
-  inputRef,
+  ref,
   label,
   labelProps,
   startAccessory,
@@ -33,7 +58,7 @@ export const FormTextField = ({
   value,
   style,
   ...props
-}: FormTextFieldProps) => {
+}: MobileFormTextFieldProps) => {
   return (
     <View
       style={[
@@ -41,7 +66,7 @@ export const FormTextField = ({
         isDisabled || disabled ? styles.disabled : undefined,
         style,
       ]}
-      ref={inputRef}
+      ref={ref}
       {...props}
     >
       {label && (
@@ -50,6 +75,8 @@ export const FormTextField = ({
         </Text>
       )}
       <TextInput
+        {...inputProps}
+        {...textFieldProps}
         style={[
           styles.textField,
           textFieldProps?.style,
@@ -57,19 +84,15 @@ export const FormTextField = ({
           size === FormTextFieldSize.Lg && styles.largeTextField,
         ]}
         editable={!disabled && !isDisabled && !readOnly}
-        {...{
-          autoComplete,
-          autoFocus,
-          defaultValue,
-          maxLength,
-          onBlur,
-          onChangeText,
-          onFocus,
-          placeholder,
-          value,
-          ...inputProps,
-          ...textFieldProps,
-        }}
+        autoComplete={autoComplete}
+        autoFocus={autoFocus}
+        defaultValue={defaultValue}
+        maxLength={maxLength}
+        onBlur={onBlur}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        placeholder={placeholder}
+        value={value}
       />
       {(startAccessory || endAccessory) && (
         <View style={styles.accessoryContainer}>

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../../../Approvals/Snaps/SnapUIRenderer/SnapInterfaceContext';
 import { FormTextField } from '../../FormTextField';
+import { TextInput } from 'react-native';
 
 export type SnapUIInputProps = {
   name: string;
@@ -11,7 +12,7 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
     useSnapInterfaceContext();
 
-  const inputRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<TextInput>(null);
 
   const initialValue = getValue(name, form) as string;
 
@@ -29,9 +30,9 @@ export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
    */
   useEffect(() => {
     if (inputRef.current && name === focusedInput) {
-      (inputRef.current.querySelector('input') as HTMLInputElement).focus();
+      inputRef.current.focus();
     }
-  }, [inputRef]);
+  }, [inputRef, name, focusedInput]);
 
   const handleChange = (text: string) => {
     setValue(text);
