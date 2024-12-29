@@ -1,42 +1,91 @@
 import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
-import { UIComponentFactory } from './types';
-import {
-  ButtonProps,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button/Button.types';
-import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
+import { BackgroundColor, BlockSize, Display, FlexDirection } from '../utils';
+import { ButtonVariant } from '@metamask/snaps-sdk';
+import { Button as buttonFn } from './button';
+
+export const DEFAULT_FOOTER = {
+  element: 'Box',
+  key: 'default-footer',
+  props: {
+    display: Display.Flex,
+    flexDirection: FlexDirection.Row,
+    width: BlockSize.Full,
+    gap: 4,
+    padding: 4,
+    className: 'snap-ui-renderer__footer',
+    backgroundColor: BackgroundColor.backgroundDefault,
+    style: {
+      boxShadow: 'var(--shadow-size-md) var(--color-shadow-default)',
+      height: '80px',
+      position: 'fixed',
+      bottom: 0,
+    },
+  },
+};
+
+const getDefaultButtons = (
+  footer: FooterElement,
+  t: (value: string) => string,
+  onCancel?: () => void,
+) => {
+  const children = getJsxChildren(footer);
+
+  // If onCancel is omitted by the caller we assume that it is safe to not display the default footer.
+  if (children.length === 1 && onCancel) {
+    return {
+      element: 'SnapUIFooterButton',
+      key: 'default-button',
+      props: {
+        onCancel,
+        variant: ButtonVariant.Secondary,
+        isSnapAction: false,
+      },
+      children: t('cancel'),
+    };
+  }
+
+  return undefined;
+};
 
 export const footer: UIComponentFactory<FooterElement> = ({
   element,
   t,
   onCancel,
+  ...params
 }) => {
-  const footerChildren = getJsxChildren(element) as ButtonElement[];
+  const defaultButtons = getDefaultButtons(element, t, onCancel);
+  const providedChildren = getJsxChildren(element);
 
-  const buttonPropsArray: ButtonProps[] = footerChildren.map((child) => {
-    const { children: buttonChildren, ...props } = child.props;
+  const footerChildren: UIComponent[] = (
+    providedChildren as ButtonElement[]
+  ).map((children, index) => {
+    const buttonMapped = buttonFn({
+      ...params,
+      element: children,
+    } as UIComponentParams<ButtonElement>);
     return {
-      label: buttonChildren as string,
-      variant: (props.variant as ButtonVariants) || ButtonVariants.Primary,
-      onPress: () => {},
-      ...props,
+      element: 'SnapUIFooterButton',
+      key: `snap-footer-button-${buttonMapped.props?.name ?? index}`,
+      props: {
+        ...buttonMapped.props,
+        variant:
+          providedChildren.length === 2 && index === 0
+            ? ButtonVariant.Secondary
+            : ButtonVariant.Primary,
+        isSnapAction: true,
+      },
+      children: buttonMapped.children,
     };
   });
 
-  if (onCancel && buttonPropsArray.length === 1) {
-    buttonPropsArray.unshift({
-      label: t('cancel'),
-      variant: ButtonVariants.Secondary,
-      onPress: onCancel,
-    });
+  if (defaultButtons) {
+    footerChildren.unshift(defaultButtons as UIComponent);
   }
 
   return {
-    element: 'BottomSheetFooter',
-    props: {
-      buttonPropsArray,
-      buttonsAlignment: ButtonsAlignment.Horizontal,
-    },
+    ...DEFAULT_FOOTER,
+    children: footerChildren,
   };
 };
