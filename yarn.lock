@@ -27231,10 +27231,10 @@ react-native-browser-polyfill@0.1.2:
   resolved "https://registry.yarnpkg.com/react-native-browser-polyfill/-/react-native-browser-polyfill-0.1.2.tgz#d2c4e816e7a1d91bc314400a1b0a9795a91b8bcd"
   integrity sha512-3YcDN/ibJZC+gqMsY55/lYweFAaiGRYdTuUYAjLxI8xTRDYvN8Qqnaai703Q1XAZFJThdd1V4TagZKQ9v1SuSQ==
 
-react-native-camera@^3.36.0:
-  version "3.44.3"
-  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-3.44.3.tgz#f8f35f2484e508b0694dee54a8801a1e0833d851"
-  integrity sha512-Efb5aKhFsE7qnqvTnbSEwFAom79L5BT4jMn+B2wYVUnZeRgWh45gNSG7Ou3MQ6zU2DpUHBPlBFKGVS5yOSfSZQ==
+react-native-camera@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-4.2.1.tgz#caf74081f055e89d7e9b0cd5108965d808c60e90"
+  integrity sha512-+Vkql24PFYQfsPRznJCvPwJQfyzCnjlcww/iZ4Ej80bgivKjL9eU0IMQIXp4yi6XCrKi4voWXxIDPMupQZKeIQ==
   dependencies:
     prop-types "^15.6.2"
 
