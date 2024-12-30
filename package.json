@@ -425,7 +425,7 @@
     "appium-adb": "^9.11.4",
     "assert": "^1.5.0",
     "babel-jest": "^29.7.0",
-    "babel-loader": "^9.1.3",
+    "babel-loader": "^9.2.1",
     "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-remove-console": "6.9.4",
