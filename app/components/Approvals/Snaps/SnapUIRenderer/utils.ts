@@ -90,6 +90,7 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
   const mapped = COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING](
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     params as any,
   );
   return { ...mapped, key: elementKey } as UIComponent;

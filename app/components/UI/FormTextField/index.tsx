@@ -12,8 +12,6 @@ import { TextFieldProps } from '../../../component-library/components/Form/TextF
 import React from 'react';
 import { useTheme } from '../../../../app/util/theme';
 
-const theme = useTheme();
-
 type MobileFormTextFieldProps = FormTextFieldProps & {
   ref?: React.RefObject<TextInput>;
   style?: StyleProp<TextStyle>;
@@ -48,7 +46,6 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: theme.brandColors.grey200,
     borderRadius: 4,
     fontSize: 16,
   },
@@ -81,10 +78,6 @@ const styles = StyleSheet.create({
   helpText: {
     marginTop: 4,
     fontSize: 12,
-    color: theme.brandColors.grey500,
-  },
-  errorText: {
-    color: theme.brandColors.red500,
   },
 });
 
@@ -118,62 +111,68 @@ export const FormTextField = ({
   value,
   style,
   ...props
-}: MobileFormTextFieldProps) => (
-  <View
-    style={[
-      styles.container,
-      isDisabled || disabled ? styles.disabled : undefined,
-      style,
-    ]}
-    ref={ref}
-    {...props}
-  >
-    {label && (
-      <Text style={[styles.label, labelProps?.style]} {...labelProps}>
-        {label}
-      </Text>
-    )}
-    <TextInput
-      {...inputProps}
-      {...textFieldProps}
+}: MobileFormTextFieldProps) => {
+  const theme = useTheme();
+
+  return (
+    <View
       style={[
-        styles.textField,
-        textFieldProps?.style,
-        size === FormTextFieldSize.Sm && styles.smallTextField,
-        size === FormTextFieldSize.Lg && styles.largeTextField,
+        styles.container,
+        isDisabled || disabled ? styles.disabled : undefined,
+        style,
       ]}
-      editable={!disabled && !isDisabled && !readOnly}
-      autoComplete={autoComplete}
-      autoFocus={autoFocus}
-      defaultValue={defaultValue}
-      maxLength={maxLength}
-      onBlur={onBlur}
-      onChangeText={onChangeText}
-      onFocus={onFocus}
-      placeholder={placeholder}
-      value={value}
-    />
-    {(startAccessory || endAccessory) && (
-      <View style={styles.accessoryContainer}>
-        {startAccessory && (
-          <View style={styles.startAccessory}>{startAccessory}</View>
-        )}
-        {endAccessory && (
-          <View style={styles.endAccessory}>{endAccessory}</View>
-        )}
-      </View>
-    )}
-    {helpText && (
-      <Text
+      ref={ref}
+      {...props}
+    >
+      {label && (
+        <Text style={[styles.label, labelProps?.style]} {...labelProps}>
+          {label}
+        </Text>
+      )}
+      <TextInput
+        {...inputProps}
+        {...textFieldProps}
         style={[
-          styles.helpText,
-          error && styles.errorText,
-          helpTextProps?.style,
+          styles.textField,
+          { borderColor: theme.brandColors.grey200 },
+          textFieldProps?.style,
+          size === FormTextFieldSize.Sm && styles.smallTextField,
+          size === FormTextFieldSize.Lg && styles.largeTextField,
         ]}
-        {...helpTextProps}
-      >
-        {helpText}
-      </Text>
-    )}
-  </View>
-);
+        editable={!disabled && !isDisabled && !readOnly}
+        autoComplete={autoComplete}
+        autoFocus={autoFocus}
+        defaultValue={defaultValue}
+        maxLength={maxLength}
+        onBlur={onBlur}
+        onChangeText={onChangeText}
+        onFocus={onFocus}
+        placeholder={placeholder}
+        value={value}
+      />
+      {(startAccessory || endAccessory) && (
+        <View style={styles.accessoryContainer}>
+          {startAccessory && (
+            <View style={styles.startAccessory}>{startAccessory}</View>
+          )}
+          {endAccessory && (
+            <View style={styles.endAccessory}>{endAccessory}</View>
+          )}
+        </View>
+      )}
+      {helpText && (
+        <Text
+          style={[
+            styles.helpText,
+            { color: theme.brandColors.grey500 },
+            error && { color: theme.brandColors.red500 },
+            helpTextProps?.style,
+          ]}
+          {...helpTextProps}
+        >
+          {helpText}
+        </Text>
+      )}
+    </View>
+  );
+};
