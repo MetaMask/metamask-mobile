@@ -38,7 +38,6 @@ export const box: UIComponentFactory<BoxElement> = ({
     mapToTemplate({ ...params, element: children as JSXElement }),
   ) as NonEmptyArray<UIComponent>,
   props: {
-    display: Display.Flex,
     flexDirection:
       element.props.direction === 'horizontal'
         ? FlexDirection.Row

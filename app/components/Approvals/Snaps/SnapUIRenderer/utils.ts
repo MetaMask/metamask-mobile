@@ -180,7 +180,6 @@ export enum FlexDirection {
 
 export enum Display {
   Block = 'block',
-  Flex = 'flex',
   Grid = 'grid',
   InlineBlock = 'inline-block',
   Inline = 'inline',

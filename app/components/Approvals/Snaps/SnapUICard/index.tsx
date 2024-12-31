@@ -25,11 +25,10 @@ export const SnapUICard: React.FC<SnapUICardProps> = ({
 }) => (
   <Box
     testID="snaps-ui-card"
-    display={Display.Flex}
     justifyContent={JustifyContent.spaceBetween}
     alignItems={AlignItems.center}
   >
-    <Box display={Display.Flex} gap={4} alignItems={AlignItems.center}>
+    <Box gap={4} alignItems={AlignItems.center}>
       {image && (
         <Image
           width={32}
@@ -38,11 +37,7 @@ export const SnapUICard: React.FC<SnapUICardProps> = ({
           style={styles.overflowHidden}
         />
       )}
-      <Box
-        display={Display.Flex}
-        flexDirection={FlexDirection.Column}
-        style={styles.overflowHidden}
-      >
+      <Box flexDirection={FlexDirection.Column} style={styles.overflowHidden}>
         <Text
           variant={TextVariant.BodyMDMedium}
           numberOfLines={1}
@@ -62,7 +57,6 @@ export const SnapUICard: React.FC<SnapUICardProps> = ({
       </Box>
     </Box>
     <Box
-      display={Display.Flex}
       flexDirection={FlexDirection.Column}
       textAlign={TextAlign.right}
       style={styles.overflowHidden}
