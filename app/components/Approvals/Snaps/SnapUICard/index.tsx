@@ -4,7 +4,6 @@ import { Image } from 'react-native';
 // External dependencies.
 import {
   AlignItems,
-  Display,
   FlexDirection,
   JustifyContent,
   TextAlign,

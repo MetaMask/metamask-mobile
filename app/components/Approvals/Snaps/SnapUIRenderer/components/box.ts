@@ -3,7 +3,7 @@ import { BoxElement, JSXElement, BoxProps } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
-import { mapToTemplate, Display, FlexDirection } from '../utils';
+import { mapToTemplate, FlexDirection } from '../utils';
 import { UIComponent, UIComponentFactory } from './types';
 import { ViewStyle, ViewProps } from 'react-native';
 
