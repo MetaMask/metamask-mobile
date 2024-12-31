@@ -9,6 +9,10 @@ import {
 import { FormTextFieldProps, FormTextFieldSize } from './form-text-field.types';
 import Text from '../../../component-library/components/Texts/Text';
 import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
+import React from 'react';
+import { useTheme } from '../../../../app/util/theme';
+
+const theme = useTheme();
 
 type MobileFormTextFieldProps = FormTextFieldProps & {
   ref?: React.RefObject<TextInput>;
@@ -44,7 +48,7 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#D6D9DC',
+    borderColor: theme.brandColors.grey200,
     borderRadius: 4,
     fontSize: 16,
   },
@@ -77,10 +81,10 @@ const styles = StyleSheet.create({
   helpText: {
     marginTop: 4,
     fontSize: 12,
-    color: '#6A737D',
+    color: theme.brandColors.grey500,
   },
   errorText: {
-    color: '#D73A49',
+    color: theme.brandColors.red500,
   },
 });
 
@@ -111,68 +115,65 @@ export const FormTextField = ({
   size = FormTextFieldSize.Md,
   textFieldProps,
   truncate,
-  type = 'text',
   value,
   style,
   ...props
-}: MobileFormTextFieldProps) => {
-  return (
-    <View
+}: MobileFormTextFieldProps) => (
+  <View
+    style={[
+      styles.container,
+      isDisabled || disabled ? styles.disabled : undefined,
+      style,
+    ]}
+    ref={ref}
+    {...props}
+  >
+    {label && (
+      <Text style={[styles.label, labelProps?.style]} {...labelProps}>
+        {label}
+      </Text>
+    )}
+    <TextInput
+      {...inputProps}
+      {...textFieldProps}
       style={[
-        styles.container,
-        isDisabled || disabled ? styles.disabled : undefined,
-        style,
+        styles.textField,
+        textFieldProps?.style,
+        size === FormTextFieldSize.Sm && styles.smallTextField,
+        size === FormTextFieldSize.Lg && styles.largeTextField,
       ]}
-      ref={ref}
-      {...props}
-    >
-      {label && (
-        <Text style={[styles.label, labelProps?.style]} {...labelProps}>
-          {label}
-        </Text>
-      )}
-      <TextInput
-        {...inputProps}
-        {...textFieldProps}
+      editable={!disabled && !isDisabled && !readOnly}
+      autoComplete={autoComplete}
+      autoFocus={autoFocus}
+      defaultValue={defaultValue}
+      maxLength={maxLength}
+      onBlur={onBlur}
+      onChangeText={onChangeText}
+      onFocus={onFocus}
+      placeholder={placeholder}
+      value={value}
+    />
+    {(startAccessory || endAccessory) && (
+      <View style={styles.accessoryContainer}>
+        {startAccessory && (
+          <View style={styles.startAccessory}>{startAccessory}</View>
+        )}
+        {endAccessory && (
+          <View style={styles.endAccessory}>{endAccessory}</View>
+        )}
+      </View>
+    )}
+    {helpText && (
+      <Text
         style={[
-          styles.textField,
-          textFieldProps?.style,
-          size === FormTextFieldSize.Sm && styles.smallTextField,
-          size === FormTextFieldSize.Lg && styles.largeTextField,
+          styles.helpText,
+          error && styles.errorText,
+          helpTextProps?.style,
         ]}
-        editable={!disabled && !isDisabled && !readOnly}
-        autoComplete={autoComplete}
-        autoFocus={autoFocus}
-        defaultValue={defaultValue}
-        maxLength={maxLength}
-        onBlur={onBlur}
-        onChangeText={onChangeText}
-        onFocus={onFocus}
-        placeholder={placeholder}
-        value={value}
-      />
-      {(startAccessory || endAccessory) && (
-        <View style={styles.accessoryContainer}>
-          {startAccessory && (
-            <View style={styles.startAccessory}>{startAccessory}</View>
-          )}
-          {endAccessory && (
-            <View style={styles.endAccessory}>{endAccessory}</View>
-          )}
-        </View>
-      )}
-      {helpText && (
-        <Text
-          style={[
-            styles.helpText,
-            error && styles.errorText,
-            helpTextProps?.style,
-          ]}
-          {...helpTextProps}
-        >
-          {helpText}
-        </Text>
-      )}
-    </View>
-  );
-};
+        {...helpTextProps}
+      >
+        {helpText}
+      </Text>
+    )}
+  </View>
+);
