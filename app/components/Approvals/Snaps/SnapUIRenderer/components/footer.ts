@@ -1,7 +1,7 @@
 import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
-import { BackgroundColor, BlockSize, Display, FlexDirection } from '../utils';
+import { BackgroundColor, BlockSize, FlexDirection } from '../utils';
 import { ButtonVariant } from '@metamask/snaps-sdk';
 import { Button as buttonFn } from './button';
 
@@ -9,8 +9,8 @@ export const DEFAULT_FOOTER = {
   element: 'Box',
   key: 'default-footer',
   props: {
-    flexDirection: FlexDirection.Row,
-    width: BlockSize.Full,
+    flexDirection: 'row',
+    width: '100%',
     gap: 4,
     padding: 4,
     className: 'snap-ui-renderer__footer',
