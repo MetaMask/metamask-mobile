@@ -41,7 +41,7 @@ export type HandleFileChange = (
 
 export type SetCurrentInputFocus = (name: string | null) => void;
 
-export type SnapInterfaceContextType = {
+export interface SnapInterfaceContextType {
   handleEvent: HandleEvent;
   getValue: GetValue;
   handleInputChange: HandleInputChange;
@@ -49,17 +49,17 @@ export type SnapInterfaceContextType = {
   setCurrentFocusedInput: SetCurrentInputFocus;
   focusedInput: string | null;
   snapId: string;
-};
+}
 
 export const SnapInterfaceContext =
   createContext<SnapInterfaceContextType | null>(null);
 
-export type SnapInterfaceContextProviderProps = {
+export interface SnapInterfaceContextProviderProps {
   interfaceId: string;
   snapId: string;
   initialState: InterfaceState;
   context: Json;
-};
+}
 /**
  * The Snap interface context provider that handles all the interface state operations.
  *

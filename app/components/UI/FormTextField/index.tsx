@@ -27,6 +27,63 @@ type MobileFormTextFieldProps = FormTextFieldProps & {
   placeholder?: TextInputProps['placeholder'];
 };
 
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+    paddingVertical: 16,
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  label: {
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  textField: {
+    height: 44,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#D6D9DC',
+    borderRadius: 4,
+    fontSize: 16,
+  },
+  smallTextField: {
+    height: 32,
+    fontSize: 14,
+  },
+  largeTextField: {
+    height: 56,
+    fontSize: 18,
+  },
+  accessoryContainer: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    pointerEvents: 'none',
+  },
+  startAccessory: {
+    justifyContent: 'center',
+    paddingLeft: 12,
+  },
+  endAccessory: {
+    justifyContent: 'center',
+    paddingRight: 12,
+    marginLeft: 'auto',
+  },
+  helpText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#6A737D',
+  },
+  errorText: {
+    color: '#D73A49',
+  },
+});
+
 export const FormTextField = ({
   autoComplete,
   autoFocus,
@@ -119,60 +176,3 @@ export const FormTextField = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    paddingVertical: 16,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  label: {
-    marginBottom: 8,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  textField: {
-    height: 44,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#D6D9DC',
-    borderRadius: 4,
-    fontSize: 16,
-  },
-  smallTextField: {
-    height: 32,
-    fontSize: 14,
-  },
-  largeTextField: {
-    height: 56,
-    fontSize: 18,
-  },
-  accessoryContainer: {
-    flexDirection: 'row',
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    pointerEvents: 'none',
-  },
-  startAccessory: {
-    justifyContent: 'center',
-    paddingLeft: 12,
-  },
-  endAccessory: {
-    justifyContent: 'center',
-    paddingRight: 12,
-    marginLeft: 'auto',
-  },
-  helpText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: '#6A737D',
-  },
-  errorText: {
-    color: '#D73A49',
-  },
-});

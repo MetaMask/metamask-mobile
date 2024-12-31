@@ -82,11 +82,11 @@ export type StylePropValueType =
   | IconColorArray
   | undefined;
 
-export type ClassNamesObject = {
+export interface ClassNamesObject {
   // TODO: Replace `any` with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
-};
+}
 
 export type FlexDirectionArray = [
   FlexDirection,
@@ -192,13 +192,13 @@ export type PolymorphicRef<C extends React.ElementType> =
  * Uses generic type C to define the type for the polymorphic "as" prop
  * "as" can be used to override the default HTML element
  */
-type AsProp<C extends React.ElementType> = {
+interface AsProp<C extends React.ElementType> {
   /**
    * An override of the default HTML tag.
    * Can also be a React component.
    */
   as?: C;
-};
+}
 
 /**
  * Omits the as prop and props from component definition
@@ -224,7 +224,7 @@ export type PolymorphicComponentPropWithRef<
 /**
  * Includes all style utility props. This should be used to extend the props of a component.
  */
-export type StyleUtilityProps = {
+export interface StyleUtilityProps {
   /**
    * The flex direction of the component.
    * Use the FlexDirection enum from '../../../helpers/constants/design-system';
@@ -423,7 +423,7 @@ export type StyleUtilityProps = {
    * TODO: Allow data- attributes.
    */
   'data-testid'?: string;
-};
+}
 /**
  * Box component props.
  */

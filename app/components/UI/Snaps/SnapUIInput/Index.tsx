@@ -3,10 +3,10 @@ import { useSnapInterfaceContext } from '../../../Approvals/Snaps/SnapUIRenderer
 import { FormTextField } from '../../FormTextField';
 import { TextInput } from 'react-native';
 
-export type SnapUIInputProps = {
+export interface SnapUIInputProps {
   name: string;
   form?: string;
-};
+}
 
 export const SnapUIInput = ({ name, form, ...props }: SnapUIInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =

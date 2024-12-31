@@ -15,7 +15,7 @@ import {
 } from '../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
-import { SnapId } from '@metamask/snaps-sdk';
+import { Json, SnapId } from '@metamask/snaps-sdk';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 enum SnapDialogTypes {
@@ -37,8 +37,10 @@ const SnapDialogApproval = () => {
 
   const onCancel = async () => {
     if (!approvalRequest) return;
-
-    await Engine.acceptPendingApproval(approvalRequest.id, null as any);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      null as unknown as Record<string, Json>,
+    );
   };
 
   const onConfirmInput = async () => {
@@ -52,7 +54,7 @@ const SnapDialogApproval = () => {
       );
     await Engine.acceptPendingApproval(
       approvalRequest.id,
-      inputState.state['custom-input'] as any,
+      inputState.state['custom-input'] as unknown as Record<string, Json>,
     );
     setIsLoading(false);
   };
@@ -60,8 +62,10 @@ const SnapDialogApproval = () => {
   const onConfirm = async () => {
     setIsLoading(true);
     if (!approvalRequest) return;
-
-    await Engine.acceptPendingApproval(approvalRequest.id, true as any);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      true as unknown as Record<string, Json>,
+    );
 
     setIsLoading(false);
   };
@@ -69,7 +73,10 @@ const SnapDialogApproval = () => {
   const onReject = async () => {
     if (!approvalRequest) return;
 
-    await Engine.acceptPendingApproval(approvalRequest.id, false as any);
+    await Engine.acceptPendingApproval(
+      approvalRequest.id,
+      false as unknown as Record<string, Json>,
+    );
   };
 
   if (

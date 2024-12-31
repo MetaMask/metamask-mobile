@@ -15,6 +15,13 @@ interface SnapUIRendererProps {
   interfaceId: string;
 }
 
+const styles = StyleSheet.create({
+  root: {
+    flexGrow: 1,
+    height: Dimensions.get('window').height * 0.5,
+  },
+});
+
 // Component that maps Snaps UI JSON format to MetaMask Template Renderer format
 const SnapUIRendererComponent = ({
   snapId,
@@ -67,10 +74,3 @@ export const SnapUIRenderer = memo(
   SnapUIRendererComponent,
   (prevProps, nextProps) => isEqual(prevProps, nextProps),
 );
-
-const styles = StyleSheet.create({
-  root: {
-    flexGrow: 1,
-    height: Dimensions.get('window').height * 0.5,
-  },
-});
