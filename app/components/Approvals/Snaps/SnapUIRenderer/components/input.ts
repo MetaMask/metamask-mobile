@@ -2,12 +2,15 @@ import { InputElement } from '@metamask/snaps-sdk/jsx';
 
 import { UIComponentFactory } from './types';
 
-export const input: UIComponentFactory<InputElement> = ({ element, form }) => ({
+export const input: UIComponentFactory<InputElement> = ({
+  element: e,
+  form,
+}) => ({
   element: 'SnapUIInput',
   props: {
-    id: element.props.name,
-    placeholder: element.props.placeholder,
-    name: element.props.name,
+    id: e.props.name,
+    placeholder: e.props.placeholder,
+    name: e.props.name,
     form,
   },
 });

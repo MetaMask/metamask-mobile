@@ -100,13 +100,13 @@ export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
   params: Pick<MapToTemplateParams, 'map'>,
 ): NonEmptyArray<UIComponent | string> =>
-  elements.map((element) => {
+  elements.map((e) => {
     // With the introduction of JSX elements here can be strings.
-    if (typeof element === 'string') {
-      return element;
+    if (typeof e === 'string') {
+      return e;
     }
 
-    return mapToTemplate({ ...params, element });
+    return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
 
 import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';

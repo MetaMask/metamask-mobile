@@ -50,13 +50,13 @@ const getDefaultButtons = (
 };
 
 export const footer: UIComponentFactory<FooterElement> = ({
-  element,
+  element: e,
   t,
   onCancel,
   ...params
 }) => {
-  const defaultButtons = getDefaultButtons(element, t, onCancel);
-  const providedChildren = getJsxChildren(element);
+  const defaultButtons = getDefaultButtons(e, t, onCancel);
+  const providedChildren = getJsxChildren(e);
 
   const footerChildren: UIComponent[] = (
     providedChildren as ButtonElement[]

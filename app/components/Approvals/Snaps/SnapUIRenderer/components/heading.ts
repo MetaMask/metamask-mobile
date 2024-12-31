@@ -1,9 +1,11 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 
-export const heading: UIComponentFactory<HeadingElement> = ({ element }) => ({
+export const heading: UIComponentFactory<HeadingElement> = ({
+  element: e,
+}) => ({
   element: 'SheetHeader',
   props: {
-    title: element.props.children,
+    title: e.props.children,
   },
 });

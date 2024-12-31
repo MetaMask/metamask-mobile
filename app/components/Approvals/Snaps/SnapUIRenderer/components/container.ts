@@ -4,14 +4,14 @@ import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 
 export const container: UIComponentFactory<BoxElement> = ({
-  element,
+  element: e,
   useFooter,
   onCancel,
   promptLegacyProps,
   t,
   ...params
 }) => {
-  const children = getJsxChildren(element);
+  const children = getJsxChildren(e);
 
   if (!useFooter && children.length === 2) {
     children.pop();
