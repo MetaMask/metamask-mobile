@@ -1,7 +1,6 @@
 import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
-import { BackgroundColor } from '../utils';
 import { ButtonVariant } from '@metamask/snaps-sdk';
 import { Button as buttonFn } from './button';
 
