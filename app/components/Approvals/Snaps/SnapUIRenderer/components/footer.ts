@@ -14,7 +14,6 @@ export const DEFAULT_FOOTER = {
     gap: 4,
     padding: 4,
     className: 'snap-ui-renderer__footer',
-    backgroundColor: BackgroundColor.backgroundDefault,
     style: {
       boxShadow: 'var(--shadow-size-md) var(--color-shadow-default)',
       height: '80px',
