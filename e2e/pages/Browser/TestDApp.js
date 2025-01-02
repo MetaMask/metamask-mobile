@@ -40,6 +40,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
     );
   }
+  get invalidSignature() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      'signInvalidType',
+    );
+  }
 
   get ApproveERC721TokenButton() {
     return Matchers.getElementByWebID(
@@ -119,6 +125,20 @@ class TestDApp {
     );
   }
 
+  get sendFailingTransactionButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
+    );
+  }
+
+  get erc1155BatchTransferButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -130,7 +150,9 @@ class TestDApp {
   async tapApproveERC721TokenButton() {
     await this.tapButton(this.ApproveERC721TokenButton);
   }
-
+  async tapInvalidSigButton() {
+    await this.tapButton(this.invalidSignature);
+  }
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
   }
@@ -179,6 +201,14 @@ class TestDApp {
 
   async tapApproveButton() {
     await Gestures.tap(this.approveButtonText, 0);
+  }
+
+  async tapSendFailingTransactionButton() {
+    await this.tapButton(this.sendFailingTransactionButton);
+  }
+
+  async tapERC1155BatchTransferButton() {
+    await this.tapButton(this.erc1155BatchTransferButton);
   }
 
   async tapButton(elementId) {

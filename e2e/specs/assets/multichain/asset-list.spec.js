@@ -1,6 +1,6 @@
 // 'persists the preferred asset list preference when changing networks'
 
-import { SmokeMultiChain } from '../../../tags';
+import { SmokeAssets } from '../../../tags';
 import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
@@ -26,7 +26,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(SmokeMultiChain('Import Tokens'), () => {
+describe(SmokeAssets('Import Tokens'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withPopularNetworks().build();
