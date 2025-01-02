@@ -815,7 +815,34 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
     });
 
+    it('should add RPC URL through modal and update state when addMode is true', async () => {
+      wrapper.setState({ addMode: true });
+
+      const instance = wrapper.instance();
+
+      await instance.onRpcItemAdd('https://new-rpc-url.com', 'New RPC');
+
+      expect(wrapper.state('rpcUrls').length).toBe(1);
+      expect(wrapper.state('rpcUrls')[0].url).toBe('https://new-rpc-url.com');
+      expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
+    });
+
     it('should correctly add Block Explorer URL through modal and update state', async () => {
+      const instance = wrapper.instance();
+
+      // Open Block Explorer form modal and add a new URL
+      instance.openAddBlockExplorerForm();
+      await instance.onBlockExplorerItemAdd('https://new-blockexplorer.com');
+
+      expect(wrapper.state('blockExplorerUrls').length).toBe(1);
+      expect(wrapper.state('blockExplorerUrls')[0]).toBe(
+        'https://new-blockexplorer.com',
+      );
+    });
+
+    it('should correctly add Block Explorer URL through modal and update state when addMode is true', async () => {
+      wrapper.setState({ addMode: true });
+
       const instance = wrapper.instance();
 
       // Open Block Explorer form modal and add a new URL
