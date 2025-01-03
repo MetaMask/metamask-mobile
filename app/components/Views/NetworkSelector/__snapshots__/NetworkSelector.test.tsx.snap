@@ -303,21 +303,14 @@ exports[`Network Selector renders correctly 1`] = `
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        }
                       }
                     >
                       <View
@@ -332,59 +325,24 @@ exports[`Network Selector renders correctly 1`] = `
                               "top": 0,
                             },
                             {
-                              "opacity": 0,
+                              "opacity": undefined,
                             },
                           ]
                         }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
+                      />
                       <View
-                        onLayout={[Function]}
+                        collapsable={false}
+                        onGestureHandlerEvent={[Function]}
+                        onGestureHandlerStateChange={[Function]}
                         style={
                           [
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                            },
-                            {
-                              "paddingBottom": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <View
-                          collapsable={false}
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
-                          style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "maxHeight": 1314,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
                                 "transform": [
@@ -393,107 +351,168 @@ exports[`Network Selector renders correctly 1`] = `
                                   },
                                 ],
                               },
+                            ],
+                            {
+                              "justifyContent": "flex-end",
+                            },
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
+                          }
+                        />
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 20,
+                                "borderTopRightRadius": 20,
+                              },
+                              {
+                                "paddingBottom": 0,
+                              },
                             ]
                           }
                         >
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
+                                "alignSelf": "center",
+                                "backgroundColor": "#bbc0c5",
+                                "borderRadius": 4,
+                                "height": 5,
+                                "marginTop": 8,
+                                "width": 48,
+                              }
+                            }
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 18,
+                                "fontWeight": "700",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "marginBottom": 8,
+                                "marginTop": 8,
+                                "textAlign": "center",
                               }
                             }
                           >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#bbc0c566",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
+                            Select a network
+                          </Text>
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "flexDirection": "row",
-                                "height": 32,
-                                "justifyContent": "space-between",
-                                "margin": 16,
+                                "marginBottom": 8,
+                                "marginLeft": 16,
+                                "marginRight": 16,
                               }
                             }
                           >
                             <View
                               style={
                                 {
-                                  "flex": 1,
-                                }
-                              }
-                            />
-                            <Text
-                              accessibilityRole="text"
-                              style={
-                                {
+                                  "alignItems": "center",
+                                  "borderColor": "#bbc0c5",
+                                  "borderRadius": 5,
+                                  "borderWidth": 1,
                                   "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
-                                  "fontSize": 18,
-                                  "fontWeight": "700",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 10,
+                                  "paddingVertical": 10,
                                 }
                               }
                             >
-                              Select a network
-                            </Text>
-                            <View
-                              style={
-                                {
-                                  "alignItems": "flex-end",
-                                  "flex": 1,
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#141618",
+                                      "fontSize": 20,
+                                    },
+                                    undefined,
+                                    {
+                                      "fontFamily": "Ionicons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
                                 }
-                              }
-                            />
-                          </View>
-                          <RCTScrollView
-                            collapsable={false}
-                            onGestureHandlerEvent={[Function]}
-                            onGestureHandlerStateChange={[Function]}
-                            testID="other-networks-scroll"
-                          >
-                            <View>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
+                              >
+                                
+                              </Text>
+                              <TextInput
+                                onChangeText={[Function]}
+                                placeholder="Search for previously added network"
+                                placeholderTextColor="#141618"
                                 style={
                                   {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
+                                    "color": "#141618",
+                                    "flex": 1,
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "paddingLeft": 10,
                                   }
                                 }
-                                testID="cellselect"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
+                                testID="network-search-input"
+                                value=""
+                              />
+                            </View>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <RCTScrollView
+                              collapsable={false}
+                              keyboardShouldPersistTaps="handled"
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                              style={
+                                {
+                                  "maxHeight": 933.8,
+                                }
+                              }
+                              testID="other-networks-scroll"
+                            >
+                              <View>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
-                                      "padding": 16,
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
                                     }
                                   }
+                                  testID="cellselect"
                                 >
                                   <View
+                                    accessibilityRole="none"
+                                    accessible={true}
                                     style={
                                       {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
+                                        "padding": 16,
                                       }
                                     }
                                   >
@@ -509,694 +528,703 @@ exports[`Network Selector renders correctly 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderRadius": 16,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
+                                            "flexDirection": "row",
                                           }
                                         }
-                                        testID="cellbase-avatar"
                                       >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                        <View
                                           style={
                                             {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
                                               "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
                                               "width": 32,
                                             }
                                           }
-                                          testID="network-avatar-image"
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={
+                                              {
+                                                "uri": "MockImage",
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
                                           style={
                                             {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
                                             }
                                           }
-                                          testID="cellbase-avatar-title"
                                         >
-                                          Ethereum Mainnet
-                                        </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Ethereum Mainnet
+                                          </Text>
+                                        </View>
                                       </View>
                                     </View>
                                   </View>
-                                </View>
-                                <View
-                                  accessibilityRole="checkbox"
-                                  accessible={true}
+                                  <View
+                                    accessibilityRole="checkbox"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "backgroundColor": "#0376c91a",
+                                        "bottom": 0,
+                                        "flexDirection": "row",
+                                        "left": 0,
+                                        "position": "absolute",
+                                        "right": 0,
+                                        "top": 0,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "backgroundColor": "#0376c9",
+                                          "borderRadius": 2,
+                                          "marginLeft": 4,
+                                          "marginVertical": 4,
+                                          "width": 4,
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
                                   style={
                                     {
-                                      "backgroundColor": "#0376c91a",
-                                      "bottom": 0,
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="cellselect"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={
+                                              {
+                                                "uri": "MockImage",
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Linea
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="network-cell-Avalanche Mainnet C-Chain"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={
+                                              {
+                                                "default": {
+                                                  "uri": "MockImage",
+                                                },
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Avalanche Mainnet C-Chain
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="network-cell-Polygon Mainnet"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={
+                                              {
+                                                "default": {
+                                                  "uri": "MockImage",
+                                                },
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Polygon Mainnet
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="network-cell-Optimism"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#ffffff",
+                                              "borderRadius": 16,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Image
+                                            onError={[Function]}
+                                            resizeMode="contain"
+                                            source={
+                                              {
+                                                "default": {
+                                                  "uri": "MockImage",
+                                                },
+                                              }
+                                            }
+                                            style={
+                                              {
+                                                "height": 32,
+                                                "width": 32,
+                                              }
+                                            }
+                                            testID="network-avatar-image"
+                                          />
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Optimism
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 4,
+                                      "opacity": 1,
+                                      "position": "relative",
+                                    }
+                                  }
+                                  testID="network-cell-Gnosis Chain"
+                                >
+                                  <View
+                                    accessibilityRole="none"
+                                    accessible={true}
+                                    style={
+                                      {
+                                        "padding": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                        }
+                                      }
+                                    >
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#f2f4f6",
+                                              "borderRadius": 16,
+                                              "borderWidth": 1,
+                                              "height": 32,
+                                              "justifyContent": "center",
+                                              "marginRight": 16,
+                                              "overflow": "hidden",
+                                              "width": 32,
+                                            }
+                                          }
+                                          testID="cellbase-avatar"
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                          >
+                                            G
+                                          </Text>
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "flex-start",
+                                              "flex": 1,
+                                            }
+                                          }
+                                        >
+                                          <Text
+                                            accessibilityRole="text"
+                                            numberOfLines={1}
+                                            style={
+                                              {
+                                                "color": "#141618",
+                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": "400",
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              }
+                                            }
+                                            testID="cellbase-avatar-title"
+                                          >
+                                            Gnosis Chain
+                                          </Text>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </View>
+                                </TouchableOpacity>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
                                       "flexDirection": "row",
-                                      "left": 0,
-                                      "position": "absolute",
-                                      "right": 0,
-                                      "top": 0,
+                                      "justifyContent": "space-between",
+                                      "marginHorizontal": 16,
+                                      "marginVertical": 16,
                                     }
                                   }
                                 >
-                                  <View
+                                  <Text
+                                    accessibilityRole="text"
                                     style={
                                       {
-                                        "backgroundColor": "#0376c9",
-                                        "borderRadius": 2,
-                                        "marginLeft": 4,
-                                        "marginVertical": 4,
-                                        "width": 4,
+                                        "color": "#6a737d",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                       }
                                     }
+                                  >
+                                    Show test networks
+                                  </Text>
+                                  <RCTSwitch
+                                    accessibilityRole="switch"
+                                    disabled={false}
+                                    onChange={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    onTintColor="#0376c9"
+                                    style={
+                                      [
+                                        {
+                                          "height": 31,
+                                          "width": 51,
+                                        },
+                                        {
+                                          "backgroundColor": "#bbc0c566",
+                                          "borderRadius": 16,
+                                        },
+                                      ]
+                                    }
+                                    testID="test-network-switch-id"
+                                    thumbTintColor="#ffffff"
+                                    tintColor="#bbc0c566"
+                                    value={false}
                                   />
                                 </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="cellselect"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderRadius": 16,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="cellbase-avatar"
-                                      >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
-                                          style={
-                                            {
-                                              "height": 32,
-                                              "width": 32,
-                                            }
-                                          }
-                                          testID="network-avatar-image"
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                          testID="cellbase-avatar-title"
-                                        >
-                                          Linea
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="network-cell-Avalanche Mainnet C-Chain"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderRadius": 16,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="cellbase-avatar"
-                                      >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
-                                          style={
-                                            {
-                                              "height": 32,
-                                              "width": 32,
-                                            }
-                                          }
-                                          testID="network-avatar-image"
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                          testID="cellbase-avatar-title"
-                                        >
-                                          Avalanche Mainnet C-Chain
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="network-cell-Polygon Mainnet"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderRadius": 16,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="cellbase-avatar"
-                                      >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
-                                          style={
-                                            {
-                                              "height": 32,
-                                              "width": 32,
-                                            }
-                                          }
-                                          testID="network-avatar-image"
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                          testID="cellbase-avatar-title"
-                                        >
-                                          Polygon Mainnet
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="network-cell-Optimism"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#ffffff",
-                                            "borderRadius": 16,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="cellbase-avatar"
-                                      >
-                                        <Image
-                                          onError={[Function]}
-                                          resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
-                                          style={
-                                            {
-                                              "height": 32,
-                                              "width": 32,
-                                            }
-                                          }
-                                          testID="network-avatar-image"
-                                        />
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                          testID="cellbase-avatar-title"
-                                        >
-                                          Optimism
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "backgroundColor": "#ffffff",
-                                    "borderRadius": 4,
-                                    "opacity": 1,
-                                    "position": "relative",
-                                  }
-                                }
-                                testID="network-cell-Gnosis Chain"
-                              >
-                                <View
-                                  accessibilityRole="none"
-                                  accessible={true}
-                                  style={
-                                    {
-                                      "padding": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "center",
-                                            "backgroundColor": "#f2f4f6",
-                                            "borderRadius": 16,
-                                            "borderWidth": 1,
-                                            "height": 32,
-                                            "justifyContent": "center",
-                                            "marginRight": 16,
-                                            "overflow": "hidden",
-                                            "width": 32,
-                                          }
-                                        }
-                                        testID="cellbase-avatar"
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                        >
-                                          G
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-start",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          numberOfLines={1}
-                                          style={
-                                            {
-                                              "color": "#141618",
-                                              "fontFamily": "EuclidCircularB-Regular",
-                                              "fontSize": 16,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                          testID="cellbase-avatar-title"
-                                        >
-                                          Gnosis Chain
-                                        </Text>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "justifyContent": "space-between",
-                                    "marginHorizontal": 16,
-                                    "marginVertical": 16,
-                                  }
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 16,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                >
-                                  Show test networks
-                                </Text>
-                                <RCTSwitch
-                                  accessibilityRole="switch"
-                                  disabled={false}
-                                  onChange={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  onTintColor="#0376c9"
-                                  style={
-                                    [
-                                      {
-                                        "height": 31,
-                                        "width": 51,
-                                      },
-                                      {
-                                        "backgroundColor": "#bbc0c566",
-                                        "borderRadius": 16,
-                                      },
-                                    ]
-                                  }
-                                  testID="test-network-switch-id"
-                                  thumbTintColor="#ffffff"
-                                  tintColor="#bbc0c566"
-                                  value={false}
-                                />
                               </View>
-                            </View>
-                          </RCTScrollView>
-                          <TouchableOpacity
-                            accessibilityRole="button"
-                            accessible={true}
-                            activeOpacity={1}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "backgroundColor": "transparent",
-                                "borderColor": "#0376c9",
-                                "borderRadius": 24,
-                                "borderWidth": 1,
-                                "flexDirection": "row",
-                                "height": 48,
-                                "justifyContent": "center",
-                                "marginBottom": 0,
-                                "marginHorizontal": 16,
-                                "paddingHorizontal": 16,
-                              }
-                            }
-                            testID="add-network-button"
-                          >
-                            <Text
-                              accessibilityRole="text"
+                            </RCTScrollView>
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Regular",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "transparent",
+                                  "borderColor": "#0376c9",
+                                  "borderRadius": 24,
+                                  "borderWidth": 1,
+                                  "flexDirection": "row",
+                                  "height": 48,
+                                  "justifyContent": "center",
+                                  "marginBottom": 0,
+                                  "marginHorizontal": 16,
+                                  "paddingHorizontal": 16,
                                 }
                               }
+                              testID="add-network-button"
                             >
-                              Add Network
-                            </Text>
-                          </TouchableOpacity>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#0376c9",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                Add Network
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1515,21 +1543,14 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                     }
                   >
                     <View
-                      onLayout={[Function]}
                       style={
-                        [
-                          {
-                            "bottom": 0,
-                            "justifyContent": "flex-end",
-                            "left": 0,
-                            "position": "absolute",
-                            "right": 0,
-                            "top": 0,
-                          },
-                          {
-                            "paddingBottom": 0,
-                          },
-                        ]
+                        {
+                          "bottom": 0,
+                          "left": 0,
+                          "position": "absolute",
+                          "right": 0,
+                          "top": 0,
+                        }
                       }
                     >
                       <View
@@ -1544,59 +1565,24 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               "top": 0,
                             },
                             {
-                              "opacity": 0,
+                              "opacity": undefined,
                             },
                           ]
                         }
-                      >
-                        <TouchableOpacity
-                          onPress={[Function]}
-                          style={
-                            {
-                              "flex": 1,
-                            }
-                          }
-                        />
-                      </View>
+                      />
                       <View
-                        onLayout={[Function]}
+                        collapsable={false}
+                        onGestureHandlerEvent={[Function]}
+                        onGestureHandlerStateChange={[Function]}
                         style={
                           [
-                            {
-                              "bottom": 0,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                            },
-                            {
-                              "paddingBottom": 0,
-                            },
-                          ]
-                        }
-                      >
-                        <View
-                          collapsable={false}
-                          onGestureHandlerEvent={[Function]}
-                          onGestureHandlerStateChange={[Function]}
-                          onLayout={[Function]}
-                          style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
-                                "borderWidth": 1,
-                                "maxHeight": 1314,
-                                "overflow": "hidden",
-                                "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
-                                "shadowOpacity": 1,
-                                "shadowRadius": 40,
+                                "bottom": 0,
+                                "left": 0,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
                               },
                               {
                                 "transform": [
@@ -1605,33 +1591,76 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   },
                                 ],
                               },
+                            ],
+                            {
+                              "justifyContent": "flex-end",
+                            },
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
+                          }
+                        />
+                        <View
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderTopLeftRadius": 20,
+                                "borderTopRightRadius": 20,
+                              },
+                              {
+                                "paddingBottom": 0,
+                              },
                             ]
                           }
                         >
                           <View
                             style={
                               {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
+                                "alignSelf": "center",
+                                "backgroundColor": "#bbc0c5",
+                                "borderRadius": 4,
+                                "height": 5,
+                                "marginTop": 8,
+                                "width": 48,
+                              }
+                            }
+                          />
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 18,
+                                "fontWeight": "700",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "marginBottom": 8,
+                                "marginTop": 8,
+                                "textAlign": "center",
                               }
                             }
                           >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#bbc0c566",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
+                            Select a network
+                          </Text>
                           <View
                             style={
                               {
-                                "height": "100%",
+                                "marginBottom": 8,
+                                "marginLeft": 16,
+                                "marginRight": 16,
                               }
                             }
                           >
@@ -1639,117 +1668,74 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
+                                  "borderColor": "#bbc0c5",
+                                  "borderRadius": 5,
+                                  "borderWidth": 1,
+                                  "color": "#141618",
                                   "flexDirection": "row",
-                                  "height": 32,
-                                  "justifyContent": "space-between",
-                                  "margin": 16,
+                                  "paddingHorizontal": 10,
+                                  "paddingVertical": 10,
                                 }
                               }
                             >
-                              <View
-                                style={
-                                  {
-                                    "flex": 1,
-                                  }
-                                }
-                              />
                               <Text
-                                accessibilityRole="text"
+                                allowFontScaling={false}
                                 style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Bold",
-                                    "fontSize": 18,
-                                    "fontWeight": "700",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#141618",
+                                      "fontSize": 20,
+                                    },
+                                    undefined,
+                                    {
+                                      "fontFamily": "Ionicons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
                                 }
                               >
-                                Select a network
+                                
                               </Text>
-                              <View
+                              <TextInput
+                                onBlur={[Function]}
+                                onChangeText={[Function]}
+                                onFocus={[Function]}
+                                placeholder="Search"
+                                placeholderTextColor="#141618"
                                 style={
                                   {
-                                    "alignItems": "flex-end",
+                                    "borderColor": "#bbc0c5",
+                                    "color": "#141618",
                                     "flex": 1,
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "paddingLeft": 10,
                                   }
                                 }
+                                testID="network-search-input"
+                                value=""
                               />
                             </View>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
                             <RCTScrollView
                               collapsable={false}
+                              keyboardShouldPersistTaps="handled"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
+                              style={
+                                {
+                                  "maxHeight": 933.8,
+                                }
+                              }
                               testID="other-networks-scroll"
                             >
                               <View>
-                                <View
-                                  style={
-                                    {
-                                      "marginBottom": 8,
-                                      "marginLeft": 16,
-                                      "marginRight": 16,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "borderColor": "#bbc0c5",
-                                        "borderRadius": 5,
-                                        "borderWidth": 1,
-                                        "color": "#141618",
-                                        "flexDirection": "row",
-                                        "paddingHorizontal": 10,
-                                        "paddingVertical": 10,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      style={
-                                        [
-                                          {
-                                            "color": "#141618",
-                                            "fontSize": 20,
-                                          },
-                                          undefined,
-                                          {
-                                            "fontFamily": "Ionicons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          {},
-                                        ]
-                                      }
-                                    >
-                                      
-                                    </Text>
-                                    <TextInput
-                                      onBlur={[Function]}
-                                      onChangeText={[Function]}
-                                      onFocus={[Function]}
-                                      placeholder="Search"
-                                      placeholderTextColor="#141618"
-                                      style={
-                                        {
-                                          "borderColor": "#bbc0c5",
-                                          "color": "#141618",
-                                          "flex": 1,
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
-                                          "paddingLeft": 10,
-                                        }
-                                      }
-                                      testID="network-search-input"
-                                      value=""
-                                    />
-                                  </View>
-                                </View>
                                 <View
                                   style={
                                     {
@@ -1935,7 +1921,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   }
                                                 }
                                               >
-                                                https://mainnet-rpc.publicnode.com
+                                                mainnet-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
                                                 color="#141618"
@@ -2185,7 +2171,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                                   }
                                                 }
                                               >
-                                                https://linea-rpc.publicnode.com
+                                                linea-rpc.publicnode.com
                                               </Text>
                                               <SvgMock
                                                 color="#141618"
@@ -2814,6 +2800,66 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             >
                                               Optimism
                                             </Text>
+                                            <TouchableOpacity
+                                              accessibilityState={
+                                                {
+                                                  "busy": undefined,
+                                                  "checked": undefined,
+                                                  "disabled": undefined,
+                                                  "expanded": undefined,
+                                                  "selected": undefined,
+                                                }
+                                              }
+                                              accessible={true}
+                                              focusable={false}
+                                              onClick={[Function]}
+                                              onPress={[Function]}
+                                              onResponderGrant={[Function]}
+                                              onResponderMove={[Function]}
+                                              onResponderRelease={[Function]}
+                                              onResponderTerminate={[Function]}
+                                              onResponderTerminationRequest={[Function]}
+                                              onStartShouldSetResponder={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "flex-start",
+                                                  "flexDirection": "row",
+                                                  "marginBottom": 0,
+                                                  "zIndex": 1,
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                numberOfLines={1}
+                                                style={
+                                                  {
+                                                    "color": "#6a737d",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 14,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 22,
+                                                  }
+                                                }
+                                              >
+                                                optimism-mainnet.infura.io/v3
+                                              </Text>
+                                              <SvgMock
+                                                color="#141618"
+                                                height={10}
+                                                name="ArrowDown"
+                                                style={
+                                                  {
+                                                    "height": 10,
+                                                    "paddingLeft": 8,
+                                                    "paddingTop": 24,
+                                                    "width": 10,
+                                                  }
+                                                }
+                                                width={10}
+                                              />
+                                            </TouchableOpacity>
                                           </View>
                                         </View>
                                       </View>
@@ -2976,6 +3022,66 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             >
                                               Gnosis Chain
                                             </Text>
+                                            <TouchableOpacity
+                                              accessibilityState={
+                                                {
+                                                  "busy": undefined,
+                                                  "checked": undefined,
+                                                  "disabled": undefined,
+                                                  "expanded": undefined,
+                                                  "selected": undefined,
+                                                }
+                                              }
+                                              accessible={true}
+                                              focusable={false}
+                                              onClick={[Function]}
+                                              onPress={[Function]}
+                                              onResponderGrant={[Function]}
+                                              onResponderMove={[Function]}
+                                              onResponderRelease={[Function]}
+                                              onResponderTerminate={[Function]}
+                                              onResponderTerminationRequest={[Function]}
+                                              onStartShouldSetResponder={[Function]}
+                                              style={
+                                                {
+                                                  "alignItems": "flex-start",
+                                                  "flexDirection": "row",
+                                                  "marginBottom": 0,
+                                                  "zIndex": 1,
+                                                }
+                                              }
+                                            >
+                                              <Text
+                                                accessibilityRole="text"
+                                                numberOfLines={1}
+                                                style={
+                                                  {
+                                                    "color": "#6a737d",
+                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontSize": 14,
+                                                    "fontWeight": "400",
+                                                    "letterSpacing": 0,
+                                                    "lineHeight": 22,
+                                                  }
+                                                }
+                                              >
+                                                rpc.gnosischain.com
+                                              </Text>
+                                              <SvgMock
+                                                color="#141618"
+                                                height={10}
+                                                name="ArrowDown"
+                                                style={
+                                                  {
+                                                    "height": 10,
+                                                    "paddingLeft": 8,
+                                                    "paddingTop": 24,
+                                                    "width": 10,
+                                                  }
+                                                }
+                                                width={10}
+                                              />
+                                            </TouchableOpacity>
                                           </View>
                                         </View>
                                       </View>
