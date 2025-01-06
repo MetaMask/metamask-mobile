@@ -31,10 +31,8 @@ import Logger from '../../../../../util/Logger';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../../util/blockaid';
 import Device from '../../../../../util/device';
-import {
-  fetchEstimatedMultiLayerL1Fee,
-  isMultiLayerFeeNetwork,
-} from '../../../../../util/networks';
+import { isMultiLayerFeeNetwork } from '../../../../../util/networks';
+import { fetchEstimatedMultiLayerL1Fee } from '../../../../../util/networks/engineNetworkUtils';
 import {
   balanceToFiat,
   fromTokenMinimalUnit,
@@ -264,10 +262,6 @@ class TransactionReview extends PureComponent {
      */
     shouldUseSmartTransaction: PropTypes.bool,
     /**
-     * Transaction simulation data
-     */
-    transactionSimulationData: PropTypes.object,
-    /**
      * Boolean that indicates if transaction simulations should be enabled
      */
     useTransactionSimulations: PropTypes.bool,
@@ -333,11 +327,14 @@ class TransactionReview extends PureComponent {
     const approveTransaction =
       isApprovalTransaction(data) && (!value || isZeroValue(value));
 
-    const actionKey = await getTransactionReviewActionKey({
-      ...transactionMetadata,
-      transaction,
-      txParams: undefined
-    }, chainId);
+    const actionKey = await getTransactionReviewActionKey(
+      {
+        ...transactionMetadata,
+        transaction,
+        txParams: undefined,
+      },
+      chainId,
+    );
 
     if (approveTransaction) {
       let contract = tokenList[safeToChecksumAddress(to)];
@@ -361,9 +358,14 @@ class TransactionReview extends PureComponent {
       approveTransaction,
     });
 
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED, {
-      is_smart_transaction: shouldUseSmartTransaction,
-    });
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties({
+          is_smart_transaction: shouldUseSmartTransaction,
+        })
+        .build(),
+    );
 
     if (isMultiLayerFeeNetwork(chainId)) {
       this.fetchEstimatedL1Fee();
@@ -382,8 +384,10 @@ class TransactionReview extends PureComponent {
     };
 
     metrics.trackEvent(
-      MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED,
-      additionalParams,
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_CONFIRM_STARTED)
+        .addProperties(additionalParams)
+        .build(),
     );
   };
 
@@ -434,7 +438,11 @@ class TransactionReview extends PureComponent {
 
   edit = () => {
     const { onModeChange, metrics } = this.props;
-    metrics.trackEvent(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION);
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.TRANSACTIONS_EDIT_TRANSACTION)
+        .build(),
+    );
     onModeChange && onModeChange('edit');
   };
 
@@ -511,9 +519,11 @@ class TransactionReview extends PureComponent {
       transaction,
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
-      transactionSimulationData,
+      transactionMetadata,
       useTransactionSimulations,
     } = this.props;
+
+    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const {
       actionKey,
@@ -607,9 +617,8 @@ class TransactionReview extends PureComponent {
                     {useTransactionSimulations && transactionSimulationData && (
                       <View style={styles.transactionSimulations}>
                         <SimulationDetails
-                          simulationData={transactionSimulationData}
+                          transaction={transactionMetadata}
                           enableMetrics
-                          transactionId={transactionId}
                         />
                       </View>
                     )}
@@ -708,8 +717,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionSimulationData:
-    selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   transactionMetadata: selectCurrentTransactionMetadata(state),

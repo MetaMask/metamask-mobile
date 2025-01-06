@@ -26,7 +26,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -39,6 +39,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   getDecimalChainId,
   getIsNetworkOnboarded,
+  isPortfolioViewEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -50,7 +51,10 @@ import {
   selectNetworkName,
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
-import { selectTokens } from '../../../selectors/tokensController';
+import {
+  selectTokens,
+  selectTokensByChainIdAndAddress,
+} from '../../../selectors/tokensController';
 import {
   NavigationProp,
   ParamListBase,
@@ -61,14 +65,14 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -79,8 +83,8 @@ import {
   getMetamaskNotificationsUnreadCount,
   getMetamaskNotificationsReadCount,
   selectIsMetamaskNotificationsEnabled,
-  selectIsProfileSyncingEnabled,
 } from '../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 
@@ -88,6 +92,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -153,7 +158,7 @@ const Wallet = ({
   const walletRef = useRef(null);
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(theme);
   const { colors } = theme;
 
@@ -176,13 +181,17 @@ const Wallet = ({
   /**
    * A string that represents the selected address
    */
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountChecksummedAddress,
-  );
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   /**
    * An array that represents the user tokens
    */
   const tokens = useSelector(selectTokens);
+  /**
+   * An array that represents the user tokens by chainId and address
+   */
+  const tokensByChainIdAndAddress = useSelector(
+    selectTokensByChainIdAndAddress,
+  );
   /**
    * Current provider ticker
    */
@@ -300,6 +309,8 @@ const Wallet = ({
   const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -317,10 +328,32 @@ const Wallet = ({
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [navigate, providerConfig.chainId, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [navigate, providerConfig.chainId, trackEvent, createEventBuilder]);
+
+  /**
+   * Handle network filter called when app is mounted and tokenNetworkFilter is empty
+   */
+  const handleNetworkFilter = useCallback(() => {
+    // TODO: Come back possibly just add the chain id of the eth
+    // network as the default state instead of doing this
+    const { PreferencesController } = Engine.context;
+    if (Object.keys(tokenNetworkFilter).length === 0) {
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+    }
+  }, [chainId, tokenNetworkFilter]);
+
+  useEffect(() => {
+    handleNetworkFilter();
+  }, [chainId, handleNetworkFilter]);
 
   /**
    * Check to see if notifications are enabled
@@ -362,7 +395,14 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
-        AccountTrackerController.refresh();
+
+        Object.values(networkConfigurations).forEach(
+          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
+            AccountTrackerController.refresh(
+              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+            );
+          },
+        );
       });
     },
     /* eslint-disable-next-line */
@@ -370,10 +410,11 @@ const Wallet = ({
   );
 
   useEffect(() => {
+    if (!selectedInternalAccount) return;
     navigation.setOptions(
       getWalletNavbarOptions(
         walletRef,
-        selectedAddress || '',
+        selectedInternalAccount,
         accountName,
         accountAvatarType,
         networkName,
@@ -389,7 +430,7 @@ const Wallet = ({
     );
     /* eslint-disable-next-line */
   }, [
-    selectedAddress,
+    selectedInternalAccount,
     accountName,
     accountAvatarType,
     navigation,
@@ -425,9 +466,11 @@ const Wallet = ({
   const onChangeTab = useCallback(
     async (obj) => {
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
-        trackEvent(MetaMetricsEvents.WALLET_TOKENS);
+        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
-        trackEvent(MetaMetricsEvents.WALLET_COLLECTIBLES);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+        );
         // Call detect nfts
         const { NftDetectionController } = Engine.context;
         try {
@@ -442,6 +485,7 @@ const Wallet = ({
       trackEvent,
       hideNftFetchingLoadingIndicator,
       showNftFetchingLoadingIndicator,
+      createEventBuilder,
     ],
   );
 
@@ -458,7 +502,9 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = [...(tokens || [])];
+    const assets = isPortfolioViewEnabled()
+      ? [...(tokensByChainIdAndAddress || [])]
+      : [...(tokens || [])];
 
     if (accountBalanceByChainId) {
       balance = renderFromWei(accountBalanceByChainId.balance);
@@ -481,6 +527,7 @@ const Wallet = ({
       } as any;
       assets.push(nativeAsset);
 
+      // TODO: Need to handle staked asset in multi chain
       if (
         accountBalanceByChainId.stakedBalance &&
         !hexToBN(accountBalanceByChainId.stakedBalance).isZero()
@@ -594,7 +641,7 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedAddress ? renderContent() : renderLoader()}
+        {selectedInternalAccount ? renderContent() : renderLoader()}
 
         {renderOnboardingWizard()}
       </View>

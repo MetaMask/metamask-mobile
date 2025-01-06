@@ -20,6 +20,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fireEvent } from '@testing-library/react-native';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('../../hooks/Ledger/useBluetooth', () => ({
   __esModule: true,
@@ -43,9 +44,9 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-}));
+jest.mock('../../../components/hooks/useMetrics');
+
+const mockTrackEvent = jest.fn();
 
 describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
@@ -70,8 +71,18 @@ describe('LedgerConfirmationModal', () => {
       error: null,
     });
 
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent: jest.fn(),
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
     });
   });
 
@@ -378,11 +389,6 @@ describe('LedgerConfirmationModal', () => {
       throw new Error('error');
     });
 
-    const trackEvent = jest.fn();
-    (useMetrics as jest.Mock).mockReturnValue({
-      trackEvent,
-    });
-
     renderWithProvider(
       <LedgerConfirmationModal
         onConfirmation={onConfirmation}
@@ -396,13 +402,16 @@ describe('LedgerConfirmationModal', () => {
 
     expect(onConfirmation).not.toHaveBeenCalled();
 
-    expect(trackEvent).toHaveBeenNthCalledWith(
+    expect(mockTrackEvent).toHaveBeenNthCalledWith(
       1,
-      MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
-      {
-        device_type: HardwareDeviceTypes.LEDGER,
-        error: 'LEDGER_ETH_APP_NOT_INSTALLED',
-      },
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.LEDGER_HARDWARE_WALLET_ERROR,
+      )
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+          error: 'LEDGER_ETH_APP_NOT_INSTALLED',
+        })
+        .build(),
     );
   });
 

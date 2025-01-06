@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useState, useEffect } from 'react';
-import { Platform, SafeAreaView, View } from 'react-native';
+import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -8,7 +8,6 @@ import { isEqual } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -22,20 +21,22 @@ import HelpText, {
 } from '../../../../component-library/components/Form/HelpText';
 
 // Internal dependencies.
-import ConnectNetworkModalSelectorsIDs from '../../../../../e2e/selectors/Modals/ConnectNetworkModal.selectors';
 import styleSheet from './NetworkConnectMultiSelector.styles';
 import { NetworkConnectMultiSelectorProps } from './NetworkConnectMultiSelector.types';
 import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectNetworkConfigurations,
   selectChainId,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
+import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -48,7 +49,6 @@ const NetworkConnectMultiSelector = ({
   initialChainId,
   selectedChainIds: propSelectedChainIds,
   isInitializedWithPermittedChains = true,
-  hideActiveNetwork = false,
 }: NetworkConnectMultiSelectorProps) => {
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
   const { navigate } = useNavigation();
@@ -80,7 +80,7 @@ const NetworkConnectMultiSelector = ({
         );
       }
     } catch (e) {
-      // noop
+      Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
 
     if (currentlyPermittedChains.length === 0 && initialChainId) {
@@ -95,8 +95,16 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
-      // Check if current network is being removed from permissions
-      if (!selectedChainIds.includes(currentChainId)) {
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        originalChainIds.includes(currentChainId);
+      const isCurrentNetworkStillPermitted =
+        selectedChainIds.includes(currentChainId);
+
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted
+      ) {
         // Find the network configuration for the first permitted chain
         const networkToSwitch = Object.entries(networkConfigurations).find(
           ([, { chainId }]) => chainId === selectedChainIds[0],
@@ -121,10 +129,9 @@ const NetworkConnectMultiSelector = ({
           PermissionKeys.permittedChains,
           CaveatTypes.restrictNetworkSwitching,
         );
-      } catch {
-        // noop
+      } catch (e) {
+        Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
-
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
           hostname,
@@ -153,6 +160,7 @@ const NetworkConnectMultiSelector = ({
     }
   }, [
     selectedChainIds,
+    originalChainIds,
     hostname,
     onUserAction,
     onNetworksSelected,
@@ -160,8 +168,8 @@ const NetworkConnectMultiSelector = ({
     networkConfigurations,
   ]);
 
-  const networks = Object.entries(networkConfigurations)
-    .map(([key, network]: [string, NetworkConfiguration]) => ({
+  const networks = Object.entries(networkConfigurations).map(
+    ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,
       name: network.name,
       rpcUrl: network.rpcEndpoints[network.defaultRpcEndpointIndex].url,
@@ -170,11 +178,8 @@ const NetworkConnectMultiSelector = ({
       imageSource: getNetworkImageSource({
         chainId: network?.chainId,
       }),
-    }))
-    .filter((network) => {
-      if (!hideActiveNetwork) return true;
-      return network.id !== currentChainId;
-    });
+    }),
+  );
 
   const onSelectNetwork = useCallback(
     (clickedChainId) => {
@@ -242,6 +247,10 @@ const NetworkConnectMultiSelector = ({
         <Checkbox
           style={styles.selectAllContainer}
           label={strings('networks.select_all')}
+          testID={ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON}
+          accessibilityLabel={
+            ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON
+          }
           isIndeterminate={areSomeNetworksSelectedButNotAll}
           isChecked={areAllNetworksSelected}
           onPress={onPress}
@@ -271,16 +280,15 @@ const NetworkConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
               onPress={handleUpdateNetworkPermissions}
+              testID={
+                NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS
+              }
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,
                 ...(isUpdateDisabled && styles.disabledOpacity),
               }}
               disabled={isUpdateDisabled}
-              {...generateTestId(
-                Platform,
-                ConnectNetworkModalSelectorsIDs.SELECT_MULTI_BUTTON,
-              )}
             />
           )}
         </View>
@@ -297,6 +305,9 @@ const NetworkConnectMultiSelector = ({
               <Button
                 variant={ButtonVariants.Primary}
                 label={strings('common.disconnect')}
+                testID={
+                  ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON
+                }
                 onPress={toggleRevokeAllNetworkPermissionsModal}
                 isDanger
                 size={ButtonSize.Lg}

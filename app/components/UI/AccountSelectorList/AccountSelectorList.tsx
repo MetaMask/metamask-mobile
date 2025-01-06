@@ -5,7 +5,6 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { Hex } from '@metamask/utils';
 
 // External dependencies.
 import { selectInternalAccounts } from '../../../selectors/accountsController';
@@ -36,7 +35,7 @@ import Routes from '../../../constants/navigation/Routes';
 // Internal dependencies.
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
-import { AccountListViewSelectorsIDs } from '../../../../e2e/selectors/AccountListView.selectors';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const AccountSelectorList = ({
@@ -82,7 +81,7 @@ const AccountSelectorList = ({
       return (
         <View
           style={styles.balancesContainer}
-          testID={`${AccountListViewSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
+          testID={`${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${address}`}
         >
           <SensitiveText
             length={SensitiveTextLength.Long}
@@ -120,7 +119,7 @@ const AccountSelectorList = ({
       isSelected,
       index,
     }: {
-      address: Hex;
+      address: string;
       imported: boolean;
       isSelected: boolean;
       index: number;

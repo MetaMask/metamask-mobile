@@ -22,13 +22,11 @@ import AppConstants from '../../../../core/AppConstants';
 import { RootState } from '../../../../reducers';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
-import {
-  selectIsProfileSyncingEnabled,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
+import { selectIsProfileSyncingEnabled } from '../../../../selectors/identity';
 
 const OptIn = () => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation();
@@ -54,10 +52,14 @@ const OptIn = () => {
     React.useState(false);
   const navigateToMainWallet = () => {
     if (!isUpdating) {
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
-        action_type: 'dismissed',
-        is_profile_syncing_enabled: isProfileSyncingEnabled,
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
+          .addProperties({
+            action_type: 'dismissed',
+            is_profile_syncing_enabled: isProfileSyncingEnabled,
+          })
+          .build(),
+      );
     }
     navigation.navigate(Routes.WALLET_VIEW);
   };
@@ -77,25 +79,29 @@ const OptIn = () => {
       if (permission !== 'authorized') {
         return;
       }
-        /**
-         * Although this is an async function, we are dispatching an action (firing & forget)
-         * to emulate optimistic UI.
-         * Setting a standard timeout to emulate loading state
-         * for 5 seconds. This only happens during the first time the user
-         * optIn to notifications.
-         */
-        enableNotifications();
-        setOptimisticLoading(true);
-        setTimeout(() => {
-          setOptimisticLoading(false);
-          navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-        }, 5000);
-      }
-      setIsUpdating(true);
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
-        action_type: 'activated',
-        is_profile_syncing_enabled: isProfileSyncingEnabled,
-      });
+      /**
+       * Although this is an async function, we are dispatching an action (firing & forget)
+       * to emulate optimistic UI.
+       * Setting a standard timeout to emulate loading state
+       * for 5 seconds. This only happens during the first time the user
+       * optIn to notifications.
+       */
+      enableNotifications();
+      setOptimisticLoading(true);
+      setTimeout(() => {
+        setOptimisticLoading(false);
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      }, 5000);
+    }
+    setIsUpdating(true);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED)
+        .addProperties({
+          action_type: 'activated',
+          is_profile_syncing_enabled: isProfileSyncingEnabled,
+        })
+        .build(),
+    );
   }, [
     basicFunctionalityEnabled,
     enableNotifications,
@@ -103,6 +109,7 @@ const OptIn = () => {
     isProfileSyncingEnabled,
     trackEvent,
     setIsUpdating,
+    createEventBuilder,
   ]);
 
   const goToLearnMore = () => {

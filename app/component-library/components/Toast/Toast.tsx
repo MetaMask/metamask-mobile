@@ -38,7 +38,7 @@ import {
   ToastVariants,
 } from './Toast.types';
 import styles from './Toast.styles';
-import { ToastSelectorsIDs } from '../../../../e2e/selectors/Modals/ToastModal.selectors';
+import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 
 const visibilityDuration = 2750;

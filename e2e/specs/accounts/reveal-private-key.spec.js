@@ -11,15 +11,15 @@ import {
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper.js';
-import TabBarComponent from '../../pages/TabBarComponent.js';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import SettingsView from '../../pages/Settings/SettingsView.js';
 import SecurityAndPrivacy from '../../pages/Settings/SecurityAndPrivacy/SecurityAndPrivacyView.js';
 import Assertions from '../../utils/Assertions.js';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors.js';
 import WalletView from '../../pages/wallet/WalletView.js';
-import AccountActionsModal from '../../pages/modals/AccountActionsModal.js';
-import AccountListView from '../../pages/AccountListView.js';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet.js';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 
 const fixtureServer = new FixtureServer();
 // These keys are from the fixture and are used to test the reveal private key functionality
@@ -41,7 +41,7 @@ describe(Regression('reveal private key'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -89,11 +89,11 @@ describe(Regression('reveal private key'), () => {
   it('reveals the correct private key for the first account in the account list ', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await AccountListView.tapEditAccountActionsAtIndex(
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
       IMPORTED_ACCOUNT_0_INDEX,
     );
 
-    await AccountActionsModal.tapShowPrivateKey();
+    await AccountActionsBottomSheet.tapShowPrivateKey();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
     await RevealPrivateKey.tapToReveal();
     await Assertions.checkIfVisible(RevealPrivateKey.container);
@@ -119,11 +119,11 @@ describe(Regression('reveal private key'), () => {
   it('reveals the correct private key for the second account in the account list which is also an imported account', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await AccountListView.tapEditAccountActionsAtIndex(
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(
       IMPORTED_ACCOUNT_1_INDEX,
     );
 
-    await AccountActionsModal.tapShowPrivateKey();
+    await AccountActionsBottomSheet.tapShowPrivateKey();
     await RevealPrivateKey.enterPasswordToRevealSecretCredential(PASSWORD);
     await RevealPrivateKey.tapToReveal();
     await Assertions.checkIfVisible(RevealPrivateKey.container);

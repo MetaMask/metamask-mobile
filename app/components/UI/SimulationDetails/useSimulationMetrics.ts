@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   SimulationData,
   SimulationErrorCode,
@@ -17,7 +17,6 @@ import { NameType } from '../../UI/Name/Name.types';
 import useLoadingTime from './useLoadingTime';
 import { calculateTotalFiat } from './FiatDisplay/FiatDisplay';
 import { BalanceChange } from './types';
-import { selectChainId } from '../../../selectors/networkController';
 
 export interface UseSimulationMetricsProps {
   balanceChanges: BalanceChange[];
@@ -50,9 +49,6 @@ export function useSimulationMetrics({
   const { loadingTime, setLoadingComplete } = useLoadingTime();
   const dispatch = useDispatch();
 
-  // TODO: Remove global network selector usage once simulations refactored.
-  const chainId = useSelector(selectChainId);
-
   if (!loading) {
     setLoadingComplete();
   }
@@ -62,7 +58,7 @@ export function useSimulationMetrics({
       value: asset.address ?? '',
       type: NameType.EthereumAddress,
       preferContractSymbol: true,
-      variation: chainId,
+      variation: asset.chainId,
     }),
   );
 
@@ -124,7 +120,7 @@ function useIncompleteAssetEvent(
   balanceChanges: BalanceChange[],
   displayNamesByAddress: { [address: string]: UseDisplayNameResponse },
 ) {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [processedAssets, setProcessedAssets] = useState<string[]>([]);
 
   for (const change of balanceChanges) {
@@ -139,17 +135,21 @@ function useIncompleteAssetEvent(
       continue;
     }
 
-    trackEvent(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED, {
-      asset_address: change.asset.address,
-      // Petnames doesn't exist in mobile so we set as unknown for now
-      asset_petname: 'unknown',
-      asset_symbol: displayName.contractDisplayName,
-      asset_type: change.asset.type,
-      fiat_conversion_available: change.fiatAmount
-        ? FiatType.Available
-        : FiatType.NotAvailable,
-      location: 'confirmation',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED)
+        .addProperties({
+          asset_address: change.asset.address,
+          // Petnames doesn't exist in mobile so we set as unknown for now
+          asset_petname: 'unknown',
+          asset_symbol: displayName.contractDisplayName,
+          asset_type: change.asset.type,
+          fiat_conversion_available: change.fiatAmount
+            ? FiatType.Available
+            : FiatType.NotAvailable,
+          location: 'confirmation',
+        })
+        .build(),
+    );
 
     setProcessedAssets([...processedAssets, assetAddress]);
   }

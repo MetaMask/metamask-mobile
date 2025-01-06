@@ -44,6 +44,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   setCurrentBottomNavRoute,
   setCurrentRoute,
+  onNavigationReady,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -610,6 +611,13 @@ const App = (props) => {
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
+
+    endTrace({ name: TraceName.NavInit });
+    endTrace({ name: TraceName.UIStartup });
+  }, [navigator]);
+
+  useEffect(() => {
+    if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
@@ -650,15 +658,9 @@ const App = (props) => {
         );
       }
     };
-    appTriggeredAuth()
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      })
-      .finally(() => {
-        endTrace({ name: TraceName.NavInit });
-
-        endTrace({ name: TraceName.UIStartup });
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -879,6 +881,11 @@ const App = (props) => {
     }
   };
 
+  /**
+   * Triggers when the navigation is ready
+   */
+  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
+
   return supressRender ? null : (
     <>
       {
@@ -904,6 +911,7 @@ const App = (props) => {
           const currentRoute = findRouteNameFromNavigatorState(state.routes);
           triggerSetCurrentRoute(currentRoute);
         }}
+        onReady={onNavigationReadyHandler}
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}

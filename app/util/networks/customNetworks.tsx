@@ -1,4 +1,6 @@
+import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -42,7 +44,7 @@ export const PopularList = [
   {
     chainId: toHex('8453'),
     nickname: 'Base',
-    rpcUrl: `https://mainnet.base.org`,
+    rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
     ticker: 'ETH',
     warning: true,
     rpcPrefs: {
@@ -98,6 +100,81 @@ export const PopularList = [
   },
 ];
 
+export const INFURA_TESTNET_CHAIN_IDS = {
+  GOERLI: '0x5',
+  LINEA_GOERLI: '0xe704',
+  SEPOLIA: '0xaa36a7',
+  HOLESKY: '0x4268',
+  LINEA_SEPOLIA: '0xe705',
+  AMOY: '0x13882',
+  BASE_SEPOLIA: '0x14a34',
+  OPTIMISM_SEPOLIA: '0xaa37dc',
+  ARBITRUM_SEPOLIA: '0x66eee',
+  PALM_TESTNET: '0x2a15c3083',
+  AVALANCHE_TESTNET: '0xa869',
+  CELO_TESTNET: '0xaef3',
+  ZK_SYNC_ERA_TESTNET: '0x12c',
+  BSC_TESTNET: '0x61',
+  MANTA_SEPOLIA: '0x138b',
+  OPBNB_TESTNET: '0x15eb',
+  SCROLL_SEPOLIA: '0x8274f',
+  UNICHAIN_SEPOLIA: '0x515',
+} as const;
+
+export const infuraChainIdsTestNets: string[] = [
+  INFURA_TESTNET_CHAIN_IDS.GOERLI,
+  INFURA_TESTNET_CHAIN_IDS.LINEA_GOERLI,
+  INFURA_TESTNET_CHAIN_IDS.SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.HOLESKY,
+  INFURA_TESTNET_CHAIN_IDS.LINEA_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.AMOY,
+  INFURA_TESTNET_CHAIN_IDS.BASE_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.OPTIMISM_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.ARBITRUM_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.PALM_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.AVALANCHE_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.CELO_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.ZK_SYNC_ERA_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.BSC_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.MANTA_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.OPBNB_TESTNET,
+  INFURA_TESTNET_CHAIN_IDS.SCROLL_SEPOLIA,
+  INFURA_TESTNET_CHAIN_IDS.UNICHAIN_SEPOLIA,
+];
+
+export const allowedInfuraHosts = [
+  // Ethereum
+  'mainnet.infura.io',
+  // Linea
+  'linea-mainnet.infura.io',
+  // Polygon
+  'polygon-mainnet.infura.io',
+  // Base
+  'base-mainnet.infura.io',
+  // Blast
+  'blast-mainnet.infura.io',
+  // Optimism
+  'optimism-mainnet.infura.io',
+  // Arbitrum
+  'arbitrum-mainnet.infura.io',
+  // Palm
+  'palm-mainnet.infura.io',
+  // Avalanche
+  'avalanche-mainnet.infura.io',
+  // Celo
+  'celo-mainnet.infura.io',
+  // ZKSync
+  'zksync-mainnet.infura.io',
+  // BSC
+  'bsc-mainnet.infura.io',
+  // Mantle
+  'mantle-mainnet.infura.io',
+  // OPBNB
+  'opbnb-mainnet.infura.io',
+  // Scroll
+  'scroll-mainnet.infura.io',
+];
+
 /**
  * List of popularList will change in the future, removing networks from the list will lead to users not
  * seeing the logo of the network anymore.
@@ -130,10 +207,27 @@ export const UnpopularNetworkList = [
   },
 ];
 
-export const CustomNetworkImgMapping: Record<`0x${string}`, string> = {
-  '0xe': require('../../images/flare-mainnet.png'), // Flare Mainnet
-  '0x13': require('../../images/songbird.png'), // Songbird Testnet
-  '0x8157': require('../../images/ape-network.png'), // ApeChain testnet
-  '0x8173': require('../../images/ape-network.png'), // ApeChain mainnet
-  '0x659': require('../../images/gravity.png'), // Gravity Alpha Mainnet
+export const NETWORK_CHAIN_ID: {
+  readonly FLARE_MAINNET: '0xe';
+  readonly SONGBIRD_TESTNET: '0x13';
+  readonly APE_CHAIN_TESTNET: '0x8157';
+  readonly APE_CHAIN_MAINNET: '0x8173';
+  readonly GRAVITY_ALPHA_MAINNET: '0x659';
+} & typeof CHAIN_IDS = {
+  FLARE_MAINNET: '0xe',
+  SONGBIRD_TESTNET: '0x13',
+  APE_CHAIN_TESTNET: '0x8157',
+  APE_CHAIN_MAINNET: '0x8173',
+  GRAVITY_ALPHA_MAINNET: '0x659',
+  ...CHAIN_IDS,
+};
+
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+export const CustomNetworkImgMapping: Record<Hex, string> = {
+  [NETWORK_CHAIN_ID.FLARE_MAINNET]: require('../../images/flare-mainnet.png'),
+  [NETWORK_CHAIN_ID.SONGBIRD_TESTNET]: require('../../images/songbird.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_TESTNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.APE_CHAIN_MAINNET]: require('../../images/ape-network.png'),
+  [NETWORK_CHAIN_ID.GRAVITY_ALPHA_MAINNET]: require('../../images/gravity.png'),
+  [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
 };

@@ -38,7 +38,6 @@ import {
   selectProviderType,
   selectRpcUrl,
 } from '../../../../../../selectors/networkController';
-import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
@@ -68,7 +67,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const chooseToContinue = () => {
@@ -113,7 +112,11 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const saveTokenNickname = () => {
@@ -128,8 +131,9 @@ const AddNickname = (props: AddNicknameProps) => {
     );
     closeModal();
     trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
-      getAnalyticsParams(),
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME)
+        .addProperties(getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -186,10 +190,7 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View
-            style={styles.bodyWrapper}
-            testID={ContractNickNameViewSelectorsIDs.CONTAINER}
-          >
+          <View style={styles.bodyWrapper}>
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -236,7 +237,6 @@ const AddNickname = (props: AddNicknameProps) => {
               style={styles.input}
               value={newNickname}
               editable={!addressHasError}
-              testID={ContractNickNameViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
@@ -254,7 +254,6 @@ const AddNickname = (props: AddNicknameProps) => {
               type={'confirm'}
               disabled={shouldDisableButton}
               onPress={saveTokenNickname}
-              testID={ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON}
             >
               {strings('nickname.save_nickname')}
             </StyledButton>

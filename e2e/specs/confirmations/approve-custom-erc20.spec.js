@@ -8,7 +8,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
@@ -48,7 +48,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestDApp.tapApproveButton();
+        await TestDApp.tapApproveERC20TokensButton();
 
         //Input custom token amount
         await Assertions.checkIfVisible(

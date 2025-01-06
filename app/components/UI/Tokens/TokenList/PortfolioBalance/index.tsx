@@ -15,10 +15,16 @@ import {
   selectTicker,
 } from '../../../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import {
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  selectPrivacyMode,
+} from '../../../../../selectors/preferencesController';
 import { RootState } from '../../../../../reducers';
 import { renderFiat } from '../../../../../util/number';
-import { isTestNet } from '../../../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isTestNet,
+} from '../../../../../util/networks';
 import { isPortfolioUrl } from '../../../../../util/url';
 import createStyles from '../../styles';
 import Button, {
@@ -39,14 +45,52 @@ import { BrowserTab } from '../../types';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
+import {
+  TotalFiatBalancesCrossChains,
+  useGetTotalFiatBalanceCrossChains,
+} from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { InternalAccount } from '@metamask/keyring-api';
+import { getChainIdsToPoll } from '../../../../../selectors/tokensController';
+import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 
 export const PortfolioBalance = () => {
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const balance = Engine.getTotalFiatAccountBalance();
+
+  const selectedInternalAccount: InternalAccount | undefined = useSelector(
+    selectSelectedInternalAccount,
+  );
+  const allChainIDs = useSelector(getChainIdsToPoll);
+  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
+    selectIsTokenNetworkFilterEqualCurrentNetwork,
+  );
+  const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
+    [selectedInternalAccount as InternalAccount],
+    isTokenNetworkFilterEqualCurrentNetwork,
+    allChainIDs,
+  );
+  const totalFiatBalancesCrossChain: TotalFiatBalancesCrossChains =
+    useGetTotalFiatBalanceCrossChains(
+      [selectedInternalAccount as InternalAccount],
+      formattedTokensWithBalancesPerChain,
+    );
+
+  const tokenFiatBalancesCrossChains =
+    totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
+      ?.tokenFiatBalancesCrossChains ?? [];
+  const totalFiatBalance =
+    totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
+      ?.totalFiatBalance ?? 0;
+  const totalTokenFiat =
+    totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
+      ?.totalTokenFiat ?? 0;
+
   const navigation = useNavigation();
-  const { trackEvent, isEnabled } = useMetrics();
+  const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const { type } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
@@ -66,9 +110,15 @@ export const PortfolioBalance = () => {
 
   let total;
   if (isOriginalNativeTokenSymbol) {
-    const tokenFiatTotal = balance?.tokenFiat ?? 0;
-    const ethFiatTotal = balance?.ethFiat ?? 0;
-    total = tokenFiatTotal + ethFiatTotal;
+    if (isPortfolioViewEnabled()) {
+      total = totalFiatBalance ?? 0;
+    } else {
+      const tokenFiatTotal = balance?.tokenFiat ?? 0;
+      const ethFiatTotal = balance?.ethFiat ?? 0;
+      total = tokenFiatTotal + ethFiatTotal;
+    }
+  } else if (isPortfolioViewEnabled()) {
+    total = totalTokenFiat ?? 0;
   } else {
     total = balance?.tokenFiat ?? 0;
   }
@@ -111,9 +161,13 @@ export const PortfolioBalance = () => {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED, {
-      portfolioUrl: AppConstants.PORTFOLIO.URL,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PORTFOLIO_LINK_CLICKED)
+        .addProperties({
+          portfolioUrl: AppConstants.PORTFOLIO.URL,
+        })
+        .build(),
+    );
   };
 
   const renderAggregatedPercentage = () => {
@@ -121,6 +175,15 @@ export const PortfolioBalance = () => {
       return null;
     }
 
+    if (isPortfolioViewEnabled()) {
+      return (
+        <AggregatedPercentageCrossChains
+          privacyMode={privacyMode}
+          totalFiatCrossChains={totalFiatBalance}
+          tokenFiatBalancesCrossChains={tokenFiatBalancesCrossChains}
+        />
+      );
+    }
     return (
       <AggregatedPercentage
         privacyMode={privacyMode}

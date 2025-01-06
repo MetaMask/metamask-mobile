@@ -27,6 +27,12 @@ export const selectConversionRate = createSelector(
   },
 );
 
+export const selectCurrencyRates = createSelector(
+  selectCurrencyRateControllerState,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currencyRates,
+);
+
 export const selectCurrentCurrency = createSelector(
   selectCurrencyRateControllerState,
   selectTicker,
@@ -35,9 +41,18 @@ export const selectCurrentCurrency = createSelector(
     currencyRateControllerState?.currentCurrency,
 );
 
-export const selectCurrencyRates = createSelector(
+export const selectConversionRateBySymbol = createSelector(
   selectCurrencyRateControllerState,
-  (
-    currencyRateControllerState: CurrencyRateState,
-  ) => currencyRateControllerState?.currencyRates,
+  (_: RootState, symbol: string) => symbol,
+  (currencyRateControllerState: CurrencyRateState, symbol: string) =>
+    symbol
+      ? currencyRateControllerState?.currencyRates?.[symbol]?.conversionRate ||
+        0
+      : 0,
+);
+
+export const selectConversionRateFoAllChains = createSelector(
+  selectCurrencyRateControllerState,
+  (currencyRateControllerState: CurrencyRateState) =>
+    currencyRateControllerState?.currencyRates,
 );
