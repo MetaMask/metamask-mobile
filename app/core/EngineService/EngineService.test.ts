@@ -110,7 +110,9 @@ describe('EngineService', () => {
     jest.clearAllMocks();
     jest.resetAllMocks();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-      getState: () => ({ engine: { backgroundState: { someController: {} } } }),
+      getState: () => ({
+        engine: { backgroundState: { KeyringController: {} } },
+      }),
     } as unknown as ReduxStore);
 
     engineService = new EngineService();
