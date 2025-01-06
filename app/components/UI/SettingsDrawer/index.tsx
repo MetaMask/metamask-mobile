@@ -20,7 +20,7 @@ import { Colors } from '../../../util/theme/models';
 import { SettingsDrawerProps } from './index.types';
 
 const isSettingsRedesignEnabled =
-  process.env.MM_SETTINGS_REDESIGN_ENABLE === 'true';
+  process.env.MM_SETTINGS_REDESIGN_ENABLED === 'true';
 
 const createStyles = (
   colors: Colors,
@@ -28,9 +28,7 @@ const createStyles = (
 ) =>
   StyleSheet.create({
     root: {
-      backgroundColor: isSettingsRedesignEnabled
-        ? colors.background.alternative
-        : colors.background.default,
+      backgroundColor: colors.background.default,
       padding: 16,
       ...(isFirst && { borderTopLeftRadius: 8, borderTopRightRadius: 8 }),
       ...(!isFirst && {
@@ -70,7 +68,7 @@ const createStyles = (
     },
     separator: {
       borderTopWidth: 1,
-      borderTopColor: colors.primary.inverse,
+      borderTopColor: colors.background.alternative,
     },
   });
 
@@ -143,6 +141,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
           </ListItemColumn>
         )}
       </ListItem>
+      {!isLast && <View style={styles.separator} />}
     </TouchableOpacity>
   );
 };

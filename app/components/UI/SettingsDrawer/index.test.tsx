@@ -29,12 +29,12 @@ describe('SettingsDrawer', () => {
 
   describe('SettingsDrawer', () => {
     it('should render correctly', () => {
-      process.env.MM_SETTINGS_REDESIGN_ENABLE = 'false';
+      process.env.MM_SETTINGS_REDESIGN_ENABLED = 'false';
       const { toJSON } = render(<SettingsDrawer {...originalProps} />);
       expect(toJSON()).toMatchSnapshot();
     });
     it('should render with redesign enabled', () => {
-      process.env.MM_SETTINGS_REDESIGN_ENABLE = 'true';
+      process.env.MM_SETTINGS_REDESIGN_ENABLED = 'true';
       const { toJSON } = render(<SettingsDrawer {...redesignProps} />);
       expect(toJSON()).toMatchSnapshot();
     });
