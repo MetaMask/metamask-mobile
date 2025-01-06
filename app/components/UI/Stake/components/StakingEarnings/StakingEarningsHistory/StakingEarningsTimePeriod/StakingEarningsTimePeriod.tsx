@@ -10,9 +10,9 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import styleSheet from './StakingEarningsTimePeriod.styles';
 
 export enum DateRange {
-  DAILY = 'daily',
-  MONTHLY = 'monthly',
-  YEARLY = 'yearly',
+  DAILY = '7D',
+  MONTHLY = 'M',
+  YEARLY = 'Y ',
 }
 
 interface TimePeriodButtonGroupProps {
@@ -31,7 +31,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
 
   const { styles } = useStyles(styleSheet, {});
 
-  const renderButton = (label: string, dateRange: DateRange) => {
+  const renderButton = (dateRange: DateRange) => {
     const handlePress = () => {
       setSelectedButton(dateRange);
       onTimePeriodChange(dateRange);
@@ -51,7 +51,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
         : styles.selectedButtonLabel; // Change text color based on selection or press
     const labelElement = (
       <Text style={labelStyle} variant={TextVariant.BodyMD}>
-        {label}
+        {dateRange}
       </Text>
     );
 
@@ -74,9 +74,9 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
 
   return (
     <View style={styles.timePeriodButtonGroupContainer}>
-      {renderButton('Daily', DateRange.DAILY)}
-      {renderButton('Monthly', DateRange.MONTHLY)}
-      {renderButton('Yearly', DateRange.YEARLY)}
+      {renderButton(DateRange.DAILY)}
+      {renderButton(DateRange.MONTHLY)}
+      {renderButton(DateRange.YEARLY)}
     </View>
   );
 };

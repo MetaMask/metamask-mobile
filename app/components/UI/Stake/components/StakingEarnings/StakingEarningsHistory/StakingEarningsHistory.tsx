@@ -19,7 +19,6 @@ import TimePeriodButtonGroup, {
   DateRange,
 } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod';
 import BigNumber from 'bignumber.js';
-// import { getUTCWeekRange } from '../../../utils/date';
 
 interface StakingEarningsHistoryProps {
   asset: TokenI;
@@ -33,7 +32,7 @@ interface TimePeriodGroupInfo {
   listGroupLabel: string;
 }
 
-const EARNINGS_HISTORY_TIME_PERIOD_DEFAULT = DateRange.DAILY;
+const EARNINGS_HISTORY_TIME_PERIOD_DEFAULT = DateRange.MONTHLY;
 const EARNINGS_HISTORY_DAYS_LIMIT = 730;
 const EARNINGS_HISTORY_CHART_BAR_LIMIT = {
   [DateRange.DAILY]: 7,
@@ -68,23 +67,6 @@ const getEntryTimePeriodGroupInfo = (
     year: 'numeric',
     timeZone: 'UTC',
   });
-  // const utcDateRange = getUTCWeekRange(dateStr);
-  // const dateRangeStartLabel = new Date(utcDateRange.start).toLocaleString(
-  //   'fullwide',
-  //   {
-  //     month: 'long',
-  //     day: 'numeric',
-  //     timeZone: 'UTC',
-  //   },
-  // );
-  // const dateRangeEndLabel = new Date(utcDateRange.end).toLocaleString(
-  //   'fullwide',
-  //   {
-  //     month: 'long',
-  //     day: 'numeric',
-  //     timeZone: 'UTC',
-  //   },
-  // );
   switch (selectedTimePeriod) {
     case DateRange.DAILY:
       timePeriodInfo.chartGroup = dateStr;
@@ -92,12 +74,6 @@ const getEntryTimePeriodGroupInfo = (
       timePeriodInfo.listGroup = dateStr;
       timePeriodInfo.listGroupLabel = dayLabel;
       break;
-    // case DateRange.WEEKLY:
-    //   timePeriodInfo.chartGroup = `${utcDateRange.start}|${utcDateRange.end}`;
-    //   timePeriodInfo.chartGroupLabel = `${dateRangeStartLabel} - ${dateRangeEndLabel}`;
-    //   timePeriodInfo.listGroup = dateStr;
-    //   timePeriodInfo.listGroupLabel = dayLabel;
-    //   break;
     case DateRange.MONTHLY:
       timePeriodInfo.chartGroup = `${newYear}-${newMonth}`;
       timePeriodInfo.chartGroupLabel = monthLabel;
@@ -120,7 +96,6 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<DateRange>(
     EARNINGS_HISTORY_TIME_PERIOD_DEFAULT,
   );
-  // const [earningsHistoryFilter, setEarningsHistoryFilter] = useState('');
 
   const {
     earningsHistory,
@@ -201,6 +176,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     const barLimit = EARNINGS_HISTORY_CHART_BAR_LIMIT[selectedTimePeriod];
     let rewardsTotalForChartTimePeriodBN = new BN(0);
     let rewardsTotalForListTimePeriodBN = new BN(0);
+    let trailingZeroHistoryListValues = 0;
     let rewardsUsdTotalForListTimePeriod = 0;
     let currentTimePeriodChartGroup: string | null = null;
     let currentTimePeriodListGroup: string | null = null;
@@ -260,14 +236,18 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
             rewardsTotalForListTimePeriodBN.add(rewardsBN);
           rewardsUsdTotalForListTimePeriod += parseFloat(entry.dailyRewardsUsd);
         } else {
-          if (rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
-            historyData.earningsHistoryListData.push({
-              label: prevLastEntryTimePeriodGroupInfo.listGroupLabel,
-              groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
-              amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-              amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
-            });
+          if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
+            trailingZeroHistoryListValues++;
+          } else {
+            trailingZeroHistoryListValues = 0;
           }
+          historyData.earningsHistoryListData.push({
+            label: prevLastEntryTimePeriodGroupInfo.listGroupLabel,
+            groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
+            amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
+            amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+          });
+
           currentTimePeriodListGroup = newListGroup;
           // reset for next time period
           rewardsTotalForListTimePeriodBN = new BN(rewardsBN);
@@ -276,20 +256,32 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       }
     }
     if (historyData.earningsHistoryChartData.earnings.length < barLimit) {
+      if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
+        trailingZeroHistoryListValues++;
+      } else {
+        trailingZeroHistoryListValues = 0;
+      }
       historyData.earningsHistoryChartData.earnings.unshift({
         value: parseFloat(
           formatRewardsWei(rewardsTotalForChartTimePeriodBN.toString(), true),
         ),
         label: lastEntryTimePeriodGroupInfo.chartGroupLabel,
       });
-      if (rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
-        historyData.earningsHistoryListData.push({
-          label: lastEntryTimePeriodGroupInfo.listGroupLabel,
-          groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
-          amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-          amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
-        });
-      }
+      historyData.earningsHistoryListData.push({
+        label: lastEntryTimePeriodGroupInfo.listGroupLabel,
+        groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
+        amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
+        amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+      });
+    }
+
+    // removes trailing zeros from history list
+    if (trailingZeroHistoryListValues > 0) {
+      historyData.earningsHistoryListData.splice(
+        historyData.earningsHistoryListData.length -
+          trailingZeroHistoryListValues,
+        trailingZeroHistoryListValues,
+      );
     }
 
     return historyData;
@@ -306,15 +298,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     setSelectedTimePeriod(newTimePeriod);
   };
 
-  const onSelectedEarning = (earning?: { value: number; label: string }) => {
-    if (!earning) {
-      // setEarningsHistoryFilter('');
-    } else {
-      // setEarningsHistoryFilter(earning.label);
-    }
-  };
-
-  return (
+  return isLoadingEarningsHistory ? null : (
     <View>
       <TimePeriodButtonGroup
         initialTimePeriod={selectedTimePeriod}
@@ -325,12 +309,10 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
         earningsTotal={earningsHistoryChartData.earningsTotal}
         earnings={earningsHistoryChartData.earnings}
         formatValue={(value) => formatRewardsNumber(value)}
-        onSelectedEarning={onSelectedEarning}
       />
       <StakingEarningsHistoryList
         earnings={earningsHistoryListData}
         symbol={asset.symbol}
-        // filterByGroupLabel={earningsHistoryFilter}
       />
     </View>
   );
