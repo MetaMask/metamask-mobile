@@ -1,23 +1,23 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { SmokeMultiChain } from '../../tags';
-import Browser from '../../pages/Browser/BrowserView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import NetworkConnectMultiSelector from '../../pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../pages/Network/NetworkNonPemittedBottomSheet';
+import TestHelpers from '../../../../helpers';
+import { SmokeMultiChainPermissions } from '../../../../tags';
+import Browser from '../../../../pages/Browser/BrowserView';
+import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import { loginToApp } from '../../../../viewHelper';
+import Assertions from '../../../../utils/Assertions';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeMultiChain('MultiChain Permissions System:'), () => {
+describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('should discard chain permission changes when navigating back without confirming', async () => {
+  it('preserves original chain permissions when user cancels modification', async () => {
     await withFixtures(
       {
         dapp: true,

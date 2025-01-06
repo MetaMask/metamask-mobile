@@ -1,24 +1,24 @@
 // 'persists the preferred asset list preference when changing networks'
 
-import { SmokeMultiChain } from '../../tags';
-import WalletView from '../../pages/wallet/WalletView';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { SmokeAssets } from '../../../tags';
+import WalletView from '../../../pages/wallet/WalletView';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../fixtures/fixture-helper';
-import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
-import { loginToApp } from '../../viewHelper';
-import Assertions from '../../utils/Assertions';
-import TokenOverview from '../../pages/wallet/TokenOverview';
-import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import TestHelpers from '../../helpers';
-import SendView from '../../pages/Send/SendView';
+} from '../../../fixtures/fixture-helper';
+import FixtureServer from '../../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../../fixtures/utils';
+import { loginToApp } from '../../../viewHelper';
+import Assertions from '../../../utils/Assertions';
+import TokenOverview from '../../../pages/wallet/TokenOverview';
+import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
+import TestHelpers from '../../../helpers';
+import SendView from '../../../pages/Send/SendView';
 
-import QuoteView from '../../pages/swaps/QuoteView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import QuoteView from '../../../pages/swaps/QuoteView';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 
 const fixtureServer = new FixtureServer();
 
@@ -26,7 +26,7 @@ const ETHEREUM_NAME = 'Ethereum';
 const AVAX_NAME = 'AVAX';
 const BNB_NAME = 'BNB';
 
-describe(SmokeMultiChain('Import Tokens'), () => {
+describe(SmokeAssets('Import Tokens'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().withPopularNetworks().build();
