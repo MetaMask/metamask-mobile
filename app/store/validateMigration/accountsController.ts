@@ -13,7 +13,7 @@ export const validateAccountsController: ValidationCheck = (rootState) => {
   const errors: string[] = [];
 
   const accountsState: AccountsControllerState | undefined =
-    rootState.engine?.backgroundState?.AccountsController;
+    rootState?.engine?.backgroundState?.AccountsController;
 
   // If it's missing altogether, return an error
   if (!accountsState) {
