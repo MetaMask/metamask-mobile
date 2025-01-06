@@ -35,6 +35,7 @@ import { PermissionKeys } from '../../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
+import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
 
 const NetworkConnectMultiSelector = ({
@@ -94,8 +95,16 @@ const NetworkConnectMultiSelector = ({
     if (onNetworksSelected) {
       onNetworksSelected(selectedChainIds);
     } else {
-      // Check if current network is being removed from permissions
-      if (!selectedChainIds.includes(currentChainId)) {
+      // Check if current network was originally permitted and is now being removed
+      const wasCurrentNetworkOriginallyPermitted =
+        originalChainIds.includes(currentChainId);
+      const isCurrentNetworkStillPermitted =
+        selectedChainIds.includes(currentChainId);
+
+      if (
+        wasCurrentNetworkOriginallyPermitted &&
+        !isCurrentNetworkStillPermitted
+      ) {
         // Find the network configuration for the first permitted chain
         const networkToSwitch = Object.entries(networkConfigurations).find(
           ([, { chainId }]) => chainId === selectedChainIds[0],
@@ -123,7 +132,6 @@ const NetworkConnectMultiSelector = ({
       } catch (e) {
         Logger.error(e as Error, 'Error checking for permitted chains caveat');
       }
-
       if (hasPermittedChains) {
         Engine.context.PermissionController.updateCaveat(
           hostname,
@@ -152,6 +160,7 @@ const NetworkConnectMultiSelector = ({
     }
   }, [
     selectedChainIds,
+    originalChainIds,
     hostname,
     onUserAction,
     onNetworksSelected,
@@ -271,6 +280,9 @@ const NetworkConnectMultiSelector = ({
               variant={ButtonVariants.Primary}
               label={strings('networks.update')}
               onPress={handleUpdateNetworkPermissions}
+              testID={
+                NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS
+              }
               size={ButtonSize.Lg}
               style={{
                 ...styles.buttonPositioning,

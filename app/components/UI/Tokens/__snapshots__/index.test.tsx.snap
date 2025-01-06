@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Tokens Portfolio View should match the snapshot when portfolio view is enabled   1`] = `
+exports[`Tokens Portfolio View should match the snapshot when portfolio view is enabled 1`] = `
 <View
   style={
     {
@@ -356,6 +356,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 "paddingHorizontal": 16,
                               }
                             }
+                            testID="token-network-filter"
                           >
                             <Text
                               numberOfLines={1}

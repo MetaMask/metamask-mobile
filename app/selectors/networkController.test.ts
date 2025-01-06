@@ -35,8 +35,8 @@ describe('networkSelectors', () => {
               ],
               blockExplorerUrls: ['https://etherscan.io'],
             },
-            '0x2': {
-              chainId: '0x2',
+            '0x89': {
+              chainId: '0x89',
               nativeCurrency: 'MATIC',
               name: 'Polygon',
               rpcEndpoints: [
@@ -65,7 +65,7 @@ describe('networkSelectors', () => {
 
   it('selectProviderConfig should return the provider config for the selected network', () => {
     expect(selectProviderConfig(mockState)).toEqual({
-      chainId: '0x2',
+      chainId: '0x89',
       ticker: 'MATIC',
       rpcPrefs: { blockExplorerUrl: 'https://polygonscan.com' },
       type: 'rpc',
@@ -80,7 +80,7 @@ describe('networkSelectors', () => {
   });
 
   it('selectChainId should return the chainId of the provider config', () => {
-    expect(selectChainId(mockState)).toBe('0x2');
+    expect(selectChainId(mockState)).toBe('0x89');
   });
 
   it('selectProviderType should return the type of the provider config', () => {
@@ -110,21 +110,31 @@ describe('networkSelectors', () => {
     expect(selectNetworkClientId(mockState)).toBe('custom-network');
   });
 
-  it('selectIsAllNetworks should return false if tokenNetworkFilter length does not match networkConfigurations length', () => {
-    const tokenNetworkFilter = { '0x1': 'true' };
+  it('selectIsAllNetworks should return false if tokenNetworkFilter length is greater than 1', () => {
     expect(
-      selectIsAllNetworks.resultFunc(
-        mockState.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-        tokenNetworkFilter,
-      ),
+      selectIsAllNetworks({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+            },
+            PreferencesController: {
+              ...mockState.engine.backgroundState.PreferencesController,
+              tokenNetworkFilter: { '0x1': 'true' },
+            },
+          },
+        },
+      }),
     ).toBe(false);
   });
 
   it('selectNetworkConfigurationByChainId should return the network configuration for a given chainId', () => {
-    expect(selectNetworkConfigurationByChainId(mockState, '0x2')).toEqual(
+    expect(selectNetworkConfigurationByChainId(mockState, '0x89')).toEqual(
       mockState.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId['0x2'],
+        .networkConfigurationsByChainId['0x89'],
     );
   });
 
@@ -137,7 +147,7 @@ describe('networkSelectors', () => {
     noMatchState.engine.backgroundState.NetworkController.selectedNetworkClientId =
       'unknown-network';
     expect(selectProviderConfig(noMatchState)).toEqual({
-      chainId: '0x2',
+      chainId: '0x89',
       id: 'custom-network',
       nickname: 'Polygon',
       rpcPrefs: {

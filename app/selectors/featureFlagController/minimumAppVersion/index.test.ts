@@ -45,7 +45,7 @@ describe('minimumAppVersion Feature flag: selectMobileMinimumVersions selector',
   it('returns default values when undefined RemoteFeatureFlagController state', () => {
     testFlagValues(
       selectMobileMinimumVersions(mockedUndefinedFlagsState),
-      defaultValues
+        defaultValues
     );
   });
 
