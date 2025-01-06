@@ -145,6 +145,14 @@ exports[`DefaultSettings should render correctly 1`] = `
           </View>
         </View>
       </View>
+      <View
+        style={
+          {
+            "borderTopColor": "#f2f4f6",
+            "borderTopWidth": 1,
+          }
+        }
+      />
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
@@ -241,6 +249,14 @@ exports[`DefaultSettings should render correctly 1`] = `
           </View>
         </View>
       </View>
+      <View
+        style={
+          {
+            "borderTopColor": "#f2f4f6",
+            "borderTopWidth": 1,
+          }
+        }
+      />
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
@@ -337,6 +353,14 @@ exports[`DefaultSettings should render correctly 1`] = `
           </View>
         </View>
       </View>
+      <View
+        style={
+          {
+            "borderTopColor": "#f2f4f6",
+            "borderTopWidth": 1,
+          }
+        }
+      />
     </TouchableOpacity>
   </View>
 </RCTScrollView>

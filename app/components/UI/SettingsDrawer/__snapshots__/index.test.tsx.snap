@@ -96,6 +96,14 @@ exports[`SettingsDrawer SettingsDrawer should render correctly 1`] = `
       </View>
     </View>
   </View>
+  <View
+    style={
+      {
+        "borderTopColor": "#f2f4f6",
+        "borderTopWidth": 1,
+      }
+    }
+  />
 </TouchableOpacity>
 `;
 
@@ -195,5 +203,13 @@ exports[`SettingsDrawer SettingsDrawer should render with redesign enabled 1`] =
       </View>
     </View>
   </View>
+  <View
+    style={
+      {
+        "borderTopColor": "#f2f4f6",
+        "borderTopWidth": 1,
+      }
+    }
+  />
 </TouchableOpacity>
 `;
