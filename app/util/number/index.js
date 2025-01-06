@@ -482,6 +482,7 @@ export function addCurrencySymbol(
   currencyCode,
   extendDecimals = false,
 ) {
+  const prefix = parseFloat(amount) < 0 ? '-' : '';
   if (extendDecimals) {
     if (isNumberScientificNotationWhenString(amount)) {
       amount = amount.toFixed(18);
@@ -512,17 +513,22 @@ export function addCurrencySymbol(
     amount = parseFloat(amount).toFixed(2);
   }
 
+  const amountString = amount.toString();
+  const absAmountStr = amountString.startsWith('-')
+    ? amountString.slice(1) // Remove the first character if it's a '-'
+    : amountString;
+
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[currencyCode]}${absAmountStr}`;
   }
 
   const lowercaseCurrencyCode = currencyCode?.toLowerCase();
 
   if (currencySymbols[lowercaseCurrencyCode]) {
-    return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[lowercaseCurrencyCode]}${absAmountStr}`;
   }
 
-  return `${amount} ${currencyCode}`;
+  return `${prefix}${absAmountStr} ${currencyCode}`;
 }
 
 /**

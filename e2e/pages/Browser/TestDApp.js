@@ -40,6 +40,12 @@ class TestDApp {
       TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
     );
   }
+  get invalidSignature() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      'signInvalidType',
+    );
+  }
 
   get ApproveERC721TokenButton() {
     return Matchers.getElementByWebID(
@@ -101,7 +107,7 @@ class TestDApp {
   get nftSetApprovalForAllButton() {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_BUTTON_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID,
     );
   }
 
@@ -109,6 +115,27 @@ class TestDApp {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
+    );
+  }
+
+  get erc1155SetApprovalForAllButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID,
+    );
+  }
+
+  get sendFailingTransactionButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
+    );
+  }
+
+  get erc1155BatchTransferButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
     );
   }
 
@@ -123,7 +150,9 @@ class TestDApp {
   async tapApproveERC721TokenButton() {
     await this.tapButton(this.ApproveERC721TokenButton);
   }
-
+  async tapInvalidSigButton() {
+    await this.tapButton(this.invalidSignature);
+  }
   async tapIncreaseAllowanceButton() {
     await this.tapButton(this.increaseAllowanceButton);
   }
@@ -162,12 +191,24 @@ class TestDApp {
     await this.tapButton(this.nftSetApprovalForAllButton);
   }
 
+  async tapERC1155SetApprovalForAllButton() {
+    await this.tapButton(this.erc1155SetApprovalForAllButton);
+  }
+
   async tapConfirmButton() {
     await Gestures.tap(this.confirmButtonText, 0);
   }
 
   async tapApproveButton() {
     await Gestures.tap(this.approveButtonText, 0);
+  }
+
+  async tapSendFailingTransactionButton() {
+    await this.tapButton(this.sendFailingTransactionButton);
+  }
+
+  async tapERC1155BatchTransferButton() {
+    await this.tapButton(this.erc1155BatchTransferButton);
   }
 
   async tapButton(elementId) {

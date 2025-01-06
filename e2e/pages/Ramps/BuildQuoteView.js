@@ -22,6 +22,10 @@ class BuildQuoteView {
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
   }
+  async tapDefaultToken(token) {
+    const tokenName = await Matchers.getElementByText(token);
+    await Gestures.waitAndTap(tokenName);
+  }
 }
 
 export default new BuildQuoteView();

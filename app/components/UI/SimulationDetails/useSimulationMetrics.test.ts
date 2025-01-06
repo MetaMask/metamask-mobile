@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  CHAIN_IDS,
   SimulationData,
   SimulationErrorCode,
 } from '@metamask/transaction-controller';
@@ -23,7 +22,6 @@ import {
   useSimulationMetrics,
 } from './useSimulationMetrics';
 import useLoadingTime from './useLoadingTime';
-import { selectChainId } from '../../../selectors/networkController';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('react-redux', () => ({
@@ -89,7 +87,6 @@ describe('useSimulationMetrics', () => {
   const useDisplayNamesMock = jest.mocked(useDisplayNames);
   const useLoadingTimeMock = jest.mocked(useLoadingTime);
   const setLoadingCompleteMock = jest.fn();
-  const selectChainIdMock = jest.mocked(selectChainId);
 
   function expectUpdateTransactionMetricsCalled(
     {
@@ -141,7 +138,6 @@ describe('useSimulationMetrics', () => {
       loadingTime: LOADING_TIME_MOCK,
       setLoadingComplete: setLoadingCompleteMock,
     });
-    selectChainIdMock.mockReturnValue(CHAIN_IDS.MAINNET);
   });
 
   describe('updates transaction simulation metrics', () => {
