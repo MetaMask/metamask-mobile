@@ -151,4 +151,64 @@ describe('validateAccountsController', () => {
       `${LOG_TAG}: AccountsController state is missing in engine backgroundState.`,
     ]);
   });
+
+  it('does not throw with malformed state', () => {
+    // Test with various malformed states
+    const testStates = [
+      undefined,
+      null,
+      {},
+      { engine: undefined },
+      { engine: null },
+      { engine: { backgroundState: undefined } },
+      { engine: { backgroundState: null } },
+      { engine: { backgroundState: { AccountsController: undefined } } },
+      { engine: { backgroundState: { AccountsController: null } } },
+      {
+        engine: {
+          backgroundState: {
+            AccountsController: { internalAccounts: undefined },
+          },
+        },
+      },
+      {
+        engine: {
+          backgroundState: { AccountsController: { internalAccounts: null } },
+        },
+      },
+      {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: undefined,
+                selectedAccount: undefined,
+              },
+            },
+          },
+        },
+      },
+      {
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              internalAccounts: { accounts: null, selectedAccount: null },
+            },
+          },
+        },
+      },
+    ];
+
+    testStates.forEach((state) => {
+      // Verify no throw
+      expect(() => {
+        validateAccountsController(state as unknown as RootState);
+      }).not.toThrow();
+
+      // Verify returns errors array
+      const errors = validateAccountsController(state as unknown as RootState);
+      expect(Array.isArray(errors)).toBe(true);
+      expect(errors.length).toBeGreaterThan(0);
+    });
+  });
 });

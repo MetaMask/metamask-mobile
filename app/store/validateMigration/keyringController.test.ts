@@ -74,4 +74,36 @@ describe('validateKeyringController', () => {
       `${LOG_TAG}: KeyringController state is missing in engine backgroundState.`,
     ]);
   });
+
+  it('does not throw with malformed state', () => {
+    // Test with various malformed states
+    const testStates = [
+      undefined,
+      null,
+      {},
+      { engine: undefined },
+      { engine: { backgroundState: undefined } },
+      { engine: { backgroundState: { KeyringController: undefined } } },
+      { engine: { backgroundState: { KeyringController: {} } } },
+      {
+        engine: {
+          backgroundState: {
+            KeyringController: { vault: undefined, keyrings: undefined },
+          },
+        },
+      },
+    ];
+
+    testStates.forEach((state) => {
+      // Verify no throw
+      expect(() => {
+        validateKeyringController(state as unknown as RootState);
+      }).not.toThrow();
+
+      // Verify returns errors array
+      const errors = validateKeyringController(state as unknown as RootState);
+      expect(Array.isArray(errors)).toBe(true);
+      expect(errors.length).toBeGreaterThan(0);
+    });
+  });
 });

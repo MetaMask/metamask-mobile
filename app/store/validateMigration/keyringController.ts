@@ -12,7 +12,7 @@ export const validateKeyringController: ValidationCheck = (rootState) => {
   const errors: string[] = [];
 
   const keyringControllerState: KeyringControllerState | undefined =
-    rootState.engine?.backgroundState?.KeyringController;
+    rootState?.engine?.backgroundState?.KeyringController;
 
   // If it's missing altogether, return an error
   if (!keyringControllerState) {
