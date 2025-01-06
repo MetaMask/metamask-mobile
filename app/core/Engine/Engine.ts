@@ -2157,7 +2157,10 @@ export default {
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null) {
+  init(
+    state: Partial<EngineState> | undefined,
+    keyringState: KeyringControllerState | null = null,
+  ) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;
