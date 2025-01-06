@@ -35,7 +35,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { TraceName, endTrace } from '../../../util/trace';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
