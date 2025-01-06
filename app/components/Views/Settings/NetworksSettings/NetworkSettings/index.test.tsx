@@ -815,7 +815,7 @@ describe('NetworkSettings', () => {
       expect(wrapper.state('rpcUrls')[0].name).toBe('New RPC');
     });
 
-    it('should add RPC URL through modal and update state when addMode is true', async () => {
+    it('adds add RPC URL through modal and update state when addMode is true', async () => {
       wrapper.setState({ addMode: true });
 
       const instance = wrapper.instance();
@@ -840,7 +840,7 @@ describe('NetworkSettings', () => {
       );
     });
 
-    it('should correctly add Block Explorer URL through modal and update state when addMode is true', async () => {
+    it('adds correctly add Block Explorer URL through modal and update state when addMode is true', async () => {
       wrapper.setState({ addMode: true });
 
       const instance = wrapper.instance();
