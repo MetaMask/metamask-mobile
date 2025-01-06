@@ -266,16 +266,14 @@ class Confirm extends PureComponent {
      * Boolean that indicates if smart transaction should be used
      */
     shouldUseSmartTransaction: PropTypes.bool,
-
     /**
      * Object containing transaction metrics by id
      */
     transactionMetricsById: PropTypes.object,
-
     /**
-     * Object containing the transaction simulation data
+     * Transaction metadata from the transaction controller
      */
-    transactionSimulationData: PropTypes.object,
+    transactionMetadata: PropTypes.object,
     /**
      * Update transaction metrics
      */
@@ -957,8 +955,11 @@ class Confirm extends PureComponent {
       navigation,
       resetTransaction,
       shouldUseSmartTransaction,
-      transactionSimulationData: { isUpdatedAfterSecurityCheck } = {},
+      transactionMetadata,
     } = this.props;
+
+    const transactionSimulationData = transactionMetadata?.simulationData;
+    const { isUpdatedAfterSecurityCheck } = transactionSimulationData ?? {};
 
     const { transactionConfirmed, isChangeInSimulationModalShown } = this.state;
     if (transactionConfirmed) return;
@@ -1354,7 +1355,7 @@ class Confirm extends PureComponent {
       gasEstimateType,
       isNativeTokenBuySupported,
       shouldUseSmartTransaction,
-      transactionSimulationData,
+      transactionMetadata,
       transactionState,
       useTransactionSimulations,
     } = this.props;
@@ -1387,6 +1388,7 @@ class Confirm extends PureComponent {
     const isLedgerAccount = isHardwareAccount(fromSelectedAddress, [
       ExtendedKeyringTypes.ledger,
     ]);
+    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const isTestNetwork = isTestNet(chainId);
 
@@ -1458,9 +1460,8 @@ class Confirm extends PureComponent {
           {useTransactionSimulations && transactionState?.id && (
             <View style={styles.simulationWrapper}>
               <SimulationDetails
+                transaction={transactionMetadata}
                 enableMetrics
-                simulationData={transactionSimulationData}
-                transactionId={transactionState.id}
               />
             </View>
           )}
@@ -1603,8 +1604,7 @@ const mapStateToProps = (state) => ({
   ),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
   transactionMetricsById: selectTransactionMetrics(state),
-  transactionSimulationData:
-    selectCurrentTransactionMetadata(state)?.simulationData,
+  transactionMetadata: selectCurrentTransactionMetadata(state),
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   maxValueMode: state.transaction.maxValueMode,
