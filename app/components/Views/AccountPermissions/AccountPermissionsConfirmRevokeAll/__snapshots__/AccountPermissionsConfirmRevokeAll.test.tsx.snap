@@ -126,7 +126,6 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
         <View
           style={
             {
-              "alignItems": "center",
               "backgroundColor": "#ffffff",
               "flexDirection": "row",
               "padding": 16,

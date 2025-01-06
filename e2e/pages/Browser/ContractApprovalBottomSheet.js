@@ -48,6 +48,10 @@ class ContractApprovalBottomSheet {
     );
   }
 
+  get confirmButton() {
+    return Matchers.getElementByText(ContractApprovalBottomSheetSelectorsText.CONFIRM);
+  }
+
   async tapAddNickName() {
     await Gestures.waitAndTap(this.addNickName);
   }
@@ -61,6 +65,10 @@ class ContractApprovalBottomSheet {
 
   async tapApproveButton() {
     await Gestures.waitAndTap(this.approveButton);
+  }
+
+  async tapConfirmButton() {
+    await Gestures.waitAndTap(this.confirmButton);
   }
 
   async tapToCopyContractAddress() {

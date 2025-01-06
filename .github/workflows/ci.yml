@@ -48,6 +48,17 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+  git-safe-dependencies:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup --node
+      - name: Run @lavamoat/git-safe-dependencies
+        run: yarn git-safe-dependencies
   scripts:
     runs-on: ubuntu-20.04
     strategy:
