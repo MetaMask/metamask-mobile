@@ -160,6 +160,7 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_ramps_android: {}
       # - run_tag_smoke_swaps_ios: {}
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -182,6 +183,7 @@ stages:
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_ramps_android: {}
       # - run_tag_smoke_identity_ios: {}
       # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
@@ -699,6 +701,16 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_ramps_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
+      - TEST_SUITE_TAG: '.*SmokeRamps.*'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     before_run:
       - code_setup
@@ -970,7 +982,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
+                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
                 ln -s $(which ccache) /usr/local/bin/gcc
                 ln -s $(which ccache) /usr/local/bin/g++
                 ln -s $(which ccache) /usr/local/bin/cc
@@ -1781,16 +1793,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.37.0
+      VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1512
+      VERSION_NUMBER: 1520
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.37.0
+      FLASK_VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1512
+      FLASK_VERSION_NUMBER: 1520
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
