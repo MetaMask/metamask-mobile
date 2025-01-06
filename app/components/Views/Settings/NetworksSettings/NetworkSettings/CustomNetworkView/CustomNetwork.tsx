@@ -3,6 +3,7 @@ import NetworkModals from '../../../../../UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
+import { toHex } from '@metamask/controller-utils';
 import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
 import { useNavigation } from '@react-navigation/native';
@@ -46,7 +47,7 @@ const CustomNetwork = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (savedNetwork: any) =>
-          savedNetwork.chainId === networkConfiguration.chainId,
+          toHex(savedNetwork.chainId) === toHex(networkConfiguration.chainId),
       );
       return {
         ...networkConfiguration,

@@ -2,8 +2,10 @@ import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import Engine from '../../../core/Engine';
 import {
+  selectAllPopularNetworkConfigurations,
   selectChainId,
-  selectNetworkConfigurations,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { isPortfolioViewEnabled } from '../../../util/networks';
@@ -14,16 +16,26 @@ import {
 
 const useTokenListPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
   const currentChainId = useSelector(selectChainId);
+  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   // Selectors returning state updated by the polling
   const tokenList = useSelector(selectTokenList);
   const tokenListByChain = useSelector(selectERC20TokensByChain);
 
-  const chainIdsToPoll = isPortfolioViewEnabled()
-    ? chainIds ?? Object.keys(networkConfigurations)
-    : [currentChainId];
+  // if all networks are selected, poll all popular networks
+  const filteredChainIds =
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? Object.values(networkConfigurationsPopularNetworks).map(
+          (network) => network.chainId,
+        )
+      : [currentChainId];
+
+  const chainIdsToPoll = chainIds ?? filteredChainIds;
 
   const { TokenListController } = Engine.context;
 
