@@ -49,7 +49,7 @@ describe(
 
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_ONE, PASSWORD_ONE);
       await AesCryptoTestForm.decrypt(PASSWORD_ONE);
-      await Assertions.checkIfElementHasLabel(
+      await Assertions.elementHasLabel(
         AesCryptoTestForm.decryptResponse,
         DATA_TO_ENCRYPT_ONE,
       );
@@ -57,7 +57,7 @@ describe(
       // encrypt and decrypt with password second piece of data
       await AesCryptoTestForm.encrypt(DATA_TO_ENCRYPT_TWO, PASSWORD_TWO);
       await AesCryptoTestForm.decrypt(PASSWORD_TWO);
-      await Assertions.checkIfElementHasLabel(
+      await Assertions.elementHasLabel(
         AesCryptoTestForm.decryptResponse,
         DATA_TO_ENCRYPT_TWO,
       );
