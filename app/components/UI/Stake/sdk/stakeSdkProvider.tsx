@@ -64,7 +64,7 @@ export const StakeSDKProvider: React.FC<
       stakingType: sdkType,
       endpointEnv: StakingApiEnvironments.LOCAL,
     });
-    console.log(sdk, 'sdk');
+
     sdk.pooledStakingContract.connectSignerOrProvider(provider);
 
     return sdk;
