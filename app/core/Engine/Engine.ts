@@ -2152,8 +2152,8 @@ export default {
     return instance.resetState();
   },
 
-  destroyEngine() {
-    instance?.destroyEngineInstance();
+  destroyEngine: async () => {
+    await instance?.destroyEngineInstance();
     instance = null;
   },
 
