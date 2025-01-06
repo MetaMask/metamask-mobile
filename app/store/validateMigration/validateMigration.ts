@@ -1,24 +1,14 @@
 import Logger from '../../util/Logger';
 import { RootState } from '../../reducers';
-import { LOG_TAG, ValidationCheck } from './validateMigration.types';
+import { ValidationCheck } from './validateMigration.types';
 
 // checks
 import { validateAccountsController } from './accountsController';
 import { validateKeyringController } from './keyringController';
-
-/**
- * Verifies that the engine is initialized
- */
-const checkEngineInitialized: ValidationCheck = (state) => {
-  const errors: string[] = [];
-  if (!state.engine?.backgroundState) {
-    errors.push(`${LOG_TAG}: Engine backgroundState not found.`);
-  }
-  return errors;
-};
+import { validateEngineInitialized } from './engineBackgroundState';
 
 const checks: ValidationCheck[] = [
-  checkEngineInitialized,
+  validateEngineInitialized,
   validateAccountsController,
   validateKeyringController,
 ];
