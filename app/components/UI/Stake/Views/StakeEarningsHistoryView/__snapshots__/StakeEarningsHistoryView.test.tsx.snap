@@ -1,0 +1,931 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "backgroundColor": "#ffffff",
+      "flexGrow": 1,
+      "justifyContent": "space-between",
+      "paddingHorizontal": 16,
+      "paddingTop": 8,
+    }
+  }
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+>
+  <View>
+    <View>
+      <View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "padding": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "#0376c9",
+                "borderRadius": 8,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              7D
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376c9",
+                "borderRadius": 8,
+                "borderWidth": 0,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#9fa6ae",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              M
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "transparent",
+                "borderColor": "#0376c9",
+                "borderRadius": 8,
+                "borderWidth": 0,
+                "flexDirection": "row",
+                "height": 40,
+                "justifyContent": "center",
+                "marginLeft": 8,
+                "marginRight": 8,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#9fa6ae",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Y 
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          onLayout={[Function]}
+        >
+          <View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "paddingBottom": 16,
+                  "paddingTop": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c8234",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 24,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 32,
+                  }
+                }
+              >
+                0.2
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 10,
+                    "fontWeight": "500",
+                    "letterSpacing": 0.25,
+                    "lineHeight": 16,
+                  }
+                }
+              >
+                Lifetime earnings
+              </Text>
+            </View>
+            <View
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "height": 112,
+                    },
+                  ]
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "paddingTop": 24,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            testID="label"
+          >
+            Payout history
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                January 2
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0.18
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  6000.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                January 1
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0.8
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  3000.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                December 31
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                December 30
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                December 29
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                December 28
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "flex-start",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingVertical": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "padding": 10,
+                  "width": "50%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                December 27
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                  "justifyContent": "space-between",
+                  "width": "50%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#1c8234",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  + 
+                  0
+                   
+                  ETH
+                </Text>
+              </View>
+              <View>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 12,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 20,
+                    }
+                  }
+                >
+                  0.00
+                   USD
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;

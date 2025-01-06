@@ -8,6 +8,7 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
+import { WalletViewSelectorsIDs } from '../../../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 interface StakingEarningsHistoryButtonProps {
   asset: TokenI;
@@ -28,6 +29,7 @@ const StakingEarningsHistoryButton = ({
   return (
     <View>
       <Button
+        testID={WalletViewSelectorsIDs.STAKE_EARNINGS_HISTORY_BUTTON}
         width={ButtonWidthTypes.Full}
         variant={ButtonVariants.Secondary}
         label={strings('stake.view_earnings_history')}
