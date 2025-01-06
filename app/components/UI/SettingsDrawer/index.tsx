@@ -141,7 +141,9 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
           </ListItemColumn>
         )}
       </ListItem>
-      {!isLast && <View style={styles.separator} />}
+      {!isLast && isSettingsRedesignEnabled && (
+        <View style={styles.separator} />
+      )}
     </TouchableOpacity>
   );
 };
