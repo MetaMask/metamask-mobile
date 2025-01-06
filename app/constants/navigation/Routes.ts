@@ -3,7 +3,6 @@ const Routes = {
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_URL_MODAL: 'BrowserUrlModal',
   BROWSER_VIEW: 'BrowserView',
-  PROFILE_VIEW: 'ProfileView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -78,9 +77,6 @@ const Routes = {
   ACCOUNT_BACKUP: {
     STEP_1_B: 'AccountBackupStep1B',
   },
-  PROFILE: {
-    PROFILE_SETTINGS: 'ProfileSettings',
-  },
   SETTINGS: {
     ADVANCED_SETTINGS: 'AdvancedSettings',
     CHANGE_PASSWORD: 'ResetPassword',
@@ -90,6 +86,9 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    CONTACTS: 'ContactsSettings',
+    SETTINGS: 'Settings',
+    PROFILE_SETTINGS: 'ProfileSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

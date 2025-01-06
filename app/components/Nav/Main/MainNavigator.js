@@ -7,7 +7,6 @@ import Browser from '../../Views/Browser';
 import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
-import Profile from '../../Views/Profile';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -91,6 +90,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import Profile from '../../Views/Profile';
 import { isSettingsRedesignEnabled } from '../../Views/Profile/index.constants';
 
 const Stack = createStackNavigator();
@@ -259,7 +259,19 @@ const NotificationsOptInStack = () => (
 );
 
 const SettingsFlow = () => (
-  <Stack.Navigator initialRouteName={'Settings'}>
+  <Stack.Navigator
+    initialRouteName={
+      isSettingsRedesignEnabled
+        ? Routes.SETTINGS.PROFILE_SETTINGS
+        : Routes.SETTINGS.SETTINGS
+    }
+  >
+    <Stack.Screen
+      name={Routes.SETTINGS.PROFILE_SETTINGS}
+      component={Profile}
+      options={Profile.navigationOptions}
+    />
+
     <Stack.Screen
       name="Settings"
       component={Settings}
@@ -401,16 +413,6 @@ const SettingsFlow = () => (
   </Stack.Navigator>
 );
 
-const ProfileFlow = () => (
-  <Stack.Navigator initialRouteName={Routes.PROFILE.PROFILE_SETTINGS}>
-    <Stack.Screen
-      name={Routes.PROFILE.PROFILE_SETTINGS}
-      component={Profile}
-      options={Settings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const drawerRef = useRef(null);
@@ -495,7 +497,9 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
     },
     settings: {
-      tabBarIconKey: TabBarIconKey.Setting,
+      tabBarIconKey: isSettingsRedesignEnabled
+        ? TabBarIconKey.Profile
+        : TabBarIconKey.Setting,
       callback: () => {
         trackEvent(
           createEventBuilder(
@@ -504,18 +508,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.SETTINGS_VIEW,
-      unmountOnBlur: true,
-    },
-    profile: {
-      tabBarIconKey: TabBarIconKey.Profile,
-      callback: () => {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
-          ).build(),
-        );
-      },
-      rootScreenName: Routes.PROFILE_VIEW,
       unmountOnBlur: true,
     },
   };
@@ -580,15 +572,9 @@ const HomeTabs = () => {
           />
 
           <Tab.Screen
-            name={
-              isSettingsRedesignEnabled
-                ? Routes.PROFILE_VIEW
-                : Routes.SETTINGS_VIEW
-            }
-            options={
-              isSettingsRedesignEnabled ? options.profile : options.settings
-            }
-            component={isSettingsRedesignEnabled ? ProfileFlow : SettingsFlow}
+            name={Routes.SETTINGS_VIEW}
+            options={options.settings}
+            component={SettingsFlow}
           />
         </Tab.Navigator>
       </Drawer>
