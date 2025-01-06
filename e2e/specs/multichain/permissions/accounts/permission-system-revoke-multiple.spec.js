@@ -11,17 +11,17 @@ import { loginToApp } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
-import { SmokeMultiChain } from '../../../../tags';
+import { SmokeMultiChainPermissions } from '../../../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeMultiChain('Account Permission Management'), () => {
+describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('allows connecting multiple accounts and revoking all permissions simultaneously', async () => {
+  it('revokes all account permissions simultaneously', async () => {
     await withFixtures(
       {
         dapp: true,
