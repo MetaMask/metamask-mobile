@@ -64,4 +64,24 @@ describe('validatePostMigrationState', () => {
     // Verify no errors were logged
     expect(Logger.error).not.toHaveBeenCalled();
   });
+
+  it('does not throw when validation checks fail', () => {
+    const mockState = {} as RootState;
+    // Mock all validation checks to return errors
+    const mockErrors = ['Error 1', 'Error 2', 'Error 3'];
+    (validateEngineInitialized as jest.Mock).mockReturnValue([mockErrors[0]]);
+    (validateAccountsController as jest.Mock).mockReturnValue([mockErrors[1]]);
+    (validateKeyringController as jest.Mock).mockReturnValue([mockErrors[2]]);
+
+    // Verify that calling validatePostMigrationState does not throw
+    expect(() => validatePostMigrationState(mockState)).not.toThrow();
+
+    // Verify that errors were logged but execution continued
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        message: expect.stringContaining(mockErrors.join(', ')),
+      }),
+    );
+  });
 });
