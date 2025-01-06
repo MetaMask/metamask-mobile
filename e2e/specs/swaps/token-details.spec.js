@@ -6,7 +6,6 @@ import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
 } from '../../viewHelper';
-import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
 import TestHelpers from '../../helpers';
@@ -46,8 +45,9 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Sepolia test network', async () => {
+    const sepholiaTokenSymbol = 'S'
     await switchToSepoliaNetwork();
-    await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
+    await WalletView.tapOnToken(sepholiaTokenSymbol);
     await Assertions.checkIfVisible(TokenOverview.noChartData, 60000);
     await Assertions.checkIfElementToHaveText(TokenOverview.tokenPrice, '$0');
   });
