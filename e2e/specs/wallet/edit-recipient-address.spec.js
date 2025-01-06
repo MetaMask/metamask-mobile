@@ -33,6 +33,7 @@ describe(Regression('Send ETH to the correct address after editing the recipient
   it('should display correct send address after edit', async () => {
     await TabBarComponent.tapActions();
     await TokenOverview.tapActionSheetSendButton();
+    await TestHelpers.delay(5000);
     await SendView.inputAddress(INCORRECT_SEND_ADDRESS);
 
     await TestHelpers.delay(3000);
