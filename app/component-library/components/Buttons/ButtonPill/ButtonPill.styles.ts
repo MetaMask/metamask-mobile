@@ -8,8 +8,8 @@ import { Theme } from '../../../../util/theme/models';
  * Style sheet input parameters.
  */
 export interface ButtonPillStyleSheetVars {
-  pressed: boolean;
   isDisabled: boolean;
+  isPressed: boolean;
 }
 
 /**
@@ -26,7 +26,7 @@ const styleSheet = (params: {
 }) => {
   const {
     theme: { colors },
-    vars: { pressed, isDisabled }
+    vars: { isDisabled, isPressed }
   } = params;
 
   return StyleSheet.create({
@@ -39,7 +39,7 @@ const styleSheet = (params: {
       paddingVertical: 4,
       borderRadius: 99,
       opacity: isDisabled ? 0.5 : 1,
-      ...(pressed && {
+      ...(isPressed && {
         backgroundColor: colors.background.alternativePressed,
       }),
     },

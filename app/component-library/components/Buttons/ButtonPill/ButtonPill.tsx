@@ -27,27 +27,27 @@ const ButtonPill = ({
   children,
   ...props
 }: ButtonPillProps) => {
-  const [pressed, setPressed] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const { styles } = useStyles(stylesheet, {
     style,
-    pressed,
+    isPressed,
     isDisabled,
   });
 
   const triggerOnPressedIn = useCallback(
     (e: GestureResponderEvent) => {
-      setPressed(true);
+      setIsPressed(true);
       onPressIn?.(e);
     },
-    [setPressed, onPressIn],
+    [setIsPressed, onPressIn],
   );
 
   const triggerOnPressedOut = useCallback(
     (e: GestureResponderEvent) => {
-      setPressed(false);
+      setIsPressed(false);
       onPressOut?.(e);
     },
-    [setPressed, onPressOut],
+    [setIsPressed, onPressOut],
   );
 
   return (
