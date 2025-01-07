@@ -2,19 +2,16 @@
 
 ## Current Main Branch
 
-## 7.37.1 - Dec 12, 2024
+## 7.38.0 - Jan 16, 2024
 ### Added
 - [#12427](https://github.com/MetaMask/metamask-mobile/pull/12427): feat: implement remote feature flag controller (#12427)
-- [#12650](https://github.com/MetaMask/metamask-mobile/pull/12650): fix: fix swaps button on asset overview page for multichain feature (#12650)
 - [#12507](https://github.com/MetaMask/metamask-mobile/pull/12507): feat: activate portfolio view (#12507)
 - [#12540](https://github.com/MetaMask/metamask-mobile/pull/12540): feat: migrate Base network RPC from https://mainnet.base.org to base-… (#12540)
 - [#12505](https://github.com/MetaMask/metamask-mobile/pull/12505): feat: add aggregated portfolio balance cross chains (#12505)
 - [#12417](https://github.com/MetaMask/metamask-mobile/pull/12417): feat: multichain detect tokens feat (#12417)
-- [#12490](https://github.com/MetaMask/metamask-mobile/pull/12490): feat: 7.37.0 (#12490)
 - [#12419](https://github.com/MetaMask/metamask-mobile/pull/12419): feat: upgrade transaction controller to get incoming transactions using accounts API (#12419)
 - [#12537](https://github.com/MetaMask/metamask-mobile/pull/12537): feat: enable ledger clear signing feature (#12537)
 - [#12622](https://github.com/MetaMask/metamask-mobile/pull/12622): feat: Hide the smart transaction status page if we return a txHash asap (#12622)
-- [#12623](https://github.com/MetaMask/metamask-mobile/pull/12623): chore: update bug template to include feature branches (#12623)
 - [#12244](https://github.com/MetaMask/metamask-mobile/pull/12244): feat(ci): Expo (#12244)
 - [#12459](https://github.com/MetaMask/metamask-mobile/pull/12459): feat: upgrade profile-sync-controller to 1.0.0 (#12459)
 - [#12294](https://github.com/MetaMask/metamask-mobile/pull/12294): feat: Add Bitcoin accounts (Flask Only) (#12294)
@@ -23,6 +20,7 @@
 - [#12431](https://github.com/MetaMask/metamask-mobile/pull/12431): feat: multi chain asset list (#12431)
 
 ### Changed
+- [#12623](https://github.com/MetaMask/metamask-mobile/pull/12623): chore: update bug template to include feature branches (#12623)
 - [#12538](https://github.com/MetaMask/metamask-mobile/pull/12538): chore: Chore/12435 mvp handle engine does not exist (#12538)
 - [#12617](https://github.com/MetaMask/metamask-mobile/pull/12617): docs: Update README.md with new expo instructions (#12617)
 - [#12559](https://github.com/MetaMask/metamask-mobile/pull/12559): test: move remaining modal pages and selectors to their respective folders (#12559)
@@ -32,7 +30,6 @@
 - [#12511](https://github.com/MetaMask/metamask-mobile/pull/12511): test: Move files to Onboarding folder (#12511)
 - [#12512](https://github.com/MetaMask/metamask-mobile/pull/12512): test: address regression pipeline slow down (#12512)
 - [#12513](https://github.com/MetaMask/metamask-mobile/pull/12513): ci: disable security e2e tests (#12513)
-- [#12491](https://github.com/MetaMask/metamask-mobile/pull/12491): chore: chore/7.37.0-Changelog (#12491)
 - [#12602](https://github.com/MetaMask/metamask-mobile/pull/12602): chore: Additional e2e test to support `PortfolioView` (#12602)
 - [#12321](https://github.com/MetaMask/metamask-mobile/pull/12321): refactor: remove global network from transaction controller  (#12321)
 - [#12536](https://github.com/MetaMask/metamask-mobile/pull/12536): test: fix mock server (#12536)
@@ -54,6 +51,7 @@
 - [#12551](https://github.com/MetaMask/metamask-mobile/pull/12551): chore: Bump Snaps packages (#12551)
 
 ### Fixed
+- [#12650](https://github.com/MetaMask/metamask-mobile/pull/12650): fix: fix swaps button on asset overview page for multichain feature (#12650)
 - [#12659](https://github.com/MetaMask/metamask-mobile/pull/12659): fix: fix token details navigation (#12659)
 - [#12624](https://github.com/MetaMask/metamask-mobile/pull/12624): fix: add new translations (#12624)
 - [#12373](https://github.com/MetaMask/metamask-mobile/pull/12373): fix: circular dependencies engine-network-handleNetworkSwitch (#12373)
@@ -75,6 +73,11 @@
 - [#12567](https://github.com/MetaMask/metamask-mobile/pull/12567): fix: update input handling in useInputHandler to support BACK key functionality (#12567)
 - [#12630](https://github.com/MetaMask/metamask-mobile/pull/12630): fix: hide tokens without balance for multichain (#12630)
 
+## 7.37.1 - Dec 16, 2024
+### Fixed
+- [#12577](https://github.com/MetaMask/metamask-mobile/pull/12577): chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)
+- [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
+- [#12664](https://github.com/MetaMask/metamask-mobile/pull/12664): fix: mark transactions as failed for cancelled / unknown smart transactions (#12664)
 
 ## 7.37.0 - Nov 28, 2024
 ### Added
