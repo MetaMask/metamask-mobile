@@ -152,9 +152,6 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {!isMultichainVersion1Enabled && (
-        <SheetHeader title={strings('accounts.connected_accounts_title')} />
-      )}
       {isMultichainVersion1Enabled && (
         <View style={styles.header}>
           <Avatar
@@ -167,30 +164,10 @@ const AccountPermissionsConnected = ({
         </View>
       )}
       <View style={styles.body}>
-        {!isMultichainVersion1Enabled && (
-          <TagUrl
-            imageSource={favicon}
-            label={urlWithProtocol}
-            cta={{
-              label: strings('accounts.permissions'),
-              onPress: openRevokePermissions,
-            }}
-            iconName={secureIcon}
-          />
-        )}
         {isMultichainVersion1Enabled && (
           <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
             {strings('accounts.connected_accounts_title')}
           </Text>
-        )}
-        {!isMultichainVersion1Enabled && (
-          <PickerNetwork
-            label={providerConfig?.nickname || networkName}
-            imageSource={networkImageSource}
-            onPress={switchNetwork}
-            style={styles.networkPicker}
-            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-          />
         )}
       </View>
       <AccountSelectorList
