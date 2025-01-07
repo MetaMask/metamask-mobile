@@ -27,11 +27,8 @@ export const prefixUrlWithProtocol = (
  * @param defaultProtocol - Protocol string to append to URLs that have none
  * @returns - String corresponding to sanitized input depending if it's a search or url
  */
-export default function onUrlSubmit(
-  input: string,
-  searchEngine = 'Google',
-  defaultProtocol = 'https://',
-) {
+export function processUrlForBrowser(input: string, searchEngine = 'Google') {
+  const defaultProtocol = 'https://';
   //Check if it's a url or a keyword
   if (!isUrl(input) && !input.match(regex.url)) {
     // Add exception for localhost

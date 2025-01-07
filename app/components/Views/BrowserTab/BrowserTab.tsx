@@ -21,6 +21,7 @@ import Engine from '../../../core/Engine';
 import WebviewProgressBar from '../../UI/WebviewProgressBar';
 import Logger from '../../../util/Logger';
 import {
+  processUrlForBrowser,
   prefixUrlWithProtocol,
   isTLD,
   protocolAllowList,
@@ -98,12 +99,13 @@ import {
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar, { ConnectionType } from '../../UI/BrowserUrlBar';
-import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
+import { getMaskedUrl, isENSUrl } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
+import { selectSearchEngine } from '../../../reducers/browser/selectors';
 
 // Update the declaration
 const sessionENSNames: SessionENSNames = {};
@@ -137,7 +139,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const urlBarRef = useRef<TextInput>(null);
   const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
-
   const activeUrl = useRef('');
   const title = useRef<string>('');
   const icon = useRef<ImageSourcePropType | undefined>();
@@ -152,6 +153,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   >([]); // TODO: This type can be improved and updated with typing the BackgroundBridge.js file
   const fromHomepage = useRef(false);
   const wizardScrollAdjusted = useRef(false);
+  const searchEngine = useSelector(selectSearchEngine);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
     const hostname = new URLParse(activeUrl.current).hostname;
@@ -568,7 +570,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
               window.__mmFavorites = ${JSON.stringify(
                 bookmarks || props.bookmarks,
               )};
-              window.__mmSearchEngine = "${props.searchEngine}";
+              window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
               window.__mmMixpanelToken = "${MM_MIXPANEL_TOKEN}";
@@ -1065,16 +1067,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onSubmitEditing = (text: string) => {
     if (!text) return;
-    //TODO: Sanitize input
-    //       const { defaultProtocol, searchEngine } = props;
-    //       const sanitizedInput = onUrlSubmit(
-    //         inputValue,
-    //         searchEngine,
-    //         defaultProtocol ?? 'https://',
-    //       );
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
-    const processedUrl = processUrlForBrowser(text);
+    const processedUrl = processUrlForBrowser(text, searchEngine);
     // Directly update url in webview
     webviewRef.current?.injectJavaScript(`
       window.location.href = '${processedUrl}';
@@ -1227,7 +1222,6 @@ const mapStateToProps = (state: RootState) => ({
   selectedAddress:
     selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  searchEngine: state.settings.searchEngine,
   whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
   chainId: selectChainId(state),

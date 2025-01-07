@@ -27,21 +27,6 @@ export const isValidUrl = (url: URLParse<string>): boolean => {
 };
 
 /**
- * Processes url for browser
- *
- * @param urlString - The url to process
- * @returns
- */
-export const processUrlForBrowser = (urlString: string): string => {
-  const urlWithProtocol = prefixUrlWithProtocol(urlString);
-  const url = new URLParse(urlWithProtocol);
-  if (!isValidUrl(url)) {
-    return `https://www.google.com/search?q=${encodeURIComponent(urlString)}`;
-  }
-  return urlWithProtocol;
-};
-
-/**
  * Checks if it is a ENS website
  */
 export const isENSUrl = (urlToCheck: string, ensIgnoreList: string[]) => {
