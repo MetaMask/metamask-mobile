@@ -31,7 +31,8 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
-  const { trackEvent, enable, addTraitsToUser, isEnabled } = useMetrics();
+  const { trackEvent, enable, addTraitsToUser, isEnabled, createEventBuilder } =
+    useMetrics();
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -57,10 +58,14 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
 
       InteractionManager.runAfterInteractions(async () => {
         await addTraitsToUser(consolidatedTraits);
-        trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-          is_metrics_opted_in: true,
-          updated_after_onboarding: true,
-        });
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+            .addProperties({
+              is_metrics_opted_in: true,
+              updated_after_onboarding: true,
+            })
+            .build(),
+        );
       });
     } else {
       await enable(false);
@@ -81,10 +86,14 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
         has_marketing_consent: marketingOptIn,
       };
       await addTraitsToUser(traits);
-      trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        ...traits,
-        location: 'settings',
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+          .addProperties({
+            ...traits,
+            location: 'settings',
+          })
+          .build(),
+      );
     });
   };
 

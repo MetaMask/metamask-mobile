@@ -38,7 +38,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectTokensByAddress } from '../../../../selectors/tokensController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { selectPrimaryCurrency } from '../../../../selectors/settings';
@@ -47,6 +47,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
+import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -144,7 +145,7 @@ class TransactionDetails extends PureComponent {
   };
 
   fetchTxReceipt = async (transactionHash) => {
-    const ethQuery = Engine.getGlobalEthQuery();
+    const ethQuery = getGlobalEthQuery();
     return await query(ethQuery, 'getTransactionReceipt', [transactionHash]);
   };
 
@@ -425,7 +426,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
   ticker: selectTicker(state),
   tokens: selectTokensByAddress(state),

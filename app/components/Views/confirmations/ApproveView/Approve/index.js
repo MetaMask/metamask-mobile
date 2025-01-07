@@ -13,7 +13,6 @@ import ApproveTransactionReview from '../../components/ApproveTransactionReview'
 import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../../util/networks';
 
 import {
   setTransactionObject,
@@ -50,6 +49,7 @@ import {
   selectTicker,
   selectRpcUrl,
   selectNetworkConfigurations,
+  selectNetworkClientId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -65,7 +65,10 @@ import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import {
   selectGasFeeEstimates,
@@ -115,14 +118,6 @@ class Approve extends PureComponent {
      */
     transactions: PropTypes.array,
     /**
-     * Number of tokens
-     */
-    tokensLength: PropTypes.number,
-    /**
-     * Number of accounts
-     */
-    accountsLength: PropTypes.number,
-    /**
      * A string representing the network name
      */
     providerType: PropTypes.string,
@@ -154,6 +149,10 @@ class Approve extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * An object of all saved addresses
      */
@@ -283,8 +282,8 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -379,18 +378,6 @@ class Approve extends PureComponent {
 
       this.props.hideModal();
     }
-  };
-
-  trackApproveEvent = (event) => {
-    const { transaction, tokensLength, accountsLength, providerType, metrics } =
-      this.props;
-
-    metrics.trackEvent(event, {
-      view: transaction.origin,
-      numberOfTokens: tokensLength,
-      numberOfAccounts: accountsLength,
-      network: providerType,
-    });
   };
 
   cancelGasEdition = () => {
@@ -488,7 +475,12 @@ class Approve extends PureComponent {
 
         TransactionController.cancelTransaction(transactionId);
 
-        metrics.trackEvent(MetaMetricsEvents.APPROVAL_CANCELLED, gaParams);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+            .addProperties(gaParams)
+            .build(),
+        );
 
         NotificationManager.showSimpleNotification({
           status: `simple_notification_rejected`,
@@ -498,7 +490,12 @@ class Approve extends PureComponent {
         });
       }
     } finally {
-      metrics.trackEvent(MetaMetricsEvents.APPROVAL_COMPLETED, gaParams);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(gaParams)
+          .build(),
+      );
     }
   };
 
@@ -613,10 +610,11 @@ class Approve extends PureComponent {
       if (shouldUseSmartTransaction) {
         this.props.hideModal();
       }
-
       metrics.trackEvent(
-        MetaMetricsEvents.APPROVAL_COMPLETED,
-        this.getAnalyticsParams(),
+        metrics
+          .createEventBuilder(MetaMetricsEvents.APPROVAL_COMPLETED)
+          .addProperties(this.getAnalyticsParams())
+          .build(),
       );
     } catch (error) {
       if (
@@ -630,7 +628,13 @@ class Approve extends PureComponent {
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
       } else {
-        metrics.trackEvent(MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED);
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(
+              MetaMetricsEvents.QR_HARDWARE_TRANSACTION_CANCELED,
+            )
+            .build(),
+        );
       }
       this.setState({ transactionHandled: false });
     }
@@ -648,8 +652,10 @@ class Approve extends PureComponent {
       },
     );
     metrics.trackEvent(
-      MetaMetricsEvents.APPROVAL_CANCELLED,
-      this.getAnalyticsParams(),
+      metrics
+        .createEventBuilder(MetaMetricsEvents.APPROVAL_CANCELLED)
+        .addProperties(this.getAnalyticsParams())
+        .build(),
     );
     hideModal();
 
@@ -669,7 +675,13 @@ class Approve extends PureComponent {
     const { metrics } = this.props;
     this.setState({ mode });
     if (mode === EDIT) {
-      metrics.trackEvent(MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(
+            MetaMetricsEvents.SEND_FLOW_ADJUSTS_TRANSACTION_FEE,
+          )
+          .build(),
+      );
     }
   };
 
@@ -944,6 +956,7 @@ const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   primaryCurrency: selectPrimaryCurrency(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),

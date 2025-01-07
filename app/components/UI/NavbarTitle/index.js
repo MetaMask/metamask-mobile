@@ -6,7 +6,6 @@ import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
-import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -15,6 +14,7 @@ import { selectProviderConfig } from '../../../selectors/networkController';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
@@ -22,37 +22,10 @@ const createStyles = (colors) =>
     wrapper: {
       justifyContent: 'center',
       alignItems: 'center',
-      flex: 1,
     },
     network: {
       flexDirection: 'row',
-    },
-    networkName: {
-      fontSize: 11,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-    networkIcon: {
-      width: 5,
-      height: 5,
-      borderRadius: 100,
-      marginRight: 5,
-      marginTop: Device.isIos() ? 4 : 5,
-    },
-    title: {
-      fontSize: scale(14),
-      ...fontStyles.normal,
-      color: colors.text.default,
-    },
-    children: {
-      ...fontStyles.normal,
-      color: colors.text.default,
-      fontWeight: 'bold',
-    },
-    otherNetworkIcon: {
-      backgroundColor: importedColors.transparent,
-      borderColor: colors.border.default,
-      borderWidth: 1,
+      alignItems: 'center',
     },
   });
 
@@ -91,6 +64,10 @@ class NavbarTitle extends PureComponent {
      */
     showSelectedNetwork: PropTypes.bool,
     /**
+     * Name of the network to display
+     */
+    networkName: PropTypes.string,
+    /**
      * Content to display inside text element
      */
     children: PropTypes.node,
@@ -112,10 +89,12 @@ class NavbarTitle extends PureComponent {
         });
 
         this.props.metrics.trackEvent(
-          MetaMetricsEvents.NETWORK_SELECTOR_PRESSED,
-          {
-            chain_id: getDecimalChainId(this.props.providerConfig.chainId),
-          },
+          this.props.metrics
+            .createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+            .addProperties({
+              chain_id: getDecimalChainId(this.props.providerConfig.chainId),
+            })
+            .build(),
         );
         setTimeout(() => {
           this.animating = false;
@@ -125,8 +104,14 @@ class NavbarTitle extends PureComponent {
   };
 
   render = () => {
-    const { providerConfig, title, translate, showSelectedNetwork, children } =
-      this.props;
+    const {
+      providerConfig,
+      title,
+      translate,
+      showSelectedNetwork,
+      children,
+      networkName,
+    } = this.props;
     let name = null;
     const color =
       (Networks[providerConfig.type] && Networks[providerConfig.type].color) ||
@@ -134,7 +119,9 @@ class NavbarTitle extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (providerConfig.nickname) {
+    if (networkName) {
+      name = networkName;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
@@ -143,7 +130,6 @@ class NavbarTitle extends PureComponent {
     }
 
     const realTitle = translate ? strings(title) : title;
-
     return (
       <TouchableOpacity
         onPress={this.openNetworkList}
@@ -151,26 +137,22 @@ class NavbarTitle extends PureComponent {
         activeOpacity={this.props.disableNetwork ? 1 : 0.2}
       >
         {title ? (
-          <Text numberOfLines={1} style={styles.title}>
+          <Text numberOfLines={1} variant={TextVariant.BodyMDBold}>
             {realTitle}
           </Text>
         ) : null}
         {typeof children === 'string' ? (
-          <Text variant={TextVariant.HeadingMD} style={styles.children}>
-            {strings(children)}
-          </Text>
+          <Text variant={TextVariant.BodyMDBold}>{strings(children)}</Text>
         ) : (
           children
         )}
         {showSelectedNetwork ? (
           <View style={styles.network}>
-            <View
-              style={[
-                styles.networkIcon,
-                color ? { backgroundColor: color } : styles.otherNetworkIcon,
-              ]}
-            />
-            <Text numberOfLines={1} style={styles.networkName}>
+            <Text
+              numberOfLines={1}
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+            >
               {name}
             </Text>
           </View>

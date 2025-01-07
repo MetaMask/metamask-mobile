@@ -6,18 +6,17 @@ import Device from '../util/device';
 import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 import NotificationsService from '../util/notifications/services/NotificationService';
-
-import {
-  NotificationTransactionTypes,
-  ChannelId,
-} from '../util/notifications';
-
+import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
 import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectChainId, selectTicker } from '../selectors/networkController';
+import { selectTicker } from '../selectors/networkController';
 import { store } from '../store';
-import { useSelector } from 'react-redux';
 import { getTicker } from '../../app/util/transactions';
+import { updateTransaction } from '../../app/util/transaction-controller';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+
+import Logger from '../util/Logger';
+import { TransactionStatus } from '@metamask/transaction-controller';
 export const constructTitleAndMessage = (notification) => {
   let title, message;
   switch (notification.type) {
@@ -83,8 +82,12 @@ export const constructTitleAndMessage = (notification) => {
       });
       break;
     default:
-      title = notification?.data?.title || strings('notifications.default_message_title');
-      message = notification?.data?.shortDescription || strings('notifications.default_message_description');
+      title =
+        notification?.data?.title ||
+        strings('notifications.default_message_title');
+      message =
+        notification?.data?.shortDescription ||
+        strings('notifications.default_message_description');
       break;
   }
   return { title, message };
@@ -237,8 +240,12 @@ class NotificationManager {
           case 'ERC20': {
             pollPromises.push(
               ...[
-                TokenBalancesController.poll(),
-                TokenDetectionController.start(),
+                TokenBalancesController.updateBalancesByChainId({
+                  chainId: transactionMeta.chainId,
+                }),
+                TokenDetectionController.detectTokens({
+                  chainIds: [transactionMeta.chainId],
+                }),
               ],
             );
             break;
@@ -389,63 +396,96 @@ class NotificationManager {
         },
         (transactionMeta) => transactionMeta.id === transaction.id,
       );
+
+    const smartTransactionListener = async (smartTransaction) => {
+      if (smartTransaction.status === SmartTransactionStatuses.PENDING) {
+        return;
+      }
+      Engine.controllerMessenger.unsubscribe(
+        'SmartTransactionsController:smartTransaction',
+        smartTransactionListener,
+      );
+      if (smartTransaction.status !== SmartTransactionStatuses.CANCELLED) {
+        // If the smart transaction is not cancelled, notifications are already handled.
+        return;
+      }
+      const transactions = TransactionController.getTransactions({
+        filterToCurrentNetwork: false,
+      });
+      const foundTransaction = transactions.find(
+        (tx) => tx.id === smartTransaction.transactionId,
+      );
+      this._showNotification({
+        type: 'cancelled',
+        autoHide: true,
+        transaction: { id: foundTransaction?.id },
+        duration: 5000,
+      });
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'SmartTransactionsController:smartTransaction',
+      smartTransactionListener,
+    );
   }
 
   /**
    * Generates a notification for an incoming transaction
    */
-  gotIncomingTransaction = async (lastBlock) => {
-    const {
-      AccountTrackerController,
-      TransactionController,
-      AccountsController,
-    } = Engine.context;
-    const selectedInternalAccount = AccountsController.getSelectedAccount();
-    const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
-      selectedInternalAccount.address,
-    );
+  gotIncomingTransaction = async (incomingTransactions) => {
+    try {
+      const {
+        AccountTrackerController,
+        AccountsController,
+      } = Engine.context;
 
-    const chainId = selectChainId(store.getState());
-    const ticker = useSelector(selectTicker);
+      const selectedInternalAccount = AccountsController.getSelectedAccount();
 
-    /// Find the incoming TX
-    const transactions = TransactionController.getTransactions({
-      filterToCurrentNetwork: false,
-    });
+      const selectedInternalAccountChecksummedAddress = safeToChecksumAddress(
+        selectedInternalAccount.address,
+      );
 
-    // If a TX has been confirmed more than 10 min ago, it's considered old
-    const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
+      const ticker = selectTicker(store.getState());
 
-    if (transactions.length) {
-      const txs = transactions
-        .reverse()
+      // If a TX has been confirmed more than 10 min ago, it's considered old
+      const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
+
+      const filteredTransactions = incomingTransactions.reverse()
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
             selectedInternalAccountChecksummedAddress &&
-            tx.chainId === chainId &&
-            tx.status === 'confirmed' &&
-            lastBlock <= parseInt(tx.blockNumber, 10) &&
+            tx.status === TransactionStatus.confirmed &&
             tx.time > oldestTimeAllowed,
         );
-      if (txs.length > 0) {
-        this._showNotification({
-          type: 'received',
-          transaction: {
-            nonce: `${hexToBN(txs[0].txParams.nonce).toString()}`,
-            amount: `${renderFromWei(hexToBN(txs[0].txParams.value))}`,
-            id: txs[0]?.id,
-            assetType: getTicker(ticker),
-          },
-          autoHide: true,
-          duration: 7000,
-        });
+
+      if (!filteredTransactions.length) {
+        return;
       }
+
+      const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
+      const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
+      const id = filteredTransactions[0]?.id;
+
+      this._showNotification({
+        type: 'received',
+        transaction: {
+          nonce,
+          amount,
+          id,
+          assetType: getTicker(ticker),
+        },
+        autoHide: true,
+        duration: 7000,
+      });
+
+      // Update balance upon detecting a new incoming transaction
+      AccountTrackerController.refresh();
+    } catch (error) {
+      Logger.log('Notifications', 'Error while processing incoming transaction', error);
     }
-    // Update balance upon detecting a new incoming transaction
-    AccountTrackerController.refresh();
   };
 }
 
@@ -477,8 +517,8 @@ export default {
   setTransactionToView(id) {
     return instance?.setTransactionToView(id);
   },
-  gotIncomingTransaction(lastBlock) {
-    return instance?.gotIncomingTransaction(lastBlock);
+  gotIncomingTransaction(incomingTransactions) {
+    return instance?.gotIncomingTransaction(incomingTransactions);
   },
   showSimpleNotification(data) {
     return instance?.showSimpleNotification(data);

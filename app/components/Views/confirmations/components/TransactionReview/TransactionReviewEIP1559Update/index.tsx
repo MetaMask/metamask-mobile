@@ -5,7 +5,7 @@ import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/EditGasView.selectors';
+import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
 
 import AppConstants from '../../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../../core/GasPolling/GasPolling';
@@ -31,7 +31,6 @@ const TransactionReviewEIP1559Update = ({
   onEdit,
   hideTotal,
   noMargin,
-  origin,
   originWarning,
   onUpdatingValuesStart,
   onUpdatingValuesEnd,
@@ -129,9 +128,7 @@ const TransactionReviewEIP1559Update = ({
               orange={Boolean(originWarning)}
               noMargin
             >
-              {!origin
-                ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.network_fee')}
+              {strings('transaction_review_eip1559.network_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>

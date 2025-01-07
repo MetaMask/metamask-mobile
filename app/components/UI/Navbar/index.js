@@ -46,7 +46,7 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { NetworksViewSelectorsIDs } from '../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { SendLinkViewSelectorsIDs } from '../../../../e2e/selectors/Receive/SendLinkView.selectors';
-import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { getBlockaidTransactionMetricsParams } from '../../../util/blockaid';
 import Icon, {
   IconName,
@@ -58,9 +58,14 @@ import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { isBtcAccount } from '../../../core/Multichain/utils';
+///: END:ONLY_INCLUDE_IF
 
 const trackEvent = (event, params = {}) => {
-  MetaMetrics.getInstance().trackEvent(event, params);
+  MetaMetrics.getInstance().trackEvent(event);
 };
 
 const styles = StyleSheet.create({
@@ -218,7 +223,10 @@ export function getNavigationOptionsTitle(
   });
 
   function navigationPop() {
-    if (navigationPopEvent) trackEvent(navigationPopEvent);
+    if (navigationPopEvent)
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(navigationPopEvent).build(),
+      );
     navigation.goBack();
   }
 
@@ -555,11 +563,15 @@ export function getSendFlowTitle(
     const providerType = route?.params?.providerType ?? '';
     const additionalTransactionMetricsParams =
       getBlockaidTransactionMetricsParams(transaction);
-    trackEvent(MetaMetricsEvents.SEND_FLOW_CANCEL, {
-      view: title.split('.')[1],
-      network: providerType,
-      ...additionalTransactionMetricsParams,
-    });
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_FLOW_CANCEL)
+        .addProperties({
+          view: title.split('.')[1],
+          network: providerType,
+          ...additionalTransactionMetricsParams,
+        })
+        .build(),
+    );
     resetTransaction();
     navigation.dangerouslyGetParent()?.pop();
   };
@@ -910,7 +922,7 @@ export function getOfflineModalNavbar() {
  * Function that returns the navigation options for the wallet screen.
  *
  * @param {Object} accountActionsRef - The ref object for the account actions
- * @param {string} selectedAddress - The currently selected Ethereum address
+ * @param {Object} selectedInternalAccount - The currently selected internal account
  * @param {string} accountName - The name of the currently selected account
  * @param {string} accountAvatarType - The type of avatar for the currently selected account
  * @param {string} networkName - The name of the current network
@@ -926,7 +938,7 @@ export function getOfflineModalNavbar() {
  */
 export function getWalletNavbarOptions(
   accountActionsRef,
-  selectedAddress,
+  selectedInternalAccount,
   accountName,
   accountAvatarType,
   networkName,
@@ -954,6 +966,15 @@ export function getWalletNavbarOptions(
       flex: 1,
     },
   });
+
+  let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (isBtcAccount(selectedInternalAccount)) {
+    // BTC addresses are not checksummed
+    formattedAddress = selectedInternalAccount.address;
+  }
+  ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
     if (data.private_key) {
@@ -1003,54 +1024,90 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       onScanSuccess,
     });
-    trackEvent(MetaMetricsEvents.WALLET_QR_SCANNER);
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_QR_SCANNER,
+      ).build(),
+    );
   }
 
   function handleNotificationOnPress() {
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
       navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED, {
-        unread_count: unreadNotificationCount,
-        read_count: readNotificationCount,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
+        )
+          .addProperties({
+            unread_count: unreadNotificationCount,
+            read_count: readNotificationCount,
+          })
+          .build(),
+      );
     } else {
       navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
-      trackEvent(MetaMetricsEvents.NOTIFICATIONS_ACTIVATED, {
-        action_type: 'started',
-        is_profile_syncing_enabled: isProfileSyncingEnabled,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
+        )
+          .addProperties({
+            action_type: 'started',
+            is_profile_syncing_enabled: isProfileSyncingEnabled,
+          })
+          .build(),
+      );
     }
   }
+
+  const renderNetworkPicker = () => {
+    let networkPicker = (
+      <PickerNetwork
+        label={networkName}
+        imageSource={networkImageSource}
+        onPress={onPressTitle}
+        testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+        hideNetworkName
+      />
+    );
+
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (isBtcAccount(selectedInternalAccount)) {
+      networkPicker = (
+        <PickerNetwork
+          label={'Bitcoin'}
+          imageSource={require('../../../images/bitcoin-logo.png')}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
+          isDisabled
+        />
+      );
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    return <View style={styles.leftElementContainer}>{networkPicker}</View>;
+  };
 
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
         <PickerAccount
           ref={accountActionsRef}
-          accountAddress={selectedAddress}
+          accountAddress={formattedAddress}
           accountName={accountName}
           accountAvatarType={accountAvatarType}
           onPress={() => {
             navigation.navigate(...createAccountSelectorNavDetails({}));
           }}
-          accountTypeLabel={getLabelTextByAddress(selectedAddress) || undefined}
+          accountTypeLabel={
+            getLabelTextByAddress(formattedAddress) || undefined
+          }
           showAddress
           cellAccountContainerStyle={styles.account}
           testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
         />
       </View>
     ),
-    headerLeft: () => (
-      <View style={styles.leftElementContainer}>
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={onPressTitle}
-          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-          hideNetworkName
-        />
-      </View>
-    ),
+    headerLeft: () => renderNetworkPicker(),
     headerRight: () => (
       <View style={styles.rightElementContainer}>
         <View
@@ -1304,6 +1361,7 @@ export function getNetworkNavbarOptions(
   onRightPress = undefined,
   disableNetwork = false,
   contentOffset = 0,
+  networkName = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1328,6 +1386,7 @@ export function getNetworkNavbarOptions(
         disableNetwork={disableNetwork}
         title={title}
         translate={translate}
+        networkName={networkName}
       />
     ),
     headerLeft: () => (
@@ -1676,10 +1735,23 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
-        ...trade,
-        responseTime: new Date().getTime() - quoteBegin,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
+        )
+          .addProperties({
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
+            responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
+          })
+          .build(),
+      );
     }
     navigation.pop();
   };
@@ -1689,10 +1761,23 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     const selectedQuote = route.params?.selectedQuote;
     const quoteBegin = route.params?.quoteBegin;
     if (!selectedQuote) {
-      trackEvent(MetaMetricsEvents.QUOTES_REQUEST_CANCELLED, {
-        ...trade,
-        responseTime: new Date().getTime() - quoteBegin,
-      });
+      trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.QUOTES_REQUEST_CANCELLED,
+        )
+          .addProperties({
+            token_from: trade.token_from,
+            token_to: trade.token_to,
+            request_type: trade.request_type,
+            custom_slippage: trade.custom_slippage,
+            chain_id: trade.chain_id,
+            responseTime: new Date().getTime() - quoteBegin,
+          })
+          .addSensitiveProperties({
+            token_from_amount: trade.token_from_amount,
+          })
+          .build(),
+      );
     }
     navigation.dangerouslyGetParent()?.pop();
   };

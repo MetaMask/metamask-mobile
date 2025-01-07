@@ -10,14 +10,10 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
-import {
-  startMockServer,
-  stopMockServer
-} from '../../api-mocking/mock-server';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -27,29 +23,21 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
-    mockServer = await startMockServer({
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
-    });
-
-  });
-
-  afterAll(async () => {
-    try {
-      await stopMockServer();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log('Mock server already stopped or encountered an error:', error);
-    }
   });
 
   it('should edit priority gas settings and send ETH', async () => {
+
+    const testSpecificMock  = {
+      GET: [
+        mockEvents.GET.suggestedGasFeesApiGanache
+      ],
+    };
     await withFixtures(
       {
         fixture: new FixtureBuilder().withGanacheNetwork().build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -61,7 +49,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await TestHelpers.delay(2000);
         await TabBarComponent.tapActions();
         await TestHelpers.delay(2000);
-        await WalletActionsModal.tapSendButton();
+        await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();

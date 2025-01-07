@@ -1,7 +1,7 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -12,7 +12,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeCore } from '../../tags';
+import { SmokeRamps } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
@@ -34,7 +34,7 @@ const PaymentMethods = {
   ACH_BANK_TRANSFER: 'ACH Bank Transfer',
 };
 
-describe(SmokeCore('Off-Ramp'), () => {
+describe(SmokeRamps('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -42,7 +42,7 @@ describe(SmokeCore('Off-Ramp'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -60,7 +60,7 @@ describe(SmokeCore('Off-Ramp'), () => {
   it('should display Build Sell Quote based on selected Region and Payment', async () => {
     await TabBarComponent.tapWallet();
     await TabBarComponent.tapActions();
-    await WalletActionsModal.tapSellButton();
+    await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
     await SelectRegionView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption(Regions.USA);

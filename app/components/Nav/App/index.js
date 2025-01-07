@@ -44,6 +44,7 @@ import { getVersion } from 'react-native-device-info';
 import {
   setCurrentBottomNavRoute,
   setCurrentRoute,
+  onNavigationReady,
 } from '../../../actions/navigation';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
@@ -117,8 +118,8 @@ import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingG
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
-import SmartTransactionsOptInModal from '../../Views/SmartTransactionsOptInModal/SmartTranactionsOptInModal';
 import ProfileSyncingModal from '../../UI/ProfileSyncing/ProfileSyncingModal/ProfileSyncingModal';
+import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -390,10 +391,6 @@ const RootModalFlow = () => (
       component={ModalMandatory}
     />
     <Stack.Screen
-      name={Routes.MODAL.SMART_TRANSACTIONS_OPT_IN}
-      component={SmartTransactionsOptInModal}
-    />
-    <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
@@ -434,6 +431,10 @@ const RootModalFlow = () => (
     <Stack.Screen
       name={Routes.SHEET.CONNECTION_DETAILS}
       component={ConnectionDetails}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET}
+      component={PermittedNetworksInfoSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.NETWORK_SELECTOR}
@@ -610,6 +611,13 @@ const App = (props) => {
 
   useEffect(() => {
     if (prevNavigator.current || !navigator) return;
+
+    endTrace({ name: TraceName.NavInit });
+    endTrace({ name: TraceName.UIStartup });
+  }, [navigator]);
+
+  useEffect(() => {
+    if (prevNavigator.current || !navigator) return;
     const appTriggeredAuth = async () => {
       const existingUser = await StorageWrapper.getItem(EXISTING_USER);
       setOnboarded(!!existingUser);
@@ -650,15 +658,9 @@ const App = (props) => {
         );
       }
     };
-    appTriggeredAuth()
-      .catch((error) => {
-        Logger.error(error, 'App: Error in appTriggeredAuth');
-      })
-      .finally(() => {
-        endTrace({ name: TraceName.NavInit });
-
-        endTrace({ name: TraceName.UIStartup });
-      });
+    appTriggeredAuth().catch((error) => {
+      Logger.error(error, 'App: Error in appTriggeredAuth');
+    });
   }, [navigator, queueOfHandleDeeplinkFunctions]);
 
   const handleDeeplink = useCallback(({ error, params, uri }) => {
@@ -879,6 +881,11 @@ const App = (props) => {
     }
   };
 
+  /**
+   * Triggers when the navigation is ready
+   */
+  const onNavigationReadyHandler = () => dispatch(onNavigationReady());
+
   return supressRender ? null : (
     <>
       {
@@ -904,6 +911,7 @@ const App = (props) => {
           const currentRoute = findRouteNameFromNavigatorState(state.routes);
           triggerSetCurrentRoute(currentRoute);
         }}
+        onReady={onNavigationReadyHandler}
       >
         <Stack.Navigator
           initialRouteName={Routes.FOX_LOADER}

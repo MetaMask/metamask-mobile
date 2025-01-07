@@ -5,13 +5,18 @@ import useApprovalRequest from './useApprovalRequest';
 
 const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
-  const approvalRequestType = approvalRequest?.type;
+
+  const { type: approvalRequestType } = approvalRequest ?? {
+    requestData: {},
+  };
 
   const isRedesignedEnabled = useMemo(
     () =>
       approvalRequestType &&
       process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
-      approvalRequestType === ApprovalTypes.PERSONAL_SIGN,
+      [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
+        approvalRequestType as ApprovalTypes,
+      ),
     [approvalRequestType],
   );
 
