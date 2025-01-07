@@ -79,7 +79,7 @@ describe('PermitSimulationValueDisplay', () => {
     expect(await findByText('0.432')).toBeDefined();
   });
 
-  it('should invoke method to track missing decimal information for ERC20 tokens', async () => {
+  it('should invoke method to track missing decimal information for ERC20 tokens only once', async () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
       symbol: 'TST',
       decimals: undefined,
@@ -102,7 +102,7 @@ describe('PermitSimulationValueDisplay', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   it('should not invoke method to track missing decimal information for ERC20 tokens', async () => {
