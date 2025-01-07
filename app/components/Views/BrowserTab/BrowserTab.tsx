@@ -257,6 +257,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       Logger.log('WebviewRef current is not defined!');
     }
     current && current.goBack();
+
+    // we need to update the activeUrl state to the previous url
   }, [backEnabled, toggleOptionsIfNeeded]);
 
   /**
