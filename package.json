@@ -269,6 +269,7 @@
     "expo-build-properties": "~0.8.3",
     "expo-dev-client": "~2.4.13",
     "fuse.js": "3.4.4",
+    "html-entities": "^2.5.2",
     "https-browserify": "0.0.1",
     "human-standard-token-abi": "^2.0.0",
     "humanize-duration": "^3.27.2",

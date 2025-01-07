@@ -4,6 +4,7 @@ import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
 import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
+import { decode } from 'html-entities';
 
 // TODO: Theme isn't properly setup yet
 // const colors = Theme.colors;
@@ -103,7 +104,7 @@ export const mapTextToTemplate = (
   elements.map((e) => {
     // With the introduction of JSX elements here can be strings.
     if (typeof e === 'string') {
-      return e;
+      return decode(e);
     }
 
     return mapToTemplate({ ...params, element: e });
