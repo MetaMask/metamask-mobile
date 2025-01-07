@@ -8,10 +8,6 @@ export enum AssetType {
   ERC1155 = 'ERC1155',
 }
 
-export const NATIVE_ASSET_IDENTIFIER: NativeAssetIdentifier = {
-  type: AssetType.Native,
-};
-
 /**
  * Describes an amount of fiat.
  */
@@ -23,18 +19,20 @@ export type FiatAmount = FiatAmountAvailable | typeof FIAT_UNAVAILABLE;
  * Identifies the native asset of a chain.
  */
 export interface NativeAssetIdentifier {
-  type: AssetType.Native;
   address?: undefined;
+  chainId: Hex;
   tokenId?: undefined;
+  type: AssetType.Native;
 }
 
 /**
  * Uniquely identifies a token asset on a chain.
  */
 export interface TokenAssetIdentifier {
-  type: Exclude<AssetType, AssetType.Native>;
   address: Hex;
+  chainId: Hex;
   tokenId?: Hex;
+  type: Exclude<AssetType, AssetType.Native>;
 }
 
 export type AssetIdentifier = Readonly<

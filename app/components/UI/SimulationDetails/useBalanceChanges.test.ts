@@ -61,6 +61,8 @@ const DIFFERENCE_1_MOCK: Hex = '0x11';
 const DIFFERENCE_2_MOCK: Hex = '0x2';
 const DIFFERENCE_ETH_MOCK: Hex = '0x1234567890123456789';
 
+const CHAIN_ID_MOCK = '0x123';
+
 const dummyBalanceChange = {
   previousBalance: '0xIGNORE' as Hex,
   newBalance: '0xIGNORE' as Hex,
@@ -98,7 +100,10 @@ describe('useBalanceChanges', () => {
   describe('pending states', () => {
     it('returns pending=true if no simulation data', async () => {
       const { result, waitForNextUpdate } = renderHook(() =>
-        useBalanceChanges(undefined),
+        useBalanceChanges({
+          chainId: CHAIN_ID_MOCK,
+          simulationData: undefined,
+        }),
       );
       expect(result.current).toEqual({ pending: true, value: [] });
       await waitForNextUpdate();
@@ -119,7 +124,10 @@ describe('useBalanceChanges', () => {
         ],
       };
       const { result, unmount, waitForNextUpdate } = renderHook(() =>
-        useBalanceChanges(simulationData),
+        useBalanceChanges({
+          chainId: CHAIN_ID_MOCK,
+          simulationData,
+        }),
       );
 
       await waitForNextUpdate();
@@ -143,7 +151,10 @@ describe('useBalanceChanges', () => {
         ],
       };
       const { result, unmount } = renderHook(() =>
-        useBalanceChanges(simulationData),
+        useBalanceChanges({
+          chainId: CHAIN_ID_MOCK,
+          simulationData,
+        }),
       );
 
       expect(result.current).toEqual({ pending: true, value: [] });
@@ -159,7 +170,12 @@ describe('useBalanceChanges', () => {
         nativeBalanceChange: undefined,
         tokenBalanceChanges,
       };
-      return renderHook(() => useBalanceChanges(simulationData));
+      return renderHook(() =>
+        useBalanceChanges({
+          chainId: CHAIN_ID_MOCK,
+          simulationData,
+        }),
+      );
     };
 
     it('maps token balance changes correctly', async () => {
@@ -182,6 +198,7 @@ describe('useBalanceChanges', () => {
             address: ERC20_TOKEN_ADDRESS_1_MOCK,
             type: AssetType.ERC20,
             tokenId: undefined,
+            chainId: CHAIN_ID_MOCK,
           },
           amount: new BigNumber('-0.017'),
           fiatAmount: -0.0255,
@@ -238,6 +255,7 @@ describe('useBalanceChanges', () => {
             address: NFT_TOKEN_ADDRESS_MOCK,
             type: AssetType.ERC721,
             tokenId: TOKEN_ID_1_MOCK,
+            chainId: CHAIN_ID_MOCK,
           },
           amount: new BigNumber('-1'),
           fiatAmount: FIAT_UNAVAILABLE,
@@ -305,7 +323,12 @@ describe('useBalanceChanges', () => {
         nativeBalanceChange,
         tokenBalanceChanges: [],
       };
-      return renderHook(() => useBalanceChanges(simulationData));
+      return renderHook(() =>
+        useBalanceChanges({
+          chainId: CHAIN_ID_MOCK,
+          simulationData,
+        }),
+      );
     };
 
     it('maps native balance change correctly', async () => {
@@ -322,6 +345,7 @@ describe('useBalanceChanges', () => {
         {
           asset: {
             type: AssetType.Native,
+            chainId: CHAIN_ID_MOCK,
           },
           amount: new BigNumber('-5373.003641998677469065'),
           fiatAmount: Number('-16119.010925996032'),
@@ -367,7 +391,10 @@ describe('useBalanceChanges', () => {
       ],
     };
     const { result, waitForNextUpdate } = renderHook(() =>
-      useBalanceChanges(simulationData),
+      useBalanceChanges({
+        chainId: CHAIN_ID_MOCK,
+        simulationData,
+      }),
     );
 
     await waitForNextUpdate();
@@ -376,6 +403,7 @@ describe('useBalanceChanges', () => {
     expect(changes).toHaveLength(2);
     expect(changes[0].asset).toEqual({
       type: AssetType.Native,
+      chainId: CHAIN_ID_MOCK,
     });
     expect(changes[0].amount).toEqual(
       new BigNumber('-5373.003641998677469065'),
@@ -384,6 +412,7 @@ describe('useBalanceChanges', () => {
     expect(changes[1].asset).toEqual({
       address: ERC20_TOKEN_ADDRESS_1_MOCK,
       type: AssetType.ERC20,
+      chainId: CHAIN_ID_MOCK,
     });
     expect(changes[1].amount).toEqual(new BigNumber('0.002'));
   });

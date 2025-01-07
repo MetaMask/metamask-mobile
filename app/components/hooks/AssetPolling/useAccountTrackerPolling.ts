@@ -1,37 +1,44 @@
 import { useSelector } from 'react-redux';
 import usePolling from '../usePolling';
 import {
-  selectNetworkConfigurations,
+  selectAllPopularNetworkConfigurations,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { isPortfolioViewEnabled } from '../../../util/networks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 // Polls native currency prices across networks.
 const useAccountTrackerPolling = ({
   networkClientIds,
 }: { networkClientIds?: { networkClientId: string }[] } = {}) => {
   // Selectors to determine polling input
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurationsPopularNetworks = useSelector(
+    selectAllPopularNetworkConfigurations,
+  );
+  const isAllNetworksSelected = useSelector(selectIsAllNetworks);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const networkClientIdsConfig = Object.values(networkConfigurations).map(
-    (network) => ({
-      networkClientId:
-        network?.rpcEndpoints?.[network?.defaultRpcEndpointIndex]
-          ?.networkClientId,
-    }),
-  );
+  const networkClientIdsConfig = Object.values(
+    networkConfigurationsPopularNetworks,
+  ).map((network) => ({
+    networkClientId:
+      network?.rpcEndpoints?.[network?.defaultRpcEndpointIndex]
+        ?.networkClientId,
+  }));
 
-  const chainIdsToPoll = isPortfolioViewEnabled()
-    ? networkClientIds ?? networkClientIdsConfig
-    : [
-        {
-          networkClientId: selectedNetworkClientId,
-        },
-      ];
+  // if all networks are selected, poll all popular networks
+  const networkConfigurationsToPoll =
+    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
+      ? networkClientIdsConfig
+      : [{ networkClientId: selectedNetworkClientId }];
+
+  const chainIdsToPoll = networkClientIds ?? networkConfigurationsToPoll;
 
   const { AccountTrackerController } = Engine.context;
 
