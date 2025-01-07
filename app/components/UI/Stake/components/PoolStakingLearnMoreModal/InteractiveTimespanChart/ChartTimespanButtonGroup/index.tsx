@@ -32,7 +32,7 @@ const ChartTimespanButton = ({
   );
 };
 
-interface ChartTimespanButtonGroupProps {
+export interface ChartTimespanButtonGroupProps {
   buttons: ChartButton[];
   onTimePress: (numDaysToDisplay: number) => void;
 }

@@ -1,0 +1,413 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InteractiveTimespanChart render matches snapshot 1`] = `
+<View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 8,
+          "color": "#ffffff",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        7D
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        1M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        3M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        6M
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c8234",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Interactive Timespan Chart
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Displays Mock Data Points
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  />
+</View>
+`;
+
+exports[`InteractiveTimespanChart supports customizing color 1`] = `
+<View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 8,
+          "color": "#ffffff",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        7D
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        1M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        3M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 34,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        6M
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c8234",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Interactive Timespan Chart
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Displays Mock Data Points
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  />
+</View>
+`;

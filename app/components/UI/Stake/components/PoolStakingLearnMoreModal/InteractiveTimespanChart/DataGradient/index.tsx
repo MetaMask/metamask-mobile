@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../../../../../../../util/theme';
 
-interface DataGradientProps {
+export interface DataGradientProps {
   dataPoints: number[];
   color?: string;
 }

@@ -7,7 +7,7 @@ import Text, {
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './GraphTooltip.styles';
 
-interface GraphTooltipProps {
+export interface GraphTooltipProps {
   title: string;
   subtitle: string;
   color?: string;

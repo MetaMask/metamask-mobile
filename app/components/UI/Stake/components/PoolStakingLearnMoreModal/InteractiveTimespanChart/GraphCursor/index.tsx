@@ -2,7 +2,7 @@ import React from 'react';
 import { G, Circle, Line } from 'react-native-svg';
 import { useTheme } from '../../../../../../../util/theme';
 
-interface GraphCursorProps {
+export interface GraphCursorProps {
   data: number[];
   currentX: number;
   color?: string;
