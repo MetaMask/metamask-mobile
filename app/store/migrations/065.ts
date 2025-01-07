@@ -2,7 +2,7 @@ import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { MAINNET } from '../../constants/network';
 
-export interface State {
+interface State {
   engine: {
     backgroundState: {
       PreferencesController: {
@@ -21,7 +21,9 @@ export interface State {
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`FATAL ERROR: Migration 65: Invalid state error: '${typeof state}'`),
+      new Error(
+        `FATAL ERROR: Migration 65: Invalid state error: '${state === null ? 'null' : typeof state}'`,
+      ),
     );
     return state;
   }
@@ -29,7 +31,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 65: Invalid engine state error: '${typeof state.engine}'`,
+        `FATAL ERROR: Migration 65: Invalid engine state error: '${state.engine === null ? 'null' : typeof state.engine}'`,
       ),
     );
     return state;
@@ -38,7 +40,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 65: Invalid engine backgroundState error: '${typeof state.engine.backgroundState}'`,
+        `FATAL ERROR: Migration 65: Invalid engine backgroundState error: '${state.engine.backgroundState === null ? 'null' : typeof state.engine.backgroundState}'`,
       ),
     );
     return state;
@@ -47,7 +49,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 65: Invalid PreferencesController state error: '${typeof state.engine.backgroundState.PreferencesController}'`,
+        `FATAL ERROR: Migration 65: Invalid PreferencesController state error: '${state.engine.backgroundState.PreferencesController === null ? 'null' : typeof state.engine.backgroundState.PreferencesController}'`,
       ),
     );
     return state;
