@@ -448,7 +448,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
+              url: 'https://metamask.github.io/test-dapp/',
               id: 1692550481062,
             },
           ],

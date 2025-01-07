@@ -7,6 +7,7 @@ const createStyles = (colors: Colors) =>
     container: {
       flex: 1,
       paddingHorizontal: 16,
+      backgroundColor: colors.background.alternative,
     },
     headerTitle: {
       marginLeft: -16,

@@ -26,9 +26,7 @@ const createStyles = (
 ) =>
   StyleSheet.create({
     root: {
-      backgroundColor: isSettingsRedesignEnabled
-        ? colors.background.alternative
-        : colors.background.default,
+      backgroundColor: colors.background.default,
       padding: 16,
       ...(isFirst && { borderTopLeftRadius: 8, borderTopRightRadius: 8 }),
       ...(!isFirst && {
@@ -68,7 +66,7 @@ const createStyles = (
     },
     separator: {
       borderTopWidth: 1,
-      borderTopColor: colors.primary.inverse,
+      borderTopColor: colors.background.alternative,
     },
   });
 
@@ -141,6 +139,9 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({
           </ListItemColumn>
         )}
       </ListItem>
+      {!isLast && isSettingsRedesignEnabled && (
+        <View style={styles.separator} />
+      )}
     </TouchableOpacity>
   );
 };

@@ -37,6 +37,11 @@ const Profile = () => {
       ),
       headerLeft: () => null,
       headerRight: () => null,
+      headerStyle: {
+        backgroundColor: colors.background.alternative,
+        shadowColor: 'transparent',
+        elevation: 0,
+      },
     });
   }, [colors, navigation, styles.headerTitle]);
 
