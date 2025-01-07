@@ -860,9 +860,9 @@ exports[`Tokens render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -927,9 +927,9 @@ exports[`Tokens render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -2114,9 +2114,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -2181,9 +2181,9 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -3368,9 +3368,9 @@ exports[`Tokens should render correctly 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -3435,9 +3435,9 @@ exports[`Tokens should render correctly 1`] = `
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -4622,9 +4622,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
@@ -4689,9 +4689,9 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                             style={
                               {
                                 "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
-                                "fontWeight": "400",
+                                "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 22,
                               }
