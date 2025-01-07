@@ -89,38 +89,17 @@ export const selectNativeTokensAcrossChains = createSelector(
       const logo = isETH ? '../images/eth-logo-new.png' : '';
       tokensByChain[nativeChainId] = [];
 
-      if (
-        nativeTokenInfoByChainId &&
-        nativeTokenInfoByChainId.isStaked &&
-        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
-        nativeTokenInfoByChainId.stakedBalance !== toHex(0)
-      ) {
-        // Staked tokens
-        tokensByChain[nativeChainId].push({
-          ...nativeTokenInfoByChainId,
-          chainId: nativeChainId,
-          address: getNativeTokenAddress(nativeChainId),
-          balance: renderFromWei(nativeTokenInfoByChainId.stakedBalance),
-          balanceFiat: '',
-          isNative: true,
-          aggregators: [],
-          image: '',
-          logo,
-          isETH,
-          decimals: 18,
-          name: 'Staked Ethereum',
-          symbol: name,
-          isStaked: true,
-          ticker: token.nativeCurrency,
-        });
-      }
-
       const nativeBalanceFormatted = renderFromWei(
         nativeTokenInfoByChainId?.balance,
       );
+      const stakedBalanceFormatted = renderFromWei(
+        nativeTokenInfoByChainId?.stakedBalance,
+      );
 
       const tokenMarketDataByChainId = tokenMarketData?.[nativeChainId];
+
       let balanceFiat = '';
+      let stakedBalanceFiat = '';
 
       if (
         tokenMarketDataByChainId &&
@@ -134,10 +113,18 @@ export const selectNativeTokensAcrossChains = createSelector(
           style: 'currency',
           currency: currentCurrency,
         }).format(balanceFiatValue);
+
+        const stakedBalanceFiatValue =
+          parseFloat(stakedBalanceFormatted) *
+          (currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0);
+
+        stakedBalanceFiat = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: currentCurrency,
+        }).format(stakedBalanceFiatValue);
       }
 
-      // Non-staked tokens
-      tokensByChain[nativeChainId].push({
+      const tokenByChain = {
         ...nativeTokenInfoByChainId,
         name,
         address: getNativeTokenAddress(nativeChainId),
@@ -153,7 +140,37 @@ export const selectNativeTokensAcrossChains = createSelector(
         symbol: name,
         isStaked: false,
         ticker: token.nativeCurrency,
-      });
+      };
+
+      // Non-staked tokens
+      tokensByChain[nativeChainId].push(tokenByChain);
+
+      if (
+        nativeTokenInfoByChainId &&
+        nativeTokenInfoByChainId.isStaked &&
+        nativeTokenInfoByChainId.stakedBalance !== '0x00' &&
+        nativeTokenInfoByChainId.stakedBalance !== toHex(0)
+      ) {
+        // Staked tokens
+        tokensByChain[nativeChainId].push({
+          ...nativeTokenInfoByChainId,
+          nativeAsset: tokenByChain,
+          chainId: nativeChainId,
+          address: getNativeTokenAddress(nativeChainId),
+          balance: stakedBalanceFormatted,
+          balanceFiat: stakedBalanceFiat,
+          isNative: true,
+          aggregators: [],
+          image: '',
+          logo,
+          isETH,
+          decimals: 18,
+          name: 'Staked Ethereum',
+          symbol: name,
+          isStaked: true,
+          ticker: token.nativeCurrency,
+        });
+      }
     }
 
     return tokensByChain;
