@@ -222,4 +222,5 @@ export default {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
   },
+  MM_NEW_BROWSING_EXPERIENCE_ENABLED: process.env.MM_NEW_BROWSING_EXPERIENCE_ENABLED === 'true',
 } as const;

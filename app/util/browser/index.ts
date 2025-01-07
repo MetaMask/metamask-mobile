@@ -2,6 +2,7 @@ import { Linking } from 'react-native';
 import isUrl from 'is-url';
 import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
+import AppConstants from '../../core/AppConstants';
 
 /**
  * Returns URL prefixed with protocol
@@ -155,3 +156,5 @@ export const allowLinkOpen = (url: string) =>
     .catch((e) => {
       console.warn(`Error opening URL: ${e}`);
     });
+
+export const isNewBrowsingExperienceEnabled = () => AppConstants.MM_NEW_BROWSING_EXPERIENCE_ENABLED;
