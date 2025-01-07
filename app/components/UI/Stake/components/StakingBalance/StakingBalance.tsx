@@ -166,7 +166,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   return (
     <View>
-      {hasEthToUnstake && (
+      {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}
