@@ -1774,7 +1774,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"$(inherited)",
-					"-DFB_SONARKIT_ENABLED=1",
+					"-DFB_SONARKIT_ENABLED=0",
 				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
