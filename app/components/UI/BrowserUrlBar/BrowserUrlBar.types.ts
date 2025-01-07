@@ -1,8 +1,14 @@
+export enum ConnectionType {
+  SECURE = 'secure',
+  UNSECURE = 'unsecure',
+  UNKNOWN = 'unknown',
+}
+
 /**
  * BrowserUrlBar props
  */
 export type BrowserUrlBarProps = {
-  isSecureConnection: boolean;
+  connectionType: ConnectionType;
   onSubmitEditing: (text: string) => void;
   onCancel: () => void;
   onFocus: () => void;

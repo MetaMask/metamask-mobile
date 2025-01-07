@@ -97,7 +97,7 @@ import {
   WebViewProgressEvent,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
-import BrowserUrlBar from '../../UI/BrowserUrlBar';
+import BrowserUrlBar, { ConnectionType } from '../../UI/BrowserUrlBar';
 import { getMaskedUrl, isENSUrl, processUrlForBrowser } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -136,7 +136,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   >({});
   const urlBarRef = useRef<TextInput>(null);
   const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
-  const [isSecureConnection, setIsSecureConnection] = useState(false);
+  const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
 
   const activeUrl = useRef('');
   const title = useRef<string>('');
@@ -724,9 +724,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         canGoBack,
         canGoForward,
       });
+
       const contentProtocol = getURLProtocol(url);
-      const isHttps = contentProtocol === PROTOCOLS.HTTPS;
-      setIsSecureConnection(isHttps);
+      if (contentProtocol === PROTOCOLS.HTTPS) {
+        setConnectionType(ConnectionType.SECURE);
+      } else if (contentProtocol === PROTOCOLS.HTTP) {
+        setConnectionType(ConnectionType.UNSECURE);
+      }
+
       urlBarRef.current?.setNativeProps({ text: url });
     }
   };
@@ -829,7 +834,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       params: permittedAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList]);
+  }, [notifyAllConnections, permittedAccountsList, isTabActive]);
 
   /**
    * Website started to load
@@ -1056,6 +1061,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
   const onSubmitEditing = (text: string) => {
+    if (!text) return;
     //TODO: Sanitize input
     //       const { defaultProtocol, searchEngine } = props;
     //       const sanitizedInput = onUrlSubmit(
@@ -1108,7 +1114,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       >
         <BrowserUrlBar
           ref={urlBarRef}
-          isSecureConnection={isSecureConnection}
+          connectionType={connectionType}
           onSubmitEditing={onSubmitEditing}
           onCancel={onCancel}
           onFocus={onFocusUrlBar}

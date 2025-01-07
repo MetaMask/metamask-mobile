@@ -30,8 +30,7 @@ import { debounce } from 'lodash';
 export * from './types';
 
 /**
- * PureComponent that renders an autocomplete
- * based on an input string
+ * Autocomplete list that appears when the browser url bar is focused
  */
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,

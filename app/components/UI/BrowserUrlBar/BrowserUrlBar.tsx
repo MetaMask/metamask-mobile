@@ -1,4 +1,4 @@
-import React, { forwardRef, useRef, useState } from 'react';
+import React, { forwardRef, useMemo, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   TextInput,
@@ -6,21 +6,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-
 import { useStyles } from '../../../component-library/hooks';
-import { getURLProtocol } from '../../../util/general';
-import { PROTOCOLS } from '../../../constants/deeplinks';
-import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
-import AppConstants from '../../../core/AppConstants';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { BrowserUrlBarProps } from './BrowserUrlBar.types';
+import { BrowserUrlBarProps, ConnectionType } from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
-import Url from 'url-parse';
-import { regex } from '../../../../app/util/regex';
 import { strings } from '../../../../locales/i18n';
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
 import AccountRightButton from '../AccountRightButton';
@@ -33,11 +26,17 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import URLParse from 'url-parse';
+// import { getURLProtocol } from '../../../util/general';
+// import { PROTOCOLS } from '../../../constants/deeplinks';
+// import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
+// import AppConstants from '../../../core/AppConstants';
+// import Url from 'url-parse';
+// import { regex } from '../../../../app/util/regex';
 
 const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
   (
     {
-      isSecureConnection,
+      connectionType,
       onSubmitEditing,
       onCancel,
       onFocus,
@@ -55,6 +54,12 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
     const selectedAddress = connectedAccounts?.[0];
+    const {
+      styles,
+      theme: { colors, themeAppearance },
+    } = useStyles(stylesheet, {});
+
+    // TODO: Decide if this logic is still needed
     // const getDappMainUrl = () => {
     //   if (!url) return;
 
@@ -73,29 +78,34 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
 
     // const contentProtocol = getURLProtocol(url);
     // const isHttps = contentProtocol === PROTOCOLS.HTTPS;
-
-    const secureConnectionIcon = isUrlBarFocused
-      ? IconName.Search
-      : isSecureConnection
-      ? IconName.Lock
-      : IconName.LockSlash;
     // const mainUrl = getDappMainUrl();
 
-    const {
-      styles,
-      theme: { colors, themeAppearance },
-    } = useStyles(stylesheet, {});
-
-    const onCancelInput = () => {
-      // Blur the input
-      // Reset the input value
-      // setIsUrlBarFocused false
-    };
+    /**
+     * Gets browser url bar icon based on connection type
+     */
+    const connectionTypeIcon = useMemo(() => {
+      // Default to search icon
+      let iconName = IconName.Search;
+      if (isUrlBarFocused) {
+        return iconName;
+      }
+      switch (connectionType) {
+        case ConnectionType.SECURE:
+          iconName = IconName.Lock;
+          break;
+        case ConnectionType.UNSECURE:
+          iconName = IconName.LockSlash;
+          break;
+        case ConnectionType.UNKNOWN:
+        default:
+          iconName = IconName.Loading;
+      }
+      return iconName;
+    }, [connectionType, isUrlBarFocused]);
 
     const onBlurInput = () => {
       setIsUrlBarFocused(false);
       onBlur();
-      // TODO: inputValueRef.current needs to be updated
       if (!inputValueRef.current) {
         onCancel();
       }
@@ -113,9 +123,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
       const trimmedText = text.trim();
       inputValueRef.current = trimmedText;
-      if (!!trimmedText) {
-        onSubmitEditing(trimmedText);
-      }
+      onSubmitEditing(trimmedText);
     };
 
     const handleAccountRightButtonPress = () => {
@@ -161,7 +169,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
           <Icon
             color={colors.icon.alternative}
-            name={secureConnectionIcon}
+            name={connectionTypeIcon}
             size={IconSize.Sm}
           />
           <TextInput
