@@ -909,7 +909,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     navigation.setParams({
       error: true,
     });
+
+    // Show error and reset progress bar
     setError(errorInfo);
+    setProgress(0);
   };
 
   /**
