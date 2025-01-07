@@ -2,7 +2,7 @@ import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { MAINNET } from '../../constants/network';
 
-interface State {
+export interface State {
   engine: {
     backgroundState: {
       PreferencesController: {
