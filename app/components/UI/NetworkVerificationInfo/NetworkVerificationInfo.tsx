@@ -295,7 +295,7 @@ const NetworkVerificationInfo = ({
   };
 
   const renderBannerNetworkUrlNonAsciiDetected = () => {
-    if (isValidASCIIURL(customRpcUrl)) { return null; }
+    if (!customRpcUrl || isValidASCIIURL(customRpcUrl)) { return null; }
     const punycodeUrl = toPunycodeURL(customRpcUrl);
 
     return (

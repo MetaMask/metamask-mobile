@@ -28,7 +28,10 @@ export function isBridgeUrl(url: string) {
 
 export const isValidASCIIURL = (urlString?: string) => {
   try {
-    return urlString?.includes(punycode.toASCII(new URL(urlString).host));
+    if (!urlString) { return false; }
+
+    const urlPunycodeString = punycode.toASCII(new URL(urlString).href);
+    return urlPunycodeString?.includes(urlString);
   } catch (exp: unknown) {
     console.error(exp);
     return false;
@@ -39,7 +42,7 @@ function removePathTrailingSlash(path: string) {
   return path.endsWith('/') ? path.slice(0, -1) : path;
 }
 
-/** 
+/**
  * Note: We use the punycode library here because the url library in react native doesn't support punycode encoding.
  * It is supported in node.js which allows tests to pass, but behavior in react-native does not match the
  * behavior in the tests. This differs from the toPunycodeURL util method in metamask-extension.
