@@ -1,8 +1,7 @@
-import { isObject, hasProperty } from '@metamask/utils';
+import { isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { MAINNET } from '../../constants/network';
 
-// We can update these types as we learn more about the mobile state structure
 interface State {
   engine: {
     backgroundState: {
@@ -22,7 +21,7 @@ interface State {
 export default function migrate(state: unknown) {
   if (!isObject(state)) {
     captureException(
-      new Error(`Migration 65: Invalid root state: '${typeof state}'`),
+      new Error(`FATAL ERROR: Migration 65: Invalid state error: '${typeof state}'`),
     );
     return state;
   }
@@ -30,7 +29,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine)) {
     captureException(
       new Error(
-        `Migration 65: Invalid root engine state: '${typeof state.engine}'`,
+        `FATAL ERROR: Migration 65: Invalid engine state error: '${typeof state.engine}'`,
       ),
     );
     return state;
@@ -39,7 +38,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState)) {
     captureException(
       new Error(
-        `Migration 65: Invalid root engine backgroundState: '${typeof state.engine.backgroundState}'`,
+        `FATAL ERROR: Migration 65: Invalid engine backgroundState error: '${typeof state.engine.backgroundState}'`,
       ),
     );
     return state;
@@ -48,7 +47,7 @@ export default function migrate(state: unknown) {
   if (!isObject(state.engine.backgroundState.PreferencesController)) {
     captureException(
       new Error(
-        `Migration 65: Invalid PreferencesController state: '${typeof state.engine.backgroundState.PreferencesController}'`,
+        `FATAL ERROR: Migration 65: Invalid PreferencesController state error: '${typeof state.engine.backgroundState.PreferencesController}'`,
       ),
     );
     return state;
