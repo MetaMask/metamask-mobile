@@ -9,10 +9,6 @@ import { AreaChart } from 'react-native-svg-charts';
 import ChartTimespanButtonGroup from './ChartTimespanButtonGroup';
 import DataGradient from './DataGradient';
 import PlotLine from './PlotLine';
-import {
-  SMALL_DATASET_SNAP_RATIO,
-  SMALL_DATASET_THRESHOLD,
-} from './InteractiveTimespanChart';
 import styleSheet from './InteractiveTimespanChart.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { calculateSegmentCenters } from './InteractiveTimespanChart.utils';
@@ -23,9 +19,13 @@ import {
   GraphOptions,
 } from './InteractiveTimespanChart.types';
 import GraphTooltip from './GraphTooltip';
-import { DEFAULT_GRAPH_OPTIONS } from './InteractiveTimespanChart.constants';
+import {
+  DEFAULT_GRAPH_OPTIONS,
+  SMALL_DATASET_SNAP_RATIO,
+  SMALL_DATASET_THRESHOLD,
+} from './InteractiveTimespanChart.constants';
 
-interface InteractiveTimespanChartProps<T extends DataPoint> {
+export interface InteractiveTimespanChartProps<T extends DataPoint> {
   dataPoints: T[];
   /**
    * The yAccessor prop informs the graph of which object key to parse Y values from.

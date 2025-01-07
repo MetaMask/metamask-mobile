@@ -6,9 +6,15 @@ interface LineProps {
   line: string;
   doesChartHaveData: boolean;
   color?: string;
+  testID?: string;
 }
 
-const PlotLine = ({ line, doesChartHaveData, color }: Partial<LineProps>) => {
+const PlotLine = ({
+  line,
+  doesChartHaveData,
+  color,
+  testID = 'InteractiveChartPlotLine',
+}: Partial<LineProps>) => {
   const { colors: themeColors } = useTheme();
 
   const defaultColor = themeColors.success.default;
@@ -23,6 +29,7 @@ const PlotLine = ({ line, doesChartHaveData, color }: Partial<LineProps>) => {
       strokeWidth={1.75}
       fill="none"
       opacity={doesChartHaveData ? 1 : 0.85}
+      testID={testID}
     />
   );
 };

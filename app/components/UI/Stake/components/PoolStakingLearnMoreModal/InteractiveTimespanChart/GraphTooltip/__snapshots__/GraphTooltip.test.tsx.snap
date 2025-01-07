@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`GraphTooltip render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "gap": 4,
+      "paddingVertical": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#1c8234",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 24,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 32,
+      }
+    }
+  >
+    Sample Title
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#6a737d",
+        "fontFamily": "EuclidCircularB-Medium",
+        "fontSize": 14,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Sample Subtitle
+  </Text>
+</View>
+`;
+
+exports[`GraphTooltip supports customizing color 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "gap": 4,
+      "paddingVertical": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "blue",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 24,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 32,
+      }
+    }
+  >
+    Sample Title
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#6a737d",
+        "fontFamily": "EuclidCircularB-Medium",
+        "fontSize": 14,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Sample Subtitle
+  </Text>
+</View>
+`;

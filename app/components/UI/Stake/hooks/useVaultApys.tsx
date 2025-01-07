@@ -9,6 +9,7 @@ import {
   VaultApys,
 } from '../../../../core/redux/slices/staking';
 
+// TODO: Add tests
 const useVaultApys = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
