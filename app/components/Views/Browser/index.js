@@ -51,6 +51,7 @@ import { selectPermissionControllerState } from '../../../selectors/snaps/permis
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { appendURLParams } from '../../../util/browser';
 
 const margin = 16;
 const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
@@ -76,7 +77,7 @@ export const Browser = (props) => {
   } = props;
   const previousTabs = useRef(null);
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
@@ -86,6 +87,9 @@ export const Browser = (props) => {
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
+  );
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state) => state.security.dataCollectionForMarketing,
   );
 
   // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
@@ -117,8 +121,14 @@ export const Browser = (props) => {
     );
   };
 
+  const homePageUrl = () =>
+    appendURLParams(AppConstants.HOMEPAGE_URL, {
+      metricsEnabled: isEnabled(),
+      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+    }).href;
+
   const newTab = (url, linkType) => {
-    createNewTab(url || AppConstants.HOMEPAGE_URL, linkType);
+    createNewTab(url || homePageUrl(), linkType);
   };
 
   const updateTabInfo = (url, tabID) =>
@@ -364,7 +374,7 @@ export const Browser = (props) => {
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
-        initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+        initialUrl={tab.url || homePageUrl()}
         linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
