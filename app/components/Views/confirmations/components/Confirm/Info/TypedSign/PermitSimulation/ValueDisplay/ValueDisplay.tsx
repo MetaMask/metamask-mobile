@@ -3,7 +3,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-import ButtonPill from '../../../../../../../../../component-library/components/Buttons/ButtonPill/ButtonPill';
+import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import { ButtonIconSizes } from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { IconName , IconColor } from '../../../../../../../../../component-library/components/Icons/Icon';
