@@ -18,7 +18,7 @@ const useTrackERC20WithoutDecimalInformation = (
   chainId: Hex,
   tokenAddress: Hex | string | undefined,
   tokenDetails?: TokenDetailsERC20,
-  metricLocation = 'signature_confirmation',
+  metricLocation: string = 'signature_confirmation',
 ) => {
   const { trackEvent, createEventBuilder } = useMetrics();
 
