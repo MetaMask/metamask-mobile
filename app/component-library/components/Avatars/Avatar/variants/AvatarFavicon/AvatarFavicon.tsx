@@ -30,7 +30,11 @@ const AvatarFavicon = ({
 }: AvatarFaviconProps) => {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [error, setError] = useState<any>(undefined);
+  const isRemoteImage = imageSource && !isNumber(imageSource);
+  const hasRemoteUrl = isRemoteImage && 'uri' in imageSource;
+  const [error, setError] = useState<any>(
+    hasRemoteUrl ? undefined : 'No url property',
+  );
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
 
@@ -66,7 +70,7 @@ const AvatarFavicon = ({
       }
     };
 
-    if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
+    if (hasRemoteUrl) {
       const svg = isFaviconSVG(imageSource);
       if (svg) {
         checkSvgContentType(svg).then((isSvg) => {
@@ -76,7 +80,7 @@ const AvatarFavicon = ({
         });
       }
     }
-  }, [imageSource]);
+  }, [imageSource, hasRemoteUrl]);
 
   const renderSvg = () =>
     svgSource ? (
