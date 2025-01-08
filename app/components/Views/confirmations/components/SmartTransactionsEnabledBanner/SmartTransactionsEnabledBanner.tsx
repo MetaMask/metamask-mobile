@@ -17,11 +17,11 @@ const SmartTransactionsEnabledBanner = ({
   onClose,
 }: SmartTransactionsEnabledBannerProps) => {
   const { styles } = useStyles(styleSheet, { style });
-  const { isEnabled, isMigrationApplied } = useSmartTransactionsEnabled();
+  // todo: const { isEnabled, isMigrationApplied } = useSmartTransactionsEnabled();
 
-  if (!isEnabled || !isMigrationApplied) {
-    return null;
-  }
+  // todo: if (!isEnabled || !isMigrationApplied) {
+  // todo:   return null;
+  // todo: }
 
   const handleLearnMore = () => {
     Linking.openURL(SMART_TRANSACTIONS_LEARN_MORE);
