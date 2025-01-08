@@ -1,7 +1,5 @@
-import {
-  isMMPortfolioAPIEnabled,
-  getMMPortfolioHealthCheck,
-} from './mm-portfolio-api';
+import AppConstants from '../../core/AppConstants';
+import { getMMPortfolioHealthCheck } from './mm-portfolio-api';
 
 describe('MM Portfolio API', () => {
   const fetchMock = jest.fn();
@@ -13,6 +11,22 @@ describe('MM Portfolio API', () => {
 
   describe('getMMPortfolioHealthCheck', () => {
     const mockUrl = 'https://example.com/api';
+    let originalUrl: string;
+
+    beforeEach(() => {
+      originalUrl = AppConstants.PORTFOLIO_API.URL;
+      Object.defineProperty(AppConstants.PORTFOLIO_API, 'URL', {
+        value: mockUrl,
+        writable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(AppConstants.PORTFOLIO_API, 'URL', {
+        value: originalUrl,
+        writable: true,
+      });
+    });
 
     it('sends GET request and returns response', async () => {
       const mockResponse = { status: 'ok' };
