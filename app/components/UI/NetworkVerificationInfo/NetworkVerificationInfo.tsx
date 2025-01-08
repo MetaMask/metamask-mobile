@@ -58,7 +58,7 @@ const NetworkVerificationInfo = ({
   onReject,
   onConfirm,
   isCustomNetwork = false,
-  isMissmatchingRPCUrl = true,
+  isMissmatchingRPCUrl = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
@@ -111,7 +111,7 @@ const NetworkVerificationInfo = ({
         console.error('Invalid URL:', error);
       }
     }
-    return 'Undefined dapp origin';
+    return undefined;
   }, [customNetworkInformation]);
 
   const renderCurrencySymbol = () => (
@@ -446,7 +446,7 @@ const NetworkVerificationInfo = ({
           isCustomNetwork &&
           renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
-          {isMultichainVersion1Enabled ? (
+          {isMultichainVersion1Enabled && dappOrigin !== undefined ? (
             <Text>
               {strings(
                 'switch_custom_network.add_network_and_give_dapp_permission_warning',
