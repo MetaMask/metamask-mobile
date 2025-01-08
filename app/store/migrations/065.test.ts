@@ -137,4 +137,35 @@ describe('Migration #65', () => {
         .smartTransactionsMigrationApplied,
     ).toBe(true);
   });
+
+
+  it('should enable STX for opt-out without existing transactions', () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            smartTransactionsOptInStatus: false,
+          },
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: {
+                [MAINNET]: [],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migrate(oldState) as State;
+
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsOptInStatus,
+    ).toBe(true);
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsMigrationApplied,
+    ).toBe(true);
+  });
 });
