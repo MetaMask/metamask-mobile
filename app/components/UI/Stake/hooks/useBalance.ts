@@ -4,6 +4,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../selec
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
   selectConversionRate,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -13,6 +14,7 @@ import {
   weiToFiat,
   weiToFiatNumber,
 } from '../../../../util/number';
+import BigNumber from 'bignumber.js';
 
 const useBalance = () => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -22,6 +24,7 @@ const useBalance = () => {
   );
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const currencyRates = useSelector(selectCurrencyRates);
 
   const rawAccountBalance = selectedAddress
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
@@ -30,6 +33,8 @@ const useBalance = () => {
   const stakedBalance = selectedAddress
     ? accountsByChainId[chainId]?.[selectedAddress]?.stakedBalance || '0'
     : '0';
+
+  console.log('accountsByChainId', accountsByChainId, chainId, selectedAddress);
 
   const balanceETH = useMemo(
     () => renderFromWei(rawAccountBalance),
@@ -61,17 +66,30 @@ const useBalance = () => {
     [stakedBalance, conversionRate],
   );
 
-  const formattedStakedBalanceFiat = useMemo(
-    () =>
-      weiToFiat(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hexToBN(stakedBalance) as any,
-        conversionRate,
-        currentCurrency,
+  const formattedStakedBalanceFiat = useMemo(() => {
+    const stakedBalanceFiatValue = BigNumber(
+      Math.floor(
+        BigNumber(stakedBalance)
+          .multipliedBy(currencyRates?.ETH?.conversionRate ?? 0)
+          .dividedBy(10 ** 18)
+          .multipliedBy(100)
+          .toNumber(),
       ),
-    [currentCurrency, stakedBalance, conversionRate],
-  );
+    )
+      .dividedBy(100)
+      .toNumber();
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currentCurrency,
+    }).format(stakedBalanceFiatValue);
+    // return weiToFiat(
+    //   // TODO: Replace "any" with type
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //   hexToBN(stakedBalance) as any,
+    //   conversionRate,
+    //   currentCurrency,
+    // );
+  }, [currentCurrency, stakedBalance, currencyRates?.ETH?.conversionRate]);
 
   return {
     balanceETH,
