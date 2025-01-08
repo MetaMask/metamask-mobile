@@ -85,4 +85,27 @@ describe('Migration #65', () => {
     ).toBe(true);
   });
 
+  it('should enable STX when opt-in status is null', () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            smartTransactionsOptInStatus: null,
+          },
+        },
+      },
+    });
+
+    const newState = migrate(oldState) as State;
+
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsOptInStatus,
+    ).toBe(true);
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsMigrationApplied,
+    ).toBe(true);
+  });
+
 });
