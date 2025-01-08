@@ -2,7 +2,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import PersonalSign from '.';
 import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../util/walletconnect';
 import SignatureRequest from '../SignatureRequest';
 import Engine from '../../../../../core/Engine';
@@ -12,6 +12,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { strings } from '../../../../../../locales/i18n';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
 jest.mock('../../../../../components/hooks/useMetrics');
 jest.mock('../../../../../core/Engine', () => ({
@@ -61,20 +62,7 @@ const store = mockStore(initialState);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useSelector: (callback: any) =>
-    callback({
-      signatureRequest: {
-        securityAlertResponse: {
-          description: '',
-          features: [],
-          providerRequestsCount: { eth_chainId: 1 },
-          reason: '',
-          result_type: 'Benign',
-        },
-      },
-    }),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -117,6 +105,51 @@ function createWrapper({
 }
 
 describe('PersonalSign', () => {
+  const useSelectorMock = jest.mocked(useSelector);
+
+  beforeEach(() => {
+    useSelectorMock.mockReset();
+
+    useSelectorMock.mockImplementationOnce((callback) =>
+      callback({
+        signatureRequest: {
+          securityAlertResponse: {
+            description: '',
+            features: [],
+            providerRequestsCount: { eth_chainId: 1 },
+            reason: '',
+            result_type: 'Benign',
+          },
+        },
+      }),
+    );
+
+    useSelectorMock.mockImplementationOnce((callback) =>
+      callback({
+        engine: {
+          backgroundState: {
+            SignatureController: {
+              signatureRequests: {
+                [messageParamsMock.metamaskId]: {
+                  chainId: '1',
+                  messageParams: messageParamsMock,
+                },
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    useSelectorMock.mockImplementationOnce((callback) =>
+      callback({
+        engine: {
+          backgroundState: initialBackgroundState,
+        },
+      }),
+    );
+  });
+
   it('should render correctly', () => {
     const wrapper = createWrapper();
     expect(wrapper).toMatchSnapshot();
