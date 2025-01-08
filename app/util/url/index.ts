@@ -49,7 +49,6 @@ function removePathTrailingSlash(path: string) {
 /**
  * Note: We use the punycode library here because the URL library in react native doesn't support punycode encoding.
  * We do have the 'react-native-url-polyfill' package which supports the URL library, but it doesn't support punycode encoding.
- * Possibly, updating the 'react-native-url-polyfill' package would add punycode encoding support.
  * The URL library is supported in node.js which allows tests to pass, but behavior differs in react-native runtime.
  */
 export const toPunycodeURL = (urlString: string) => {
