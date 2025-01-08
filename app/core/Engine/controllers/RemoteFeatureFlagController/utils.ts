@@ -35,7 +35,6 @@ export const createRemoteFeatureFlagController = ({
   disabled,
   getMetaMetricsId,
 }: RemoteFeatureFlagInitParamTypes) => {
-
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
@@ -60,4 +59,3 @@ export const createRemoteFeatureFlagController = ({
   }
   return remoteFeatureFlagController;
 };
-

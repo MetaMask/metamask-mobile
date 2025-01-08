@@ -32,6 +32,9 @@ export const WalletViewSelectorsIDs = {
   SORT_ALPHABETICAL: 'sort-alphabetical',
   SORT_BY: 'sort-by',
   NAVBAR_NETWORK_PICKER: 'network-avatar-picker',
+  TOKEN_NETWORK_FILTER: 'token-network-filter',
+  TOKEN_NETWORK_FILTER_ALL: 'token-network-filter-all',
+  TOKEN_NETWORK_FILTER_CURRENT: 'token-network-filter-current',
 };
 
 export const WalletViewSelectorsText = {

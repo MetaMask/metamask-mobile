@@ -158,7 +158,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
               resizeMode="contain"
               source={
                 {
-                  "uri": "MockImage",
+                  "default": {
+                    "uri": "MockImage",
+                  },
                 }
               }
               style={
@@ -411,9 +413,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -450,9 +452,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -879,9 +881,9 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -918,9 +920,9 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
