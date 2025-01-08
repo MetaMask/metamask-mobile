@@ -30,13 +30,13 @@ const SmartTransactionsEnabledBanner = ({
   return (
     <BannerAlert
       severity={BannerAlertSeverity.Info}
-      title={strings('smartTransactionsEnabledTitle')}
+      title={strings('smart_transactions_enabled.title')}
       description={
         <>
           <Text onPress={handleLearnMore}>
-            {strings('smartTransactionsEnabledLink')}
+            {strings('smart_transactions_enabled.link')}
           </Text>
-          {strings('smartTransactionsEnabledDescription')}
+          {strings('smart_transactions_enabled.description')}
         </>
       }
       onClose={onClose}
