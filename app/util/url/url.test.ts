@@ -99,8 +99,12 @@ describe('URL Check Functions', () => {
       ).toStrictEqual(
         'https://xn--ifura-dig.io/gnosis:5050?test=i%D5%B8fura&foo=bar',
       );
+
       expect(toPunycodeURL('https://www.google.com')).toStrictEqual(
         'https://www.google.com',
+      );
+      expect(toPunycodeURL('https://opensea.io/language=français')).toStrictEqual(
+        'https://opensea.io/language=fran%C3%A7ais',
       );
     });
   });
