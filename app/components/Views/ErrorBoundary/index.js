@@ -40,7 +40,7 @@ import {
 } from '../../../components/hooks/useMetrics';
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
-
+import { isTest } from '../../../util/test/utils';
 // eslint-disable-next-line import/no-commonjs
 const WarningIcon = require('./warning-icon.png');
 
@@ -246,7 +246,6 @@ export const Fallback = (props) => {
     captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
     Alert.alert(strings('error_screen.bug_report_thanks'));
   };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -270,6 +269,14 @@ export const Fallback = (props) => {
           </Text>
         }
       />
+
+      {isTest && (
+        <Text style={styles.text}>
+          <Text onPress={props.showExportSeedphrase} style={styles.link}>
+            {strings('error_screen.save_seedphrase_2')}
+          </Text>
+        </Text>
+      )}
       <View style={styles.errorContentWrapper}>
         <Text style={styles.errorBoxTitle}>
           {strings('error_screen.error_message')}
