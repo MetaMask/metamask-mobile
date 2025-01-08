@@ -136,6 +136,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const webStates = useRef<
     Record<string, { requested: boolean; started: boolean; ended: boolean }>
   >({});
+  // Track if webview is loaded for the first time
+  const isWebViewReadyToLoad = useRef(false);
   const urlBarRef = useRef<TextInput>(null);
   const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
@@ -497,6 +499,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
    */
   useEffect(() => {
+    if (!isTabActive || isWebViewReadyToLoad.current) return;
+
+    isWebViewReadyToLoad.current = true;
+
     const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
     go(initialUrlOrHomepage, true);
 
@@ -512,7 +518,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isTabActive]);
 
   useEffect(() => {
     if (Device.isAndroid()) {
@@ -1121,6 +1127,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const onChangeUrlBar = (text: string) =>
     // Search the autocomplete results
     urlBarResultsRef.current?.search(text);
+
+  // Don't render webview unless ready to load. This should save on performance for initial app start.
+  if (!isWebViewReadyToLoad.current) return null;
 
   /**
    * Main render
