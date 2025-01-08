@@ -186,7 +186,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     }
                   }
                 >
-                  Add network
+                  Add Network
                 </Text>
               </View>
               <View
