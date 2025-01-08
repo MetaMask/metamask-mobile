@@ -2,6 +2,7 @@ import migrate, { State } from './065';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
 import initialRootState from '../../util/test/initial-root-state';
+import { MAINNET } from '../../constants/network';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -107,4 +108,33 @@ describe('Migration #65', () => {
     ).toBe(true);
   });
 
+  it('should respect existing opt-out with smart transactions', () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            smartTransactionsOptInStatus: false,
+          },
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: {
+                [MAINNET]: ['some transaction'],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migrate(oldState) as State;
+
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsOptInStatus,
+    ).toBe(false);
+    expect(
+      newState.engine.backgroundState.PreferencesController
+        .smartTransactionsMigrationApplied,
+    ).toBe(true);
+  });
 });
