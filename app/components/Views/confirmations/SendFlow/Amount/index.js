@@ -487,10 +487,6 @@ class Amount extends PureComponent {
      */
     gasEstimateType: PropTypes.string,
     /**
-     * Boolean that indicates if the max value mode is enabled
-     */
-    maxValueMode: PropTypes.bool,
-    /**
      * Function that sets the max value mode
      */
     setMaxValueMode: PropTypes.func,
@@ -940,16 +936,11 @@ class Amount extends PureComponent {
       conversionRate,
       currentCurrency,
       ticker,
-      maxValueMode: currentMaxValueMode,
       setMaxValueMode,
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
 
-    if (useMax) {
-      setMaxValueMode(true);
-    } else if (currentMaxValueMode) {
-      setMaxValueMode(false);
-    }
+    setMaxValueMode(useMax ?? false)
 
     let inputValueConversion,
       renderableInputValueConversion,
@@ -1579,7 +1570,6 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
-  maxValueMode: state.transaction.maxValueMode,
 });
 
 const mapDispatchToProps = (dispatch) => ({
