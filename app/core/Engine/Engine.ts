@@ -502,6 +502,12 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
+    const getMetaMetricsId = () => {
+      // MetaMetrics.getInstance().getMetaMetricsId()
+      return 'uid';
+
+    };
+
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
@@ -510,7 +516,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
-      getMetaMetricsId: MetaMetrics.getInstance().getMetaMetricsId(),
+      getMetaMetricsId,
     });
 
     const phishingController = new PhishingController({
@@ -1174,7 +1180,7 @@ export class Engine {
 
           return Boolean(
             hasProperty(showIncomingTransactions, currentChainId) &&
-              showIncomingTransactions?.[currentHexChainId],
+            showIncomingTransactions?.[currentHexChainId],
           );
         },
         updateTransactions: true,
@@ -1518,8 +1524,8 @@ export class Engine {
       (state: NetworkState) => {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
-            NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          NetworkStatus.Available &&
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1740,7 +1746,7 @@ export class Engine {
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountFormattedAddress
+        selectSelectedInternalAccountFormattedAddress
         ]
       ) {
         // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
@@ -1779,7 +1785,7 @@ export class Engine {
 
         const tokenBalances =
           allTokenBalances?.[selectedInternalAccount.address as Hex]?.[
-            chainId
+          chainId
           ] ?? {};
         tokens.forEach(
           (item: { address: string; balance?: string; decimals: number }) => {
@@ -1790,9 +1796,9 @@ export class Engine {
               item.balance ||
               (item.address in tokenBalances
                 ? renderFromTokenMinimalUnit(
-                    tokenBalances[item.address as Hex],
-                    item.decimals,
-                  )
+                  tokenBalances[item.address as Hex],
+                  item.decimals,
+                )
                 : undefined);
             const tokenBalanceFiat = balanceToFiatNumber(
               // TODO: Fix this by handling or eliminating the undefined case

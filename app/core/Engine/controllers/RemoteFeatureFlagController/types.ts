@@ -4,6 +4,6 @@ export interface RemoteFeatureFlagInitParamTypes {
   state?: RemoteFeatureFlagControllerState;
   messenger: RemoteFeatureFlagControllerMessenger;
   disabled: boolean;
-  getMetaMetricsId: Promise<string | undefined>;
+  getMetaMetricsId: () => string;
 }
 
