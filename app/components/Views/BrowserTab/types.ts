@@ -13,6 +13,12 @@ export type SessionENSNames = {
   };
 };
 
+export enum WebViewNavigationEventName {
+  OnLoadEnd,
+  OnLoadProgress,
+  OnLoadStart,
+}
+
 /**
  * The props for the BrowserTab component
  */
