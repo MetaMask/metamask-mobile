@@ -1,12 +1,6 @@
 import PropTypes from 'prop-types';
-import React, {
-  useContext,
-  useEffect,
-  useRef,
-  useCallback,
-  useState,
-} from 'react';
-import { Dimensions, Platform, View } from 'react-native';
+import React, { useContext, useEffect, useRef } from 'react';
+import { Dimensions, View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -31,25 +25,16 @@ import {
   getPermittedAccountsByHostname,
 } from '../../../core/Permissions';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Device from '../../../util/device';
-import { useTheme } from '../../../util/theme';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
-
 import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import {
-  selectNetworkConfigurations,
-  selectChainId,
-} from '../../../selectors/networkController';
-import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import Engine from '../../../core/Engine';
-import Routes from '../../../constants/navigation/Routes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const margin = 16;
@@ -72,10 +57,8 @@ export const Browser = (props) => {
     activeTab: activeTabId,
     tabs,
     accountsLength,
-    chainId,
   } = props;
   const previousTabs = useRef(null);
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
@@ -391,7 +374,6 @@ const mapStateToProps = (state) => ({
   networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
-  chainId: selectChainId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -441,10 +423,6 @@ Browser.propTypes = {
   route: PropTypes.object,
   accountsLength: PropTypes.number,
   networkConfigurations: PropTypes.object,
-  /**
-   * Current network chainId
-   */
-  chainId: PropTypes.string,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';
