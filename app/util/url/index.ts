@@ -50,12 +50,10 @@ function removePathTrailingSlash(path: string) {
 export const toPunycodeURL = (urlString: string) => {
   try {
     const url = new URL(urlString);
-    const punycodeHostname = punycode.toASCII(url.hostname);
-    const { protocol, port, search, hash } = url;
-    const pathname =
-      url.pathname === '/' && !urlString.endsWith('/') ? '' : url.pathname;
+    const punycodeUrl = punycode.toASCII(url.href);
+    const isWithoutEndSlash = url.pathname === '/' && !urlString.endsWith('/');
 
-    return `${protocol}//${punycodeHostname}${port}${pathname}${search}${hash}`;
+    return isWithoutEndSlash ? punycodeUrl.slice(0, -1) : punycodeUrl;
   } catch (err: unknown) {
     console.error(`Failed to convert URL to Punycode: ${err}`);
     return urlString;
