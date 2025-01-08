@@ -141,8 +141,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const resolvedUrlRef = useRef('');
   const submittedUrlRef = useRef('');
-  const title = useRef<string>('');
-  const icon = useRef<ImageSourcePropType | undefined>();
+  const titleRef = useRef<string>('');
+  const iconRef = useRef<ImageSourcePropType | undefined>();
   const backgroundBridges = useRef<
     {
       url: string;
@@ -592,8 +592,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const updateAddressBarOnError = () => {
     resolvedUrlRef.current = submittedUrlRef.current;
-    title.current = `Can't Open Page`;
-    icon.current = undefined;
+    titleRef.current = `Can't Open Page`;
+    iconRef.current = undefined;
     setConnectionType(ConnectionType.UNKNOWN);
     setBackEnabled(true);
     setForwardEnabled(false);
@@ -603,9 +603,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     isTabActive &&
       navigation.setParams({
         url: getMaskedUrl(submittedUrlRef.current, sessionENSNames),
-        icon: icon,
+        icon: iconRef,
         silent: true,
       });
+
+    props.updateTabInfo(`Can't Open Page`, props.id);
   };
 
   /**
@@ -619,8 +621,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     canGoForward: boolean;
   }) => {
     resolvedUrlRef.current = siteInfo.url;
-    title.current = siteInfo.title;
-    if (siteInfo.icon) icon.current = siteInfo.icon;
+    titleRef.current = siteInfo.title;
+    if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
     urlBarRef.current?.setNativeProps({ text: siteInfo.url });
 
@@ -827,8 +829,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           navigation,
           // Website info
           url: resolvedUrlRef,
-          title,
-          icon,
+          title: titleRef,
+          icon: iconRef,
           // Bookmarks
           isHomepage,
           // Show autocomplete
@@ -880,7 +882,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     sendActiveAccount();
 
-    icon.current = undefined;
+    iconRef.current = undefined;
     if (isHomepage(nativeEvent.url)) {
       injectHomePageScripts();
     }
@@ -1220,11 +1222,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             isHomepage={isHomepage}
             getMaskedUrl={getMaskedUrl}
             go={go}
-            title={title}
+            title={titleRef}
             reload={reload}
             sessionENSNames={sessionENSNames}
             favicon={favicon}
-            icon={icon}
+            icon={iconRef}
           />
         )}
 
