@@ -8,7 +8,6 @@ import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
 import { store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
-import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
@@ -133,18 +132,12 @@ describe('Engine', () => {
           [selectedAddress]: { balance: (ethBalance * 1e18).toString() },
         },
       },
-      NetworkController: {
-        state: {
-          ...mockNetworkState({
-            chainId: '0x1',
-            id: '0x1',
-            nickname: 'mainnet',
-            ticker: 'ETH',
-          }),
-        },
-        // TODO(dbrans): Investigate why the shape of the NetworkController state in this
-        // test is {state: NetworkState} instead of just NetworkState.
-      } as unknown as NetworkState,
+      NetworkController: mockNetworkState({
+        chainId: '0x1',
+        id: '0x1',
+        nickname: 'mainnet',
+        ticker: 'ETH',
+      }),
       CurrencyRateController: {
         currencyRates: {
           [ticker]: {
