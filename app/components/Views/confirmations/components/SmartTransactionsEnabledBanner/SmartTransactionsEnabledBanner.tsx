@@ -8,7 +8,7 @@ import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import styleSheet from './SmartTransactionsEnabledBanner.styles';
 import { SmartTransactionsEnabledBannerProps } from './SmartTransactionsEnabledBanner.types';
-// todo: import useSmartTransactionsEnabled from '../../../../../hooks/useSmartTransactionsEnabled';
+import useSmartTransactionsEnabled from '../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled';
 
 const SMART_TRANSACTIONS_LEARN_MORE = AppConstants.URLS.SMART_TXS;
 
@@ -17,11 +17,10 @@ const SmartTransactionsEnabledBanner = ({
   onClose,
 }: SmartTransactionsEnabledBannerProps) => {
   const { styles } = useStyles(styleSheet, { style });
-  // todo: const { isEnabled, isMigrationApplied } = useSmartTransactionsEnabled();
-
-  // todo: if (!isEnabled || !isMigrationApplied) {
-  // todo:   return null;
-  // todo: }
+  const { isEnabled, isMigrationApplied } = useSmartTransactionsEnabled();
+  if (!isEnabled || !isMigrationApplied) {
+    return null;
+  }
 
   const handleLearnMore = () => {
     Linking.openURL(SMART_TRANSACTIONS_LEARN_MORE);
