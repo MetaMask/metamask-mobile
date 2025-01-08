@@ -139,7 +139,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const urlBarRef = useRef<TextInput>(null);
   const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
-  const activeUrl = useRef('');
+  const resolvedUrlRef = useRef('');
+  const submittedUrlRef = useRef('');
   const title = useRef<string>('');
   const icon = useRef<ImageSourcePropType | undefined>();
   const backgroundBridges = useRef<
@@ -156,7 +157,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const searchEngine = useSelector(selectSearchEngine);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URLParse(activeUrl.current).hostname;
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
       hostname,
@@ -164,7 +165,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const favicon = useFavicon(activeUrl.current);
+  const favicon = useFavicon(resolvedUrlRef.current);
   const { trackEvent, isEnabled, getMetaMetricsId, createEventBuilder } =
     useMetrics();
   /**
@@ -180,7 +181,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Checks if a given url or the current url is the homepage
    */
   const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || activeUrl.current;
+    const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
     return (
@@ -189,7 +190,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, []);
 
   const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(activeUrl.current).hostname;
+    const fullHostname = new URLParse(resolvedUrlRef.current).hostname;
 
     // TODO:permissions move permissioning logic elsewhere
     backgroundBridges.current.forEach((bridge) => {
@@ -482,7 +483,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const { current } = webviewRef;
 
     current && current.reload();
-    triggerDappViewedEvent(activeUrl.current);
+    triggerDappViewedEvent(resolvedUrlRef.current);
   }, []);
 
   /**
@@ -587,28 +588,48 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Handles state changes for when the url changes
+   * Handles update address bar on error
    */
-  const changeUrl = async (siteInfo: {
-    url: string;
-    title: string;
-    icon: ImageSourcePropType;
-  }) => {
-    activeUrl.current = siteInfo.url;
-    title.current = siteInfo.title;
-    if (siteInfo.icon) icon.current = siteInfo.icon;
+  const updateAddressBarOnError = () => {
+    resolvedUrlRef.current = submittedUrlRef.current;
+    title.current = `Can't Open Page`;
+    icon.current = undefined;
+    setConnectionType(ConnectionType.UNKNOWN);
+    setBackEnabled(true);
+    setForwardEnabled(false);
+
+    urlBarRef.current?.setNativeProps({ text: submittedUrlRef.current });
+
+    isTabActive &&
+      navigation.setParams({
+        url: getMaskedUrl(submittedUrlRef.current, sessionENSNames),
+        icon: icon,
+        silent: true,
+      });
   };
 
   /**
    * Handles state changes for when the url changes
    */
-  const changeAddressBar = (siteInfo: {
-    title: string;
+  const updateAddressBar = async (siteInfo: {
     url: string;
+    title: string;
     icon: ImageSourcePropType;
     canGoBack: boolean;
     canGoForward: boolean;
   }) => {
+    resolvedUrlRef.current = siteInfo.url;
+    title.current = siteInfo.title;
+    if (siteInfo.icon) icon.current = siteInfo.icon;
+
+    urlBarRef.current?.setNativeProps({ text: siteInfo.url });
+
+    const contentProtocol = getURLProtocol(siteInfo.url);
+    if (contentProtocol === PROTOCOLS.HTTPS) {
+      setConnectionType(ConnectionType.SECURE);
+    } else if (contentProtocol === PROTOCOLS.HTTP) {
+      setConnectionType(ConnectionType.UNSECURE);
+    }
     setBackEnabled(siteInfo.canGoBack);
     setForwardEnabled(siteInfo.canGoForward);
 
@@ -708,33 +729,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * When website finished loading
    */
   const onLoadEnd = ({
-    nativeEvent: { url, title, canGoBack, canGoForward },
+    nativeEvent,
   }: WebViewNavigationEvent | WebViewErrorEvent) => {
+    if ('code' in nativeEvent) {
+      // Handle error - code is a property of WebViewErrorEvent
+      return updateAddressBarOnError();
+    }
+
+    // Handle navigation event
+    const { url, title, canGoBack, canGoForward } = nativeEvent;
     // Do not update URL unless website has successfully completed loading.
     webStates.current[url] = { ...webStates.current[url], ended: true };
     const { started, ended } = webStates.current[url];
     const incomingOrigin = new URLParse(url).origin;
-    const activeOrigin = new URLParse(activeUrl.current).origin;
+    const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
     if ((started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
-      changeUrl({ title, url, icon: favicon });
-      changeAddressBar({
+      updateAddressBar({
         title,
         url,
         icon: favicon,
         canGoBack,
         canGoForward,
       });
-
-      const contentProtocol = getURLProtocol(url);
-      if (contentProtocol === PROTOCOLS.HTTPS) {
-        setConnectionType(ConnectionType.SECURE);
-      } else if (contentProtocol === PROTOCOLS.HTTP) {
-        setConnectionType(ConnectionType.UNSECURE);
-      }
-
-      urlBarRef.current?.setNativeProps({ text: url });
     }
   };
 
@@ -769,7 +787,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       const onMessageError = e as Error;
       Logger.error(
         onMessageError,
-        `Browser::onMessage on ${activeUrl.current}`,
+        `Browser::onMessage on ${resolvedUrlRef.current}`,
       );
     }
   };
@@ -779,7 +797,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
-    if (activeUrl.current === HOMEPAGE_URL) return reload();
+    if (resolvedUrlRef.current === HOMEPAGE_URL) return reload();
     await go(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
@@ -808,7 +826,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           getProviderState,
           navigation,
           // Website info
-          url: activeUrl,
+          url: resolvedUrlRef,
           title,
           icon,
           // Bookmarks
@@ -856,7 +874,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(urlOrigin)) {
-      handleNotAllowedUrl(activeUrl.current); // should this be activeUrl.current instead of url?
+      handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
       return false;
     }
 
@@ -1006,9 +1024,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   );
 
   const checkTabPermissions = useCallback(() => {
-    if (!activeUrl.current) return;
+    if (!resolvedUrlRef.current) return;
 
-    const hostname = new URLParse(activeUrl.current).hostname;
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const permittedAccounts = getPermittedAccountsByHostname(
@@ -1067,6 +1085,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onSubmitEditing = (text: string) => {
     if (!text) return;
+    submittedUrlRef.current = text;
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
     const processedUrl = processUrlForBrowser(text, searchEngine);
@@ -1084,7 +1103,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onCancel = () => {
     // Reset the url bar to the current url
-    urlBarRef.current?.setNativeProps({ text: activeUrl.current });
+    urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
   };
 
   const onFocusUrlBar = () => {
@@ -1119,7 +1138,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           onBlur={onBlurUrlBar}
           onChangeText={onChangeUrlBar}
           connectedAccounts={permittedAccountsList}
-          activeUrlRef={activeUrl}
+          activeUrlRef={resolvedUrlRef}
         />
         <View style={styles.wrapper}>
           {renderProgressBar()}
@@ -1187,7 +1206,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             go={go}
             urlBarRef={urlBarRef}
             addToWhitelist={props.addToWhitelist}
-            activeUrl={activeUrl}
+            activeUrl={resolvedUrlRef}
             blockListType={blockListType}
             onSubmitEditing={onSubmitEditing}
           />
@@ -1197,7 +1216,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             toggleOptions={toggleOptions}
             onNewTabPress={onNewTabPress}
             toggleOptionsIfNeeded={toggleOptionsIfNeeded}
-            activeUrl={activeUrl}
+            activeUrl={resolvedUrlRef}
             isHomepage={isHomepage}
             getMaskedUrl={getMaskedUrl}
             go={go}

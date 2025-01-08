@@ -98,7 +98,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
           break;
         case ConnectionType.UNKNOWN:
         default:
-          iconName = IconName.Loading;
+          iconName = IconName.Blank;
       }
       return iconName;
     }, [connectionType, isUrlBarFocused]);

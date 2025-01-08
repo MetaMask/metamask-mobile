@@ -1,4 +1,5 @@
 import React from 'react';
+import { TextInput } from 'react-native';
 import PhishingModalUI from '../../../../UI/PhishingModal';
 import URLParse from 'url-parse';
 import {
@@ -10,7 +11,6 @@ import {
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
-import { TextInput } from 'react-native';
 
 interface PhishingModalProps {
   blockedUrl?: string;
@@ -18,7 +18,7 @@ interface PhishingModalProps {
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
   go: (url: string) => void;
-  urlBarRef: React.MutableRefObject<TextInput | null>;
+  urlBarRef: React.RefObject<TextInput>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: React.MutableRefObject<string>;
   blockListType: React.MutableRefObject<string>;

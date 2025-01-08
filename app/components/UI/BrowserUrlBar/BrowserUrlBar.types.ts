@@ -1,3 +1,6 @@
+/**
+ * Connection type for identifying the icon of the browser url bar
+ */
 export enum ConnectionType {
   SECURE = 'secure',
   UNSECURE = 'unsecure',
