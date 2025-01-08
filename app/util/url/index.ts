@@ -1,6 +1,10 @@
 import AppConstants from '../../core/AppConstants';
-// eslint-disable-next-line import/no-nodejs-modules
-import punycode from 'punycode';
+
+/**
+ * "Use require('punycode/') to import userland modules rather than core modules."
+ * {@see {@link https://github.com/mathiasbynens/punycode.js?tab=readme-ov-file#installation}
+*/
+import { toASCII } from 'punycode/';
 
 export function isPortfolioUrl(url: string) {
   try {
@@ -30,7 +34,7 @@ export const isValidASCIIURL = (urlString?: string) => {
   try {
     if (!urlString) { return false; }
 
-    const urlPunycodeString = punycode.toASCII(new URL(urlString).href);
+    const urlPunycodeString = toASCII(new URL(urlString).href);
     return urlPunycodeString?.includes(urlString);
   } catch (exp: unknown) {
     console.error(`Failed to detect if URL contains non-ASCII characters: ${urlString}. Error: ${exp}`);
@@ -43,14 +47,15 @@ function removePathTrailingSlash(path: string) {
 }
 
 /**
- * Note: We use the punycode library here because the url library in react native doesn't support punycode encoding.
- * It is supported in node.js which allows tests to pass, but behavior in react-native does not match the
- * behavior in the tests. This differs from the toPunycodeURL util method in metamask-extension.
+ * Note: We use the punycode library here because the URL library in react native doesn't support punycode encoding.
+ * We do have the 'react-native-url-polyfill' package which supports the URL library, but it doesn't support punycode encoding.
+ * Possibly, updating the 'react-native-url-polyfill' package would add punycode encoding support.
+ * The URL library is supported in node.js which allows tests to pass, but behavior differs in react-native runtime.
  */
 export const toPunycodeURL = (urlString: string) => {
   try {
     const url = new URL(urlString);
-    const punycodeUrl = punycode.toASCII(url.href);
+    const punycodeUrl = toASCII(url.href);
     const isWithoutEndSlash = url.pathname === '/' && !urlString.endsWith('/');
 
     return isWithoutEndSlash ? punycodeUrl.slice(0, -1) : punycodeUrl;
