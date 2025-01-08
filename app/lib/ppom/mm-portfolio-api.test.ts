@@ -51,6 +51,11 @@ describe('MM Portfolio API', () => {
     });
 
     it('throws an error if URL is not set', async () => {
+      Object.defineProperty(AppConstants.PORTFOLIO_API, 'URL', {
+        value: undefined,
+        writable: true,
+      });
+
       await expect(getMMPortfolioHealthCheck()).rejects.toThrow(
         'MM Portfolio API URL is not set',
       );
