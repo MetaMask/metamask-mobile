@@ -23,7 +23,6 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
@@ -68,15 +67,11 @@ describe(SmokeSwaps('Swap from Actions'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(10000);
   });
 
   it.each`
@@ -140,6 +135,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await Assertions.checkIfVisible(SwapView.swapButton);
+      await TestHelpers.delay(2000);
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
       await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);

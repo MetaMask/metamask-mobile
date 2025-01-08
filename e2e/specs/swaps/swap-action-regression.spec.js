@@ -23,7 +23,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
@@ -68,15 +67,11 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(2000);
   });
 
   // Remove ERC20->ERC20 temporarily due to bug

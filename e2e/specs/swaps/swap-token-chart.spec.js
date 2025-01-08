@@ -63,15 +63,11 @@ xdescribe(Regression('Swap from Token view'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.checkIfVisible(ImportAccountView.container);
-    // Tap on import button to make sure alert pops up
-    await ImportAccountView.tapImportButton();
-    await CommonView.tapOKAlertButton();
     await ImportAccountView.enterPrivateKey(wallet.privateKey);
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
     await Assertions.checkIfVisible(WalletView.container);
-    await TestHelpers.delay(2000);
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
