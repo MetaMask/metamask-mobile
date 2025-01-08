@@ -33,7 +33,6 @@ export const isValidASCIIURL = (urlString?: string) => {
     const urlPunycodeString = punycode.toASCII(new URL(urlString).href);
     return urlPunycodeString?.includes(urlString);
   } catch (exp: unknown) {
-    console.error(exp);
     return false;
   }
 };
