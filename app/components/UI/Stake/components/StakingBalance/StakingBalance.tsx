@@ -45,6 +45,7 @@ import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectChainId } from '../../../../../selectors/networkController';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -108,8 +109,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           MetaMetricsEvents.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
         )
           .addProperties({
-            selected_provider: 'consensys',
-            location: 'StakingBalance',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.STAKING_BALANCE,
           })
           .build(),
       );

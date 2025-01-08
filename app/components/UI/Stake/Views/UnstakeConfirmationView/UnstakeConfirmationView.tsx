@@ -12,6 +12,7 @@ import AccountCard from '../../components/StakingConfirmation/AccountCard/Accoun
 import ConfirmationFooter from '../../components/StakingConfirmation/ConfirmationFooter/ConfirmationFooter';
 import { FooterButtonGroupActions } from '../../components/StakingConfirmation/ConfirmationFooter/FooterButtonGroup/FooterButtonGroup.types';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -34,8 +35,8 @@ const UnstakeConfirmationView = ({ route }: UnstakeConfirmationViewProps) => {
           backButtonEvent: {
             event: MetaMetricsEvents.UNSTAKE_CONFIRMATION_BACK_CLICKED,
             properties: {
-              selected_provider: 'consensys',
-              location: 'UnstakeConfirmationView',
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.UNSTAKE_CONFIRMATION_VIEW,
             },
           },
         },

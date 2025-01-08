@@ -14,6 +14,7 @@ import { FooterButtonGroupActions } from '../../components/StakingConfirmation/C
 import UnstakingTimeCard from '../../components/StakingConfirmation/UnstakeTimeCard/UnstakeTimeCard';
 import { ScrollView } from 'react-native-gesture-handler';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const MOCK_STAKING_CONTRACT_NAME = 'MM Pooled Staking';
 
@@ -36,8 +37,8 @@ const StakeConfirmationView = ({ route }: StakeConfirmationViewProps) => {
           backButtonEvent: {
             event: MetaMetricsEvents.STAKE_CONFIRMATION_BACK_CLICKED,
             properties: {
-              selected_provider: 'consensys',
-              location: 'StakeConfirmationView',
+              selected_provider: EVENT_PROVIDERS.CONSENSYS,
+              location: EVENT_LOCATIONS.STAKE_CONFIRMATION_VIEW,
             },
           },
         },

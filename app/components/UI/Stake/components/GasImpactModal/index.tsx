@@ -24,6 +24,7 @@ import { GasImpactModalProps } from './GasImpactModal.types';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { formatEther } from 'ethers/lib/utils';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -53,8 +54,8 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
       trackEvent(
         createEventBuilder(eventName)
           .addProperties({
-            selected_provider: 'consensys',
-            location: 'GasImpactModal',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.GAS_IMPACT_MODAL,
             tokens_to_stake_native_value: formatEther(amountWei),
             tokens_to_stake_usd_value: amountFiat,
             estimated_gas_fee: estimatedGasFee,

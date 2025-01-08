@@ -30,6 +30,7 @@ import {
 } from '../../../../../../hooks/useMetrics';
 import { IMetaMetricsEvent } from '../../../../../../../core/Analytics';
 import { formatEther } from 'ethers/lib/utils';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../../constants/events';
 
 const STAKING_TX_METRIC_EVENTS: Record<
   FooterButtonGroupActions,
@@ -78,14 +79,17 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
 
   const submitTxMetaMetric = useCallback(
     (txEventName: IMetaMetricsEvent) => {
+      const { STAKE_CONFIRMATION_VIEW, UNSTAKE_CONFIRMATION_VIEW } =
+        EVENT_LOCATIONS;
+
       const location = isStaking
-        ? 'StakeConfirmationView'
-        : 'UnstakeConfirmationView';
+        ? STAKE_CONFIRMATION_VIEW
+        : UNSTAKE_CONFIRMATION_VIEW;
 
       return trackEvent(
         createEventBuilder(txEventName)
           .addProperties({
-            selected_provider: 'consensys',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location,
             transaction_amount_eth: formatEther(valueWei),
           })
@@ -165,7 +169,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       trackEvent(
         createEventBuilder(metricsEvent.name)
           .addProperties({
-            selected_provider: 'consensys',
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
             location: metricsEvent.location,
             transaction_amount_eth: formatEther(valueWei),
           })
@@ -207,7 +211,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
     trackEvent(
       createEventBuilder(metricsEvent.name)
         .addProperties({
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           location: metricsEvent.location,
         })
         .build(),
