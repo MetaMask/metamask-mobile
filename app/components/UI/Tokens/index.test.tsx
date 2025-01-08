@@ -16,6 +16,8 @@ import { createTokensBottomSheetNavDetails } from './TokensBottomSheet';
 import useStakingEligibility from '../Stake/hooks/useStakingEligibility';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
+// eslint-disable-next-line import/no-namespace
+import * as multichain from '../../../selectors/multichain';
 
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
@@ -597,13 +599,34 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
+    let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
+
     beforeEach(() => {
+      selectAccountTokensAcrossChainsSpy = jest.spyOn(
+        multichain,
+        'selectAccountTokensAcrossChains',
+      );
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     });
 
-    it('should match the snapshot when portfolio view is enabled  ', () => {
+    afterEach(() => {
+      selectAccountTokensAcrossChainsSpy.mockRestore();
+    });
+
+    it('should match the snapshot when portfolio view is enabled', () => {
       const { toJSON } = renderComponent(initialState);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('should call selectAccountTokensAcrossChains when enabled', () => {
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).toHaveBeenCalled();
+    });
+
+    it('should not call selectAccountTokensAcrossChains when disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      renderComponent(initialState);
+      expect(selectAccountTokensAcrossChainsSpy).not.toHaveBeenCalled();
     });
 
     it('should handle network filtering correctly', () => {
@@ -653,48 +676,282 @@ describe('Tokens', () => {
       expect(queryByText('MATIC')).toBeNull();
     });
 
-    it('should filter zero balance tokens when hideZeroBalanceTokens is enabled', () => {
-      const stateWithZeroBalances = {
-        ...initialState,
-        settings: {
-          hideZeroBalanceTokens: true,
-        },
-        engine: {
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            TokensController: {
-              allTokens: {
-                '0x1': {
-                  [selectedAddress]: [
-                    {
-                      address: '0x123',
-                      symbol: 'ZERO',
-                      decimals: 18,
-                      balance: '0',
-                      balanceFiat: '$0',
-                      isNative: false,
-                      chainId: '0x1',
+    describe('When hideZeroBalance is enabled', () => {
+      describe('When currentNetwork is selected', () => {
+        it('should show zero balance native token and hide zero balance ERC20 token', () => {
+          const stateWithZeroBalances = {
+            ...initialState,
+            settings: {
+              hideZeroBalanceTokens: true,
+            },
+            engine: {
+              backgroundState: {
+                ...initialState.engine.backgroundState,
+                PreferencesController: {
+                  selectedAddress,
+                  tokenSortConfig: { key: 'symbol', order: 'asc' },
+                  tokenNetworkFilter: {
+                    '0x1': true,
+                  },
+                },
+                TokenBalancesController: {
+                  tokenBalances: {
+                    [selectedAddress]: {
+                      '0x1': {
+                        '0x456': '1000000000000000000',
+                        '0x5555': '0x0',
+                      },
                     },
-                    {
-                      address: '0x456',
-                      symbol: 'NON_ZERO',
-                      decimals: 18,
-                      balance: '1000000000000000000',
-                      balanceFiat: '$100',
-                      isNative: false,
-                      chainId: '0x1',
+                  },
+                },
+                TokensController: {
+                  allTokens: {
+                    '0x1': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x123',
+                          symbol: 'ZERO',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '$0',
+                          isNative: true,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x456',
+                          symbol: 'NON_ZERO_ERC20',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x5555',
+                          symbol: 'ZERO_ERC20',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '0',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                      ],
                     },
-                  ],
+                  },
+                },
+              },
+            },
+          };
+
+          const { queryByText } = renderComponent(stateWithZeroBalances);
+          expect(queryByText('ZERO')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20')).toBeDefined();
+          expect(queryByText('ZERO_ERC20')).toBeNull();
+        });
+      });
+
+      describe('When allNetworks is selected', () => {
+        it('should hide zero balance ERC20 tokens and native tokens', () => {
+          const stateWithZeroBalances = {
+            ...initialState,
+            settings: {
+              hideZeroBalanceTokens: true,
+            },
+            engine: {
+              backgroundState: {
+                ...initialState.engine.backgroundState,
+                PreferencesController: {
+                  selectedAddress,
+                  tokenSortConfig: { key: 'symbol', order: 'asc' },
+                  tokenNetworkFilter: {
+                    '0x1': true,
+                    '0xe705': true,
+                  },
+                },
+                TokenBalancesController: {
+                  tokenBalances: {
+                    [selectedAddress]: {
+                      '0x1': {
+                        NON_ZERO_ERC20_1: '1000000000000000000',
+                      },
+                      '0xe705': {
+                        '0x4565': '1000000000000000000',
+                        '0x45654444': '0x0',
+                      },
+                    },
+                  },
+                },
+                TokensController: {
+                  allTokens: {
+                    '0x1': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x123',
+                          symbol: 'ZERO_1',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '$0',
+                          isNative: true,
+                          chainId: '0x1',
+                        },
+                        {
+                          address: '0x456',
+                          symbol: 'NON_ZERO_ERC20_1',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0x1',
+                        },
+                      ],
+                    },
+                    '0xe705': {
+                      [selectedAddress]: [
+                        {
+                          address: '0x1233',
+                          symbol: 'ZERO_2',
+                          decimals: 18,
+                          balance: '2233333',
+                          balanceFiat: '$344',
+                          isNative: true,
+                          chainId: '0xe705',
+                        },
+                        {
+                          address: '0x4565',
+                          symbol: 'NON_ZERO_ERC20_2',
+                          decimals: 18,
+                          balance: '1000000000000000000',
+                          balanceFiat: '$100',
+                          isNative: false,
+                          chainId: '0xe705',
+                        },
+                        {
+                          address: '0x45654444',
+                          symbol: 'NON_ZERO_ERC20_3',
+                          decimals: 18,
+                          balance: '0',
+                          balanceFiat: '0',
+                          isNative: false,
+                          chainId: '0xe705',
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          };
+          const { queryByText } = renderComponent(stateWithZeroBalances);
+          expect(queryByText('ZERO_1')).toBeNull();
+          expect(queryByText('ZERO_2')).toBeDefined();
+
+          expect(queryByText('NON_ZERO_ERC20_1')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
+          expect(queryByText('NON_ZERO_ERC20_3')).toBeNull();
+        });
+      });
+    });
+
+    describe('When hideZeroBalance is disabled', () => {
+      it('should show zero balance native and ERC20 tokens', () => {
+        const stateWithZeroBalances = {
+          ...initialState,
+          settings: {
+            hideZeroBalanceTokens: false,
+          },
+          engine: {
+            backgroundState: {
+              ...initialState.engine.backgroundState,
+              PreferencesController: {
+                selectedAddress,
+                tokenSortConfig: { key: 'symbol', order: 'asc' },
+                tokenNetworkFilter: {
+                  '0x1': true,
+                  '0xe705': true,
+                },
+              },
+              TokenBalancesController: {
+                tokenBalances: {
+                  [selectedAddress]: {
+                    '0x1': {
+                      NON_ZERO_ERC20_1: '1000000000000000000',
+                    },
+                    '0xe705': {
+                      '0x4565': '1000000000000000000',
+                      '0x45654444': '0x0',
+                    },
+                  },
+                },
+              },
+              TokensController: {
+                allTokens: {
+                  '0x1': {
+                    [selectedAddress]: [
+                      {
+                        address: '0x123',
+                        symbol: 'ZERO_1',
+                        decimals: 18,
+                        balance: '0',
+                        balanceFiat: '$0',
+                        isNative: true,
+                        chainId: '0x1',
+                      },
+                      {
+                        address: '0x456',
+                        symbol: 'NON_ZERO_ERC20_1',
+                        decimals: 18,
+                        balance: '1000000000000000000',
+                        balanceFiat: '$100',
+                        isNative: false,
+                        chainId: '0x1',
+                      },
+                    ],
+                  },
+                  '0xe705': {
+                    [selectedAddress]: [
+                      {
+                        address: '0x1233',
+                        symbol: 'ZERO_2',
+                        decimals: 18,
+                        balance: '2233333',
+                        balanceFiat: '$344',
+                        isNative: true,
+                        chainId: '0xe705',
+                      },
+                      {
+                        address: '0x4565',
+                        symbol: 'NON_ZERO_ERC20_2',
+                        decimals: 18,
+                        balance: '1000000000000000000',
+                        balanceFiat: '$100',
+                        isNative: false,
+                        chainId: '0xe705',
+                      },
+                      {
+                        address: '0x45654444',
+                        symbol: 'NON_ZERO_ERC20_3',
+                        decimals: 18,
+                        balance: '0',
+                        balanceFiat: '0',
+                        isNative: false,
+                        chainId: '0xe705',
+                      },
+                    ],
+                  },
                 },
               },
             },
           },
-        },
-      };
+        };
 
-      const { queryByText } = renderComponent(stateWithZeroBalances);
-      expect(queryByText('ZERO')).toBeNull();
-      expect(queryByText('NON_ZERO')).toBeDefined();
+        const { queryByText } = renderComponent(stateWithZeroBalances);
+        expect(queryByText('ZERO_1')).toBeDefined();
+        expect(queryByText('ZERO_2')).toBeDefined();
+
+        expect(queryByText('NON_ZERO_ERC20_1')).toBeDefined();
+        expect(queryByText('NON_ZERO_ERC20_2')).toBeDefined();
+        expect(queryByText('NON_ZERO_ERC20_3')).toBeDefined();
+      });
     });
   });
 });
