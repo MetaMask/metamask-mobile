@@ -1,9 +1,5 @@
 import AppConstants from '../../core/AppConstants';
 
-export function isMMPortfolioAPIEnabled() {
-  return process.env.MM_PORTFOLIO_API_ENABLED === 'true';
-}
-
 export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
   return request('');
 }
