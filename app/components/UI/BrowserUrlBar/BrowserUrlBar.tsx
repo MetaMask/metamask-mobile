@@ -43,7 +43,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       onBlur,
       onChangeText,
       connectedAccounts,
-      activeUrlRef,
+      activeUrl,
     },
     ref,
   ) => {
@@ -155,9 +155,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
           hostInfo: {
             metadata: {
               // TODO: This is not an origin, it's a hostname
-              origin:
-                activeUrlRef.current &&
-                new URLParse(activeUrlRef.current).hostname,
+              origin: activeUrl && new URLParse(activeUrl).hostname,
             },
           },
         },

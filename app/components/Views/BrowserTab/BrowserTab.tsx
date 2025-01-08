@@ -89,6 +89,7 @@ import {
   type SessionENSNames,
   type BrowserTabProps,
   type IpfsContentResult,
+  WebViewNavigationEventName,
 } from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import {
@@ -96,6 +97,7 @@ import {
   WebViewErrorEvent,
   WebViewError,
   WebViewProgressEvent,
+  WebViewNavigation,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
 import BrowserUrlBar, { ConnectionType } from '../../UI/BrowserUrlBar';
@@ -250,6 +252,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
+    if (!current) {
+      Logger.log('WebviewRef current is not defined!');
+    }
     current && current.goBack();
   }, [backEnabled, toggleOptionsIfNeeded]);
 
@@ -806,7 +811,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
     if (resolvedUrlRef.current === HOMEPAGE_URL) return reload();
-    await go(HOMEPAGE_URL);
+    await onSubmitEditing(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
 
@@ -862,7 +867,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       params: permittedAccountsList,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifyAllConnections, permittedAccountsList, isTabActive]);
+  }, [notifyAllConnections, permittedAccountsList]);
 
   /**
    * Website started to load
@@ -974,22 +979,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Render the bottom (navigation/options) bar
-   */
-  const renderBottomBar = () => (
-    <BrowserBottomBar
-      canGoBack={backEnabled}
-      canGoForward={forwardEnabled}
-      goForward={goForward}
-      goBack={goBack}
-      showTabs={showTabs}
-      showUrlModal={toggleUrlModal}
-      toggleOptions={toggleOptions}
-      goHome={goToHomepage}
-    />
-  );
-
-  /**
    * Render the onboarding wizard browser step
    */
   const renderOnboardingWizard = () => {
@@ -1004,13 +993,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       return <OnboardingWizard navigation={navigation} />;
     }
     return null;
-  };
-
-  /**
-   * Return to the MetaMask Dapp Homepage
-   */
-  const returnHome = () => {
-    go(HOMEPAGE_HOST);
   };
 
   const handleOnFileDownload = useCallback(
@@ -1104,6 +1086,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     `);
   };
 
+  /**
+   * Return to the MetaMask Dapp Homepage
+   */
+  const returnHome = () => {
+    onSubmitEditing(HOMEPAGE_HOST);
+  };
+
+  /**
+   * Render the bottom (navigation/options) bar
+   */
+  const renderBottomBar = () => (
+    <BrowserBottomBar
+      canGoBack={backEnabled}
+      canGoForward={forwardEnabled}
+      goForward={goForward}
+      goBack={goBack}
+      showTabs={showTabs}
+      showUrlModal={toggleUrlModal}
+      toggleOptions={toggleOptions}
+      goHome={goToHomepage}
+    />
+  );
+
   const onDismissAutocomplete = () => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.blur();
@@ -1131,6 +1136,79 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   // Don't render webview unless ready to load. This should save on performance for initial app start.
   if (!isWebViewReadyToLoad.current) return null;
 
+  const handleWebviewNavigationChange =
+    (eventName: WebViewNavigationEventName) =>
+    (
+      syntheticEvent:
+        | WebViewNavigationEvent
+        | WebViewProgressEvent
+        | WebViewErrorEvent,
+    ) => {
+      const { OnLoadEnd, OnLoadProgress, OnLoadStart } =
+        WebViewNavigationEventName;
+
+      const mappingEventNameString = () => {
+        switch (eventName) {
+          case OnLoadProgress:
+            return 'onLoadProgress';
+          case OnLoadEnd:
+            return 'onLoadEnd';
+          case OnLoadStart:
+            return 'onLoadStart';
+          default:
+            return 'Invalid navigation name';
+        }
+      };
+
+      Logger.log(
+        `WEBVIEW NAVIGATING: ${mappingEventNameString()} \n Values: ${JSON.stringify(
+          syntheticEvent.nativeEvent,
+        )}`,
+      );
+
+      switch (eventName) {
+        case OnLoadProgress:
+          return onLoadProgress(syntheticEvent as WebViewProgressEvent);
+        case OnLoadEnd:
+          return onLoadEnd(
+            syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent,
+          );
+        case OnLoadStart:
+          return onLoadStart(syntheticEvent as WebViewNavigationEvent);
+        default:
+          return;
+      }
+    };
+
+  const { OnLoadEnd, OnLoadProgress, OnLoadStart } = WebViewNavigationEventName;
+
+  const handleOnNavigationStateChange = (event: WebViewNavigation) => {
+    const {
+      title: titleFromNativeEvent,
+      loading,
+      canGoForward,
+      canGoBack,
+      navigationType,
+      url,
+    } = event;
+    Logger.log(
+      `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
+        event,
+      )}`,
+    );
+
+    if (navigationType === 'backforward' && loading) {
+      const payload = {
+        nativeEvent: {
+          url,
+          title: titleFromNativeEvent,
+          canGoBack,
+          canGoForward,
+        },
+      };
+      onLoadEnd(payload as WebViewNavigationEvent | WebViewErrorEvent);
+    }
+  };
   /**
    * Main render
    */
@@ -1149,7 +1227,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           onBlur={onBlurUrlBar}
           onChangeText={onChangeUrlBar}
           connectedAccounts={permittedAccountsList}
-          activeUrlRef={resolvedUrlRef}
+          activeUrl={resolvedUrlRef.current}
         />
         <View style={styles.wrapper}>
           {renderProgressBar()}
@@ -1182,9 +1260,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                   }}
                   injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                   style={styles.webview}
-                  onLoadStart={onLoadStart}
-                  onLoadEnd={onLoadEnd}
-                  onLoadProgress={onLoadProgress}
+                  onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
+                  onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
+                  onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
+                  onNavigationStateChange={handleOnNavigationStateChange}
                   onMessage={onMessage}
                   onError={onError}
                   onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
@@ -1214,12 +1293,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             showPhishingModal={showPhishingModal}
             setShowPhishingModal={setShowPhishingModal}
             setBlockedUrl={setBlockedUrl}
-            go={go}
             urlBarRef={urlBarRef}
             addToWhitelist={props.addToWhitelist}
-            activeUrl={resolvedUrlRef}
+            activeUrl={resolvedUrlRef.current}
             blockListType={blockListType}
-            onSubmitEditing={onSubmitEditing}
+            goToUrl={onSubmitEditing}
           />
         )}
         {isTabActive && showOptions && (
@@ -1227,10 +1305,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             toggleOptions={toggleOptions}
             onNewTabPress={onNewTabPress}
             toggleOptionsIfNeeded={toggleOptionsIfNeeded}
-            activeUrl={resolvedUrlRef}
+            activeUrl={resolvedUrlRef.current}
             isHomepage={isHomepage}
             getMaskedUrl={getMaskedUrl}
-            go={go}
+            onSubmitEditing={onSubmitEditing}
             title={titleRef}
             reload={reload}
             sessionENSNames={sessionENSNames}

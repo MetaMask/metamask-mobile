@@ -152,3 +152,23 @@ export const allowLinkOpen = (url: string) =>
     .catch((e) => {
       console.warn(`Error opening URL: ${e}`);
     });
+
+/**
+ * Appends search parameters to a URL and returns the complete URL string
+ *
+ * @param baseUrl - Base URL string or URL object
+ * @param params - Record of key-value pairs to append as search parameters
+ * @returns - String containing complete URL with appended parameters
+ */
+export const appendURLParams = (
+  baseUrl: string | URL,
+  params: Record<string, string | boolean | number>,
+): URL => {
+  const url = baseUrl instanceof URL ? baseUrl : new URL(baseUrl);
+
+  Object.entries(params).forEach(([key, value]) => {
+    url.searchParams.append(key, String(value));
+  });
+
+  return url;
+};

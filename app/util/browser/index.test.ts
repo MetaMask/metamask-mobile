@@ -6,6 +6,7 @@ import onUrlSubmit, {
   prefixUrlWithProtocol,
   getUrlObj,
   getHost,
+  appendURLParams,
 } from '.';
 import { strings } from '../../../locales/i18n';
 
@@ -240,5 +241,56 @@ describe('Browser utils :: trustedProtocolToDeeplink', () => {
     const { protocol } = new URL('ldap://portfolio.metamask.io');
 
     expect(trustedProtocolToDeeplink.includes(protocol)).toBeFalsy();
+  });
+});
+
+describe('Browser utils :: appendURLParams', () => {
+  it('should append search parameters to a URL string', () => {
+    const baseUrl = 'https://metamask.io';
+    const params = {
+      utm_source: 'test',
+      utm_medium: 'unit',
+      active: true,
+      count: 42,
+    };
+
+    const result = appendURLParams(baseUrl, params);
+
+    expect(result.toString()).toBe(
+      'https://metamask.io/?utm_source=test&utm_medium=unit&active=true&count=42',
+    );
+  });
+
+  it('should append parameters to a URL with existing params', () => {
+    const baseUrl = 'https://metamask.io/?existing=param';
+    const params = {
+      new: 'parameter',
+    };
+
+    const result = appendURLParams(baseUrl, params);
+
+    expect(result.toString()).toBe(
+      'https://metamask.io/?existing=param&new=parameter',
+    );
+  });
+
+  it('should work with URL object input', () => {
+    const baseUrl = new URL('https://metamask.io');
+    const params = {
+      test: 'value',
+    };
+
+    const result = appendURLParams(baseUrl, params);
+
+    expect(result.toString()).toBe('https://metamask.io/?test=value');
+  });
+
+  it('should handle empty params object', () => {
+    const baseUrl = 'https://metamask.io';
+    const params = {};
+
+    const result = appendURLParams(baseUrl, params);
+
+    expect(result.toString()).toBe('https://metamask.io/');
   });
 });

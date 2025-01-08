@@ -18,5 +18,5 @@ export type BrowserUrlBarProps = {
   onBlur: () => void;
   onChangeText: (text: string) => void;
   connectedAccounts: string[];
-  activeUrlRef: React.RefObject<string>;
+  activeUrl: string;
 };
