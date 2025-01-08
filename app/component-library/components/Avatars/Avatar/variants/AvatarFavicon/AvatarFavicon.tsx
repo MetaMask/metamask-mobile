@@ -31,10 +31,9 @@ const AvatarFavicon = ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isRemoteImage = imageSource && !isNumber(imageSource);
-  const hasRemoteUrl = isRemoteImage && 'uri' in imageSource;
-  const [error, setError] = useState<any>(
-    hasRemoteUrl ? undefined : 'No url property',
-  );
+  const isMissingUri = isRemoteImage && !('uri' in imageSource);
+
+  const [error, setError] = useState<any>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
 
@@ -70,7 +69,7 @@ const AvatarFavicon = ({
       }
     };
 
-    if (hasRemoteUrl) {
+    if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
       const svg = isFaviconSVG(imageSource);
       if (svg) {
         checkSvgContentType(svg).then((isSvg) => {
@@ -80,7 +79,7 @@ const AvatarFavicon = ({
         });
       }
     }
-  }, [imageSource, hasRemoteUrl]);
+  }, [imageSource]);
 
   const renderSvg = () =>
     svgSource ? (
@@ -110,7 +109,7 @@ const AvatarFavicon = ({
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      {error ? renderFallbackFavicon() : renderFavicon()}
+      {error || isMissingUri ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );
 };
