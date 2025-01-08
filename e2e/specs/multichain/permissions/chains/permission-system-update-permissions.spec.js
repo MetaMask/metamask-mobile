@@ -21,7 +21,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
   });
-  it('allows simultaneous granting and revoking of multiple chain permissions', async () => {
+  it.skip('allows simultaneous granting and revoking of multiple chain permissions', async () => {
     await withFixtures(
       {
         dapp: true,

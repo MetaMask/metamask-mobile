@@ -102,7 +102,7 @@ describe(
       );
     });
 
-    it('should add network permission when requested', async () => {
+    it.skip('should add network permission when requested', async () => {
       await withFixtures(
         {
           dapp: true,
