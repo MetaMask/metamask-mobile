@@ -1,4 +1,4 @@
-import { SmokeMultiChain } from '../../../../tags';
+import { SmokeMultiChainPermissions } from '../../../../tags';
 import { loginToApp } from '../../../../viewHelper';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -22,7 +22,7 @@ const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  SmokeMultiChain('Chain Permission System, non-permitted chain, '),
+  SmokeMultiChainPermissions('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

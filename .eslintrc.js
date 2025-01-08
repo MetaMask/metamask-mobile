@@ -76,6 +76,7 @@ module.exports = {
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
+        'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
         'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
       ],
       rules: {
