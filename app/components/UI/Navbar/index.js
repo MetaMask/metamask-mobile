@@ -1986,6 +1986,28 @@ export function getStakingNavbar(
     navigation.goBack();
   }
 
+  function handleBackPress() {
+    if (metricsOptions?.backButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.backButtonEvent.event,
+        properties: metricsOptions.backButtonEvent.properties,
+      });
+    } else {
+      navigationPop();
+    }
+  }
+
+  function handleCancelPress() {
+    if (metricsOptions?.cancelButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.cancelButtonEvent.event,
+        properties: metricsOptions.cancelButtonEvent.properties,
+      });
+    } else {
+      navigationPop();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1998,14 +2020,7 @@ export function getStakingNavbar(
         <ButtonIcon
           size={ButtonIconSizes.Lg}
           iconName={IconName.ArrowLeft}
-          onPress={
-            metricsOptions?.backButtonEvent
-              ? withMetaMetrics(navigationPop, {
-                  event: metricsOptions.backButtonEvent.event,
-                  properties: metricsOptions.backButtonEvent.properties,
-                })
-              : navigationPop
-          }
+          onPress={handleBackPress}
           style={innerStyles.headerLeft}
         />
       ) : (
@@ -2014,14 +2029,7 @@ export function getStakingNavbar(
     headerRight: () =>
       hasCancelButton ? (
         <TouchableOpacity
-          onPress={
-            metricsOptions?.cancelButtonEvent
-              ? withMetaMetrics(navigationPop, {
-                  event: metricsOptions.cancelButtonEvent.event,
-                  properties: metricsOptions.cancelButtonEvent.properties,
-                })
-              : navigationPop
-          }
+          onPress={handleCancelPress}
           style={styles.closeButton}
         >
           <Text style={innerStyles.headerButtonText}>
