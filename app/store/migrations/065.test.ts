@@ -49,7 +49,7 @@ describe('Migration: Remove Goerli and Linea Goerli if Infura type', () => {
   ];
 
   for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`should capture exception if ${scenario}`, async () => {
+    it(`captures exception if ${scenario}`, async () => {
       const newState = await migrate(state);
 
       expect(newState).toStrictEqual(state);
@@ -60,7 +60,7 @@ describe('Migration: Remove Goerli and Linea Goerli if Infura type', () => {
     });
   }
 
-  it('should remove Goerli and Linea Goerli configurations with Infura type', async () => {
+  it('removes Goerli and Linea Goerli configurations with Infura type', async () => {
     const mockState = {
       engine: {
         backgroundState: {
@@ -104,7 +104,7 @@ describe('Migration: Remove Goerli and Linea Goerli if Infura type', () => {
     ).not.toHaveProperty('0xe704');
   });
 
-  it('should retain configurations that are not Infura type', async () => {
+  it('retains configurations that are not Infura type', async () => {
     const mockState = {
       engine: {
         backgroundState: {
@@ -148,7 +148,7 @@ describe('Migration: Remove Goerli and Linea Goerli if Infura type', () => {
     ).toHaveProperty('0xe704');
   });
 
-  it('should not modify state if no matching configurations exist', async () => {
+  it('does not modify state if no matching configurations exist', async () => {
     const mockState = {
       engine: {
         backgroundState: {
