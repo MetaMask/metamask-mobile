@@ -1,4 +1,7 @@
+import { MessageParamsTyped } from '@metamask/signature-controller';
+import { RootState } from '../../reducers';
 import { backgroundState } from './initial-root-state';
+import { DeepPartial } from './renderWithProvider';
 
 export const personalSignatureConfirmationState = {
   engine: {
@@ -34,7 +37,7 @@ export const personalSignatureConfirmationState = {
   },
 };
 
-export const typedSignV1ConfirmationState = {
+export const typedSignV1ConfirmationState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -89,7 +92,7 @@ export const typedSignV1ConfirmationState = {
               origin: 'metamask.github.io',
               metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
               version: 'V1',
-            },
+            } as MessageParamsTyped,
           },
         },
       },
