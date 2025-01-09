@@ -8,6 +8,7 @@ export interface State {
       PreferencesController: {
         smartTransactionsOptInStatus?: boolean | null;
         smartTransactionsMigrationApplied?: boolean;
+        smartTransactionsBannerDismissed?: boolean;
       };
       SmartTransactionsController?: {
         smartTransactionsState: {
@@ -73,6 +74,8 @@ export default function migrate(state: unknown) {
   } else {
     preferences.smartTransactionsMigrationApplied = true;
   }
+
+  preferences.smartTransactionsBannerDismissed = false;
 
   return newState;
 }

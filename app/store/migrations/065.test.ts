@@ -82,6 +82,10 @@ describe('Migration #65', () => {
       result.engine.backgroundState.PreferencesController
         .smartTransactionsOptInStatus,
     ).toBe(true);
+    expect(
+      result.engine.backgroundState.PreferencesController
+        .smartTransactionsBannerDismissed,
+    ).toBe(false);
   });
 
   it('should enable STX when opt-in status is undefined', () => {
