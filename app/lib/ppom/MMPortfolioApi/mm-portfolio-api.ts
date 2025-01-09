@@ -1,4 +1,4 @@
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
 
 export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
   return request('');

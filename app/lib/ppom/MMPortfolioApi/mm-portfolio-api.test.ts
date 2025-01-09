@@ -1,4 +1,4 @@
-import AppConstants from '../../core/AppConstants';
+import AppConstants from '../../../core/AppConstants';
 import { getMMPortfolioHealthCheck } from './mm-portfolio-api';
 
 describe('MM Portfolio API', () => {
