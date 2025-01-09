@@ -74,3 +74,10 @@ export function setTokenSortConfig(tokenSortConfig) {
     tokenSortConfig,
   };
 }
+
+export function setSmartTransactionsBannerDismissed(bannerDismissed) {
+  return {
+    type: 'SET_SMART_TRANSACTIONS_BANNER_DISMISSED',
+    bannerDismissed,
+  };
+}
