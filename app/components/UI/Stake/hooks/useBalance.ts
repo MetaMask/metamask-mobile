@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
-  selectConversionRate,
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';

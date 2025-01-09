@@ -16,7 +16,6 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
-import { selectTokenMarketData } from './tokenRatesController';
 
 interface NativeTokenBalance {
   balance: string;
