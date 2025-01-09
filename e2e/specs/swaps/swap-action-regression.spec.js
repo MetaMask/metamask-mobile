@@ -1,7 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -33,7 +32,7 @@ const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
+  let educationModalTapped = false;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet = ethers.Wallet.createRandom();
 
@@ -74,14 +73,13 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  // Remove ERC20->ERC20 temporarily due to bug
-  // ${'unapproved'}$ |${'50'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
   it.each`
-    type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    type             | quantity  | sourceTokenSymbol | destTokenSymbol | network
     ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unapproved'}$ |${'3'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'erc20'}$      |${'10'}    | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'wrapped'}$    |${'.01'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unapproved'}$ |${'3'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
@@ -102,10 +100,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSwapButton();
 
-      if (!swapOnboarded) {
-        await Onboarding.tapStartSwapping();
-        swapOnboarded = true;
-      }
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
       //Select source token, if native token can skip because already selected
@@ -163,11 +157,18 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       }
 
       await TabBarComponent.tapWallet();
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      // This needs to be updated with the token balance
-      await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
 
+      // TODO: The following hack is needed to update the token balance until bug is fixed
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.changeNetworkTo('Localhost', false);
+      if (!educationModalTapped) {
+        await NetworkEducationModal.tapGotItButton();
+      }
+      await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
+      if (!educationModalTapped) {
+        await NetworkEducationModal.tapGotItButton();
+      }
+      educationModalTapped = true;
     },
   );
 });

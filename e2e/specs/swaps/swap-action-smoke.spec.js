@@ -1,7 +1,6 @@
 'use strict';
 import { ethers } from 'ethers';
 import { loginToApp } from '../../viewHelper';
-import Onboarding from '../../pages/swaps/OnBoarding';
 import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -33,7 +32,6 @@ const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
 describe(SmokeSwaps('Swap from Actions'), () => {
-  let swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet = ethers.Wallet.createRandom();
 
@@ -95,11 +93,6 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(WalletView.container);
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapSwapButton();
-
-      if (!swapOnboarded) {
-        await Onboarding.tapStartSwapping();
-        swapOnboarded = true;
-      }
       await Assertions.checkIfVisible(QuoteView.getQuotes);
 
       //Select source token, if native tiken can skip because already selected
@@ -157,12 +150,6 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         );
         await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
       }
-
-      await TabBarComponent.tapWallet();
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      // This needs to be updated with the token balance
-      await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
 
     },
   );

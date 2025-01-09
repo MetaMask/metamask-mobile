@@ -45,7 +45,7 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Sepolia test network', async () => {
-    const sepholiaTokenSymbol = 'S'
+    const sepholiaTokenSymbol = 'S';
     await switchToSepoliaNetwork();
     await WalletView.tapOnToken(sepholiaTokenSymbol);
     await Assertions.checkIfVisible(TokenOverview.noChartData, 60000);
