@@ -305,6 +305,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "decimals": 0,
             "symbol": "",
           },
+          "networkClientId": "mainnet",
           "sourceTokenInfo": {
             "address": "",
             "decimals": 0,
