@@ -5,7 +5,7 @@ import { startCase } from 'lodash';
 
 import Address from '../../UI/InfoRow/InfoValue/Address';
 import InfoRow from '../../UI/InfoRow';
-import DataTree, { DataTreeInput } from './DataTree';
+import DataTree from './DataTree';
 
 const createStyles = (depth: number) =>
   StyleSheet.create({
@@ -39,13 +39,9 @@ const DataField = memo(
     let fieldDisplay;
     if (type === 'address' && isValidHexAddress(value as Hex)) {
       fieldDisplay = <Address address={value} chainId={chainId} />;
-    } else if (typeof value === 'object') {
+    } else if (typeof value === 'object' && value !== null) {
       fieldDisplay = (
-        <DataTree
-          data={value as unknown as DataTreeInput}
-          chainId={chainId}
-          depth={depth + 1}
-        />
+        <DataTree data={value} chainId={chainId} depth={depth + 1} />
       );
     } else {
       fieldDisplay = <Text>{value}</Text>;
