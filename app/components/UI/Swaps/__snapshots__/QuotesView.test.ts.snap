@@ -197,7 +197,7 @@ exports[`QuotesView should render quote screen 1`] = `
                       }
                     }
                   >
-                    Private Network
+                    Ethereum Main Network
                   </Text>
                 </View>
               </TouchableOpacity>
