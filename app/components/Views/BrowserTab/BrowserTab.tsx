@@ -597,15 +597,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Handles update address bar on error
+   * Handles error for example, ssl certificate error or cannot open page
    */
-  const updateAddressBarOnError = () => {
+  const handleError = (webViewError: WebViewError) => {
     resolvedUrlRef.current = submittedUrlRef.current;
     titleRef.current = `Can't Open Page`;
     iconRef.current = undefined;
     setConnectionType(ConnectionType.UNKNOWN);
     setBackEnabled(true);
     setForwardEnabled(false);
+    // Show error and reset progress bar
+    setError(webViewError);
+    setProgress(0);
 
     urlBarRef.current?.setNativeProps({ text: submittedUrlRef.current });
 
@@ -614,15 +617,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         url: getMaskedUrl(submittedUrlRef.current, sessionENSNames),
         icon: iconRef,
         silent: true,
+        error: true,
       });
 
     props.updateTabInfo(`Can't Open Page`, props.id);
+    Logger.log(webViewError);
   };
 
   /**
    * Handles state changes for when the url changes
    */
-  const updateAddressBar = async (siteInfo: {
+  const handleSuccessfulPageResolution = async (siteInfo: {
     url: string;
     title: string;
     icon: ImageSourcePropType;
@@ -744,7 +749,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }: WebViewNavigationEvent | WebViewErrorEvent) => {
     if ('code' in nativeEvent) {
       // Handle error - code is a property of WebViewErrorEvent
-      return updateAddressBarOnError();
+      return handleError(nativeEvent);
     }
 
     // Handle navigation event
@@ -757,7 +762,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     if ((started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
-      updateAddressBar({
+      handleSuccessfulPageResolution({
         title,
         url,
         icon: favicon,
@@ -931,20 +936,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       <WebviewProgressBar progress={progress} />
     </View>
   );
-
-  /**
-   * Handle error, for example, ssl certificate error
-   */
-  const onError = ({ nativeEvent: errorInfo }: WebViewErrorEvent) => {
-    Logger.log(errorInfo);
-    navigation.setParams({
-      error: true,
-    });
-
-    // Show error and reset progress bar
-    setError(errorInfo);
-    setProgress(0);
-  };
 
   /**
    * Track new tab event
@@ -1263,7 +1254,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
                   onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
                   onNavigationStateChange={handleOnNavigationStateChange}
                   onMessage={onMessage}
-                  onError={onError}
                   onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                   allowsInlineMediaPlayback
                   testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
