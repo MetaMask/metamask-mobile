@@ -9,34 +9,27 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('SmartTransactionsEnabledBanner', () => {
+  const mockDismissBanner = jest.fn();
+
   beforeEach(() => {
     (useSmartTransactionsEnabled as jest.Mock).mockReturnValue({
-      isEnabled: true,
-      isMigrationApplied: true,
+      shouldShowBanner: true,
+      dismissBanner: mockDismissBanner,
     });
+    mockDismissBanner.mockClear();
   });
 
-  it('renders nothing when STX is not enabled', () => {
+  it('renders nothing when shouldShowBanner is false', () => {
     (useSmartTransactionsEnabled as jest.Mock).mockReturnValue({
-      isEnabled: false,
-      isMigrationApplied: true,
+      shouldShowBanner: false,
+      dismissBanner: mockDismissBanner,
     });
 
     const { queryByTestId } = render(<SmartTransactionsEnabledBanner />);
     expect(queryByTestId('smart-transactions-enabled-banner')).toBeNull();
   });
 
-  it('renders nothing when migration is not applied', () => {
-    (useSmartTransactionsEnabled as jest.Mock).mockReturnValue({
-      isEnabled: true,
-      isMigrationApplied: false,
-    });
-
-    const { queryByTestId } = render(<SmartTransactionsEnabledBanner />);
-    expect(queryByTestId('smart-transactions-enabled-banner')).toBeNull();
-  });
-
-  it('renders banner when STX is enabled and migration is applied', () => {
+  it('renders banner when shouldShowBanner is true', () => {
     const { getByTestId, getByText } = render(<SmartTransactionsEnabledBanner />);
 
     expect(getByTestId('smart-transactions-enabled-banner')).toBeDefined();
@@ -44,13 +37,20 @@ describe('SmartTransactionsEnabledBanner', () => {
     expect(getByText('smart_transactions_enabled.link')).toBeDefined();
   });
 
-  it('calls onClose when close button is pressed', () => {
-    const onCloseMock = jest.fn();
-    const { getByTestId } = render(
-      <SmartTransactionsEnabledBanner onClose={onCloseMock} />,
-    );
+  it('calls dismissBanner when close button is pressed', () => {
+    const { getByTestId } = render(<SmartTransactionsEnabledBanner />);
 
     fireEvent.press(getByTestId('banner-close-button-icon'));
-    expect(onCloseMock).toHaveBeenCalled();
+    expect(mockDismissBanner).toHaveBeenCalled();
+  });
+
+  it('accepts and applies custom styles', () => {
+    const customStyle = { marginTop: 20 };
+    const { getByTestId } = render(
+      <SmartTransactionsEnabledBanner style={customStyle} />,
+    );
+
+    const banner = getByTestId('smart-transactions-enabled-banner');
+    expect(banner.props.style).toMatchObject(expect.objectContaining(customStyle));
   });
 });

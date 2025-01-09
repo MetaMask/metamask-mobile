@@ -14,11 +14,11 @@ const SMART_TRANSACTIONS_LEARN_MORE = AppConstants.URLS.SMART_TXS;
 
 const SmartTransactionsEnabledBanner = ({
   style,
-  onClose,
 }: SmartTransactionsEnabledBannerProps) => {
   const { styles } = useStyles(styleSheet, { style });
-  const { isEnabled, isMigrationApplied } = useSmartTransactionsEnabled();
-  if (!isEnabled || !isMigrationApplied) {
+  const { shouldShowBanner, dismissBanner } = useSmartTransactionsEnabled();
+
+  if (!shouldShowBanner) {
     return null;
   }
 
@@ -38,7 +38,7 @@ const SmartTransactionsEnabledBanner = ({
           {strings('smart_transactions_enabled.description')}
         </>
       }
-      onClose={onClose}
+      onClose={dismissBanner}
       style={styles.banner}
       testID="smart-transactions-enabled-banner"
     />

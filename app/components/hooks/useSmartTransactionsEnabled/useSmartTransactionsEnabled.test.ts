@@ -1,17 +1,22 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector, useDispatch } from 'react-redux';
 import useSmartTransactionsEnabled from './useSmartTransactionsEnabled';
-import { useSelector } from 'react-redux';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
+  useDispatch: jest.fn(),
 }));
 
 describe('useSmartTransactionsEnabled', () => {
+  const mockDispatch = jest.fn();
+
   beforeEach(() => {
     (useSelector as jest.Mock).mockClear();
+    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    mockDispatch.mockClear();
   });
 
-  it('returns false for both flags when preferences are undefined', () => {
+  it('returns false for all flags when preferences are undefined', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       selector({
         engine: {
@@ -26,6 +31,8 @@ describe('useSmartTransactionsEnabled', () => {
 
     expect(result.current.isEnabled).toBe(false);
     expect(result.current.isMigrationApplied).toBe(false);
+    expect(result.current.isBannerDismissed).toBe(false);
+    expect(result.current.shouldShowBanner).toBe(false);
   });
 
   it('returns correct values when preferences exist', () => {
@@ -36,6 +43,7 @@ describe('useSmartTransactionsEnabled', () => {
             PreferencesController: {
               smartTransactionsOptInStatus: true,
               smartTransactionsMigrationApplied: true,
+              smartTransactionsBannerDismissed: false,
             }
           }
         }
@@ -46,16 +54,19 @@ describe('useSmartTransactionsEnabled', () => {
 
     expect(result.current.isEnabled).toBe(true);
     expect(result.current.isMigrationApplied).toBe(true);
+    expect(result.current.isBannerDismissed).toBe(false);
+    expect(result.current.shouldShowBanner).toBe(true);
   });
 
-  it('handles when only one preference is set', () => {
+  it('shouldShowBanner returns false when banner is dismissed', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       selector({
         engine: {
           backgroundState: {
             PreferencesController: {
               smartTransactionsOptInStatus: true,
-              smartTransactionsMigrationApplied: false,
+              smartTransactionsMigrationApplied: true,
+              smartTransactionsBannerDismissed: true,
             }
           }
         }
@@ -63,8 +74,17 @@ describe('useSmartTransactionsEnabled', () => {
     );
 
     const { result } = renderHook(() => useSmartTransactionsEnabled());
+    expect(result.current.shouldShowBanner).toBe(false);
+  });
 
-    expect(result.current.isEnabled).toBe(true);
-    expect(result.current.isMigrationApplied).toBe(false);
+  it('dismissBanner dispatches the correct action', () => {
+    const { result } = renderHook(() => useSmartTransactionsEnabled());
+
+    result.current.dismissBanner();
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'SET_SMART_TRANSACTIONS_BANNER_DISMISSED',
+      payload: true,
+    });
   });
 });
