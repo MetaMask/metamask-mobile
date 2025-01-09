@@ -314,16 +314,16 @@ export const TRUNCATED_ADDRESS_END_CHARS = 5;
 export function shortenString(
   stringToShorten = '',
   {
-    truncatedCharLimit,
-    truncatedStartChars,
-    truncatedEndChars,
-    skipCharacterInEnd,
-  } = {
-    truncatedCharLimit: TRUNCATED_NAME_CHAR_LIMIT,
-    truncatedStartChars: TRUNCATED_ADDRESS_START_CHARS,
-    truncatedEndChars: TRUNCATED_ADDRESS_END_CHARS,
-    skipCharacterInEnd: false,
-  },
+    truncatedCharLimit = TRUNCATED_NAME_CHAR_LIMIT,
+    truncatedStartChars = TRUNCATED_ADDRESS_START_CHARS,
+    truncatedEndChars = TRUNCATED_ADDRESS_END_CHARS,
+    skipCharacterInEnd = false,
+  }: {
+    truncatedCharLimit?: number;
+    truncatedStartChars?: number;
+    truncatedEndChars?: number;
+    skipCharacterInEnd?: boolean;
+  } = {},
 ) {
   if (stringToShorten.length < truncatedCharLimit) {
     return stringToShorten;
