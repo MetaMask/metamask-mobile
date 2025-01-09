@@ -18,6 +18,14 @@ describe('Signature Utils', () => {
       });
     });
 
+    it('parses message.value as a string', () => {
+      const result = parseTypedDataMessage(
+        '{"test": "dummy", "message": { "value": 3000123} }',
+      );
+      expect(result.message.value).toBe('3000123');
+    });
+
+
     it('should handle large message values. This prevents native JS number coercion when the value is greater than Number.MAX_SAFE_INTEGER.', () => {
       const largeValue = '123456789012345678901234567890';
       const data = JSON.stringify({
@@ -27,6 +35,12 @@ describe('Signature Utils', () => {
       });
       const result = parseTypedDataMessage(data);
       expect(result.message.value).toBe(largeValue);
+    });
+
+    it('throw error for invalid typedDataMessage', () => {
+      expect(() => {
+        parseTypedDataMessage('');
+      }).toThrow(new Error('Unexpected end of JSON input'));
     });
   });
 
