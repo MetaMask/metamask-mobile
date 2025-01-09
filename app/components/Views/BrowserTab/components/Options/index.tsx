@@ -1,4 +1,4 @@
-import React, { MutableRefObject } from 'react';
+import React, { MutableRefObject, useCallback } from 'react';
 import {
   Linking,
   Platform,
@@ -181,19 +181,12 @@ const Options = ({
   );
 
   /**
-   * Track reload site event
-   */
-  const trackReloadEvent = () => {
-    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
-  };
-
-  /**
    * Handles reload button press
    */
   const onReloadPress = () => {
     toggleOptionsIfNeeded();
     reload();
-    trackReloadEvent();
+    trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
   };
 
   const isBookmark = () => {
@@ -226,12 +219,33 @@ const Options = ({
   };
 
   /**
-   * Render non-homepage options menu
+   * Render share option
    */
-  const renderNonHomeOptions = () => {
-    if (isHomepage()) return renderGoToFavorites();
-    return (
-      <React.Fragment>
+  const renderShareOption = useCallback(
+    () =>
+      activeUrl ? (
+        <Button onPress={share} style={styles.option}>
+          <View style={styles.optionIconWrapper}>
+            <Icon name="share" size={15} style={styles.optionIcon} />
+          </View>
+          <Text
+            style={styles.optionText}
+            numberOfLines={2}
+            {...generateTestId(Platform, SHARE_OPTION)}
+          >
+            {strings('browser.share')}
+          </Text>
+        </Button>
+      ) : null,
+    [activeUrl, share],
+  );
+
+  /**
+   * Render reload option
+   */
+  const renderReloadOption = useCallback(
+    () =>
+      activeUrl ? (
         <Button onPress={onReloadPress} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="refresh" size={15} style={styles.optionIcon} />
@@ -244,6 +258,18 @@ const Options = ({
             {strings('browser.reload')}
           </Text>
         </Button>
+      ) : null,
+    [activeUrl, onReloadPress],
+  );
+
+  /**
+   * Render non-homepage options menu
+   */
+  const renderNonHomeOptions = () => {
+    if (isHomepage()) return renderGoToFavorites();
+    return (
+      <React.Fragment>
+        {renderReloadOption()}
         {!isBookmark() && (
           <Button onPress={navigateToAddBookmark} style={styles.option}>
             <View style={styles.optionIconWrapper}>
@@ -259,18 +285,7 @@ const Options = ({
           </Button>
         )}
         {renderGoToFavorites()}
-        <Button onPress={share} style={styles.option}>
-          <View style={styles.optionIconWrapper}>
-            <Icon name="share" size={15} style={styles.optionIcon} />
-          </View>
-          <Text
-            style={styles.optionText}
-            numberOfLines={2}
-            {...generateTestId(Platform, SHARE_OPTION)}
-          >
-            {strings('browser.share')}
-          </Text>
-        </Button>
+        {renderShareOption()}
         <Button onPress={openInBrowser} style={styles.option}>
           <View style={styles.optionIconWrapper}>
             <Icon name="expand" size={16} style={styles.optionIcon} />

@@ -487,9 +487,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Reload current page
    */
   const reload = useCallback(() => {
-    const { current } = webviewRef;
-
-    current && current.reload();
+    onSubmitEditing(resolvedUrlRef.current);
     triggerDappViewedEvent(resolvedUrlRef.current);
   }, []);
 
