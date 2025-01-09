@@ -7,17 +7,19 @@ import { fireEvent } from '@testing-library/react-native';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
-jest.mock('../../../hooks/useApprovalRequest', () => () => ({
+jest.mock('../../../hooks/useConfirmActions', () => () => ({
   onConfirm: mockConfirmSpy,
   onReject: mockRejectSpy,
 }));
 
 describe('Footer', () => {
-  it('should match snapshot for personal sign', async () => {
-    const container = renderWithProvider(<Footer />, {
+  it('should render correctly', async () => {
+    const { getByText, getAllByRole } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(container).toMatchSnapshot();
+    expect(getByText('Reject')).toBeDefined();
+    expect(getByText('Confirm')).toBeDefined();
+    expect(getAllByRole('button')).toHaveLength(2);
   });
 
   it('should call onConfirm when confirm button is clicked', async () => {
