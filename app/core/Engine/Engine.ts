@@ -1273,7 +1273,10 @@ export class Engine {
       state: initialState.SmartTransactionsController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
-        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+        ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getTransactions: this.transactionController.getTransactions.bind(

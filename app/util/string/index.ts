@@ -87,17 +87,17 @@ interface BaseType {
   type: string;
 }
 
-type FieldValue = string | string[] | Record<string, string>;
+type FieldValue = string | string[] | Record<string, unknown>;
 
 interface ValueType {
   value: FieldValue | ValueType[];
   type: string;
 }
 
-const sanitizeMessage = (
+export const sanitizeMessage = (
   message: FieldValue,
   primaryType: string,
-  types: Record<string, BaseType[]>,
+  types: Record<string, BaseType[]> | undefined,
 ): ValueType => {
   if (!types) {
     throw new Error(`Invalid types definition`);
