@@ -13,7 +13,7 @@ import { DataTreeInput } from '../../DataTree/DataTree';
 
 const styles = StyleSheet.create({
   collpasedInfoRow: {
-    marginLeft: -8,
+    marginStart: -8,
   },
 });
 
