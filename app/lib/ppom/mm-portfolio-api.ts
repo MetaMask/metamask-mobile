@@ -1,7 +1,12 @@
 import AppConstants from '../../core/AppConstants';
 
 export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
-  return request('');
+  return request('', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 }
 
 async function request(endpoint: string, options?: RequestInit) {
