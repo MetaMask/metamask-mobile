@@ -10,15 +10,13 @@ import { selectAllTokens } from './tokensController';
 import { selectAccountsByChainId } from './accountTrackerController';
 import { selectNetworkConfigurations } from './networkController';
 import { TokenI } from '../components/UI/Tokens/types';
-import { renderFromWei } from '../util/number';
-import { toHex } from '@metamask/controller-utils';
+import { renderFromWei, weiToFiat } from '../util/number';
+import { hexToBN, toHex } from '@metamask/controller-utils';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
 import { selectTokenMarketData } from './tokenRatesController';
-import { BN } from 'bn.js';
-import BigNumber from 'bignumber.js';
 
 interface NativeTokenBalance {
   balance: string;
@@ -69,14 +67,12 @@ export const selectNativeTokensAcrossChains = createSelector(
     selectedAccountNativeTokenCachedBalanceByChainId,
     selectCurrencyRates,
     selectCurrentCurrency,
-    selectTokenMarketData,
   ],
   (
     networkConfigurations,
     nativeTokenBalancesByChainId,
     currencyRates,
     currentCurrency,
-    tokenMarketData,
   ) => {
     const tokensByChain: { [chainId: string]: TokenI[] } = {};
     for (const token of Object.values(networkConfigurations)) {
@@ -98,66 +94,26 @@ export const selectNativeTokensAcrossChains = createSelector(
         nativeTokenInfoByChainId?.stakedBalance,
       );
 
-      const tokenMarketDataByChainId = tokenMarketData?.[nativeChainId];
-
       let balanceFiat = '';
       let stakedBalanceFiat = '';
 
-      if (
-        tokenMarketDataByChainId &&
-        Object.keys(tokenMarketDataByChainId).length === 0
-      ) {
-        // const balanceFiatValue =
-        //   parseFloat(nativeBalanceFormatted) *
-        //   (currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0);
+      const conversionRate =
+        currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0;
 
-        const balanceFiatValue = BigNumber(
-          Math.floor(
-            BigNumber(nativeTokenInfoByChainId?.balance)
-              .multipliedBy(
-                currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0,
-              )
-              .dividedBy(10 ** 18)
-              .multipliedBy(100)
-              .toNumber(),
-          ),
-        )
-          .dividedBy(100)
-          .toNumber();
-
-        balanceFiat = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currentCurrency,
-        }).format(balanceFiatValue);
-
-        // const stakedBalanceFiatValue =
-        //   parseFloat(stakedBalanceFormatted) *
-        //   (currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0);
-
-        const stakedBalanceFiatValue = BigNumber(
-          Math.floor(
-            BigNumber(nativeTokenInfoByChainId?.stakedBalance)
-              .multipliedBy(
-                currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0,
-              )
-              .dividedBy(10 ** 18)
-              .multipliedBy(100)
-              .toNumber(),
-          ),
-        )
-          .dividedBy(100)
-          .toNumber();
-        console.log(
-          'stakedBalanceFiatValue',
-          stakedBalanceFiatValue,
-          parseFloat(stakedBalanceFormatted) *
-            (currencyRates?.[token.nativeCurrency]?.conversionRate ?? 0),
-        );
-        stakedBalanceFiat = new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: currentCurrency,
-        }).format(stakedBalanceFiatValue);
-      }
+      balanceFiat = weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(nativeTokenInfoByChainId?.balance) as any,
+        conversionRate,
+        currentCurrency,
+      );
+      stakedBalanceFiat = weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(nativeTokenInfoByChainId?.stakedBalance) as any,
+        conversionRate,
+        currentCurrency,
+      );
 
       const tokenByChain = {
         ...nativeTokenInfoByChainId,

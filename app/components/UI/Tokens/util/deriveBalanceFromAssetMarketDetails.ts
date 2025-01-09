@@ -62,14 +62,16 @@ export const deriveBalanceFromAssetMarketDetails = (
       balanceValueFormatted,
     };
   const balanceFiatCalculation = Number(
-    asset.balanceFiat ||
-      balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
+    balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
   );
 
   const balanceFiat =
     balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
       ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
       : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+
+  // NOTE: the way we calculate the balances here loses precision for both tokens and native assets
+  // This is different than how portfolio fiat total is calculated and causes variance between the totals
 
   return { balanceFiat, balanceValueFormatted, balanceFiatCalculation };
 };
