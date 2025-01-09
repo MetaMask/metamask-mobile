@@ -62,6 +62,7 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import SmartTransactionsEnabledBanner from '../SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -117,6 +118,10 @@ const createStyles = (colors) =>
       marginBottom: 24,
     },
     blockAidBannerContainer: {
+      marginHorizontal: 16,
+      marginBottom: -8,
+    },
+    smartTransactionsBannerContainer: {
       marginHorizontal: 16,
       marginBottom: -8,
     },
@@ -596,6 +601,9 @@ class TransactionReview extends PureComponent {
                         style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
+                    </View>
+                    <View style={styles.smartTransactionsBannerContainer}>
+                      <SmartTransactionsEnabledBanner />
                     </View>
                     {to && (
                       <View style={styles.accountWrapper}>
