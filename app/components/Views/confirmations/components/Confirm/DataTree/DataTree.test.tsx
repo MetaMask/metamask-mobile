@@ -48,7 +48,7 @@ describe('NoChangeSimulation', () => {
     );
     expect(getByText('Message')).toBeDefined();
     expect(getByText('Hi, Alice!')).toBeDefined();
-    expect(getByText('A number')).toBeDefined();
+    expect(getByText('A Number')).toBeDefined();
     expect(getByText('1337')).toBeDefined();
   });
 
