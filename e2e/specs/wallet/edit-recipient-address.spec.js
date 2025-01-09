@@ -79,10 +79,8 @@ describe(
           // Transactions view to assert address remains consistent
           await TabBarComponent.tapActivity();
           await TestHelpers.delay(3000);
-          await element(by.text('Sent ETH')).tap();
-          await TestHelpers.checkIfElementByTextIsVisible(
-            `${SHORTHAND_ADDRESS}`,
-          );
+          await TestHelpers.tapByText('Sent ETH');
+          await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`)
         },
       );
     });
