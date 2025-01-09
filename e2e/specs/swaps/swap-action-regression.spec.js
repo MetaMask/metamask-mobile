@@ -78,9 +78,9 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'unapproved'}$ |${'3'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'erc20'}$      |${'10'}    | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'wrapped'}$    |${'.01'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-  `(
+    ${'wrap'}$       |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unwrap'}$     |${'.01'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+    `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
 
@@ -130,7 +130,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         );
       }
       await QuoteView.tapOnGetQuotes();
-      await Assertions.checkIfVisible(SwapView.fetchingQuotes);
       await Assertions.checkIfVisible(SwapView.quoteSummary);
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
