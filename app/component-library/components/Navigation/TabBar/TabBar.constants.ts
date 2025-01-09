@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import { IconName } from '../../Icons/Icon';
-
+import Device from '../../../../util/device';
 // Internal dependencies.
 import { IconByTabBarIconKey, TabBarIconKey } from './TabBar.types';
 
@@ -14,3 +14,5 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Setting]: IconName.Setting,
   [TabBarIconKey.Profile]: IconName.Profile,
 };
+
+export const TAB_BAR_HEIGHT = Device.isAndroid() ? 62 : 48;
