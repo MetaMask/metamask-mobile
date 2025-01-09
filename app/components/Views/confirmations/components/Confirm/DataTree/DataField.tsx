@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
 import { StyleSheet, Text, View } from 'react-native';
+import { startCase } from 'lodash';
 
 import Address from '../../UI/InfoRow/InfoValue/Address';
 import InfoRow from '../../UI/InfoRow';
@@ -19,9 +20,6 @@ const createStyles = (depth: number) =>
       paddingBottom: 0,
     },
   });
-
-const convertToTitleCase = (str: string) =>
-  str?.charAt(0)?.toUpperCase() + str?.slice(1);
 
 const DataField = memo(
   ({
@@ -54,7 +52,7 @@ const DataField = memo(
     }
     return (
       <View style={styles.container}>
-        <InfoRow label={convertToTitleCase(label)} style={styles.dataRow}>
+        <InfoRow label={startCase(label)} style={styles.dataRow}>
           {fieldDisplay}
         </InfoRow>
       </View>
