@@ -26,12 +26,12 @@ import InteractiveTimespanChart from './InteractiveTimespanChart';
 import BigNumber from 'bignumber.js';
 import {
   formatChartDate,
-  parseVaultTimespanAprsResponse,
+  getGraphInsetsByDataPointLength,
 } from './InteractiveTimespanChart/InteractiveTimespanChart.utils';
 import useVaultAprs from '../../hooks/useVaultAprs';
 import { strings } from '../../../../../../locales/i18n';
+import { parseVaultTimespanAprsResponse } from './PoolStakingLearnMoreModal.utils';
 
-// TODO: Add Tests
 // TODO: Make sure heading is aligned on Android devices.
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -80,8 +80,7 @@ const PoolStakingLearnMoreModal = () => {
 
   const { vaultAprs, isLoadingVaultAprs } = useVaultAprs();
 
-  // Vault Aprs for 1 day, 1 week, 1 month, 3 months, 6 months, and 1 year.
-  // Calculated server-side
+  // Converts VaultTimespanAprs for use with interactive graph timespan buttons.
   const parsedVaultTimespanAprs = useMemo(() => {
     if (isLoadingVaultAprs) return;
     return parseVaultTimespanAprsResponse(vaultAprs);
@@ -103,6 +102,7 @@ const PoolStakingLearnMoreModal = () => {
       },
     });
 
+    // TODO: Replace selected_providers and location with defined constants in latest main branch.
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
         .addProperties({
@@ -151,18 +151,19 @@ const PoolStakingLearnMoreModal = () => {
               yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
               defaultTitle={`${new BigNumber(activeTimespanApr.apr).toFixed(
                 2,
+                BigNumber.ROUND_DOWN,
               )}% ${strings('stake.apr')}`}
               defaultSubtitle={activeTimespanApr.label}
               titleAccessor={(point) =>
-                `${new BigNumber(point.daily_apy).toFixed(2)}% ${strings(
-                  'stake.apr',
-                )}`
+                `${new BigNumber(point.daily_apy).toFixed(
+                  2,
+                  BigNumber.ROUND_DOWN,
+                )}% ${strings('stake.apr')}`
               }
               subtitleAccessor={(point) => formatChartDate(point.timestamp)}
               onTimespanPressed={handleTimespanPressed}
               graphOptions={{
-                insetTop: activeTimespanApr.numDays <= 10 ? 20 : 10,
-                insetBottom: activeTimespanApr.numDays <= 10 ? 20 : 10,
+                ...getGraphInsetsByDataPointLength(activeTimespanApr.numDays),
               }}
             />
           )}

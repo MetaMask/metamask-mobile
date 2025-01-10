@@ -13,6 +13,7 @@ const PlotLine = ({
   line,
   doesChartHaveData,
   color,
+  // TODO: Determine if this is necessary or not. If it is, break it out into a constants file.
   testID = 'InteractiveChartPlotLine',
 }: Partial<LineProps>) => {
   const { colors: themeColors } = useTheme();

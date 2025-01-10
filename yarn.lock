@@ -5354,10 +5354,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/stake-sdk@^0.4.0":
-  version "0.4.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/stake-sdk/-/stake-sdk-0.4.0.tgz#7b6fa0bc829fb3cb282a6a6a0c43b085608dc963"
-  integrity sha512-nKcxNh+O9KCJDdgXl5clo+/xgECBzTYz+/89Z2xEKWwRIPHuiQCFFXebSfwGTr+z7xKxCpz6th+xj0Yuas69Jw==
+"@metamask/stake-sdk@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-0.5.0.tgz#cef84b90d8caa644975c30ea144567c156f0bc90"
+  integrity sha512-PUSLx5kDSLEix6CdxxpO/vf/KB452wkAX0RwJD6HwIgV8+TE9jIjaKVmqHoBj+y4ZDKa2S7yWKwt/9o3VgPX1A==
 
 "@metamask/superstruct@^3.1.0":
   version "3.1.0"

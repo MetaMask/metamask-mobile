@@ -11,7 +11,11 @@ import DataGradient from './DataGradient';
 import PlotLine from './PlotLine';
 import styleSheet from './InteractiveTimespanChart.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { calculateSegmentCenters } from './InteractiveTimespanChart.utils';
+import {
+  calculateSegmentCenters,
+  calculateSnapThreshold,
+  findClosestPointIndex,
+} from './InteractiveTimespanChart.utils';
 import GraphCursor from './GraphCursor';
 import {
   DataPoint,
@@ -19,11 +23,7 @@ import {
   GraphOptions,
 } from './InteractiveTimespanChart.types';
 import GraphTooltip from './GraphTooltip';
-import {
-  DEFAULT_GRAPH_OPTIONS,
-  SMALL_DATASET_SNAP_RATIO,
-  SMALL_DATASET_THRESHOLD,
-} from './InteractiveTimespanChart.constants';
+import { DEFAULT_GRAPH_OPTIONS } from './InteractiveTimespanChart.constants';
 
 export interface InteractiveTimespanChartProps<T extends DataPoint> {
   dataPoints: T[];
@@ -46,6 +46,7 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
   defaultSubtitle: string;
   onTimespanPressed?: (numDataPointsToDisplay: number) => void;
   graphOptions?: Partial<GraphOptions>;
+  testID?: string;
 }
 
 /**
@@ -75,6 +76,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   titleAccessor,
   subtitleAccessor,
   onTimespanPressed,
+  testID = 'InteractiveTimespanChart',
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -154,45 +156,19 @@ const InteractiveTimespanChart = <T extends DataPoint>({
 
   // Determines when the cursor should "snap" (or jump) to the next point.
   const snapThreshold = useMemo(
-    () =>
-      chartSegmentWidth *
-      // We only enable snapping for small datasets.
-      (dataPointsToShow.length <= SMALL_DATASET_THRESHOLD
-        ? SMALL_DATASET_SNAP_RATIO
-        : 0),
-    [dataPointsToShow.length, chartSegmentWidth],
+    () => calculateSnapThreshold(chartSegmentWidth, dataPointsToShow.length),
+    [chartSegmentWidth, dataPointsToShow.length],
   );
 
   const updateSelectedGraphPosition = useCallback(
     (x: number) => {
-      // Deselect point when finger raised
-      if (x === -1) {
-        setSelectedPointIndex(-1);
-        return;
-      }
-
-      // Find the closest segment center to the current touch position
-      let closestIndex = 0;
-      let minDistance = Infinity;
-
-      segmentCenters.forEach((center, index) => {
-        const distance = Math.abs(x - center);
-        if (distance < minDistance) {
-          closestIndex = index;
-          minDistance = distance;
-        }
-      });
-
-      /**
-       * Ensure that small datasets respect snap threshold
-       * Larger datasets can always update.
-       */
-      if (
-        minDistance <= snapThreshold ||
-        dataPointsToShow.length > SMALL_DATASET_THRESHOLD
-      ) {
-        setSelectedPointIndex(closestIndex);
-      }
+      const newIndex = findClosestPointIndex(
+        x,
+        segmentCenters,
+        snapThreshold,
+        dataPointsToShow.length,
+      );
+      setSelectedPointIndex(newIndex);
     },
     [dataPointsToShow.length, segmentCenters, snapThreshold],
   );
@@ -223,7 +199,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   );
 
   return (
-    <View>
+    <View testID={testID}>
       <ChartTimespanButtonGroup
         buttons={timespanButtons}
         onTimePress={handleTimespanPressed}
@@ -235,7 +211,11 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           color={color}
         />
       )}
-      <View style={styles.chartContainer} {...panResponder.panHandlers}>
+      <View
+        style={styles.chartContainer}
+        {...panResponder.panHandlers}
+        testID="AreaChartContainer"
+      >
         <AreaChart
           style={styles.chart}
           data={parsedDataPointValues}
