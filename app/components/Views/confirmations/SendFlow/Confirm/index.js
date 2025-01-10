@@ -1457,14 +1457,16 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations && transactionState?.id && (
-            <View style={styles.simulationWrapper}>
-              <SimulationDetails
-                transaction={transactionMetadata}
-                enableMetrics
-              />
-            </View>
-          )}
+          {useTransactionSimulations &&
+            transactionState?.id &&
+            transactionMetadata && (
+              <View style={styles.simulationWrapper}>
+                <SimulationDetails
+                  transaction={transactionMetadata}
+                  enableMetrics
+                />
+              </View>
+            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
