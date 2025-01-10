@@ -337,24 +337,38 @@ class OptinMetrics extends PureComponent {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
     } = this.props;
+
+    // Set marketing consent trait based on user selection
+    const dataCollectionForMarketingTraits = {
+      has_marketing_consent: Boolean(
+        this.props.isDataCollectionForMarketingEnabled,
+      ),
+    };
+
+    // Track the analytics preference event first
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          ...dataCollectionForMarketingTraits,
+          is_metrics_opted_in: true,
+          location: 'onboarding_metametrics',
+          updated_after_onboarding: false,
+        })
+        .build(),
+    );
+
     await metrics.enable();
+
+    // Handle null case for marketing consent
+    if (
+      isDataCollectionForMarketingEnabled === null &&
+      setDataCollectionForMarketing
+    ) {
+      setDataCollectionForMarketing(false);
+    }
+
     InteractionManager.runAfterInteractions(async () => {
-      // add traits to user for identification
-
-      if (
-        isDataCollectionForMarketingEnabled === null &&
-        setDataCollectionForMarketing
-      ) {
-        setDataCollectionForMarketing(false);
-      }
-
-      // Set marketing consent trait based on user selection
-      const dataCollectionForMarketingTraits = {
-        has_marketing_consent: Boolean(
-          this.props.isDataCollectionForMarketingEnabled,
-        ),
-      };
-
       // consolidate device and user settings traits
       const consolidatedTraits = {
         ...dataCollectionForMarketingTraits,
@@ -370,33 +384,13 @@ class OptinMetrics extends PureComponent {
         let delay = 0; // Initialize delay
         const eventTrackingDelay = 200; // ms delay between each event
         events.forEach((eventArgs) => {
-          // delay each event to prevent them from
-          // being tracked with the same timestamp
-          // which would cause them to be grouped together
-          // by sentAt time in the Segment dashboard
-          // as precision is only to the milisecond
-          // and loop seems to runs faster than that
           setTimeout(() => {
             metrics.trackEvent(...eventArgs);
           }, delay);
           delay += eventTrackingDelay;
         });
       }
-
       this.props.clearOnboardingEvents();
-
-      // track event for user opting in on metrics and data collection for marketing
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            ...dataCollectionForMarketingTraits,
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          })
-          .build(),
-      );
     });
     this.continue();
   };
