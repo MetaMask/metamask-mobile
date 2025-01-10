@@ -48,6 +48,17 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+  git-safe-dependencies:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - run: yarn setup --node
+      - name: Run @lavamoat/git-safe-dependencies
+        run: yarn git-safe-dependencies
   scripts:
     runs-on: ubuntu-20.04
     strategy:
@@ -96,7 +107,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-${{ matrix.shard }}
           path: ./tests/coverage/coverage-${{ matrix.shard }}.json
@@ -120,7 +131,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - run: yarn setup
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
       - name: Gather partial coverage reports into one directory
@@ -129,7 +140,7 @@ jobs:
           mv ./tests/coverage/coverage-*/* ./tests/coverage
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage
           path: ./tests/merged-coverage/lcov.info
@@ -196,7 +207,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: coverage
           path: coverage/

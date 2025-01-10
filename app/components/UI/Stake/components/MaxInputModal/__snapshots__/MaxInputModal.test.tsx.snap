@@ -426,7 +426,6 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "alignItems": "center",
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
                                   "padding": 16,
@@ -583,9 +582,9 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#0376c9",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }
@@ -627,9 +626,9 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
-                                      "fontWeight": "400",
+                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 22,
                                     }

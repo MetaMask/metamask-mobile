@@ -11,7 +11,7 @@ export const DEFAULT_BUTTONBASE_LABEL_COLOR = TextColor.Default;
 export const DEFAULT_BUTTONBASE_SIZE = ButtonSize.Md;
 export const DEFAULT_BUTTONBASE_WIDTH = ButtonWidthTypes.Auto;
 export const DEFAULT_BUTTONBASE_ICON_SIZE = IconSize.Sm;
-export const DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT = TextVariant.BodyMD;
+export const DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT = TextVariant.BodyMDMedium;
 
 // Samples
 export const SAMPLE_BUTTONBASE_PROPS: ButtonBaseProps = {

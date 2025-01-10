@@ -1,4 +1,4 @@
-import UntypedEngine from '../Engine';
+import Engine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
@@ -12,6 +12,9 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { KeyringControllerState } from '@metamask/keyring-controller';
+
+const LOG_TAG = 'EngineService';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -49,10 +52,11 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
     try {
+      Logger.log(`${LOG_TAG}: Initializing Engine:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
       Engine.init(state);
       this.updateControllers(Engine);
     } catch (error) {
@@ -235,17 +239,20 @@ export class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (keyringState) {
-      const newKeyringState = {
+      const newKeyringState: KeyringControllerState = {
         keyrings: [],
         vault: keyringState.vault,
+        isUnlocked: false,
       };
+
+      Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
       const instance = Engine.init(state, newKeyringState);
       if (instance) {
         this.updateControllers(instance);

@@ -1,4 +1,4 @@
-import React, { useRef, useState, LegacyRef, useMemo, useEffect } from 'react';
+import React, { useRef, useState, LegacyRef, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -15,6 +15,7 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
@@ -121,8 +122,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ),
     ),
   ];
-  const selectedAccountTokensChains = useSelector(
-    selectAccountTokensAcrossChains,
+
+  const selectedAccountTokensChains = useSelector((state: RootState) =>
+    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -138,16 +140,20 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainTokenBalance = useSelector(selectTokensBalances);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const styles = createStyles(colors);
 
   const tokensList = useMemo((): TokenI[] => {
+    // if it is not popular network, display tokens only for current network
+    const filteredAssetsParam = isPopularNetwork
+      ? tokenNetworkFilter
+      : { [currentChainId]: true };
     if (isPortfolioViewEnabled()) {
       // MultiChain implementation
       const allTokens = Object.values(
         selectedAccountTokensChains,
       ).flat() as TokenI[];
-
       /*
         If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
         If user is on "current Network" we want to show native tokens, even with zero balance
@@ -183,7 +189,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       const filteredAssets = filterAssets(tokensToDisplay, [
         {
           key: 'chainId',
-          opts: tokenNetworkFilter,
+          opts: filteredAssetsParam,
           filterCallback: 'inclusive',
         },
       ]);
@@ -289,6 +295,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     tokens,
     // Dependencies for multichain implementation
     selectedAccountTokensChains,
+    isPopularNetwork,
     tokenNetworkFilter,
     currentChainId,
     multiChainCurrencyRates,
@@ -404,15 +411,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
 
-  useEffect(() => {
-    const { PreferencesController } = Engine.context;
-    if (isTestNet(currentChainId)) {
-      PreferencesController.setTokenNetworkFilter({
-        [currentChainId]: true,
-      });
-    }
-  }, [currentChainId]);
-
   return (
     <View
       style={styles.wrapper}
@@ -422,22 +420,25 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         {isPortfolioViewEnabled() ? (
           <View style={styles.controlButtonOuterWrapper}>
             <ButtonBase
+              testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks
-                    ? strings('wallet.all_networks')
+                  {isAllNetworks && isPopularNetwork
+                    ? `${strings('app_settings.popular')} ${strings(
+                        'app_settings.networks',
+                      )}`
                     : networkName ?? strings('wallet.current_network')}
                 </Text>
               }
-              isDisabled={isTestNet(currentChainId)}
+              isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={
-                isTestNet(currentChainId)
+                isTestNet(currentChainId) || !isPopularNetwork
                   ? styles.controlButtonDisabled
                   : styles.controlButton
               }
-              disabled={isTestNet(currentChainId)}
+              disabled={isTestNet(currentChainId) || !isPopularNetwork}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon
