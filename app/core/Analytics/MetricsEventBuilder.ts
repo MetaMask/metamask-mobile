@@ -100,15 +100,45 @@ class MetricsEventBuilder {
     return new MetricsEventBuilder(event);
   }
 
+  #getFilteredLegacyProperties = (properties: JsonMap) => {
+    const [filteredProps, anonymousProps] = Object.entries(properties).reduce(
+        ([filtered, anonymous], [key, value]) => {
+          if (
+              typeof value === 'object' &&
+              value !== null &&
+              'anonymous' in value &&
+              value.anonymous === true
+          ) {
+            // Add to anonymousProps map with the value of the `value` key
+            anonymous[key] = value.value;
+          } else {
+            // Add to filteredProps map
+            filtered[key] = value;
+          }
+          return [filtered, anonymous];
+        },
+        [{}, {}] as [JsonMap, JsonMap]
+    );
+    return [filteredProps, anonymousProps];
+  };
+
   /**
    * Add regular properties (non-anonymous) to the event
    * @param properties a map of properties to add to the event
    */
   addProperties(properties: JsonMap) {
+
+    const [filteredProps, anonymousProps] = this.#getFilteredLegacyProperties(properties);
+
     this.#trackingEvent.properties = {
       ...this.#trackingEvent.properties,
-      ...properties,
+      ...filteredProps,
     };
+
+    if (Object.keys(anonymousProps).length > 0) {
+      this.addSensitiveProperties(anonymousProps);
+    }
+
     return this;
   }
 
