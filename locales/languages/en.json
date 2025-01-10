@@ -48,7 +48,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search or Type URL"
+    "placeholder": "Search by site or address",
+    "recents": "Recents",
+    "favorites": "Favorites",
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",

@@ -14,6 +14,10 @@ import WebsiteIcon from '../WebsiteIcon';
 import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { strings } from '../../../../locales/i18n';
+
+const MAX_RECENTS = 5;
+const ORDERED_CATEGORIES = ['recents', 'favorites', 'sites'];
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -35,6 +39,12 @@ const createStyles = (colors) =>
       fontSize: 14,
       color: colors.text.default,
       ...fontStyles.normal,
+    },
+    category: {
+      fontSize: 16,
+      color: colors.text.default,
+      ...fontStyles.bold,
+      margin: 10,
     },
     url: {
       fontSize: 12,
@@ -83,6 +93,10 @@ class UrlAutocomplete extends PureComponent {
      * An array of visited urls and names
      */
     browserHistory: PropTypes.array,
+    /**
+     * An array of bookmarks
+     */
+    bookmarks: PropTypes.array,
   };
 
   state = {
@@ -90,20 +104,11 @@ class UrlAutocomplete extends PureComponent {
   };
 
   componentDidMount() {
-    const allUrls = [...this.props.browserHistory, ...dappUrlList];
-    const singleUrlList = [];
-    const singleUrls = [];
-    for (let i = 0; i < allUrls.length; i++) {
-      const el = allUrls[i];
-      if (!singleUrlList.includes(el.url)) {
-        singleUrlList.push(el.url);
-        singleUrls.push(el);
-      }
-    }
+    const allUrls = dappUrlList;
 
-    this.fuse = new Fuse(singleUrls, {
+    this.fuse = new Fuse(allUrls, {
       shouldSort: true,
-      threshold: 0.45,
+      threshold: 0.4,
       location: 0,
       distance: 100,
       maxPatternLength: 32,
@@ -131,7 +136,7 @@ class UrlAutocomplete extends PureComponent {
         } else {
           this.updateResults([]);
         }
-      }, 500);
+      }, 50);
     }
   }
 
@@ -180,18 +185,22 @@ class UrlAutocomplete extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    if (!this.props.input || this.props.input.length < 2)
-      return (
-        <View style={styles.wrapper}>
-          <TouchableWithoutFeedback
-            style={styles.bg}
-            onPress={this.props.onDismiss}
-          >
-            <View style={styles.bg} />
-          </TouchableWithoutFeedback>
-        </View>
-      );
-    if (this.state.results.length === 0) {
+    let results = [];
+    if (!this.props.input || this.props.input.length === 0) {
+      results = [
+        ...this.props.browserHistory.slice(-MAX_RECENTS).reverse().map(i => ({...i, type: 'recents'})),
+        ...this.props.bookmarks.map(i => ({...i, type: 'favorites'})),
+      ]
+    } else {
+      results = this.state.results.map(i => ({...i, type: 'sites'}));
+    }
+
+    const resultsByCategory = results.reduce((acc, i) => {
+      acc[i.type] = [...acc[i.type] || [], i];
+      return acc;
+    }, {});
+
+    if (results.length === 0) {
       return (
         <View style={styles.wrapper}>
           <TouchableOpacity
@@ -215,15 +224,27 @@ class UrlAutocomplete extends PureComponent {
         </View>
       );
     }
+
+    const categoriesWithResults = ORDERED_CATEGORIES.filter(category => resultsByCategory[category]?.length > 0);
+
     return (
       <View style={styles.wrapper}>
-        {this.state.results.slice(0, 3).map((r) => {
-          const { url, name } = r;
-          const onPress = () => {
-            this.props.onSubmit(url);
-          };
-          return this.renderUrlOption(url, name, onPress);
-        })}
+        {
+          categoriesWithResults.map(category => {
+            return (
+              <View key={category}>
+                <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+                {resultsByCategory[category].map((r) => {
+                  const { url, name } = r;
+                  const onPress = () => {
+                    this.props.onSubmit(url);
+                  };
+                  return this.renderUrlOption(url, name, onPress);
+                })}
+              </View>
+            )
+          })
+        }
         <TouchableWithoutFeedback
           style={styles.bg}
           onPress={this.props.onDismiss}
@@ -237,6 +258,7 @@ class UrlAutocomplete extends PureComponent {
 
 const mapStateToProps = (state) => ({
   browserHistory: state.browser.history,
+  bookmarks: state.bookmarks,
 });
 
 UrlAutocomplete.contextType = ThemeContext;

@@ -19,7 +19,7 @@ export const createStyles = (colors: any) =>
       flexDirection: 'row',
       paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
       paddingHorizontal: 10,
-      height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
+      height: Device.isAndroid() ? 69 : Device.isIphoneX() ? 97 : 75,
       backgroundColor: colors.background.default,
     },
     clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
@@ -46,9 +46,10 @@ export const createStyles = (colors: any) =>
     } as any,
     searchWrapper: {
       flexDirection: 'row',
-      borderRadius: 30,
-      backgroundColor: colors.background.alternative,
-      height: Device.isAndroid() ? 40 : 30,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      height: Device.isAndroid() ? 50 : 40,
       flex: 1,
     },
   });
