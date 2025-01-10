@@ -92,18 +92,6 @@ export const Browser = (props) => {
     return permittedAcc;
   }, isEqual);
 
-  const handleRightTopButtonAnalyticsEvent = () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS)
-        .addProperties({
-          number_of_accounts: accountsLength,
-          number_of_accounts_connected: permittedAccountsList.length,
-          number_of_networks: nonTestnetNetworks,
-        })
-        .build(),
-    );
-  };
-
   const homePageUrl = () =>
     appendURLParams(AppConstants.HOMEPAGE_URL, {
       metricsEnabled: isEnabled(),
