@@ -14,6 +14,7 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
+import { validatePostMigrationState } from './validateMigration/validateMigration';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
@@ -69,6 +70,10 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
+
+    // validate the state after migration
+    const currentState = store.getState();
+    validatePostMigrationState(currentState);
   };
 
   persistor = persistStore(store, null, onPersistComplete);
