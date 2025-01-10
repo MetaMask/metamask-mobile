@@ -73,6 +73,38 @@ export const typedSignV1ConfirmationState = {
   },
 };
 
+export const mockTypedSignV3Message = {
+  types: {
+    EIP712Domain: [
+      { name: 'name', type: 'string' },
+      { name: 'version', type: 'string' },
+      { name: 'chainId', type: 'uint256' },
+      { name: 'verifyingContract', type: 'address' },
+    ],
+    Person: [
+      { name: 'name', type: 'string' },
+      { name: 'wallet', type: 'address' },
+    ],
+    Mail: [
+      { name: 'from', type: 'Person' },
+      { name: 'to', type: 'Person' },
+      { name: 'contents', type: 'string' },
+    ],
+  },
+  primaryType: 'Mail',
+  domain: {
+    name: 'Ether Mail',
+    version: '1',
+    chainId: 1,
+    verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+  },
+  message: {
+    from: { name: 'Cow', wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826' },
+    to: { name: 'Bob', wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB' },
+    contents: 'Hello, Bob!',
+  },
+};
+
 export const typedSignV3ConfirmationState = {
   engine: {
     backgroundState: {
@@ -85,7 +117,7 @@ export const typedSignV3ConfirmationState = {
             type: 'eth_signTypedData',
             time: 1733143817088,
             requestData: {
-              data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Person":[{"name":"name","type":"string"},{"name":"wallet","type":"address"}],"Mail":[{"name":"from","type":"Person"},{"name":"to","type":"Person"},{"name":"contents","type":"string"}]},"primaryType":"Mail","domain":{"name":"Ether Mail","version":"1","chainId":1,"verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"},"message":{"from":{"name":"Cow","wallet":"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},"to":{"name":"Bob","wallet":"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},"contents":"Hello, Bob!"}}',
+              data: JSON.stringify(mockTypedSignV3Message),
               from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
               requestId: 3298650200,
               meta: {
@@ -107,4 +139,36 @@ export const typedSignV3ConfirmationState = {
       },
     },
   },
+};
+
+export const securityAlertResponse = {
+  block: 21572398,
+  result_type: 'Malicious',
+  reason: 'permit_farming',
+  description:
+    'permit_farming to spender 0x1661f1b207629e4f385da89cff535c8e5eb23ee3, classification: A known malicious address is involved in the transaction',
+  features: ['A known malicious address is involved in the transaction'],
+  source: 'api',
+  securityAlertId: '43d40543-463a-4400-993c-85a04017ea2b',
+  req: {
+    channelId: undefined,
+    data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"USD Coin","verifyingContract":"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48","chainId":1,"version":"2"},"message":{"owner":"0x8eeee1781fd885ff5ddef7789486676961873d12","spender":"0x1661F1B207629e4F385DA89cFF535C8E5Eb23Ee3","value":"1033366316628","nonce":1,"deadline":1678709555}}',
+    from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+    meta: {
+      analytics: {
+        request_platform: undefined,
+        request_source: 'In-App-Browser',
+      },
+      channelId: undefined,
+      icon: { uri: 'https://metamask.github.io/test-dapp/metamask-fox.svg' },
+      title: 'E2E Test Dapp',
+      url: 'https://metamask.github.io/test-dapp/',
+    },
+    metamaskId: '967066d0-ccf4-11ef-8589-cb239497eefc',
+    origin: 'metamask.github.io',
+    requestId: 2048976252,
+    securityAlertResponse: undefined,
+    version: 'V4',
+  },
+  chainId: '0x1',
 };

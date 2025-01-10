@@ -614,14 +614,16 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {useTransactionSimulations && transactionSimulationData && (
-                      <View style={styles.transactionSimulations}>
-                        <SimulationDetails
-                          transaction={transactionMetadata}
-                          enableMetrics
-                        />
-                      </View>
-                    )}
+                    {useTransactionSimulations &&
+                      transactionSimulationData &&
+                      transactionMetadata && (
+                        <View style={styles.transactionSimulations}>
+                          <SimulationDetails
+                            transaction={transactionMetadata}
+                            enableMetrics
+                          />
+                        </View>
+                      )}
                     <View style={styles.accountInfoCardWrapper}>
                       <TransactionReviewInformation
                         navigation={navigation}
