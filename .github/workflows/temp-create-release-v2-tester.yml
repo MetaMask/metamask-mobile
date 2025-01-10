@@ -21,7 +21,7 @@ jobs:
       base-branch: rls-alignment
       semver-version: 7.37.1
       previous-version-tag: v7.37.0
-      mobile-build-version: "1535" # Hardcoded for testing purposes
+      mobile-build-version: "1536" # Hardcoded for testing purposes
     secrets:
       github-token: ${{ secrets.PR_TOKEN }}
     permissions:
