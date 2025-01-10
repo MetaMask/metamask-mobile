@@ -617,9 +617,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     isTabActive &&
       navigation.setParams({
         url: getMaskedUrl(submittedUrlRef.current, sessionENSNames),
-        icon: iconRef,
-        silent: true,
-        error: true,
       });
 
     props.updateTabInfo(`Can't Open Page`, props.id);
@@ -654,8 +651,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     isTabActive &&
       navigation.setParams({
         url: getMaskedUrl(siteInfo.url, sessionENSNames),
-        icon: siteInfo.icon,
-        silent: true,
       });
 
     props.updateTabInfo(getMaskedUrl(siteInfo.url, sessionENSNames), props.id);
@@ -1275,7 +1270,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             onDismiss={onDismissAutocomplete}
           />
         </View>
-
         {updateAllowList()}
         {isTabActive && (
           <PhishingModal

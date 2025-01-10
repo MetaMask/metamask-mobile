@@ -124,7 +124,6 @@ export const Browser = (props) => {
       ...route.params,
       showTabs: false,
       url,
-      silent: false,
     });
   };
 
@@ -287,7 +286,6 @@ export const Browser = (props) => {
       navigation.setParams({
         ...route.params,
         url: null,
-        silent: true,
       });
     }
   };
@@ -308,7 +306,6 @@ export const Browser = (props) => {
             navigation.setParams({
               ...route.params,
               url: newTab.url,
-              silent: true,
             });
           }
         });
@@ -316,7 +313,6 @@ export const Browser = (props) => {
         navigation.setParams({
           ...route.params,
           url: null,
-          silent: true,
         });
       }
     }
@@ -329,7 +325,6 @@ export const Browser = (props) => {
       navigation.setParams({
         ...route.params,
         showTabs: false,
-        silent: true,
       });
     }
   };
