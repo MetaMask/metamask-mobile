@@ -8,7 +8,6 @@ import {
   setVaultApys,
 } from '../../../../core/redux/slices/staking';
 
-// TODO: Add tests
 const useVaultApys = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +33,7 @@ const useVaultApys = () => {
         'desc',
       );
 
-      const reversedVaultApys = vaultApysResponse?.reverse();
+      const reversedVaultApys = [...vaultApysResponse]?.reverse();
 
       // TODO: Determine how we should refresh this value.
       dispatch(setVaultApys(reversedVaultApys));
@@ -52,7 +51,7 @@ const useVaultApys = () => {
 
   return {
     vaultApys,
-    fetchVaultApys,
+    refreshVaultApys: fetchVaultApys,
     isLoadingVaultApys: isLoading,
     error,
   };

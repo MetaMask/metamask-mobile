@@ -2,7 +2,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30811,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-12-01T00:00:00.000Z',
     daily_apy: '3.047713358665092375',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -11,7 +11,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30812,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-30T00:00:00.000Z',
     daily_apy: '2.374027363261760640',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -20,7 +20,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30813,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-29T00:00:00.000Z',
     daily_apy: '2.693871506572250360',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -29,7 +29,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30814,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-28T00:00:00.000Z',
     daily_apy: '3.796738036375794450',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -38,7 +38,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30815,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-27T00:00:00.000Z',
     daily_apy: '4.670931853275371805',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -47,7 +47,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30816,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-26T00:00:00.000Z',
     daily_apy: '3.483271805221916990',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -56,7 +56,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30817,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-25T00:00:00.000Z',
     daily_apy: '2.736367921220024505',
     created_at: '2024-12-03T02:24:25.394Z',
@@ -65,7 +65,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32417,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-24T00:00:00.000Z',
     daily_apy: '3.534495955637539800',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -74,7 +74,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32418,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-23T00:00:00.000Z',
     daily_apy: '3.618680893537944930',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -83,7 +83,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32419,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-22T00:00:00.000Z',
     daily_apy: '2.585422599246136705',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -92,7 +92,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32420,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-21T00:00:00.000Z',
     daily_apy: '2.240039054731340650',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -101,7 +101,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32421,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-20T00:00:00.000Z',
     daily_apy: '3.651052140119355455',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -110,7 +110,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32422,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-19T00:00:00.000Z',
     daily_apy: '2.506632375891806475',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -119,7 +119,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32423,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-18T00:00:00.000Z',
     daily_apy: '2.872025090448259090',
     created_at: '2024-12-03T02:27:00.663Z',
@@ -128,7 +128,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32641,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-17T00:00:00.000Z',
     daily_apy: '3.157959704077514705',
     created_at: '2024-12-03T02:58:41.610Z',
@@ -137,7 +137,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32642,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-16T00:00:00.000Z',
     daily_apy: '2.622634245111253455',
     created_at: '2024-12-03T02:58:41.610Z',
@@ -146,7 +146,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 32643,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-15T00:00:00.000Z',
     daily_apy: '4.828325095618376680',
     created_at: '2024-12-03T02:58:41.610Z',
@@ -155,7 +155,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30374,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-14T00:00:00.000Z',
     daily_apy: '7.570681567721108840',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -164,7 +164,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30375,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-13T00:00:00.000Z',
     daily_apy: '3.362172827993447500',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -173,7 +173,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30376,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-12T00:00:00.000Z',
     daily_apy: '2.655301031295096130',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -182,7 +182,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30377,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-11T00:00:00.000Z',
     daily_apy: '2.291560167659580065',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -191,7 +191,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30378,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-10T00:00:00.000Z',
     daily_apy: '3.234149840498893705',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -200,7 +200,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30379,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-09T00:00:00.000Z',
     daily_apy: '2.627325624026692105',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -209,7 +209,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30380,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-08T00:00:00.000Z',
     daily_apy: '2.883003597388662250',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -218,7 +218,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30381,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-07T00:00:00.000Z',
     daily_apy: '3.539049184497994095',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -227,7 +227,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30382,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-06T00:00:00.000Z',
     daily_apy: '3.122506006011512920',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -236,7 +236,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30383,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-05T00:00:00.000Z',
     daily_apy: '2.969004267883762945',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -245,7 +245,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30384,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-04T00:00:00.000Z',
     daily_apy: '3.543391473816768735',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -254,7 +254,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30385,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-03T00:00:00.000Z',
     daily_apy: '2.614703901249170420',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -263,7 +263,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30386,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-02T00:00:00.000Z',
     daily_apy: '2.851777801470362485',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -272,7 +272,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30387,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-11-01T00:00:00.000Z',
     daily_apy: '1.362749440155165845',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -281,7 +281,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30388,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-31T00:00:00.000Z',
     daily_apy: '2.317992455458956255',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -290,7 +290,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30389,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-30T00:00:00.000Z',
     daily_apy: '4.228246080578602980',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -299,7 +299,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30390,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-29T00:00:00.000Z',
     daily_apy: '4.834650563792100440',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -308,7 +308,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30391,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-28T00:00:00.000Z',
     daily_apy: '2.294284048308392440',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -317,7 +317,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30392,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-27T00:00:00.000Z',
     daily_apy: '3.181524840097507885',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -326,7 +326,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30393,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-26T00:00:00.000Z',
     daily_apy: '2.531737997552887820',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -335,7 +335,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30394,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-25T00:00:00.000Z',
     daily_apy: '2.920907624246012040',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -344,7 +344,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30395,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-24T00:00:00.000Z',
     daily_apy: '3.487578929974390625',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -353,7 +353,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30396,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-23T00:00:00.000Z',
     daily_apy: '6.464622001613073880',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -362,7 +362,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30397,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-22T00:00:00.000Z',
     daily_apy: '2.416118435481787000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -371,7 +371,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30398,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-21T00:00:00.000Z',
     daily_apy: '2.534839202824700575',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -380,7 +380,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30399,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-20T00:00:00.000Z',
     daily_apy: '2.786900807410635305',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -389,7 +389,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30400,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-19T00:00:00.000Z',
     daily_apy: '3.329041650263329780',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -398,7 +398,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30401,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-18T00:00:00.000Z',
     daily_apy: '3.078464281045574940',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -407,7 +407,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30402,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-17T00:00:00.000Z',
     daily_apy: '3.721718136481169120',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -416,7 +416,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30403,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-16T00:00:00.000Z',
     daily_apy: '3.024877063179648550',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -425,7 +425,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30404,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-15T00:00:00.000Z',
     daily_apy: '2.588268026990254210',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -434,7 +434,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30405,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-14T00:00:00.000Z',
     daily_apy: '3.510149488431237235',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -443,7 +443,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30406,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-13T00:00:00.000Z',
     daily_apy: '4.337366463128407770',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -452,7 +452,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30407,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-12T00:00:00.000Z',
     daily_apy: '2.622541164587319365',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -461,7 +461,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30408,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-11T00:00:00.000Z',
     daily_apy: '5.087827478909440335',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -470,7 +470,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30409,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-10T00:00:00.000Z',
     daily_apy: '2.888400767069300875',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -479,7 +479,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30410,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-09T00:00:00.000Z',
     daily_apy: '2.942379322023959655',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -488,7 +488,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30411,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-08T00:00:00.000Z',
     daily_apy: '4.758321460565382260',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -497,7 +497,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30412,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-07T00:00:00.000Z',
     daily_apy: '2.870844140742744300',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -506,7 +506,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30413,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-06T00:00:00.000Z',
     daily_apy: '2.869731551484030070',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -515,7 +515,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30414,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-05T00:00:00.000Z',
     daily_apy: '3.270239518113502870',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -524,7 +524,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30415,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-04T00:00:00.000Z',
     daily_apy: '3.377047829615380755',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -533,7 +533,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30416,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-03T00:00:00.000Z',
     daily_apy: '2.680414799287292270',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -542,7 +542,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30417,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-02T00:00:00.000Z',
     daily_apy: '5.194847990413809090',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -551,7 +551,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30418,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-10-01T00:00:00.000Z',
     daily_apy: '5.359025198735055555',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -560,7 +560,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30419,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-30T00:00:00.000Z',
     daily_apy: '3.498028160103718420',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -569,7 +569,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30420,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-29T00:00:00.000Z',
     daily_apy: '3.022067375680475545',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -578,7 +578,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30421,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-28T00:00:00.000Z',
     daily_apy: '3.515232148767582560',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -587,7 +587,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30422,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-27T00:00:00.000Z',
     daily_apy: '2.747788452887955430',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -596,7 +596,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30423,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-26T00:00:00.000Z',
     daily_apy: '3.457506644076493260',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -605,7 +605,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30424,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-25T00:00:00.000Z',
     daily_apy: '3.163215337861171550',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -614,7 +614,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30425,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-24T00:00:00.000Z',
     daily_apy: '2.781449530324174490',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -623,7 +623,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30426,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-23T00:00:00.000Z',
     daily_apy: '3.444553679295769475',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -632,7 +632,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30427,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-22T00:00:00.000Z',
     daily_apy: '3.615890789268085540',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -641,7 +641,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30428,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-21T00:00:00.000Z',
     daily_apy: '3.783487027876330390',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -650,7 +650,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30429,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-20T00:00:00.000Z',
     daily_apy: '2.793962833803302975',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -659,7 +659,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30430,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-19T00:00:00.000Z',
     daily_apy: '2.336291731934608550',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -668,7 +668,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30431,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-18T00:00:00.000Z',
     daily_apy: '5.230878582188418850',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -677,7 +677,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30432,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-17T00:00:00.000Z',
     daily_apy: '4.961095154393177570',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -686,7 +686,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30433,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-16T00:00:00.000Z',
     daily_apy: '2.857234395901653520',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -695,7 +695,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30434,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-15T00:00:00.000Z',
     daily_apy: '2.554259416323348015',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -704,7 +704,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30435,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-14T00:00:00.000Z',
     daily_apy: '2.502517936499143255',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -713,7 +713,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30436,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-13T00:00:00.000Z',
     daily_apy: '2.919413472986257835',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -722,7 +722,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30437,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-12T00:00:00.000Z',
     daily_apy: '2.253695128405357685',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -731,7 +731,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30438,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-11T00:00:00.000Z',
     daily_apy: '5.025628324941498070',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -740,7 +740,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30439,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-10T00:00:00.000Z',
     daily_apy: '3.132769524752376680',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -749,7 +749,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30440,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-09T00:00:00.000Z',
     daily_apy: '2.629620582604735830',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -758,7 +758,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30441,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-08T00:00:00.000Z',
     daily_apy: '3.731372666409049255',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -767,7 +767,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30442,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-07T00:00:00.000Z',
     daily_apy: '5.828785040870107505',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -776,7 +776,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30443,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-06T00:00:00.000Z',
     daily_apy: '2.971736749821089335',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -785,7 +785,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30444,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-05T00:00:00.000Z',
     daily_apy: '2.712179768964885160',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -794,7 +794,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30445,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-04T00:00:00.000Z',
     daily_apy: '2.321398139108928040',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -803,7 +803,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30446,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-03T00:00:00.000Z',
     daily_apy: '2.326442350761163855',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -812,7 +812,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30447,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-02T00:00:00.000Z',
     daily_apy: '2.758655113631115610',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -821,7 +821,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30448,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-09-01T00:00:00.000Z',
     daily_apy: '3.099416819734417855',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -830,7 +830,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30449,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-31T00:00:00.000Z',
     daily_apy: '3.281691001470881575',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -839,7 +839,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30450,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-30T00:00:00.000Z',
     daily_apy: '3.023577966482376885',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -848,7 +848,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30451,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-29T00:00:00.000Z',
     daily_apy: '3.683348259308245445',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -857,7 +857,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30452,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-28T00:00:00.000Z',
     daily_apy: '2.586788055591379710',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -866,7 +866,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30453,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-27T00:00:00.000Z',
     daily_apy: '2.959039650647310180',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -875,7 +875,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30454,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-26T00:00:00.000Z',
     daily_apy: '2.593486057627900915',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -884,7 +884,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30455,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-25T00:00:00.000Z',
     daily_apy: '3.323775605030482850',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -893,7 +893,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30456,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-24T00:00:00.000Z',
     daily_apy: '2.197262519566287600',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -902,7 +902,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30457,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-23T00:00:00.000Z',
     daily_apy: '2.702516114239033255',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -911,7 +911,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30458,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-22T00:00:00.000Z',
     daily_apy: '2.926890836321897870',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -920,7 +920,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30459,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-21T00:00:00.000Z',
     daily_apy: '3.380765228180999895',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -929,7 +929,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30460,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-20T00:00:00.000Z',
     daily_apy: '2.689831553087454675',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -938,7 +938,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30461,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-19T00:00:00.000Z',
     daily_apy: '2.958770938479942705',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -947,7 +947,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30462,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-18T00:00:00.000Z',
     daily_apy: '5.434974140299470420',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -956,7 +956,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30463,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-17T00:00:00.000Z',
     daily_apy: '3.454110345968870185',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -965,7 +965,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30464,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-16T00:00:00.000Z',
     daily_apy: '2.777023047025403195',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -974,7 +974,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30465,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-15T00:00:00.000Z',
     daily_apy: '2.837657203837507480',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -983,7 +983,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30466,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-14T00:00:00.000Z',
     daily_apy: '2.300020372541650960',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -992,7 +992,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30467,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-13T00:00:00.000Z',
     daily_apy: '2.323147177653682930',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1001,7 +1001,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30468,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-12T00:00:00.000Z',
     daily_apy: '2.331685970310938245',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1010,7 +1010,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30469,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-11T00:00:00.000Z',
     daily_apy: '2.279761127014401090',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1019,7 +1019,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30470,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-10T00:00:00.000Z',
     daily_apy: '2.263114267718659595',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1028,7 +1028,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30471,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-09T00:00:00.000Z',
     daily_apy: '2.991068093920181045',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1037,7 +1037,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30472,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-08T00:00:00.000Z',
     daily_apy: '4.533909729385242935',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1046,7 +1046,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30473,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-07T00:00:00.000Z',
     daily_apy: '2.155210333922089485',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1055,7 +1055,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30474,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-06T00:00:00.000Z',
     daily_apy: '2.574385000071578000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1064,7 +1064,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30475,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-05T00:00:00.000Z',
     daily_apy: '3.768695915370404235',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1073,7 +1073,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30476,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-04T00:00:00.000Z',
     daily_apy: '4.676043428921250930',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1082,7 +1082,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30477,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-03T00:00:00.000Z',
     daily_apy: '2.249688552084926815',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1091,7 +1091,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30478,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-02T00:00:00.000Z',
     daily_apy: '2.254096035265265300',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1100,7 +1100,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30479,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-08-01T00:00:00.000Z',
     daily_apy: '2.778784182467609720',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1109,7 +1109,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30480,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-31T00:00:00.000Z',
     daily_apy: '3.598756061847139645',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1118,7 +1118,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30481,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-30T00:00:00.000Z',
     daily_apy: '2.889798307403520510',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1127,7 +1127,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30482,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-29T00:00:00.000Z',
     daily_apy: '2.257755634406335615',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1136,7 +1136,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30483,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-28T00:00:00.000Z',
     daily_apy: '2.903818523622759035',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1145,7 +1145,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30484,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-27T00:00:00.000Z',
     daily_apy: '2.194343497321323035',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1154,7 +1154,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30485,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-26T00:00:00.000Z',
     daily_apy: '2.531389392183063185',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1163,7 +1163,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30486,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-25T00:00:00.000Z',
     daily_apy: '2.576564274572318530',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1172,7 +1172,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30487,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-24T00:00:00.000Z',
     daily_apy: '3.361248881640692735',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1181,7 +1181,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30488,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-23T00:00:00.000Z',
     daily_apy: '2.159336673466494145',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1190,7 +1190,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30489,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-22T00:00:00.000Z',
     daily_apy: '3.753686378747723055',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1199,7 +1199,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30490,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-21T00:00:00.000Z',
     daily_apy: '2.504556332995523375',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1208,7 +1208,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30491,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-20T00:00:00.000Z',
     daily_apy: '4.458366899429292075',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1217,7 +1217,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30492,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-19T00:00:00.000Z',
     daily_apy: '3.962002868625742575',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1226,7 +1226,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30493,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-18T00:00:00.000Z',
     daily_apy: '2.275736267398248645',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1235,7 +1235,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30494,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-17T00:00:00.000Z',
     daily_apy: '2.286214594572331580',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1244,7 +1244,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30495,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-16T00:00:00.000Z',
     daily_apy: '1.126336824812119845',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1253,7 +1253,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30496,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-15T00:00:00.000Z',
     daily_apy: '2.304904188157754480',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1262,7 +1262,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30497,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-14T00:00:00.000Z',
     daily_apy: '3.662861269396721590',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1271,7 +1271,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30498,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-13T00:00:00.000Z',
     daily_apy: '3.720636048952374355',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1280,7 +1280,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30499,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-12T00:00:00.000Z',
     daily_apy: '3.463465666041776330',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1289,7 +1289,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30500,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-11T00:00:00.000Z',
     daily_apy: '2.318306986717077580',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1298,7 +1298,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30501,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-10T00:00:00.000Z',
     daily_apy: '2.311853000443324125',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1307,7 +1307,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30502,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-09T00:00:00.000Z',
     daily_apy: '3.934771841746629310',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1316,7 +1316,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30503,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-08T00:00:00.000Z',
     daily_apy: '2.351177891454405425',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1325,7 +1325,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30504,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-07T00:00:00.000Z',
     daily_apy: '3.087579260734750255',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1334,7 +1334,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30505,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-06T00:00:00.000Z',
     daily_apy: '5.765233307391727325',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1343,7 +1343,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30506,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-05T00:00:00.000Z',
     daily_apy: '3.363953349551386355',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1352,7 +1352,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30507,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-04T00:00:00.000Z',
     daily_apy: '2.280186332407832965',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1361,7 +1361,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30508,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-03T00:00:00.000Z',
     daily_apy: '3.007837989716010920',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1370,7 +1370,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30509,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-02T00:00:00.000Z',
     daily_apy: '2.843715061822729830',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1379,7 +1379,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30510,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-07-01T00:00:00.000Z',
     daily_apy: '1.974134788910464175',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1388,7 +1388,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30511,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-30T00:00:00.000Z',
     daily_apy: '1.929374405945043860',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1397,7 +1397,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30512,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-29T00:00:00.000Z',
     daily_apy: '4.141896618375235450',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1406,7 +1406,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30513,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-28T00:00:00.000Z',
     daily_apy: '2.778185285133067925',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1415,7 +1415,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30514,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-27T00:00:00.000Z',
     daily_apy: '3.561667835195156855',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1424,7 +1424,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30515,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-26T00:00:00.000Z',
     daily_apy: '4.199636691030941605',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1433,7 +1433,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30516,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-25T00:00:00.000Z',
     daily_apy: '2.021887459642524845',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1442,7 +1442,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30517,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-24T00:00:00.000Z',
     daily_apy: '3.707418523183212035',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1451,7 +1451,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30518,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-23T00:00:00.000Z',
     daily_apy: '2.801808101333867040',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1460,7 +1460,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30519,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-22T00:00:00.000Z',
     daily_apy: '2.004672119821973500',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1469,7 +1469,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30520,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-21T00:00:00.000Z',
     daily_apy: '1.820692138353493235',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1478,7 +1478,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30521,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-20T00:00:00.000Z',
     daily_apy: '1.559327391719814535',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1487,7 +1487,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30522,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-19T00:00:00.000Z',
     daily_apy: '1.364862690606185665',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1496,7 +1496,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30523,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-18T00:00:00.000Z',
     daily_apy: '0.845956118391324915',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1505,7 +1505,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30524,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-17T00:00:00.000Z',
     daily_apy: '1.361314728183116150',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1514,7 +1514,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30525,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-16T00:00:00.000Z',
     daily_apy: '1.391434686844762115',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1523,7 +1523,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30526,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-15T00:00:00.000Z',
     daily_apy: '1.472151428581957885',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1532,7 +1532,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30527,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-14T00:00:00.000Z',
     daily_apy: '1.823003454582278985',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1541,7 +1541,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30528,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-13T00:00:00.000Z',
     daily_apy: '2.044203260197571665',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1550,7 +1550,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30529,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-12T00:00:00.000Z',
     daily_apy: '6.705066380450656825',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1559,7 +1559,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30530,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-11T00:00:00.000Z',
     daily_apy: '7.907906402459636865',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1568,7 +1568,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30531,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-10T00:00:00.000Z',
     daily_apy: '2.374766931268760560',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1577,7 +1577,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30532,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-09T00:00:00.000Z',
     daily_apy: '2.366007947305724535',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1586,7 +1586,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30533,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-08T00:00:00.000Z',
     daily_apy: '1.523878876177998020',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1595,7 +1595,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30534,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-07T00:00:00.000Z',
     daily_apy: '0.094508212685594800',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1604,7 +1604,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30535,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-06T00:00:00.000Z',
     daily_apy: '0.072407848225008390',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1613,7 +1613,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30536,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-05T00:00:00.000Z',
     daily_apy: '0.072489522032946980',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1622,7 +1622,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30537,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-04T00:00:00.000Z',
     daily_apy: '0.070746694790166750',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1631,7 +1631,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30538,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-03T00:00:00.000Z',
     daily_apy: '0.215303792393695195',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1640,7 +1640,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30539,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-02T00:00:00.000Z',
     daily_apy: '2.195960866902139330',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1649,7 +1649,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30540,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-06-01T00:00:00.000Z',
     daily_apy: '2.200990805504935545',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1658,7 +1658,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30541,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-31T00:00:00.000Z',
     daily_apy: '2.211678281928328770',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1667,7 +1667,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30542,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-30T00:00:00.000Z',
     daily_apy: '2.167548819689490420',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1676,7 +1676,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30543,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-29T00:00:00.000Z',
     daily_apy: '2.177899685405083380',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1685,7 +1685,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30544,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-28T00:00:00.000Z',
     daily_apy: '2.218851412828056650',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1694,7 +1694,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30545,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-27T00:00:00.000Z',
     daily_apy: '1.094568892756657840',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1703,7 +1703,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30546,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-26T00:00:00.000Z',
     daily_apy: '2.184920472452669405',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1712,7 +1712,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30547,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-25T00:00:00.000Z',
     daily_apy: '2.202222029737560935',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1721,7 +1721,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30548,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-24T00:00:00.000Z',
     daily_apy: '2.206879150349765095',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1730,7 +1730,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30549,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-23T00:00:00.000Z',
     daily_apy: '2.215298661389291480',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1739,7 +1739,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30550,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-22T00:00:00.000Z',
     daily_apy: '2.217233441102825000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1748,7 +1748,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30551,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-21T00:00:00.000Z',
     daily_apy: '1.193527213875311720',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1757,7 +1757,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30552,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-20T00:00:00.000Z',
     daily_apy: '1.124835528112627785',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1766,7 +1766,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30553,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-19T00:00:00.000Z',
     daily_apy: '1.196825341296003915',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1775,7 +1775,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30554,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-18T00:00:00.000Z',
     daily_apy: '1.765568877029704045',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1784,7 +1784,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30555,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-17T00:00:00.000Z',
     daily_apy: '2.381201903284023180',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1793,7 +1793,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30556,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-16T00:00:00.000Z',
     daily_apy: '2.195594345416939965',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1802,7 +1802,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30557,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-15T00:00:00.000Z',
     daily_apy: '2.350709832262763830',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1811,7 +1811,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30558,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-14T00:00:00.000Z',
     daily_apy: '2.338171617200318075',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1820,7 +1820,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30559,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-13T00:00:00.000Z',
     daily_apy: '2.333871959470894345',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1829,7 +1829,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30560,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-12T00:00:00.000Z',
     daily_apy: '2.345931233499345705',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1838,7 +1838,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30561,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-11T00:00:00.000Z',
     daily_apy: '78.811544452454367715',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1847,7 +1847,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30562,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-10T00:00:00.000Z',
     daily_apy: '2.355069455220621030',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1856,7 +1856,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30563,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-09T00:00:00.000Z',
     daily_apy: '2.354385810268765990',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1865,7 +1865,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30564,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-08T00:00:00.000Z',
     daily_apy: '2.361396301320085265',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1874,7 +1874,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30565,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-07T00:00:00.000Z',
     daily_apy: '0.021170497701498750',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1883,7 +1883,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30566,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-06T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1892,7 +1892,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30567,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-05T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1901,7 +1901,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30568,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-04T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1910,7 +1910,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30569,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-03T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1919,7 +1919,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30570,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-02T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1928,7 +1928,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30571,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-05-01T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1937,7 +1937,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30572,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-04-24T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',
@@ -1946,7 +1946,7 @@ export const MOCK_VAULT_DAILY_APYS = [
   {
     id: 30573,
     chain_id: 1,
-    vault_address: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+    vault_address: '0xabc',
     timestamp: '2024-04-23T00:00:00.000Z',
     daily_apy: '0.000000000000000000',
     created_at: '2024-12-03T02:23:27.557Z',

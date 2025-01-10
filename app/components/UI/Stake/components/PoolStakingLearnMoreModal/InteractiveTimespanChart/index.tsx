@@ -211,11 +211,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           color={color}
         />
       )}
-      <View
-        style={styles.chartContainer}
-        {...panResponder.panHandlers}
-        testID="AreaChartContainer"
-      >
+      <View style={styles.chartContainer} {...panResponder.panHandlers}>
         <AreaChart
           style={styles.chart}
           data={parsedDataPointValues}

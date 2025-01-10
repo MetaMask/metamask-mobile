@@ -19,6 +19,7 @@ exports[`PlotLine render matches snapshot 1`] = `
     }
   }
   strokeWidth={1.75}
+  testID="InteractiveChartPlotLine"
 />
 `;
 
@@ -41,5 +42,6 @@ exports[`PlotLine supports customizing color 1`] = `
     }
   }
   strokeWidth={1.75}
+  testID="InteractiveChartPlotLine"
 />
 `;
