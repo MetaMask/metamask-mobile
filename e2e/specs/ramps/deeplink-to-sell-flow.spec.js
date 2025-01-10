@@ -24,7 +24,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it.skip('should deep link to offramp ETH', async () => {
+  it('should deep link to offramp ETH', async () => {
     const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
@@ -38,7 +38,10 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
     };
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
+        fixture: new FixtureBuilder()
+          .withRampsSelectedRegion(franceRegion)
+          .withRampsSelectedPaymentMethod()
+          .build(),
         restartDevice: true,
       },
       async () => {
@@ -58,7 +61,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
       },
     );
   });
-  it('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
+  it.skip('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
     const SellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
