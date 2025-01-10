@@ -65,6 +65,7 @@ describe('OptinMetrics', () => {
             MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
           )
             .addProperties({
+              has_marketing_consent: false,
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
               updated_after_onboarding: false,
@@ -74,7 +75,8 @@ describe('OptinMetrics', () => {
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
           userProp: 'User value',
-          is_metrics_opted_in: false,
+          is_metrics_opted_in: true,
+          has_marketing_consent: false,
         });
       });
     });
