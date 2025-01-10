@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useContext, useEffect, useRef } from 'react';
-import { Dimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -27,7 +27,6 @@ import {
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
-import Device from '../../../util/device';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import { isEqual } from 'lodash';
@@ -37,10 +36,9 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-
-const margin = 16;
-const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
-const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
+import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './styles';
 
 /**
  * Component that wraps all the browser
@@ -60,6 +58,8 @@ export const Browser = (props) => {
     accountsLength,
   } = props;
   const previousTabs = useRef(null);
+  const { top: topInset } = useSafeAreaInsets();
+  const { styles } = useStyles(styleSheet, { topInset });
   const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
@@ -361,11 +361,9 @@ export const Browser = (props) => {
       />
     ));
 
-  const { top: topInset } = useSafeAreaInsets();
-
   return (
     <View
-      style={{ flex: 1, paddingTop: topInset }}
+      style={styles.browserContainer}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}
