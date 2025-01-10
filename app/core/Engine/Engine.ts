@@ -190,9 +190,9 @@ import {
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+///: END:ONLY_INCLUDE_IF
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
-///: END:ONLY_INCLUDE_IF
 import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
@@ -636,8 +636,20 @@ export class Engine {
         this.controllerMessenger,
         'SnapController:get',
       ),
-      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
-        await handleSnapRequest(this.controllerMessenger, args),
+      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) => {
+        Logger.log('HERE CALLING handleSnapRequest', args);
+        try {
+          const result = await handleSnapRequest(
+            this.controllerMessenger,
+            args,
+          );
+          Logger.log('HERE CALLING handleSnapRequest DONE', result);
+          return result;
+        } catch (e) {
+          Logger.log('HERE CALLING handleSnapRequest ERROR', e);
+          return null;
+        }
+      },
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
