@@ -37,7 +37,9 @@ export function isBridgeUrl(url: string) {
  * It compares the original hostname to a punycode version of the hostname.
  */
 export const isValidASCIIURL = (urlString?: string) => {
-  if (!urlString) { return false; }
+  if (!urlString || urlString.length === 0) {
+    return false;
+  }
 
   try {
     const originalHostname = urlString.match(hostnameRegex);

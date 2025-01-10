@@ -81,6 +81,10 @@ describe('URL Check Functions', () => {
       expect(isValidASCIIURL('https://iոfura.io/gnosis')).toStrictEqual(false);
       expect(isValidASCIIURL('iոfura.io:7777/gnosis?x=test')).toStrictEqual(false);
     });
+
+    it('returns false for empty string', () => {
+      expect(isValidASCIIURL('')).toStrictEqual(false);
+    });
   });
 
   describe('toPunycodeURL', () => {
