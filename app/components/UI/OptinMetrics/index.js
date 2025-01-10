@@ -345,6 +345,8 @@ class OptinMetrics extends PureComponent {
       ),
     };
 
+    await metrics.enable();
+
     // Track the analytics preference event first
     metrics.trackEvent(
       metrics
@@ -357,8 +359,6 @@ class OptinMetrics extends PureComponent {
         })
         .build(),
     );
-
-    await metrics.enable();
 
     // Handle null case for marketing consent
     if (
