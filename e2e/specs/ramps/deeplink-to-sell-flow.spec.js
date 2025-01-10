@@ -61,12 +61,15 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
       },
     );
   });
-  it.skip('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
+  it('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
     const SellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
+        fixture: new FixtureBuilder()
+          .withRampsSelectedRegion()
+          .withRampsSelectedPaymentMethod()
+          .build(),
         restartDevice: true,
       },
       async () => {
