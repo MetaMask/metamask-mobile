@@ -77,10 +77,7 @@ import Text, {
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
 import usePrevious from '../../hooks/usePrevious';
-import {
-  selectSelectedInternalAccount,
-  selectSelectedInternalAccountFormattedAddress,
-} from '../../../selectors/accountsController';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
 import {
   hideNftFetchingLoadingIndicator as hideNftFetchingLoadingIndicatorAction,
@@ -339,9 +336,6 @@ const Wallet = ({
       : detectedTokens;
   const allNetworks = useSelector(selectNetworkConfigurations);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -536,7 +530,6 @@ const Wallet = ({
     importAllDetectedTokens();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    selectedAddress,
     isTokenDetectionEnabled,
     allNetworks,
     chainId,
