@@ -1,5 +1,5 @@
 import AppConstants from '../../../core/AppConstants';
-import { TokenSearchResponse } from './types';
+import { TokenSearchResponseItem } from './types';
 
 export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
   return request('', {
@@ -10,7 +10,7 @@ export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
   });
 }
 
-export async function getMMPortfolioTokensSearch<T = TokenSearchResponse[]>(
+export async function getMMPortfolioTokensSearch<T = TokenSearchResponseItem[]>(
   chains: string[] = [],
   name?: string,
   limit?: string,
@@ -35,9 +35,11 @@ export async function getMMPortfolioTokensSearch<T = TokenSearchResponse[]>(
         'Content-Type': 'application/json',
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to fetch MM Portfolio tokens search:', error);
-    throw new Error('Failed to fetch MM Portfolio tokens search');
+    throw new Error(
+      `Failed to fetch MM Portfolio tokens search: ${error.message}`,
+    );
   }
 }
 
