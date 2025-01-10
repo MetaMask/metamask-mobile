@@ -190,6 +190,8 @@ import {
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
@@ -1681,8 +1683,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController } =
-      this.context;
+    const { AccountTrackerController, NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
