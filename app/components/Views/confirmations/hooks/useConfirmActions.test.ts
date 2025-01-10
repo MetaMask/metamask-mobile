@@ -9,10 +9,10 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
-jest.mock('./useSignatureMetrics', () => () => ({
-  useSignatureMetrics: {
+jest.mock('./useSignatureMetrics', () => ({
+  useSignatureMetrics: () => ({
     captureSignatureMetrics: mockCaptureSignatureMetrics,
-  },
+  }),
 }));
 
 const flushPromises = async () => await new Promise(process.nextTick);
