@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { RootState } from '../../../../../reducers';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import { EVENT_LOCATIONS } from '../../constants/events';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -68,7 +69,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
           chain_id: getDecimalChainId(chainId),
-          location: 'Home Screen',
+          location: EVENT_LOCATIONS.HOME_SCREEN,
           text: 'Stake',
           token_symbol: asset.symbol,
           url: AppConstants.STAKE.URL,
