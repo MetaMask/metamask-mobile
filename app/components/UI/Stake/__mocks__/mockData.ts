@@ -130,6 +130,7 @@ export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
   getPooledStakes: jest.fn(),
   getVaultData: jest.fn(),
   getPooledStakingEligibility: jest.fn(),
+  getVaultDailyApys: jest.fn(),
   baseUrl: 'https://staking.api.com',
 };
 

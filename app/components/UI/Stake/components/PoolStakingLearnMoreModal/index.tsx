@@ -31,6 +31,7 @@ import {
 import useVaultAprs from '../../hooks/useVaultAprs';
 import { strings } from '../../../../../../locales/i18n';
 import { parseVaultTimespanAprsResponse } from './PoolStakingLearnMoreModal.utils';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 // TODO: Make sure heading is aligned on Android devices.
 const BodyText = () => {
@@ -102,13 +103,12 @@ const PoolStakingLearnMoreModal = () => {
       },
     });
 
-    // TODO: Replace selected_providers and location with defined constants in latest main branch.
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
         .addProperties({
-          selected_provider: 'consensys',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Learn More',
-          location: 'Learn More Modal',
+          location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
         })
         .build(),
     );

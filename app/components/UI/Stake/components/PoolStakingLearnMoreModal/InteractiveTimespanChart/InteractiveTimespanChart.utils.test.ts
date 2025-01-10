@@ -16,7 +16,6 @@ const CHART_WIDTH = 100;
 describe('InteractiveTimespanChart Utils', () => {
   describe('calculateSegmentCenter', () => {
     it('calculates center of each segment', () => {
-      // Test 1
       const MOCK_DATAPOINTS_1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
       const chartSegmentWidth1 = getChartSegmentWidth(
@@ -31,7 +30,6 @@ describe('InteractiveTimespanChart Utils', () => {
 
       expect(result1).toEqual([5, 15, 25, 35, 45, 55, 65, 75, 85, 95]);
 
-      // Test 2
       const MOCK_DATAPOINTS_2 = [
         Number.MIN_VALUE,
         1.75,

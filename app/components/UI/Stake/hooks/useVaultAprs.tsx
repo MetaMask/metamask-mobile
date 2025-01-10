@@ -8,7 +8,6 @@ import {
   setVaultAprs,
 } from '../../../../core/redux/slices/staking';
 
-// TODO: Add tests
 const useVaultAprs = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +46,7 @@ const useVaultAprs = () => {
 
   return {
     vaultAprs,
-    fetchVaultAprs,
+    refreshVaultAprs: fetchVaultAprs,
     isLoadingVaultAprs: isLoading,
     error,
   };
