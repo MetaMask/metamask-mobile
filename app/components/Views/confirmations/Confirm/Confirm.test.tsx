@@ -8,6 +8,10 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import Confirm from './index';
 
+jest.mock('../../../../util/address', () => ({
+  getAddressAccountType: (str: string) => str,
+}));
+
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
