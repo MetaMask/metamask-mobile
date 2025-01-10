@@ -26,6 +26,9 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import URLParse from 'url-parse';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
 // import { getURLProtocol } from '../../../util/general';
 // import { PROTOCOLS } from '../../../constants/deeplinks';
 // import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
@@ -159,6 +162,18 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       });
     };
 
+    /**
+     * Clears the input value and calls the onChangeText callback
+     */
+    const onClearInput = () => {
+      const inputRef = ref as React.RefObject<TextInput>;
+      if (!inputRef || !inputRef?.current) return;
+      const clearedText = '';
+      inputRef?.current?.clear();
+      inputValueRef.current = clearedText;
+      onChangeText(clearedText);
+    };
+
     return (
       <View style={styles.browserUrlBarWrapper}>
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
@@ -188,6 +203,16 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
             onBlur={onBlurInput}
             onFocus={onFocusInput}
           />
+          {isUrlBarFocused ? (
+            <ButtonIcon
+              iconName={IconName.CircleX}
+              onPress={onClearInput}
+              iconColor={colors.icon.alternative}
+              size={ButtonIconSizes.Md}
+              style={styles.clearButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            />
+          ) : null}
         </View>
         <View style={styles.rightButton}>
           {isUrlBarFocused ? (

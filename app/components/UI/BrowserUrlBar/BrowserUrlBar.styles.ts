@@ -29,7 +29,7 @@ const styleSheet = ({
       height: 44,
       paddingVertical: 0,
       margin: 0,
-      paddingHorizontal: isUrlBarFocused ? 16 : 0,
+      paddingLeft: isUrlBarFocused ? 16 : 0,
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
       color: colors.text.default,
@@ -37,6 +37,10 @@ const styleSheet = ({
     browserUrlBarWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    clearButton: {
+      marginRight: 8,
+      marginLeft: 4,
     },
     cancelButton: {
       marginRight: 16,
