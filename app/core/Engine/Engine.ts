@@ -639,20 +639,8 @@ export class Engine {
         this.controllerMessenger,
         'SnapController:get',
       ),
-      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) => {
-        Logger.log('HERE CALLING handleSnapRequest', args);
-        try {
-          const result = await handleSnapRequest(
-            this.controllerMessenger,
-            args,
-          );
-          Logger.log('HERE CALLING handleSnapRequest DONE', result);
-          return result;
-        } catch (e) {
-          Logger.log('HERE CALLING handleSnapRequest ERROR', e);
-          return null;
-        }
-      },
+      handleSnapRpcRequest: async (args: HandleSnapRequestArgs) =>
+        await handleSnapRequest(this.controllerMessenger, args),
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       getSnapState: this.controllerMessenger.call.bind(
@@ -1693,8 +1681,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController } =
-      this.context;
+    const { AccountTrackerController, NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
