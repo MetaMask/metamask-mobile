@@ -2498,7 +2498,6 @@ access
 
 ## [7.1.0] - Jun 20, 2023
 ### Added
- - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
  - [#6351](https://github.com/MetaMask/metamask-mobile/pull/6351): feat: use thunk to handle processed order side effects
  - [#5829](https://github.com/MetaMask/metamask-mobile/pull/5829): feat: order of browser page load events
  - [#6230](https://github.com/MetaMask/metamask-mobile/pull/6230): feat: Asset Overview / Token Detail view redesign
@@ -2514,6 +2513,7 @@ access
  - [#6393](https://github.com/MetaMask/metamask-mobile/pull/6393): feat(ci): upgrade ruby to 3.0.0
  - [#6289](https://github.com/MetaMask/metamask-mobile/pull/6289): feat(ci): Sonar Action to work with SonarCloud
  - [#6366](https://github.com/MetaMask/metamask-mobile/pull/6366): feat(ci): Convert Bitrise Workflows to Pipelines
+ - [#6334](https://github.com/MetaMask/metamask-mobile/pull/6334): feat: Aurora Token Detection
 
 ### Changed
  - [#6406](https://github.com/MetaMask/metamask-mobile/pull/6406): chore: Use core signature controller
