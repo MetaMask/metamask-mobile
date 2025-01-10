@@ -19,6 +19,7 @@ import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import createLearnMoreModalStyles from './LearnMoreModal.styles';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 const styles = createLearnMoreModalStyles();
 
@@ -99,9 +100,9 @@ const LearnMoreModal = () => {
             onPress={withMetaMetrics(handleLearnMoreBrowserRedirect, {
               event: MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED,
               properties: {
-                selected_provider: 'consensys',
+                selected_provider: EVENT_PROVIDERS.CONSENSYS,
                 text: 'Learn More',
-                location: 'Learn More Modal',
+                location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
               },
             })}
             label={strings('stake.learn_more')}

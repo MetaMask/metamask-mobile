@@ -63,6 +63,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { isBtcAccount } from '../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
+import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1949,16 +1950,23 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [options] - Optional options for navbar.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
-export function getStakingNavbar(title, navigation, themeColors, options) {
-  const { hasBackButton = true, hasCancelButton = true } = options ?? {};
+export function getStakingNavbar(
+  title,
+  navigation,
+  themeColors,
+  navBarOptions,
+  metricsOptions,
+) {
+  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor:
-        options?.backgroundColor ?? themeColors.background.default,
+        navBarOptions?.backgroundColor ?? themeColors.background.default,
       shadowOffset: null,
     },
     headerLeft: {
@@ -1978,6 +1986,28 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
     navigation.goBack();
   }
 
+  function handleBackPress() {
+    if (metricsOptions?.backButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.backButtonEvent.event,
+        properties: metricsOptions.backButtonEvent.properties,
+      })();
+    } else {
+      navigationPop();
+    }
+  }
+
+  function handleCancelPress() {
+    if (metricsOptions?.cancelButtonEvent) {
+      withMetaMetrics(navigationPop, {
+        event: metricsOptions.cancelButtonEvent.event,
+        properties: metricsOptions.cancelButtonEvent.properties,
+      })();
+    } else {
+      navigationPop();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1990,7 +2020,7 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
         <ButtonIcon
           size={ButtonIconSizes.Lg}
           iconName={IconName.ArrowLeft}
-          onPress={navigationPop}
+          onPress={handleBackPress}
           style={innerStyles.headerLeft}
         />
       ) : (
@@ -1999,7 +2029,7 @@ export function getStakingNavbar(title, navigation, themeColors, options) {
     headerRight: () =>
       hasCancelButton ? (
         <TouchableOpacity
-          onPress={() => navigation.dangerouslyGetParent()?.pop()}
+          onPress={handleCancelPress}
           style={styles.closeButton}
         >
           <Text style={innerStyles.headerButtonText}>
