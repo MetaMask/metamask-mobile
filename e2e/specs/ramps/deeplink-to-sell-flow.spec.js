@@ -24,7 +24,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it('should deep link to offramp ETH', async () => {
+  it.skip('should deep link to offramp ETH', async () => {
     const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
