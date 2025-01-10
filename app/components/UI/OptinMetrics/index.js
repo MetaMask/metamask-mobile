@@ -384,6 +384,12 @@ class OptinMetrics extends PureComponent {
         let delay = 0; // Initialize delay
         const eventTrackingDelay = 200; // ms delay between each event
         events.forEach((eventArgs) => {
+          // delay each event to prevent them from
+          // being tracked with the same timestamp
+          // which would cause them to be grouped together
+          // by sentAt time in the Segment dashboard
+          // as precision is only to the milisecond
+          // and loop seems to runs faster than that
           setTimeout(() => {
             metrics.trackEvent(...eventArgs);
           }, delay);
