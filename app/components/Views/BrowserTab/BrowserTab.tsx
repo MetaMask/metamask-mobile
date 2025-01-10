@@ -872,6 +872,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Website started to load
    */
   const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
+    setConnectionType(ConnectionType.UNKNOWN);
     // Use URL to produce real url. This should be the actual website that the user is viewing.
     const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 

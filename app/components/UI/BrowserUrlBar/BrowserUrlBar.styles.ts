@@ -3,20 +3,33 @@ import { Theme } from '../../../util/theme/models';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
-const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
+const styleSheet = ({
+  theme: { colors },
+  vars: { isUrlBarFocused },
+}: {
+  theme: Theme;
+  vars: { isUrlBarFocused: boolean };
+}) =>
   StyleSheet.create({
     main: {
       flexDirection: 'row',
       alignItems: 'center',
       flex: 1,
-      paddingHorizontal: 16,
+      borderRadius: 999,
+      marginHorizontal: 16,
+      backgroundColor: isUrlBarFocused
+        ? colors.background.alternative
+        : colors.background.default,
+    },
+    connectionIcon: {
+      marginRight: 8,
     },
     textInput: {
       flex: 1,
       height: 44,
-      padding: 0,
+      paddingVertical: 0,
       margin: 0,
-      paddingLeft: 8,
+      paddingHorizontal: isUrlBarFocused ? 16 : 0,
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
       color: colors.text.default,

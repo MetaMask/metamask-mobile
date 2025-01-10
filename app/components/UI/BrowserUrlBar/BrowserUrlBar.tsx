@@ -57,7 +57,9 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     const {
       styles,
       theme: { colors, themeAppearance },
-    } = useStyles(stylesheet, {});
+    } = useStyles(stylesheet, { isUrlBarFocused });
+    const isConnectionIconVisible =
+      connectionType !== ConnectionType.UNKNOWN && !isUrlBarFocused;
 
     // TODO: Decide if this logic is still needed
     // const getDappMainUrl = () => {
@@ -84,11 +86,9 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
      * Gets browser url bar icon based on connection type
      */
     const connectionTypeIcon = useMemo(() => {
-      // Default to search icon
-      let iconName = IconName.Search;
-      if (isUrlBarFocused) {
-        return iconName;
-      }
+      // Default to blank icon
+      let iconName = IconName.Blank;
+
       switch (connectionType) {
         case ConnectionType.SECURE:
           iconName = IconName.Lock;
@@ -96,12 +96,9 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
         case ConnectionType.UNSECURE:
           iconName = IconName.LockSlash;
           break;
-        case ConnectionType.UNKNOWN:
-        default:
-          iconName = IconName.Blank;
       }
       return iconName;
-    }, [connectionType, isUrlBarFocused]);
+    }, [connectionType]);
 
     const onBlurInput = () => {
       setIsUrlBarFocused(false);
@@ -165,11 +162,14 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     return (
       <View style={styles.browserUrlBarWrapper}>
         <View style={styles.main} testID={BrowserViewSelectorsIDs.URL_INPUT}>
-          <Icon
-            color={colors.icon.alternative}
-            name={connectionTypeIcon}
-            size={IconSize.Sm}
-          />
+          {isConnectionIconVisible ? (
+            <Icon
+              color={colors.icon.alternative}
+              name={connectionTypeIcon}
+              size={IconSize.Sm}
+              style={styles.connectionIcon}
+            />
+          ) : null}
           <TextInput
             testID={BrowserURLBarSelectorsIDs.URL_INPUT}
             keyboardType={'web-search'}
