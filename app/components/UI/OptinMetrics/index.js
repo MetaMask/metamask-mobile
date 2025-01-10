@@ -348,11 +348,12 @@ class OptinMetrics extends PureComponent {
         setDataCollectionForMarketing(false);
       }
 
-      // trait indicating if user opts in for data collection for marketing
-      let dataCollectionForMarketingTraits;
-      if (this.props.isDataCollectionForMarketingEnabled) {
-        dataCollectionForMarketingTraits = { has_marketing_consent: true };
-      }
+      // Set marketing consent trait based on user selection
+      const dataCollectionForMarketingTraits = {
+        has_marketing_consent: Boolean(
+          this.props.isDataCollectionForMarketingEnabled,
+        ),
+      };
 
       // consolidate device and user settings traits
       const consolidatedTraits = {
