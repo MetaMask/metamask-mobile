@@ -91,7 +91,17 @@ const CustomNetworks = {
       ticker: 'SepoliaETH',
     },
   },
-
+  ElysiumTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x53a',
+      rpcUrlInvalid: 'https://rpc.atlantischain.network',
+      rpcUrl: 'https://rpc.atlantischain.network',
+      rpcUrlAlt: 'https://rpc.atlantischain.network',
+      nickname: 'Elysium Testnet',
+      ticker: 'LAVA',
+    },
+  },
   Tenderly: {
     isCustomNetwork: true,
     providerConfig: {

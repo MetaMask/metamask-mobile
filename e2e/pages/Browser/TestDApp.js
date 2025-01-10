@@ -139,6 +139,13 @@ class TestDApp {
     );
   }
 
+  get switchChainFromTestDappButton() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
+    );
+  }
+
   async connect() {
     await this.tapButton(this.DappConnectButton);
   }
@@ -222,6 +229,10 @@ class TestDApp {
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
     await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
+  }
+
+  async switchChainFromTestDapp() {
+    await this.tapButton(this.switchChainFromTestDappButton);
   }
 }
 
