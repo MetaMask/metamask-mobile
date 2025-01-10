@@ -134,7 +134,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
     });
   });
 
-  it('returns "< 0.01 USD" if fiat balance is less than 0.01', () => {
+  it('returns "< 0.01 USD" if token asset fiat balance is less than 0.01', () => {
     (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
     (balanceToFiatNumber as jest.Mock).mockReturnValue(0.005);
     (addCurrencySymbol as jest.Mock).mockReturnValue('$0.01');
@@ -153,6 +153,41 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
       balanceFiat: '< $0.01',
       balanceFiatCalculation: 0.00001,
       balanceValueFormatted: '100 ABC',
+    });
+    expect(addCurrencySymbol).toHaveBeenCalledWith('0.01', 'USD');
+  });
+
+  it('returns "< 0.01 USD" if ETH asset fiat balance is less than 0.01', () => {
+    (renderFromTokenMinimalUnit as jest.Mock).mockReturnValue('2');
+    (balanceToFiatNumber as jest.Mock).mockReturnValue(0.005);
+    (addCurrencySymbol as jest.Mock).mockReturnValue('$0.01');
+
+    const ethAsset: TokenI = {
+      address: '0x0',
+      symbol: 'ETH',
+      balance: '< .00001',
+      decimals: 18,
+      isETH: true,
+      balanceFiat: '< $0.01',
+      aggregators: [],
+      hasBalanceError: false,
+      image: '',
+      name: '',
+      logo: undefined,
+    };
+
+    const result = deriveBalanceFromAssetMarketDetails(
+      ethAsset,
+      tokenExchangeRates,
+      tokenBalances,
+      conversionRate,
+      currentCurrency,
+    );
+
+    expect(result).toEqual({
+      balanceFiat: '< $0.01',
+      balanceFiatCalculation: NaN,
+      balanceValueFormatted: '< .00001 ETH',
     });
     expect(addCurrencySymbol).toHaveBeenCalledWith('0.01', 'USD');
   });
