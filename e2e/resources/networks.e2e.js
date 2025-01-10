@@ -107,7 +107,7 @@ const CustomNetworks = {
       providerConfig: {
         type: 'rpc',
         chainId: toHex('1'),
-        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/03bb8912-7505-4856-839f-52819a26d0cd',
+        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
         nickname: 'Tenderly - Mainnet',
         ticker: 'ETH',
      },
