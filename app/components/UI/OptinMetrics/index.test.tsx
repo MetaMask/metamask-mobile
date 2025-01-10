@@ -74,7 +74,7 @@ describe('OptinMetrics', () => {
         expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
           deviceProp: 'Device value',
           userProp: 'User value',
-          is_metrics_opted_in: true,
+          is_metrics_opted_in: false,
         });
       });
     });
