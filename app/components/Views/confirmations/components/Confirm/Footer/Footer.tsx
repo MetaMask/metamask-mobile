@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import StyledButton from '../../../../../../components/UI/StyledButton';
 import { useStyles } from '../../../../../../component-library/hooks';
-import useConfirmActions from '../../../hooks/useConfirmActions';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import styleSheet from './Footer.styles';
 
 const Footer = () => {

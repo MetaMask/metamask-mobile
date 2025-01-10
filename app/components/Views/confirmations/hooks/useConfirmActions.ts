@@ -3,9 +3,9 @@ import { useCallback } from 'react';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
-import useSignatureMetrics from './useSignatureMetrics';
+import { useSignatureMetrics } from './useSignatureMetrics';
 
-const useConfirmActions = () => {
+export const useConfirmActions = () => {
   const {
     onConfirm: onRequestConfirm,
     onReject: onRequestReject,
@@ -36,5 +36,3 @@ const useConfirmActions = () => {
 
   return { onConfirm, onReject };
 };
-
-export default useConfirmActions;

@@ -1,7 +1,7 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { personalSignatureConfirmationState } from '../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import useSignatureMetrics from './useSignatureMetrics';
+import { useSignatureMetrics } from './useSignatureMetrics';
 
 jest.mock('../../../../util/address', () => ({
   getAddressAccountType: (str: string) => str,

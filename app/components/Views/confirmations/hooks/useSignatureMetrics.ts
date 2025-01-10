@@ -8,14 +8,14 @@ import {
   MetaMetricsEvents,
   store,
 } from '../../../../core/Analytics';
-import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 
-import useApprovalRequest from './useApprovalRequest';
-import { isSignatureRequest } from '../utils/confirm';
 import { getAddressAccountType } from '../../../../util/address';
-import Logger from '../../../../util/Logger';
+import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { selectChainId } from '../../../../selectors/networkController';
 import { SecurityAlertResponse } from '../components/BlockaidBanner/BlockaidBanner.types';
+import { getHostFromUrl } from '../utils/generic';
+import { isSignatureRequest } from '../utils/confirm';
+import useApprovalRequest from './useApprovalRequest';
 
 type ApprovalRequestData = Record<string, string | Json> | null;
 
@@ -28,9 +28,9 @@ const getAnalyticsParams = (
 ) => {
   const { meta = {}, from, securityAlertResponse, version } = messageParams;
 
-  const analyticsParams = {
+  return {
     account_type: getAddressAccountType(from as string),
-    dapp_host_name: 'N/A',
+    dapp_host_name: getHostFromUrl(meta.url as string) ?? 'N/A',
     signature_type: type,
     version: version || 'N/A',
     chain_id: getDecimalChainId(selectChainId(store.getState())),
@@ -40,20 +40,9 @@ const getAnalyticsParams = (
       ? getBlockaidMetricsParams(securityAlertResponse)
       : {}),
   };
-
-  try {
-    if (meta.url) {
-      const url = new URL(meta.url as string);
-      analyticsParams.dapp_host_name = url.host;
-    }
-  } catch (error) {
-    Logger.error(error as Error);
-  }
-
-  return analyticsParams;
 };
 
-const useSignatureMetrics = () => {
+export const useSignatureMetrics = () => {
   const { approvalRequest } = useApprovalRequest();
 
   const { requestData, type: approvalRequestType } = approvalRequest ?? {
@@ -83,5 +72,3 @@ const useSignatureMetrics = () => {
 
   return { captureSignatureMetrics };
 };
-
-export default useSignatureMetrics;

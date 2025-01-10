@@ -7,9 +7,11 @@ import { fireEvent } from '@testing-library/react-native';
 
 const mockConfirmSpy = jest.fn();
 const mockRejectSpy = jest.fn();
-jest.mock('../../../hooks/useConfirmActions', () => () => ({
-  onConfirm: mockConfirmSpy,
-  onReject: mockRejectSpy,
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: () => ({
+    onConfirm: mockConfirmSpy,
+    onReject: mockRejectSpy,
+  }),
 }));
 
 describe('Footer', () => {

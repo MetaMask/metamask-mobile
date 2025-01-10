@@ -1,7 +1,7 @@
 import Engine from '../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../util/test/confirm-data-helpers';
-import useConfirmActions from './useConfirmActions';
+import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('../../../../core/Engine', () => ({
   acceptPendingApproval: jest.fn(),
@@ -10,7 +10,9 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockCaptureSignatureMetrics = jest.fn();
 jest.mock('./useSignatureMetrics', () => () => ({
-  captureSignatureMetrics: mockCaptureSignatureMetrics,
+  useSignatureMetrics: {
+    captureSignatureMetrics: mockCaptureSignatureMetrics,
+  },
 }));
 
 const flushPromises = async () => await new Promise(process.nextTick);
@@ -20,7 +22,7 @@ describe('useConfirmAction', () => {
     mockCaptureSignatureMetrics.mockClear();
   });
 
-  it('should call required callbacks when confirm button is clicked', async () => {
+  it('call required callbacks when confirm button is clicked', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
@@ -30,7 +32,7 @@ describe('useConfirmAction', () => {
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);
   });
 
-  it('should call required callbacks when reject button is clicked', async () => {
+  it('call required callbacks when reject button is clicked', async () => {
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
