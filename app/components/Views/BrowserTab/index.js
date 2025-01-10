@@ -23,7 +23,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
 import PropTypes from 'prop-types';
 import Share from 'react-native-share';
-import { connect, useSelector } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 import Engine from '../../../core/Engine';
 import PhishingModal from '../../UI/PhishingModal';
@@ -50,7 +50,13 @@ import URL from 'url-parse';
 import Modal from 'react-native-modal';
 import WebviewError from '../../UI/WebviewError';
 import { addBookmark } from '../../../actions/bookmarks';
-import { addToHistory, addToWhitelist } from '../../../actions/browser';
+import {
+  addToHistory,
+  addToWhitelist,
+  setBrowserRequestLoad,
+  setBrowserLoadStart,
+  setBrowserLoadEnd,
+} from '../../../actions/browser';
 import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import SearchApi from '@metamask/react-native-search-api';
@@ -71,9 +77,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
-import {
-  MAX_MESSAGE_LENGTH,
-} from '../../../constants/dapp';
+import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getPermittedAccounts,
@@ -287,6 +291,7 @@ export const BrowserTab = (props) => {
   const webviewRef = useRef(null);
   const blockListType = useRef('');
   const allowList = useRef([]);
+  const dispatch = useDispatch();
 
   const url = useRef('');
   const title = useRef('');
@@ -1678,13 +1683,37 @@ export const BrowserTab = (props) => {
                 }}
                 injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
                 style={styles.webview}
-                onLoadStart={onLoadStart}
-                onLoad={onLoad}
-                onLoadEnd={onLoadEnd}
+                onShouldStartLoadWithRequest={(e) => {
+                  // Triggered when the browser requests to load
+                  // Triggered multiple times on the same page load
+                  // console.log(
+                  //   'BROWSER: BROWSER SHOULD START LOAD WITH REQUEST',
+                  //   e,
+                  // );
+                  dispatch(setBrowserRequestLoad());
+                  return onShouldStartLoadWithRequest(e);
+                }}
+                onLoadStart={(e) => {
+                  // Triggered on load start
+                  console.log('BROWSER: BROWSER LOAD START', e.nativeEvent);
+                  const url = e.nativeEvent.url;
+                  dispatch(setBrowserLoadStart(url));
+                  return onLoadStart(e);
+                }}
+                onLoadEnd={(e) => {
+                  // Triggered on load end
+                  console.log('BROWSER: BROWSER LOAD END', e.nativeEvent);
+                  const url = e.nativeEvent.url;
+                  dispatch(setBrowserLoadEnd(url));
+                  return onLoadEnd(e);
+                }}
+                onLoad={(e) => {
+                  // ONLY triggeed on successful load
+                  onLoad(e);
+                }}
                 onLoadProgress={onLoadProgress}
                 onMessage={onMessage}
                 onError={onError}
-                onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
                 allowsInlineMediaPlayback
                 testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                 applicationNameForUserAgent={'WebView MetaMaskMobile'}
