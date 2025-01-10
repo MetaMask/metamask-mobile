@@ -184,7 +184,7 @@ describe(
           await TabBarComponent.tapWallet();
           await Assertions.checkIfVisible(WalletView.container);
           const networkPicker = await WalletView.getNavbarNetworkPicker();
-          await Assertions.elementHasLabel(networkPicker, SEPOLIA);
+          await Assertions.checkIfElementHasLabel(networkPicker, SEPOLIA);
         },
       );
     });
@@ -235,7 +235,7 @@ describe(
           await TabBarComponent.tapWallet();
           await Assertions.checkIfVisible(WalletView.container);
           const networkPicker = await WalletView.getNavbarNetworkPicker();
-          await Assertions.elementHasLabel(
+          await Assertions.checkIfElementHasLabel(
             networkPicker,
             'Linea Sepolia',
           );

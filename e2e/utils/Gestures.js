@@ -48,6 +48,20 @@ class Gestures {
   }
 
   /**
+   * Tap an element using text
+   *
+   * @param {string} text - String
+   * @param {string} index -  Index of the element to tap
+   */
+  static async tapByText(text, index, timeout = 10000) {
+    const elementID = element(by.text(text));
+    await waitFor(elementID).toBeVisible().withTimeout(timeout);
+    return element(by.text(text))
+      .atIndex(index || 0)
+      .tap();
+  }
+
+  /**
    * Wait for an element to be visible and then tap it.
    *
    * @param {Promise<Detox.IndexableNativeElement | Detox.SystemElement>} elementID - ID of the element to tap
@@ -126,8 +140,9 @@ class Gestures {
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
    */
-  static async replaceTextInField(elementID, text) {
+  static async replaceTextInField(elementID, text, timeout = 10000) {
     const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText(text);
   }

@@ -717,7 +717,6 @@ export function getOnboardingNavbarOptions(
           source={metamask_name}
           style={innerStyles.metamaskName}
           resizeMethod={'auto'}
-          testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
 
         />
       </View>

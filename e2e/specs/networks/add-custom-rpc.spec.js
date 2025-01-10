@@ -103,7 +103,7 @@ describe('Custom RPC Tests', () => {
     await Assertions.checkIfNotVisible(NetworkEducationModal.container);
     await Assertions.checkIfVisible(WalletView.container);
     const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.elementHasLabel(
+    await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
@@ -115,7 +115,7 @@ describe('Custom RPC Tests', () => {
     await Assertions.checkIfVisible(NetworkListModal.networkScroll);
 
     const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.elementHasLabel(
+    await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
@@ -134,7 +134,7 @@ describe('Custom RPC Tests', () => {
     await Assertions.checkIfVisible(WalletView.container);
     const networkPicker = await WalletView.getNavbarNetworkPicker();
 
-    await Assertions.elementHasLabel(
+    await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
@@ -145,7 +145,7 @@ describe('Custom RPC Tests', () => {
     await NetworkListModal.scrollToBottomOfNetworkList();
 
     const networkPicker = await WalletView.getNavbarNetworkPicker();
-    await Assertions.elementHasLabel(
+    await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Sepolia.providerConfig.nickname,
     );
@@ -157,7 +157,7 @@ describe('Custom RPC Tests', () => {
       CustomNetworks.Gnosis.providerConfig.nickname,
     );
     await Assertions.checkIfVisible(WalletView.container);
-    await Assertions.elementHasLabel(
+    await Assertions.checkIfElementHasLabel(
       networkPicker,
       CustomNetworks.Gnosis.providerConfig.nickname,
     );

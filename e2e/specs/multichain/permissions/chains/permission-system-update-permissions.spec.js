@@ -108,7 +108,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await TabBarComponent.tapWallet();
         await Assertions.checkIfVisible(WalletView.container);
         const networkPicker = await WalletView.getNavbarNetworkPicker();
-        await Assertions.elementHasLabel(networkPicker, 'Sepolia');
+        await Assertions.checkIfElementHasLabel(networkPicker, 'Sepolia');
       },
     );
   });

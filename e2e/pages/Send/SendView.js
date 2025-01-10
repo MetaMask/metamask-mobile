@@ -78,19 +78,15 @@ class SendView {
   async tapAddAddressToAddressBook() {
     await Gestures.waitAndTap(this.addAddressButton);
   }
-  async tapAddAddressAtIndex() {
-    await Gestures.TapAtIndex(this.addAddressButton, 0);
-  }
 
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
   }
 
-  async assertAddressText(expectedAddress){
+  async splitAddressText(){
     const attributes = await (await this.addAddressButton).getAttributes();
-    const splitAddress = await attributes.label.split(' ');
-    await Assertions.checkIfTextMatches(splitAddress[0], expectedAddress);
+    return await attributes.label.split(' ');
   }
 }
 export default new SendView();
