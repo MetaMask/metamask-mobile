@@ -1991,7 +1991,7 @@ export function getStakingNavbar(
       withMetaMetrics(navigationPop, {
         event: metricsOptions.backButtonEvent.event,
         properties: metricsOptions.backButtonEvent.properties,
-      });
+      })();
     } else {
       navigationPop();
     }
@@ -2002,7 +2002,7 @@ export function getStakingNavbar(
       withMetaMetrics(navigationPop, {
         event: metricsOptions.cancelButtonEvent.event,
         properties: metricsOptions.cancelButtonEvent.properties,
-      });
+      })();
     } else {
       navigationPop();
     }
