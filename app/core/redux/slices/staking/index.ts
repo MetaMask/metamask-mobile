@@ -2,24 +2,18 @@ import type {
   PooledStake,
   VaultData,
   VaultAprs,
-  VaultDailyReward,
+  VaultDailyApys,
 } from '@metamask/stake-sdk';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
-
-// TEMP: Until stake-sdk is updated with latest version.
-export type VaultApys = Omit<
-  VaultDailyReward,
-  'earned_assets_wei' | 'total_assets_wei'
->[];
 
 interface PooledStakingState {
   pooledStakes: PooledStake;
   exchangeRate: string;
   vaultData: VaultData;
   vaultAprs: VaultAprs;
-  vaultApys: VaultApys;
+  vaultApys: VaultDailyApys[];
   isEligible: boolean;
 }
 
@@ -54,7 +48,7 @@ const slice = createSlice({
     setVaultAprs: (state, action: PayloadAction<VaultAprs>) => {
       state.vaultAprs = action.payload;
     },
-    setVaultApys: (state, action: PayloadAction<VaultApys>) => {
+    setVaultApys: (state, action: PayloadAction<VaultDailyApys[]>) => {
       state.vaultApys = action.payload;
     },
     setStakingEligibility: (state, action: PayloadAction<boolean>) => {

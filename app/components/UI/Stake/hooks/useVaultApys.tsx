@@ -6,7 +6,6 @@ import { selectChainId } from '../../../../selectors/networkController';
 import {
   selectVaultApys,
   setVaultApys,
-  VaultApys,
 } from '../../../../core/redux/slices/staking';
 
 // TODO: Add tests
@@ -29,19 +28,16 @@ const useVaultApys = () => {
 
     try {
       const numericChainId = hexToNumber(chainId);
-      const vaultApysResponse = await stakingApiService.getVaultDailyRewards(
+      const vaultApysResponse = await stakingApiService.getVaultDailyApys(
         numericChainId,
         365,
         'desc',
       );
 
-      // TODO: Fix type error before pushing
-      // @ts-expect-error temp before updating stake-sdk to latest VaultApys endpoint
       const reversedVaultApys = vaultApysResponse?.reverse();
 
       // TODO: Determine how we should refresh this value.
-      // TEMP: TODO: Update type after updating stake-sdk
-      dispatch(setVaultApys(reversedVaultApys as unknown as VaultApys));
+      dispatch(setVaultApys(reversedVaultApys));
     } catch (err) {
       setError('Failed to fetch vault APYs');
     } finally {

@@ -1,6 +1,14 @@
-import { VaultAprs } from '@metamask/stake-sdk';
-import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../../../locales/i18n';
+import {
+  SMALL_DATASET_GRAPH_INSET,
+  SMALL_DATASET_SNAP_RATIO,
+  SMALL_DATASET_THRESHOLD,
+  STANDARD_DATASET_GRAPH_INSET,
+} from './InteractiveTimespanChart.constants';
+
+export const getChartSegmentWidth = (
+  chartWidth: number,
+  dataPoints: number[],
+) => parseFloat((chartWidth / dataPoints.length).toFixed(6));
 
 export const calculateSegmentCenters = (
   dataPoints: number[] | string[],
@@ -17,56 +25,63 @@ export const calculateSegmentCenters = (
     return centerOfSegment;
   });
 
-export const formatChartDate = (timestamp: string) =>
-  new Date(timestamp).toUTCString().split(' ').slice(0, 4).join(' ');
+// Example ISO 8601 timestamp: '2024-11-30T00:00:00.000Z'
+export const formatChartDate = (iso8601Timestamp: string) =>
+  new Date(iso8601Timestamp).toUTCString().split(' ').slice(0, 4).join(' ');
 
-// Example: Sun, 01 Dec 2024
-export const formatDailyAprReward = (reward: {
-  daily_apy: string;
-  timestamp: string;
-}) => ({
-  apr: `${new BigNumber(reward.daily_apy).toFixed(2, BigNumber.ROUND_DOWN)}%`,
-  timestamp: new Date(reward.timestamp)
-    .toUTCString()
-    .split(' ')
-    .slice(0, 4)
-    .join(' '),
-});
-
-export const getGraphContentInset = (dataPoints: number[]) => {
-  let inset = 0;
-
-  if (dataPoints.length <= 10) inset = 20;
-
-  if (dataPoints.length >= 30) inset = 15;
-
-  if (dataPoints.length >= 90) inset = 10;
-
-  if (dataPoints.length >= 180) inset = 5;
-
-  return inset;
-};
-
-export const parseVaultTimespanAprsResponse = (
-  vaultTimespanAprs: VaultAprs,
-) => {
-  const numDaysMap: Record<
-    keyof VaultAprs,
-    { numDays: number; label: string }
-  > = {
-    oneDay: { numDays: 1, label: strings('stake.today') },
-    oneWeek: { numDays: 7, label: strings('stake.one_week_average') },
-    oneMonth: { numDays: 30, label: strings('stake.one_month_average') },
-    threeMonths: { numDays: 90, label: strings('stake.three_month_average') },
-    sixMonths: { numDays: 180, label: strings('stake.six_month_average') },
-    oneYear: { numDays: 365, label: strings('stake.one_year_average') },
+export const getGraphInsetsByDataPointLength = (numDataPoints: number) => {
+  const graphInsets = {
+    insetTop: STANDARD_DATASET_GRAPH_INSET,
+    insetBottom: STANDARD_DATASET_GRAPH_INSET,
   };
 
-  return Object.entries(vaultTimespanAprs).reduce<
-    Record<number, { apr: string; numDays: number; label: string }>
-  >((map, [key, value]) => {
-    const numDaysMapEntry = numDaysMap[key as keyof typeof numDaysMap];
-    map[numDaysMapEntry.numDays] = { apr: value, ...numDaysMapEntry };
-    return map;
-  }, {});
+  if (numDataPoints <= 10) {
+    graphInsets.insetTop = SMALL_DATASET_GRAPH_INSET;
+    graphInsets.insetBottom = SMALL_DATASET_GRAPH_INSET;
+    return graphInsets;
+  }
+
+  return graphInsets;
+};
+
+export const calculateSnapThreshold = (
+  chartSegmentWidth: number,
+  numDataPoints: number,
+) =>
+  chartSegmentWidth *
+  // We only enable snapping for small datasets.
+  (numDataPoints <= SMALL_DATASET_THRESHOLD ? SMALL_DATASET_SNAP_RATIO : 0);
+
+export const findClosestPointIndex = (
+  x: number,
+  segmentCenters: number[],
+  snapThreshold: number,
+  numDataPoints: number,
+) => {
+  // Deselect point when finger raised
+  if (x === -1) {
+    return -1;
+  }
+
+  // Find the closest segment center to the current touch position
+  let closestIndex = 0;
+  let minDistance = Infinity;
+
+  segmentCenters.forEach((center, index) => {
+    const distance = Math.abs(x - center);
+    if (distance < minDistance) {
+      closestIndex = index;
+      minDistance = distance;
+    }
+  });
+
+  /**
+   * Ensure that small datasets respect snap threshold
+   * Larger datasets can always update.
+   */
+  if (minDistance <= snapThreshold || numDataPoints > SMALL_DATASET_THRESHOLD) {
+    return closestIndex;
+  }
+
+  return -1;
 };

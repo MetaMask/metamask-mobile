@@ -5,9 +5,9 @@ import { strings } from '../../../../../../../locales/i18n';
 
 // Small dataset ~10 points or less
 export const SMALL_DATASET_THRESHOLD = 10;
-export const SMALL_DATASET_PADDING = 16;
-// Large dataset ~90 points and more
 export const SMALL_DATASET_SNAP_RATIO = 0.5;
+export const SMALL_DATASET_GRAPH_INSET = 20;
+export const STANDARD_DATASET_GRAPH_INSET = 10;
 
 export const CHART_BUTTONS: ChartButton[] = [
   { label: strings('stake.interactive_chart.timespan_buttons.7D'), value: 7 },
