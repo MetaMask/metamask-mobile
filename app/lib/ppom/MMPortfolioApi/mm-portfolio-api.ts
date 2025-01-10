@@ -2,12 +2,7 @@ import AppConstants from '../../../core/AppConstants';
 import { TokenSearchResponseItem } from './types';
 
 export async function getMMPortfolioHealthCheck<T>(): Promise<T> {
-  return request('', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+  return request('');
 }
 
 export async function getMMPortfolioTokensSearch<T = TokenSearchResponseItem[]>(
@@ -27,7 +22,7 @@ export async function getMMPortfolioTokensSearch<T = TokenSearchResponseItem[]>(
     queryParams.append('limit', limit);
   }
 
-  const endpoint = `/tokens-search/name?${queryParams.toString()}`;
+  const endpoint = `tokens-search/name?${queryParams.toString()}`;
   try {
     return await request(endpoint, {
       method: 'GET',

@@ -96,7 +96,7 @@ describe('MM Portfolio API', () => {
       });
       fetchMock.mockResolvedValue(mockSuccessfulResponse(mockResponse));
 
-      const chains = ['eth', 'polygon'];
+      const chains = ['eth', 'base'];
       const name = 'TestToken';
       const limit = '10';
 
@@ -105,7 +105,7 @@ describe('MM Portfolio API', () => {
       expect(response).toEqual(mockResponse);
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledWith(
-        `${mockUrl}/tokens-search/name?chains=eth,polygon&name=TestToken&limit=10`,
+        `${mockUrl}tokens-search/name?chains=eth&chains=base&name=TestToken&limit=10`,
         {
           method: 'GET',
           headers: {
@@ -126,7 +126,7 @@ describe('MM Portfolio API', () => {
 
       expect(response).toEqual(mockResponse);
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock).toHaveBeenCalledWith(`${mockUrl}/tokens-search/name?`, {
+      expect(fetchMock).toHaveBeenCalledWith(`${mockUrl}tokens-search/name?`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

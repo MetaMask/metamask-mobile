@@ -17,11 +17,9 @@ export const createMockToken = (
 export const createMockTokensResponse = (
   count: number = 1,
   overrides: Partial<TokenSearchResponseItem> = {},
-): TokenSearchResponseItem[] => {
-  return Array(count)
+): TokenSearchResponseItem[] => Array(count)
     .fill(null)
     .map(() => createMockToken(overrides));
-};
 
 export const mockSuccessfulResponse = (data: any) => ({
   ok: true,
