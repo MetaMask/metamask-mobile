@@ -38,9 +38,7 @@ describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
     };
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withRampsSelectedRegion(franceRegion)
-          .build(),
+        fixture: new FixtureBuilder().withRampsSelectedRegion().build(),
         restartDevice: true,
       },
       async () => {
