@@ -4126,4 +4126,4 @@ access
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 
-[Unreleased]: https://github.com/<your-repo>/compare/v7.31.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.31.0...HEAD
