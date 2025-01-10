@@ -6,6 +6,8 @@ import AppConstants from '../../core/AppConstants';
 */
 import { toASCII } from 'punycode/';
 
+const hostnameRegex = /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
+
 export function isPortfolioUrl(url: string) {
   try {
     const currentUrl = new URL(url);
@@ -30,12 +32,17 @@ export function isBridgeUrl(url: string) {
   }
 }
 
+/**
+ * This method does not use the URL library because it does not support punycode encoding in react native.
+ * It compares the original hostname to a punycode version of the hostname.
+ */
 export const isValidASCIIURL = (urlString?: string) => {
-  try {
-    if (!urlString) { return false; }
+  if (!urlString) { return false; }
 
-    const urlPunycodeString = toASCII(new URL(urlString).href);
-    return urlPunycodeString?.includes(urlString);
+  try {
+    const originalHostname = urlString.match(hostnameRegex);
+    const punycodeHostname = toASCII(originalHostname?.[1] || '');
+    return originalHostname?.[1] === punycodeHostname;
   } catch (exp: unknown) {
     console.error(`Failed to detect if URL contains non-ASCII characters: ${urlString}. Error: ${exp}`);
     return false;
