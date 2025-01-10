@@ -105,7 +105,7 @@ describe('MM Portfolio API', () => {
       expect(response).toEqual(mockResponse);
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock).toHaveBeenCalledWith(
-        `${mockUrl}tokens-search/name?chains=eth&chains=base&name=TestToken&limit=10`,
+        `${mockUrl}/tokens-search/name?chains=eth%2Cbase&name=TestToken&limit=10`,
         {
           method: 'GET',
           headers: {
@@ -126,7 +126,7 @@ describe('MM Portfolio API', () => {
 
       expect(response).toEqual(mockResponse);
       expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock).toHaveBeenCalledWith(`${mockUrl}tokens-search/name?`, {
+      expect(fetchMock).toHaveBeenCalledWith(`${mockUrl}/tokens-search/name?`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -151,5 +151,4 @@ describe('MM Portfolio API', () => {
       );
     });
   });
-  
 });
