@@ -1571,7 +1571,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#8615](https://github.com/MetaMask/metamask-mobile/pull/8615): fix: Fix add custom rpc detox test script
 
 ## [7.17.1] - Mar 2, 2024
-## Fixed
+### Fixed
 - [#8870](https://github.com/MetaMask/metamask-mobile/pull/8870): fix: update PPOM to v1.4.4
 - [#8892](https://github.com/MetaMask/metamask-mobile/pull/8892): fix: Tokens disappearing
 
