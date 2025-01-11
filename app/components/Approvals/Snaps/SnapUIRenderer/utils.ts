@@ -90,10 +90,18 @@ function generateKey(
 export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
-  const mapped = COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING](
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    params as any,
-  );
+
+  if (!(type in COMPONENT_MAPPING)) {
+    throw new Error(`Unknown component type: ${type}`);
+  }
+
+  const mappingFunction =
+    COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING];
+  if (typeof mappingFunction !== 'function') {
+    throw new Error(`Component mapping for ${type} is not a function`);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapped = mappingFunction(params as any);
   return { ...mapped, key: elementKey } as UIComponent;
 };
 
