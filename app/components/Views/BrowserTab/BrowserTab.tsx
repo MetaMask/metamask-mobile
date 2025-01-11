@@ -131,6 +131,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [blockedUrl, setBlockedUrl] = useState<string>();
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
+  const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
   const allowList = useRef<string[]>([]); // TODO: Consider improving this type
@@ -1082,7 +1083,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Render the bottom (navigation/options) bar
    */
-  const renderBottomBar = () => (
+  const renderBottomBar = () =>
+    isTabActive && !isUrlBarFocused ? (
     <BrowserBottomBar
       canGoBack={backEnabled}
       canGoForward={forwardEnabled}
@@ -1093,7 +1095,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       toggleOptions={toggleOptions}
       goHome={goToHomepage}
     />
-  );
+    ) : null;
 
   const onDismissAutocomplete = () => {
     // Unfocus the url bar and hide the autocomplete results
@@ -1214,6 +1216,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           onChangeText={onChangeUrlBar}
           connectedAccounts={permittedAccountsList}
           activeUrl={resolvedUrlRef.current}
+          setIsUrlBarFocused={setIsUrlBarFocused}
+          isUrlBarFocused={isUrlBarFocused}
         />
         <View style={styles.wrapper}>
           {renderProgressBar()}
@@ -1301,7 +1305,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           />
         )}
 
-        {isTabActive && renderBottomBar()}
+        {renderBottomBar()}
         {isTabActive && renderOnboardingWizard()}
       </View>
     </ErrorBoundary>

@@ -24,6 +24,9 @@ const styleSheet = ({
     connectionIcon: {
       marginRight: 8,
     },
+    textInputWrapper: {
+      flex: 1,
+    },
     textInput: {
       flex: 1,
       height: 44,

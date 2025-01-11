@@ -47,11 +47,12 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       onChangeText,
       connectedAccounts,
       activeUrl,
+      setIsUrlBarFocused,
+      isUrlBarFocused,
     },
     ref,
   ) => {
     const inputValueRef = useRef<string>('');
-    const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
     const { trackEvent, createEventBuilder } = useMetrics();
@@ -185,24 +186,26 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
               style={styles.connectionIcon}
             />
           ) : null}
-          <TextInput
-            testID={BrowserURLBarSelectorsIDs.URL_INPUT}
-            keyboardType={'web-search'}
-            autoCapitalize={'none'}
-            autoCorrect={false}
-            ref={ref}
-            numberOfLines={1}
-            placeholder={strings('autocomplete.placeholder')}
-            placeholderTextColor={colors.text.muted}
-            returnKeyType={'go'}
-            selectTextOnFocus
-            keyboardAppearance={themeAppearance}
-            style={styles.textInput}
-            onChangeText={onChangeText}
-            onSubmitEditing={onSubmitEditingInput}
-            onBlur={onBlurInput}
-            onFocus={onFocusInput}
-          />
+          <View style={styles.textInputWrapper}>
+            <TextInput
+              testID={BrowserURLBarSelectorsIDs.URL_INPUT}
+              keyboardType={'web-search'}
+              autoCapitalize={'none'}
+              autoCorrect={false}
+              ref={ref}
+              numberOfLines={1}
+              placeholder={strings('autocomplete.placeholder')}
+              placeholderTextColor={colors.text.muted}
+              returnKeyType={'go'}
+              selectTextOnFocus
+              keyboardAppearance={themeAppearance}
+              style={styles.textInput}
+              onChangeText={onChangeText}
+              onSubmitEditing={onSubmitEditingInput}
+              onBlur={onBlurInput}
+              onFocus={onFocusInput}
+            />
+          </View>
           {isUrlBarFocused ? (
             <ButtonIcon
               iconName={IconName.CircleX}

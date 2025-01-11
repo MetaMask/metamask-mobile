@@ -19,4 +19,6 @@ export type BrowserUrlBarProps = {
   onChangeText: (text: string) => void;
   connectedAccounts: string[];
   activeUrl: string;
+  setIsUrlBarFocused: (focused: boolean) => void;
+  isUrlBarFocused: boolean;
 };
