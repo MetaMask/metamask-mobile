@@ -17,7 +17,6 @@ import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../../util/theme';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { selectChainId } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../util/regex';
 import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
@@ -40,6 +39,7 @@ const LabelElement = (styles: any, label: string) => (
 );
 
 const AddressList: React.FC<AddressListProps> = ({
+  chainId,
   inputSearch,
   onAccountPress,
   onAccountLongPress,
@@ -53,7 +53,6 @@ const AddressList: React.FC<AddressListProps> = ({
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [fuse, setFuse] = useState<any>(undefined);
-  const chainId = useSelector(selectChainId);
   const internalAccounts = useSelector(selectInternalAccounts);
   const addressBook = useSelector(selectAddressBook);
   const ambiguousAddressEntries = useSelector(

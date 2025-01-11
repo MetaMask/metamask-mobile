@@ -42,9 +42,8 @@ import {
 import createStyles from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
+  selectNativeCurrencyByChainId,
+  selectProviderTypeByChainId
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -387,8 +386,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
-      : null;
+        ? matchingAccount.metadata.name
+        : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -523,6 +522,7 @@ class SendFlow extends PureComponent {
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
+            chainId={chainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
             setFromAddress={this.setFromAddress}
           />
@@ -557,6 +557,7 @@ class SendFlow extends PureComponent {
 
         {!toSelectedAddressReady ? (
           <AddressList
+            chainId={chainId}
             inputSearch={toAccount}
             onIconPress={this.onIconPress}
             onAccountPress={this.onToSelectedAddressChange}
@@ -683,21 +684,26 @@ class SendFlow extends PureComponent {
 
 SendFlow.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  addressBook: selectAddressBook(state),
-  chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  selectedAsset: state.transaction.selectedAsset,
-  internalAccounts: selectInternalAccounts(state),
-  ticker: selectTicker(state),
-  providerType: selectProviderType(state),
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  ambiguousAddressEntries: state.user.ambiguousAddressEntries,
-});
+const mapStateToProps = (state) => {
+  const { transaction } = state;
+  const chainId = transaction?.chainId;
+
+  return {
+    addressBook: selectAddressBook(state),
+    chainId,
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    selectedAsset: transaction.selectedAsset,
+    internalAccounts: selectInternalAccounts(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   setRecipient: (

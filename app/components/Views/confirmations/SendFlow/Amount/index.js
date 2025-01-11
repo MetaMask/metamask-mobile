@@ -77,13 +77,7 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../../selectors/tokensController';
@@ -103,6 +97,8 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -597,6 +593,7 @@ class Amount extends PureComponent {
 
   hasExchangeRate = () => {
     const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
+
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
@@ -1533,31 +1530,36 @@ class Amount extends PureComponent {
 
 Amount.contextType = ThemeContext;
 
-const mapStateToProps = (state, ownProps) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
-  collectibles: collectiblesSelector(state),
-  collectibleContracts: collectibleContractsSelector(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  providerType: selectProviderType(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  ticker: selectTicker(state),
-  tokens: selectTokens(state),
-  transactionState: ownProps.transaction || state.transaction,
-  selectedAsset: state.transaction.selectedAsset,
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  swapsIsLive: swapsLivenessSelector(state),
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state, ownProps) => {
+  const transaction = ownProps.transaction || state.transaction;
+  const chainId = transaction?.chainId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    contractBalances: selectContractBalances(state),
+    collectibles: collectiblesSelector(state),
+    collectibleContracts: collectibleContractsSelector(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    tokens: selectTokens(state),
+    transactionState: transaction,
+    selectedAsset: state.transaction.selectedAsset,
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    swapsIsLive: swapsLivenessSelector(state),
+    chainId,
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

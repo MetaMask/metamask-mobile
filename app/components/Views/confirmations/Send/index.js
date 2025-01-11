@@ -48,11 +48,6 @@ import {
 import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
-import {
-  selectChainId,
-  selectNetworkClientId,
-  selectProviderType,
-} from '../../../../selectors/networkController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
@@ -68,6 +63,7 @@ import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-pub
 import { toLowerCaseEquals } from '../../../../util/general';
 import { selectAddressBook } from '../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../core/TransactionTypes';
+import { selectProviderTypeByChainId } from '../../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -800,21 +796,27 @@ class Send extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  addressBook: selectAddressBook(state),
-  accounts: selectAccounts(state),
-  contractBalances: selectContractBalances(state),
-  transaction: state.transaction,
-  networkType: selectProviderType(state),
-  tokens: selectTokens(state),
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  internalAccounts: selectInternalAccounts(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
-  tokenList: selectTokenList(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = state.transaction;
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    addressBook: selectAddressBook(state),
+    accounts: selectAccounts(state),
+    contractBalances: selectContractBalances(state),
+    transaction: state.transaction,
+    networkType: selectProviderTypeByChainId(state, chainId),
+    tokens: selectTokens(state),
+    chainId,
+    networkClientId,
+    internalAccounts: selectInternalAccounts(state),
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
+    tokenList: selectTokenList(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),

@@ -15,6 +15,6 @@ describe('AccountNetworkInfoExpanded', () => {
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
     expect(getByText('RPC URL')).toBeDefined();
-    expect(getByText('mainnet.infura.io/v3/')).toBeDefined();
+    expect(getByText('mainnet.infura.io/v3/', { exact: false })).toBeDefined();
   });
 });

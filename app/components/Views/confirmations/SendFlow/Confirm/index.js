@@ -84,17 +84,10 @@ import {
   stopGasPolling,
 } from '../../../../../core/GasPolling/GasPolling';
 import {
-  selectChainId,
-  selectNetworkClientId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
 import { isNetworkRampNativeTokenSupported } from '../../../../../components/UI/Ramp/utils';
@@ -135,6 +128,8 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
+import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1551,36 +1546,42 @@ class Confirm extends PureComponent {
 
 Confirm.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  providerType: selectProviderType(state),
-  showHexData: state.settings.showHexData,
-  showCustomNonce: state.settings.showCustomNonce,
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  selectedAsset: state.transaction.selectedAsset,
-  transactionState: state.transaction,
-  primaryCurrency: state.settings.primaryCurrency,
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetricsById: selectTransactionMetrics(state),
-  transactionMetadata:
-    selectCurrentTransactionMetadata(state),
-  useTransactionSimulations: selectUseTransactionSimulations(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    contractBalances: selectContractBalances(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    showHexData: state.settings.showHexData,
+    showCustomNonce: state.settings.showCustomNonce,
+    chainId,
+    networkClientId,
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    selectedAsset: state.transaction.selectedAsset,
+    transactionState: state.transaction,
+    primaryCurrency: state.settings.primaryCurrency,
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    transactionMetricsById: selectTransactionMetrics(state),
+    transactionMetadata:
+      selectCurrentTransactionMetadata(state),
+    useTransactionSimulations: selectUseTransactionSimulations(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
