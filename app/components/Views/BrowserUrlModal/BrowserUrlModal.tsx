@@ -20,6 +20,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
   url: string | undefined;
@@ -72,7 +73,7 @@ const BrowserUrlModal = () => {
   );
 
   const renderContent = () => (
-    <>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.urlModalContent}>
         <View style={styles.searchWrapper}>
           <TextInput
@@ -117,7 +118,7 @@ const BrowserUrlModal = () => {
         input={autocompleteValue}
         onDismiss={triggerClose}
       />
-    </>
+    </SafeAreaView>
   );
 
   return (

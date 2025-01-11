@@ -11,6 +11,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics, MetaMetricsEvents } from '../../../../../hooks/useMetrics';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../../../selectors/networkController';
+import { EVENT_LOCATIONS } from '../../../constants/events';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   hasStakedPositions: boolean;
@@ -34,7 +35,7 @@ const StakingButtons = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_WITHDRAW_BUTTON_CLICKED)
         .addProperties({
-          location: 'Token Details',
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
           text: 'Unstake',
           token_symbol: 'ETH',
           chain_id: chainId,
@@ -48,7 +49,7 @@ const StakingButtons = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({
-          location: 'Token Details',
+          location: EVENT_LOCATIONS.TOKEN_DETAILS,
           text: 'Stake',
           token_symbol: 'ETH',
           chain_id: chainId,
