@@ -4,7 +4,7 @@ import { selectUseTransactionSimulations } from '../../../../../../../selectors/
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { isRecognizedPermit } from '../../../../utils/signature';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
-import PermitSimulation from '../TypedSign/PermitSimulation/PermitSimulation';
+import PermitSimulation from '../../Simulation/PermitSimulation';
 import Message from './Message';
 
 const TypedSignV3V4 = () => {

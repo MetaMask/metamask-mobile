@@ -1,9 +1,9 @@
 
 import React from 'react';
 
-import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
-import { typedSignV4ConfirmationState } from '../../../../../../../../util/test/confirm-data-helpers';
-import PermitSimulation from './PermitSimulation';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { typedSignV4ConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import PermitSimulation from './Permit';
 
 describe('PermitSimulation', () => {
   it('should render correctly for personal sign', async () => {

@@ -2,15 +2,15 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { StyleSheet, View } from 'react-native';
 
-import { strings } from '../../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../../component-library/hooks';
-import { selectChainId } from '../../../../../../../../selectors/networkController';
-import { safeToChecksumAddress } from '../../../../../../../../util/address';
-import { PrimaryType } from '../../../../../constants/signatures';
-import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
-import { parseTypedDataMessage } from '../../../../../utils/signature';
-import InfoRow from '../../../../UI/InfoRow';
-import InfoSection from '../../../../UI/InfoRow/InfoSection';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { selectChainId } from '../../../../../../../selectors/networkController';
+import { safeToChecksumAddress } from '../../../../../../../util/address';
+import { PrimaryType } from '../../../../constants/signatures';
+import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import { parseTypedDataMessage } from '../../../../utils/signature';
+import InfoRow from '../../../UI/InfoRow';
+import InfoSection from '../../../UI/InfoRow/InfoSection';
 import PermitSimulationValueDisplay from './ValueDisplay';
 
 const styleSheet = () =>
