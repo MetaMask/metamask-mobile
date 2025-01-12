@@ -13,11 +13,14 @@ const StakeEarningsHistoryView = ({ route }: StakeEarningsHistoryViewProps) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { asset } = route.params;
+  const ticker = asset.ticker || asset.symbol;
 
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
-        strings('stake.earnings_history_title', { symbol: asset.symbol }),
+        strings('stake.earnings_history_title', {
+          ticker,
+        }),
         navigation,
         theme.colors,
         {
@@ -27,7 +30,7 @@ const StakeEarningsHistoryView = ({ route }: StakeEarningsHistoryViewProps) => {
         },
       ),
     );
-  }, [navigation, theme.colors, asset.symbol]);
+  }, [navigation, theme.colors, ticker]);
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>

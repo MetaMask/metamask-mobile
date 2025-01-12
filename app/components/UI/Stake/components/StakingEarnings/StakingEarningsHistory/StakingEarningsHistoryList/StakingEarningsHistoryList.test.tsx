@@ -20,7 +20,7 @@ describe('StakingEarningsHistoryList', () => {
 
   it('renders correctly with earnings data', () => {
     const { getByText } = render(
-      <StakingEarningsHistoryList earnings={mockEarnings} symbol="ETH" />,
+      <StakingEarningsHistoryList earnings={mockEarnings} ticker="ETH" />,
     );
 
     // Check if each earning is displayed

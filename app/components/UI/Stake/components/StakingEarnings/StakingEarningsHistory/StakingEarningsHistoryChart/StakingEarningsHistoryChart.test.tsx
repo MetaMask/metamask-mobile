@@ -18,14 +18,14 @@ const mockEarningsData = {
     { value: 2.0, label: 'Day 3' },
   ],
   earningsTotal: '6.00000',
-  symbol: 'ETH',
+  ticker: 'ETH',
 };
 
 const barChartComponent = (
   <StakingEarningsHistoryChart
     earnings={mockEarningsData.earnings}
     earningsTotal={mockEarningsData.earningsTotal}
-    symbol={mockEarningsData.symbol}
+    ticker={mockEarningsData.ticker}
   ></StakingEarningsHistoryChart>
 );
 
