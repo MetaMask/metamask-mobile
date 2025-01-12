@@ -272,6 +272,7 @@ exports[`Staking Earnings should render correctly 1`] = `
             "paddingHorizontal": 16,
           }
         }
+        testID="stake-earnings-history-button"
       >
         <Text
           accessibilityRole="text"

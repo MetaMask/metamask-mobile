@@ -1,6 +1,7 @@
 import { BN } from 'ethereumjs-util';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import BigNumber from 'bignumber.js';
 import {
   fromTokenMinimalUnit,
   fromWei,
@@ -9,16 +10,17 @@ import {
 } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
-import StakingEarningsHistoryChart, {
+import {
+  StakingEarningsHistoryChart,
   StakingEarningsHistoryChartData,
 } from './StakingEarningsHistoryChart/StakingEarningsHistoryChart';
-import StakingEarningsHistoryList, {
-  StakingEarningsHistoryListData,
-} from './StakingEarningsHistoryList/StakingEarningHistoryList';
+
 import TimePeriodButtonGroup, {
   DateRange,
 } from './StakingEarningsTimePeriod/StakingEarningsTimePeriod';
-import BigNumber from 'bignumber.js';
+import StakingEarningsHistoryList, {
+  StakingEarningsHistoryListData,
+} from './StakingEarningsHistoryList/StakingEarningsHistoryList';
 
 interface StakingEarningsHistoryProps {
   asset: TokenI;

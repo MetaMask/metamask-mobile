@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { GestureResponderEvent, View } from 'react-native';
 import { Defs, Line, LinearGradient, Stop } from 'react-native-svg';
 import { BarChart, Grid } from 'react-native-svg-charts';
@@ -8,6 +8,7 @@ import styleSheet from './StakingEarningsHistoryChart.styles';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 export interface StakingEarningsHistoryChartData {
   value: number;
@@ -55,6 +56,7 @@ const HorizontalLines = ({
     <>
       {data.map((item, index) => (
         <Line
+          testID={`earning-history-chart-line-${index}`}
           key={index}
           x1={x(index)}
           x2={x(index) + bandWidth}
@@ -68,13 +70,13 @@ const HorizontalLines = ({
   );
 };
 
-const StakingEarningsHistoryChart = ({
+export function StakingEarningsHistoryChart({
   earnings,
   symbol,
   earningsTotal,
   formatValue = (value) => value.toFixed(5),
   onSelectedEarning,
-}: StakingEarningsHistoryChartProps) => {
+}: StakingEarningsHistoryChartProps): React.ReactElement {
   //hooks
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
@@ -102,7 +104,7 @@ const StakingEarningsHistoryChart = ({
     {
       value: number;
       label: string;
-      svg: { fill: string };
+      svg: { fill: string; testID: string };
     }[]
   >([]);
 
@@ -148,6 +150,20 @@ const StakingEarningsHistoryChart = ({
     updateBarHoveredBarIndex(evt.nativeEvent.locationX);
   };
 
+  // update bar fill color on index change
+  useMemo(() => {
+    setTransformedData((prev) => {
+      const newTransformedData = [...prev];
+      newTransformedData.forEach((data, index) => {
+        if (index === selectedBarIndex) {
+          data.svg.fill = colors.success.default;
+        } else {
+          data.svg.fill = 'url(#gradient)';
+        }
+      });
+      return newTransformedData;
+    });
+  }, [selectedBarIndex, colors.success.default]);
   // if there is graph data or width change update all state
   useEffect(() => {
     if (earnings && earnings.length > 0) {
@@ -156,11 +172,12 @@ const StakingEarningsHistoryChart = ({
         newSpacing = 0.1;
       }
       setSpacing(newSpacing);
-      const newTransformedData = earnings.map((value) => ({
+      const newTransformedData = earnings.map((value, index) => ({
         value: value.value,
         label: value.label,
         svg: {
           fill: 'url(#gradient)',
+          testID: `earning-history-chart-bar-${index}`,
         },
       }));
       setTransformedData(newTransformedData);
@@ -174,25 +191,17 @@ const StakingEarningsHistoryChart = ({
   }, [hoveredBarIndex]);
   // main updates, time period earnings change, selected bar change
   useEffect(() => {
-    setTransformedData((prev) => {
-      const newTransformedData = [...prev];
-      newTransformedData.forEach((data, index) => {
-        if (index === selectedBarIndex) {
-          data.svg.fill = colors.success.default;
-        } else {
-          data.svg.fill = 'url(#gradient)';
-        }
-      });
-      return newTransformedData;
-    });
-    let newSelectedBarAmount = null;
-    let newSelectedBarLabel = null;
     if (selectedBarIndex !== -1 && selectedBarIndex < earnings.length) {
-      newSelectedBarAmount = formatValue(earnings[selectedBarIndex].value);
-      newSelectedBarLabel = earnings[selectedBarIndex].label;
+      const newSelectedBarAmount = formatValue(
+        earnings[selectedBarIndex].value,
+      );
+      const newSelectedBarLabel = earnings[selectedBarIndex].label;
+      setSelectedBarAmount(newSelectedBarAmount);
+      setSelectedBarLabel(newSelectedBarLabel);
+    } else {
+      setSelectedBarAmount(null);
+      setSelectedBarLabel(null);
     }
-    setSelectedBarAmount(newSelectedBarAmount);
-    setSelectedBarLabel(newSelectedBarLabel);
     if (
       onSelectedEarning &&
       lastOnSelectedEarningBarIndex !== selectedBarIndex
@@ -211,84 +220,78 @@ const StakingEarningsHistoryChart = ({
   ]);
   // reset bar toggle state when earnings array changes
   useEffect(() => {
-    // select the last bar each change
-    // setSelectedBarIndex(earnings.length - 1);
-    // setLastToggledBarIndex(earnings.length - 1);
-    // setBarToggle(true);
-
     // deselect all bars each change
     setSelectedBarIndex(-1);
     setLastToggledBarIndex(-1);
     setBarToggle(false);
   }, [earnings]);
 
-  return (
-    earnings && (
-      <View
-        onLayout={(event) => {
-          const { width } = event.nativeEvent.layout;
-          setChartWidth(width);
-        }}
-      >
-        <View>
-          <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
-            <Text
-              variant={TextVariant.HeadingLG}
-              color={colors.success.default}
-            >
-              {selectedBarAmount || earningsTotal} {symbol}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXSMedium}
-              color={colors.text.alternative}
-            >
-              {selectedBarLabel || `Lifetime earnings`}
-            </Text>
-          </View>
-          <View
-            style={styles.stakingEarningsHistoryChartContainer}
-            onTouchStart={handleTouch}
-            onTouchMove={handleTouch}
-            onTouchEnd={handleTouchEnd}
+  return earnings.length > 0 ? (
+    <View
+      onLayout={(event) => {
+        const { width } = event.nativeEvent.layout;
+        setChartWidth(width);
+      }}
+      testID={'earnings-history-chart-container'}
+    >
+      <View>
+        <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
+          <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
+            {selectedBarAmount || earningsTotal} {symbol}
+          </Text>
+          <Text
+            variant={TextVariant.BodyXSMedium}
+            color={colors.text.alternative}
           >
-            <BarChart
-              animate={animate}
-              style={[styles.stakingEarningsHistoryChart]}
-              data={transformedData}
-              width={chartWidth}
-              gridMin={0}
-              contentInset={{ top: 10, bottom: 0 }}
-              yAccessor={({ item }) => item.value}
-              spacingInner={spacing}
-              spacingOuter={0}
-            >
-              <Grid
-                svg={{ stroke: 'transparent' }} // remove grid lines
-              />
-              <Defs>
-                <LinearGradient id="gradient" x1="0%" y1="100%" x2="0%" y2="0%">
-                  <Stop
-                    offset="0%"
-                    stopColor={colors.background.default}
-                    stopOpacity={1}
-                  />
-                  <Stop
-                    offset="100%"
-                    stopColor={stopColorGreen}
-                    stopOpacity={1}
-                  />
-                </LinearGradient>
-              </Defs>
-              <HorizontalLines
-                onBandWidthChange={setBandWidth}
-                strokeColor={colors.success.default}
-              />
-            </BarChart>
-          </View>
+            {selectedBarLabel || `Lifetime earnings`}
+          </Text>
+        </View>
+        <View
+          style={styles.stakingEarningsHistoryChartContainer}
+          onTouchStart={handleTouch}
+          onTouchMove={handleTouch}
+          onTouchEnd={handleTouchEnd}
+          testID="earnings-history-chart"
+        >
+          <BarChart
+            animate={animate}
+            style={[styles.stakingEarningsHistoryChart]}
+            data={transformedData}
+            width={chartWidth}
+            gridMin={0}
+            contentInset={{ top: 10, bottom: 0 }}
+            yAccessor={({ item }) => item.value}
+            spacingInner={spacing}
+            spacingOuter={0}
+          >
+            <Grid
+              svg={{ stroke: 'transparent' }} // remove grid lines
+            />
+            <Defs testID="earning-history-chart-gradient">
+              <LinearGradient id="gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                <Stop
+                  offset="0%"
+                  stopColor={colors.background.default}
+                  stopOpacity={1}
+                />
+                <Stop
+                  offset="100%"
+                  stopColor={stopColorGreen}
+                  stopOpacity={1}
+                />
+              </LinearGradient>
+            </Defs>
+            <HorizontalLines
+              onBandWidthChange={setBandWidth}
+              strokeColor={colors.success.default}
+            />
+          </BarChart>
         </View>
       </View>
-    )
+    </View>
+  ) : (
+    <SkeletonPlaceholder>
+      <SkeletonPlaceholder.Item width={343} height={144} borderRadius={6} />
+    </SkeletonPlaceholder>
   );
-};
-
-export default StakingEarningsHistoryChart;
+}

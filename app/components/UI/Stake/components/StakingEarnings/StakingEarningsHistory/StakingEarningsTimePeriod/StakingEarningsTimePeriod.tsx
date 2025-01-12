@@ -8,6 +8,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import styleSheet from './StakingEarningsTimePeriod.styles';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 export enum DateRange {
   DAILY = '7D',
@@ -74,9 +75,17 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
 
   return (
     <View style={styles.timePeriodButtonGroupContainer}>
-      {renderButton(DateRange.DAILY)}
-      {renderButton(DateRange.MONTHLY)}
-      {renderButton(DateRange.YEARLY)}
+      {initialTimePeriod ? (
+        <>
+          {renderButton(DateRange.DAILY)}
+          {renderButton(DateRange.MONTHLY)}
+          {renderButton(DateRange.YEARLY)}
+        </>
+      ) : (
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholder.Item width={167} height={40} borderRadius={6} />
+        </SkeletonPlaceholder>
+      )}
     </View>
   );
 };

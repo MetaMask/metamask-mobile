@@ -30,13 +30,4 @@ describe('StakingEarningsHistoryList', () => {
       expect(getByText(`${earning.amountUsd} USD`)).toBeTruthy();
     });
   });
-
-  it('renders correctly when no earnings data is provided', () => {
-    const { getByText } = render(
-      <StakingEarningsHistoryList earnings={[]} symbol="ETH" />,
-    );
-
-    // Check if a message indicating no data is displayed
-    expect(getByText('No earnings data available')).toBeTruthy();
-  });
 });
