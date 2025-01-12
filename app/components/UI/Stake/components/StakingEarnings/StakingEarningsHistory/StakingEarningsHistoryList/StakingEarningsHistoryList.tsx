@@ -18,6 +18,7 @@ export interface StakingEarningsHistoryListData {
   amount: string;
   amountUsd: string;
   groupLabel: string;
+  groupHeader: string;
 }
 
 const StakingEarningsHistoryList = ({
@@ -27,7 +28,7 @@ const StakingEarningsHistoryList = ({
 }: StakingEarningsHistoryListProps) => {
   const { colors } = useTheme();
   const styles = styleSheet();
-
+  let lastGroupHeader: string | null = null;
   return (
     <View style={styles.stakingEarningsHistoryListContainer}>
       {earnings.length > 0 ? (
@@ -35,38 +36,59 @@ const StakingEarningsHistoryList = ({
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
             Payout history
           </Label>
-          {earnings.map((earning, index) =>
-            !filterByGroupLabel || earning.groupLabel === filterByGroupLabel ? (
-              <View style={styles.lineItemContainer} key={index}>
-                <View style={styles.leftLineItemBox}>
-                  <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={colors.text.default}
-                  >
-                    {earning.label}
-                  </Label>
-                </View>
-                <View style={styles.rightLineItemContainer}>
-                  <View style={styles.rightLineItemBox}>
-                    <Label
-                      variant={TextVariant.BodyMDMedium}
-                      color={colors.success.default}
-                    >
-                      + {earning.amount} {ticker}
-                    </Label>
+          {earnings.map((earning, index) => {
+            const isFirstEarningInGroup =
+              earning.groupHeader !== lastGroupHeader;
+            lastGroupHeader = earning.groupHeader;
+            if (
+              !filterByGroupLabel ||
+              earning.groupLabel === filterByGroupLabel
+            ) {
+              return (
+                <View key={index}>
+                  {earning.groupHeader && isFirstEarningInGroup && (
+                    <View style={styles.lineItemGroupHeaderContainer}>
+                      <Label
+                        variant={TextVariant.BodyMDMedium}
+                        color={colors.text.default}
+                      >
+                        {earning.groupHeader}
+                      </Label>
+                    </View>
+                  )}
+                  <View style={styles.lineItemContainer} key={index}>
+                    <View style={styles.leftLineItemBox}>
+                      <Label
+                        variant={TextVariant.BodyMDMedium}
+                        color={colors.text.default}
+                      >
+                        {earning.label}
+                      </Label>
+                    </View>
+                    <View style={styles.rightLineItemContainer}>
+                      <View style={styles.rightLineItemBox}>
+                        <Label
+                          variant={TextVariant.BodyMDMedium}
+                          color={colors.success.default}
+                        >
+                          + {earning.amount} {ticker}
+                        </Label>
+                      </View>
+                      <View>
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={colors.text.alternative}
+                        >
+                          {earning.amountUsd} USD
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <View>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={colors.text.alternative}
-                    >
-                      {earning.amountUsd} USD
-                    </Text>
-                  </View>
                 </View>
-              </View>
-            ) : null,
-          )}
+              );
+            }
+            return null;
+          })}
         </>
       ) : (
         <SkeletonPlaceholder>

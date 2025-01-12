@@ -23,7 +23,8 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
             {
               "flexDirection": "row",
               "justifyContent": "center",
-              "padding": 16,
+              "paddingBottom": 32,
+              "paddingTop": 32,
             }
           }
         >
@@ -184,11 +185,11 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 style={
                   {
                     "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 10,
-                    "fontWeight": "500",
-                    "letterSpacing": 0.25,
-                    "lineHeight": 16,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
                   }
                 }
               >
@@ -212,7 +213,10 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   [
                     {
                       "flex": 1,
-                      "height": 112,
+                      "height": 75,
+                      "marginBottom": 4,
+                      "paddingBottom": 16,
+                      "paddingTop": 16,
                     },
                   ]
                 }
@@ -253,25 +257,12 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
           >
             Payout history
           </Text>
-          <View
-            style={
-              {
-                "alignItems": "flex-start",
-                "flex": 1,
-                "flexDirection": "row",
-                "justifyContent": "space-between",
-                "paddingVertical": 8,
-              }
-            }
-          >
+          <View>
             <View
               style={
                 {
-                  "alignItems": "flex-start",
-                  "flex": 1,
-                  "justifyContent": "center",
-                  "padding": 10,
-                  "width": "50%",
+                  "paddingBottom": 10,
+                  "paddingTop": 10,
                 }
               }
             >
@@ -289,23 +280,29 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 }
                 testID="label"
               >
-                January
+                2023
               </Text>
             </View>
             <View
               style={
                 {
-                  "alignItems": "flex-end",
+                  "alignItems": "flex-start",
                   "flex": 1,
+                  "flexDirection": "row",
                   "justifyContent": "space-between",
-                  "width": "50%",
+                  "paddingVertical": 8,
                 }
               }
             >
               <View
                 style={
                   {
+                    "alignItems": "flex-start",
                     "flex": 1,
+                    "justifyContent": "center",
+                    "paddingBottom": 10,
+                    "paddingTop": 10,
+                    "width": "50%",
                   }
                 }
               >
@@ -313,7 +310,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#1c8234",
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -323,29 +320,64 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   }
                   testID="label"
                 >
-                  + 
-                  0.00002
-                   
-                  ETH
+                  January
                 </Text>
               </View>
-              <View>
-                <Text
-                  accessibilityRole="text"
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                    "justifyContent": "space-between",
+                    "width": "50%",
+                  }
+                }
+              >
+                <View
                   style={
                     {
-                      "color": "#6a737d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 12,
-                      "fontWeight": "400",
-                      "letterSpacing": 0,
-                      "lineHeight": 20,
+                      "flex": 1,
                     }
                   }
                 >
-                  9000.00
-                   USD
-                </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c8234",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    + 
+                    0.00002
+                     
+                    ETH
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#6a737d",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    9000.00
+                     USD
+                  </Text>
+                </View>
               </View>
             </View>
           </View>

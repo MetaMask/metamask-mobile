@@ -239,10 +239,7 @@ export function StakingEarningsHistoryChart({
           <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
             {selectedBarAmount || earningsTotal} {ticker}
           </Text>
-          <Text
-            variant={TextVariant.BodyXSMedium}
-            color={colors.text.alternative}
-          >
+          <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
             {selectedBarLabel || `Lifetime earnings`}
           </Text>
         </View>
@@ -259,7 +256,7 @@ export function StakingEarningsHistoryChart({
             data={transformedData}
             width={chartWidth}
             gridMin={0}
-            contentInset={{ top: 10, bottom: 0 }}
+            contentInset={{ top: 1, bottom: 0 }}
             yAccessor={({ item }) => item.value}
             spacingInner={spacing}
             spacingOuter={0}

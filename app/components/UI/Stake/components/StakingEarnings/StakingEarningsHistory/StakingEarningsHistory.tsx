@@ -32,6 +32,7 @@ interface TimePeriodGroupInfo {
   chartGroupLabel: string;
   listGroup: string;
   listGroupLabel: string;
+  listGroupHeader: string;
 }
 
 const EARNINGS_HISTORY_TIME_PERIOD_DEFAULT = DateRange.MONTHLY;
@@ -55,6 +56,7 @@ const getEntryTimePeriodGroupInfo = (
     chartGroupLabel: '',
     listGroup: '',
     listGroupLabel: '',
+    listGroupHeader: '',
   };
   const dayLabel = date.toLocaleString('fullwide', {
     month: 'long',
@@ -81,6 +83,8 @@ const getEntryTimePeriodGroupInfo = (
       timePeriodInfo.chartGroupLabel = monthLabel;
       timePeriodInfo.listGroup = `${newYear}-${newMonth}`;
       timePeriodInfo.listGroupLabel = monthLabel;
+      timePeriodInfo.listGroupHeader = newYear;
+
       break;
     case DateRange.YEARLY:
       timePeriodInfo.chartGroup = newYear;
@@ -189,6 +193,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       chartGroupLabel: '',
       listGroup: '',
       listGroupLabel: '',
+      listGroupHeader: '',
     };
 
     for (let i = transformedEarningsHistory.length - 1; i >= 0; i--) {
@@ -247,6 +252,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
           historyData.earningsHistoryListData.push({
             label: prevLastEntryTimePeriodGroupInfo.listGroupLabel,
             groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
+            groupHeader: prevLastEntryTimePeriodGroupInfo.listGroupHeader,
             amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
             amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
           });
@@ -273,6 +279,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       historyData.earningsHistoryListData.push({
         label: lastEntryTimePeriodGroupInfo.listGroupLabel,
         groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
+        groupHeader: lastEntryTimePeriodGroupInfo.listGroupHeader,
         amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
         amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
       });
