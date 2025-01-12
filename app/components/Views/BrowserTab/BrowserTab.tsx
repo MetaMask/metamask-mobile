@@ -740,8 +740,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * When website finished loading
    */
   const onLoadEnd = ({
-    nativeEvent,
-  }: WebViewNavigationEvent | WebViewErrorEvent) => {
+    event: { nativeEvent },
+    forceResolve,
+  }: {
+    event: WebViewNavigationEvent | WebViewErrorEvent;
+    forceResolve?: boolean;
+  }) => {
     if ('code' in nativeEvent) {
       // Handle error - code is a property of WebViewErrorEvent
       return handleError(nativeEvent);
@@ -754,7 +758,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     const { started, ended } = webStates.current[url];
     const incomingOrigin = new URLParse(url).origin;
     const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
-    if ((started && ended) || incomingOrigin === activeOrigin) {
+    if (forceResolve || (started && ended) || incomingOrigin === activeOrigin) {
       delete webStates.current[url];
       // Update navigation bar address with title of loaded url.
       handleSuccessfulPageResolution({
@@ -1111,7 +1115,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const onDismissAutocomplete = () => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
-    const hostName = new URLParse(resolvedUrlRef.current).hostname;
+    const hostName =
+      new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
   };
 
@@ -1123,8 +1128,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const onCancelUrlBar = () => {
     hideAutocomplete();
     // Reset the url bar to the current url
-    const hostName = new URLParse(resolvedUrlRef.current).hostname;
-    console.log('setNativeProps onCancelUrlBar', hostName);
+    const hostName =
+      new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
   };
 
@@ -1175,9 +1180,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         case OnLoadProgress:
           return onLoadProgress(syntheticEvent as WebViewProgressEvent);
         case OnLoadEnd:
-          return onLoadEnd(
-            syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent,
-          );
+          return onLoadEnd({
+            event: syntheticEvent as WebViewNavigationEvent | WebViewErrorEvent,
+          });
         case OnLoadStart:
           return onLoadStart(syntheticEvent as WebViewNavigationEvent);
         default:
@@ -1190,7 +1195,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const handleOnNavigationStateChange = (event: WebViewNavigation) => {
     const {
       title: titleFromNativeEvent,
-      loading,
       canGoForward,
       canGoBack,
       navigationType,
@@ -1201,8 +1205,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
         event,
       )}`,
     );
-
-    if (navigationType === 'backforward' && loading) {
+    // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
+    if (navigationType === 'backforward') {
       const payload = {
         nativeEvent: {
           url,
@@ -1211,7 +1215,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           canGoForward,
         },
       };
-      onLoadEnd(payload as WebViewNavigationEvent | WebViewErrorEvent);
+      onLoadEnd({
+        event: payload as WebViewNavigationEvent | WebViewErrorEvent,
+        forceResolve: true,
+      });
     }
   };
   /**
