@@ -808,8 +808,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const goToHomepage = async () => {
     toggleOptionsIfNeeded();
-    if (resolvedUrlRef.current === HOMEPAGE_URL) return reload();
-    await onSubmitEditing(HOMEPAGE_URL);
+    triggerDappViewedEvent(resolvedUrlRef.current);
+    onSubmitEditing(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   };
 
