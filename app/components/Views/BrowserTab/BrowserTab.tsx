@@ -406,71 +406,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   };
 
   /**
-   * Go to a url
-   */
-  const go: (url: string, initialCall?: boolean) => Promise<string | null> =
-    useCallback(
-      async (goToUrl, initialCall) => {
-        setIsResolvedIpfsUrl(false);
-        const prefixedUrl = prefixUrlWithProtocol(goToUrl);
-        const {
-          hostname,
-          query,
-          pathname,
-          origin: urlOrigin,
-        } = new URLParse(prefixedUrl);
-        let urlToGo = prefixedUrl;
-        const isEnsUrl = isENSUrl(goToUrl, ensIgnoreList);
-        if (isEnsUrl) {
-          // Stop loading webview
-          webviewRef.current?.stopLoading();
-          try {
-            const {
-              //@ts-expect-error - TODO: refactor handleIpfContent function
-              url: ensUrl,
-              //@ts-expect-error - TODO: refactor handleIpfContent function
-              type,
-              //@ts-expect-error - TODO: refactor handleIpfContent function
-              hash,
-              //@ts-expect-error - TODO: refactor handleIpfContent function
-              reload,
-            } = await handleIpfsContent(goToUrl, { hostname, query, pathname });
-            if (reload) return go(ensUrl);
-            urlToGo = ensUrl;
-            sessionENSNames[urlToGo] = { hostname, hash, type };
-            setIsResolvedIpfsUrl(true);
-          } catch (_) {
-            return null;
-          }
-        }
-
-        if (isAllowedOrigin(urlOrigin)) {
-          if (initialCall || !firstUrlLoaded) {
-            setInitialUrl(urlToGo);
-            setFirstUrlLoaded(true);
-          } else {
-            webviewRef?.current?.injectJavaScript(
-              `(function(){window.location.href = '${sanitizeUrlInput(
-                urlToGo,
-              )}' })()`,
-            );
-          }
-
-          // Skip tracking on initial open
-          if (!initialCall) {
-            triggerDappViewedEvent(urlToGo);
-          }
-
-          setProgress(0);
-          return prefixedUrl;
-        }
-        handleNotAllowedUrl(urlToGo);
-        return null;
-      },
-      [firstUrlLoaded, handleIpfsContent, isAllowedOrigin],
-    );
-
-  /**
    * Open a new tab
    */
   const openNewTab = useCallback(
@@ -505,8 +440,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     isWebViewReadyToLoad.current = true;
 
-    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
-    go(initialUrlOrHomepage, true);
+    loadFirstUrl();
 
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
@@ -519,8 +453,45 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return function cleanup() {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTabActive]);
+
+  const handleEnsUrl = async (ens: string) => {
+    try {
+      webviewRef.current?.stopLoading();
+
+      const { hostname, query, pathname } = new URLParse(ens);
+      const {
+        url: ipfsUrl,
+        type,
+        hash,
+        reload,
+      } = await handleIpfsContent(ens, { hostname, query, pathname });
+      if (reload) return onSubmitEditing(ipfsUrl);
+      sessionENSNames[ipfsUrl] = { hostname, hash, type };
+      setIsResolvedIpfsUrl(true);
+      return ipfsUrl;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const loadFirstUrl = async () => {
+    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
+
+    setIsResolvedIpfsUrl(false);
+    let prefixedUrl = prefixUrlWithProtocol(initialUrlOrHomepage);
+    const { origin: urlOrigin } = new URLParse(prefixedUrl);
+
+    if (isAllowedOrigin(urlOrigin)) {
+      setInitialUrl(prefixedUrl);
+      setFirstUrlLoaded(true);
+      setProgress(0);
+      return;
+    }
+
+    handleNotAllowedUrl(prefixedUrl);
+    return;
+  };
 
   useEffect(() => {
     if (Device.isAndroid()) {
@@ -674,12 +645,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       ...webStates.current[urlToLoad],
       requested: true,
     };
-
-    // Stops normal loading when it's ens, instead call go to be properly set up
-    if (isENSUrl(urlToLoad, ensIgnoreList)) {
-      go(urlToLoad.replace(regex.urlHttpToHttps, 'https://'));
-      return false;
-    }
 
     // Cancel loading the page if we detect its a phishing page
     if (!isAllowedOrigin(urlOrigin)) {
@@ -1061,7 +1026,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
-  const onSubmitEditing = (text: string) => {
+  const onSubmitEditing = async (text: string) => {
     if (!text) return;
     setConnectionType(ConnectionType.UNKNOWN);
     urlBarRef.current?.setNativeProps({ text });
@@ -1069,6 +1034,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
     const processedUrl = processUrlForBrowser(text, searchEngine);
+    if (isENSUrl(processedUrl, ensIgnoreList)) {
+      onSubmitEditing(
+        await handleEnsUrl(
+          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
+        ),
+      );
+      return;
+    }
     // Directly update url in webview
     webviewRef.current?.injectJavaScript(`
       window.location.href = '${processedUrl}';
