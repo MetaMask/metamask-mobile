@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useStakeContext } from './useStakeContext';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
+import { selectChainId } from '../../../../selectors/networkController';
+import { hexToNumber } from '@metamask/utils';
 
 interface EarningHistory {
   sumRewards: string;
@@ -19,7 +21,8 @@ const useStakingEarningsHistory = ({
   limitDays: number;
 }) => {
   const { stakingApiService } = useStakeContext();
-
+  const chainId = useSelector(selectChainId);
+  const numericChainId = hexToNumber(chainId);
   const [earningsHistory, setEarningsHistory] = useState<
     EarningHistory[] | null
   >(null);
@@ -35,8 +38,10 @@ const useStakingEarningsHistory = ({
 
       try {
         const earningHistoryResponse: EarningHistoryResponse =
-          await stakingApiService.fetchFromApi(
-            `pooled-staking/rewards/1?account=${selectedAddress}&days=${limitDays}`,
+          await stakingApiService.getUserDailyRewards(
+            numericChainId,
+            selectedAddress,
+            limitDays,
           );
         setEarningsHistory(earningHistoryResponse.userRewards);
       } catch (err) {
@@ -45,7 +50,7 @@ const useStakingEarningsHistory = ({
         setIsLoading(false);
       }
     }
-  }, [stakingApiService, selectedAddress, limitDays]);
+  }, [numericChainId, stakingApiService, selectedAddress, limitDays]);
 
   useEffect(() => {
     fetchEarningsHistory();

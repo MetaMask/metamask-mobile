@@ -8,33 +8,32 @@ describe('TimePeriodButtonGroup', () => {
   it('renders correctly and allows time period selection', () => {
     const { getByText } = render(
       <TimePeriodButtonGroup
-        initialTimePeriod={DateRange.DAILY}
+        initialTimePeriod={DateRange.MONTHLY}
         onTimePeriodChange={mockOnTimePeriodChange}
       />,
     );
 
     // Check if the initial time period button is rendered
-    expect(getByText('Daily')).toBeTruthy();
+    expect(getByText('M')).toBeTruthy();
 
     // Simulate selecting a different time period
-    fireEvent.press(getByText('Monthly'));
+    fireEvent.press(getByText('7D'));
 
     // Check if the onTimePeriodChange function is called with the correct argument
-    expect(mockOnTimePeriodChange).toHaveBeenCalledWith(DateRange.MONTHLY);
+    expect(mockOnTimePeriodChange).toHaveBeenCalledWith(DateRange.DAILY);
   });
 
   it('renders all time period options', () => {
     const { getByText } = render(
       <TimePeriodButtonGroup
-        initialTimePeriod={DateRange.DAILY}
+        initialTimePeriod={DateRange.MONTHLY}
         onTimePeriodChange={mockOnTimePeriodChange}
       />,
     );
 
     // Check if all time period buttons are rendered
-    expect(getByText('Daily')).toBeTruthy();
-    expect(getByText('Weekly')).toBeTruthy();
-    expect(getByText('Monthly')).toBeTruthy();
-    expect(getByText('Yearly')).toBeTruthy();
+    expect(getByText('7D')).toBeTruthy();
+    expect(getByText('M')).toBeTruthy();
+    expect(getByText('Y')).toBeTruthy();
   });
 });
