@@ -27,7 +27,12 @@ const styleSheet = () =>
       justifyContent: 'center',
       alignItems: 'flex-start',
       flex: 1,
-      padding: 10,
+      paddingTop: 10,
+      paddingBottom: 10,
+    },
+    lineItemGroupHeaderContainer: {
+      paddingTop: 10,
+      paddingBottom: 10,
     },
   });
 

@@ -9,7 +9,8 @@ const styleSheet = (params: { theme: Theme }) => {
     timePeriodButtonGroupContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
-      padding: 16,
+      paddingTop: 32,
+      paddingBottom: 32,
     },
     unselectedButtonLabel: {
       color: colors.text.muted,

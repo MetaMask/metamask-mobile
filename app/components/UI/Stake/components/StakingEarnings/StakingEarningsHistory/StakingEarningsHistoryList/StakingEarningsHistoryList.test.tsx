@@ -9,17 +9,26 @@ describe('StakingEarningsHistoryList', () => {
       amount: '1.0',
       amountUsd: '3000',
       groupLabel: 'Daily',
+      groupHeader: '2024',
     },
     {
       label: 'Reward 2',
+      amount: '3.0',
+      amountUsd: '5000',
+      groupLabel: 'Daily',
+      groupHeader: '2024',
+    },
+    {
+      label: 'Reward 3',
       amount: '2.0',
       amountUsd: '6000',
       groupLabel: 'Daily',
+      groupHeader: '2025',
     },
   ];
 
   it('renders correctly with earnings data', () => {
-    const { getByText } = render(
+    const { getByText, getAllByText } = render(
       <StakingEarningsHistoryList earnings={mockEarnings} ticker="ETH" />,
     );
 
@@ -28,6 +37,8 @@ describe('StakingEarningsHistoryList', () => {
       expect(getByText(earning.label)).toBeTruthy();
       expect(getByText(`+ ${earning.amount} ETH`)).toBeTruthy();
       expect(getByText(`${earning.amountUsd} USD`)).toBeTruthy();
+      expect(getAllByText(`2024`)).toHaveLength(1);
+      expect(getAllByText(`2025`)).toHaveLength(1);
     });
   });
 });

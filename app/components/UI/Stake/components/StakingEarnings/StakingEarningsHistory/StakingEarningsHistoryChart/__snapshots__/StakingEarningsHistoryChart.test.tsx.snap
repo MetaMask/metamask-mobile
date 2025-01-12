@@ -39,11 +39,11 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
         style={
           {
             "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 10,
-            "fontWeight": "500",
-            "letterSpacing": 0.25,
-            "lineHeight": 16,
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
           }
         }
       >
@@ -67,7 +67,10 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
           [
             {
               "flex": 1,
-              "height": 112,
+              "height": 75,
+              "marginBottom": 4,
+              "paddingBottom": 16,
+              "paddingTop": 16,
             },
           ]
         }
@@ -111,7 +114,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
               }
             >
               <RNSVGPath
-                d="M0,136.66666666666669L155.17241379310346,136.66666666666669L155.17241379310346,200L0,200Z"
+                d="M0,133.66666666666669L155.17241379310346,133.66666666666669L155.17241379310346,200L0,200Z"
                 fill={
                   {
                     "brushRef": "gradient",
@@ -126,7 +129,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 testID="earning-history-chart-bar-0"
               />
               <RNSVGPath
-                d="M172.41379310344828,10L327.58620689655174,10L327.58620689655174,200L172.41379310344828,200Z"
+                d="M172.41379310344828,1L327.58620689655174,1L327.58620689655174,200L172.41379310344828,200Z"
                 fill={
                   {
                     "brushRef": "gradient",
@@ -141,7 +144,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 testID="earning-history-chart-bar-1"
               />
               <RNSVGPath
-                d="M344.82758620689657,73.33333333333334L500,73.33333333333334L500,200L344.82758620689657,200Z"
+                d="M344.82758620689657,67.33333333333334L500,67.33333333333334L500,200L344.82758620689657,200Z"
                 fill={
                   {
                     "brushRef": "gradient",
@@ -197,8 +200,8 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 testID="earning-history-chart-line-0"
                 x1={0}
                 x2={155.17241379310346}
-                y1={136.16666666666669}
-                y2={136.16666666666669}
+                y1={133.16666666666669}
+                y2={133.16666666666669}
               />
               <RNSVGLine
                 fill={
@@ -223,8 +226,8 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 testID="earning-history-chart-line-1"
                 x1={172.41379310344828}
                 x2={327.58620689655174}
-                y1={9.5}
-                y2={9.5}
+                y1={0.5}
+                y2={0.5}
               />
               <RNSVGLine
                 fill={
@@ -249,8 +252,8 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 testID="earning-history-chart-line-2"
                 x1={344.82758620689657}
                 x2={500}
-                y1={72.83333333333334}
-                y2={72.83333333333334}
+                y1={66.83333333333334}
+                y2={66.83333333333334}
               />
             </RNSVGGroup>
           </RNSVGSvgView>
