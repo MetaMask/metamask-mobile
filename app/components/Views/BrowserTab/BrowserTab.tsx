@@ -440,7 +440,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     isWebViewReadyToLoad.current = true;
 
-    loadFirstUrl();
+    handleFirstUrl();
 
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
@@ -475,7 +475,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   };
 
-  const loadFirstUrl = async () => {
+  const handleFirstUrl = async () => {
     const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
 
     setIsResolvedIpfsUrl(false);
@@ -1044,7 +1044,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
     // Directly update url in webview
     webviewRef.current?.injectJavaScript(`
-      window.location.href = '${processedUrl}';
+      window.location.href = '${sanitizeUrlInput(processedUrl)}';
       true;  // Required for iOS
     `);
   };
