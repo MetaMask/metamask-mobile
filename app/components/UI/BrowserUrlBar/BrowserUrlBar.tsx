@@ -119,6 +119,11 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       onFocus();
     };
 
+    const onChangeTextInput = (text: string) => {
+      (ref as React.RefObject<TextInput>)?.current?.setNativeProps({ text });
+      onChangeText(text);
+    };
+
     const onSubmitEditingInput = ({
       nativeEvent: { text },
     }: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
@@ -200,7 +205,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
               selectTextOnFocus
               keyboardAppearance={themeAppearance}
               style={styles.textInput}
-              onChangeText={onChangeText}
+              onChangeText={onChangeTextInput}
               onSubmitEditing={onSubmitEditingInput}
               onBlur={onBlurInput}
               onFocus={onFocusInput}

@@ -637,7 +637,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     titleRef.current = siteInfo.title;
     if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
-    urlBarRef.current?.setNativeProps({ text: siteInfo.url });
+    const hostName = new URLParse(siteInfo.url).hostname;
+    urlBarRef.current?.setNativeProps({ text: hostName });
 
     const contentProtocol = getURLProtocol(siteInfo.url);
     if (contentProtocol === PROTOCOLS.HTTPS) {
@@ -1085,16 +1086,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    */
   const renderBottomBar = () =>
     isTabActive && !isUrlBarFocused ? (
-    <BrowserBottomBar
-      canGoBack={backEnabled}
-      canGoForward={forwardEnabled}
-      goForward={goForward}
-      goBack={goBack}
-      showTabs={showTabs}
-      showUrlModal={toggleUrlModal}
-      toggleOptions={toggleOptions}
-      goHome={goToHomepage}
-    />
+      <BrowserBottomBar
+        canGoBack={backEnabled}
+        canGoForward={forwardEnabled}
+        goForward={goForward}
+        goBack={goBack}
+        showTabs={showTabs}
+        showUrlModal={toggleUrlModal}
+        toggleOptions={toggleOptions}
+        goHome={goToHomepage}
+      />
     ) : null;
 
   const onDismissAutocomplete = () => {
@@ -1104,12 +1105,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onCancel = () => {
     // Reset the url bar to the current url
-    urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
+    const hostName = new URLParse(resolvedUrlRef.current).hostname;
+    urlBarRef.current?.setNativeProps({ text: hostName });
   };
 
   const onFocusUrlBar = () => {
     // Show the autocomplete results
     urlBarResultsRef.current?.show();
+    urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
   };
 
   const onBlurUrlBar = () => {
