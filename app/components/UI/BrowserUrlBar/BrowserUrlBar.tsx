@@ -1,4 +1,4 @@
-import React, { forwardRef, useMemo, useRef, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   NativeSyntheticEvent,
   TextInput,
@@ -11,7 +11,11 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { BrowserUrlBarProps, ConnectionType } from './BrowserUrlBar.types';
+import {
+  BrowserUrlBarProps,
+  BrowserUrlBarRef,
+  ConnectionType,
+} from './BrowserUrlBar.types';
 import stylesheet from './BrowserUrlBar.styles';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { strings } from '../../../../locales/i18n';
@@ -36,7 +40,7 @@ import ButtonIcon, {
 // import Url from 'url-parse';
 // import { regex } from '../../../../app/util/regex';
 
-const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
+const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
     {
       connectionType,
@@ -53,6 +57,8 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     ref,
   ) => {
     const inputValueRef = useRef<string>('');
+    const inputRef = useRef<TextInput>(null);
+    const shouldTriggerBlurCallbackRef = useRef(true);
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
     const { trackEvent, createEventBuilder } = useMetrics();
@@ -64,6 +70,14 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     } = useStyles(stylesheet, { isUrlBarFocused });
     const isConnectionIconVisible =
       connectionType !== ConnectionType.UNKNOWN && !isUrlBarFocused;
+
+    useImperativeHandle(ref, () => ({
+      hide: () => onCancelInput(),
+      blur: () => inputRef?.current?.blur(),
+      focus: () => inputRef?.current?.focus(),
+      setNativeProps: (props: object) =>
+        inputRef?.current?.setNativeProps(props),
+    }));
 
     // TODO: Decide if this logic is still needed
     // const getDappMainUrl = () => {
@@ -104,14 +118,26 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
       return iconName;
     }, [connectionType]);
 
-    const onBlurInput = () => {
+    const unfocusInput = () => {
       setIsUrlBarFocused(false);
-      onBlur();
-      if (!inputValueRef.current) {
-        onCancel();
-      }
       // Reset the input value
       inputValueRef.current = '';
+    };
+
+    const onCancelInput = () => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onCancel();
+    };
+
+    const onBlurInput = () => {
+      if (!shouldTriggerBlurCallbackRef.current) {
+        shouldTriggerBlurCallbackRef.current = true;
+        return;
+      }
+      unfocusInput();
+      onBlur();
     };
 
     const onFocusInput = () => {
@@ -120,7 +146,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
     };
 
     const onChangeTextInput = (text: string) => {
-      (ref as React.RefObject<TextInput>)?.current?.setNativeProps({ text });
+      inputRef?.current?.setNativeProps({ text });
       onChangeText(text);
     };
 
@@ -172,8 +198,6 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
      * Clears the input value and calls the onChangeText callback
      */
     const onClearInput = () => {
-      const inputRef = ref as React.RefObject<TextInput>;
-      if (!inputRef || !inputRef?.current) return;
       const clearedText = '';
       inputRef?.current?.clear();
       inputValueRef.current = clearedText;
@@ -197,7 +221,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
               keyboardType={'web-search'}
               autoCapitalize={'none'}
               autoCorrect={false}
-              ref={ref}
+              ref={inputRef}
               numberOfLines={1}
               placeholder={strings('autocomplete.placeholder')}
               placeholderTextColor={colors.text.muted}
@@ -228,8 +252,7 @@ const BrowserUrlBar = forwardRef<TextInput, BrowserUrlBarProps>(
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               style={styles.cancelButton}
               testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
-              // TODO: Change this to cancel
-              onPress={onBlurInput}
+              onPress={onCancelInput}
             >
               <Text style={styles.cancelButtonText}>
                 {strings('browser.cancel')}

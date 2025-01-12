@@ -35,7 +35,7 @@ export * from './types';
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
->(({ onSubmit, onDismiss }, ref) => {
+>(({ onSelect, onDismiss }, ref) => {
   const [results, setResults] = useState<Array<FuseSearchResult>>([]);
   const browserHistory = useSelector(selectBrowserHistory);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
@@ -50,6 +50,11 @@ const UrlAutocomplete = forwardRef<
     debouncedSearchRef.current.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
     setResults([]);
+  };
+
+  const dismissAutocomplete = () => {
+    hide();
+    // Call the onDismiss callback
     onDismiss();
   };
 
@@ -138,7 +143,7 @@ const UrlAutocomplete = forwardRef<
         const { url, name } = result;
         const onPress = () => {
           hide();
-          onSubmit(url);
+          onSelect(url);
         };
         return renderResult(url, name, onPress);
       }),
@@ -148,7 +153,7 @@ const UrlAutocomplete = forwardRef<
   return (
     <View ref={resultsRef} style={styles.wrapper}>
       {renderResults()}
-      <TouchableWithoutFeedback style={styles.bg} onPress={hide}>
+      <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
         <View style={styles.bg} />
       </TouchableWithoutFeedback>
     </View>

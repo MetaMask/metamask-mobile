@@ -8,6 +8,16 @@ export enum ConnectionType {
 }
 
 /**
+ * Ref for the BrowserUrlBar component
+ */
+export type BrowserUrlBarRef = {
+  hide: () => void;
+  blur: () => void;
+  focus: () => void;
+  setNativeProps: (props: object) => void;
+};
+
+/**
  * BrowserUrlBar props
  */
 export type BrowserUrlBarProps = {

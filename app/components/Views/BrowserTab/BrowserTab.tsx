@@ -5,13 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  View,
-  Alert,
-  BackHandler,
-  ImageSourcePropType,
-  TextInput,
-} from 'react-native';
+import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -99,7 +93,10 @@ import {
   WebViewNavigation,
 } from '@metamask/react-native-webview/lib/WebViewTypes';
 import PhishingModal from './components/PhishingModal';
-import BrowserUrlBar, { ConnectionType } from '../../UI/BrowserUrlBar';
+import BrowserUrlBar, {
+  ConnectionType,
+  BrowserUrlBarRef,
+} from '../../UI/BrowserUrlBar';
 import { getMaskedUrl, isENSUrl } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -140,8 +137,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   >({});
   // Track if webview is loaded for the first time
   const isWebViewReadyToLoad = useRef(false);
-  const urlBarRef = useRef<TextInput>(null);
-  const urlBarResultsRef = useRef<UrlAutocompleteRef>(null);
+  const urlBarRef = useRef<BrowserUrlBarRef>(null);
+  const autocompleteRef = useRef<UrlAutocompleteRef>(null);
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const resolvedUrlRef = useRef('');
   const submittedUrlRef = useRef('');
@@ -874,7 +871,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Website started to load
    */
   const onLoadStart = async ({ nativeEvent }: WebViewNavigationEvent) => {
-    setConnectionType(ConnectionType.UNKNOWN);
     // Use URL to produce real url. This should be the actual website that the user is viewing.
     const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
@@ -1063,6 +1059,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
   const onSubmitEditing = (text: string) => {
     if (!text) return;
+    setConnectionType(ConnectionType.UNKNOWN);
+    urlBarRef.current?.setNativeProps({ text });
     submittedUrlRef.current = text;
     webviewRef.current?.stopLoading();
     // Format url for browser to be navigatable by webview
@@ -1098,31 +1096,47 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       />
     ) : null;
 
-  const onDismissAutocomplete = () => {
+  /**
+   * Handle autocomplete selection
+   */
+  const onSelect = (url: string) => {
     // Unfocus the url bar and hide the autocomplete results
-    urlBarRef.current?.blur();
+    urlBarRef.current?.hide();
+    onSubmitEditing(url);
   };
 
-  const onCancel = () => {
+  /**
+   * Handle autocomplete dismissal
+   */
+  const onDismissAutocomplete = () => {
+    // Unfocus the url bar and hide the autocomplete results
+    urlBarRef.current?.hide();
+    const hostName = new URLParse(resolvedUrlRef.current).hostname;
+    urlBarRef.current?.setNativeProps({ text: hostName });
+  };
+
+  /**
+   * Hide the autocomplete results
+   */
+  const hideAutocomplete = () => autocompleteRef.current?.hide();
+
+  const onCancelUrlBar = () => {
+    hideAutocomplete();
     // Reset the url bar to the current url
     const hostName = new URLParse(resolvedUrlRef.current).hostname;
+    console.log('setNativeProps onCancelUrlBar', hostName);
     urlBarRef.current?.setNativeProps({ text: hostName });
   };
 
   const onFocusUrlBar = () => {
     // Show the autocomplete results
-    urlBarResultsRef.current?.show();
+    autocompleteRef.current?.show();
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
-  };
-
-  const onBlurUrlBar = () => {
-    // Hide the autocomplete results
-    urlBarResultsRef.current?.hide();
   };
 
   const onChangeUrlBar = (text: string) =>
     // Search the autocomplete results
-    urlBarResultsRef.current?.search(text);
+    autocompleteRef.current?.search(text);
 
   // Don't render webview unless ready to load. This should save on performance for initial app start.
   if (!isWebViewReadyToLoad.current) return null;
@@ -1213,9 +1227,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           ref={urlBarRef}
           connectionType={connectionType}
           onSubmitEditing={onSubmitEditing}
-          onCancel={onCancel}
+          onCancel={onCancelUrlBar}
           onFocus={onFocusUrlBar}
-          onBlur={onBlurUrlBar}
+          onBlur={hideAutocomplete}
           onChangeText={onChangeUrlBar}
           connectedAccounts={permittedAccountsList}
           activeUrl={resolvedUrlRef.current}
@@ -1272,8 +1286,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
             )}
           </View>
           <UrlAutocomplete
-            ref={urlBarResultsRef}
-            onSubmit={onSubmitEditing}
+            ref={autocompleteRef}
+            onSelect={onSelect}
             onDismiss={onDismissAutocomplete}
           />
         </View>
