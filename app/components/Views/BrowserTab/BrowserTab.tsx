@@ -440,14 +440,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
 
     isWebViewReadyToLoad.current = true;
 
-    handleFirstUrl();
-
     const getEntryScriptWeb3 = async () => {
       const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
       setEntryScriptWeb3(entryScriptWeb3Fetched + SPA_urlChangeListener);
     };
 
     getEntryScriptWeb3();
+    handleFirstUrl();
 
     // Specify how to clean up after this effect:
     return function cleanup() {
