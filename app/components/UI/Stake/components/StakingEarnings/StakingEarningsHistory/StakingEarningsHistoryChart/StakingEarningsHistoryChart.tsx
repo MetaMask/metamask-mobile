@@ -17,7 +17,7 @@ export interface StakingEarningsHistoryChartData {
 
 interface StakingEarningsHistoryChartProps {
   earnings: StakingEarningsHistoryChartData[];
-  symbol: string;
+  ticker: string;
   earningsTotal: string;
   // callback to handle selected earning
   onSelectedEarning?: (earning?: { value: number; label: string }) => void;
@@ -72,7 +72,7 @@ const HorizontalLines = ({
 
 export function StakingEarningsHistoryChart({
   earnings,
-  symbol,
+  ticker,
   earningsTotal,
   formatValue = (value) => value.toFixed(5),
   onSelectedEarning,
@@ -237,7 +237,7 @@ export function StakingEarningsHistoryChart({
       <View>
         <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
           <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
-            {selectedBarAmount || earningsTotal} {symbol}
+            {selectedBarAmount || earningsTotal} {ticker}
           </Text>
           <Text
             variant={TextVariant.BodyXSMedium}

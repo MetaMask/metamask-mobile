@@ -98,12 +98,13 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<DateRange>(
     EARNINGS_HISTORY_TIME_PERIOD_DEFAULT,
   );
-
   const {
     earningsHistory,
     isLoading: isLoadingEarningsHistory,
     error: errorEarningsHistory,
   } = useStakingEarningsHistory({ limitDays: EARNINGS_HISTORY_DAYS_LIMIT });
+
+  const ticker = asset.ticker || asset.symbol;
 
   const formatRewardsWei = useCallback(
     (rewards: number | string | BN, raw?: boolean) => {
@@ -155,14 +156,14 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       earningsHistoryChartData: {
         earnings: StakingEarningsHistoryChartData[];
         earningsTotal: string;
-        symbol: string;
+        ticker: string;
       };
       earningsHistoryListData: StakingEarningsHistoryListData[];
     } = {
       earningsHistoryChartData: {
         earnings: [],
         earningsTotal: '0',
-        symbol: asset.symbol,
+        ticker,
       },
       earningsHistoryListData: [],
     };
@@ -292,7 +293,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     isLoadingEarningsHistory,
     errorEarningsHistory,
     transformedEarningsHistory,
-    asset.symbol,
+    ticker,
     formatRewardsWei,
   ]);
 
@@ -307,14 +308,14 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
         onTimePeriodChange={onTimePeriodChange}
       />
       <StakingEarningsHistoryChart
-        symbol={asset.symbol}
+        ticker={ticker}
         earningsTotal={earningsHistoryChartData.earningsTotal}
         earnings={earningsHistoryChartData.earnings}
         formatValue={(value) => formatRewardsNumber(value)}
       />
       <StakingEarningsHistoryList
         earnings={earningsHistoryListData}
-        symbol={asset.symbol}
+        ticker={ticker}
       />
     </View>
   );

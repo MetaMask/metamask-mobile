@@ -14,7 +14,8 @@ export const MOCK_STAKED_ETH_ASSET = {
   balance: '4.9999 ETH',
   balanceFiat: '$13,292.20',
   name: 'Staked Ethereum',
-  symbol: 'ETH',
+  symbol: 'Ethereum',
+  ticker: 'ETH',
   isETH: true,
 } as TokenI;
 
