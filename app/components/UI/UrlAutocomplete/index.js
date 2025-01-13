@@ -217,7 +217,7 @@ class UrlAutocomplete extends PureComponent {
 
     if (results.length === 0) {
       return (
-        <View style={styles.wrapper}>
+        <View style={{...styles.wrapper, ...styles.contentContainer}}>
           <TouchableOpacity
             containerStyle={styles.item}
             onPress={this.onSubmitInput}

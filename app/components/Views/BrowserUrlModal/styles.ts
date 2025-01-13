@@ -14,7 +14,6 @@ export const createStyles = (colors: any) =>
     urlModalContent: {
       flexDirection: 'row',
       paddingHorizontal: 10,
-      height: Device.isAndroid() ? 69 : Device.isIphoneX() ? 97 : 75,
       backgroundColor: colors.background.default,
       alignItems: 'center',
     },
