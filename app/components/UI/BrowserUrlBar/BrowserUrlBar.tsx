@@ -33,12 +33,6 @@ import URLParse from 'url-parse';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-// import { getURLProtocol } from '../../../util/general';
-// import { PROTOCOLS } from '../../../constants/deeplinks';
-// import { isGatewayUrl } from '../../../lib/ens-ipfs/resolver';
-// import AppConstants from '../../../core/AppConstants';
-// import Url from 'url-parse';
-// import { regex } from '../../../../app/util/regex';
 
 const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
   (
@@ -78,27 +72,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       setNativeProps: (props: object) =>
         inputRef?.current?.setNativeProps(props),
     }));
-
-    // TODO: Decide if this logic is still needed
-    // const getDappMainUrl = () => {
-    //   if (!url) return;
-
-    //   const urlObj = new Url(url);
-    //   const ensUrl = route.params?.currentEnsName ?? '';
-
-    //   if (
-    //     isGatewayUrl(urlObj) &&
-    //     url.search(`${AppConstants.IPFS_OVERRIDE_PARAM}=false`) === -1 &&
-    //     Boolean(ensUrl)
-    //   ) {
-    //     return ensUrl.toLowerCase().replace(regex.startUrl, '');
-    //   }
-    //   return urlObj.host.toLowerCase().replace(regex.startUrl, '') || url;
-    // };
-
-    // const contentProtocol = getURLProtocol(url);
-    // const isHttps = contentProtocol === PROTOCOLS.HTTPS;
-    // const mainUrl = getDappMainUrl();
 
     /**
      * Gets browser url bar icon based on connection type
