@@ -30,7 +30,6 @@ const useVaultAprs = () => {
       const vaultAprsResponse = await stakingApiService.getVaultAprs(
         numericChainId,
       );
-      // TODO: Determine how we should refresh this value.
       dispatch(setVaultAprs(vaultAprsResponse));
     } catch (err) {
       setError('Failed to fetch vault APRs');

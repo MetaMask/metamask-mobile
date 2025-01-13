@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -75,11 +75,13 @@ const PoolStakingLearnMoreModal = () => {
 
   const { navigate } = useNavigation();
 
+  const [didFetchGraphData, setDidFetchGraphData] = useState(false);
+
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { vaultApys, isLoadingVaultApys } = useVaultApys();
+  const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
 
-  const { vaultAprs, isLoadingVaultAprs } = useVaultAprs();
+  const { vaultAprs, isLoadingVaultAprs, refreshVaultAprs } = useVaultAprs();
 
   // Converts VaultTimespanAprs for use with interactive graph timespan buttons.
   const parsedVaultTimespanAprs = useMemo(() => {
@@ -90,6 +92,23 @@ const PoolStakingLearnMoreModal = () => {
   const [activeTimespanApr, setActiveTimespanApr] = useState(
     parsedVaultTimespanAprs?.[7],
   );
+
+  useEffect(() => {
+    async function refreshGraphData() {
+      Promise.all([refreshVaultAprs(), refreshVaultApys()]).catch((err) =>
+        console.error(
+          'Failed to refresh Pool-Staking Learn More Modal Data: ',
+          err,
+        ),
+      );
+      setDidFetchGraphData(true);
+    }
+
+    // Refetch on render until we have a more sophisticated data refresh strategy.
+    if (!didFetchGraphData) {
+      refreshGraphData();
+    }
+  }, [didFetchGraphData, refreshVaultAprs, refreshVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -143,30 +162,29 @@ const PoolStakingLearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </BottomSheetHeader>
-        {!isLoadingVaultApys &&
-          Boolean(vaultApys.length) &&
-          activeTimespanApr && (
-            <InteractiveTimespanChart
-              dataPoints={vaultApys}
-              yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
-              defaultTitle={`${new BigNumber(activeTimespanApr.apr).toFixed(
+        {Boolean(vaultApys.length) && activeTimespanApr && (
+          <InteractiveTimespanChart
+            dataPoints={vaultApys}
+            yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
+            defaultTitle={`${new BigNumber(activeTimespanApr.apr).toFixed(
+              2,
+              BigNumber.ROUND_DOWN,
+            )}% ${strings('stake.apr')}`}
+            defaultSubtitle={activeTimespanApr.label}
+            titleAccessor={(point) =>
+              `${new BigNumber(point.daily_apy).toFixed(
                 2,
                 BigNumber.ROUND_DOWN,
-              )}% ${strings('stake.apr')}`}
-              defaultSubtitle={activeTimespanApr.label}
-              titleAccessor={(point) =>
-                `${new BigNumber(point.daily_apy).toFixed(
-                  2,
-                  BigNumber.ROUND_DOWN,
-                )}% ${strings('stake.apr')}`
-              }
-              subtitleAccessor={(point) => formatChartDate(point.timestamp)}
-              onTimespanPressed={handleTimespanPressed}
-              graphOptions={{
-                ...getGraphInsetsByDataPointLength(activeTimespanApr.numDays),
-              }}
-            />
-          )}
+              )}% ${strings('stake.apr')}`
+            }
+            subtitleAccessor={(point) => formatChartDate(point.timestamp)}
+            onTimespanPressed={handleTimespanPressed}
+            graphOptions={{
+              ...getGraphInsetsByDataPointLength(activeTimespanApr.numDays),
+            }}
+            isLoading={isLoadingVaultAprs || isLoadingVaultApys}
+          />
+        )}
         <BodyText />
       </View>
       <BottomSheetFooter
