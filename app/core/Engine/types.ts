@@ -136,6 +136,7 @@ import {
   SignatureController,
   SignatureControllerActions,
   SignatureControllerEvents,
+  SignatureControllerState,
 } from '@metamask/signature-controller';
 import SmartTransactionsController, {
   type SmartTransactionsControllerActions,
@@ -382,4 +383,5 @@ export type EngineState = {
   PPOMController: PPOMState;
   AccountsController: AccountsControllerState;
   SelectedNetworkController: SelectedNetworkControllerState;
+  SignatureController: SignatureControllerState;
 };
