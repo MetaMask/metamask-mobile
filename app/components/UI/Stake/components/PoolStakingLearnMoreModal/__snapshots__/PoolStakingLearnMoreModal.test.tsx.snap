@@ -223,7 +223,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                     "color": "#ffffff",
                     "flexDirection": "column",
                     "justifyContent": "center",
-                    "minHeight": 34,
+                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -255,7 +255,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                     "color": "#9fa6ae",
                     "flexDirection": "column",
                     "justifyContent": "center",
-                    "minHeight": 34,
+                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -287,7 +287,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                     "color": "#9fa6ae",
                     "flexDirection": "column",
                     "justifyContent": "center",
-                    "minHeight": 34,
+                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
@@ -319,7 +319,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                     "color": "#9fa6ae",
                     "flexDirection": "column",
                     "justifyContent": "center",
-                    "minHeight": 34,
+                    "minHeight": 36,
                     "paddingHorizontal": 16,
                     "paddingVertical": 7,
                   }
