@@ -35,7 +35,6 @@ const useVaultApys = () => {
 
       const reversedVaultApys = [...vaultApysResponse]?.reverse();
 
-      // TODO: Determine how we should refresh this value.
       dispatch(setVaultApys(reversedVaultApys));
     } catch (err) {
       setError('Failed to fetch vault APYs');
