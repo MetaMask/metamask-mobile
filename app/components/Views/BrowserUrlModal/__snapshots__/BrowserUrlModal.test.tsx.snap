@@ -23,7 +23,6 @@ exports[`BrowserUrlModal should render correctly 1`] = `
           "alignItems": "center",
           "backgroundColor": "#ffffff",
           "flexDirection": "row",
-          "height": 97,
           "paddingHorizontal": 10,
         }
       }
@@ -31,7 +30,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#ffffff",
             "borderColor": "#bbc0c5",
             "borderRadius": 8,
             "borderWidth": 1,
