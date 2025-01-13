@@ -93,6 +93,7 @@ import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionM
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import NftGrid from '../../UI/NftGrid';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -587,7 +588,7 @@ const Wallet = ({
               // @ts-ignore
               tokens={assets}
             />
-            <CollectibleContracts
+            <NftGrid
               // TODO - Extend component to support injected tabLabel prop.
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
@@ -595,6 +596,14 @@ const Wallet = ({
               key={'nfts-tab'}
               navigation={navigation}
             />
+            {/* <CollectibleContracts
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tabLabel={strings('wallet.collectibles')}
+              key={'nfts-tab'}
+              navigation={navigation}
+            /> */}
           </ScrollableTabView>
         </>
       </View>
