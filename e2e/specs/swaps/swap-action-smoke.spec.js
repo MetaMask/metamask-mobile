@@ -26,7 +26,6 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
@@ -74,7 +73,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   it.each`
     type             | quantity | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.04'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'wrap'}$       |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unwrap'}$     |${'.01'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
   `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {

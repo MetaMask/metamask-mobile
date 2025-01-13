@@ -25,7 +25,7 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+
 import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
@@ -78,8 +78,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
     ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
     ${'unapproved'}$ |${'3'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
     ${'erc20'}$      |${'10'}    | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'wrap'}$       |${'.03'}   | ${'ETH'}          | ${'WETH'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unwrap'}$     |${'.01'}   | ${'WETH'}         | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
     `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
