@@ -9,6 +9,23 @@ const styleSheet = (params: {
   const { isSelected } = vars;
   const { colors } = theme;
 
+  const baseStyles = StyleSheet.create({
+    chartTimespanButton: {
+      flexDirection: 'column',
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 7,
+      minHeight: 36,
+
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: isSelected
+        ? colors.primary.default
+        : colors.background.default,
+      color: isSelected ? colors.info.inverse : colors.text.muted,
+    },
+  });
+
   return StyleSheet.create({
     chartTimespanButtonGroup: {
       flexDirection: 'row',
@@ -19,19 +36,16 @@ const styleSheet = (params: {
       paddingHorizontal: 16,
       flexWrap: 'wrap',
     },
-    chartTimespanButton: {
-      flexDirection: 'column',
-      borderRadius: 8,
-      paddingHorizontal: 16,
-      paddingVertical: 7,
-      minHeight: 34,
-
+    chartTimespanButtonGroupSkeleton: {
+      flexDirection: 'row',
       justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: isSelected
-        ? colors.primary.default
-        : colors.background.default,
-      color: isSelected ? colors.info.inverse : colors.text.muted,
+      gap: 12,
+      flexWrap: 'wrap',
+    },
+    chartTimespanButton: baseStyles.chartTimespanButton,
+    chartTimespanButtonSkeleton: {
+      ...baseStyles.chartTimespanButton,
+      minWidth: 49,
     },
   });
 };

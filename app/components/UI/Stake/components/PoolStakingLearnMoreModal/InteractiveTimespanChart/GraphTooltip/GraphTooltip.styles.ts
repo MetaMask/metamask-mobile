@@ -1,12 +1,20 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = () => {
+  const baseStyles = StyleSheet.create({
     container: {
-      paddingVertical: 16,
       gap: 4,
       alignItems: 'center',
     },
   });
+
+  return StyleSheet.create({
+    container: {
+      ...baseStyles.container,
+      paddingVertical: 16,
+    },
+    containerSkeleton: baseStyles.container,
+  });
+};
 
 export default styleSheet;

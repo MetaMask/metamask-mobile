@@ -24,6 +24,7 @@ import {
 } from './InteractiveTimespanChart.types';
 import GraphTooltip from './GraphTooltip';
 import { DEFAULT_GRAPH_OPTIONS } from './InteractiveTimespanChart.constants';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 export interface InteractiveTimespanChartProps<T extends DataPoint> {
   dataPoints: T[];
@@ -47,6 +48,7 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
   onTimespanPressed?: (numDataPointsToDisplay: number) => void;
   graphOptions?: Partial<GraphOptions>;
   testID?: string;
+  isLoading?: boolean;
 }
 
 /**
@@ -77,6 +79,7 @@ const InteractiveTimespanChart = <T extends DataPoint>({
   subtitleAccessor,
   onTimespanPressed,
   testID = 'InteractiveTimespanChart',
+  isLoading = false,
 }: InteractiveTimespanChartProps<T>) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -198,19 +201,18 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     [updateSelectedGraphPosition],
   );
 
-  return (
-    <View testID={testID}>
-      <ChartTimespanButtonGroup
-        buttons={timespanButtons}
-        onTimePress={handleTimespanPressed}
-      />
-      {Boolean(parsedDataPointValues.length) && (
-        <GraphTooltip
-          title={parsedTitleValues[selectedPointIndex] ?? defaultTitle}
-          subtitle={parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle}
-          color={color}
-        />
-      )}
+  const renderChart = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.chartContainer}>
+          <SkeletonPlaceholder>
+            <SkeletonPlaceholder.Item height={112} />
+          </SkeletonPlaceholder>
+        </View>
+      );
+    }
+
+    return (
       <View style={styles.chartContainer} {...panResponder.panHandlers}>
         <AreaChart
           style={styles.chart}
@@ -235,6 +237,25 @@ const InteractiveTimespanChart = <T extends DataPoint>({
           />
         </AreaChart>
       </View>
+    );
+  };
+
+  return (
+    <View testID={testID}>
+      <ChartTimespanButtonGroup
+        buttons={timespanButtons}
+        onTimePress={handleTimespanPressed}
+        isLoading={isLoading}
+      />
+      {Boolean(parsedDataPointValues.length) && (
+        <GraphTooltip
+          title={parsedTitleValues[selectedPointIndex] ?? defaultTitle}
+          subtitle={parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle}
+          color={color}
+          isLoading={isLoading}
+        />
+      )}
+      {renderChart()}
     </View>
   );
 };

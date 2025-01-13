@@ -7,6 +7,7 @@ import Text, {
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './ChartTimespanButtonGroup.styles';
 import { ChartButton } from './ChartTimespanButtonGroup.types';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 interface ChartTimespanButtonProps {
   onPress: () => void;
@@ -35,11 +36,13 @@ const ChartTimespanButton = ({
 export interface ChartTimespanButtonGroupProps {
   buttons: ChartButton[];
   onTimePress: (numDaysToDisplay: number) => void;
+  isLoading?: boolean;
 }
 
 const ChartTimespanButtonGroup = ({
   buttons,
   onTimePress,
+  isLoading = false,
 }: ChartTimespanButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, { isSelected: false });
 
@@ -49,6 +52,23 @@ const ChartTimespanButtonGroup = ({
     setSelectedIndex(index);
     onTimePress?.(buttons?.[index]?.value);
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.chartTimespanButtonGroup}>
+        <SkeletonPlaceholder>
+          <SkeletonPlaceholder.Item
+            {...styles.chartTimespanButtonGroupSkeleton}
+          >
+            <SkeletonPlaceholder.Item {...styles.chartTimespanButtonSkeleton} />
+            <SkeletonPlaceholder.Item {...styles.chartTimespanButtonSkeleton} />
+            <SkeletonPlaceholder.Item {...styles.chartTimespanButtonSkeleton} />
+            <SkeletonPlaceholder.Item {...styles.chartTimespanButtonSkeleton} />
+          </SkeletonPlaceholder.Item>
+        </SkeletonPlaceholder>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.chartTimespanButtonGroup}>
