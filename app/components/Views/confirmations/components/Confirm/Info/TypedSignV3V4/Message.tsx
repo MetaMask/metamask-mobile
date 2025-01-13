@@ -42,7 +42,7 @@ const Message = () => {
           <Text style={styles.title}>{strings('confirm.message')}</Text>
           <InfoRow
             label={strings('confirm.primary_type')}
-            style={styles.collpasedInfoRow}
+            style={styles.dataRow}
           >
             {primaryType}
           </InfoRow>

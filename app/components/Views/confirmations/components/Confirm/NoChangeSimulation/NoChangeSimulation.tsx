@@ -6,6 +6,7 @@ import { selectUseTransactionSimulations } from '../../../../../../selectors/pre
 import InfoSection from '../../UI/InfoRow/InfoSection';
 import InfoRow from '../../UI/InfoRow';
 
+// todo: this component can be deleted of not used anywhere
 const NoChangeSimulation = () => {
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
