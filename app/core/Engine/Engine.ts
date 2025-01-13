@@ -2098,6 +2098,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     } = instance.datamodel.state;
 
     return {
@@ -2132,6 +2133,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     };
   },
 
