@@ -10,6 +10,7 @@ export enum ConnectionType {
 /**
  * Ref for the BrowserUrlBar component
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BrowserUrlBarRef = {
   hide: () => void;
   blur: () => void;
@@ -20,6 +21,7 @@ export type BrowserUrlBarRef = {
 /**
  * BrowserUrlBar props
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BrowserUrlBarProps = {
   connectionType: ConnectionType;
   onSubmitEditing: (text: string) => void;

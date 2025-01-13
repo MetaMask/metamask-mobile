@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type IpfsContentResult = {
   url?: string;
   hash?: string;
@@ -5,6 +6,7 @@ export type IpfsContentResult = {
   reload?: boolean;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SessionENSNames = {
   [key: string]: {
     hostname: string;
@@ -22,6 +24,7 @@ export enum WebViewNavigationEventName {
 /**
  * The props for the BrowserTab component
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BrowserTabProps = {
   /**
    * The ID of the current tab

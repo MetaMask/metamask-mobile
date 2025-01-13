@@ -1,6 +1,7 @@
 /**
  * Props for the UrlAutocomplete component
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
   /**
    * Callback that is triggered while
@@ -17,6 +18,7 @@ export type UrlAutocompleteComponentProps = {
 /**
  * Ref for the UrlAutocomplete component
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteRef = {
   /**
    * Search for autocomplete results
@@ -35,6 +37,7 @@ export type UrlAutocompleteRef = {
 /**
  * The result of an Fuse search
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FuseSearchResult = {
   url: string;
   name: string;

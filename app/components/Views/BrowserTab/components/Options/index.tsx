@@ -183,11 +183,11 @@ const Options = ({
   /**
    * Handles reload button press
    */
-  const onReloadPress = () => {
+  const onReloadPress = useCallback(() => {
     toggleOptionsIfNeeded();
     reload();
     trackEvent(createEventBuilder(MetaMetricsEvents.BROWSER_RELOAD).build());
-  };
+  }, [reload, toggleOptionsIfNeeded, trackEvent, createEventBuilder]);
 
   const isBookmark = () => {
     const maskedUrl = getMaskedUrl(activeUrl, sessionENSNames);
@@ -199,16 +199,16 @@ const Options = ({
   /**
    * Track share site event
    */
-  const trackShareEvent = () => {
+  const trackShareEvent = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_SHARE_SITE).build(),
     );
-  };
+  }, [trackEvent, createEventBuilder]);
 
   /**
    * Share url
    */
-  const share = () => {
+  const share = useCallback(() => {
     toggleOptionsIfNeeded();
     Share.open({
       url: activeUrl,
@@ -216,7 +216,7 @@ const Options = ({
       Logger.log('Error while trying to share address', err);
     });
     trackShareEvent();
-  };
+  }, [activeUrl, toggleOptionsIfNeeded, trackShareEvent]);
 
   /**
    * Render share option
@@ -237,7 +237,7 @@ const Options = ({
           </Text>
         </Button>
       ) : null,
-    [activeUrl, share],
+    [activeUrl, share, styles],
   );
 
   /**
@@ -259,7 +259,7 @@ const Options = ({
           </Text>
         </Button>
       ) : null,
-    [activeUrl, onReloadPress],
+    [activeUrl, onReloadPress, styles],
   );
 
   /**

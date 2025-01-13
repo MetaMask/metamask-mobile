@@ -1,5 +1,4 @@
 import AppConstants from '../../../core/AppConstants';
-import { prefixUrlWithProtocol } from '../../../util/browser';
 import URLParse from 'url-parse';
 import { SessionENSNames } from './types';
 

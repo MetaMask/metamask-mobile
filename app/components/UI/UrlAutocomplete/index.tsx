@@ -36,27 +36,12 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [results, setResults] = useState<Array<FuseSearchResult>>([]);
+  const [results, setResults] = useState<FuseSearchResult[]>([]);
+  // TODO: Browser history hasn't been working for a while. Need to either fix or remove.
   const browserHistory = useSelector(selectBrowserHistory);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
-
-  /**
-   * Hide the results view
-   */
-  const hide = () => {
-    // Cancel the search
-    debouncedSearchRef.current.cancel();
-    resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setResults([]);
-  };
-
-  const dismissAutocomplete = () => {
-    hide();
-    // Call the onDismiss callback
-    onDismiss();
-  };
 
   /**
    * Show the results view
@@ -79,6 +64,22 @@ const UrlAutocomplete = forwardRef<
    */
   const debouncedSearchRef = useRef(debounce(search, 500));
 
+  /**
+   * Hide the results view
+   */
+  const hide = useCallback(() => {
+    // Cancel the search
+    debouncedSearchRef.current.cancel();
+    resultsRef.current?.setNativeProps({ style: { display: 'none' } });
+    setResults([]);
+  }, [setResults]);
+
+  const dismissAutocomplete = () => {
+    hide();
+    // Call the onDismiss callback
+    onDismiss();
+  };
+
   useImperativeHandle(ref, () => ({
     search: debouncedSearchRef.current,
     hide,
@@ -86,11 +87,10 @@ const UrlAutocomplete = forwardRef<
   }));
 
   useEffect(() => {
-    const allUrls: Array<FuseSearchResult> = [browserHistory, ...dappUrlList];
-    const singleUrlList: Array<string> = [];
-    const singleUrls: Array<FuseSearchResult> = [];
-    for (let i = 0; i < allUrls.length; i++) {
-      const el = allUrls[i];
+    const allUrls: FuseSearchResult[] = [browserHistory, ...dappUrlList];
+    const singleUrlList: string[] = [];
+    const singleUrls: FuseSearchResult[] = [];
+    for (const el of allUrls) {
       if (!singleUrlList.includes(el.url)) {
         singleUrlList.push(el.url);
         singleUrls.push(el);
@@ -110,32 +110,36 @@ const UrlAutocomplete = forwardRef<
         { name: 'url', weight: 0.5 },
       ],
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const renderResult = (url: string, name: string, onPress: () => void) => {
-    name = typeof name === 'string' ? name : getHost(url);
+  const renderResult = useCallback(
+    (url: string, name: string, onPress: () => void) => {
+      name = typeof name === 'string' ? name : getHost(url);
 
-    return (
-      <TouchableOpacity style={styles.item} onPress={onPress} key={url}>
-        <View style={styles.itemWrapper}>
-          <WebsiteIcon
-            style={styles.bookmarkIco}
-            url={url}
-            title={name}
-            textStyle={styles.fallbackTextStyle}
-          />
-          <View style={styles.textContent}>
-            <Text style={styles.name} numberOfLines={1}>
-              {name}
-            </Text>
-            <Text style={styles.url} numberOfLines={1}>
-              {url}
-            </Text>
+      return (
+        <TouchableOpacity style={styles.item} onPress={onPress} key={url}>
+          <View style={styles.itemWrapper}>
+            <WebsiteIcon
+              style={styles.bookmarkIco}
+              url={url}
+              title={name}
+              textStyle={styles.fallbackTextStyle}
+            />
+            <View style={styles.textContent}>
+              <Text style={styles.name} numberOfLines={1}>
+                {name}
+              </Text>
+              <Text style={styles.url} numberOfLines={1}>
+                {url}
+              </Text>
+            </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+        </TouchableOpacity>
+      );
+    },
+    [styles],
+  );
 
   const renderResults = useCallback(
     () =>
@@ -147,7 +151,7 @@ const UrlAutocomplete = forwardRef<
         };
         return renderResult(url, name, onPress);
       }),
-    [results],
+    [results, onSelect, hide, renderResult],
   );
 
   return (

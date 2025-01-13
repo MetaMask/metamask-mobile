@@ -65,6 +65,19 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const isConnectionIconVisible =
       connectionType !== ConnectionType.UNKNOWN && !isUrlBarFocused;
 
+    const unfocusInput = () => {
+      setIsUrlBarFocused(false);
+      // Reset the input value
+      inputValueRef.current = '';
+    };
+
+    const onCancelInput = () => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onCancel();
+    };
+
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
@@ -90,19 +103,6 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       }
       return iconName;
     }, [connectionType]);
-
-    const unfocusInput = () => {
-      setIsUrlBarFocused(false);
-      // Reset the input value
-      inputValueRef.current = '';
-    };
-
-    const onCancelInput = () => {
-      shouldTriggerBlurCallbackRef.current = false;
-      inputRef?.current?.blur();
-      unfocusInput();
-      onCancel();
-    };
 
     const onBlurInput = () => {
       if (!shouldTriggerBlurCallbackRef.current) {

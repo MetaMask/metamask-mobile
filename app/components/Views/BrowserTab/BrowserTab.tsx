@@ -129,6 +129,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const [ipfsBannerVisible, setIpfsBannerVisible] = useState(false);
   const [isResolvedIpfsUrl, setIsResolvedIpfsUrl] = useState(false);
   const [isUrlBarFocused, setIsUrlBarFocused] = useState(false);
+  const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
   const allowList = useRef<string[]>([]); // TODO: Consider improving this type
@@ -139,7 +140,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   const isWebViewReadyToLoad = useRef(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);
   const autocompleteRef = useRef<UrlAutocompleteRef>(null);
-  const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
+  const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
+    async () => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+    },
+  );
   const resolvedUrlRef = useRef('');
   const submittedUrlRef = useRef('');
   const titleRef = useRef<string>('');
@@ -297,10 +302,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   /**
    * Show a phishing modal when a url is not allowed
    */
-  const handleNotAllowedUrl = (urlOrigin: string) => {
+  const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
-  };
+  }, []);
 
   /**
    * Get IPFS info from a ens url
@@ -384,7 +389,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     [goBack, props.ipfsGateway, setIpfsBannerVisible, props.chainId],
   );
 
-  const triggerDappViewedEvent = (urlToTrigger: string) => {
+  const triggerDappViewedEvent = useCallback((urlToTrigger: string) => {
     const permissionsControllerState =
       Engine.context.PermissionController.state;
     const hostname = new URLParse(urlToTrigger).hostname;
@@ -403,7 +408,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       hostname,
       numberOfConnectedAccounts: connectedAccounts.length,
     });
-  };
+  }, []);
 
   /**
    * Open a new tab
@@ -418,19 +423,29 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   );
 
   /**
-   * Reload current page
-   */
-  const reload = useCallback(() => {
-    onSubmitEditing(resolvedUrlRef.current);
-    triggerDappViewedEvent(resolvedUrlRef.current);
-  }, []);
-
-  /**
    * Handle when the drawer (app menu) is opened
    */
   const drawerOpenHandler = useCallback(() => {
     dismissTextSelectionIfNeeded();
   }, [dismissTextSelectionIfNeeded]);
+
+  const handleFirstUrl = useCallback(async () => {
+    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
+
+    setIsResolvedIpfsUrl(false);
+    const prefixedUrl = prefixUrlWithProtocol(initialUrlOrHomepage);
+    const { origin: urlOrigin } = new URLParse(prefixedUrl);
+
+    if (isAllowedOrigin(urlOrigin)) {
+      setInitialUrl(prefixedUrl);
+      setFirstUrlLoaded(true);
+      setProgress(0);
+      return;
+    }
+
+    handleNotAllowedUrl(prefixedUrl);
+    return;
+  }, [props.initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -452,45 +467,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     return function cleanup() {
       backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
     };
-  }, [isTabActive]);
-
-  const handleEnsUrl = async (ens: string) => {
-    try {
-      webviewRef.current?.stopLoading();
-
-      const { hostname, query, pathname } = new URLParse(ens);
-      const {
-        url: ipfsUrl,
-        type,
-        hash,
-        reload,
-      } = await handleIpfsContent(ens, { hostname, query, pathname });
-      if (reload) return onSubmitEditing(ipfsUrl);
-      sessionENSNames[ipfsUrl] = { hostname, hash, type };
-      setIsResolvedIpfsUrl(true);
-      return ipfsUrl;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  const handleFirstUrl = async () => {
-    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
-
-    setIsResolvedIpfsUrl(false);
-    let prefixedUrl = prefixUrlWithProtocol(initialUrlOrHomepage);
-    const { origin: urlOrigin } = new URLParse(prefixedUrl);
-
-    if (isAllowedOrigin(urlOrigin)) {
-      setInitialUrl(prefixedUrl);
-      setFirstUrlLoaded(true);
-      setProgress(0);
-      return;
-    }
-
-    handleNotAllowedUrl(prefixedUrl);
-    return;
-  };
+  }, [isTabActive, handleFirstUrl]);
 
   useEffect(() => {
     if (Device.isAndroid()) {
@@ -771,16 +748,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   };
 
-  /**
-   * Go to home page, reload if already on homepage
-   */
-  const goToHomepage = async () => {
-    toggleOptionsIfNeeded();
-    triggerDappViewedEvent(resolvedUrlRef.current);
-    onSubmitEditing(HOMEPAGE_URL);
-    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
-  };
-
   const toggleUrlModal = () => {
     urlBarRef.current?.focus();
   };
@@ -930,36 +897,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     props.showTabs();
   };
 
-  /**
-   * Render the onboarding wizard browser step
-   */
-  const renderOnboardingWizard = () => {
-    const { wizardStep } = props;
-    if ([7].includes(wizardStep)) {
-      if (!wizardScrollAdjusted.current) {
-        setTimeout(() => {
-          reload();
-        }, 1);
-        wizardScrollAdjusted.current = true;
-      }
-      return <OnboardingWizard navigation={navigation} />;
-    }
-    return null;
-  };
-
-  const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
-      const downloadResponse = await downloadFile(downloadUrl);
-      if (downloadResponse) {
-        reload();
-      } else {
-        Alert.alert(strings('download_files.error'));
-        reload();
-      }
-    },
-    [reload],
-  );
-
   const isExternalLink = useMemo(
     () => props.linkType === EXTERNAL_LINK_TYPE,
     [props.linkType],
@@ -1025,28 +962,114 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
 
-  const onSubmitEditing = async (text: string) => {
-    if (!text) return;
-    setConnectionType(ConnectionType.UNKNOWN);
-    urlBarRef.current?.setNativeProps({ text });
-    submittedUrlRef.current = text;
-    webviewRef.current?.stopLoading();
-    // Format url for browser to be navigatable by webview
-    const processedUrl = processUrlForBrowser(text, searchEngine);
-    if (isENSUrl(processedUrl, ensIgnoreList)) {
-      onSubmitEditing(
-        await handleEnsUrl(
-          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
-        ),
-      );
-      return;
-    }
-    // Directly update url in webview
-    webviewRef.current?.injectJavaScript(`
+  const handleEnsUrl = useCallback(
+    async (ens: string) => {
+      try {
+        webviewRef.current?.stopLoading();
+
+        const { hostname, query, pathname } = new URLParse(ens);
+        const ipfsContent = await handleIpfsContent(ens, {
+          hostname,
+          query,
+          pathname,
+        });
+        const { url: ipfsUrl, type, hash, reload } = ipfsContent;
+        if (!ipfsUrl) return null;
+        if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
+        sessionENSNames[ipfsUrl] = { hostname, hash, type };
+        setIsResolvedIpfsUrl(true);
+        return ipfsUrl;
+      } catch (_) {
+        return null;
+      }
+    },
+    [handleIpfsContent, setIsResolvedIpfsUrl],
+  );
+
+  const onSubmitEditing = useCallback(
+    async (text: string) => {
+      if (!text) return;
+      setConnectionType(ConnectionType.UNKNOWN);
+      urlBarRef.current?.setNativeProps({ text });
+      submittedUrlRef.current = text;
+      webviewRef.current?.stopLoading();
+      // Format url for browser to be navigatable by webview
+      const processedUrl = processUrlForBrowser(text, searchEngine);
+      if (isENSUrl(processedUrl, ensIgnoreList)) {
+        onSubmitEditingRef.current(
+          await handleEnsUrl(
+            processedUrl.replace(regex.urlHttpToHttps, 'https://'),
+          ),
+        );
+        return;
+      }
+      // Directly update url in webview
+      webviewRef.current?.injectJavaScript(`
       window.location.href = '${sanitizeUrlInput(processedUrl)}';
       true;  // Required for iOS
     `);
+    },
+    [searchEngine, handleEnsUrl, setConnectionType],
+  );
+
+  // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
+  useEffect(() => {
+    onSubmitEditingRef.current = onSubmitEditing;
+  }, [onSubmitEditing]);
+
+  /**
+   * Go to home page, reload if already on homepage
+   */
+  const goToHomepage = useCallback(async () => {
+    toggleOptionsIfNeeded();
+    triggerDappViewedEvent(resolvedUrlRef.current);
+    onSubmitEditing(HOMEPAGE_URL);
+    trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
+  }, [
+    toggleOptionsIfNeeded,
+    triggerDappViewedEvent,
+    trackEvent,
+    createEventBuilder,
+    onSubmitEditing,
+  ]);
+
+  /**
+   * Reload current page
+   */
+  const reload = useCallback(() => {
+    onSubmitEditing(resolvedUrlRef.current);
+    triggerDappViewedEvent(resolvedUrlRef.current);
+  }, [onSubmitEditing, triggerDappViewedEvent]);
+
+  /**
+   * Render the onboarding wizard browser step
+   */
+  const renderOnboardingWizard = () => {
+    const { wizardStep } = props;
+    if ([7].includes(wizardStep)) {
+      if (!wizardScrollAdjusted.current) {
+        setTimeout(() => {
+          reload();
+        }, 1);
+        wizardScrollAdjusted.current = true;
+      }
+      return <OnboardingWizard navigation={navigation} />;
+    }
+    return null;
   };
+
+  const handleOnFileDownload = useCallback(
+    async ({ nativeEvent: { downloadUrl } }) => {
+      const downloadResponse = await downloadFile(downloadUrl);
+      if (downloadResponse) {
+        reload();
+      } else {
+        Alert.alert(strings('download_files.error'));
+        reload();
+      }
+    },
+    [reload],
+  );
 
   /**
    * Return to the MetaMask Dapp Homepage

@@ -33,7 +33,7 @@ const AvatarFavicon = ({
   const isRemoteImage = imageSource && !isNumber(imageSource);
   const isMissingUri = isRemoteImage && !('uri' in imageSource);
 
-  const [error, setError] = useState<any>(undefined);
+  const [error, setError] = useState<Error | undefined>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
 
@@ -43,9 +43,7 @@ const AvatarFavicon = ({
     [setError],
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSvgError = useCallback((e: any) => setError(e), [setError]);
+  const onSvgError = useCallback((e: Error) => setError(e), [setError]);
 
   // TODO add the fallback with uppercase letter initial
   //  requires that the domain is passed in as a prop from the parent
