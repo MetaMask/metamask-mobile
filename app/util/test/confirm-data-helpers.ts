@@ -153,7 +153,7 @@ export const typedSignV3ConfirmationState = {
                 analytics: { request_source: 'In-App-Browser' },
               },
               origin: 'metamask.github.io',
-              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+              metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
               version: 'V3',
             },
             requestState: null,
@@ -162,6 +162,27 @@ export const typedSignV3ConfirmationState = {
         },
         pendingApprovalCount: 1,
         approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
+            chainId: '0x1' as Hex,
+            messageParams: {
+              data: JSON.stringify(mockTypedSignV3Message),
+              from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+              requestId: 3298650200,
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
+              version: 'V3',
+            } as MessageParamsTyped,
+          },
+        },
       },
     },
   },
