@@ -23,6 +23,7 @@ import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS } from '../../../../constants/events';
 
 type StakeBannerProps = Pick<BannerProps, 'style'> & {
   claimableAmount: string;
@@ -48,7 +49,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.STAKE_CLAIM_BUTTON_CLICKED)
           .addProperties({
-            location: 'Token Details',
+            location: EVENT_LOCATIONS.TOKEN_DETAILS,
           })
           .build(),
       );

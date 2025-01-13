@@ -262,10 +262,6 @@ class TransactionReview extends PureComponent {
      */
     shouldUseSmartTransaction: PropTypes.bool,
     /**
-     * Transaction simulation data
-     */
-    transactionSimulationData: PropTypes.object,
-    /**
      * Boolean that indicates if transaction simulations should be enabled
      */
     useTransactionSimulations: PropTypes.bool,
@@ -523,9 +519,11 @@ class TransactionReview extends PureComponent {
       transaction,
       transaction: { to, origin, from, ensRecipient, id: transactionId },
       error,
-      transactionSimulationData,
+      transactionMetadata,
       useTransactionSimulations,
     } = this.props;
+
+    const transactionSimulationData = transactionMetadata?.simulationData;
 
     const {
       actionKey,
@@ -616,15 +614,16 @@ class TransactionReview extends PureComponent {
                       primaryCurrency={primaryCurrency}
                       chainId={chainId}
                     />
-                    {useTransactionSimulations && transactionSimulationData && (
-                      <View style={styles.transactionSimulations}>
-                        <SimulationDetails
-                          simulationData={transactionSimulationData}
-                          enableMetrics
-                          transactionId={transactionId}
-                        />
-                      </View>
-                    )}
+                    {useTransactionSimulations &&
+                      transactionSimulationData &&
+                      transactionMetadata && (
+                        <View style={styles.transactionSimulations}>
+                          <SimulationDetails
+                            transaction={transactionMetadata}
+                            enableMetrics
+                          />
+                        </View>
+                      )}
                     <View style={styles.accountInfoCardWrapper}>
                       <TransactionReviewInformation
                         navigation={navigation}
@@ -720,8 +719,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: state.settings.primaryCurrency,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionSimulationData:
-    selectCurrentTransactionMetadata(state)?.simulationData,
   useTransactionSimulations: selectUseTransactionSimulations(state),
   securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   transactionMetadata: selectCurrentTransactionMetadata(state),

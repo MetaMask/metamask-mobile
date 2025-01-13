@@ -190,6 +190,8 @@ import {
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
@@ -213,6 +215,7 @@ import {
   getGlobalChainId,
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
+import { logEngineCreation } from './utils/logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -276,6 +279,8 @@ export class Engine {
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
   ) {
+    logEngineCreation(initialState, initialKeyringState);
+
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     const isBasicFunctionalityToggleEnabled = () =>
@@ -1238,7 +1243,10 @@ export class Engine {
       state: initialState.SmartTransactionsController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
-        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+        ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getTransactions: this.transactionController.getTransactions.bind(
@@ -1403,16 +1411,12 @@ export class Engine {
           // allowedActions: [
           //   'GasFeeController:getEIP1559GasFeeEstimates',
           // ],
-          allowedActions: [
-            'NetworkController:findNetworkClientIdByChainId',
-            'NetworkController:getNetworkClientById',
-          ],
-          allowedEvents: [],
+          allowedActions: ['NetworkController:getNetworkClientById'],
+          allowedEvents: ['NetworkController:networkDidChange'],
         }),
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
         fetchEstimatedMultiLayerL1Fee,
       }),
       GasFeeController: gasFeeController,
@@ -1676,8 +1680,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController, SwapsController } =
-      this.context;
+    const { AccountTrackerController, NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1686,10 +1689,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    SwapsController.setProvider(provider, {
-      chainId: getGlobalChainId(NetworkController),
-      pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-    });
     AccountTrackerController.refresh();
   }
 
@@ -2097,6 +2096,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     } = instance.datamodel.state;
 
     return {
@@ -2131,6 +2131,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     };
   },
 
@@ -2154,12 +2155,15 @@ export default {
     return instance.resetState();
   },
 
-  destroyEngine() {
-    instance?.destroyEngineInstance();
+  destroyEngine: async () => {
+    await instance?.destroyEngineInstance();
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null) {
+  init(
+    state: Partial<EngineState> | undefined,
+    keyringState: KeyringControllerState | null = null,
+  ) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;

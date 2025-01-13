@@ -10,7 +10,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('43114'),
       rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-      nickname: 'Avalanche Mainnet C-Chain',
+      nickname: 'Avalanche C-Chain',
       ticker: 'AVAX',
     },
   },
@@ -46,7 +46,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('10'),
       rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-      nickname: 'Optimism',
+      nickname: 'OP Mainnet',
       ticker: 'ETH',
     },
   },
@@ -91,7 +91,17 @@ const CustomNetworks = {
       ticker: 'SepoliaETH',
     },
   },
-
+  ElysiumTestnet: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: '0x53a',
+      rpcUrlInvalid: 'https://rpc.atlantischain.network',
+      rpcUrl: 'https://rpc.atlantischain.network',
+      rpcUrlAlt: 'https://rpc.atlantischain.network',
+      nickname: 'Elysium Testnet',
+      ticker: 'LAVA',
+    },
+  },
   Tenderly: {
     isCustomNetwork: true,
     providerConfig: {
