@@ -27,6 +27,7 @@ jest.mock('../../hooks/useVaultAprs', () => ({
   default: () => ({
     vaultAprs: MOCK_VAULT_APRS,
     isLoadingVaultAprs: false,
+    refreshVaultAprs: jest.fn(),
   }),
 }));
 
@@ -35,6 +36,7 @@ jest.mock('../../hooks/useVaultApys', () => ({
   default: () => ({
     vaultApys: MOCK_VAULT_DAILY_APYS,
     isLoadingVaultApys: false,
+    refreshVaultApys: jest.fn(),
   }),
 }));
 
