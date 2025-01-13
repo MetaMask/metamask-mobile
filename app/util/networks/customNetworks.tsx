@@ -98,6 +98,17 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
+  {
+    chainId: toHex('59144'),
+    nickname: 'Linea',
+    rpcUrl: `https://linea-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'ETH',
+    rpcPrefs: {
+      blockExplorerUrl: 'https://lineascan.build',
+      imageUrl: 'LINEA',
+      imageSource: require('../../images/linea-mainnet-logo.png'),
+    },
+  },
 ];
 
 export const INFURA_TESTNET_CHAIN_IDS = {
