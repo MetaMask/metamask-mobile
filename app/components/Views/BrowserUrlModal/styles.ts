@@ -45,7 +45,7 @@ export const createStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border.default,
       height: Device.isAndroid() ? 50 : 40,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       flex: 1,
     },
   });
