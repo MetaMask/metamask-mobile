@@ -7,7 +7,6 @@ import {
   InteractionManager,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
@@ -22,6 +21,7 @@ import Device from '../../../util/device';
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
 import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
 import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
   url: string | undefined;
@@ -74,7 +74,7 @@ const BrowserUrlModal = () => {
   );
 
   const renderContent = () => (
-    <>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.urlModalContent}>
         <View style={styles.searchWrapper}>
           <TextInput
@@ -119,7 +119,7 @@ const BrowserUrlModal = () => {
         input={autocompleteValue}
         onDismiss={triggerClose}
       />
-    </>
+    </SafeAreaView>
   );
 
   return (
