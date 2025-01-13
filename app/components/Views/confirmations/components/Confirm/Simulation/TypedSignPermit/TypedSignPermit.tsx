@@ -11,7 +11,7 @@ import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { parseTypedDataMessage } from '../../../../utils/signature';
 import InfoRow from '../../../UI/InfoRow';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
-import PermitSimulationValueDisplay from './ValueDisplay';
+import PermitSimulationValueDisplay from '../components/ValueDisplay';
 
 const styleSheet = () =>
   StyleSheet.create({
