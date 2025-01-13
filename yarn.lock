@@ -1930,12 +1930,12 @@
   dependencies:
     "@cucumber/messages" "^19.0.0"
 
-"@cucumber/gherkin@26.0.3":
-  version "26.0.3"
-  resolved "https://registry.yarnpkg.com/@cucumber/gherkin/-/gherkin-26.0.3.tgz#6ffe37570c608caa329784161305056135a19c96"
-  integrity sha512-xwJHi//bLFEU1drIyw2yswwUHnnVWO4XcyVBbCTDs6DkSh262GkogFI/IWwChZqJfOXnPglzLGxR1DibcZsILA==
+"@cucumber/gherkin@27.0.0":
+  version "27.0.0"
+  resolved "https://registry.yarnpkg.com/@cucumber/gherkin/-/gherkin-27.0.0.tgz#792b7c1b9eb91dd6fba5aca889ac27a6ceaaf794"
+  integrity sha512-j5rCsjqzRiC3iVTier3sa0kzyNbkcAmF7xr7jKnyO7qDeK3Z8Ye1P3KSVpeQRMY+KCDJ3WbTDdyxH0FwfA/fIw==
   dependencies:
-    "@cucumber/messages" "19.1.4 - 21"
+    "@cucumber/messages" ">=19.1.4 <=22"
 
 "@cucumber/gherkin@^24.1.0":
   version "24.1.0"
@@ -1979,12 +1979,22 @@
     reflect-metadata "0.1.13"
     uuid "8.3.2"
 
-"@cucumber/messages@19.1.4 - 21", "@cucumber/messages@21.0.1":
-  version "21.0.1"
-  resolved "https://registry.yarnpkg.com/@cucumber/messages/-/messages-21.0.1.tgz#1468cef60d6da4d4f540a70ab1265f6540f44f51"
-  integrity sha512-pGR7iURM4SF9Qp1IIpNiVQ77J9kfxMkPOEbyy+zRmGABnWWCsqMpJdfHeh9Mb3VskemVw85++e15JT0PYdcR3g==
+"@cucumber/messages@23.0.0":
+  version "23.0.0"
+  resolved "https://registry.yarnpkg.com/@cucumber/messages/-/messages-23.0.0.tgz#fbdf05a9feb07627d0d18fe7767a567de6fbaf1a"
+  integrity sha512-2ZWKNnikNMBnle3P3cgy+fgzhABrY4oBbiWp9wcI8ANdT4LlYRN6jQ6j/9CQGTDGRfkyRtr/5VkYq7q24XCsuA==
   dependencies:
-    "@types/uuid" "8.3.4"
+    "@types/uuid" "9.0.6"
+    class-transformer "0.5.1"
+    reflect-metadata "0.1.13"
+    uuid "9.0.1"
+
+"@cucumber/messages@>=19.1.4 <=22", "@cucumber/messages@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@cucumber/messages/-/messages-22.0.0.tgz#2d86974ebd73046f66d217334c2245365c7990d4"
+  integrity sha512-EuaUtYte9ilkxcKmfqGF9pJsHRUU0jwie5ukuZ/1NPTuHS1LxHPsGEODK17RPRbZHOFhqybNzG2rHAwThxEymg==
+  dependencies:
+    "@types/uuid" "9.0.1"
     class-transformer "0.5.1"
     reflect-metadata "0.1.13"
     uuid "9.0.0"
@@ -2005,16 +2015,6 @@
   integrity sha512-Pksl0pnDz2l1+L5Ug85NlG6LWrrklN9qkMxN5Mv+1XZ3T6u580dnE6mVaxjJRdcOq4tR17Pc0RqIDZMyVY1FlA==
   dependencies:
     "@types/uuid" "8.3.4"
-    class-transformer "0.5.1"
-    reflect-metadata "0.1.13"
-    uuid "9.0.0"
-
-"@cucumber/messages@^22.0.0":
-  version "22.0.0"
-  resolved "https://registry.yarnpkg.com/@cucumber/messages/-/messages-22.0.0.tgz#2d86974ebd73046f66d217334c2245365c7990d4"
-  integrity sha512-EuaUtYte9ilkxcKmfqGF9pJsHRUU0jwie5ukuZ/1NPTuHS1LxHPsGEODK17RPRbZHOFhqybNzG2rHAwThxEymg==
-  dependencies:
-    "@types/uuid" "9.0.1"
     class-transformer "0.5.1"
     reflect-metadata "0.1.13"
     uuid "9.0.0"
@@ -11213,12 +11213,7 @@
   resolved "https://registry.yarnpkg.com/@types/shell-quote/-/shell-quote-1.7.1.tgz#2d059091214a02c29f003f591032172b2aff77e8"
   integrity sha512-SWZ2Nom1pkyXCDohRSrkSKvDh8QOG9RfAsrt5/NsPQC4UQJ55eG0qClA40I+Gkez4KTQ0uDUT8ELRXThf3J5jw==
 
-"@types/sinonjs__fake-timers@^8.1.2":
-  version "8.1.2"
-  resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
-  integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
-
-"@types/sinonjs__fake-timers@^8.1.5":
+"@types/sinonjs__fake-timers@^8.1.2", "@types/sinonjs__fake-timers@^8.1.5":
   version "8.1.5"
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.5.tgz#5fd3592ff10c1e9695d377020c033116cc2889f2"
   integrity sha512-mQkU2jY8jJEF7YHjHvsQO8+3ughTL1mcnn96igfhONmR+fUPSKIkefQYpSe8bsly2Ep7oQbn/6VG5/9/0qcArQ==
@@ -11308,6 +11303,11 @@
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.2.tgz#ede1d1b1e451548d44919dc226253e32a6952c4b"
   integrity sha512-kNnC1GFBLuhImSnV7w4njQkUiJi0ZXUycu1rUaouPqiKlXkh77JKgdRnTAp1x5eBwcIwbtI+3otwzuIDEuDoxQ==
+
+"@types/uuid@9.0.6":
+  version "9.0.6"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.6.tgz#c91ae743d8344a54b2b0c691195f5ff5265f6dfb"
+  integrity sha512-BT2Krtx4xaO6iwzwMFUYvWBWkV2pr37zD68Vmp1CDV196MzczBRxuEpD6Pr395HAgebC/co7hOphs53r8V7jew==
 
 "@types/uuid@^9.0.1", "@types/uuid@^9.0.8":
   version "9.0.8"
@@ -12108,23 +12108,23 @@
     glob "^10.2.2"
     import-meta-resolve "^4.0.0"
 
-"@wdio/cucumber-framework@^7.19.1":
-  version "7.32.3"
-  resolved "https://registry.yarnpkg.com/@wdio/cucumber-framework/-/cucumber-framework-7.32.3.tgz#945b6d30128b193132b515380b29bf2efa919e5b"
-  integrity sha512-7FqlnxuebumkjzaZ+CWdoHiufxCh5neMBo0GKm6CetJbxPc2MeRux7Hg7QTr2s/aTZdJnbSN38iFkIwVM9OZ6g==
+"@wdio/cucumber-framework@^7.40.0":
+  version "7.40.0"
+  resolved "https://registry.yarnpkg.com/@wdio/cucumber-framework/-/cucumber-framework-7.40.0.tgz#52a79fc463aedeae835d87f444fc4ce56994d2b6"
+  integrity sha512-J/nQMhc6aJuwzZo/tIi0O3aYFCWB9Sg8eVmGaOKefVaQil6oHiOMkWVXAjN6nAGseR0XEsn4R7Ayio3ef2VbxQ==
   dependencies:
     "@cucumber/cucumber" "8.6.0"
-    "@cucumber/gherkin" "26.0.3"
+    "@cucumber/gherkin" "27.0.0"
     "@cucumber/gherkin-streams" "^5.0.0"
-    "@cucumber/messages" "21.0.1"
+    "@cucumber/messages" "23.0.0"
     "@types/glob" "^8.1.0"
     "@types/is-glob" "^4.0.1"
     "@types/long" "^4.0.1"
     "@types/mockery" "^1.4.29"
     "@types/sinonjs__fake-timers" "^8.1.2"
     "@wdio/logger" "7.26.0"
-    "@wdio/types" "7.30.2"
-    "@wdio/utils" "7.30.2"
+    "@wdio/types" "7.40.0"
+    "@wdio/utils" "7.40.0"
     expect-webdriverio "^3.0.0"
     glob "^8.0.3"
     is-glob "^4.0.0"
@@ -12195,7 +12195,7 @@
     loglevel-plugin-prefix "^0.8.4"
     strip-ansi "^6.0.0"
 
-"@wdio/logger@9.1.3", "@wdio/logger@^9.1.3":
+"@wdio/logger@9.1.3":
   version "9.1.3"
   resolved "https://registry.yarnpkg.com/@wdio/logger/-/logger-9.1.3.tgz#b64b3d2ac642498f3c97580e2f0971f13c1e8fbb"
   integrity sha512-cumRMK/gE1uedBUw3WmWXOQ7HtB6DR8EyKQioUz2P0IJtRRpglMBdZV7Svr3b++WWawOuzZHMfbTkJQmaVt8Gw==
@@ -12205,7 +12205,7 @@
     loglevel-plugin-prefix "^0.8.4"
     strip-ansi "^7.1.0"
 
-"@wdio/logger@9.4.4":
+"@wdio/logger@9.4.4", "@wdio/logger@^9.1.3":
   version "9.4.4"
   resolved "https://registry.yarnpkg.com/@wdio/logger/-/logger-9.4.4.tgz#e4851256a076e2b9401f45caaa7a34d6f0278d4a"
   integrity sha512-BXx8RXFUW2M4dcO6t5Le95Hi2ZkTQBRsvBQqLekT2rZ6Xmw8ZKZBPf0FptnoftFGg6dYmwnDidYv/0+4PiHjpQ==
@@ -12384,6 +12384,14 @@
     "@types/node" "^18.0.0"
     got "^11.8.1"
 
+"@wdio/types@7.40.0":
+  version "7.40.0"
+  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-7.40.0.tgz#f0fd067bc64467a96717b14f9c39c513068b170b"
+  integrity sha512-MWMbU+8uk+JrF7ygP/TJDsaSvFozKauiW6EnG7rxx9+GvU1Q1B3l4UjAc7GDbgLKjwt8T2y5GDRiDoD3UOjVyw==
+  dependencies:
+    "@types/node" "^18.0.0"
+    got "^11.8.1"
+
 "@wdio/types@9.4.2":
   version "9.4.2"
   resolved "https://registry.yarnpkg.com/@wdio/types/-/types-9.4.2.tgz#5522f6e77e4179f3f4fe154e02741231db707abb"
@@ -12429,6 +12437,15 @@
   dependencies:
     "@wdio/logger" "7.26.0"
     "@wdio/types" "7.30.2"
+    p-iteration "^1.1.8"
+
+"@wdio/utils@7.40.0":
+  version "7.40.0"
+  resolved "https://registry.yarnpkg.com/@wdio/utils/-/utils-7.40.0.tgz#b654aa8d054a8e85d3043a759ff4e382377492fd"
+  integrity sha512-jLF57xHmz5nnGuM6ZRWjVYa/LQb22CS7yG50dUFa9wJ509mC1HlUzaA01Gjk9TV5jf9vnwE/yZfUMCoecTgG9w==
+  dependencies:
+    "@wdio/logger" "7.26.0"
+    "@wdio/types" "7.40.0"
     p-iteration "^1.1.8"
 
 "@wdio/utils@9.4.2":
@@ -31415,6 +31432,11 @@ uuid@9.0.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
   integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
 
+uuid@9.0.1, uuid@^9.0.0, uuid@^9.0.1:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
+  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
+
 uuid@^3.0.1, uuid@^3.3.2:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
@@ -31424,11 +31446,6 @@ uuid@^7.0.3:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-7.0.3.tgz#c5c9f2c8cf25dc0a372c4df1441c41f5bd0c680b"
   integrity sha512-DPSke0pXhTZgoF/d+WSt2QaKMCFSfx7QegxEWT+JOuHF5aWrKEn0G+ztjuJg/gG8/ItK+rbPCD/yNv8yyih6Cg==
-
-uuid@^9.0.0, uuid@^9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
-  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-to-istanbul@^9.0.1:
   version "9.1.0"
