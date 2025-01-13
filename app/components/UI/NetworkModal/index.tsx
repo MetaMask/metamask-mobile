@@ -46,6 +46,7 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
+import { throttle } from 'lodash';
 
 export interface SafeChain {
   chainId: string;
@@ -266,7 +267,11 @@ const NetworkModals = (props: NetworkProps) => {
 
     if (networkClientId) {
       onUpdateNetworkFilter();
-      await NetworkController.setActiveNetwork(networkClientId);
+      const throttledSetActiveNetwork = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      throttledSetActiveNetwork(networkClientId as string);
     }
 
     onClose();
@@ -292,7 +297,11 @@ const NetworkModals = (props: NetworkProps) => {
       updatedNetwork?.rpcEndpoints?.[updatedNetwork.defaultRpcEndpointIndex] ??
       {};
     onUpdateNetworkFilter();
-    await NetworkController.setActiveNetwork(networkClientId);
+    const throttledSetActiveNetwork = throttle(async (id: string) => {
+      await NetworkController.setActiveNetwork(id);
+    }, 300);
+
+    throttledSetActiveNetwork(networkClientId as string);
   };
 
   const handleNewNetwork = async (
@@ -361,7 +370,11 @@ const NetworkModals = (props: NetworkProps) => {
         {};
 
       onUpdateNetworkFilter();
-      NetworkController.setActiveNetwork(networkClientId);
+      const throttledSetActiveNetwork = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      throttledSetActiveNetwork(networkClientId as string);
     }
     onClose();
 

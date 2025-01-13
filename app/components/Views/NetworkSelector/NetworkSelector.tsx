@@ -233,7 +233,11 @@ const NetworkSelector = () => {
       });
 
       // Set the active network
-      NetworkController.setActiveNetwork(clientId);
+      const throttledSetActiveNetwork = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      throttledSetActiveNetwork(clientId);
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
@@ -287,10 +291,10 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          const debouncedSetActiveNetwork = throttle(async (id: string) => {
+          const throttledSetActiveNetwork = throttle(async (id: string) => {
             await NetworkController.setActiveNetwork(id);
           }, 300);
-          debouncedSetActiveNetwork(networkClientId as string);
+          throttledSetActiveNetwork(networkClientId as string);
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
@@ -423,14 +427,14 @@ const NetworkSelector = () => {
 
         setTokenNetworkFilter(networkConfiguration.chainId);
 
-        const debouncedSetActiveNetwork = throttle(async (id: string) => {
+        const throttledSetActiveNetwork = throttle(async (id: string) => {
           try {
             await NetworkController.setActiveNetwork(id);
           } catch (error) {
             Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
           }
         }, 300);
-        debouncedSetActiveNetwork(clientId as string);
+        throttledSetActiveNetwork(clientId as string);
 
         const debouncedRefresh = throttle(() => {
           try {

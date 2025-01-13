@@ -69,7 +69,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
-import { debounce } from 'lodash';
+import { throttle } from 'lodash';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -196,11 +196,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        const debouncedSetActiveNetwork = debounce(async (id: string) => {
+        const throttledSetActiveNetwork = throttle(async (id: string) => {
           await NetworkController.setActiveNetwork(id);
         }, 300);
 
-        debouncedSetActiveNetwork(networkClientId as string);
+        throttledSetActiveNetwork(networkClientId as string);
       }
     }
     if (asset.isETH && ticker) {
@@ -231,13 +231,23 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        NetworkController.setActiveNetwork(networkClientId as string).then(
-          () => {
-            setTimeout(() => {
-              handleSwapNavigation();
-            }, 500);
+        // Create a throttled version of setActiveNetwork
+        const throttledSetActiveNetwork = throttle(
+          async (networkClientIdToUse: string) => {
+            try {
+              await NetworkController.setActiveNetwork(networkClientIdToUse);
+              setTimeout(() => {
+                handleSwapNavigation();
+              }, 500);
+            } catch (error) {
+              Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+            }
           },
+          300,
+          { leading: true, trailing: false },
         );
+
+        throttledSetActiveNetwork(networkClientId as string);
       } else {
         handleSwapNavigation();
       }

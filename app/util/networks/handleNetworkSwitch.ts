@@ -41,7 +41,11 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-    networkController.setActiveNetwork(networkClientId);
+    const throttledSetActiveNetwork = throttle(async (id) => {
+      await networkController.setActiveNetwork(id);
+    }, 300);
+
+    throttledSetActiveNetwork(networkClientId);
     return nickname;
   }
 };
