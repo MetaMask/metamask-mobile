@@ -14,7 +14,6 @@ const SwitchCustomNetwork = ({
   currentPageInformation,
   onCancel,
   onConfirm,
-  type,
 }) => {
   const { networkName } = useNetworkInfo(
     new URL(currentPageInformation.url).hostname,
