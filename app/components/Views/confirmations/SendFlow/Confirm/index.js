@@ -128,7 +128,13 @@ import {
   validateSufficientBalance,
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
-import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import {
+  selectNativeCurrencyByChainId,
+  // Pending updated multichain UX to specify the send chain.
+  // eslint-disable-next-line no-restricted-syntax
+  selectNetworkClientId,
+  selectProviderTypeByChainId
+} from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const EDIT = 'edit';
@@ -192,9 +198,13 @@ class Confirm extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
-     * ID of the global network client
+     * ID of the associated network client
      */
     networkClientId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    globalNetworkClientId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -446,12 +456,12 @@ class Confirm extends PureComponent {
   componentDidMount = async () => {
     const {
       chainId,
-      networkClientId,
+      globalNetworkClientId,
       showCustomNonce,
       navigation,
       providerType,
       isPaymentRequest,
-      setTransactionId,
+      setTransactionId
     } = this.props;
 
     const {
@@ -496,7 +506,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId,
+          networkClientId: globalNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -1562,6 +1572,7 @@ const mapStateToProps = (state) => {
     showCustomNonce: state.settings.showCustomNonce,
     chainId,
     networkClientId,
+    globalNetworkClientId: selectNetworkClientId(state),
     ticker: selectNativeCurrencyByChainId(state, chainId),
     transaction,
     selectedAsset: state.transaction.selectedAsset,
@@ -1581,7 +1592,7 @@ const mapStateToProps = (state) => {
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   prepareTransaction: (transaction) =>
