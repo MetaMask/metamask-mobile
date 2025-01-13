@@ -10,6 +10,46 @@ exports[`UrlAutocomplete should render correctly 1`] = `
     }
   }
 >
+  <TouchableOpacity
+    containerStyle={
+      {
+        "flex": 1,
+        "marginBottom": 20,
+      }
+    }
+    onPress={[Function]}
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "marginBottom": 20,
+          "paddingHorizontal": 15,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flex": 1,
+            "marginLeft": 10,
+          }
+        }
+      >
+        <Text
+          numberOfLines={1}
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        />
+      </View>
+    </View>
+  </TouchableOpacity>
   <View
     accessibilityState={
       {
