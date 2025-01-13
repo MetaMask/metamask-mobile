@@ -78,7 +78,7 @@ const createStyles = (colors) =>
  * PureComponent that renders an autocomplete
  * based on an input string
  */
-class UrlAutocomplete extends PureComponent {
+export class UrlAutocomplete extends PureComponent {
   static propTypes = {
     /**
      * input text for the autocomplete
