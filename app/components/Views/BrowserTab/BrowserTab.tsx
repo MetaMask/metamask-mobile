@@ -973,9 +973,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           query,
           pathname,
         });
-        const { url: ipfsUrl, type, hash, reload } = ipfsContent;
-        if (!ipfsUrl) return null;
+        if (!ipfsContent || !ipfsContent.url) return null;
+        const { url: ipfsUrl, reload } = ipfsContent;
+        // Reload with IPFS url
         if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
+        if (!ipfsContent.hash || !ipfsContent.type) {
+          Logger.error(
+            new Error('IPFS content is missing hash or type'),
+            'Error in handleEnsUrl',
+          );
+          return null;
+        }
+        const { type, hash } = ipfsContent;
         sessionENSNames[ipfsUrl] = { hostname, hash, type };
         setIsResolvedIpfsUrl(true);
         return ipfsUrl;
@@ -996,12 +1005,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
       // Format url for browser to be navigatable by webview
       const processedUrl = processUrlForBrowser(text, searchEngine);
       if (isENSUrl(processedUrl, ensIgnoreList)) {
-        onSubmitEditingRef.current(
-          await handleEnsUrl(
-            processedUrl.replace(regex.urlHttpToHttps, 'https://'),
-          ),
+        const handledEnsUrl = await handleEnsUrl(
+          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
-        return;
+        if (!handledEnsUrl) {
+          Logger.error(
+            new Error('Failed to handle ENS url'),
+            'Error in onSubmitEditing',
+          );
+          return;
+        }
+        return onSubmitEditingRef.current(handledEnsUrl);
       }
       // Directly update url in webview
       webviewRef.current?.injectJavaScript(`
