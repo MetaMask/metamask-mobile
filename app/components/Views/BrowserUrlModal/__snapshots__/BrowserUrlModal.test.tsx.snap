@@ -9,81 +9,86 @@ exports[`BrowserUrlModal should render correctly 1`] = `
     }
   }
 >
-  <View
+  <RNCSafeAreaView
     style={
       {
         "backgroundColor": "#ffffff",
-        "flexDirection": "row",
-        "height": 87,
-        "paddingHorizontal": 10,
-        "paddingTop": 50,
+        "flex": 1,
       }
     }
   >
     <View
       style={
         {
-          "backgroundColor": "#f2f4f6",
-          "borderRadius": 30,
-          "flex": 1,
+          "alignItems": "center",
           "flexDirection": "row",
-          "height": 30,
+          "paddingHorizontal": 10,
         }
       }
     >
-      <TextInput
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoFocus={true}
-        keyboardAppearance="light"
-        keyboardType="web-search"
-        onChangeText={[Function]}
-        onSubmitEditing={[Function]}
-        placeholder="Search or Type URL"
-        placeholderTextColor="#9fa6ae"
-        returnKeyType="go"
-        selectTextOnFocus={true}
+      <View
         style={
           {
-            "color": "#141618",
+            "backgroundColor": "#f2f4f6",
+            "borderRadius": 30,
             "flex": 1,
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
-            "paddingLeft": 15,
-          }
-        }
-        testID="browser-modal-url-input"
-      />
-    </View>
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
-        {
-          "justifyContent": "center",
-          "marginLeft": 10,
-          "marginTop": -6,
-        }
-      }
-      testID="cancel-url-button"
-    >
-      <Text
-        style={
-          {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
+            "flexDirection": "row",
           }
         }
       >
-        Cancel
-      </Text>
-    </TouchableOpacity>
-  </View>
-  <Component
-    onDismiss={[Function]}
-    onSubmit={[Function]}
-  />
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoFocus={true}
+          keyboardAppearance="light"
+          keyboardType="web-search"
+          onChangeText={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="Search or Type URL"
+          placeholderTextColor="#9fa6ae"
+          returnKeyType="go"
+          selectTextOnFocus={true}
+          style={
+            {
+              "color": "#141618",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingLeft": 15,
+              "paddingVertical": 6,
+            }
+          }
+          testID="browser-modal-url-input"
+        />
+      </View>
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "marginLeft": 10,
+          }
+        }
+        testID="cancel-url-button"
+      >
+        <Text
+          style={
+            {
+              "color": "#0376c9",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <Component
+      onDismiss={[Function]}
+      onSubmit={[Function]}
+    />
+  </RNCSafeAreaView>
 </ForwardRef>
 `;
