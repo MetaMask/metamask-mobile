@@ -486,6 +486,10 @@ class Amount extends PureComponent {
      * Function that sets the max value mode
      */
     setMaxValueMode: PropTypes.func,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -874,10 +878,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -937,7 +946,7 @@ class Amount extends PureComponent {
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
 
-    setMaxValueMode(useMax ?? false)
+    setMaxValueMode(useMax ?? false);
 
     let inputValueConversion,
       renderableInputValueConversion,
@@ -1546,6 +1555,7 @@ Amount.contextType = ThemeContext;
 const mapStateToProps = (state, ownProps) => {
   const transaction = ownProps.transaction || state.transaction;
   const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
 
   return {
     accounts: selectAccounts(state),
@@ -1571,6 +1581,7 @@ const mapStateToProps = (state, ownProps) => {
     ),
     swapsIsLive: swapsLivenessSelector(state),
     chainId,
+    networkClientId,
   };
 }
 
