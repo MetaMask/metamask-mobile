@@ -22,7 +22,7 @@ interface MessageParamsType {
 const getAnalyticsParams = (
   messageParams: MessageParamsType,
   type: string,
-  chainId: Hex,
+  chainId?: Hex,
 ) => {
   const { meta = {}, from, securityAlertResponse, version } = messageParams;
 
