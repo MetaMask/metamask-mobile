@@ -491,6 +491,10 @@ class Amount extends PureComponent {
      * Function that sets the max value mode
      */
     setMaxValueMode: PropTypes.func,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
