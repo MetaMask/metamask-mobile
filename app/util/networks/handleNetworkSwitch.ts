@@ -1,4 +1,5 @@
 import { toHex } from '@metamask/controller-utils';
+import { throttle } from 'lodash';
 import { NetworkController } from '@metamask/network-controller';
 import Engine from '../../core/Engine';
 import {
@@ -41,7 +42,7 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-    const throttledSetActiveNetwork = throttle(async (id) => {
+    const throttledSetActiveNetwork = throttle(async (id: string) => {
       await networkController.setActiveNetwork(id);
     }, 300);
 
