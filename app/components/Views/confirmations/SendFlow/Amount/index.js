@@ -78,6 +78,7 @@ import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -485,6 +486,10 @@ class Amount extends PureComponent {
      * Type of gas fee estimate provided by the gas fee controller.
      */
     gasEstimateType: PropTypes.string,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -872,10 +877,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -1557,6 +1567,7 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
