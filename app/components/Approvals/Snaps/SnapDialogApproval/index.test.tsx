@@ -152,7 +152,6 @@ describe('SnapDialogApproval', () => {
         approvalRequest: mockApprovalRequest('invalid_type'),
       });
 
-      const { UNSAFE_root } = renderWithProvider(<SnapDialogApproval />);
       const { queryByText } = renderWithProvider(<SnapDialogApproval />);
       expect(queryByText('OK')).toBeNull();
       expect(queryByText('Cancel')).toBeNull();
