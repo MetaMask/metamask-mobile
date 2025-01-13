@@ -973,7 +973,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
           query,
           pathname,
         });
-        if (!ipfsContent || !ipfsContent.url) return null;
+        if (!ipfsContent?.url) return null;
         const { url: ipfsUrl, reload } = ipfsContent;
         // Reload with IPFS url
         if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
