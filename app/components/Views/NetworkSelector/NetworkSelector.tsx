@@ -96,7 +96,7 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
-import { debounce, throttle } from 'lodash';
+import { throttle } from 'lodash';
 
 interface infuraNetwork {
   name: string;
