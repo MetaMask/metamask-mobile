@@ -502,12 +502,6 @@ export class Engine {
         'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
     });
 
-    const getMetaMetricsId = () => {
-      // MetaMetrics.getInstance().getMetaMetricsId()
-      return 'uid';
-
-    };
-
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
@@ -516,7 +510,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
-      getMetaMetricsId,
+      getMetaMetricsId: () => store.getState().user.metaMetricsId,
     });
 
     const phishingController = new PhishingController({

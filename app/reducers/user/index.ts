@@ -22,6 +22,7 @@ export const userInitialState: UserState = {
   initialScreen: '',
   appTheme: AppThemeKey.os,
   ambiguousAddressEntries: {},
+  metaMetricsId: '',
 };
 
 /**
@@ -109,6 +110,11 @@ const userReducer = (
         ...state,
         appTheme: action.payload.theme,
       };
+    case UserActionType.SET_METAMETRICS_ID:
+      return {
+        ...state,
+        metaMetricsId: action.payload.metaMetricsId,
+      }
     default:
       return state;
   }

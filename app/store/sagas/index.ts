@@ -133,8 +133,11 @@ export function* startAppServices() {
   yield all([
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
+    //temp set metametrics id before engine init
+    take(UserActionType.SET_METAMETRICS_ID),
   ]);
   // Start services
+  // init metametrics
   EngineService.start();
   AppStateEventProcessor.start();
   // TODO: Track a property in redux to gate keep the app until services are initialized
