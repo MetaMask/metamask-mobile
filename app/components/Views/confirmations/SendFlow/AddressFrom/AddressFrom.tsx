@@ -18,6 +18,7 @@ import { SFAddressFromProps } from './AddressFrom.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 const SendFlowAddressFrom = ({
   chainId,
@@ -29,7 +30,7 @@ const SendFlowAddressFrom = ({
   const accounts = useSelector(selectAccounts);
 
   const ticker = useSelector((state: RootState) =>
-    selectNativeCurrencyByChainId(state, chainId),
+    selectNativeCurrencyByChainId(state, chainId as Hex),
   );
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
