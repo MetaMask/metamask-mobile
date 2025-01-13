@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
@@ -16,6 +16,12 @@ import {
 } from '../../../../../../../selectors/networkController';
 import { RootState } from '../../../../../../../reducers';
 import { Hex } from '@metamask/utils';
+
+const styles = StyleSheet.create({
+  addressRowValue: {
+    paddingTop: 8,
+  },
+});
 
 const AccountNetworkInfoExpanded = () => {
   const signatureRequest = useSignatureRequest();
@@ -36,7 +42,9 @@ const AccountNetworkInfoExpanded = () => {
     <View>
       <InfoSection>
         <InfoRow label={strings('confirm.account')}>
-          <Address address={accountAddress} chainId={chainId} />
+          <View style={styles.addressRowValue}>
+            <Address address={accountAddress} chainId={chainId} />
+          </View>
         </InfoRow>
         <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>

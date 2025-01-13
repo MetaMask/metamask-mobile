@@ -108,6 +108,13 @@ export function wipeTransactions(
   return TransactionController.wipeTransactions(...args);
 }
 
+export function updateEditableParams(
+  ...args: Parameters<BaseTransactionController['updateEditableParams']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateEditableParams(...args);
+}
+
 export const getNetworkNonce = async (
   { from }: { from: string },
   networkClientId: NetworkClientId,
