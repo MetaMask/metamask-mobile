@@ -1,7 +1,6 @@
 import { MessageParamsTyped } from '@metamask/signature-controller';
-import { RootState } from '../../reducers';
 import { backgroundState } from './initial-root-state';
-import { DeepPartial } from './renderWithProvider';
+import { Hex } from '@metamask/utils';
 
 export const personalSignatureConfirmationState = {
   engine: {
@@ -37,7 +36,7 @@ export const personalSignatureConfirmationState = {
   },
 };
 
-export const typedSignV1ConfirmationState: DeepPartial<RootState> = {
+export const typedSignV1ConfirmationState = {
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -75,7 +74,7 @@ export const typedSignV1ConfirmationState: DeepPartial<RootState> = {
       SignatureController: {
         signatureRequests: {
           '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
-            chainId: '0x1',
+            chainId: '0x1' as Hex,
             messageParams: {
               data: [
                 { type: 'string', name: 'Message', value: 'Hi, Alice!' },
