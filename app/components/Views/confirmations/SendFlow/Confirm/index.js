@@ -718,7 +718,8 @@ class Confirm extends PureComponent {
       prepareTransaction,
       transactionState: { transaction },
     } = this.props;
-    const estimation = await getGasLimit(transaction, true);
+    const { networkClientId } = this.props;
+    const estimation = await getGasLimit(transaction, true, networkClientId);
     prepareTransaction({ ...transaction, ...estimation });
   };
 
@@ -1457,14 +1458,16 @@ class Confirm extends PureComponent {
               </View>
             </View>
           )}
-          {useTransactionSimulations && transactionState?.id && (
-            <View style={styles.simulationWrapper}>
-              <SimulationDetails
-                transaction={transactionMetadata}
-                enableMetrics
-              />
-            </View>
-          )}
+          {useTransactionSimulations &&
+            transactionState?.id &&
+            transactionMetadata && (
+              <View style={styles.simulationWrapper}>
+                <SimulationDetails
+                  transaction={transactionMetadata}
+                  enableMetrics
+                />
+              </View>
+            )}
           <TransactionReview
             gasSelected={this.state.gasSelected}
             primaryCurrency={primaryCurrency}
