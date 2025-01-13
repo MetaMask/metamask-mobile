@@ -197,15 +197,21 @@ class UrlAutocomplete extends PureComponent {
     let results = [];
     if (!this.props.input || this.props.input.length === 0) {
       results = [
-        ...this.props.browserHistory.slice(-MAX_RECENTS).reverse(),
+        ...this.props.browserHistory.reverse(),
         ...this.props.bookmarks,
       ]
     } else {
       results = this.state.results;
     }
 
-    const resultsByCategory = results.reduce((acc, i) => {
-      acc[i.type] = [...acc[i.type] || [], i];
+    const resultsByCategory = results.reduce((acc, currentResult) => {
+      acc[currentResult.type] = acc[currentResult.type] || [];
+      if (
+        (currentResult.type !== 'recents' || (acc.recents.length  < MAX_RECENTS)) &&
+        !acc[currentResult.type].find(result => result.url === currentResult.url)
+       ) {
+        acc[currentResult.type] = [...acc[currentResult.type], currentResult];
+      }
       return acc;
     }, {});
 
