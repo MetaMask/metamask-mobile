@@ -1,25 +1,22 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../../../locales/i18n';
 import { selectChainId } from '../../../../../../../selectors/networkController';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
 import InfoRow from '../../../UI/InfoRow';
 import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
 import { DataTreeInput } from '../../DataTree/DataTree';
-
-const styles = StyleSheet.create({
-  collpasedInfoRow: {
-    marginStart: -8,
-  },
-});
+import styleSheet from './Message.styles';
 
 const Message = () => {
   const { approvalRequest } = useApprovalRequest();
   const chainId = useSelector(selectChainId);
+  const { styles } = useStyles(styleSheet, {});
 
   const typedSignData = approvalRequest?.requestData?.data;
 
@@ -41,10 +38,19 @@ const Message = () => {
         </InfoRow>
       }
       messageExpanded={
-        <DataTree
-          data={sanitizedMessage.value as unknown as DataTreeInput}
-          chainId={chainId}
-        />
+        <View>
+          <Text style={styles.title}>{strings('confirm.message')}</Text>
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.collpasedInfoRow}
+          >
+            {primaryType}
+          </InfoRow>
+          <DataTree
+            data={sanitizedMessage.value as unknown as DataTreeInput}
+            chainId={chainId}
+          />
+        </View>
       }
       copyMessageText={typedSignData}
     />
