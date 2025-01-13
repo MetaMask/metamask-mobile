@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { act } from '@testing-library/react-native';
-import PermitSimulationValueDisplay from './ValueDisplay';
+import SimulationValueDisplay from './ValueDisplay';
 
 import { memoizedGetTokenStandardAndDetails } from '../../../../../utils/token';
 import useGetTokenStandardAndDetails from '../../../../../hooks/useGetTokenStandardAndDetails';
@@ -29,7 +29,7 @@ jest.mock('../../../../../../../../../util/address', () => ({
   renderShortAddress: jest.requireActual('../../../../../../../../../util/address').renderShortAddress
 }));
 
-describe('PermitSimulationValueDisplay', () => {
+describe('SimulationValueDisplay', () => {
   beforeEach(() => {
     (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -63,7 +63,7 @@ describe('PermitSimulationValueDisplay', () => {
     });
 
     const { findByText } = renderWithProvider(
-      <PermitSimulationValueDisplay
+      <SimulationValueDisplay
         labelChangeType={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
@@ -89,7 +89,7 @@ describe('PermitSimulationValueDisplay', () => {
     });
 
     renderWithProvider(
-      <PermitSimulationValueDisplay
+      <SimulationValueDisplay
         labelChangeType={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
@@ -115,7 +115,7 @@ describe('PermitSimulationValueDisplay', () => {
     });
 
     renderWithProvider(
-      <PermitSimulationValueDisplay
+      <SimulationValueDisplay
         labelChangeType={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
@@ -142,7 +142,7 @@ describe('PermitSimulationValueDisplay', () => {
 
     it('should not invoke method to track missing decimal information', async () => {
       renderWithProvider(
-        <PermitSimulationValueDisplay
+        <SimulationValueDisplay
           labelChangeType={'Withdraw'}
           tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
           tokenId={'1234'}

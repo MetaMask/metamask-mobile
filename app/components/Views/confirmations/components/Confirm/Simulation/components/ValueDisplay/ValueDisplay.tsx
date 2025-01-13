@@ -32,7 +32,7 @@ import BottomModal from '../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
 
-interface PermitSimulationValueDisplayParams {
+interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
@@ -64,8 +64,8 @@ interface PermitSimulationValueDisplayParams {
   value?: number | string;
 }
 
-const PermitSimulationValueDisplay: React.FC<
-  PermitSimulationValueDisplayParams
+const SimulationValueDisplay: React.FC<
+  SimulationValueDisplayParams
 > = ({
   chainId,
   labelChangeType,
@@ -121,7 +121,7 @@ const PermitSimulationValueDisplay: React.FC<
     if (!tokenContract) {
       Logger.error(
         new Error(
-          `PermitSimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
+          `SimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
         ),
       );
       return null;
@@ -198,4 +198,4 @@ const PermitSimulationValueDisplay: React.FC<
     );
   };
 
-export default PermitSimulationValueDisplay;
+export default SimulationValueDisplay;
