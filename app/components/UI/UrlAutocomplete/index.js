@@ -245,8 +245,7 @@ class UrlAutocomplete extends PureComponent {
     return (
       <ScrollView style={styles.wrapper} contentContainerStyle={styles.contentContainer}>
         {
-          categoriesWithResults.map(category => {
-            return (
+          categoriesWithResults.map(category => (
               <View key={category}>
                 <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
                 {resultsByCategory[category].map((r) => {
@@ -258,7 +257,7 @@ class UrlAutocomplete extends PureComponent {
                 })}
               </View>
             )
-          })
+          )
         }
         <TouchableWithoutFeedback
           style={styles.bg}
