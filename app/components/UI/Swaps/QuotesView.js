@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -96,7 +96,7 @@ import {
 import {
   selectChainId,
   selectIsEIP1559Network,
-  selectNetworkClientId,
+  selectSelectedNetworkClientId,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -304,6 +304,7 @@ async function resetAndStartPolling({
   destinationToken,
   sourceAmount,
   walletAddress,
+  networkClientId,
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -316,6 +317,7 @@ async function resetAndStartPolling({
     destinationToken,
     sourceAmount,
     walletAddress,
+    networkClientId,
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
@@ -739,7 +741,7 @@ function SwapsQuotesView({
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.GAS_FEES_CHANGED)
-          .addSensitiveProperties(parameters)
+          .addProperties(parameters)
           .build(),
       );
     },
@@ -762,6 +764,8 @@ function SwapsQuotesView({
     }
   }, [error, navigation]);
 
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
   const handleRetryFetchQuotes = useCallback(() => {
     if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
       navigation.setParams({ leftAction: strings('navigation.back') });
@@ -776,6 +780,7 @@ function SwapsQuotesView({
         destinationToken,
         sourceAmount,
         walletAddress: selectedAddress,
+        networkClientId: selectedNetworkClientId,
       });
     } else {
       navigation.pop();
@@ -788,6 +793,7 @@ function SwapsQuotesView({
     sourceAmount,
     selectedAddress,
     navigation,
+    selectedNetworkClientId,
   ]);
 
   const updateSwapsTransactions = useCallback(
@@ -871,15 +877,7 @@ function SwapsQuotesView({
       const parameters = {
         account_type: getAddressAccountType(selectedAddress),
         token_from: sourceToken.symbol,
-        token_from_amount: fromTokenMinimalUnitString(
-          sourceAmount,
-          sourceToken.decimals,
-        ),
         token_to: destinationToken.symbol,
-        token_to_amount: fromTokenMinimalUnitString(
-          selectedQuote.destinationAmount,
-          destinationToken.decimals,
-        ),
         request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -895,9 +893,20 @@ function SwapsQuotesView({
         chain_id: getDecimalChainId(chainId),
         is_smart_transaction: shouldUseSmartTransaction,
       };
+      const sensitiveParameters = {
+        token_from_amount: fromTokenMinimalUnitString(
+          sourceAmount,
+          sourceToken.decimals,
+        ),
+        token_to_amount: fromTokenMinimalUnitString(
+          selectedQuote.destinationAmount,
+          destinationToken.decimals,
+        ),
+      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_STARTED)
-          .addSensitiveProperties(parameters)
+          .addProperties(parameters)
+          .addSensitiveProperties(sensitiveParameters)
           .build(),
       );
     },
@@ -1157,15 +1166,7 @@ function SwapsQuotesView({
 
     const parameters = {
       token_from: sourceToken.symbol,
-      token_from_amount: fromTokenMinimalUnitString(
-        sourceAmount,
-        sourceToken.decimals,
-      ),
       token_to: destinationToken.symbol,
-      token_to_amount: fromTokenMinimalUnitString(
-        selectedQuote.destinationAmount,
-        destinationToken.decimals,
-      ),
       request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
       slippage,
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -1181,9 +1182,20 @@ function SwapsQuotesView({
       custom_spend_limit_amount: currentAmount,
       chain_id: getDecimalChainId(chainId),
     };
+    const sensitiveParameters = {
+      token_from_amount: fromTokenMinimalUnitString(
+        sourceAmount,
+        sourceToken.decimals,
+      ),
+      token_to_amount: fromTokenMinimalUnitString(
+        selectedQuote.destinationAmount,
+        destinationToken.decimals,
+      ),
+    };
     trackEvent(
       createEventBuilder(MetaMetricsEvents.EDIT_SPEND_LIMIT_OPENED)
-        .addSensitiveProperties(parameters)
+        .addProperties(parameters)
+        .addSensitiveProperties(sensitiveParameters)
         .build(),
     );
   }, [
@@ -1209,15 +1221,7 @@ function SwapsQuotesView({
     if (!selectedQuote || !selectedQuoteValue) return;
     const parameters = {
       token_from: sourceToken.symbol,
-      token_from_amount: fromTokenMinimalUnitString(
-        sourceAmount,
-        sourceToken.decimals,
-      ),
       token_to: destinationToken.symbol,
-      token_to_amount: fromTokenMinimalUnitString(
-        selectedQuote.destinationAmount,
-        destinationToken.decimals,
-      ),
       request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
       slippage,
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -1232,9 +1236,20 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
+    const sensitiveParameters = {
+      token_from_amount: fromTokenMinimalUnitString(
+        sourceAmount,
+        sourceToken.decimals,
+      ),
+      token_to_amount: fromTokenMinimalUnitString(
+          selectedQuote.destinationAmount,
+        destinationToken.decimals,
+      ),
+    };
     trackEvent(
       createEventBuilder(MetaMetricsEvents.QUOTES_RECEIVED)
-        .addSensitiveProperties(parameters)
+        .addProperties(parameters)
+        .addSensitiveProperties(sensitiveParameters)
         .build(),
     );
   }, [
@@ -1258,15 +1273,7 @@ function SwapsQuotesView({
     toggleQuotesModal();
     const parameters = {
       token_from: sourceToken.symbol,
-      token_from_amount: fromTokenMinimalUnitString(
-        sourceAmount,
-        sourceToken.decimals,
-      ),
       token_to: destinationToken.symbol,
-      token_to_amount: fromTokenMinimalUnitString(
-        selectedQuote.destinationAmount,
-        destinationToken.decimals,
-      ),
       request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
       slippage,
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
@@ -1281,10 +1288,21 @@ function SwapsQuotesView({
       available_quotes: allQuotes.length,
       chain_id: getDecimalChainId(chainId),
     };
+    const sensitiveParameters = {
+      token_from_amount: fromTokenMinimalUnitString(
+        sourceAmount,
+        sourceToken.decimals,
+      ),
+      token_to_amount: fromTokenMinimalUnitString(
+        selectedQuote.destinationAmount,
+        destinationToken.decimals,
+      ),
+    };
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ALL_AVAILABLE_QUOTES_OPENED)
-        .addSensitiveProperties(parameters)
+        .addProperties(parameters)
+        .addSensitiveProperties(sensitiveParameters)
         .build(),
     );
   }, [
@@ -1308,15 +1326,17 @@ function SwapsQuotesView({
     (error) => {
       const data = {
         token_from: sourceToken.symbol,
-        token_from_amount: fromTokenMinimalUnitString(
-          sourceAmount,
-          sourceToken.decimals,
-        ),
         token_to: destinationToken.symbol,
         request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
         chain_id: getDecimalChainId(chainId),
+      };
+      const sensitiveData = {
+        token_from_amount: fromTokenMinimalUnitString(
+          sourceAmount,
+          sourceToken.decimals,
+        ),
       };
       if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
         const parameters = {
@@ -1326,7 +1346,8 @@ function SwapsQuotesView({
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.QUOTES_TIMED_OUT)
-            .addSensitiveProperties(parameters)
+            .addProperties(parameters)
+            .addSensitiveProperties(sensitiveData)
             .build(),
         );
       } else if (
@@ -1335,7 +1356,8 @@ function SwapsQuotesView({
         const parameters = { ...data };
         trackEvent(
           createEventBuilder(MetaMetricsEvents.NO_QUOTES_AVAILABLE)
-            .addSensitiveProperties(parameters)
+            .addProperties(parameters)
+            .addSensitiveProperties(sensitiveData)
             .build(),
         );
       } else {
@@ -1396,6 +1418,7 @@ function SwapsQuotesView({
       destinationToken,
       sourceAmount,
       walletAddress: selectedAddress,
+      networkClientId: selectedNetworkClientId,
     });
 
     return () => {
@@ -1409,6 +1432,7 @@ function SwapsQuotesView({
     slippage,
     sourceAmount,
     sourceToken.address,
+    selectedNetworkClientId,
   ]);
 
   /** selectedQuote alert effect */
@@ -1606,22 +1630,25 @@ function SwapsQuotesView({
     setTrackedRequestedQuotes(true);
     const data = {
       token_from: sourceToken.symbol,
-      token_from_amount: fromTokenMinimalUnitString(
-        sourceAmount,
-        sourceToken.decimals,
-      ),
       token_to: destinationToken.symbol,
       request_type: hasEnoughTokenBalance ? 'Order' : 'Quote',
       custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
       chain_id: getDecimalChainId(chainId),
     };
-    navigation.setParams({ requestedTrade: data });
+    const sensitiveData = {
+      token_from_amount: fromTokenMinimalUnitString(
+        sourceAmount,
+        sourceToken.decimals,
+      ),
+    };
+    navigation.setParams({ requestedTrade: { ...data, ...sensitiveData } });
     navigation.setParams({ selectedQuote: undefined });
     navigation.setParams({ quoteBegin: Date.now() });
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.QUOTES_REQUESTED)
-        .addSensitiveProperties(data)
+        .addProperties(data)
+        .addSensitiveProperties(sensitiveData)
         .build(),
     );
   }, [
@@ -2384,7 +2411,7 @@ SwapsQuotesView.propTypes = {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
+  networkClientId: selectSelectedNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

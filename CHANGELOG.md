@@ -2,6 +2,74 @@
 
 ## Current Main Branch
 
+## 7.37.1 - Dec 16, 2024
+### Fixed
+- [#12577](https://github.com/MetaMask/metamask-mobile/pull/12577): chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)
+- [#12694](https://github.com/MetaMask/metamask-mobile/pull/12694): fix: small refactoring of the latest migration script + add a new migration case (#12694)
+- [#12664](https://github.com/MetaMask/metamask-mobile/pull/12664): fix: mark transactions as failed for cancelled / unknown smart transactions (#12664)
+
+## 7.37.0 - Nov 28, 2024
+### Added
+- [#12091](https://github.com/MetaMask/metamask-mobile/pull/12091): feat: 2020 Add a performance test for iOS in Bitrise (#12091)
+- [#12148](https://github.com/MetaMask/metamask-mobile/pull/12148): feat: Enable smart transactions for new users (#12148)
+- [#12442](https://github.com/MetaMask/metamask-mobile/pull/12442): test: add a new unit test to cover for multichain feature flags ON (#12442)
+- [#12420](https://github.com/MetaMask/metamask-mobile/pull/12420): feat(3598): non permitted chain flow small improvements (#12420)
+- [#12198](https://github.com/MetaMask/metamask-mobile/pull/12198): feat: custom names for snap accounts  (Flask only) (#12198)
+- [#12396](https://github.com/MetaMask/metamask-mobile/pull/12396): feat(ramp): enable buy button in asset overview (#12396)
+- [#11613](https://github.com/MetaMask/metamask-mobile/pull/11613): feat(ramp): improve amount editing formatting (#11613)
+- [#12393](https://github.com/MetaMask/metamask-mobile/pull/12393): feat: Creating data tree for signed type V1 signatures (#12393)
+- [#12160](https://github.com/MetaMask/metamask-mobile/pull/12160): feat: Integrate NFT api to display image & names in simulations includes `erc721`s (#12160)
+- [#12324](https://github.com/MetaMask/metamask-mobile/pull/12324): feat: confirmation re-designs add basic page for types sign V1 signature request (#12324)
+- [#11424](https://github.com/MetaMask/metamask-mobile/pull/11424): feat: add workflow for updating automated test results in TestRail (#11424)
+- [#12337](https://github.com/MetaMask/metamask-mobile/pull/12337): feat: updated staking events to use withMetaMetrics helper (#12337)
+- [#12363](https://github.com/MetaMask/metamask-mobile/pull/12363): feat: add PooledStaking slice for managing staking state (#12363)
+- [#12398](https://github.com/MetaMask/metamask-mobile/pull/12398): feat: limit input digits to 12 in useInputHandler (#12398)
+- [#12344](https://github.com/MetaMask/metamask-mobile/pull/12344): feat: upgrade assets controllers to v44 (#12344)
+- [#12340](https://github.com/MetaMask/metamask-mobile/pull/12340): feat: upgrade assets controllers to version 43 (#12340)
+- [#12270](https://github.com/MetaMask/metamask-mobile/pull/12270): feat: upgrade assets controllers to 42 with multichain token rates (#12270)
+- [#12452](https://github.com/MetaMask/metamask-mobile/pull/12452): feat: updated staking events to use withMetaMetrics helper (#12337) (#12452)
+
+### Changed
+- [#12356](https://github.com/MetaMask/metamask-mobile/pull/12356): chore: Remove unnecessary event prop (#12356)
+- [#12425](https://github.com/MetaMask/metamask-mobile/pull/12425): ci: create ci workflow for multichain flow (#12425)
+- [#12350](https://github.com/MetaMask/metamask-mobile/pull/12350): chore: Bump Snaps packages (#12350)
+- [#11409](https://github.com/MetaMask/metamask-mobile/pull/11409): refactor: use `withKeyring` to batch account restore operation (#11409)
+- [#12339](https://github.com/MetaMask/metamask-mobile/pull/12339): chore: Update accounts-controller @v19.0.0 and keyring-controller @v18.0.0 (#12339)
+- [#12440](https://github.com/MetaMask/metamask-mobile/pull/12440): chore(ramp): upgrade sdk to 1.28.7 (#12440)
+- [#12351](https://github.com/MetaMask/metamask-mobile/pull/12351): refactor(ramp): remove anonymous events (#12351)
+- [#12355](https://github.com/MetaMask/metamask-mobile/pull/12355): chore: Add missing confirmation unit tests (#12355)
+- [#12369](https://github.com/MetaMask/metamask-mobile/pull/12369): chore: upgrade transaction controller to increase polling rate (#12369)
+- [#12202](https://github.com/MetaMask/metamask-mobile/pull/12202): refactor: update swaps quote poll count (#12202)
+- [#10743](https://github.com/MetaMask/metamask-mobile/pull/10743): chore: @metamask/swaps-controller v9 -> v10 (#10743)
+- [#12415](https://github.com/MetaMask/metamask-mobile/pull/12415): chore: Cherry pick 2506358 (merge in trackEvent work) (#12415)
+- [#12238](https://github.com/MetaMask/metamask-mobile/pull/12238): chore: update codeowners (#12238)
+- [#12416](https://github.com/MetaMask/metamask-mobile/pull/12416): chore: Chore/update accounts controller messenger code owner (#12416)
+- [#12366](https://github.com/MetaMask/metamask-mobile/pull/12366): chore: #12184 MVP split engine file (#12366)
+- [#12362](https://github.com/MetaMask/metamask-mobile/pull/12362): chore: Unit tests for tags approval controller undefined  (#12362)
+- [#12343](https://github.com/MetaMask/metamask-mobile/pull/12343): chore: Cherry pick f35d583 (#12343)
+- [#12332](https://github.com/MetaMask/metamask-mobile/pull/12332): chore: do not show staked eth balance when balance is zero on homepage or asset detail (#12332)
+- [#12413](https://github.com/MetaMask/metamask-mobile/pull/12413): chore: simplify cicd rls script (#12413)
+- [#12334](https://github.com/MetaMask/metamask-mobile/pull/12334): chore: updating filter icon (#12334)
+
+### Fixed
+- [#12313](https://github.com/MetaMask/metamask-mobile/pull/12313): fix: Remove run all tests section (#12313)
+- [#12489](https://github.com/MetaMask/metamask-mobile/pull/12489): fix: replace end of navigation init and UIStartup span (#12489)
+- [#12331](https://github.com/MetaMask/metamask-mobile/pull/12331): fix: tags pending approvals receiving undefined  (#12331)
+- [#10486](https://github.com/MetaMask/metamask-mobile/pull/10486): fix: limit ReactNativeWebview message size (#10486)
+- [#12478](https://github.com/MetaMask/metamask-mobile/pull/12478): fix: incorrect event source in analytics and connection (#12478)
+- [#10786](https://github.com/MetaMask/metamask-mobile/pull/10786): fix: added icon to walletconnect metadata (#10786)
+- [#12455](https://github.com/MetaMask/metamask-mobile/pull/12455): fix: gas fee edit from swaps (#12455)
+- [#12370](https://github.com/MetaMask/metamask-mobile/pull/12370): fix: Fix copy of ""Network fee"" on approval (#12370)
+- [#12273](https://github.com/MetaMask/metamask-mobile/pull/12273): fix: Disable confirm button if `transactionMeta` is undefined (#12273)
+- [#12367](https://github.com/MetaMask/metamask-mobile/pull/12367): fix: app crashing after send or swap (#12367)
+- [#12446](https://github.com/MetaMask/metamask-mobile/pull/12446): fix: update wallet_addEthereumChain.js with correct MetricsEventBuilder (#12446)
+- [#12180](https://github.com/MetaMask/metamask-mobile/pull/12180): fix: trackevent enabled is undefined (#12180)
+- [#12315](https://github.com/MetaMask/metamask-mobile/pull/12315): fix: e2e: ensure Decrypt button is displayed (#12315)
+- [#12402](https://github.com/MetaMask/metamask-mobile/pull/12402): fix: fix missing variable patch (#12402)
+- [#12319](https://github.com/MetaMask/metamask-mobile/pull/12319): fix: hide rpc url selector for networks with one rpc (#12319)
+- [#12371](https://github.com/MetaMask/metamask-mobile/pull/12371): fix: fix patch missing variable sentry error (#12371)
+- [#12375](https://github.com/MetaMask/metamask-mobile/pull/12375): fix: breaking selector due to missing controller state (#12375)
+
 ## 7.36.0 - Nov 15, 2024
 ### Added
 - [#12015](https://github.com/MetaMask/metamask-mobile/pull/12015): feat: 1957 crash screen redesign (#12015)
