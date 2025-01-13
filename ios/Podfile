@@ -2,7 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '13.4'
+platform :ios, '15.6'
 prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
