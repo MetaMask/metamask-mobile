@@ -96,7 +96,7 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
-import { debounce } from 'lodash';
+import { debounce, throttle } from 'lodash';
 
 interface infuraNetwork {
   name: string;
@@ -287,7 +287,7 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          const debouncedSetActiveNetwork = debounce(async (id: string) => {
+          const debouncedSetActiveNetwork = throttle(async (id: string) => {
             await NetworkController.setActiveNetwork(id);
           }, 300);
           debouncedSetActiveNetwork(networkClientId as string);
@@ -423,7 +423,7 @@ const NetworkSelector = () => {
 
         setTokenNetworkFilter(networkConfiguration.chainId);
 
-        const debouncedSetActiveNetwork = debounce(async (id: string) => {
+        const debouncedSetActiveNetwork = throttle(async (id: string) => {
           try {
             await NetworkController.setActiveNetwork(id);
           } catch (error) {
@@ -432,7 +432,7 @@ const NetworkSelector = () => {
         }, 300);
         debouncedSetActiveNetwork(clientId as string);
 
-        const debouncedRefresh = debounce(() => {
+        const debouncedRefresh = throttle(() => {
           try {
             AccountTrackerController.refresh();
           } catch (error) {
@@ -441,7 +441,7 @@ const NetworkSelector = () => {
         }, 1000);
         debouncedRefresh();
 
-        const debouncedUpdateIncomingTransactions = debounce(() => {
+        const debouncedUpdateIncomingTransactions = throttle(() => {
           try {
             updateIncomingTransactions([networkConfiguration.chainId]);
           } catch (error) {
