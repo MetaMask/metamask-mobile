@@ -35,6 +35,7 @@
 		android:networkSecurityConfig="@xml/react_native_config"
 		android:largeHeap="true"
      	android:exported="false"
+		android:supportsRtl="true"
      	>
 		<activity
 			android:launchMode="singleInstance"

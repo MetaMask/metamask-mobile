@@ -97,7 +97,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activesupport (>= 6.1.7.3, < 7.1.0)
+  activesupport (>= 6.1.7.5, < 7.1.0)
   cocoapods (= 1.16.2)
 
 RUBY VERSION

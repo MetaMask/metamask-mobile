@@ -26,6 +26,8 @@ import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativesdk.NativeSDKPackage
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
+
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -65,8 +67,12 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         }
     }
 
+    override val reactHost: ReactHost
+    get() = getDefaultReactHost(applicationContext, reactNativeHost)
+
     override fun onCreate() {
         super.onCreate()
+        SoLoader.init(this, OpenSourceMergedSoMapping)
         RNBranchModule.getAutoInstance(this)
 
         try {
@@ -91,7 +97,6 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             DefaultNewArchitectureEntryPoint.load()
         }
 
-        ReactNativeFlipper.initializeFlipper(this, reactNativeHost.reactInstanceManager)
         ApplicationLifecycleDispatcher.onApplicationCreate(this)
     }
 
