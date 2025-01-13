@@ -15,7 +15,7 @@ describe('UrlAutocomplete', () => {
     const { update, findByText } = render(<UrlAutocomplete browserHistory={[]} bookmarks={[]} />, { wrapper: ({ children }) => <ThemeContext.Provider value={mockTheme}>{children}</ThemeContext.Provider>});
     update(<UrlAutocomplete input="uni" browserHistory={[]} bookmarks={[]} />);
     jest.runAllTimers();
-    expect(findByText("Uniswap")).toBeDefined();
+    expect(findByText('Uniswap')).toBeDefined();
     jest.useRealTimers();
   });
 });
