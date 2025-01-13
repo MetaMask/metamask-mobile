@@ -22,7 +22,7 @@ export const createStyles = (colors: any) =>
       height: Device.isAndroid() ? 69 : Device.isIphoneX() ? 97 : 75,
       backgroundColor: colors.background.default,
     },
-    clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
+    clearButton: { marginLeft: 5, alignSelf: 'center' },
     urlInput: {
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,

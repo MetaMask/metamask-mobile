@@ -6,7 +6,6 @@ exports[`UrlAutocomplete should render correctly 1`] = `
     {
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "paddingVertical": 15,
     }
   }
 >

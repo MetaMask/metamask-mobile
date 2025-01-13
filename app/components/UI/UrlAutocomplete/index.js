@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
@@ -17,14 +18,18 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 
 const MAX_RECENTS = 5;
-const ORDERED_CATEGORIES = ['recents', 'favorites', 'sites'];
+const ORDERED_CATEGORIES = ['sites', 'recents', 'favorites'];
+
+const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
-      paddingVertical: 15,
       flex: 1,
       backgroundColor: colors.background.default,
+    },
+    contentContainer: {
+      paddingVertical: 15,
     },
     bookmarkIco: {
       width: 26,
@@ -104,7 +109,11 @@ class UrlAutocomplete extends PureComponent {
   };
 
   componentDidMount() {
-    const allUrls = dappUrlList;
+    const allUrls = [
+      ...dappsWithType,
+      ...this.props.browserHistory,
+      ...this.props.bookmarks,
+    ];
 
     this.fuse = new Fuse(allUrls, {
       shouldSort: true,
@@ -188,11 +197,11 @@ class UrlAutocomplete extends PureComponent {
     let results = [];
     if (!this.props.input || this.props.input.length === 0) {
       results = [
-        ...this.props.browserHistory.slice(-MAX_RECENTS).reverse().map(i => ({...i, type: 'recents'})),
-        ...this.props.bookmarks.map(i => ({...i, type: 'favorites'})),
+        ...this.props.browserHistory.slice(-MAX_RECENTS).reverse(),
+        ...this.props.bookmarks,
       ]
     } else {
-      results = this.state.results.map(i => ({...i, type: 'sites'}));
+      results = this.state.results;
     }
 
     const resultsByCategory = results.reduce((acc, i) => {
@@ -228,7 +237,7 @@ class UrlAutocomplete extends PureComponent {
     const categoriesWithResults = ORDERED_CATEGORIES.filter(category => resultsByCategory[category]?.length > 0);
 
     return (
-      <View style={styles.wrapper}>
+      <ScrollView style={styles.wrapper} contentContainerStyle={styles.contentContainer}>
         {
           categoriesWithResults.map(category => {
             return (
@@ -251,14 +260,14 @@ class UrlAutocomplete extends PureComponent {
         >
           <View style={styles.bg} />
         </TouchableWithoutFeedback>
-      </View>
+      </ScrollView>
     );
   }
 }
 
 const mapStateToProps = (state) => ({
-  browserHistory: state.browser.history,
-  bookmarks: state.bookmarks,
+  browserHistory: state.browser.history.map(i => ({...i, type: 'recents'})),
+  bookmarks: state.bookmarks.map(i => ({...i, type: 'favorites'})),
 });
 
 UrlAutocomplete.contextType = ThemeContext;
