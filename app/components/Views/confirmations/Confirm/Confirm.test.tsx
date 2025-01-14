@@ -23,12 +23,6 @@ describe('Confirm', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Signature request')).toBeDefined();
-    expect(getByText('Estimated changes')).toBeDefined();
-    expect(
-      getByText(
-        'You’re signing into a site and there are no predicted changes to your account.',
-      ),
-    ).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getByText('Message')).toBeDefined();

@@ -40,11 +40,7 @@ const AccountNetworkInfoExpanded = () => {
         <InfoRow label={strings('confirm.balance')}>{accountBalance}</InfoRow>
       </InfoSection>
       <InfoSection>
-        <InfoRow
-          label={strings('confirm.network')}
-          // todo: add tooltip content when available
-          tooltip={strings('confirm.network')}
-        >
+        <InfoRow label={strings('confirm.network')}>
           <Network chainId={chainId} />
         </InfoRow>
         <InfoRow label={strings('confirm.rpc_url')}>
