@@ -1,4 +1,8 @@
-import { MessageParamsTyped } from '@metamask/signature-controller';
+import {
+  MessageParamsTyped,
+  SignatureRequestStatus,
+  SignatureRequestType
+} from '@metamask/signature-controller';
 import { backgroundState } from './initial-root-state';
 import { Hex } from '@metamask/utils';
 
@@ -220,6 +224,24 @@ export const typedSignV4ConfirmationState = {
         },
         pendingApprovalCount: 1,
         approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
+            id: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
+            chainId: '0x1' as Hex,
+            type: SignatureRequestType.TypedSign,
+            messageParams: {
+              data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"MyToken","version":"1","verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC","chainId":1},"message":{"owner":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","spender":"0x5B38Da6a701c568545dCfcB03FcB875f56beddC4","value":3000,"nonce":0,"deadline":50000000000}}',
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+              origin: 'https://metamask.github.io'
+            },
+            networkClientId: '1',
+            status: SignatureRequestStatus.Unapproved,
+            time: 1733143817088
+          },
+        },
       },
     },
   },
