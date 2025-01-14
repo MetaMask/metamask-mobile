@@ -176,6 +176,7 @@
     "@metamask/keyring-api": "^13.0.0",
     "@metamask/keyring-controller": "^19.0.1",
     "@metamask/keyring-internal-api": "^2.0.0",
+    "@metamask/keyring-snap-client": "^2.0.0",
     "@metamask/logging-controller": "^6.0.1",
     "@metamask/message-signing-snap": "^0.3.3",
     "@metamask/network-controller": "^22.1.0",
