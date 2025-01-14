@@ -7,6 +7,8 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
+import { EthAccountType, EthMethod, EthScopes } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -147,24 +149,26 @@ describe('RevealPrivateCredential', () => {
 
   it('renders with a custom selectedAddress', async () => {
     const mockInternalAccount: InternalAccount = {
-      type: 'eip155:eoa',
+      type: EthAccountType.Eoa,
       id: 'unique-account-id-1',
       address: '0x1234567890123456789012345678901234567890',
       options: {
         someOption: 'optionValue',
         anotherOption: 42,
       },
+      scopes: [EthScopes.Namespace],
       methods: [
-        'personal_sign',
-        'eth_sign',
-        'eth_signTransaction',
-        'eth_sendTransaction',
+        EthMethod.PersonalSign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
       ],
       metadata: {
         name: 'Test Account',
         importTime: Date.now(),
         keyring: {
-          type: 'HD Key Tree',
+          type: KeyringTypes.hd,
         },
         nameLastUpdatedAt: Date.now(),
         snap: {
