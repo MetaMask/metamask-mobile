@@ -282,7 +282,8 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -308,8 +309,13 @@ class Approve extends PureComponent {
   };
 
   handleGetGasLimit = async () => {
+    const { networkClientId } = this.props;
     const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    const estimation = await getGasLimit(
+      { ...transaction, gas: undefined },
+      false,
+      networkClientId,
+    );
     setTransactionObject({ gas: estimation.gas });
   };
 

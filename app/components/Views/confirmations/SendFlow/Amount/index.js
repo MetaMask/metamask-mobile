@@ -79,6 +79,7 @@ import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -490,6 +491,10 @@ class Amount extends PureComponent {
      * Function that sets the max value mode
      */
     setMaxValueMode: PropTypes.func,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -877,10 +882,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -940,7 +950,7 @@ class Amount extends PureComponent {
     } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
 
-    setMaxValueMode(useMax ?? false)
+    setMaxValueMode(useMax ?? false);
 
     let inputValueConversion,
       renderableInputValueConversion,
@@ -1570,6 +1580,7 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

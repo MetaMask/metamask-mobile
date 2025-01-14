@@ -197,6 +197,10 @@ export class EngineService {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
       },
+      {
+        name: 'SignatureController',
+        key: `${engine.context.SignatureController.name}:stateChange`,
+      },
     ];
 
     engine.controllerMessenger.subscribeOnceIf(
