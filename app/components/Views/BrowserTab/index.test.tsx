@@ -33,13 +33,6 @@ const mockInitialState = {
     selectedAsset: '',
   },
 };
-/* 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest
-    .fn()
-    .mockImplementation((callback) => callback(mockInitialState)),
-})); */
 
 jest.mock('../../../core/Engine', () => ({
   context: {
