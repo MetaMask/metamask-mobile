@@ -1,7 +1,6 @@
 import React from 'react';
 import { TokenI, BrowserTab } from '../../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import { isPooledStakingFeatureEnabled } from '../../constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSelector } from 'react-redux';
 import AppConstants from '../../../../../core/AppConstants';
@@ -43,7 +42,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const onStakeButtonPress = async () => {
     const { isEligible } = await refreshPooledStakingEligibility();
-    if (isPooledStakingFeatureEnabled() && isEligible) {
+    if (isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
       const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
@@ -88,9 +87,7 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
       <Text variant={TextVariant.BodyLGMedium}>
         {' • '}
         <Text color={TextColor.Primary} variant={TextVariant.BodyLGMedium}>
-          {isPooledStakingFeatureEnabled()
-            ? `${strings('stake.earn')} `
-            : `${strings('stake.stake')} `}
+          {`${strings('stake.earn')} `}
         </Text>
       </Text>
       <Icon

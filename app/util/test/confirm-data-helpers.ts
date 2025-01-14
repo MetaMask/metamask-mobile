@@ -32,6 +32,13 @@ export const personalSignatureConfirmationState = {
         pendingApprovalCount: 1,
         approvalFlows: [],
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
+          },
+        },
+      },
       SignatureController: {
         signatureRequests: {
           '76b33b40-7b5c-11ef-bc0a-25bce29dbc09': {
@@ -111,6 +118,13 @@ export const typedSignV1ConfirmationState = {
               metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
               version: 'V1',
             } as MessageParamsTyped,
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
           },
         },
       },
@@ -200,6 +214,13 @@ export const typedSignV3ConfirmationState = {
               metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
               version: 'V3',
             } as MessageParamsTyped,
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
           },
         },
       },
