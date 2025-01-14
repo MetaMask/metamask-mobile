@@ -1,13 +1,12 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { StyleSheet, View } from 'react-native';
+import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { selectChainId } from '../../../../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../../../../util/address';
 import { PrimaryType } from '../../../../constants/signatures';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import { parseTypedDataMessage } from '../../../../utils/signature';
 import InfoRow from '../../../UI/InfoRow';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
@@ -48,12 +47,9 @@ function extractTokenDetailsByPrimaryType(
 const PermitSimulation = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const { approvalRequest } = useApprovalRequest();
-
-  // TODO: update logic to use chainId from approvalRequest. SignatureController needs to be updated prior
-  const chainId = useSelector(selectChainId);
-
-  const msgData = approvalRequest?.requestData?.data;
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
+  const msgData = signatureRequest?.messageParams?.data;
 
   if (!msgData) {
     return null;
