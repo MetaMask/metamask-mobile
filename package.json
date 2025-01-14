@@ -395,7 +395,7 @@
     "@types/eth-url-parser": "^1.0.0",
     "@types/i18n-js": "^3.8.4",
     "@types/is-url": "^1.2.30",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.13",
     "@types/node": "^20.12.8",
     "@types/qs": "^6.9.15",
