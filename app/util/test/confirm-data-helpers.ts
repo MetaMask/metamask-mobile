@@ -1,4 +1,6 @@
+import { MessageParamsTyped } from '@metamask/signature-controller';
 import { backgroundState } from './initial-root-state';
+import { Hex } from '@metamask/utils';
 
 export const personalSignatureConfirmationState = {
   engine: {
@@ -30,6 +32,13 @@ export const personalSignatureConfirmationState = {
         pendingApprovalCount: 1,
         approvalFlows: [],
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
+          },
+        },
+      },
     },
   },
 };
@@ -59,7 +68,7 @@ export const typedSignV1ConfirmationState = {
                 analytics: { request_source: 'In-App-Browser' },
               },
               origin: 'metamask.github.io',
-              metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
+              metamaskId: '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998',
               version: 'V1',
             },
             requestState: null,
@@ -68,6 +77,37 @@ export const typedSignV1ConfirmationState = {
         },
         pendingApprovalCount: 1,
         approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
+            chainId: '0x1' as Hex,
+            messageParams: {
+              data: [
+                { type: 'string', name: 'Message', value: 'Hi, Alice!' },
+                { type: 'uint32', name: 'A number', value: '1337' },
+              ],
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              requestId: 2453610887,
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
+              version: 'V1',
+            } as MessageParamsTyped,
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
+          },
+        },
       },
     },
   },
@@ -127,7 +167,7 @@ export const typedSignV3ConfirmationState = {
                 analytics: { request_source: 'In-App-Browser' },
               },
               origin: 'metamask.github.io',
-              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+              metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
               version: 'V3',
             },
             requestState: null,
@@ -136,6 +176,34 @@ export const typedSignV3ConfirmationState = {
         },
         pendingApprovalCount: 1,
         approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
+            chainId: '0x1' as Hex,
+            messageParams: {
+              data: JSON.stringify(mockTypedSignV3Message),
+              from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+              requestId: 3298650200,
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
+              version: 'V3',
+            } as MessageParamsTyped,
+          },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          confirmation_redesign: {
+            signatures: true,
+          },
+        },
       },
     },
   },
