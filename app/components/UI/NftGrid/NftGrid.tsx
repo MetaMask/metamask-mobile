@@ -1,11 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
-  Alert,
-  ScrollView,
-} from 'react-native';
+import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import CollectibleMedia from '../CollectibleMedia';
 import ActionSheet from '@metamask/react-native-actionsheet';
