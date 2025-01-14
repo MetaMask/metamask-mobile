@@ -1,6 +1,11 @@
 import { heading } from '../components/icon';
 
 describe('Icon UIComponentFactory', () => {
+  const mockParams = {
+    map: {},
+    t: jest.fn(),
+  };
+
   it('should create correct element configuration with all props', () => {
     const mockElement = {
       props: {
@@ -10,7 +15,7 @@ describe('Icon UIComponentFactory', () => {
       },
     };
 
-    const result = heading({ element: mockElement as any });
+    const result = heading({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
       element: 'Icon',
@@ -29,7 +34,7 @@ describe('Icon UIComponentFactory', () => {
       },
     };
 
-    const result = heading({ element: mockElement as any });
+    const result = heading({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
       element: 'Icon',

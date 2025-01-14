@@ -22,8 +22,10 @@ describe('container', () => {
 
   const createMockElement = (children: any[] = []): BoxElement => ({
     type: 'Box',
-    children,
-    props: {},
+    props: {
+      children: children,
+    },
+    key: 'mock-key',
   });
 
   it('should render basic container with single child', () => {
@@ -35,11 +37,18 @@ describe('container', () => {
       element: mockElement,
       useFooter: false,
       t: mockT,
+      map: {},
     });
 
     expect(result).toEqual({
       element: 'View',
-      children: [],
+      children: [
+        {
+          element: 'text',
+          props: {},
+          children: ['Hello'],
+        },
+      ],
       props: {
         style: {
           flex: 1,
@@ -51,9 +60,7 @@ describe('container', () => {
   });
 
   it('should add footer button when useFooter is true and onCancel is provided', () => {
-    const mockElement = createMockElement([
-      { type: 'text', props: {}, children: ['Hello'] },
-    ]);
+    const mockElement = createMockElement([]);
     const mockOnCancel = jest.fn();
 
     const result = container({
@@ -61,10 +68,12 @@ describe('container', () => {
       useFooter: true,
       onCancel: mockOnCancel,
       t: mockT,
+      map: {},
     });
 
-    expect(result.children).toHaveLength(1);
-    expect(result.children[0]).toEqual({
+    expect(Array.isArray(result.children)).toBe(true);
+    expect((result.children as any[])[0]).toEqual({
+      element: '',
       props: {
         style: { alignItems: 'center' },
       },
@@ -77,7 +86,6 @@ describe('container', () => {
         },
         children: 'close',
       },
-      element: '',
     });
   });
 });

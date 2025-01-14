@@ -1,4 +1,4 @@
-import { UserInputEventType } from '@metamask/snaps-sdk';
+import { SnapId, UserInputEventType } from '@metamask/snaps-sdk';
 import Engine from '../../../../../core/Engine/Engine';
 import { handleSnapRequest } from '../../../../../core/Snaps/utils';
 import { mergeValue } from '../utils';
@@ -50,7 +50,8 @@ describe('Snap Interface Functions', () => {
   describe('handleEvent', () => {
     it('handles button click events', () => {
       handleSnapRequest(Engine.controllerMessenger, {
-        snapId: mockSnapId,
+        snapId: mockSnapId as SnapId,
+        origin: mockSnapId as SnapId,
         handler: HandlerType.OnUserInput,
         request: {
           jsonrpc: '2.0',
@@ -86,7 +87,8 @@ describe('Snap Interface Functions', () => {
     it('handles form submission events', () => {
       const formData = { field1: 'value1' };
       handleSnapRequest(Engine.controllerMessenger, {
-        snapId: mockSnapId,
+        snapId: mockSnapId as SnapId,
+        origin: mockSnapId as SnapId,
         handler: HandlerType.OnUserInput,
         request: {
           jsonrpc: '2.0',
@@ -169,11 +171,11 @@ describe('Snap Interface Functions', () => {
     });
 
     it('returns undefined for non-existent form fields', () => {
-      expect(mockInitialState.testForm['nonexistent']).toBeUndefined();
+      expect((mockInitialState.testForm as any)['nonexistent']).toBeUndefined();
     });
 
     it('returns undefined for non-existent forms', () => {
-      expect(mockInitialState['nonexistentForm']).toBeUndefined();
+      expect((mockInitialState as any)['nonexistentForm']).toBeUndefined();
     });
   });
 

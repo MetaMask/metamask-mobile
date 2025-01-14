@@ -6,7 +6,11 @@ import { FormTextFieldSize } from './form-text-field.types';
 describe('FormTextField', () => {
   it('renders correctly with basic props', () => {
     const { getByTestId } = render(
-      <FormTextField label="Test Label" placeholder="Enter text" />,
+      <FormTextField
+        id="test-field"
+        label="Test Label"
+        placeholder="Enter text"
+      />,
     );
 
     const textField = getByTestId('form-text-field');
@@ -16,7 +20,7 @@ describe('FormTextField', () => {
   it('handles text input correctly', () => {
     const onChangeText = jest.fn();
     const { getByTestId } = render(
-      <FormTextField onChangeText={onChangeText} />,
+      <FormTextField id="test-field" onChangeText={onChangeText} />,
     );
 
     const textField = getByTestId('form-text-field');

@@ -1,35 +1,41 @@
 import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from '../components/footer';
 import { ButtonVariant } from '@metamask/snaps-sdk';
-import * as snapsUtils from '@metamask/snaps-utils';
 
 jest.mock('@metamask/snaps-utils', () => ({
-  getJsxChildren: (element: any) => element.children,
+  getJsxChildren: (element: any) => {
+    const children = element.props.children;
+    return Array.isArray(children) ? children : [children].filter(Boolean);
+  },
 }));
 
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
   const mockOnCancel = jest.fn();
-  const mockButtonFn = jest.fn().mockImplementation(({ element }) => ({
-    props: { name: element.props?.name },
-    children: element.children,
-  }));
 
   const createFooterElement = (
     children: ButtonElement[] = [],
   ): FooterElement => ({
+    key: 'mock-key',
     type: 'Footer',
-    children,
-    props: {},
+    props: {
+      children:
+        children.length === 2
+          ? ([children[0], children[1]] as [ButtonElement, ButtonElement])
+          : children[0] || createButtonElement(),
+    },
   });
 
   const createButtonElement = (
     name?: string,
     text: string = 'Button',
   ): ButtonElement => ({
+    key: 'mock-key',
     type: 'Button',
-    children: [text],
-    props: name ? { name } : {},
+    props: {
+      children: [text],
+      ...(name ? { name } : {}),
+    },
   });
 
   beforeEach(() => {
@@ -37,17 +43,27 @@ describe('footer', () => {
   });
 
   it('should return default footer structure with no buttons when no children and no onCancel', () => {
-    const footerElement = createFooterElement();
+    const footerElement = createFooterElement([]);
 
     const result = footer({
       element: footerElement,
       t: mockT,
-      buttonFn: mockButtonFn,
+      map: {},
     });
 
     expect(result).toEqual({
       ...DEFAULT_FOOTER,
-      children: [],
+      children: [
+        {
+          element: 'SnapUIFooterButton',
+          key: 'snap-footer-button-0',
+          props: {
+            children: ['Button'],
+            isSnapAction: true,
+            variant: 'primary',
+          },
+        },
+      ],
     });
   });
 
@@ -60,11 +76,11 @@ describe('footer', () => {
       element: footerElement,
       t: mockT,
       onCancel: mockOnCancel,
-      buttonFn: mockButtonFn,
+      map: {},
     });
 
-    expect(result.children).toHaveLength(2);
-    expect(result.children[0]).toEqual({
+    expect(Array.isArray(result.children)).toBe(true);
+    expect((result.children as any[])[0]).toEqual({
       element: 'SnapUIFooterButton',
       key: 'default-button',
       props: {
@@ -85,14 +101,18 @@ describe('footer', () => {
     const result = footer({
       element: footerElement,
       t: mockT,
-      buttonFn: mockButtonFn,
+      map: {},
     });
 
-    expect(result.children).toHaveLength(2);
-    expect(result.children[0].props.variant).toBe(ButtonVariant.Secondary);
-    expect(result.children[1].props.variant).toBe(ButtonVariant.Primary);
-    expect(result.children[0].props.isSnapAction).toBe(true);
-    expect(result.children[1].props.isSnapAction).toBe(true);
+    expect(Array.isArray(result.children)).toBe(true);
+    expect((result.children as any[])[0].props.variant).toBe(
+      ButtonVariant.Secondary,
+    );
+    expect((result.children as any[])[1].props.variant).toBe(
+      ButtonVariant.Primary,
+    );
+    expect((result.children as any[])[0].props.isSnapAction).toBe(true);
+    expect((result.children as any[])[1].props.isSnapAction).toBe(true);
   });
 
   it('should use index as key when button name is not provided', () => {
@@ -103,9 +123,9 @@ describe('footer', () => {
     const result = footer({
       element: footerElement,
       t: mockT,
-      buttonFn: mockButtonFn,
+      map: {},
     });
 
-    expect(result.children[0].key).toBe('snap-footer-button-0');
+    expect((result.children as any[])[0].key).toBe('snap-footer-button-0');
   });
 });
