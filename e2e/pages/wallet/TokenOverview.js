@@ -4,6 +4,7 @@ import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText
 } from '../../selectors/wallet/TokenOverview.selectors';
+import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
 
 class TokenOverview {
   get container() {
@@ -24,6 +25,10 @@ class TokenOverview {
 
   get receiveButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
+  }
+
+  get actionSheetSendButton() {
+    return Matchers.getElementByID(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
   }
 
   get noChartData() {
@@ -64,6 +69,10 @@ class TokenOverview {
 
   async scrollOnScreen() {
     await Gestures.swipe(this.tokenPrice, 'up', 'fast', 0.6);
+  }
+
+  async tapActionSheetSendButton() {
+    await Gestures.waitAndTap(this.actionSheetSendButton);
   }
 
   async tapChartPeriod1d() {

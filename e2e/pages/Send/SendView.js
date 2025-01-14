@@ -2,6 +2,7 @@ import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
+import { AddAddressModalSelectorsIDs } from '../../selectors/SendFlow/AddAddressModal.selectors.js'
 
 class SendView {
   get cancelButton() {
@@ -23,9 +24,19 @@ class SendView {
   get addAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
+
   get removeAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
   }
+
+  get backButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_BACK_BUTTON);
+  }
+
+  get confirmationAddressButton() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
+  }
+
   get contractWarning() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_ERROR);
   }
@@ -70,6 +81,15 @@ class SendView {
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
+  }
+
+  async tapBackButton() {
+    await Gestures.TapAtIndex(this.backButton, 0);
+  }
+
+  async splitAddressText(){
+    const attributes = await (await this.confirmationAddressButton).getAttributes();
+    return await attributes.label.split(' ');
   }
 }
 export default new SendView();
