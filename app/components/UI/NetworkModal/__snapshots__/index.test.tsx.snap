@@ -251,9 +251,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         resizeMode="contain"
                         source={
                           {
-                            "default": {
-                              "uri": "MockImage",
-                            },
+                            "default": 1,
                           }
                         }
                         style={

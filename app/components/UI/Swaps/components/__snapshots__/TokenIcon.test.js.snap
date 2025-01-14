@@ -8,9 +8,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
   onError={[Function]}
   source={
     {
-      "default": {
-        "uri": "MockImage",
-      },
+      "default": 1,
     }
   }
   style={
@@ -88,9 +86,7 @@ exports[`TokenIcon component should Render correctly 6`] = `
   onError={[Function]}
   source={
     {
-      "default": {
-        "uri": "MockImage",
-      },
+      "default": 1,
     }
   }
   style={

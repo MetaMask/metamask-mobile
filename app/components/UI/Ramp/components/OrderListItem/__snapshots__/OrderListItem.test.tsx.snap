@@ -53,9 +53,7 @@ exports[`OrderListItem should render correctly 1`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -225,9 +223,7 @@ exports[`OrderListItem should render correctly 2`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -397,9 +393,7 @@ exports[`OrderListItem should render correctly 3`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -569,9 +563,7 @@ exports[`OrderListItem should render correctly 4`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -741,9 +733,7 @@ exports[`OrderListItem should render correctly 5`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -913,9 +903,7 @@ exports[`OrderListItem should render correctly 6`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -1085,9 +1073,7 @@ exports[`OrderListItem should render correctly 7`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={
@@ -1257,9 +1243,7 @@ exports[`OrderListItem should render correctly 8`] = `
         resizeMode="stretch"
         source={
           {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           }
         }
         style={

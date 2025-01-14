@@ -454,9 +454,7 @@ exports[`GetStarted renders correctly 1`] = `
                                   <Image
                                     source={
                                       {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
+                                        "default": 1,
                                       }
                                     }
                                   />
@@ -1111,9 +1109,7 @@ exports[`GetStarted renders correctly 2`] = `
                                   <Image
                                     source={
                                       {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
+                                        "default": 1,
                                       }
                                     }
                                   />

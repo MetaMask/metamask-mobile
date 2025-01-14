@@ -165,9 +165,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         resizeMethod="auto"
                         source={
                           {
-                            "default": {
-                              "uri": "MockImage",
-                            },
+                            "default": 1,
                           }
                         }
                         style={
@@ -521,9 +519,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         resizeMethod="auto"
                         source={
                           {
-                            "default": {
-                              "uri": "MockImage",
-                            },
+                            "default": 1,
                           }
                         }
                         style={

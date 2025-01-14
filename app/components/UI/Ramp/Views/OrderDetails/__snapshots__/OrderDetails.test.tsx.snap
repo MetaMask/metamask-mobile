@@ -472,9 +472,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                       <Image
                                         source={
                                           {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
+                                            "default": 1,
                                           }
                                         }
                                       />
@@ -4913,9 +4911,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                       <Image
                                         source={
                                           {
-                                            "default": {
-                                              "uri": "MockImage",
-                                            },
+                                            "default": 1,
                                           }
                                         }
                                       />

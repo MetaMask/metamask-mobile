@@ -124,9 +124,7 @@ exports[`AccountBackupStep1B should render correctly 1`] = `
                   resizeMethod="auto"
                   source={
                     {
-                      "default": {
-                        "uri": "MockImage",
-                      },
+                      "default": 1,
                     }
                   }
                   style={

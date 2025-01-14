@@ -53,9 +53,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       avatarProps={
         {
           "imageSource": {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           },
           "name": "Mainnet",
           "variant": "Network",
@@ -100,9 +98,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             resizeMode="contain"
             source={
               {
-                "default": {
-                  "uri": "MockImage",
-                },
+                "default": 1,
               }
             }
             style={
@@ -182,9 +178,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
       avatarProps={
         {
           "imageSource": {
-            "default": {
-              "uri": "MockImage",
-            },
+            "default": 1,
           },
           "name": "Linea Mainnet",
           "variant": "Network",
@@ -229,9 +223,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             resizeMode="contain"
             source={
               {
-                "default": {
-                  "uri": "MockImage",
-                },
+                "default": 1,
               }
             }
             style={

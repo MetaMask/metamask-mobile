@@ -354,9 +354,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -543,9 +541,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -732,9 +728,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -1230,9 +1224,7 @@ exports[`OrdersList renders correctly 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -1419,9 +1411,7 @@ exports[`OrdersList renders correctly 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -1608,9 +1598,7 @@ exports[`OrdersList renders correctly 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -1797,9 +1785,7 @@ exports[`OrdersList renders correctly 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -2729,9 +2715,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -3163,9 +3147,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -3661,9 +3643,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -3850,9 +3830,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -4039,9 +4017,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={
@@ -4228,9 +4204,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 resizeMode="stretch"
                 source={
                   {
-                    "default": {
-                      "uri": "MockImage",
-                    },
+                    "default": 1,
                   }
                 }
                 style={

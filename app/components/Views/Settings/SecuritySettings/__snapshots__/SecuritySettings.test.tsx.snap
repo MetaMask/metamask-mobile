@@ -1556,9 +1556,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
+                  "default": 1,
                 },
                 "name": "Ethereum Mainnet",
                 "variant": "Network",
@@ -1603,9 +1601,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "default": {
-                        "uri": "MockImage",
-                      },
+                      "default": 1,
                     }
                   }
                   style={
@@ -1685,9 +1681,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             avatarProps={
               {
                 "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
+                  "default": 1,
                 },
                 "name": "Linea",
                 "variant": "Network",
@@ -1732,9 +1726,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "default": {
-                        "uri": "MockImage",
-                      },
+                      "default": 1,
                     }
                   }
                   style={

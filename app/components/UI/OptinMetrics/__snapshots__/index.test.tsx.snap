@@ -136,9 +136,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                     resizeMethod="auto"
                     source={
                       {
-                        "default": {
-                          "uri": "MockImage",
-                        },
+                        "default": 1,
                       }
                     }
                     style={
@@ -161,9 +159,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                     resizeMethod="auto"
                     source={
                       {
-                        "default": {
-                          "uri": "MockImage",
-                        },
+                        "default": 1,
                       }
                     }
                     style={

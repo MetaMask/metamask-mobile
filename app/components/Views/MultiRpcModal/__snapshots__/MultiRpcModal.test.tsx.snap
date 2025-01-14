@@ -515,9 +515,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                   <Image
                                     source={
                                       {
-                                        "default": {
-                                          "uri": "MockImage",
-                                        },
+                                        "default": 1,
                                       }
                                     }
                                     style={

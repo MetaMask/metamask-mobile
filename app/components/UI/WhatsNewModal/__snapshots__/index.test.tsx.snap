@@ -239,9 +239,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                           resizeMode="stretch"
                           source={
                             {
-                              "default": {
-                                "uri": "MockImage",
-                              },
+                              "default": 1,
                             }
                           }
                           style={
@@ -421,9 +419,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                           resizeMode="stretch"
                           source={
                             {
-                              "default": {
-                                "uri": "MockImage",
-                              },
+                              "default": 1,
                             }
                           }
                           style={

@@ -15,9 +15,7 @@ exports[`BiometryButton should render correctly 1`] = `
   <Image
     source={
       {
-        "default": {
-          "uri": "MockImage",
-        },
+        "default": 1,
       }
     }
     style={

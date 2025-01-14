@@ -1062,9 +1062,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   resizeMode="contain"
                   source={
                     {
-                      "default": {
-                        "uri": "MockImage",
-                      },
+                      "default": 1,
                     }
                   }
                   style={

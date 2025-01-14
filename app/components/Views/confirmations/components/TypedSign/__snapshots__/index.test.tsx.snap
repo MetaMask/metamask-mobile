@@ -338,9 +338,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                 resizeMode="contain"
                                 source={
                                   {
-                                    "default": {
-                                      "uri": "MockImage",
-                                    },
+                                    "default": 1,
                                   }
                                 }
                                 style={
@@ -1009,9 +1007,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                 resizeMode="contain"
                                 source={
                                   {
-                                    "default": {
-                                      "uri": "MockImage",
-                                    },
+                                    "default": 1,
                                   }
                                 }
                                 style={

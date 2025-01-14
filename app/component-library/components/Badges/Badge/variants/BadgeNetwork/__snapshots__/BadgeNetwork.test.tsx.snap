@@ -48,9 +48,7 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
       resizeMode="contain"
       source={
         {
-          "default": {
-            "uri": "MockImage",
-          },
+          "default": 1,
         }
       }
       style={

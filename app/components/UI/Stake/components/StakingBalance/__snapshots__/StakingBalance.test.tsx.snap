@@ -158,9 +158,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
               resizeMode="contain"
               source={
                 {
-                  "default": {
-                    "uri": "MockImage",
-                  },
+                  "default": 1,
                 }
               }
               style={
@@ -626,9 +624,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               resizeMode="contain"
               source={
                 {
-                  "default": {
-                    "uri": "MockImage",
-                  },
+                  "default": 1,
                 }
               }
               style={
