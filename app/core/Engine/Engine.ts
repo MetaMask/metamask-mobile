@@ -200,7 +200,6 @@ import { getSmartTransactionMetricsProperties } from '../../util/smart-transacti
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
   EngineState,
@@ -755,7 +754,7 @@ export class Engine {
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
         ),
-      includeStakedAssets: isPooledStakingFeatureEnabled(),
+      includeStakedAssets: true,
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
