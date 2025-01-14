@@ -60,12 +60,9 @@ describe(
           await Assertions.checkIfTextMatches(address[0], INCORRECT_SEND_ADDRESS);
 
           await SendView.tapBackButton();
-
           await AmountView.tapBackButton();
-
           await SendView.removeAddress();
           await SendView.inputAddress(CORRECT_SEND_ADDRESS);
-
           await SendView.tapNextButton();
           await AmountView.typeInTransactionAmount('0.000001');
 
@@ -81,7 +78,7 @@ describe(
           // Transactions view to assert address remains consistent
           await TabBarComponent.tapActivity();
           await TestHelpers.delay(3000);
-          await Gestures.tapByText(ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(tokenID.eth));
+          await TestHelpers.tapByText(ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(tokenID.eth));
           await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
         },
       );

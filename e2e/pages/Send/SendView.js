@@ -28,8 +28,13 @@ class SendView {
   }
 
   get addAddressButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
+  }
+
+  get confirmAddressButton() {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
+
   get removeAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
   }
@@ -85,7 +90,7 @@ class SendView {
   }
 
   async splitAddressText(){
-    const attributes = await (await this.addAddressButton).getAttributes();
+    const attributes = await (await this.confirmAddressButton).getAttributes();
     return await attributes.label.split(' ');
   }
 }
