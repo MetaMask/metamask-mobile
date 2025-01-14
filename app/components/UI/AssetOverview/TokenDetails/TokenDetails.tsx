@@ -28,7 +28,6 @@ import Logger from '../../../../util/Logger';
 import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
-import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
 import { isPortfolioViewEnabled } from '../../../../util/networks';
 
@@ -147,7 +146,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}
+      {asset.isETH && <StakingEarnings />}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
