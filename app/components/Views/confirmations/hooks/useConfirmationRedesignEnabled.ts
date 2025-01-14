@@ -16,6 +16,7 @@ const useConfirmationRedesignEnabled = () => {
   const isRedesignedEnabled = useMemo(
     () =>
       (confirmation_redesign as Record<string, string>)?.signatures &&
+      process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
       approvalRequestType &&
       [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
         approvalRequestType as ApprovalTypes,
