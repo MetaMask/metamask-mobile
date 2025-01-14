@@ -62,6 +62,7 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { prefixUrlWithProtocol } from '../../../../../util/browser';
 
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -546,7 +547,7 @@ class TransactionReview extends PureComponent {
     if (currentConnection) {
       url = currentConnection.originatorInfo.url;
     } else {
-      url = this.getUrlFromBrowser();
+      url = prefixUrlWithProtocol(origin);
     }
 
     const styles = this.getStyles();
