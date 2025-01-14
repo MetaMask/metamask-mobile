@@ -66,7 +66,6 @@ import migration62 from './062';
 import migration63 from './063';
 import migration64 from './064';
 import migration65 from './065';
-import migration95 from './095';
 import migration96 from './096';
 
 type MigrationFunction = (state: unknown) => unknown;
@@ -146,8 +145,7 @@ export const migrationList: MigrationsList = {
   63: migration63,
   64: migration64,
   65: migration65,
-  66: migration95,
-  67: migration96,
+  66: migration96,
 };
 
 // Enable both synchronous and asynchronous migrations
