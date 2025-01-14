@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
