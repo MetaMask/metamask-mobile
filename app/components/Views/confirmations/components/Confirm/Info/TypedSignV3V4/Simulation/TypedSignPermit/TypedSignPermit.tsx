@@ -2,15 +2,15 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 
-import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import Engine from '../../../../../../../core/Engine';
-import { safeToChecksumAddress } from '../../../../../../../util/address';
-import { PrimaryType } from '../../../../constants/signatures';
-import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
-import { parseTypedDataMessage } from '../../../../utils/signature';
-import InfoRow from '../../../UI/InfoRow';
-import InfoSection from '../../../UI/InfoRow/InfoSection';
+import { strings } from '../../../../../../../../../../locales/i18n';
+import { useStyles } from '../../../../../../../../../component-library/hooks';
+import Engine from '../../../../../../../../../core/Engine';
+import { safeToChecksumAddress } from '../../../../../../../../../util/address';
+import { PrimaryType } from '../../../../../../constants/signatures';
+import { useSignatureRequest } from '../../../../../../hooks/useSignatureRequest';
+import { parseTypedDataMessage } from '../../../../../../utils/signature';
+import InfoRow from '../../../../../UI/InfoRow';
+import InfoSection from '../../../../../UI/InfoRow/InfoSection';
 import PermitSimulationValueDisplay from '../components/ValueDisplay';
 
 const styleSheet = () =>

@@ -4,32 +4,32 @@ import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
-import ButtonPill from '../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import { ButtonIconSizes } from '../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
-import ButtonIcon from '../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { IconName , IconColor } from '../../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../../component-library/components/Texts/Text';
+import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
+import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
+import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import { IconName , IconColor } from '../../../../../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../../../../../component-library/components/Texts/Text';
 
-import { IndividualFiatDisplay } from '../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
+import { IndividualFiatDisplay } from '../../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
   formatAmount,
   formatAmountMaxPrecision,
-} from '../../../../../../../UI/SimulationDetails/formatAmount';
+} from '../../../../../../../../../UI/SimulationDetails/formatAmount';
 
-import Box from '../../../../../../../UI/Ramp/components/Box';
-import Address from '../../../../UI/InfoRow/InfoValue/Address/Address';
+import Box from '../../../../../../../../../UI/Ramp/components/Box';
+import Address from '../../../../../../UI/InfoRow/InfoValue/Address/Address';
 
-import { selectContractExchangeRates } from '../../../../../../../../selectors/tokenRatesController';
+import { selectContractExchangeRates } from '../../../../../../../../../../selectors/tokenRatesController';
 
-import Logger from '../../../../../../../../util/Logger';
-import { shortenString } from '../../../../../../../../util/notifications/methods/common';
-import { useTheme } from '../../../../../../../../util/theme';
-import { calcTokenAmount } from '../../../../../../../../util/transactions';
+import Logger from '../../../../../../../../../../util/Logger';
+import { shortenString } from '../../../../../../../../../../util/notifications/methods/common';
+import { useTheme } from '../../../../../../../../../../util/theme';
+import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 
-import useGetTokenStandardAndDetails from '../../../../../hooks/useGetTokenStandardAndDetails';
-import useTrackERC20WithoutDecimalInformation from '../../../../../hooks/useTrackERC20WithoutDecimalInformation';
-import { TokenDetailsERC20 } from '../../../../../utils/token';
-import BottomModal from '../../../../UI/BottomModal';
+import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
+import { TokenDetailsERC20 } from '../../../../../../../utils/token';
+import BottomModal from '../../../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
 

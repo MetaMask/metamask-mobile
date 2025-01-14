@@ -3,14 +3,14 @@ import React from 'react';
 import { act } from '@testing-library/react-native';
 import SimulationValueDisplay from './ValueDisplay';
 
-import { memoizedGetTokenStandardAndDetails } from '../../../../../utils/token';
-import useGetTokenStandardAndDetails from '../../../../../hooks/useGetTokenStandardAndDetails';
-import { TokenStandard } from '../../../../../../../UI/SimulationDetails/types';
-import { getTokenDetails } from '../../../../../../../../util/address';
-import { backgroundState } from '../../../../../../../../util/test/initial-root-state';
-import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
-import { useMetrics } from '../../../../../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../../../../../core/Analytics/MetricsEventBuilder';
+import { memoizedGetTokenStandardAndDetails } from '../../../../../../../utils/token';
+import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import { TokenStandard } from '../../../../../../../../../UI/SimulationDetails/types';
+import { getTokenDetails } from '../../../../../../../../../../util/address';
+import { backgroundState } from '../../../../../../../../../../util/test/initial-root-state';
+import renderWithProvider from '../../../../../../../../../../util/test/renderWithProvider';
+import { useMetrics } from '../../../../../../../../../hooks/useMetrics';
+import { MetricsEventBuilder } from '../../../../../../../../../../core/Analytics/MetricsEventBuilder';
 
 const mockInitialState = {
   engine: {
