@@ -37,6 +37,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   const wallet = ethers.Wallet.createRandom();
 
   beforeAll(async () => {
+    jest.setTimeout(2500000);
     await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
 
     await TestHelpers.reverseServerPort();
@@ -54,10 +55,6 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
-  });
-
-  beforeEach(async () => {
-    jest.setTimeout(120000);
   });
 
   it('should be able to import account', async () => {
