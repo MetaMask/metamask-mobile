@@ -130,6 +130,7 @@ export const FormTextField = ({
         </Text>
       )}
       <TextInput
+        testID="form-text-field"
         {...inputProps}
         {...textFieldProps}
         style={[
