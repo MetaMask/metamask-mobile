@@ -18,6 +18,9 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
 
+// eslint-disable-next-line import/no-namespace
+import * as Utils from '../../hooks/useAccounts/utils';
+
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
 
@@ -125,6 +128,16 @@ const renderComponent = (
 
 describe('AccountSelectorList', () => {
   beforeEach(() => {
+    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
+      balanceETH: '1',
+      balanceFiat: '$3200.00',
+      balanceWeiHex: '',
+    });
+    jest.spyOn(Utils, 'getAccountBalances').mockReturnValueOnce({
+      balanceETH: '2',
+      balanceFiat: '$6400.00',
+      balanceWeiHex: '',
+    });
     onSelectAccount.mockClear();
     onRemoveImportedAccount.mockClear();
   });

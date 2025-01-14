@@ -13,6 +13,9 @@ import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../Engine/constants';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { KeyringControllerState } from '@metamask/keyring-controller';
+
+const LOG_TAG = 'EngineService';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -52,6 +55,10 @@ export class EngineService {
     const state = reduxState?.engine?.backgroundState ?? {};
     const Engine = UntypedEngine;
     try {
+      Logger.log(`${LOG_TAG}: Initializing Engine:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
       Engine.init(state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       this.updateControllers(Engine as unknown as TypedEngine);
@@ -125,15 +132,17 @@ export class EngineService {
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (keyringState) {
-      const newKeyringState = {
+      const newKeyringState: KeyringControllerState = {
         keyrings: [],
         vault: keyringState.vault,
+        isUnlocked: false,
       };
-      // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
-      const instance = Engine.init(
-        state,
-        newKeyringState,
-      ) as unknown as TypedEngine;
+
+      Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+      const instance = Engine.init(state, newKeyringState);
+
       if (instance) {
         this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize

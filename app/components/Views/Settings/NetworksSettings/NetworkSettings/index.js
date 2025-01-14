@@ -1540,7 +1540,7 @@ export class NetworkSettings extends PureComponent {
     NetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
-      await updateIncomingTransactions([networkClientId]);
+      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
     }, 1000);
   };
 
@@ -2271,7 +2271,9 @@ export class NetworkSettings extends PureComponent {
         showMultiBlockExplorerAddModal.isVisible ? (
           <ReusableModal
             style={
-              blockExplorerUrls.length > 0 ? styles.sheet : styles.sheetSmall
+              blockExplorerUrls.length > 0 || addMode
+                ? styles.sheet
+                : styles.sheetSmall
             }
             onDismiss={this.closeBlockExplorerModal}
             shouldGoBack={false}
@@ -2338,7 +2340,9 @@ export class NetworkSettings extends PureComponent {
 
         {isNetworkUiRedesignEnabled() && showMultiRpcAddModal.isVisible ? (
           <ReusableModal
-            style={rpcUrls.length > 0 ? styles.sheet : styles.sheetSmall}
+            style={
+              rpcUrls.length > 0 || addMode ? styles.sheet : styles.sheetSmall
+            }
             onDismiss={this.closeRpcModal}
             shouldGoBack={false}
           >

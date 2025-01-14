@@ -9,7 +9,7 @@ import TransactionTypes from '../../../../../core/TransactionTypes';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
 
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
+import { setMaxValueMode } from '../../../../../actions/transaction';
 
 const mockTransactionTypes = TransactionTypes;
 
@@ -68,14 +68,17 @@ jest.mock('../../../../../util/transaction-controller', () => ({
   ),
 }));
 
+jest.mock('../../../../../actions/transaction', () => ({
+  ...jest.requireActual('../../../../../actions/transaction'),
+  setMaxValueMode: jest.fn().mockReturnValue({
+    type: 'SET_MAX_VALUE_MODE',
+  }),
+}));
+
 const mockNavigate = jest.fn();
 
 const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
-
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
-  CURRENT_ACCOUNT,
-]);
 
 const initialState = {
   engine: {
@@ -111,10 +114,32 @@ const initialState = {
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: CURRENT_ACCOUNT,
+          accounts: {
+            [CURRENT_ACCOUNT]: {
+              address: CURRENT_ACCOUNT,
+            },
+          },
+        },
+      },
       NftController: {
         allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
         allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [CURRENT_ACCOUNT]: [
+              {
+                address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                symbol: 'LINK',
+                decimals: 18,
+              },
+            ],
+          },
+        },
       },
     },
   },
@@ -177,6 +202,23 @@ describe('Amount', () => {
               },
             },
           },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -202,6 +244,15 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should set max value mode when toggled on', () => {
+    const { getByText } = renderComponent(initialState);
+
+    const useMaxButton = getByText(/Use max/);
+    fireEvent.press(useMaxButton);
+
+    expect(setMaxValueMode).toHaveBeenCalled();
+  });
+
   it('should proceed if balance is sufficient while on Native primary currency', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       engine: {
@@ -220,6 +271,23 @@ describe('Amount', () => {
             accounts: {
               [CURRENT_ACCOUNT]: {
                 balance: '4563918244F40000',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
               },
             },
           },
@@ -287,6 +355,23 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -347,6 +432,29 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -402,6 +510,29 @@ describe('Amount', () => {
               },
             },
           },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
         },
       },
       transaction: {
@@ -447,6 +578,23 @@ describe('Amount', () => {
               ETH: {
                 conversionRate: 3000,
                 usdConversionRate: 3000,
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
               },
             },
           },
@@ -496,6 +644,29 @@ describe('Amount', () => {
             marketData: {
               '0x1': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
               },
             },
           },
@@ -552,6 +723,29 @@ describe('Amount', () => {
           TokenRatesController: {
             marketData: {},
           },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
           CurrencyRateController: {},
         },
       },
@@ -597,6 +791,33 @@ describe('Amount', () => {
               },
             },
           },
+          AccountsController: {
+            internalAccounts: {
+              ...initialState.engine.backgroundState.AccountsController
+                .internalAccounts,
+              accounts: {
+                ...initialState.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
           CurrencyRateController: {},
         },
       },
@@ -638,6 +859,24 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            allTokens: {
+              '0x1': {
+                '0xAddress1': [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '0xAddress1',
+              accounts: {
+                '0xAddress1': {
+                  address: '0xAddress1',
+                },
+              },
+            },
+          },
           TokenRatesController: {
             marketData: {
               '0x1': {
