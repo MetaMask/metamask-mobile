@@ -1,15 +1,21 @@
+import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { heading } from '../components/heading';
 
 describe('heading UIComponentFactory', () => {
   it('should transform HeadingElement into SheetHeader format', () => {
-    const mockHeadingElement = {
-      type: 'heading',
+    const mockHeadingElement: HeadingElement = {
+      type: 'Heading',
+      key: 'mock-key',
       props: {
         children: 'Test Heading',
       },
     };
 
-    const result = heading({ element: mockHeadingElement });
+    const result = heading({
+      element: mockHeadingElement,
+      map: {},
+      t: (key: string) => key,
+    });
 
     expect(result).toEqual({
       element: 'SheetHeader',
@@ -21,13 +27,17 @@ describe('heading UIComponentFactory', () => {
 
   it('should handle empty children prop', () => {
     const mockHeadingElement = {
-      type: 'heading',
+      type: 'Heading',
       props: {
         children: '',
       },
     };
 
-    const result = heading({ element: mockHeadingElement });
+    const result = heading({
+      element: mockHeadingElement as HeadingElement,
+      map: {},
+      t: (key: string) => key,
+    });
 
     expect(result).toEqual({
       element: 'SheetHeader',
@@ -39,13 +49,17 @@ describe('heading UIComponentFactory', () => {
 
   it('should handle complex children content', () => {
     const mockHeadingElement = {
-      type: 'heading',
+      type: 'Heading',
       props: {
         children: ['Multiple ', 'Text ', 'Nodes'],
       },
     };
 
-    const result = heading({ element: mockHeadingElement });
+    const result = heading({
+      element: mockHeadingElement as HeadingElement,
+      map: {},
+      t: (key: string) => key,
+    });
 
     expect(result).toEqual({
       element: 'SheetHeader',
