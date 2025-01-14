@@ -33,9 +33,9 @@ describe('useFiatFormatter', () => {
     const { result } = renderHook(() => useFiatFormatter());
     const formatFiat = result.current;
 
-    expect(formatFiat(1000)).toBe('US$1,000.00');
-    expect(formatFiat(500.5)).toBe('US$500.50');
-    expect(formatFiat(0)).toBe('US$0.00');
+    expect(formatFiat(1000)).toBe('$1,000.00');
+    expect(formatFiat(500.5)).toBe('$500.50');
+    expect(formatFiat(0)).toBe('$0.00');
   });
 
   it('should use the current locale and currency from the mocked functions', () => {
