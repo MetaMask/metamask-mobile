@@ -194,6 +194,7 @@ function withRequest<ReturnValue>(
         expectedDeadline: 45,
         maxDeadline: 150,
         mobileReturnTxHashAsap: false,
+        batchStatusPollingInterval: 1000,
       },
       mobile_active: true,
       extension_active: true,
