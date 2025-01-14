@@ -55,7 +55,6 @@ class SendView {
   }
 
   async tapBackButton() {
-    // await Gestures.waitAndTap(this.backButton);
     await Gestures.TapAtIndex(this.backButton, 0);
   }
 
