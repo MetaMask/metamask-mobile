@@ -37,7 +37,7 @@ export type BrowserTabProps = {
   /**
    * InitialUrl
    */
-  initialUrl?: string;
+  initialUrl: string;
   /**
    * linkType - type of link to open
    */
@@ -119,6 +119,10 @@ export type BrowserTabProps = {
    * Boolean indicating if browser is in tabs view
    */
   isInTabsView: boolean;
+  /**
+   * Home page url that is appended with metricsEnabled and marketingEnabled
+   */
+  homePageUrl: string;
 };
 // This event should be exported from the webview package
 export interface WebViewErrorEvent {

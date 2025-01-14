@@ -98,8 +98,7 @@ const Options = ({
    */
   const goToFavorites = async () => {
     toggleOptionsIfNeeded();
-    if (activeUrl === OLD_HOMEPAGE_URL_HOST) return reload();
-    await onSubmitEditing(OLD_HOMEPAGE_URL_HOST);
+    onSubmitEditing(OLD_HOMEPAGE_URL_HOST);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
     );

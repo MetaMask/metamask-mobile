@@ -23,6 +23,7 @@ import {
   getAlertMessage,
   allowLinkOpen,
   getUrlObj,
+  appendURLParams,
 } from '../../../util/browser';
 import {
   SPA_urlChangeListener,
@@ -57,7 +58,6 @@ import {
   IPFS_GATEWAY_DISABLED_ERROR,
   OLD_HOMEPAGE_URL_HOST,
   NOTIFICATION_NAMES,
-  HOMEPAGE_URL,
   MM_MIXPANEL_TOKEN,
 } from './constants';
 import { regex } from '../../../../app/util/regex';
@@ -430,10 +430,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
   }, [dismissTextSelectionIfNeeded]);
 
   const handleFirstUrl = useCallback(async () => {
-    const initialUrlOrHomepage = props.initialUrl || HOMEPAGE_URL;
-
     setIsResolvedIpfsUrl(false);
-    const prefixedUrl = prefixUrlWithProtocol(initialUrlOrHomepage);
+    const prefixedUrl = prefixUrlWithProtocol(props.initialUrl);
     const { origin: urlOrigin } = new URLParse(prefixedUrl);
 
     if (isAllowedOrigin(urlOrigin)) {
@@ -1035,9 +1033,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
    * Go to home page, reload if already on homepage
    */
   const goToHomepage = useCallback(async () => {
+    onSubmitEditing(props.homePageUrl);
     toggleOptionsIfNeeded();
     triggerDappViewedEvent(resolvedUrlRef.current);
-    onSubmitEditing(HOMEPAGE_URL);
     trackEvent(createEventBuilder(MetaMetricsEvents.DAPP_HOME).build());
   }, [
     toggleOptionsIfNeeded,
@@ -1045,6 +1043,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = (props) => {
     trackEvent,
     createEventBuilder,
     onSubmitEditing,
+    props.homePageUrl,
   ]);
 
   /**

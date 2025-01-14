@@ -20,20 +20,14 @@ import {
 import { useAccounts } from '../../../components/hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
-import {
-  getPermittedAccounts,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
+import { getPermittedAccounts } from '../../../core/Permissions';
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
-import { isEqual } from 'lodash';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
@@ -55,7 +49,6 @@ export const Browser = (props) => {
     updateTab,
     activeTab: activeTabId,
     tabs,
-    accountsLength,
   } = props;
   const previousTabs = useRef(null);
   const { top: topInset } = useSafeAreaInsets();
@@ -75,23 +68,6 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
-  const nonTestnetNetworks =
-    Object.keys(props.networkConfigurations).length + 1;
-
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
-  const permittedAccountsList = useSelector((state) => {
-    if (!activeTab) return [];
-
-    const permissionsControllerState = selectPermissionControllerState(state);
-    const hostname = new URL(activeTab.url).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
-  }, isEqual);
-
   const homePageUrl = () =>
     appendURLParams(AppConstants.HOMEPAGE_URL, {
       metricsEnabled: isEnabled(),
@@ -99,6 +75,7 @@ export const Browser = (props) => {
     }).href;
 
   const newTab = (url, linkType) => {
+    // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
     createNewTab(url || homePageUrl(), linkType);
   };
 
@@ -340,12 +317,13 @@ export const Browser = (props) => {
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
-        initialUrl={tab.url || homePageUrl()}
+        initialUrl={tab.url}
         linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
         isInTabsView={route.params?.showTabs}
+        homePageUrl={homePageUrl()}
       />
     ));
 
@@ -361,7 +339,6 @@ export const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
-  accountsLength: selectAccountsLength(state),
   networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
@@ -412,7 +389,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  accountsLength: PropTypes.number,
   networkConfigurations: PropTypes.object,
 };
 
