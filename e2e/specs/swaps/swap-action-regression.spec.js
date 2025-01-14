@@ -155,9 +155,8 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
       }
 
-      await TabBarComponent.tapWallet();
-
       // TODO: The following hack is needed to update the token balance until bug is fixed
+      await TabBarComponent.tapWallet();
       await WalletView.tapNetworksButtonOnNavBar();
       await NetworkListModal.changeNetworkTo('Localhost', false);
       if (!educationModalTapped) {
@@ -166,8 +165,8 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
       if (!educationModalTapped) {
         await NetworkEducationModal.tapGotItButton();
+        educationModalTapped = true;
       }
-      educationModalTapped = true;
     },
   );
 });

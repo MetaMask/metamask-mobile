@@ -31,6 +31,7 @@ const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
 describe(SmokeSwaps('Swap from Actions'), () => {
+  let educationModalTapped = false;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet = ethers.Wallet.createRandom();
 
@@ -151,6 +152,19 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         );
         // TODO: Commenting this out until Tenderly issue is resolved
         //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+      }
+
+      // TODO: The following hack is needed to update the token balance until bug is fixed
+      await TabBarComponent.tapWallet();
+      await WalletView.tapNetworksButtonOnNavBar();
+      await NetworkListModal.changeNetworkTo('Localhost', false);
+      if (!educationModalTapped) {
+        await NetworkEducationModal.tapGotItButton();
+      }
+      await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
+      if (!educationModalTapped) {
+        await NetworkEducationModal.tapGotItButton();
+        educationModalTapped = true;
       }
 
     },
