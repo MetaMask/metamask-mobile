@@ -4,6 +4,7 @@ import { handleSnapRequest } from '../../../../../core/Snaps/utils';
 import { mergeValue } from '../utils';
 import { HandlerType } from '@metamask/snaps-utils';
 
+// Mock setup
 jest.mock('../../../../../core/Engine/Engine', () => ({
   controllerMessenger: {},
   context: {
@@ -29,22 +30,25 @@ describe('Snap Interface Functions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (mergeValue as jest.Mock).mockImplementation((state, name, value) => ({
-      ...state,
-      [name]: value,
-    }));
+    (mergeValue as jest.Mock).mockImplementation((state, name, value, form) => {
+      if (form) {
+        return {
+          ...state,
+          [form]: {
+            ...(state[form] || {}),
+            [name]: value,
+          },
+        };
+      }
+      return {
+        ...state,
+        [name]: value,
+      };
+    });
   });
 
-  describe('handleInputChange', () => {
-    it('updates state and triggers snap request', () => {
-      const name = 'testInput';
-      const newValue = 'new value';
-
-      const state = mergeValue(mockInitialState, name, newValue);
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
+  describe('handleEvent', () => {
+    it('handles button click events', () => {
       handleSnapRequest(Engine.controllerMessenger, {
         snapId: mockSnapId,
         handler: HandlerType.OnUserInput,
@@ -53,44 +57,34 @@ describe('Snap Interface Functions', () => {
           method: ' ',
           params: {
             event: {
-              type: UserInputEventType.InputChangeEvent,
-              name,
-              value: newValue,
+              type: UserInputEventType.ButtonClickEvent,
+              name: 'testButton',
             },
             id: mockInterfaceId,
             context: mockContext,
           },
         },
       });
-
-      expect(
-        Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalledWith(
-        mockInterfaceId,
-        expect.objectContaining({
-          [name]: newValue,
-        }),
-      );
 
       expect(handleSnapRequest).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           snapId: mockSnapId,
           handler: HandlerType.OnUserInput,
+          request: expect.objectContaining({
+            params: expect.objectContaining({
+              event: {
+                type: UserInputEventType.ButtonClickEvent,
+                name: 'testButton',
+              },
+            }),
+          }),
         }),
       );
     });
-  });
 
-  describe('handleFileChange', () => {
-    it('handles null file correctly', () => {
-      const name = 'testFile';
-
-      const state = mergeValue(mockInitialState, name, null);
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
+    it('handles form submission events', () => {
+      const formData = { field1: 'value1' };
       handleSnapRequest(Engine.controllerMessenger, {
         snapId: mockSnapId,
         handler: HandlerType.OnUserInput,
@@ -99,9 +93,9 @@ describe('Snap Interface Functions', () => {
           method: ' ',
           params: {
             event: {
-              type: UserInputEventType.FileUploadEvent,
-              name,
-              value: null,
+              type: UserInputEventType.FormSubmitEvent,
+              name: 'testForm',
+              value: formData,
             },
             id: mockInterfaceId,
             context: mockContext,
@@ -109,20 +103,126 @@ describe('Snap Interface Functions', () => {
         },
       });
 
+      expect(handleSnapRequest).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          request: expect.objectContaining({
+            params: expect.objectContaining({
+              event: {
+                type: UserInputEventType.FormSubmitEvent,
+                name: 'testForm',
+                value: formData,
+              },
+            }),
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('handleInputChange', () => {
+    it('updates form field state correctly', () => {
+      const formName = 'testForm';
+      const fieldName = 'newField';
+      const newValue = 'new form value';
+
+      const state = mergeValue(mockInitialState, fieldName, newValue, formName);
+      Engine.context.SnapInterfaceController.updateInterfaceState(
+        mockInterfaceId,
+        state,
+      );
+
       expect(
         Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalled();
-      expect(handleSnapRequest).toHaveBeenCalled();
+      ).toHaveBeenCalledWith(
+        mockInterfaceId,
+        expect.objectContaining({
+          [formName]: expect.objectContaining({
+            [fieldName]: newValue,
+          }),
+        }),
+      );
+    });
+
+    it('handles null values', () => {
+      const name = 'testInput';
+      const state = mergeValue(mockInitialState, name, null);
+      Engine.context.SnapInterfaceController.updateInterfaceState(
+        mockInterfaceId,
+        state,
+      );
+
+      expect(
+        Engine.context.SnapInterfaceController.updateInterfaceState,
+      ).toHaveBeenCalledWith(
+        mockInterfaceId,
+        expect.objectContaining({
+          [name]: null,
+        }),
+      );
     });
   });
 
   describe('getValue', () => {
-    it('retrieves values correctly', () => {
-      expect(mockInitialState.testInput).toBe('initial value');
-
+    it('retrieves form field values correctly', () => {
       expect(mockInitialState.testForm.formField).toBe('form value');
+    });
 
-      expect(mockInitialState['nonexistent']).toBeUndefined();
+    it('returns undefined for non-existent form fields', () => {
+      expect(mockInitialState.testForm['nonexistent']).toBeUndefined();
+    });
+
+    it('returns undefined for non-existent forms', () => {
+      expect(mockInitialState['nonexistentForm']).toBeUndefined();
+    });
+  });
+
+  describe('handleFileChange', () => {
+    it('handles null file upload', () => {
+      const name = 'testFile';
+      const state = mergeValue(mockInitialState, name, null);
+
+      Engine.context.SnapInterfaceController.updateInterfaceState(
+        mockInterfaceId,
+        state,
+      );
+
+      expect(
+        Engine.context.SnapInterfaceController.updateInterfaceState,
+      ).toHaveBeenCalledWith(
+        mockInterfaceId,
+        expect.objectContaining({
+          [name]: null,
+        }),
+      );
+    });
+
+    it('handles file upload in forms', () => {
+      const formName = 'uploadForm';
+      const fieldName = 'testFile';
+      const mockFileData = null;
+
+      const state = mergeValue(
+        mockInitialState,
+        fieldName,
+        mockFileData,
+        formName,
+      );
+      Engine.context.SnapInterfaceController.updateInterfaceState(
+        mockInterfaceId,
+        state,
+      );
+
+      expect(
+        Engine.context.SnapInterfaceController.updateInterfaceState,
+      ).toHaveBeenCalledWith(
+        mockInterfaceId,
+        expect.objectContaining({
+          [formName]: expect.objectContaining({
+            [fieldName]: mockFileData,
+          }),
+        }),
+      );
     });
   });
 });
