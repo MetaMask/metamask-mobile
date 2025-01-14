@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import useApprovalRequest from './useApprovalRequest';
+import useQRHardwareAwareness from './useQRHardwareAwareness';
 
 const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const { isSigningQRObject, isSyncingQRHardware } = useQRHardwareAwareness();
 
   const { type: approvalRequestType } = approvalRequest ?? {
     requestData: {},
@@ -12,12 +14,13 @@ const useConfirmationRedesignEnabled = () => {
 
   const isRedesignedEnabled = useMemo(
     () =>
+      !isSyncingQRHardware &&
+      !isSigningQRObject &&
       approvalRequestType &&
-      process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
       [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
         approvalRequestType as ApprovalTypes,
       ),
-    [approvalRequestType],
+    [approvalRequestType, isSyncingQRHardware, isSigningQRObject],
   );
 
   return { isRedesignedEnabled };
