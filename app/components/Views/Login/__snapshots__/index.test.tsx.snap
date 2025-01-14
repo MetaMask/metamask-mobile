@@ -28,13 +28,7 @@ exports[`Login should render correctly 1`] = `
       }
     >
       <Image
-        source={
-          {
-            "default": {
-              "uri": "MockImage",
-            },
-          }
-        }
+        source={1}
         style={
           {
             "height": 32,

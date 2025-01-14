@@ -108,13 +108,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                     >
                       <Image
                         resizeMethod="auto"
-                        source={
-                          {
-                            "default": {
-                              "uri": "MockImage",
-                            },
-                          }
-                        }
+                        source={1}
                         style={
                           [
                             {},

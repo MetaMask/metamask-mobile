@@ -36,13 +36,7 @@ exports[`SliderButton should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source={
-        {
-          "default": {
-            "uri": "MockImage",
-          },
-        }
-      }
+      source={1}
       style={
         [
           {
@@ -57,13 +51,7 @@ exports[`SliderButton should render correctly 1`] = `
     <Image
       collapsable={false}
       resizeMode="contain"
-      source={
-        {
-          "default": {
-            "uri": "MockImage",
-          },
-        }
-      }
+      source={1}
       style={
         {
           "height": "200%",

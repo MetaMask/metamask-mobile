@@ -110,13 +110,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
     >
       <Image
         resizeMethod="auto"
-        source={
-          {
-            "default": {
-              "uri": "MockImage",
-            },
-          }
-        }
+        source={1}
         style={
           {
             "alignSelf": "center",
