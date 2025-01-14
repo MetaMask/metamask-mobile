@@ -34,6 +34,7 @@ import {
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
+import { debounce } from 'lodash';
 
 const DEVICE_WIDTH = Device.getDeviceWidth();
 const COLLECTIBLE_WIDTH = (DEVICE_WIDTH - 100 - 16) / 3;
@@ -95,6 +96,19 @@ const createStyles = (colors, brandColors) =>
 //   return newArray;
 // };
 
+const debouncedNavigation = debounce((navigation, collectible) => {
+  navigation.navigate('NftDetails', { collectible });
+}, 200);
+
+interface ActionSheetType {
+  show: () => void;
+}
+
+interface LongPressedCollectibleType {
+  address: string;
+  tokenId: string;
+}
+
 /**
  * Customizable view to render assets in lists
  */
@@ -107,17 +121,17 @@ function NftGrid({
   chainId,
   selectedAddress,
   removeFavoriteCollectible,
+  navigation,
 }) {
   const collectibles = useSelector(collectiblesSelector);
-  const [collectiblesGrid, setCollectiblesGrid] = useState([]);
-  const actionSheetRef = useRef();
-  const longPressedCollectible = useRef(null);
+  const actionSheetRef = useRef<ActionSheetType>(null);
+  const longPressedCollectible = useRef<LongPressedCollectibleType>(null);
   const { colors, themeAppearance, brandColors } = useTheme();
   const styles = createStyles(colors, brandColors);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const onLongPressCollectible = useCallback((collectible) => {
-    actionSheetRef.current.show();
+    actionSheetRef?.current?.show();
     longPressedCollectible.current = collectible;
   }, []);
 
@@ -128,10 +142,15 @@ function NftGrid({
       chainId,
       longPressedCollectible.current,
     );
-    NftController.removeAndIgnoreNft(
-      longPressedCollectible.current.address,
-      longPressedCollectible.current.tokenId,
-    );
+    if (
+      longPressedCollectible?.current?.address &&
+      longPressedCollectible?.current?.tokenId
+    ) {
+      NftController.removeAndIgnoreNft(
+        longPressedCollectible.current.address,
+        longPressedCollectible.current.tokenId,
+      );
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.COLLECTIBLE_REMOVED)
         .addProperties({
@@ -154,7 +173,7 @@ function NftGrid({
     );
   };
 
-  const handleMenuAction = (index) => {
+  const handleMenuAction = (index: number) => {
     if (index === 1) {
       removeNft();
     } else if (index === 0) {
@@ -162,53 +181,12 @@ function NftGrid({
     }
   };
 
-  //   const renderCollectible = useCallback(
-  //     (collectible, index) => {
-  //       if (!collectible) return null;
-  //       const name =
-  //         collectible.name ||
-  //         collectibleContracts.find(
-  //           ({ address }) => address === collectible.address,
-  //         )?.name;
-  //       const onPress = () => onPressCollectible({ ...collectible, name });
-  //       const onLongPress = () =>
-  //         !asset.favorites
-  //           ? onLongPressCollectible({ ...collectible, name })
-  //           : null;
-  //       return (
-  //         <View
-  //           key={collectible.address + collectible.tokenId}
-  //           styles={styles.collectibleBox}
-  //           testID={`collectible-${collectible.name}-${collectible.tokenId}`}
-  //         >
-  //           <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
-  //             <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
-  //               <CollectibleMedia
-  //                 style={styles.collectibleIcon}
-  //                 collectible={{ ...collectible, name }}
-  //                 onPressColectible={onPress}
-  //                 isTokenImage
-  //               />
-  //             </View>
-  //           </TouchableOpacity>
-  //         </View>
-  //       );
-  //     },
-  //     [
-  //       asset.favorites,
-  //       collectibleContracts,
-  //       onPressCollectible,
-  //       onLongPressCollectible,
-  //       styles,
-  //     ],
-  //   );
-
-  //   useEffect(() => {
-  //     const temp = splitIntoSubArrays(contractCollectibles, 3);
-  //     setCollectiblesGrid(temp);
-  //   }, [contractCollectibles, setCollectiblesGrid]);
-
-  console.log('Collectibles: ', collectibles[0]);
+  const onItemPress = useCallback(
+    (collectible) => {
+      debouncedNavigation(navigation, collectible);
+    },
+    [navigation],
+  );
 
   return (
     <View style={styles.itemWrapper}>
@@ -220,30 +198,35 @@ function NftGrid({
           justifyContent: 'space-between', // Optional: Adjust spacing between items
         }}
       >
-        {collectibles.map((collectible: Nft) => (
-          <View
-            key={collectible.address}
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{
-              width: '30%',
-              padding: 3,
-              marginBottom: 10,
-            }}
-          >
-            <CollectibleMedia
-              style={styles.collectibleIcon}
-              collectible={collectible}
-              onPressColectible={onPress}
-              isTokenImage
-            />
-            <Text numberOfLines={1} ellipsizeMode="tail">
-              {collectible.name}
-            </Text>
-            <Text numberOfLines={1} ellipsizeMode="tail">
-              {collectible.collection?.name}
-            </Text>
-          </View>
-        ))}
+        {collectibles.map((collectible: Nft) => {
+          if (!collectible) return null;
+          return (
+            <TouchableOpacity
+              key={collectible.address}
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                width: '30%',
+                padding: 3,
+                marginBottom: 10,
+              }}
+              onPress={() => onItemPress(collectible)}
+              onLongPress={() => onLongPressCollectible(collectible)}
+            >
+              <CollectibleMedia
+                style={styles.collectibleIcon}
+                collectible={collectible}
+                onPressColectible={onPress}
+                isTokenImage
+              />
+              <Text numberOfLines={1} ellipsizeMode="tail">
+                {collectible.name}
+              </Text>
+              <Text numberOfLines={1} ellipsizeMode="tail">
+                {collectible.collection?.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
       {/* )} */}
       <ActionSheet
