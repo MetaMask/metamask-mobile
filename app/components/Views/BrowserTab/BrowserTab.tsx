@@ -164,15 +164,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const iconRef = useRef<ImageSourcePropType | undefined>();
   const sessionENSNamesRef = useRef<SessionENSNames>({});
   const ensIgnoreListRef = useRef<string[]>([]);
-  const backgroundBridges = useRef<
-    {
-      url: string;
-      hostname: string;
-      sendNotification: (payload: unknown) => void;
-      onDisconnect: () => void;
-      onMessage: (message: Record<string, unknown>) => void;
-    }[]
-  >([]); // TODO: This type can be improved and updated with typing the BackgroundBridge.js file
+  const backgroundBridgeRef = useRef<{
+    url: string;
+    hostname: string;
+    sendNotification: (payload: unknown) => void;
+    onDisconnect: () => void;
+    onMessage: (message: Record<string, unknown>) => void;
+  }>(); // TODO: This type can be improved and updated with typing the BackgroundBridge.js file
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
@@ -211,14 +209,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, []);
 
   const notifyAllConnections = useCallback((payload) => {
-    const fullHostname = new URLParse(resolvedUrlRef.current).hostname;
-
-    // TODO:permissions move permissioning logic elsewhere
-    backgroundBridges.current.forEach((bridge) => {
-      if (bridge.hostname === fullHostname) {
-        bridge.sendNotification(payload);
-      }
-    });
+    backgroundBridgeRef.current?.sendNotification(payload);
   }, []);
 
   /**
@@ -473,12 +464,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
     getEntryScriptWeb3();
     handleFirstUrl();
-
-    // Specify how to clean up after this effect:
-    return function cleanup() {
-      backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-    };
   }, [isTabActive, handleFirstUrl]);
+
+  // Cleanup bridges when tab is closed
+  useEffect(() => {
+    return () => {
+      backgroundBridgeRef.current?.onDisconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (Device.isAndroid()) {
@@ -791,11 +784,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         return;
       }
       if (dataParsed.name) {
-        const urlOrigin = new URLParse(nativeEvent.url).origin;
-        backgroundBridges.current.forEach((bridge) => {
-          const bridgeOrigin = new URLParse(bridge.url).origin;
-          bridgeOrigin === urlOrigin && bridge.onMessage(dataParsed);
-        });
+        backgroundBridgeRef.current?.onMessage(dataParsed);
         return;
       }
     } catch (e: unknown) {
@@ -813,6 +802,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const initializeBackgroundBridge = useCallback(
     (urlBridge: string, isMainFrame: boolean) => {
+      // First disconnect and reset bridge
+      backgroundBridgeRef.current?.onDisconnect();
+      backgroundBridgeRef.current = undefined;
+
       //@ts-expect-error - We should type bacgkround bridge js file
       const newBridge = new BackgroundBridge({
         webview: webviewRef,
@@ -848,7 +841,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           }),
         isMainFrame,
       });
-      backgroundBridges.current.push(newBridge);
+      backgroundBridgeRef.current = newBridge;
     },
     [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
   );
@@ -874,10 +867,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         started: true,
       };
 
-      // Reset the previous bridges
-      backgroundBridges.current.length &&
-        backgroundBridges.current.forEach((bridge) => bridge.onDisconnect());
-
       // Cancel loading the page if we detect its a phishing page
       if (!isAllowedOrigin(urlOrigin)) {
         handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
@@ -891,7 +880,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         injectHomePageScripts();
       }
 
-      backgroundBridges.current = [];
       initializeBackgroundBridge(urlOrigin, true);
     },
     [
