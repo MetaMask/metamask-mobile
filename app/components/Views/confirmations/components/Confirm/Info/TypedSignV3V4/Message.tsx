@@ -1,12 +1,11 @@
 import React from 'react';
+import { Hex } from '@metamask/utils';
 import { Text, View } from 'react-native';
-import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import { strings } from '../../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../../component-library/hooks';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { useStyles } from '../../../../../../../component-library/hooks';
 import InfoRow from '../../../UI/InfoRow';
 import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
@@ -14,11 +13,13 @@ import { DataTreeInput } from '../../DataTree/DataTree';
 import styleSheet from './Message.styles';
 
 const Message = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
   const { styles } = useStyles(styleSheet, {});
 
-  const typedSignData = approvalRequest?.requestData?.data;
+  // Pending alignment of controller types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedSignData = signatureRequest?.messageParams?.data as any;
 
   if (!typedSignData) {
     return null;
