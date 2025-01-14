@@ -42,6 +42,9 @@ import {
 import createStyles from './styles';
 import generateTestId from '../../../../../../wdio/utils/generateTestId';
 import {
+  // Pending updated multichain UX to specify the send chain.
+  // eslint-disable-next-line no-restricted-syntax
+  selectChainId,
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId
 } from '../../../../../selectors/networkController';
@@ -75,7 +78,7 @@ class SendFlow extends PureComponent {
     /**
      * Network provider chain id
      */
-    chainId: PropTypes.string,
+    globalChainId: PropTypes.string,
     /**
      * Object that represents the navigator
      */
@@ -177,7 +180,7 @@ class SendFlow extends PureComponent {
     const {
       addressBook,
       ticker,
-      chainId,
+      globalChainId,
       navigation,
       providerType,
       route,
@@ -186,7 +189,7 @@ class SendFlow extends PureComponent {
     this.updateNavBar();
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook[globalChainId] || {};
     if (!Object.keys(networkAddressBook).length) {
       setTimeout(() => {
         this.addressToInputRef &&
@@ -219,8 +222,8 @@ class SendFlow extends PureComponent {
 
   isAddressSaved = () => {
     const { toAccount } = this.state;
-    const { addressBook, chainId, internalAccounts } = this.props;
-    const networkAddressBook = addressBook[chainId] || {};
+    const { addressBook, globalChainId, internalAccounts } = this.props;
+    const networkAddressBook = addressBook[globalChainId] || {};
     const checksummedAddress = toChecksumAddress(toAccount);
     return !!(
       networkAddressBook[checksummedAddress] ||
@@ -244,10 +247,10 @@ class SendFlow extends PureComponent {
     return addressError;
   };
 
-  handleNetworkSwitch = (chainId) => {
+  handleNetworkSwitch = (globalChainId) => {
     try {
       const { showAlert } = this.props;
-      const networkName = handleNetworkSwitch(chainId);
+      const networkName = handleNetworkSwitch(globalChainId);
 
       if (!networkName) return;
 
@@ -267,7 +270,7 @@ class SendFlow extends PureComponent {
           break;
         default:
           alertMessage = strings('send.network_not_found_description', {
-            chain_id: getDecimalChainId(chainId),
+            chain_id: getDecimalChainId(globalChainId),
           });
       }
       Alert.alert(strings('send.network_not_found_title'), alertMessage);
@@ -321,7 +324,7 @@ class SendFlow extends PureComponent {
         .addProperties({
           button_location: 'Send Flow warning',
           button_copy: 'Buy Native Token',
-          chain_id_destination: this.props.chainId,
+          chain_id_destination: this.props.globalChainId,
         })
         .build(),
     );
@@ -373,10 +376,10 @@ class SendFlow extends PureComponent {
   };
 
   getAddressNameFromBookOrInternalAccounts = (toAccount) => {
-    const { addressBook, internalAccounts, chainId } = this.props;
+    const { addressBook, internalAccounts, globalChainId } = this.props;
     if (!toAccount) return;
 
-    const networkAddressBook = addressBook[chainId] || {};
+    const networkAddressBook = addressBook[globalChainId] || {};
 
     const checksummedAddress = toChecksumAddress(toAccount);
     const matchingAccount = internalAccounts.find((account) =>
@@ -391,7 +394,7 @@ class SendFlow extends PureComponent {
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
-    const { addressBook, internalAccounts, chainId } = this.props;
+    const { addressBook, internalAccounts, globalChainId } = this.props;
     const {
       addressError,
       toEnsName,
@@ -406,7 +409,7 @@ class SendFlow extends PureComponent {
       toAccount,
       addressBook,
       internalAccounts,
-      chainId,
+      globalChainId,
     );
 
     this.setState({
@@ -425,7 +428,7 @@ class SendFlow extends PureComponent {
   onToSelectedAddressChange = (toAccount) => {
     const currentChain =
       this.props.ambiguousAddressEntries &&
-      this.props.ambiguousAddressEntries[this.props.chainId];
+      this.props.ambiguousAddressEntries[this.props.globalChainId];
     const isAmbiguousAddress = includes(currentChain, toAccount);
     if (isAmbiguousAddress) {
       this.setState({ showAmbiguousAcountWarning: isAmbiguousAddress });
@@ -435,7 +438,7 @@ class SendFlow extends PureComponent {
             MetaMetricsEvents.SEND_FLOW_SELECT_DUPLICATE_ADDRESS,
           )
           .addProperties({
-            chain_id: getDecimalChainId(this.props.chainId),
+            chain_id: getDecimalChainId(this.props.globalChainId),
           })
           .build(),
       );
@@ -479,7 +482,7 @@ class SendFlow extends PureComponent {
   };
 
   render = () => {
-    const { ticker, addressBook, chainId } = this.props;
+    const { ticker, addressBook, globalChainId } = this.props;
     const {
       toAccount,
       toSelectedAddressReady,
@@ -502,8 +505,8 @@ class SendFlow extends PureComponent {
     );
     const existingContact =
       checksummedAddress &&
-      addressBook[chainId] &&
-      addressBook[chainId][checksummedAddress];
+      addressBook[globalChainId] &&
+      addressBook[globalChainId][checksummedAddress];
     const displayConfusableWarning =
       !existingContact && confusableCollection && !!confusableCollection.length;
     const displayAsWarning =
@@ -522,7 +525,7 @@ class SendFlow extends PureComponent {
       >
         <View style={styles.imputWrapper}>
           <SendFlowAddressFrom
-            chainId={chainId}
+            chainId={globalChainId}
             fromAccountBalanceState={this.fromAccountBalanceState}
             setFromAddress={this.setFromAddress}
           />
@@ -557,7 +560,7 @@ class SendFlow extends PureComponent {
 
         {!toSelectedAddressReady ? (
           <AddressList
-            chainId={chainId}
+            chainId={globalChainId}
             inputSearch={toAccount}
             onIconPress={this.onIconPress}
             onAccountPress={this.onToSelectedAddressChange}
@@ -685,20 +688,19 @@ class SendFlow extends PureComponent {
 SendFlow.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
-  const { transaction } = state;
-  const chainId = transaction?.chainId;
+  const globalChainId = selectChainId(state);
 
   return {
     addressBook: selectAddressBook(state),
-    chainId,
+    globalChainId,
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    selectedAsset: transaction.selectedAsset,
+    selectedAsset: state.transaction.selectedAsset,
     internalAccounts: selectInternalAccounts(state),
-    ticker: selectNativeCurrencyByChainId(state, chainId),
-    providerType: selectProviderTypeByChainId(state, chainId),
+    ticker: selectNativeCurrencyByChainId(state, globalChainId),
+    providerType: selectProviderTypeByChainId(state, globalChainId),
     isPaymentRequest: state.transaction.paymentRequest,
     isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-      chainId,
+      globalChainId,
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,

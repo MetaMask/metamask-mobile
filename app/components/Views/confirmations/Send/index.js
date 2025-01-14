@@ -63,7 +63,14 @@ import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-pub
 import { toLowerCaseEquals } from '../../../../util/general';
 import { selectAddressBook } from '../../../../selectors/addressBookController';
 import TransactionTypes from '../../../../core/TransactionTypes';
-import { selectProviderTypeByChainId } from '../../../../selectors/networkController';
+import {
+  // Pending updated multichain UX to specify the send chain.
+  /* eslint-disable no-restricted-syntax */
+  selectChainId,
+  selectNetworkClientId,
+  /* eslint-enable no-restricted-syntax */
+  selectProviderTypeByChainId,
+} from '../../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -121,13 +128,13 @@ class Send extends PureComponent {
      */
     addressBook: PropTypes.object,
     /**
-     * The chain ID of the current selected network
-     */
-    chainId: PropTypes.string,
-    /**
      * ID of the global network client
      */
-    networkClientId: PropTypes.string,
+    globalNetworkClientId: PropTypes.string,
+    /**
+     * ID of the global chain
+     */
+    globalChainId: PropTypes.string,
     /**
      * List of accounts from the AccountsController
      */
@@ -296,7 +303,7 @@ class Send extends PureComponent {
    * Handle deeplink txMeta recipient
    */
   handleNewTxMetaRecipient = async (recipient) => {
-    const to = await getAddress(recipient, this.props.chainId);
+    const to = await getAddress(recipient, this.props.globalChainId);
 
     if (!to) {
       NotificationManager.showSimpleNotification({
@@ -320,7 +327,7 @@ class Send extends PureComponent {
     function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
-    const { addressBook, chainId, internalAccounts, selectedAddress } =
+    const { addressBook, globalChainId, internalAccounts, selectedAddress } =
       this.props;
 
     let newTxMeta = {};
@@ -345,7 +352,7 @@ class Send extends PureComponent {
 
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          chainId,
+          chainId: globalChainId,
           toAddress: newTxMeta.to,
           internalAccounts,
           ensRecipient: newTxMeta.ensRecipient,
@@ -384,7 +391,7 @@ class Send extends PureComponent {
         };
         newTxMeta.transactionToName = getTransactionToName({
           addressBook,
-          chainId,
+          chainId: globalChainId,
           toAddress: to,
           internalAccounts,
           ensRecipient,
@@ -551,8 +558,8 @@ class Send extends PureComponent {
     this.setState({ transactionConfirmed: true });
     const {
       transaction: { selectedAsset, assetType },
-      chainId,
-      networkClientId,
+      globalChainId,
+      globalNetworkClientId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -564,7 +571,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
-        networkClientId,
+        networkClientId: globalNetworkClientId,
         origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
@@ -604,9 +611,9 @@ class Send extends PureComponent {
         }
       }
       const existingContact =
-        addressBook[chainId] && addressBook[chainId][checksummedAddress];
+        addressBook[globalChainId] && addressBook[globalChainId][checksummedAddress];
       if (!existingContact) {
-        AddressBookController.set(checksummedAddress, '', chainId);
+        AddressBookController.set(checksummedAddress, '', globalChainId);
       }
       await new Promise((resolve) => {
         resolve(result);
@@ -797,19 +804,17 @@ class Send extends PureComponent {
 }
 
 const mapStateToProps = (state) => {
-  const transaction = state.transaction;
-  const chainId = transaction?.chainId;
-  const networkClientId = transaction?.networkClientId;
+  const globalChainId = selectChainId(state);
 
   return {
     addressBook: selectAddressBook(state),
     accounts: selectAccounts(state),
     contractBalances: selectContractBalances(state),
     transaction: state.transaction,
-    networkType: selectProviderTypeByChainId(state, chainId),
+    networkType: selectProviderTypeByChainId(state, globalChainId),
     tokens: selectTokens(state),
-    chainId,
-    networkClientId,
+    globalChainId,
+    globalNetworkClientId: selectNetworkClientId(state),
     internalAccounts: selectInternalAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     dappTransactionModalVisible: state.modals.dappTransactionModalVisible,

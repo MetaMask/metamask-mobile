@@ -187,6 +187,7 @@ const AddressList: React.FC<AddressListProps> = ({
             onIconPress={onIconPress}
             onAccountLongPress={onAccountLongPress}
             testID={SendViewSelectorsIDs.MY_ACCOUNT_ELEMENT}
+            chainId={chainId}
           />
         ))}
       </View>
@@ -210,6 +211,7 @@ const AddressList: React.FC<AddressListProps> = ({
         onAccountLongPress={onAccountLongPress}
         testID={SendViewSelectorsIDs.ADDRESS_BOOK_ACCOUNT}
         isAmbiguousAddress={addressElement.isAmbiguousAddress}
+        chainId={chainId}
       />
     );
   };
