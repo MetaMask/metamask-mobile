@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, View } from 'react-native';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -31,12 +31,14 @@ const SmartTransactionsEnabledBanner = ({
       severity={BannerAlertSeverity.Info}
       title={strings('smart_transactions_enabled.title')}
       description={
-        <>
-          <Text onPress={handleLearnMore}>
+        <Text style={styles.textContainer}>
+          <Text onPress={handleLearnMore} style={styles.link}>
             {strings('smart_transactions_enabled.link')}
           </Text>
-          {strings('smart_transactions_enabled.description')}
-        </>
+          <Text style={styles.description}>
+            {' '}{strings('smart_transactions_enabled.description')}
+          </Text>
+        </Text>
       }
       onClose={dismissBanner}
       style={styles.banner}

@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import Logger from '../../../util/Logger';
 
 interface PreferencesState {
   smartTransactionsOptInStatus?: boolean;
@@ -19,6 +20,11 @@ const SET_SMART_TRANSACTIONS_BANNER_DISMISSED = 'SET_SMART_TRANSACTIONS_BANNER_D
 
 const useSmartTransactionsEnabled = () => {
   const dispatch = useDispatch();
+
+  const preferencesState = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.PreferencesController
+  );
 
   const isEnabled = useSelector(
     (state: RootState) =>
@@ -48,6 +54,14 @@ const useSmartTransactionsEnabled = () => {
   const shouldShowBanner = isEnabled
     && isMigrationApplied
       && !isBannerDismissed;
+
+  Logger.log('[STX Hook] State values:', {
+    isEnabled,
+    isMigrationApplied,
+    isBannerDismissed,
+    shouldShowBanner,
+    rawState: preferencesState
+  });
 
   return {
     isEnabled,
