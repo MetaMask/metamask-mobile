@@ -7,7 +7,6 @@ import {
   ScrollView,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import { fontStyles } from '../../../styles/common';
 import CollectibleMedia from '../CollectibleMedia';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
@@ -24,57 +23,8 @@ import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { Theme } from '@metamask/design-tokens';
-import { BrandColors } from '../../../util/theme/models';
-
-const createStyles = (colors: Theme['colors'], brandColors: BrandColors) =>
-  StyleSheet.create({
-    itemWrapper: {
-      paddingHorizontal: 15,
-      paddingBottom: 16,
-    },
-    collectibleContractIcon: { width: 30, height: 30 },
-    collectibleContractIconContainer: { marginHorizontal: 8, borderRadius: 30 },
-    titleContainer: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    verticalAlignedContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    titleText: {
-      fontSize: 18,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    collectibleIcon: {
-      width: '100%',
-      aspectRatio: 1,
-    },
-    collectibleInTheMiddle: {
-      marginHorizontal: 8,
-    },
-    collectiblesRowContainer: {
-      flex: 1,
-      flexDirection: 'row',
-      marginTop: 15,
-    },
-    collectibleBox: {
-      flex: 1,
-      flexDirection: 'row',
-    },
-    favoritesLogoWrapper: {
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: brandColors.yellow500,
-    },
-  });
+import styleSheet from './NftGrid.styles';
+import { useStyles } from '../../hooks/useStyles';
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -101,8 +51,8 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
     null,
   );
-  const { colors, themeAppearance, brandColors } = useTheme();
-  const styles = createStyles(colors, brandColors);
+  const { themeAppearance } = useTheme();
+  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const onLongPressCollectible = useCallback((collectible) => {
@@ -176,25 +126,13 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
 
   return (
     <View style={styles.itemWrapper}>
-      <ScrollView
-        // eslint-disable-next-line react-native/no-inline-styles
-        contentContainerStyle={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between', // Optional: Adjust spacing between items
-        }}
-      >
+      <ScrollView contentContainerStyle={styles.contentContainerStyles}>
         {collectibles.map((collectible: Nft) => {
           if (!collectible) return null;
           return (
             <TouchableOpacity
               key={collectible.address}
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                width: '30%',
-                padding: 3,
-                marginBottom: 10,
-              }}
+              style={styles.collectibleCard}
               onPress={() => onItemPress(collectible)}
               onLongPress={() => onLongPressCollectible(collectible)}
             >
@@ -223,7 +161,6 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
         ]}
         cancelButtonIndex={2}
         destructiveButtonIndex={1}
-        // eslint-disable-next-line react/jsx-no-bind
         onPress={handleMenuAction}
         theme={themeAppearance}
       />
