@@ -1,9 +1,8 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import DefaultUrlAutocomplete, { UrlAutocomplete } from './';
+import DefaultUrlAutocomplete, { UrlAutocomplete, deleteFavoriteTestId } from './';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { mockTheme, ThemeContext } from '../../../util/theme';
-import { deleteFavoriteTestId } from './index';
 
 const bookmarks = [{url: 'https://www.bookmark.com', name: 'MyBookmark', type: 'favorites'}];
 
