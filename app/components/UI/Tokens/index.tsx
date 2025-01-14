@@ -267,6 +267,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
     // Sort the tokens based on tokenSortConfig
     return sortAssets(tokensWithBalances, tokenSortConfig);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     conversionRate,
     currentCurrency,
@@ -279,10 +280,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     selectedAccountTokensChains,
     isPopularNetwork,
     tokenNetworkFilter,
-    currentChainId,
     multiChainCurrencyRates,
-    multiChainMarketData,
-    multiChainTokenBalance,
     networkConfigurationsByChainId,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
