@@ -467,11 +467,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }, [isTabActive, handleFirstUrl]);
 
   // Cleanup bridges when tab is closed
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       backgroundBridgeRef.current?.onDisconnect();
-    };
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (Device.isAndroid()) {
