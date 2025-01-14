@@ -31,7 +31,7 @@ class SendView {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
 
-  get confirmAddressButton() {
+  get confirmAddress() {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
 
@@ -89,7 +89,7 @@ class SendView {
   }
 
   async splitAddressText(){
-    const attributes = await (await this.confirmAddressButton).getAttributes();
+    const attributes = await (await this.confirmAddress).getAttributes();
     return await attributes.label.split(' ');
   }
 }
