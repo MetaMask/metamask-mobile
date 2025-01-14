@@ -27,7 +27,6 @@ import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
 import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
@@ -339,7 +338,6 @@ export const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
-  networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });
@@ -389,7 +387,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  networkConfigurations: PropTypes.object,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

@@ -114,7 +114,7 @@ export type BrowserTabProps = {
   /**
    * Represents the current chain id
    */
-  chainId: string;
+  activeChainId: string;
   /**
    * Boolean indicating if browser is in tabs view
    */
