@@ -1,4 +1,5 @@
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import { EthMethod } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';

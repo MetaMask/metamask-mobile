@@ -1,7 +1,8 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType, InternalAccount } from '@metamask/keyring-api';
+import { BtcAccountType } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,

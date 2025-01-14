@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RevealPrivateCredential } from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';

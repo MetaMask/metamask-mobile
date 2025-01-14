@@ -16,7 +16,7 @@ import {
   selectCurrentCurrency,
 } from '../../selectors/currencyRateController';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isTestNet } from '../../util/networks';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 
