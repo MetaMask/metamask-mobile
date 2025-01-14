@@ -149,9 +149,17 @@ import {
   UserStorageController,
 } from '@metamask/profile-sync-controller';
 import {
-  NotificationServicesPushController,
-  NotificationServicesController,
-} from '@metamask/notification-services-controller';
+  type Actions as NotificationServicesControllerActions,
+  type Events as NotificationServicesControllerEvents,
+  type Controller as NotificationServicesController,
+  type NotificationServicesControllerState,
+} from '@metamask/notification-services-controller/notification-services';
+import {
+  type Actions as NotificationServicesPushControllerActions,
+  type Events as NotificationServicesPushControllerEvents,
+  type Controller as NotificationServicesPushController,
+  type NotificationServicesPushControllerState,
+} from '@metamask/notification-services-controller/push-services';
 ///: END:ONLY_INCLUDE_IF
 import {
   AccountsController,
@@ -225,8 +233,8 @@ type GlobalActions =
   | SnapsGlobalActions
   | AuthenticationController.Actions
   | UserStorageController.Actions
-  | NotificationServicesController.Actions
-  | NotificationServicesPushController.Actions
+  | NotificationServicesControllerActions
+  | NotificationServicesPushControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -257,8 +265,8 @@ type GlobalEvents =
   | SnapsGlobalEvents
   | AuthenticationController.Events
   | UserStorageController.Events
-  | NotificationServicesController.Events
-  | NotificationServicesPushController.Events
+  | NotificationServicesControllerEvents
+  | NotificationServicesPushControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -333,8 +341,8 @@ export type Controllers = {
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
-  NotificationServicesController: NotificationServicesController.Controller;
-  NotificationServicesPushController: NotificationServicesPushController.Controller;
+  NotificationServicesController: NotificationServicesController;
+  NotificationServicesPushController: NotificationServicesPushController;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
 };
@@ -374,8 +382,8 @@ export type EngineState = {
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
-  NotificationServicesController: NotificationServicesController.NotificationServicesControllerState;
-  NotificationServicesPushController: NotificationServicesPushController.NotificationServicesPushControllerState;
+  NotificationServicesController: NotificationServicesControllerState;
+  NotificationServicesPushController: NotificationServicesPushControllerState;
   ///: END:ONLY_INCLUDE_IF
   PermissionController: PermissionControllerState<Permissions>;
   ApprovalController: ApprovalControllerState;
