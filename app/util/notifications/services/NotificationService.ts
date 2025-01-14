@@ -4,9 +4,10 @@ import notifee, {
   EventType,
   EventDetail,
   AndroidChannel,
+  Notification
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, Notification, PressActionId } from '../types';
+import { HandleNotificationCallback, LAUNCH_ACTIVITY, PressActionId } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -184,7 +185,7 @@ class NotificationsService {
     callback,
   }: {
     detail: EventDetail;
-    callback?: (notification: Notification) => void;
+    callback?: (notification: unknown) => void;
   }) => {
     this.decrementBadgeCount(1);
     if (detail?.notification?.id) {
@@ -192,7 +193,7 @@ class NotificationsService {
     }
 
     if (detail?.notification?.data) {
-      callback?.(detail.notification as Notification);
+      callback?.(detail.notification.data);
     }
   };
 
@@ -201,7 +202,7 @@ class NotificationsService {
     detail,
     callback,
   }: NotifeeEvent & {
-    callback?: (notification: Notification) => void;
+    callback?: (notification: unknown) => void;
   }) => {
     switch (type as unknown as EventType) {
       case EventType.DELIVERED:
@@ -226,7 +227,7 @@ class NotificationsService {
   ): Promise<void> => {
     const event = await notifee.getInitialNotification()
     if (event) {
-      callback(event.notification.data as Notification['data'])
+      callback(event.notification.data as unknown)
     }
   };
 
@@ -246,12 +247,12 @@ class NotificationsService {
     channelId: ChannelId
     title: string
     body?: string
-    data?: Notification['data']
+    data?: unknown
   }): Promise<void> => {
     await notifee.displayNotification({
       title,
       body,
-      data: data as unknown as Notification['data'],
+      data: data as Notification['data'],
       android: {
         smallIcon: 'ic_notification_small',
         largeIcon: 'ic_notification',

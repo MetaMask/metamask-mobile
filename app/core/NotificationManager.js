@@ -73,14 +73,6 @@ export const constructTitleAndMessage = (notification) => {
         amount: notification.transaction.amount,
       });
       break;
-    case NotificationTransactionTypes.eth_received:
-      title = strings('notifications.default_message_title');
-      message = strings('notifications.eth_received_message', {
-        amount: notification.transaction.amount.usd,
-        ticker: 'USD',
-        address: formatAddress(notification.transaction.from, 'short'),
-      });
-      break;
     default:
       title =
         notification?.data?.title ||
