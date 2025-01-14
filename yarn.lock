@@ -5354,10 +5354,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/stake-sdk@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/stake-sdk/-/stake-sdk-0.3.0.tgz#b6156fd29666bfb9482a89b555cfe70b2b63769a"
-  integrity sha512-i0QkzEc/7HRpVJbhe+qPORprQaMsuzRBpSgFjKgxbsLhz4YtYVDTgVJ5kesZXNy2KfprYTfeh4oV/jenQWgNJA==
+"@metamask/stake-sdk@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.npmjs.org/@metamask/stake-sdk/-/stake-sdk-0.6.0.tgz#f147debfc0179de4ff3814a406bcbc0144f432fa"
+  integrity sha512-y8NUie7yrMTqTOk4QStV2RJnRKJQ/B2I7wj/eSuH5naIivFuknunyiRKyUs5U4kPlTwCiNXaY+JytISjIxC+7w==
 
 "@metamask/superstruct@^3.1.0":
   version "3.1.0"

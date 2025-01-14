@@ -14,7 +14,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         "paddingVertical": 10,
       }
     }
-    testID="asset-ETH"
+    testID="asset-Ethereum"
   >
     <View
       onLayout={[Function]}
@@ -482,7 +482,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         "paddingVertical": 10,
       }
     }
-    testID="asset-ETH"
+    testID="asset-Ethereum"
   >
     <View
       onLayout={[Function]}
