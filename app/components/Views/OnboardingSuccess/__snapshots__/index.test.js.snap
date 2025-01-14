@@ -216,9 +216,9 @@ Change these at any time.
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

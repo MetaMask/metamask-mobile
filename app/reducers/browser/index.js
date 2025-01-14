@@ -27,7 +27,7 @@ const browserReducer = (state = initialState, action) => {
 
       return {
         ...state,
-        history: [...state.history, { url, name }].slice(0, 50),
+        history: [...state.history, { url, name }].slice(-50),
       };
     }
     case 'ADD_TO_BROWSER_WHITELIST':
