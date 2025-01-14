@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import { View, FlatList, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
@@ -39,7 +39,15 @@ export const TokenList = ({
     <FlatList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
-      renderItem={renderItem}
+      renderItem={({ item }) => (
+        <TokenListItem
+          asset={item}
+          showRemoveMenu={showRemoveMenu}
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+          privacyMode={privacyMode}
+        />
+      )}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
         <TokenListFooter
