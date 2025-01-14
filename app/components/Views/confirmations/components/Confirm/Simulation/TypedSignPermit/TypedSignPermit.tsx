@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { selectNetworkClientId } from '../../../../../../../selectors/networkController';
+import Engine from '../../../../../../../core/Engine';
 import { safeToChecksumAddress } from '../../../../../../../util/address';
 import { PrimaryType } from '../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
@@ -47,14 +47,17 @@ function extractTokenDetailsByPrimaryType(
 }
 
 const PermitSimulation = () => {
+  const { NetworkController } = Engine.context;
   const { styles } = useStyles(styleSheet, {});
 
-  const networkClientId = useSelector(selectNetworkClientId);
   const signatureRequest = useSignatureRequest();
-  
+
   const chainId = signatureRequest?.chainId as Hex;
   const msgData = signatureRequest?.messageParams?.data;
 
+  const networkClientId = NetworkController.findNetworkClientIdByChainId(
+    chainId as Hex,
+  );
 
   if (!msgData) {
     return null;
