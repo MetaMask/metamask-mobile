@@ -111,7 +111,7 @@ const Price = ({
         )}
         <Text>
           {isLoading ? (
-            <View style={styles.loadingPriceDiff}>
+            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder>
                 <SkeletonPlaceholder.Item
                   width={150}
