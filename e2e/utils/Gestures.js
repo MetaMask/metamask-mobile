@@ -47,19 +47,6 @@ class Gestures {
     await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
   }
 
-  /**
-   * Tap an element using text
-   *
-   * @param {string} text - String
-   * @param {string} index -  Index of the element to tap
-   */
-  static async tapByText(text, index, timeout = 10000) {
-    const elementID = element(by.text(text));
-    await waitFor(elementID).toBeVisible().withTimeout(timeout);
-    return element(by.text(text))
-      .atIndex(index || 0)
-      .tap();
-  }
 
   /**
    * Wait for an element to be visible and then tap it.
