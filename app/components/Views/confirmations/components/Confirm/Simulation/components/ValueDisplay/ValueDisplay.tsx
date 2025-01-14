@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
 import ButtonPill from '../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
@@ -39,6 +40,9 @@ interface SimulationValueDisplayParams {
   /** Change type to be displayed in value tooltip */
   labelChangeType: string;
 
+  /** The network client ID */
+  networkClientId?: NetworkClientId;
+
   /**
    * The ethereum token contract address. It is expected to be in hex format.
    * We currently accept strings since we have a patch that accepts a custom string
@@ -69,6 +73,7 @@ const SimulationValueDisplay: React.FC<
 > = ({
   chainId,
   labelChangeType,
+  networkClientId,
   primaryType,
   tokenContract,
   tokenId,
@@ -87,7 +92,7 @@ const SimulationValueDisplay: React.FC<
         ? contractExchangeRates[tokenContract as `0x${string}`]?.price
         : undefined;
 
-    const tokenDetails = useGetTokenStandardAndDetails(tokenContract);
+    const tokenDetails = useGetTokenStandardAndDetails(tokenContract, networkClientId);
     const { decimalsNumber: tokenDecimals } = tokenDetails;
 
     useTrackERC20WithoutDecimalInformation(

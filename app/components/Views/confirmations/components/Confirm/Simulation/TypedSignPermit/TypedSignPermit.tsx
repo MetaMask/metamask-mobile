@@ -1,9 +1,11 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import { selectNetworkClientId } from '../../../../../../../selectors/networkController';
 import { safeToChecksumAddress } from '../../../../../../../util/address';
 import { PrimaryType } from '../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
@@ -47,9 +49,12 @@ function extractTokenDetailsByPrimaryType(
 const PermitSimulation = () => {
   const { styles } = useStyles(styleSheet, {});
 
+  const networkClientId = useSelector(selectNetworkClientId);
   const signatureRequest = useSignatureRequest();
+  
   const chainId = signatureRequest?.chainId as Hex;
   const msgData = signatureRequest?.messageParams?.data;
+
 
   if (!msgData) {
     return null;
@@ -89,6 +94,7 @@ const PermitSimulation = () => {
                 <PermitSimulationValueDisplay
                   key={`${token}-${i}`}
                   labelChangeType={labelChangeType}
+                  networkClientId={networkClientId}
                   primaryType={primaryType}
                   tokenContract={safeToChecksumAddress(token)}
                   value={amount}
@@ -100,6 +106,7 @@ const PermitSimulation = () => {
         ) : (
           <PermitSimulationValueDisplay
             labelChangeType={labelChangeType}
+            networkClientId={networkClientId}
             tokenContract={verifyingContract}
             value={message.value}
             tokenId={message.tokenId}

@@ -1,6 +1,7 @@
 import { memoize } from 'lodash';
 import { Hex } from '@metamask/utils';
 import { AssetsContractController } from '@metamask/assets-controllers';
+import { NetworkClientId } from '@metamask/network-controller';
 import { getTokenDetails } from '../../../../util/address';
 
 export type TokenDetailsERC20 = Awaited<
@@ -49,10 +50,12 @@ export const memoizedGetTokenStandardAndDetails = memoize(
     tokenAddress,
     tokenId,
     userAddress,
+    networkClientId,
   }: {
     tokenAddress?: Hex | string;
     userAddress?: string;
     tokenId?: string;
+    networkClientId?: NetworkClientId;
   }): Promise<TokenDetails | Record<string, never>> => {
     try {
       if (!tokenAddress) {
@@ -63,6 +66,7 @@ export const memoizedGetTokenStandardAndDetails = memoize(
         tokenAddress,
         userAddress,
         tokenId,
+        networkClientId,
       )) as TokenDetails;
     } catch {
       return {};
@@ -79,10 +83,12 @@ export const memoizedGetTokenStandardAndDetails = memoize(
  */
 export const fetchErc20Decimals = async (
   address: Hex | string,
+  networkClientId?: NetworkClientId,
 ): Promise<number> => {
   try {
     const { decimals: decStr } = (await memoizedGetTokenStandardAndDetails({
       tokenAddress: address,
+      networkClientId,
     })) as TokenDetailsERC20;
     const decimals = parseTokenDetailDecimals(decStr);
 

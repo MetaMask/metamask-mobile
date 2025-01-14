@@ -1,3 +1,4 @@
+import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
 import { TokenStandard } from '../../../UI/SimulationDetails/types';
@@ -17,6 +18,7 @@ import {
  */
 const useGetTokenStandardAndDetails = (
   tokenAddress?: Hex | string | undefined,
+  networkClientId?: NetworkClientId,
 ) => {
   const { value: details } =
     useAsyncResult<TokenDetailsERC20 | null>(async () => {
@@ -26,6 +28,7 @@ const useGetTokenStandardAndDetails = (
 
       return (await memoizedGetTokenStandardAndDetails({
         tokenAddress,
+        networkClientId,
       })) as TokenDetailsERC20;
     }, [tokenAddress]);
 
