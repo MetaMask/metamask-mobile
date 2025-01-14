@@ -23,10 +23,10 @@ describe('PhishingModal', () => {
           showPhishingModal={false}
           setShowPhishingModal={jest.fn()}
           setBlockedUrl={jest.fn()}
-          go={jest.fn()}
-          goBack={jest.fn()}
+          goToUrl={jest.fn()}
+          urlBarRef={{ current: null }}
           addToWhitelist={jest.fn()}
-          activeUrl={{ current: 'www.test.com' }}
+          activeUrl={'www.test.com'}
           blockListType={{ current: 'test' }}
         />
       </ThemeContext.Provider>,
@@ -42,10 +42,10 @@ describe('PhishingModal', () => {
           showPhishingModal
           setShowPhishingModal={jest.fn()}
           setBlockedUrl={jest.fn()}
-          go={jest.fn()}
-          goBack={jest.fn()}
+          goToUrl={jest.fn()}
+          urlBarRef={{ current: null }}
           addToWhitelist={jest.fn()}
-          activeUrl={{ current: 'www.test.com' }}
+          activeUrl={'www.test.com'}
           blockListType={{ current: 'test' }}
         />
       </ThemeContext.Provider>,
