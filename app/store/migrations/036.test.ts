@@ -1,8 +1,9 @@
-import { EthMethod } from '@metamask/keyring-api';
+import { EthAccountType, EthMethod, EthScopes } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -49,12 +50,13 @@ function expectedInternalAccount(
 ): InternalAccount {
   return {
     address,
+    scopes: [EthScopes.Namespace],
     id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
       importTime: Date.now(),
       keyring: {
-        type: 'HD Key Tree',
+        type: KeyringTypes.hd,
       },
       lastSelected: lastSelected ? expect.any(Number) : undefined,
     },
@@ -66,7 +68,7 @@ function expectedInternalAccount(
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: 'eip155:eoa',
+    type: EthAccountType.Eoa,
   };
 }
 
