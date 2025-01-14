@@ -433,7 +433,7 @@
     "chromedriver": "^131.0.3",
     "depcheck": "^1.4.7",
     "detox": "^20.27.5",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.4.7",
     "enzyme": "3.9.0",
     "enzyme-adapter-react-16": "1.10.0",
     "enzyme-to-json": "3.3.5",
