@@ -61,6 +61,7 @@ export interface BoxProps extends ViewProps {
   gap?: number;
   color?: TextColor;
   ref?: React.Ref<View>;
+  testID?: string;
 }
 
 export const Box: React.FC<BoxProps> = React.forwardRef(
@@ -69,6 +70,7 @@ export const Box: React.FC<BoxProps> = React.forwardRef(
       ref={ref}
       style={[getBoxStyles(props).dynamicStyles, props.style]}
       {...props}
+      testID={props.testID}
     >
       {children}
     </View>
