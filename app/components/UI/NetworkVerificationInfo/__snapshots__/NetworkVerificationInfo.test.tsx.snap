@@ -47,7 +47,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         }
       >
-        Add Network
+        Add Test Chain
       </Text>
     </View>
     <View
@@ -261,11 +261,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         }
       >
-        MetaMask doesn’t verify custom networks, so only approve networks you trust.
-         
         <Text
           accessibilityRole="text"
-          onPress={[Function]}
           style={
             {
               "color": "#141618",
@@ -277,7 +274,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             }
           }
         >
-          Learn more about network security risks and scams.
+          You're adding this network to MetaMask and giving Undefined dapp origin permission to use it.
         </Text>
       </Text>
       <RCTScrollView
@@ -305,15 +302,15 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "700",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
             }
           >
-            Display name
+            Currency symbol
           </Text>
           <Text
             accessibilityRole="text"
@@ -329,54 +326,101 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               }
             }
           >
-            Test Chain
+            TEST
           </Text>
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
               }
             }
           >
-            Chain ID
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-                "marginBottom": 8,
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#0376c9",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
               }
-            }
-          >
-            10
-          </Text>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "700",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            Network URL
-          </Text>
+            >
+              Network RPC URL
+            </Text>
+            <TouchableOpacity
+              onPress={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "backgroundColor": "#0376c91a",
+                    "borderRadius": 4,
+                    "height": 20,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 8,
+                  }
+                }
+                testID="tagcolored"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#0376c9"
+                    height={16}
+                    name="Info"
+                    style={
+                      {
+                        "height": 16,
+                        "width": 16,
+                      }
+                    }
+                    width={16}
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#0376c9",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    Review
+                  </Text>
+                  <SvgMock
+                    color="#0376c9"
+                    height={12}
+                    name="ArrowRight"
+                    style={
+                      {
+                        "height": 12,
+                        "width": 12,
+                      }
+                    }
+                    width={12}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
           <Text
             accessibilityRole="text"
             style={
