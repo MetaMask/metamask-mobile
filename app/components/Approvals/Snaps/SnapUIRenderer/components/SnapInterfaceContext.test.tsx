@@ -171,11 +171,13 @@ describe('Snap Interface Functions', () => {
     });
 
     it('returns undefined for non-existent form fields', () => {
-      expect((mockInitialState.testForm as any)['nonexistent']).toBeUndefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((mockInitialState.testForm as any).nonexistent).toBeUndefined();
     });
 
     it('returns undefined for non-existent forms', () => {
-      expect((mockInitialState as any)['nonexistentForm']).toBeUndefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((mockInitialState as any).nonexistentForm).toBeUndefined();
     });
   });
 

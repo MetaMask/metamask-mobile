@@ -29,16 +29,14 @@ describe('FormTextField', () => {
   });
 
   it('displays help text and error state correctly', () => {
-    const { getByText } = render(
-      <FormTextField helpText="Help message" error={true} />,
-    );
+    const { getByText } = render(<FormTextField helpText="Help message" />);
 
     const helpText = getByText('Help message');
     expect(helpText).toBeTruthy();
   });
 
   it('renders in disabled state correctly', () => {
-    const { getByTestId } = render(<FormTextField disabled={true} />);
+    const { getByTestId } = render(<FormTextField readOnly={true} />);
 
     const textField = getByTestId('form-text-field');
     expect(textField.props.editable).toBe(false);

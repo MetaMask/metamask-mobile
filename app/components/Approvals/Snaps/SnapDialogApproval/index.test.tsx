@@ -39,9 +39,8 @@ jest.mock('../../../../selectors/snaps/interfaceController', () => ({
   }),
 }));
 
-const renderWithProvider = (component: React.ReactElement) => {
-  return render(<Provider store={store}>{component}</Provider>);
-};
+const renderWithProvider = (component: React.ReactElement) =>
+  render(<Provider store={store}>{component}</Provider>);
 
 describe('SnapDialogApproval', () => {
   beforeEach(() => {

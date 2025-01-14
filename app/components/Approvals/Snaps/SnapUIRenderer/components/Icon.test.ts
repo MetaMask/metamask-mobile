@@ -15,6 +15,7 @@ describe('Icon UIComponentFactory', () => {
       },
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = heading({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
@@ -34,6 +35,7 @@ describe('Icon UIComponentFactory', () => {
       },
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const result = heading({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({

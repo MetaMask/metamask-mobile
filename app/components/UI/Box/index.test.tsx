@@ -25,7 +25,9 @@ describe('Box', () => {
 
   it('applies display style correctly', () => {
     const { getByTestId } = render(
-      <Box testID="test-box" display={Display.Block} children="Test Content" />,
+      <Box testID="test-box" display={Display.Block}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -38,11 +40,9 @@ describe('Box', () => {
 
   it('applies flex direction style correctly', () => {
     const { getByTestId } = render(
-      <Box
-        testID="test-box"
-        flexDirection={FlexDirection.Row}
-        children="Test Content"
-      />,
+      <Box testID="test-box" flexDirection={FlexDirection.Row}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     const styles = getByTestId('test-box').props.style;
     expect(styles).toEqual([{ flexDirection: 'row' }, undefined]);
@@ -50,11 +50,9 @@ describe('Box', () => {
 
   it('applies justify content style correctly', () => {
     const { getByTestId } = render(
-      <Box
-        testID="test-box"
-        justifyContent={JustifyContent.center}
-        children="Test Content"
-      />,
+      <Box testID="test-box" justifyContent={JustifyContent.center}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -67,11 +65,9 @@ describe('Box', () => {
 
   it('applies align items style correctly', () => {
     const { getByTestId } = render(
-      <Box
-        testID="test-box"
-        alignItems={AlignItems.center}
-        children="Test Content"
-      />,
+      <Box testID="test-box" alignItems={AlignItems.center}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -84,11 +80,9 @@ describe('Box', () => {
 
   it('applies text align style correctly', () => {
     const { getByTestId } = render(
-      <Box
-        testID="test-box"
-        textAlign={TextAlign.center}
-        children="Test Content"
-      />,
+      <Box testID="test-box" textAlign={TextAlign.center}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -101,7 +95,9 @@ describe('Box', () => {
 
   it('applies gap style correctly', () => {
     const { getByTestId } = render(
-      <Box testID="test-box" gap={8} children="Test Content" />,
+      <Box testID="test-box" gap={8}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -114,11 +110,9 @@ describe('Box', () => {
 
   it('applies color style correctly', () => {
     const { getByTestId } = render(
-      <Box
-        testID="test-box"
-        color={TextColor.Default}
-        children="Test Content"
-      />,
+      <Box testID="test-box" color={TextColor.Default}>
+        <Text>Test Content</Text>
+      </Box>,
     );
     expect(getByTestId('test-box').props.style).toEqual(
       expect.arrayContaining([
@@ -131,7 +125,11 @@ describe('Box', () => {
 
   it('forwards ref correctly', () => {
     const ref = React.createRef<View>();
-    render(<Box ref={ref} children="Test Content" />);
+    render(
+      <Box ref={ref}>
+        <Text>Test Content</Text>
+      </Box>,
+    );
     expect(ref.current).toBeTruthy();
   });
 });
