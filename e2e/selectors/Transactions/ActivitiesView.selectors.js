@@ -8,6 +8,10 @@ export const ActivitiesViewSelectorsIDs = {
   CONTAINER: 'transactions-container',
 };
 
+export const tokenID = {
+  eth: 'ETH',
+};
+
 export const ActivitiesViewSelectorsText = {
   CONFIRM_TEXT: enContent.transaction.confirmed,
   FAILED_TEXT: enContent.transaction.failed,
