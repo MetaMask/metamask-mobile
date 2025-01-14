@@ -46,11 +46,7 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
     <Image
       onError={[Function]}
       resizeMode="contain"
-      source={
-        {
-          "default": 1,
-        }
-      }
+      source={1}
       style={
         {
           "height": 32,

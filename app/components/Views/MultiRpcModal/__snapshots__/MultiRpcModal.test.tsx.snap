@@ -513,11 +513,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                   }
                                 >
                                   <Image
-                                    source={
-                                      {
-                                        "default": 1,
-                                      }
-                                    }
+                                    source={1}
                                     style={
                                       {
                                         "height": 102.64,

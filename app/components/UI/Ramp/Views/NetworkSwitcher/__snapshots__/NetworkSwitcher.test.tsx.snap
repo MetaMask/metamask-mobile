@@ -1597,11 +1597,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": 1,
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -2726,11 +2722,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": 1,
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -3855,11 +3847,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": 1,
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -4984,11 +4972,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": 1,
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,

@@ -397,11 +397,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               }
                             >
                               <Image
-                                source={
-                                  {
-                                    "default": 1,
-                                  }
-                                }
+                                source={1}
                               />
                             </View>
                             <Text

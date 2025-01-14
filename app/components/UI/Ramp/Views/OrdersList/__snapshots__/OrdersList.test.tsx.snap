@@ -352,11 +352,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -539,11 +535,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -726,11 +718,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1222,11 +1210,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1409,11 +1393,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1596,11 +1576,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -1783,11 +1759,7 @@ exports[`OrdersList renders correctly 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -2713,11 +2685,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3145,11 +3113,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3641,11 +3605,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -3828,11 +3788,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -4015,11 +3971,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,
@@ -4202,11 +4154,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             >
               <Image
                 resizeMode="stretch"
-                source={
-                  {
-                    "default": 1,
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 28,

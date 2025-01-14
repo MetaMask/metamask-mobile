@@ -399,11 +399,7 @@ exports[`AppInformation should render correctly 1`] = `
                           >
                             <Image
                               resizeMethod="auto"
-                              source={
-                                {
-                                  "default": 1,
-                                }
-                              }
+                              source={1}
                               style={
                                 {
                                   "height": 100,

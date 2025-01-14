@@ -1060,11 +1060,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": 1,
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 16,

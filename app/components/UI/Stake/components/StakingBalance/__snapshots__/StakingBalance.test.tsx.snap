@@ -156,11 +156,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": 1,
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -622,11 +618,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": 1,
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,

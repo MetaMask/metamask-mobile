@@ -52,9 +52,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     <TouchableOpacity
       avatarProps={
         {
-          "imageSource": {
-            "default": 1,
-          },
+          "imageSource": 1,
           "name": "Mainnet",
           "variant": "Network",
         }
@@ -96,11 +94,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "default": 1,
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,
@@ -177,9 +171,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     <TouchableOpacity
       avatarProps={
         {
-          "imageSource": {
-            "default": 1,
-          },
+          "imageSource": 1,
           "name": "Linea Mainnet",
           "variant": "Network",
         }
@@ -221,11 +213,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "default": 1,
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,

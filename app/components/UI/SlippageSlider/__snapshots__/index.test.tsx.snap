@@ -116,11 +116,7 @@ exports[`SlippageSlider should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source={
-        {
-          "default": 1,
-        }
-      }
+      source={1}
       style={
         {
           "width": 0,

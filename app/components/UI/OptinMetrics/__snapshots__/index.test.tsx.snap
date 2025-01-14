@@ -134,11 +134,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                 >
                   <Image
                     resizeMethod="auto"
-                    source={
-                      {
-                        "default": 1,
-                      }
-                    }
+                    source={1}
                     style={
                       {
                         "height": 40,
@@ -157,11 +153,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                 >
                   <Image
                     resizeMethod="auto"
-                    source={
-                      {
-                        "default": 1,
-                      }
-                    }
+                    source={1}
                     style={
                       {
                         "height": 15,

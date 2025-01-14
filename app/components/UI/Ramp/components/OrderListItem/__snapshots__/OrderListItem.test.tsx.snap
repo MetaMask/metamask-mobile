@@ -51,11 +51,7 @@ exports[`OrderListItem should render correctly 1`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -221,11 +217,7 @@ exports[`OrderListItem should render correctly 2`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -391,11 +383,7 @@ exports[`OrderListItem should render correctly 3`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -561,11 +549,7 @@ exports[`OrderListItem should render correctly 4`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -731,11 +715,7 @@ exports[`OrderListItem should render correctly 5`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -901,11 +881,7 @@ exports[`OrderListItem should render correctly 6`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -1071,11 +1047,7 @@ exports[`OrderListItem should render correctly 7`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,
@@ -1241,11 +1213,7 @@ exports[`OrderListItem should render correctly 8`] = `
     >
       <Image
         resizeMode="stretch"
-        source={
-          {
-            "default": 1,
-          }
-        }
+        source={1}
         style={
           {
             "height": 28,

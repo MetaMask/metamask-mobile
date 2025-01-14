@@ -237,11 +237,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                       >
                         <Image
                           resizeMode="stretch"
-                          source={
-                            {
-                              "default": 1,
-                            }
-                          }
+                          source={1}
                           style={
                             {
                               "borderRadius": 10,
@@ -417,11 +413,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                       >
                         <Image
                           resizeMode="stretch"
-                          source={
-                            {
-                              "default": 1,
-                            }
-                          }
+                          source={1}
                           style={
                             {
                               "borderRadius": 10,

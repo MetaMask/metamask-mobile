@@ -470,11 +470,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                       }
                                     >
                                       <Image
-                                        source={
-                                          {
-                                            "default": 1,
-                                          }
-                                        }
+                                        source={1}
                                       />
                                       <View
                                         style={
@@ -4909,11 +4905,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                       }
                                     >
                                       <Image
-                                        source={
-                                          {
-                                            "default": 1,
-                                          }
-                                        }
+                                        source={1}
                                       />
                                       <View
                                         style={
