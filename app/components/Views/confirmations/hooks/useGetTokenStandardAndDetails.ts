@@ -24,9 +24,9 @@ const useGetTokenStandardAndDetails = (
         return Promise.resolve(null);
       }
 
-      return (await memoizedGetTokenStandardAndDetails(
+      return (await memoizedGetTokenStandardAndDetails({
         tokenAddress,
-      )) as TokenDetailsERC20;
+      })) as TokenDetailsERC20;
     }, [tokenAddress]);
 
   if (!details) {

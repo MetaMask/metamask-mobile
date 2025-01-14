@@ -45,11 +45,15 @@ export const parseTokenDetailDecimals = (
 };
 
 export const memoizedGetTokenStandardAndDetails = memoize(
-  async (
-    tokenAddress?: Hex | string,
-    userAddress?: string,
-    tokenId?: string,
-  ): Promise<TokenDetails | Record<string, never>> => {
+  async ({
+    tokenAddress,
+    tokenId,
+    userAddress,
+  }: {
+    tokenAddress?: Hex | string;
+    userAddress?: string;
+    tokenId?: string;
+  }): Promise<TokenDetails | Record<string, never>> => {
     try {
       if (!tokenAddress) {
         return {};
@@ -77,9 +81,9 @@ export const fetchErc20Decimals = async (
   address: Hex | string,
 ): Promise<number> => {
   try {
-    const { decimals: decStr } = (await memoizedGetTokenStandardAndDetails(
-      address,
-    )) as TokenDetailsERC20;
+    const { decimals: decStr } = (await memoizedGetTokenStandardAndDetails({
+      tokenAddress: address,
+    })) as TokenDetailsERC20;
     const decimals = parseTokenDetailDecimals(decStr);
 
     return decimals ?? ERC20_DEFAULT_DECIMALS;
