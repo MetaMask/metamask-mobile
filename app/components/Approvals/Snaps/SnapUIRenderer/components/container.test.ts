@@ -13,10 +13,10 @@ describe('container', () => {
   // Add beforeEach to set up the mock implementation for each test
   beforeEach(() => {
     (mapToTemplate as jest.Mock).mockReset();
-    (mapToTemplate as jest.Mock).mockImplementation(({ e }) => ({
-      element: e.type,
-      props: e.props || {},
-      children: e.children || [],
+    (mapToTemplate as jest.Mock).mockImplementation((e) => ({
+      element: e.element.type,
+      props: e.element.props || {},
+      children: e.element.children || [],
     }));
   });
 

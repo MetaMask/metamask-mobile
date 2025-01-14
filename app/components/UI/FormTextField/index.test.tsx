@@ -36,7 +36,7 @@ describe('FormTextField', () => {
   });
 
   it('renders in disabled state correctly', () => {
-    const { getByTestId } = render(<FormTextField readOnly={true} />);
+    const { getByTestId } = render(<FormTextField readOnly />);
 
     const textField = getByTestId('form-text-field');
     expect(textField.props.editable).toBe(false);
