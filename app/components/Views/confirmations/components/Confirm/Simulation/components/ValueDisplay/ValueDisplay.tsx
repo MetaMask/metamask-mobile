@@ -154,7 +154,9 @@ const SimulationValueDisplay: React.FC<
                 {tokenId && `#${tokenId}`}
               </Text>
             </ButtonPill>
-            <Address address={tokenContract} chainId={chainId} style={styles.tokenAddress} />
+            <Box compact noBorder style={styles.tokenAddress}>
+              <Address address={tokenContract} chainId={chainId} />
+            </Box>
           </View>
         </Box>
         <Box compact noBorder>
