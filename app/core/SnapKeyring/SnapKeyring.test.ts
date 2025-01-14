@@ -1,9 +1,6 @@
 import { ControllerMessenger } from '@metamask/base-controller';
-import {
-  EthAccountType,
-  InternalAccount,
-  KeyringEvent,
-} from '@metamask/keyring-api';
+import { EthAccountType, KeyringEvent } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { snapKeyringBuilder } from './SnapKeyring';
 import {
   SnapKeyringBuilderAllowActions,

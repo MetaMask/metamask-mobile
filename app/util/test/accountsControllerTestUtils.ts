@@ -2,9 +2,9 @@ import { v4 as uuidV4 } from 'uuid';
 import {
   EthAccountType,
   EthMethod,
-  InternalAccount,
   KeyringAccountType,
 } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {

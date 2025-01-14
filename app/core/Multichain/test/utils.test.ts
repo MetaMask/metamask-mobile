@@ -1,10 +1,10 @@
 import {
-  InternalAccount,
   EthAccountType,
   BtcAccountType,
   EthMethod,
   BtcMethod,
 } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   isEthAccount,
   isBtcAccount,

@@ -1,4 +1,5 @@
-import { EthAccountType, InternalAccount } from '@metamask/keyring-api';
+import { EthAccountType } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isObject, hasProperty } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
