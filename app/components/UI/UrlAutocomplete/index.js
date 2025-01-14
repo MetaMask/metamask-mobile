@@ -16,9 +16,14 @@ import { fontStyles } from '../../../styles/common';
 import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { removeBookmark } from '../../../actions/bookmarks';
 
 const MAX_RECENTS = 5;
 const ORDERED_CATEGORIES = ['sites', 'recents', 'favorites'];
+
+export const deleteFavoriteTestId = (url) => `delete-favorite-${url}`;
 
 const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
 
@@ -72,6 +77,9 @@ const createStyles = (colors) =>
     bg: {
       flex: 1,
     },
+    deleteFavorite: {
+      marginLeft: 10,
+    },
   });
 
 /**
@@ -102,6 +110,10 @@ export class UrlAutocomplete extends PureComponent {
      * An array of bookmarks
      */
     bookmarks: PropTypes.array,
+    /**
+     * Function to remove a bookmark
+     */
+    removeBookmark: PropTypes.func,
   };
 
   state = {
@@ -109,12 +121,18 @@ export class UrlAutocomplete extends PureComponent {
   };
 
   componentDidMount() {
+    this.createSearchIndex();
+
+    this.timer = null;
+    this.mounted = true;
+  }
+
+  createSearchIndex = () => {
     const allUrls = [
       ...dappsWithType,
       ...this.props.browserHistory,
       ...this.props.bookmarks,
     ];
-
     this.fuse = new Fuse(allUrls, {
       shouldSort: true,
       threshold: 0.4,
@@ -127,9 +145,6 @@ export class UrlAutocomplete extends PureComponent {
         { name: 'url', weight: 0.5 },
       ],
     });
-
-    this.timer = null;
-    this.mounted = true;
   }
 
   componentDidUpdate(prevProps) {
@@ -138,14 +153,22 @@ export class UrlAutocomplete extends PureComponent {
         clearTimeout(this.timer);
       }
 
-      this.timer = setTimeout(() => {
-        const fuseSearchResult = this.fuse.search(this.props.input);
-        if (Array.isArray(fuseSearchResult)) {
-          this.updateResults([...fuseSearchResult]);
-        } else {
-          this.updateResults([]);
-        }
-      }, 50);
+      this.processInput();
+      // this.timer = setTimeout(() => {
+      //   this.processInput();
+      // }, 50);
+    } else if (prevProps.bookmarks.length !== this.props.bookmarks.length) {
+      this.createSearchIndex();
+      this.processInput();
+    }
+  }
+
+  processInput = () => {
+    const fuseSearchResult = this.fuse.search(this.props.input);
+    if (Array.isArray(fuseSearchResult)) {
+      this.updateResults([...fuseSearchResult]);
+    } else {
+      this.updateResults([]);
     }
   }
 
@@ -159,7 +182,11 @@ export class UrlAutocomplete extends PureComponent {
 
   onSubmitInput = () => this.props.onSubmit(this.props.input);
 
-  renderUrlOption = (url, name, onPress) => {
+  removeBookmark = (bookmark) => {
+    this.props.removeBookmark(bookmark);
+  }
+
+  renderUrlOption = ({url, name, type}, onPress) => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
@@ -185,6 +212,16 @@ export class UrlAutocomplete extends PureComponent {
               {url}
             </Text>
           </View>
+          {
+            type === 'favorites' && (
+              <ButtonIcon
+                testID={deleteFavoriteTestId(url)}
+                style={styles.deleteFavorite}              
+                iconName={IconName.Trash}
+                onPress={() => this.removeBookmark({url, name})}
+              />
+            )
+          }
         </View>
       </TouchableOpacity>
     );
@@ -248,12 +285,11 @@ export class UrlAutocomplete extends PureComponent {
           categoriesWithResults.map(category => (
               <View key={category}>
                 <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-                {resultsByCategory[category].map((r) => {
-                  const { url, name } = r;
+                {resultsByCategory[category].map((result) => {
                   const onPress = () => {
-                    this.props.onSubmit(url);
+                    this.props.onSubmit(result.url);
                   };
-                  return this.renderUrlOption(url, name, onPress);
+                  return this.renderUrlOption(result, onPress);
                 })}
               </View>
             )
@@ -275,6 +311,10 @@ const mapStateToProps = (state) => ({
   bookmarks: state.bookmarks.map(i => ({...i, type: 'favorites'})),
 });
 
+const mapDispatchToProps = (dispatch) => ({
+  removeBookmark: (bookmark) => dispatch(removeBookmark(bookmark)),
+});
+
 UrlAutocomplete.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(UrlAutocomplete);
+export default connect(mapStateToProps, mapDispatchToProps)(UrlAutocomplete);
