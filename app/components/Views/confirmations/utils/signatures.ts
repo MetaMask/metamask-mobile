@@ -32,7 +32,7 @@ const parseTypedDataMessage = (dataToParse: string) => {
 
   const messageValue = extractLargeMessageValue(dataToParse);
   if (result.message?.value) {
-    result.message.value = messageValue || String(result.message.value);
+    result.message.value = messageValue ?? String(result.message.value);
   }
 
   return result;
