@@ -12185,13 +12185,13 @@
     long "^4.0.0"
     mockery "^2.1.0"
 
-"@wdio/junit-reporter@^9.4.4":
-  version "9.4.4"
-  resolved "https://registry.yarnpkg.com/@wdio/junit-reporter/-/junit-reporter-9.4.4.tgz#cb0c873cece24b265d7cca63667a47b45150bd6a"
-  integrity sha512-jIc7M1J5n+M5/3s/zTJwCe9puSuJwD5Uf00qpIz+XCpsgfxXWS0loSJtEtw4q1dnWq7p90UD3MBssPcaIvSb+Q==
+"@wdio/junit-reporter@^9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@wdio/junit-reporter/-/junit-reporter-9.5.0.tgz#f15ba330feadabdd130203a99096e084bd4c7303"
+  integrity sha512-1we3KPPq6E3XIJvVprlauStTg1ZLANDnoUuY6WwmxWkIU0EsiAfxEtpUBQkzaVvL2J6AppX9Bt2Qi4vQxdajkA==
   dependencies:
-    "@wdio/reporter" "9.4.4"
-    "@wdio/types" "9.4.4"
+    "@wdio/reporter" "9.5.0"
+    "@wdio/types" "9.5.0"
     json-stringify-safe "^5.0.1"
     junit-report-builder "^5.1.1"
 
@@ -12361,14 +12361,14 @@
     object-inspect "^1.10.3"
     supports-color "8.1.1"
 
-"@wdio/reporter@9.4.4":
-  version "9.4.4"
-  resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-9.4.4.tgz#42fbbee1314bc31dcbd86fd375d5eefb4feb3731"
-  integrity sha512-uP9I2+bsE4ZqEzJeOlMB/h+ou1zm71m2sHq1sxGbjSqQFEkLJDSpTc8QEOm5sXptIA4y7ieTWCz4t6yFs/MkAw==
+"@wdio/reporter@9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@wdio/reporter/-/reporter-9.5.0.tgz#f7577d31a1b38f70d4dc3414c1831c6e78b8f5eb"
+  integrity sha512-ycdbU97tDT7RCgutM+fSwbd0FIab821BAc0hYopCkB0FIooHUjIjvXmh0QichasS5a21tGe0UXfCcnn1S6V6Fw==
   dependencies:
     "@types/node" "^20.1.0"
     "@wdio/logger" "9.4.4"
-    "@wdio/types" "9.4.4"
+    "@wdio/types" "9.5.0"
     diff "^7.0.0"
     object-inspect "^1.12.0"
 
@@ -12453,10 +12453,10 @@
   dependencies:
     "@types/node" "^20.1.0"
 
-"@wdio/types@9.4.4":
-  version "9.4.4"
-  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-9.4.4.tgz#15716d63717866d8fb22056f03e837af332d9c99"
-  integrity sha512-Z2TAVMZiz4wCfP7ZdHqUXlYfF4qj5bBOV25A7tHxFbbdWPvFb8sSW3SU2+fxSwu02n5sV1mgfRYOsloypOXBnw==
+"@wdio/types@9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@wdio/types/-/types-9.5.0.tgz#260dd40f3bd26519adc0e1102a0c909a4faa402c"
+  integrity sha512-sX1vH6VebVHvgdpySTOXzKNazHBu+yFr5bMvveJ2T4vKjJTJOAwO6nPftjKcgGDfhyYxM3xOCvboKICdQKFgEg==
   dependencies:
     "@types/node" "^20.1.0"
 
