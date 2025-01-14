@@ -1,0 +1,623 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InteractiveTimespanChart render matches snapshot 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 8,
+          "color": "#ffffff",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        7D
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        1M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        3M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        6M
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c8234",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Interactive Timespan Chart
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Displays Mock Data Points
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={100}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 100,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 100,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,41.417087485418634L16.666666666666664,25.426619042207577L33.33333333333333,0L50,18.71561916037313L66.66666666666666,42.32689340814848L83.33333333333334,49.17443803858893L100,34.75149168515569L100,100L83.33333333333334,100L66.66666666666666,100L50,100L33.33333333333333,100L16.666666666666664,100L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,41.417087485418634L16.666666666666664,25.426619042207577L33.33333333333333,0L50,18.71561916037313L66.66666666666666,42.32689340814848L83.33333333333334,49.17443803858893L100,34.75149168515569"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280058420,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857506356,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart supports customizing color 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#0376c9",
+          "borderRadius": 8,
+          "color": "#ffffff",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        7D
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        1M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        3M
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "color": "#9fa6ae",
+          "flexDirection": "column",
+          "justifyContent": "center",
+          "minHeight": 36,
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9fa6ae",
+            "fontFamily": "EuclidCircularB-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        6M
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "red",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Interactive Timespan Chart
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Displays Mock Data Points
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={100}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 100,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 100,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,41.417087485418634L16.666666666666664,25.426619042207577L33.33333333333333,0L50,18.71561916037313L66.66666666666666,42.32689340814848L83.33333333333334,49.17443803858893L100,34.75149168515569L100,100L83.33333333333334,100L66.66666666666666,100L50,100L33.33333333333333,100L16.666666666666664,100L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,41.417087485418634L16.666666666666664,25.426619042207577L33.33333333333333,0L50,18.71561916037313L66.66666666666666,42.32689340814848L83.33333333333334,49.17443803858893L100,34.75149168515569"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4294901760,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    872349696,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;

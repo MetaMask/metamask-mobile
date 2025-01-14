@@ -3444,12 +3444,12 @@
     "not_enough_eth": "Not enough ETH",
     "balance":"Balance",
     "stake_eth_and_earn":"Stake ETH and earn",
-    "stake_any_amount_of_eth":"Stake any amount of ETH",
+    "stake_any_amount_of_eth":"Stake any amount of ETH.",
     "no_minimum_required":"No minimum required.",
-    "earn_eth_rewards":"Earn ETH rewards",
+    "earn_eth_rewards":"Earn ETH rewards.",
     "earn_eth_rewards_description":"Start earning as soon as you stake. Rewards compound automatically.",
-    "flexible_unstaking":"Flexible unstaking",
-    "flexible_unstaking_description":"Unstake anytime. Typically takes less than 3 days, but can take up to 11 days to process.",
+    "flexible_unstaking":"Flexible unstaking.",
+    "flexible_unstaking_description":"Unstake anytime. Typically takes up to 11 days to process.",
     "disclaimer":"Staking does not guarantee rewards, and involves risks including a loss of funds.",
     "learn_more":"Learn more",
     "got_it":"Got it",
@@ -3507,7 +3507,22 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
-    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit."
+    "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit.",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7D",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
+    },
+    "today": "Today",
+    "one_week_average": "1 week average",
+    "one_month_average": "1 month average",
+    "three_month_average": "3 month average",
+    "six_month_average": "6 month average",
+    "one_year_average": "1 year average"
   },
   "default_settings": {
     "title": "Your Wallet is ready",

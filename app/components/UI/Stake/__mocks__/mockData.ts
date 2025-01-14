@@ -67,17 +67,18 @@ export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {
   exchangeRate: '1.010906701603882254',
 };
 
-export const MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT: PooledStakes = {
-  accounts: [
-    {
-      account: '0x0111111111abcdef2222222222abcdef33333333',
-      lifetimeRewards: '0',
-      assets: '99999999990000000000000',
-      exitRequests: [],
-    },
-  ],
-  exchangeRate: '1.010906701603882254',
-};
+export const MOCK_GET_POOLED_STAKES_API_RESPONSE_HIGH_ASSETS_AMOUNT: PooledStakes =
+  {
+    accounts: [
+      {
+        account: '0x0111111111abcdef2222222222abcdef33333333',
+        lifetimeRewards: '0',
+        assets: '99999999990000000000000',
+        exitRequests: [],
+      },
+    ],
+    exchangeRate: '1.010906701603882254',
+  };
 
 export const MOCK_GET_VAULT_RESPONSE: VaultData = {
   apy: '2.853065141088762750393474836309926',
@@ -112,6 +113,7 @@ export const MOCK_STAKING_API_SERVICE: Partial<StakingApiService> = {
   getPooledStakes: jest.fn(),
   getVaultData: jest.fn(),
   getPooledStakingEligibility: jest.fn(),
+  getVaultDailyApys: jest.fn(),
   baseUrl: 'https://staking.api.com',
 };
 

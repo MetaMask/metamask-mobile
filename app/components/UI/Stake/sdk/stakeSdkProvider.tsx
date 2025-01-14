@@ -4,6 +4,7 @@ import {
   PooledStakingContract,
   type StakingApiService,
   isSupportedChain,
+  StakingApiEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
@@ -74,9 +75,14 @@ export const StakeSDKProvider: React.FC<
       stakingApiService: sdkService?.stakingApiService,
       sdkType,
       setSdkType,
-      networkClientId
+      networkClientId,
     }),
-    [sdkService?.pooledStakingContract, sdkService?.stakingApiService, sdkType, networkClientId],
+    [
+      sdkService?.pooledStakingContract,
+      sdkService?.stakingApiService,
+      sdkType,
+      networkClientId,
+    ],
   );
   return (
     <StakeContext.Provider value={stakeContextValue}>
