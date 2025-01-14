@@ -1,5 +1,5 @@
 'use strict';
-import { Regression } from '../../tags';
+import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import AmountView from '../../pages/Send/AmountView';
@@ -26,7 +26,7 @@ const SHORTHAND_ADDRESS = '0x37Cc...FACE';
 const fixtureServer = new FixtureServer();
 
 describe(
-  Regression('Send ETH to the correct address after editing the recipient'),
+  SmokeCore('Send ETH to the correct address after editing the recipient'),
   () => {
     beforeEach(() => {
       jest.setTimeout(200000);
