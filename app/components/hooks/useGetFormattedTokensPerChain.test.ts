@@ -177,18 +177,6 @@ describe('useGetFormattedTokensPerChain', () => {
             },
           ],
         },
-        {
-          chainId: '0xe708',
-          tokensWithBalances: [
-            {
-              address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-              symbol: 'CAKE',
-              decimals: 18,
-              balance: '0.00164',
-              tokenBalanceFiat: 0,
-            },
-          ],
-        },
       ],
     };
 
@@ -204,6 +192,7 @@ describe('useGetFormattedTokensPerChain', () => {
       },
     );
 
+    // Note, we are currently only aggregating for popular networks
     expect(result.current).toEqual(expectedResult);
   });
 });

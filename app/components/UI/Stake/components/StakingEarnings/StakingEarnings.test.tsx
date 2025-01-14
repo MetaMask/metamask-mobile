@@ -4,10 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 
-jest.mock('../../constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 const mockNavigate = jest.fn();
 
 const STATE_MOCK = {

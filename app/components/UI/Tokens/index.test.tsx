@@ -236,10 +236,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../UI/Stake/constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({

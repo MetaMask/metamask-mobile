@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   selectChainId,
+  selectIsPopularNetwork,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -68,11 +69,14 @@ export const PortfolioBalance = () => {
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     [selectedInternalAccount as InternalAccount],
-    isTokenNetworkFilterEqualCurrentNetwork,
+    !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
     allChainIDs,
   );
+
   const totalFiatBalancesCrossChain: TotalFiatBalancesCrossChains =
     useGetTotalFiatBalanceCrossChains(
       [selectedInternalAccount as InternalAccount],

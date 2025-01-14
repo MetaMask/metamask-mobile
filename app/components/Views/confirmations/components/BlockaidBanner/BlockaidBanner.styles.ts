@@ -16,10 +16,7 @@ const styleSheet = (_params: {
 }) =>
   StyleSheet.create({
     attributionBase: Object.assign({
-      height: 24,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
+      height: 40,
       marginTop: 8,
     } as ViewStyle),
     attributionItem: {

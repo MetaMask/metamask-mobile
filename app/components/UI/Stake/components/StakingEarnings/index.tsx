@@ -15,7 +15,6 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import { strings } from '../../../../../../locales/i18n';
-import { isPooledStakingFeatureEnabled } from '../../../Stake/constants';
 import useStakingChain from '../../hooks/useStakingChain';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import useStakingEarnings from '../../hooks/useStakingEarnings';
@@ -47,12 +46,7 @@ const StakingEarningsContent = () => {
 
   const { isStakingSupportedChain } = useStakingChain();
 
-  if (
-    !isPooledStakingFeatureEnabled() ||
-    !isStakingSupportedChain ||
-    !hasStakedPositions
-  )
-    return <></>;
+  if (!isStakingSupportedChain || !hasStakedPositions) return <></>;
 
   return (
     <View style={styles.stakingEarningsContainer}>

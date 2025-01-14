@@ -1814,6 +1814,7 @@
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
     "network_rpc_url_label": "Network RPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "New default network URL",
     "current_label": "Current",
     "new_label": "New",

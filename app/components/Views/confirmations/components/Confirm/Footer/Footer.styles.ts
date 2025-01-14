@@ -19,7 +19,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonsContainer: {
       flexDirection: 'row',
-      padding: 16,
+      paddingVertical: 16,
     },
     buttonDivider: {
       width: 8,

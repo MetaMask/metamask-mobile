@@ -21,10 +21,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../../../hooks/useMetrics');
 
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({

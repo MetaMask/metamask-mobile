@@ -52,7 +52,7 @@ export interface MarketDataMapping {
 
 export const useGetFormattedTokensPerChain = (
   accounts: InternalAccount[],
-  shouldGetTokensPerCurrentChain: boolean,
+  shouldAggregateAcrossChains: boolean, // We don't always want to aggregate across chains.
   allChainIDs: string[],
 ): {
   [address: string]: {
@@ -85,9 +85,9 @@ export const useGetFormattedTokensPerChain = (
     return {};
   }
 
-  const networksToFormat = shouldGetTokensPerCurrentChain
-    ? [currentChainId]
-    : allChainIDs;
+  const networksToFormat = shouldAggregateAcrossChains
+    ? allChainIDs
+    : [currentChainId];
 
   const result: {
     [address: string]: {
