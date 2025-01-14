@@ -127,7 +127,7 @@ const SimulationValueDisplay: React.FC<
       return null;
     }
 
-    function onPressTokenValue() {
+    function handlePressTokenValue() {
       setHasValueModalOpen(true);
     }
 
@@ -136,9 +136,9 @@ const SimulationValueDisplay: React.FC<
         <Box style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
             <ButtonPill
-              onPress={onPressTokenValue}
-              onPressIn={onPressTokenValue}
-              onPressOut={onPressTokenValue}
+              onPress={handlePressTokenValue}
+              onPressIn={handlePressTokenValue}
+              onPressOut={handlePressTokenValue}
               style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
             >
               <Text>
