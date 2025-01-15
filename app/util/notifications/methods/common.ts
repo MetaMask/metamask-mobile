@@ -313,20 +313,25 @@ export const TRUNCATED_ADDRESS_END_CHARS = 5;
  */
 export function shortenString(
   stringToShorten = '',
-  { truncatedCharLimit, truncatedStartChars, truncatedEndChars } = {
-    truncatedCharLimit: TRUNCATED_NAME_CHAR_LIMIT,
-    truncatedStartChars: TRUNCATED_ADDRESS_START_CHARS,
-    truncatedEndChars: TRUNCATED_ADDRESS_END_CHARS,
-  },
+  {
+    truncatedCharLimit = TRUNCATED_NAME_CHAR_LIMIT,
+    truncatedStartChars = TRUNCATED_ADDRESS_START_CHARS,
+    truncatedEndChars = TRUNCATED_ADDRESS_END_CHARS,
+    skipCharacterInEnd = false,
+  }: {
+    truncatedCharLimit?: number;
+    truncatedStartChars?: number;
+    truncatedEndChars?: number;
+    skipCharacterInEnd?: boolean;
+  } = {},
 ) {
   if (stringToShorten.length < truncatedCharLimit) {
     return stringToShorten;
   }
 
-  return `${stringToShorten.slice(
-    0,
-    truncatedStartChars,
-  )}...${stringToShorten.slice(-truncatedEndChars)}`;
+  return `${stringToShorten.slice(0, truncatedStartChars)}...${
+    skipCharacterInEnd ? '' : stringToShorten.slice(-truncatedEndChars)
+  }`;
 }
 
 export const sortNotifications = (

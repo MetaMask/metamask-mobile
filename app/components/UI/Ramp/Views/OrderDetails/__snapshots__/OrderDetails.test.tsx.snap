@@ -591,6 +591,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               "padding": 0,
                                             },
                                             undefined,
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -2087,6 +2088,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             {
                                               "padding": 0,
                                             },
+                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -3599,6 +3601,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                               "padding": 0,
                                             },
                                             undefined,
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -5031,6 +5034,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             {
                                               "padding": 0,
                                             },
+                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -6542,6 +6546,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             {
                                               "padding": 0,
                                             },
+                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -9077,6 +9082,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               "padding": 0,
                                             },
                                             undefined,
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -10615,6 +10621,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               "padding": 0,
                                             },
                                             undefined,
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -12146,6 +12153,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               "padding": 0,
                                             },
                                             undefined,
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -13619,6 +13627,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             {
                                               "padding": 0,
                                             },
+                                            undefined,
                                             undefined,
                                           ]
                                         }
