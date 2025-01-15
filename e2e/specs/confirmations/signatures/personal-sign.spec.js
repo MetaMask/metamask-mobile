@@ -34,7 +34,7 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        testSpecificMock,
+        // testSpecificMock,
       },
       async () => {
         await loginToApp();

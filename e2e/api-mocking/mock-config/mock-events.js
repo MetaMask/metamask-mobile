@@ -62,12 +62,30 @@ export const mockEvents = {
       response: [
         {
           mobileMinimumVersions: {
-            androidMinimumAPIVersion: 21,
             appMinimumBuild: 1243,
             appleMinimumOS: 6,
+            androidMinimumAPIVersion: 21,
           },
         },
-        { testFlagForThreshold: [[Object], [Object], [Object]] },
+        {
+          testFlagForThreshold: [
+            {
+              scope: { type: 'threshold', value: 0.3 },
+              value: 'valueA',
+              name: 'groupA',
+            },
+            {
+              scope: { value: 0.5, type: 'threshold' },
+              value: 'valueB',
+              name: 'groupB',
+            },
+            {
+              name: 'groupC',
+              scope: { value: 1, type: 'threshold' },
+              value: 'valueC',
+            },
+          ],
+        },
         { confirmation_redesign: { signatures: false } },
       ],
       responseCode: 200,
