@@ -268,21 +268,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // Sort the tokens based on tokenSortConfig
     return sortAssets(tokensWithBalances, tokenSortConfig);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    conversionRate,
-    currentCurrency,
-    hideZeroBalanceTokens,
-    tokenBalances,
-    tokenExchangeRates,
-    tokenSortConfig,
-    tokens,
-    // Dependencies for multichain implementation
-    selectedAccountTokensChains,
-    isPopularNetwork,
-    multiChainCurrencyRates,
-    selectedInternalAccountAddress,
-    isUserOnCurrentNetwork,
-  ]);
+  }, []);
 
   const showRemoveMenu = (token: TokenI) => {
     if (actionSheet.current) {

@@ -45,19 +45,30 @@ export const TokenList = ({
 
   const styles = createStyles(colors);
 
+  const renderItem = useCallback(
+    ({ item }) => (
+      <TokenListItem
+        asset={item}
+        showRemoveMenu={showRemoveMenu}
+        showScamWarningModal={showScamWarningModal}
+        setShowScamWarningModal={setShowScamWarningModal}
+        privacyMode={privacyMode}
+      />
+    ),
+    [
+      showScamWarningModal,
+      privacyMode,
+      showRemoveMenu,
+      setShowScamWarningModal,
+    ],
+  );
+  const memoizedTokens = useMemo(() => tokens, [tokens]);
+
   return tokens?.length > 0 ? (
     <FlashList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokens}
-      renderItem={({ item }) => (
-        <TokenListItem
-          asset={item}
-          showRemoveMenu={showRemoveMenu}
-          showScamWarningModal={showScamWarningModal}
-          setShowScamWarningModal={setShowScamWarningModal}
-          privacyMode={privacyMode}
-        />
-      )}
+      data={memoizedTokens}
+      renderItem={renderItem}
       estimatedItemSize={tokens.length}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
