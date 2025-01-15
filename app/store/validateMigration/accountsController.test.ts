@@ -4,6 +4,7 @@ import { RootState } from '../../reducers';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { EngineState } from '../../core/Engine/types';
 import { Json } from '@metamask/utils';
+import { EthScopes } from '@metamask/keyring-api';
 
 describe('validateAccountsController', () => {
   const createMockState = (
@@ -25,6 +26,7 @@ describe('validateAccountsController', () => {
           id: 'account-1',
           address: '0x123',
           type: 'eip155:eoa',
+          scopes: [EthScopes.Namespace],
           options: {} as Record<string, Json>,
           methods: [],
           metadata: {
@@ -87,6 +89,7 @@ describe('validateAccountsController', () => {
               id: 'account-1',
               address: '0x123',
               type: 'eip155:eoa',
+              scopes: [EthScopes.Namespace],
               options: {} as Record<string, Json>,
               methods: [],
               metadata: {
@@ -117,6 +120,7 @@ describe('validateAccountsController', () => {
               id: 'account-1',
               address: '0x123',
               type: 'eip155:eoa',
+              scopes: [EthScopes.Namespace],
               options: {} as Record<string, Json>,
               methods: [],
               metadata: {

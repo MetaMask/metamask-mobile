@@ -52,7 +52,7 @@ import {
   TotalFiatBalancesCrossChains,
   useGetTotalFiatBalanceCrossChains,
 } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getChainIdsToPoll } from '../../../../../selectors/tokensController';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 
