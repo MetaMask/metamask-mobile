@@ -3578,7 +3578,6 @@
     "account": "Compte",
     "balance": "Solde",
     "network": "Réseau",
-    "rpc_url": "URL de l’appel de procédure à distance (RPC)",
     "simulation": {
       "title": "Changements estimés",
       "personal_sign_info": "Vous êtes en train de vous connecter à un site. Aucun changement ne devrait être apporté à votre compte.",
