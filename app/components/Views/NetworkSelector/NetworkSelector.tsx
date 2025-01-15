@@ -528,72 +528,6 @@ const NetworkSelector = () => {
     );
   };
 
-  const renderLineaMainnet = () => {
-    const { name: lineaMainnetName, chainId } = Networks['linea-mainnet'];
-    const name = networkConfigurations?.[chainId]?.name ?? lineaMainnetName;
-    const rpcUrl =
-      networkConfigurations?.[chainId]?.rpcEndpoints?.[
-        networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-      ].url;
-
-    if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
-      return null;
-
-    if (isNetworkUiRedesignEnabled()) {
-      return (
-        <Cell
-          key={chainId}
-          variant={CellVariant.SelectWithMenu}
-          title={name}
-          avatarProps={{
-            variant: AvatarVariant.Network,
-            name: lineaMainnetName,
-            imageSource: images['LINEA-MAINNET'],
-            size: AvatarSize.Sm,
-          }}
-          isSelected={chainId === selectedChainId}
-          onPress={() => onNetworkChange(LINEA_MAINNET)}
-          style={styles.networkCell}
-          buttonIcon={IconName.MoreVertical}
-          secondaryText={
-            showRpcSelector
-              ? hideProtocolFromUrl(hideKeyFromUrl(rpcUrl))
-              : undefined
-          }
-          buttonProps={{
-            onButtonClick: () => {
-              openModal(chainId, false, LINEA_MAINNET, true);
-            },
-          }}
-          onTextClick={() =>
-            openRpcModal({
-              chainId,
-              networkName: lineaMainnetName,
-            })
-          }
-          onLongPress={() => {
-            openModal(chainId, false, LINEA_MAINNET, true);
-          }}
-        />
-      );
-    }
-
-    return (
-      <Cell
-        variant={CellVariant.Select}
-        title={name}
-        avatarProps={{
-          variant: AvatarVariant.Network,
-          name: lineaMainnetName,
-          imageSource: images['LINEA-MAINNET'],
-          size: avatarSize,
-        }}
-        isSelected={chainId === selectedChainId}
-        onPress={() => onNetworkChange(LINEA_MAINNET)}
-      />
-    );
-  };
-
   const renderRpcNetworks = () =>
     Object.values(networkConfigurations).map((networkConfiguration) => {
       const {
@@ -606,7 +540,6 @@ const NetworkSelector = () => {
         !chainId ||
         isTestNet(chainId) ||
         isMainNet(chainId) ||
-        chainId === CHAIN_IDS.LINEA_MAINNET ||
         chainId === CHAIN_IDS.GOERLI
       ) {
         return null;
@@ -909,7 +842,6 @@ const NetworkSelector = () => {
         searchString.length === 0 &&
         renderEnabledNetworksTitle()}
       {renderMainnet()}
-      {renderLineaMainnet()}
       {renderRpcNetworks()}
       {isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
