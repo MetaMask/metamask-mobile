@@ -3,10 +3,11 @@ import AppConstants from '../../core/AppConstants';
 /**
  * "Use require('punycode/') to import userland modules rather than core modules."
  * {@see {@link https://github.com/mathiasbynens/punycode.js?tab=readme-ov-file#installation}
-*/
+ */
 import { toASCII } from 'punycode/';
 
-const hostnameRegex = /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
+const hostnameRegex =
+  /^(?:[a-zA-Z][a-zA-Z0-9+.-]*:\/\/)?(?:www\.)?([^/?:]+)(?::\d+)?/;
 
 export function isPortfolioUrl(url: string) {
   try {
@@ -46,7 +47,9 @@ export const isValidASCIIURL = (urlString?: string) => {
     const punycodeHostname = toASCII(originalHostname?.[1] || '');
     return originalHostname?.[1] === punycodeHostname;
   } catch (exp: unknown) {
-    console.error(`Failed to detect if URL hostname contains non-ASCII characters: ${urlString}. Error: ${exp}`);
+    console.error(
+      `Failed to detect if URL hostname contains non-ASCII characters: ${urlString}. Error: ${exp}`,
+    );
     return false;
   }
 };
