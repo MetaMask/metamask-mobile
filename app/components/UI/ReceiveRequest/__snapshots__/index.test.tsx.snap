@@ -520,7 +520,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                     meetOrSlice={1}
                                     src={
                                       {
-                                        "uri": "MockImage",
+                                        "uri": undefined,
                                       }
                                     }
                                     width={35}
@@ -1267,7 +1267,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                     meetOrSlice={1}
                                     src={
                                       {
-                                        "uri": "MockImage",
+                                        "uri": undefined,
                                       }
                                     }
                                     width={35}
@@ -2014,7 +2014,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                     meetOrSlice={1}
                                     src={
                                       {
-                                        "uri": "MockImage",
+                                        "uri": undefined,
                                       }
                                     }
                                     width={35}

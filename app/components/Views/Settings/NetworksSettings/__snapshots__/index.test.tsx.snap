@@ -470,11 +470,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -546,11 +542,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -629,11 +621,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,
@@ -697,11 +685,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 }
                               >
                                 <Image
-                                  source={
-                                    {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
                                     {
                                       "borderRadius": 10,

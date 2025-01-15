@@ -233,4 +233,5 @@ export enum IconName {
   Wallet = 'Wallet',
   Warning = 'Warning',
   Wifi = 'Wifi',
+  Blank = 'Blank',
 }

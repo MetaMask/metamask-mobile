@@ -10,6 +10,7 @@ import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import handleSendMessage from './handleSendMessage';
+import { ImageSourcePropType } from 'react-native';
 
 export const setupBridge = ({
   originatorInfo,
@@ -55,21 +56,6 @@ export const setupBridge = ({
         getProviderState,
         isMMSDK: true,
         navigation: null, //props.navigation,
-        getApprovedHosts: () =>
-          connection.getApprovedHosts('rpcMethodMiddleWare'),
-        setApprovedHosts: (hostname: string) => {
-          connection.approveHost({
-            host: hostname,
-            hostname,
-            context: 'setApprovedHosts',
-          });
-        },
-        approveHost: (approveHostname) =>
-          connection.approveHost({
-            host: connection.host,
-            hostname: approveHostname,
-            context: 'rpcMethodMiddleWare',
-          }),
         // Website info
         url: {
           current: originatorInfo?.url,
@@ -77,7 +63,7 @@ export const setupBridge = ({
         title: {
           current: originatorInfo?.title,
         },
-        icon: { current: originatorInfo.icon },
+        icon: { current: originatorInfo.icon as ImageSourcePropType }, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
         // Bookmarks
         isHomepage: () => false,
         // Show autocomplete

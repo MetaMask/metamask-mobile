@@ -6,13 +6,7 @@ exports[`TokenIcon component should Render correctly 2`] = `
 <RemoteImage
   fadeIn={true}
   onError={[Function]}
-  source={
-    {
-      "default": {
-        "uri": "MockImage",
-      },
-    }
-  }
+  source={1}
   style={
     [
       {
@@ -86,13 +80,7 @@ exports[`TokenIcon component should Render correctly 6`] = `
 <RemoteImage
   fadeIn={true}
   onError={[Function]}
-  source={
-    {
-      "default": {
-        "uri": "MockImage",
-      },
-    }
-  }
+  source={1}
   style={
     [
       {

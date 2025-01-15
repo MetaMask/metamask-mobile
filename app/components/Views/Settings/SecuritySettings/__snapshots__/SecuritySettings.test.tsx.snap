@@ -1555,11 +1555,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <TouchableOpacity
             avatarProps={
               {
-                "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                },
+                "imageSource": 1,
                 "name": "Ethereum Mainnet",
                 "variant": "Network",
               }
@@ -1601,13 +1597,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -1684,11 +1674,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <TouchableOpacity
             avatarProps={
               {
-                "imageSource": {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                },
+                "imageSource": 1,
                 "name": "Linea",
                 "variant": "Network",
               }
@@ -1730,13 +1716,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
