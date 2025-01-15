@@ -17,7 +17,7 @@ const createStyles = (depth: number) =>
     },
     dataRow: {
       paddingHorizontal: 0,
-      paddingBottom: 4,
+      paddingBottom: 16,
     },
   });
 

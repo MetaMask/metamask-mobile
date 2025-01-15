@@ -3595,6 +3595,9 @@
     "title": {
       "signature": "Signature request"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Request from",
     "message": "Message",
     "primary_type": "Primary type",
@@ -3603,7 +3606,6 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL",
     "simulation": {
       "info_permit": "You’re giving the spender permission to spend this many tokens from your account.",
       "label_change_type_permit": "Spending cap",
