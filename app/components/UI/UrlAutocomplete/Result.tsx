@@ -20,8 +20,8 @@ interface ResultProps {
 }
 
 export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
-    const { colors } = useTheme();
-    const styles = createStyles(colors);
+    const theme = useTheme();
+    const styles = createStyles(theme);
 
     const name = typeof result.name === 'string' ? result.name : getHost(result.url);
 

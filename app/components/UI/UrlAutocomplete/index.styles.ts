@@ -1,8 +1,7 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, TextStyle } from "react-native";
 import { Theme } from "../../../util/theme/models";
-import { fontStyles } from "../../../styles/common";
 
-export const createStyles = (colors: Theme['colors']) =>
+export const createStyles = ({colors, typography}: Theme) =>
     StyleSheet.create({
       wrapper: {
         flex: 1,
@@ -21,21 +20,18 @@ export const createStyles = (colors: Theme['colors']) =>
         fontSize: 12,
       },
       name: {
-        fontSize: 14,
         color: colors.text.default,
-        ...fontStyles.normal,
-      },
+        ...typography.lBodyMDMedium,
+      } as TextStyle,
       category: {
-        fontSize: 16,
         color: colors.text.default,
-        ...fontStyles.bold,
         margin: 10,
-      },
+        ...typography.lHeadingSM,
+      } as TextStyle,
       url: {
-        fontSize: 12,
         color: colors.text.alternative,
-        ...fontStyles.normal,
-      },
+        ...typography.lBodySM,
+      } as TextStyle,
       item: {
         flex: 1,
         marginBottom: 20,

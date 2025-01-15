@@ -5,7 +5,7 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { removeBookmark } from '../../../actions/bookmarks';
 
-const defaultState = { browser: { bookmarks: [{url: 'https://www.bookmark.com', name: 'MyBookmark'}], history: [] } };
+const defaultState = { browser: { history: [] }, bookmarks: [{url: 'https://www.bookmark.com', name: 'MyBookmark'}] };
 
 describe('UrlAutocomplete', () => {
   beforeAll(() => {
@@ -41,8 +41,8 @@ describe('UrlAutocomplete', () => {
     store.dispatch = jest.fn();
     screen.rerender(<UrlAutocomplete input="MyBook" />);
     jest.runAllTimers();
-    const deleteFavorite = await screen.findByTestId(deleteFavoriteTestId(defaultState.browser.bookmarks[0].url));
+    const deleteFavorite = await screen.findByTestId(deleteFavoriteTestId(defaultState.bookmarks[0].url));
     fireEvent.press(deleteFavorite);
-    expect(store.dispatch).toHaveBeenCalledWith(removeBookmark({...defaultState.browser.bookmarks[0], type: 'favorites'}));
+    expect(store.dispatch).toHaveBeenCalledWith(removeBookmark({...defaultState.bookmarks[0], type: 'favorites'}));
   });
 });

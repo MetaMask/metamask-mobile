@@ -131,8 +131,8 @@ export class UrlAutocomplete extends PureComponent {
   onSubmitInput = () => this.props.onSubmit(this.props.input);
 
   render() {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context;
+    const styles = createStyles(theme);
 
     if (!this.state.hasResults) {
       return (
@@ -171,12 +171,6 @@ export class UrlAutocomplete extends PureComponent {
             />
           )
         )}
-        <TouchableWithoutFeedback
-          style={styles.bg}
-          onPress={this.props.onDismiss}
-        >
-          <View style={styles.bg} />
-        </TouchableWithoutFeedback>
       </ScrollView>
     );
   }
