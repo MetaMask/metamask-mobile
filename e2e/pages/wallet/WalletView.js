@@ -174,6 +174,10 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
+  async nftIDInWallet(nftId) {
+    return Matchers.getElementByID(nftId);
+  }
+
   async nftInWallet(nftName) {
     return Matchers.getElementByText(nftName);
   }

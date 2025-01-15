@@ -16,13 +16,13 @@ import enContent from '../../../locales/languages/en.json';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
-  const TEST_DAPP_CONTRACT = 'TestDappNFTs';
+  const TEST_DAPP_NFT = 'Test Dapp NFTs #1';
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
   });
 
-  it('show nft details', async () => {
+  it.only('show nft details', async () => {
     await withFixtures(
       {
         dapp: true,
@@ -57,7 +57,7 @@ describe(SmokeAssets('NFT Details page'), () => {
         await Assertions.checkIfVisible(WalletView.container);
         // Wait for asset to load
         await Assertions.checkIfVisible(
-          WalletView.nftInWallet(TEST_DAPP_CONTRACT),
+          WalletView.nftIDInWallet(TEST_DAPP_NFT),
         );
         await WalletView.tapOnNftName();
 

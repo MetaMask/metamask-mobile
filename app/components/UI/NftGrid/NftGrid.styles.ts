@@ -20,6 +20,11 @@ const styleSheet = () =>
       flexWrap: 'wrap',
       justifyContent: 'space-between', // Optional: Adjust spacing between items
     },
+    footer: {
+      //   flex: 1,
+      alignItems: 'center',
+      //   marginTop: 8,
+    },
   });
 
 export default styleSheet;

@@ -19,6 +19,8 @@ import { debounce } from 'lodash';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import styleSheet from './NftGrid.styles';
 import { useStyles } from '../../hooks/useStyles';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -33,8 +35,13 @@ interface LongPressedCollectibleType {
   tokenId: string;
 }
 
+interface NftGridNavigationParamList {
+  AddAsset: { assetType: string };
+  [key: string]: undefined | object;
+}
+
 interface NftGridProps {
-  navigation: NavigationProp<ParamListBase>;
+  navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
   chainId: string;
   selectedAddress: string;
 }
@@ -119,32 +126,60 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
   );
 
   return (
-    <View style={styles.itemWrapper}>
-      <ScrollView contentContainerStyle={styles.contentContainerStyles}>
-        {collectibles.map((collectible: Nft) => {
-          if (!collectible) return null;
-          return (
-            <TouchableOpacity
-              key={collectible.address}
-              style={styles.collectibleCard}
-              onPress={() => onItemPress(collectible)}
-              onLongPress={() => onLongPressCollectible(collectible)}
-            >
-              <CollectibleMedia
-                style={styles.collectibleIcon}
-                collectible={collectible}
-                isTokenImage
-              />
-              <Text numberOfLines={1} ellipsizeMode="tail">
-                {collectible.name}
-              </Text>
-              <Text numberOfLines={1} ellipsizeMode="tail">
-                {collectible.collection?.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+    <View style={styles.itemWrapper} testID="collectible-contracts">
+      {collectibles.length === 0 && (
+        <View style={styles.footer} key={'collectible-contracts-footer'}>
+          {/* {isNftFetchingProgress ? (
+                <ActivityIndicator
+                  size="large"
+                  style={styles.spinner}
+                  testID={SpinnerTestId}
+                />
+              ) : null}
+      
+              <Text style={styles.emptyText}>
+                {strings('wallet.no_collectibles')}
+              </Text> */}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.push('AddAsset', { assetType: 'collectible' })
+            }
+            disabled={false}
+            testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
+          >
+            <Text>{strings('wallet.add_collectibles')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {collectibles.length > 0 && (
+        <ScrollView contentContainerStyle={styles.contentContainerStyles}>
+          {collectibles.map((collectible: Nft) => {
+            if (!collectible) return null;
+            return (
+              <TouchableOpacity
+                key={collectible.address}
+                style={styles.collectibleCard}
+                onPress={() => onItemPress(collectible)}
+                onLongPress={() => onLongPressCollectible(collectible)}
+                testID={collectible.name as string}
+              >
+                <CollectibleMedia
+                  style={styles.collectibleIcon}
+                  collectible={collectible}
+                  isTokenImage
+                />
+                <Text numberOfLines={1} ellipsizeMode="tail">
+                  {collectible.name}
+                </Text>
+                <Text numberOfLines={1} ellipsizeMode="tail">
+                  {collectible.collection?.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
