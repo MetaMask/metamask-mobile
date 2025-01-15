@@ -28,6 +28,8 @@ import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
+import { selectNetworkTypeByChainId } from '../../../../../selectors/networkController';
+import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -95,6 +97,10 @@ class TypedSign extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * String representing the associated network
+     */
+    networkType: PropTypes.string,
   };
 
   state = {
@@ -242,6 +248,7 @@ class TypedSign extends PureComponent {
       showExpandedMessage,
       toggleExpandedMessage,
       messageParams: { from },
+      networkType,
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -251,6 +258,7 @@ class TypedSign extends PureComponent {
     if (messageParams.version === 'V3') {
       domain = JSON.parse(messageParams.data).domain;
     }
+
     if (truncateMessage) {
       messageWrapperStyles.push(styles.truncatedMessageWrapper);
       if (Device.isIos()) {
@@ -278,6 +286,7 @@ class TypedSign extends PureComponent {
         type={typedSign[messageParams.version]}
         fromAddress={from}
         testID={SigningBottomSheetSelectorsIDs.TYPED_REQUEST}
+        networkType={networkType}
       >
         <View
           style={messageWrapperStyles}
@@ -293,8 +302,16 @@ class TypedSign extends PureComponent {
 
 TypedSign.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  securityAlertResponse: state.signatureRequest.securityAlertResponse,
-});
+const mapStateToProps = (state, ownProps) => {
+  const signatureRequest = selectSignatureRequestById(
+    state,
+    ownProps.messageParams.metamaskId,
+  );
+
+  return {
+    networkType: selectNetworkTypeByChainId(state, signatureRequest?.chainId),
+    securityAlertResponse: state.signatureRequest.securityAlertResponse,
+  };
+};
 
 export default connect(mapStateToProps)(withMetricsAwareness(TypedSign));
