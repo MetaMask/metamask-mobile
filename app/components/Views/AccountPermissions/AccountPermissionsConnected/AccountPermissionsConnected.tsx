@@ -1,16 +1,10 @@
 // Third party dependencies.
 import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import { getDecimalChainId } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -19,19 +13,11 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import getAccountNameWithENS from '../../../../util/accounts';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import Routes from '../../../../constants/navigation/Routes';
-import {
-  selectProviderConfig,
-  ProviderConfig,
-} from '../../../../selectors/networkController';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -55,17 +41,8 @@ const AccountPermissionsConnected = ({
   onDismissSheet,
   hostname,
   favicon,
-  secureIcon,
   accountAvatarType,
-  urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
-  const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-
-  const { networkName, networkImageSource } = useNetworkInfo(hostname);
-
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
@@ -73,9 +50,6 @@ const AccountPermissionsConnected = ({
     onSetSelectedAddresses([]);
     onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
-
-  const openRevokePermissions = () =>
-    onSetPermissionsScreen(AccountPermissionsScreens.Revoke);
 
   const switchActiveAccount = useCallback(
     (address: string) => {
@@ -112,20 +86,6 @@ const AccountPermissionsConnected = ({
       accountAvatarType,
     ],
   );
-
-  const switchNetwork = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
-        })
-        .build(),
-    );
-  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
 
   const renderSheetAction = useCallback(
     () => (

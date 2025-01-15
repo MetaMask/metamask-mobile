@@ -46,12 +46,7 @@ import { Account, useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
-import {
-  ImageURISource,
-  ImageSourcePropType,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ImageURISource, ImageSourcePropType, StyleSheet } from 'react-native';
 import URLParse from 'url-parse';
 import PhishingModal from '../../../components/UI/PhishingModal';
 import { useMetrics } from '../../../components/hooks/useMetrics';

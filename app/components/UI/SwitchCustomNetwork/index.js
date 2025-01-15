@@ -68,10 +68,6 @@ SwitchCustomNetwork.propTypes = {
    * Object containing info of the network to add
    */
   customNetworkInformation: PropTypes.object,
-  /**
-   * String representing if it's an existing or a newly added network
-   */
-  type: PropTypes.string,
 };
 
 export default SwitchCustomNetwork;

@@ -11,7 +11,6 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
@@ -44,8 +43,6 @@ const AccountConnectMultiSelector = ({
   onSelectAddress,
   isLoading,
   onUserAction,
-  favicon,
-  secureIcon,
   isAutoScrollEnabled = true,
   urlWithProtocol,
   hostname,
@@ -276,19 +273,15 @@ const AccountConnectMultiSelector = ({
     ),
     [
       accounts,
-      areAllAccountsSelected,
       ensByAccountAddress,
-      favicon,
       isAutoScrollEnabled,
       isLoading,
       onSelectAccount,
       renderCtaButtons,
-      secureIcon,
       selectedAddresses,
       styles.addAccountButtonContainer,
       styles.body,
       styles.description,
-      urlWithProtocol,
       connection,
       styles.sdkInfoContainer,
       styles.container,

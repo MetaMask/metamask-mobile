@@ -1,14 +1,11 @@
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import TagUrl from '../../../../component-library/components/Tags/TagUrl';
-import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -21,8 +18,6 @@ import {
   ProviderConfig,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import {
   IconColor,
   IconName,
@@ -60,32 +55,11 @@ const NetworkPermissionsConnected = ({
   onDismissSheet,
   hostname,
   favicon,
-  secureIcon,
-  urlWithProtocol,
 }: NetworkPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
-
-  const { networkName, networkImageSource } = useNetworkInfo(hostname);
-
-  const openRevokePermissions = () =>
-    onSetPermissionsScreen(AccountPermissionsScreens.Revoke);
-
-  const switchNetwork = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(providerConfig.chainId),
-        })
-        .build(),
-    );
-  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 

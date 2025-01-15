@@ -24,7 +24,6 @@ import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NetworkVerificationInfo.styles';
 import { CustomNetworkInformation } from './NetworkVerificationInfo.types';
 import { ScrollView } from 'react-native-gesture-handler';
-import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
 import { selectUseSafeChainsListValidation } from '../../../selectors/preferencesController';
 import {
@@ -216,10 +215,6 @@ const NetworkVerificationInfo = ({
       </Accordion>
     </ScrollView>
   );
-
-  const openHowToUseCustomNetworks = () => {
-    Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
-  };
 
   const renderBanner = () => {
     if (!safeChainsListValidationEnabled) {
