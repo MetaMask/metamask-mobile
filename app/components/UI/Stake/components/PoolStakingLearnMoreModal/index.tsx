@@ -28,12 +28,11 @@ import {
   formatChartDate,
   getGraphInsetsByDataPointLength,
 } from './InteractiveTimespanChart/InteractiveTimespanChart.utils';
-import useVaultAprs from '../../hooks/useVaultAprs';
 import { strings } from '../../../../../../locales/i18n';
-import { parseVaultTimespanAprsResponse } from './PoolStakingLearnMoreModal.utils';
+import { parseVaultApyAveragesResponse } from './PoolStakingLearnMoreModal.utils';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 
-// TODO: Make sure heading is aligned on Android devices.
 const BodyText = () => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -81,25 +80,30 @@ const PoolStakingLearnMoreModal = () => {
 
   const { vaultApys, isLoadingVaultApys, refreshVaultApys } = useVaultApys();
 
-  const { vaultAprs, isLoadingVaultAprs, refreshVaultAprs } = useVaultAprs();
+  const {
+    vaultApyAverages,
+    isLoadingVaultApyAverages,
+    refreshVaultApyAverages,
+  } = useVaultApyAverages();
 
-  // Converts VaultTimespanAprs for use with interactive graph timespan buttons.
-  const parsedVaultTimespanAprs = useMemo(() => {
-    if (isLoadingVaultAprs) return;
-    return parseVaultTimespanAprsResponse(vaultAprs);
-  }, [isLoadingVaultAprs, vaultAprs]);
+  // Converts VaultApyAverage for use with interactive graph timespan buttons.
+  const parsedVaultTimespanApyAverages = useMemo(() => {
+    if (isLoadingVaultApyAverages) return;
+    return parseVaultApyAveragesResponse(vaultApyAverages);
+  }, [isLoadingVaultApyAverages, vaultApyAverages]);
 
-  const [activeTimespanApr, setActiveTimespanApr] = useState(
-    parsedVaultTimespanAprs?.[7],
+  const [activeTimespanApyAverage, setActiveTimespanApyAverage] = useState(
+    parsedVaultTimespanApyAverages?.[7],
   );
 
   useEffect(() => {
     async function refreshGraphData() {
-      Promise.all([refreshVaultAprs(), refreshVaultApys()]).catch((err) =>
-        console.error(
-          'Failed to refresh Pool-Staking Learn More Modal Data: ',
-          err,
-        ),
+      await Promise.all([refreshVaultApyAverages(), refreshVaultApys()]).catch(
+        (err) =>
+          console.error(
+            'Failed to refresh Pool-Staking Learn More Modal Data: ',
+            err,
+          ),
       );
       setDidFetchGraphData(true);
     }
@@ -108,7 +112,7 @@ const PoolStakingLearnMoreModal = () => {
     if (!didFetchGraphData) {
       refreshGraphData();
     }
-  }, [didFetchGraphData, refreshVaultAprs, refreshVaultApys]);
+  }, [didFetchGraphData, refreshVaultApyAverages, refreshVaultApys]);
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -151,7 +155,9 @@ const PoolStakingLearnMoreModal = () => {
   ];
 
   const handleTimespanPressed = (numDataPointsToDisplay: number) => {
-    setActiveTimespanApr(parsedVaultTimespanAprs?.[numDataPointsToDisplay]);
+    setActiveTimespanApyAverage(
+      parsedVaultTimespanApyAverages?.[numDataPointsToDisplay],
+    );
   };
 
   return (
@@ -162,15 +168,14 @@ const PoolStakingLearnMoreModal = () => {
             {strings('stake.stake_eth_and_earn')}
           </Text>
         </BottomSheetHeader>
-        {Boolean(vaultApys.length) && activeTimespanApr && (
+        {Boolean(vaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
             dataPoints={vaultApys}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
-            defaultTitle={`${new BigNumber(activeTimespanApr.apr).toFixed(
-              2,
-              BigNumber.ROUND_DOWN,
-            )}% ${strings('stake.apr')}`}
-            defaultSubtitle={activeTimespanApr.label}
+            defaultTitle={`${new BigNumber(
+              activeTimespanApyAverage.apyAverage,
+            ).toFixed(2, BigNumber.ROUND_DOWN)}% ${strings('stake.apr')}`}
+            defaultSubtitle={activeTimespanApyAverage.label}
             titleAccessor={(point) =>
               `${new BigNumber(point.daily_apy).toFixed(
                 2,
@@ -180,9 +185,11 @@ const PoolStakingLearnMoreModal = () => {
             subtitleAccessor={(point) => formatChartDate(point.timestamp)}
             onTimespanPressed={handleTimespanPressed}
             graphOptions={{
-              ...getGraphInsetsByDataPointLength(activeTimespanApr.numDays),
+              ...getGraphInsetsByDataPointLength(
+                activeTimespanApyAverage.numDays,
+              ),
             }}
-            isLoading={isLoadingVaultAprs || isLoadingVaultApys}
+            isLoading={isLoadingVaultApyAverages || isLoadingVaultApys}
           />
         )}
         <BodyText />

@@ -1,11 +1,11 @@
-import { VaultAprs } from '@metamask/stake-sdk';
+import { VaultApyAverages } from '@metamask/stake-sdk';
 import { strings } from '../../../../../../locales/i18n';
 
-export const parseVaultTimespanAprsResponse = (
-  vaultTimespanAprs: VaultAprs,
+export const parseVaultApyAveragesResponse = (
+  vaultTimespanAprs: VaultApyAverages,
 ) => {
   const numDaysMap: Record<
-    keyof VaultAprs,
+    keyof VaultApyAverages,
     { numDays: number; label: string }
   > = {
     oneDay: { numDays: 1, label: strings('stake.today') },
@@ -17,10 +17,10 @@ export const parseVaultTimespanAprsResponse = (
   };
 
   return Object.entries(vaultTimespanAprs).reduce<
-    Record<number, { apr: string; numDays: number; label: string }>
+    Record<number, { apyAverage: string; numDays: number; label: string }>
   >((map, [key, value]) => {
     const numDaysMapEntry = numDaysMap[key as keyof typeof numDaysMap];
-    map[numDaysMapEntry.numDays] = { apr: value, ...numDaysMapEntry };
+    map[numDaysMapEntry.numDays] = { apyAverage: value, ...numDaysMapEntry };
     return map;
   }, {});
 };
