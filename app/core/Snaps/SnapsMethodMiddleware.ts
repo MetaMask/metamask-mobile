@@ -15,7 +15,7 @@ export function getSnapIdFromRequest(
   request: Record<string, unknown>,
 ): SnapId | null {
   const { snapId } = request;
-  return typeof snapId === 'string' ? snapId as SnapId : null;
+  return typeof snapId === 'string' ? (snapId as SnapId) : null;
 }
 // Snaps middleware
 /*
@@ -65,9 +65,38 @@ const snapMethodMiddlewareBuilder = (
       origin,
       RestrictedMethods.wallet_snap,
     ),
+    createInterface: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:createInterface',
+      origin,
+    ),
+    updateInterface: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:updateInterface',
+      origin,
+    ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getInterfaceContext: (...args: any) =>
+      controllerMessenger.call(
+        'SnapInterfaceController:getInterface',
+        origin,
+        ...args,
+      ).context,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    getInterfaceState: (...args: any) =>
+      controllerMessenger.call(
+        'SnapInterfaceController:getInterface',
+        origin,
+        ...args,
+      ).state,
     getSnap: controllerMessenger.call.bind(
       controllerMessenger,
       'SnapController:get',
+    ),
+    updateInterfaceState: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:updateInterfaceState',
+      origin,
     ),
     handleSnapRpcRequest: async (request: Omit<SnapRpcHookArgs, 'origin'>) => {
       const snapId = getSnapIdFromRequest(request);
@@ -85,6 +114,10 @@ const snapMethodMiddlewareBuilder = (
         request: request.request,
       });
     },
+    requestUserApproval:
+      engineContext.ApprovalController.addAndShowApprovalRequest.bind(
+        engineContext.ApprovalController,
+      ),
   });
 
 export default snapMethodMiddlewareBuilder;
