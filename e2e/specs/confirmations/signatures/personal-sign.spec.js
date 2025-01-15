@@ -14,6 +14,26 @@ import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
+  const mockRemoteFeatureApi = {
+    GET: [
+      {
+        urlEndpoint:
+          'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+        response: [
+          {
+            mobileMinimumVersions: {
+              androidMinimumAPIVersion: 21,
+              appMinimumBuild: 1243,
+              appleMinimumOS: 6,
+            },
+          },
+          { testFlagForThreshold: [[Object], [Object], [Object]] },
+          { confirmation_redesign: { signatures: false } },
+        ],
+        responseCode: 200,
+      },
+    ],
+  };
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -29,6 +49,7 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        mockRemoteFeatureApi,
       },
       async () => {
         await loginToApp();
