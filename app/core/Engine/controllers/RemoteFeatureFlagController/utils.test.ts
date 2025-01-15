@@ -4,6 +4,7 @@ import {
   RemoteFeatureFlagControllerMessenger,
 } from '@metamask/remote-feature-flag-controller';
 import { createRemoteFeatureFlagController } from './utils';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('RemoteFeatureFlagController utils', () => {
   let messenger: RemoteFeatureFlagControllerMessenger;
@@ -20,6 +21,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: false,
+        getMetaMetricsId: () => uuidv4()
       });
 
       expect(controller).toBeDefined();
@@ -43,6 +45,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: initialState,
         messenger,
         disabled: false,
+        getMetaMetricsId: () => uuidv4()
       });
 
       expect(controller.state).toStrictEqual(initialState);
@@ -58,6 +61,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: false,
+        getMetaMetricsId: () => uuidv4()
       });
 
       expect(spy).toHaveBeenCalled();
@@ -73,6 +77,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: true,
+        getMetaMetricsId: () => uuidv4()
       });
 
       expect(spy).not.toHaveBeenCalled();
