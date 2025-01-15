@@ -8,10 +8,6 @@ import {
   setSelectedAsset,
 } from '../../../../../actions/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  selectChainId,
-  selectTicker,
-} from '../../../../../selectors/networkController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { doENSReverseLookup } from '../../../../../util/ENSUtils';
@@ -20,8 +16,12 @@ import { getEther, getTicker } from '../../../../../util/transactions';
 import { AddressFrom } from '../../../../UI/AddressInputs';
 import { SFAddressFromProps } from './AddressFrom.types';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 const SendFlowAddressFrom = ({
+  chainId,
   fromAccountBalanceState,
   setFromAddress,
 }: SFAddressFromProps) => {
@@ -29,8 +29,9 @@ const SendFlowAddressFrom = ({
 
   const accounts = useSelector(selectAccounts);
 
-  const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector((state: RootState) =>
+    selectNativeCurrencyByChainId(state, chainId as Hex),
+  );
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const checksummedSelectedAddress = selectedInternalAccount

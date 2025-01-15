@@ -38,12 +38,7 @@ import {
   handleGetGasLimit,
 } from '../../../../../../util/dappTransactions';
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../../selectors/networkController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
@@ -51,6 +46,7 @@ import { selectContractBalances } from '../../../../../../selectors/tokenBalance
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
+import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -128,7 +124,7 @@ class TransactionEditor extends PureComponent {
      */
     primaryCurrency: PropTypes.string,
     /**
-     * A string representing the network chainId
+     * ID of the associated chain
      */
     chainId: PropTypes.string,
   };
@@ -241,8 +237,8 @@ class TransactionEditor extends PureComponent {
         dappSuggestedGasPrice
           ? fromWei(dappSuggestedGasPrice, 'gwei')
           : gasEstimateType === GAS_ESTIMATE_TYPES.LEGACY
-          ? this.props.gasFeeEstimates[selected]
-          : this.props.gasFeeEstimates.gasPrice;
+            ? this.props.gasFeeEstimates[selected]
+            : this.props.gasFeeEstimates.gasPrice;
 
       const LegacyGasData = this.parseTransactionDataLegacy(
         {
@@ -520,9 +516,9 @@ class TransactionEditor extends PureComponent {
         const tokenAmountToSend = selectedAsset && value && value.toString(16);
         return to && tokenAmountToSend
           ? generateTransferData('transfer', {
-              toAddress: to,
-              amount: tokenAmountToSend,
-            })
+            toAddress: to,
+            amount: tokenAmountToSend,
+          })
           : undefined;
       },
       ERC721: () => {
@@ -637,9 +633,9 @@ class TransactionEditor extends PureComponent {
 
     const totalError = this.validateTotal(
       EIP1559GasData?.totalMaxHex ||
-        this.state.EIP1559GasData.totalMaxHex ||
-        LegacyGasData?.totalHex ||
-        this.state.LegacyGasData.totalHex,
+      this.state.EIP1559GasData.totalMaxHex ||
+      LegacyGasData?.totalHex ||
+      this.state.LegacyGasData.totalHex,
     );
     const amountError = await validateAmount(
       assetType,
@@ -815,9 +811,9 @@ class TransactionEditor extends PureComponent {
       onModeChange,
       gasFeeEstimates,
       primaryCurrency,
-      chainId,
       gasEstimateType,
       transaction,
+      chainId,
     } = this.props;
     const {
       ready,
@@ -907,6 +903,7 @@ class TransactionEditor extends PureComponent {
               error={legacyGasTransaction.error}
               onUpdatingValuesStart={this.onUpdatingValuesStart}
               onUpdatingValuesEnd={this.onUpdatingValuesEnd}
+              chainId={chainId}
             />
           ) : (
             <EditGasFee1559
@@ -935,7 +932,7 @@ class TransactionEditor extends PureComponent {
                 EIP1559GasDataTemp.renderableMaxFeePerGasConversion
               }
               primaryCurrency={primaryCurrency}
-              chainId={chainId}
+              chainId={transaction.chainId}
               timeEstimate={EIP1559GasDataTemp.timeEstimate}
               timeEstimateColor={EIP1559GasDataTemp.timeEstimateColor}
               timeEstimateId={EIP1559GasDataTemp.timeEstimateId}
@@ -965,21 +962,26 @@ class TransactionEditor extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  contractBalances: selectContractBalances(state),
-  networkType: selectProviderType(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  ticker: selectTicker(state),
-  transaction: getNormalizedTxState(state),
-  activeTabUrl: getActiveTabUrl(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractBalances: selectContractBalances(state),
+    networkType: selectProviderTypeByChainId(state, chainId),
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    transaction,
+    activeTabUrl: getActiveTabUrl(state),
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    primaryCurrency: state.settings.primaryCurrency,
+    chainId,
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

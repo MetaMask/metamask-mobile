@@ -66,6 +66,7 @@ const renderComponent = (state: any) =>
       onAccountLongPress={() => null}
       onIconPress={() => null}
       testID="address-element"
+      chainId="0x1"
     />,
     { state },
   );

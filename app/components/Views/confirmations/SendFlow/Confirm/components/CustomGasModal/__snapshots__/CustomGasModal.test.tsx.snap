@@ -278,6 +278,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         }
                       >
                         ~ 
+                        0 ETH
                       </Text>
                       <View
                         style={
@@ -298,9 +299,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             "lineHeight": 24,
                           }
                         }
-                      >
-                        0 ETH
-                      </Text>
+                      />
                     </View>
                     <View
                       style={

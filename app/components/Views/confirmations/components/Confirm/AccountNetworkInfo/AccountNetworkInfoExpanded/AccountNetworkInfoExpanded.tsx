@@ -3,17 +3,19 @@ import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import {
-  selectChainId,
-  selectProviderConfig,
-} from '../../../../../../../selectors/networkController';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import Address from '../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../UI/InfoRow/InfoValue/DisplayURL';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import {
+  selectProviderTypeByChainId,
+  selectRpcUrlByChainId,
+} from '../../../../../../../selectors/networkController';
+import { RootState } from '../../../../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 const styles = StyleSheet.create({
   addressRowValue: {
@@ -22,11 +24,18 @@ const styles = StyleSheet.create({
 });
 
 const AccountNetworkInfoExpanded = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
-  const { rpcUrl: networkRpcUrl, type: networkType } =
-    useSelector(selectProviderConfig);
-  const fromAddress = approvalRequest?.requestData?.from;
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
+
+  const networkRpcUrl = useSelector((state: RootState) =>
+    selectRpcUrlByChainId(state, chainId),
+  );
+
+  const networkType = useSelector((state: RootState) =>
+    selectProviderTypeByChainId(state, chainId),
+  );
+
+  const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountAddress, accountBalance } = useAccountInfo(fromAddress);
 
   return (

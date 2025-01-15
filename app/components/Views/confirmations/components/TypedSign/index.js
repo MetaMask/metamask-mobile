@@ -28,7 +28,7 @@ import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectNetworkTypeByChainId } from '../../../../../selectors/networkController';
+import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
 import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
 
 const createStyles = (colors) =>
@@ -309,7 +309,7 @@ const mapStateToProps = (state, ownProps) => {
   );
 
   return {
-    networkType: selectNetworkTypeByChainId(state, signatureRequest?.chainId),
+    networkType: selectProviderTypeByChainId(state, signatureRequest?.chainId),
     securityAlertResponse: state.signatureRequest.securityAlertResponse,
   };
 };

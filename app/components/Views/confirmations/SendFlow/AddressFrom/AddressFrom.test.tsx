@@ -105,6 +105,7 @@ describe('SendFlowAddressFrom', () => {
         <SendFlowAddressFrom
           fromAccountBalanceState={jest.fn}
           setFromAddress={jest.fn}
+          chainId="0x1"
         />
       </Provider>,
     );
