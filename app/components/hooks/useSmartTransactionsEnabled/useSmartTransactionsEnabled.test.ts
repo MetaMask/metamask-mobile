@@ -1,32 +1,39 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useSelector, useDispatch } from 'react-redux';
-import useSmartTransactionsEnabled from './useSmartTransactionsEnabled';
+import { useSelector } from 'react-redux';
+import useSmartTransactionsEnabled, { type RootState } from './useSmartTransactionsEnabled';
+
+const mockSetFeatureFlag = jest.fn();
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn((selector) => selector()),
-  useDispatch: jest.fn(),
+  useSelector: jest.fn((selector: (state: RootState) => unknown) =>
+    selector({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            smartTransactionsOptInStatus: false,
+            smartTransactionsMigrationApplied: false,
+            featureFlags: {},
+          },
+        },
+      },
+    } as RootState),
+  ),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setFeatureFlag: mockSetFeatureFlag,
+    },
+  },
 }));
 
 describe('useSmartTransactionsEnabled', () => {
-  const mockDispatch = jest.fn();
-
   beforeEach(() => {
-    (useSelector as jest.Mock).mockClear();
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    mockDispatch.mockClear();
+    jest.clearAllMocks();
   });
 
   it('returns false for all flags when preferences are undefined', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
-      selector({
-        engine: {
-          backgroundState: {
-            PreferencesController: {}
-          }
-        }
-      })
-    );
-
     const { result } = renderHook(() => useSmartTransactionsEnabled());
 
     expect(result.current.isEnabled).toBe(false);
@@ -36,18 +43,20 @@ describe('useSmartTransactionsEnabled', () => {
   });
 
   it('returns correct values when preferences exist', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
+    (useSelector as jest.Mock).mockImplementation((selector: (state: RootState) => unknown) =>
       selector({
         engine: {
           backgroundState: {
             PreferencesController: {
               smartTransactionsOptInStatus: true,
               smartTransactionsMigrationApplied: true,
-              smartTransactionsBannerDismissed: false,
-            }
-          }
-        }
-      })
+              featureFlags: {
+                smartTransactionsBannerDismissed: false,
+              },
+            },
+          },
+        },
+      } as RootState),
     );
 
     const { result } = renderHook(() => useSmartTransactionsEnabled());
@@ -59,32 +68,33 @@ describe('useSmartTransactionsEnabled', () => {
   });
 
   it('shouldShowBanner returns false when banner is dismissed', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) =>
+    (useSelector as jest.Mock).mockImplementation((selector: (state: RootState) => unknown) =>
       selector({
         engine: {
           backgroundState: {
             PreferencesController: {
               smartTransactionsOptInStatus: true,
               smartTransactionsMigrationApplied: true,
-              smartTransactionsBannerDismissed: true,
-            }
-          }
-        }
-      })
+              featureFlags: {
+                smartTransactionsBannerDismissed: true,
+              },
+            },
+          },
+        },
+      } as RootState),
     );
 
     const { result } = renderHook(() => useSmartTransactionsEnabled());
     expect(result.current.shouldShowBanner).toBe(false);
   });
 
-  it('dismissBanner dispatches the correct action', () => {
+  it('dismissBanner updates preferences through setFeatureFlag', async () => {
     const { result } = renderHook(() => useSmartTransactionsEnabled());
+    await result.current.dismissBanner();
 
-    result.current.dismissBanner();
-
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'SET_SMART_TRANSACTIONS_BANNER_DISMISSED',
-      payload: true,
-    });
+    expect(mockSetFeatureFlag).toHaveBeenCalledWith(
+      'smartTransactionsBannerDismissed',
+      true,
+    );
   });
 });

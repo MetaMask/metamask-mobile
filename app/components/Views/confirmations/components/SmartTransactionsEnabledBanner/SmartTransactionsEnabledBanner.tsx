@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, View } from 'react-native';
+import { Linking } from 'react-native';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -24,6 +24,7 @@ const SmartTransactionsEnabledBanner = ({
 
   const handleLearnMore = () => {
     Linking.openURL(SMART_TRANSACTIONS_LEARN_MORE);
+    dismissBanner();
   };
 
   return (

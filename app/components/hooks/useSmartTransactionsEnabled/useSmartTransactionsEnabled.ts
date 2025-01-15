@@ -1,14 +1,18 @@
 import { useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 
 interface PreferencesState {
   smartTransactionsOptInStatus?: boolean;
   smartTransactionsMigrationApplied?: boolean;
-  smartTransactionsBannerDismissed?: boolean;
+  featureFlags: {
+    smartTransactionsBannerDismissed?: boolean;
+    [key: string]: boolean | undefined;
+  };
 }
 
-interface RootState {
+export interface RootState {
   engine: {
     backgroundState: {
       PreferencesController: PreferencesState;
@@ -16,16 +20,7 @@ interface RootState {
   };
 }
 
-const SET_SMART_TRANSACTIONS_BANNER_DISMISSED = 'SET_SMART_TRANSACTIONS_BANNER_DISMISSED';
-
 const useSmartTransactionsEnabled = () => {
-  const dispatch = useDispatch();
-
-  const preferencesState = useSelector(
-    (state: RootState) =>
-      state.engine.backgroundState.PreferencesController
-  );
-
   const isEnabled = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PreferencesController
@@ -40,28 +35,22 @@ const useSmartTransactionsEnabled = () => {
 
   const isBannerDismissed = useSelector(
     (state: RootState) =>
-      state.engine.backgroundState.PreferencesController
-        .smartTransactionsBannerDismissed ?? false,
+      state.engine.backgroundState.PreferencesController.featureFlags?.smartTransactionsBannerDismissed
+        ?? false,
   );
 
-  const dismissBanner = useCallback(() => {
-    dispatch({
-      type: SET_SMART_TRANSACTIONS_BANNER_DISMISSED,
-      payload: true,
-    });
-  }, [dispatch]);
+  const dismissBanner = useCallback(async () => {
+    try {
+      const { PreferencesController } = Engine.context;
+      PreferencesController.setFeatureFlag('smartTransactionsBannerDismissed', true);
+    } catch (error) {
+      Logger.error(error as Error, 'Failed to dismiss banner:');
+    }
+  }, []);
 
   const shouldShowBanner = isEnabled
     && isMigrationApplied
-      && !isBannerDismissed;
-
-  Logger.log('[STX Hook] State values:', {
-    isEnabled,
-    isMigrationApplied,
-    isBannerDismissed,
-    shouldShowBanner,
-    rawState: preferencesState
-  });
+    && !isBannerDismissed;
 
   return {
     isEnabled,
