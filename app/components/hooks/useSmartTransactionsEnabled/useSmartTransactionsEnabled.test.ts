@@ -1,8 +1,7 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import useSmartTransactionsEnabled, { type RootState } from './useSmartTransactionsEnabled';
-
-const mockSetFeatureFlag = jest.fn();
+import Engine from '../../../core/Engine';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (state: RootState) => unknown) =>
@@ -23,7 +22,14 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../core/Engine', () => ({
   context: {
     PreferencesController: {
-      setFeatureFlag: mockSetFeatureFlag,
+      setFeatureFlag: jest.fn(),
+    },
+  },
+  default: {
+    context: {
+      PreferencesController: {
+        setFeatureFlag: jest.fn(),
+      },
     },
   },
 }));
@@ -90,9 +96,14 @@ describe('useSmartTransactionsEnabled', () => {
 
   it('dismissBanner updates preferences through setFeatureFlag', async () => {
     const { result } = renderHook(() => useSmartTransactionsEnabled());
-    await result.current.dismissBanner();
 
-    expect(mockSetFeatureFlag).toHaveBeenCalledWith(
+    await act(async () => {
+      await result.current.dismissBanner();
+    });
+
+    expect(
+      jest.mocked(Engine.context.PreferencesController.setFeatureFlag)
+    ).toHaveBeenCalledWith(
       'smartTransactionsBannerDismissed',
       true,
     );
