@@ -22,9 +22,6 @@ const GraphCursor = ({ data, currentX, x, y, color }: GraphCursorProps) => {
 
   const selectedDailyApr = data[currentX];
 
-  // Prevents <Circle/> crash when attempting to parse small floating point numbers (e.g. 0.0123)
-  if (!selectedDailyApr) return null;
-
   return (
     <G x={x?.(currentX)} key="tooltip">
       <G>

@@ -171,17 +171,18 @@ const PoolStakingLearnMoreModal = () => {
         {Boolean(vaultApys.length) && activeTimespanApyAverage && (
           <InteractiveTimespanChart
             dataPoints={vaultApys}
+            // dataPoints={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
             yAccessor={(point) => new BigNumber(point.daily_apy).toNumber()}
             defaultTitle={`${new BigNumber(
               activeTimespanApyAverage.apyAverage,
             ).toFixed(2, BigNumber.ROUND_DOWN)}% ${strings('stake.apr')}`}
-            defaultSubtitle={activeTimespanApyAverage.label}
             titleAccessor={(point) =>
               `${new BigNumber(point.daily_apy).toFixed(
                 2,
                 BigNumber.ROUND_DOWN,
               )}% ${strings('stake.apr')}`
             }
+            defaultSubtitle={activeTimespanApyAverage.label}
             subtitleAccessor={(point) => formatChartDate(point.timestamp)}
             onTimespanPressed={handleTimespanPressed}
             graphOptions={{

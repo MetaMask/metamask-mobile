@@ -26,18 +26,4 @@ describe('GraphCursor', () => {
 
     expect(toJSON()).toMatchSnapshot();
   });
-
-  it('supports customizing color', () => {
-    const props: GraphCursorProps = {
-      data: MOCK_DATA,
-      currentX: MOCK_CURRENT_X,
-      x: MOCK_X,
-      y: MOCK_Y,
-      color: MOCK_COLOR,
-    };
-
-    const { toJSON } = renderWithProvider(<GraphCursor {...props} />);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
 });

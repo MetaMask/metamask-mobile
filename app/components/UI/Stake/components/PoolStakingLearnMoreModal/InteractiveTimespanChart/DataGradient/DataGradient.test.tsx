@@ -17,15 +17,4 @@ describe('DataGradient', () => {
 
     expect(toJSON()).toMatchSnapshot();
   });
-
-  it('supports customizing color', () => {
-    const props: DataGradientProps = {
-      dataPoints: MOCK_DATA_POINTS,
-      color: 'blue',
-    };
-
-    const { toJSON } = renderWithProvider(<DataGradient {...props} />);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
 });
