@@ -8,10 +8,6 @@ export const ActivitiesViewSelectorsIDs = {
   CONTAINER: 'transactions-container',
 };
 
-export const tokenID = {
-  eth: 'ETH',
-};
-
 export const ActivitiesViewSelectorsText = {
   CONFIRM_TEXT: enContent.transaction.confirmed,
   FAILED_TEXT: enContent.transaction.failed,
@@ -23,4 +19,8 @@ export const ActivitiesViewSelectorsText = {
   SWAP: enContent.swaps.transaction_label.swap,
   TITLE: enContent.transactions_view.title,
 
+};
+
+export const sentMessageTokenIDs = {
+  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth)
 };

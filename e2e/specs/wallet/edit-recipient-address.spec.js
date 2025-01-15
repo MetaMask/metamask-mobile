@@ -17,7 +17,7 @@ import {
 import FixtureServer from '../../fixtures/fixture-server';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import Gestures from '../../utils/Gestures';
-import { ActivitiesViewSelectorsText, tokenID } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { ActivitiesViewSelectorsText, sentMessageTokenIDs } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { contractConfiguration } from '../../../app/util/test/smart-contracts';
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -78,7 +78,7 @@ describe(
           // Transactions view to assert address remains consistent
           await TabBarComponent.tapActivity();
           await TestHelpers.delay(3000);
-          await TestHelpers.tapByText(ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(tokenID.eth));
+          await TestHelpers.tapByText(sentMessageTokenIDs.eth);
           await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
         },
       );
