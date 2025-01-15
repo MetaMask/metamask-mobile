@@ -239,9 +239,7 @@ const NetworkVerificationInfo = ({
             : strings('add_custom_network.network_url')}
         </Text>
       )}
-      <Text style={styles.textSection}>
-        {hideKeyFromUrl(customRpcUrl)}
-      </Text>
+      <Text style={styles.textSection}>{hideKeyFromUrl(customRpcUrl)}</Text>
 
       <Accordion
         title={strings('spend_limit_edition.view_details')}
@@ -295,7 +293,9 @@ const NetworkVerificationInfo = ({
   };
 
   const renderBannerNetworkUrlNonAsciiDetected = () => {
-    if (!customRpcUrl || isValidASCIIURL(customRpcUrl)) { return null; }
+    if (!customRpcUrl || isValidASCIIURL(customRpcUrl)) {
+      return null;
+    }
     const punycodeUrl = toPunycodeURL(customRpcUrl);
 
     return (
@@ -353,9 +353,7 @@ const NetworkVerificationInfo = ({
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.current_label')}
           </Text>
-          <Text style={styles.textSection}>
-            {customRpcUrl}
-          </Text>
+          <Text style={styles.textSection}>{customRpcUrl}</Text>
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.new_label')}
           </Text>
