@@ -22,8 +22,8 @@ class SwapView {
 
   get swapButton() {
     return device.getPlatform() === 'ios'
-    ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
-    : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
+      ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
+      : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
   }
 
   get iUnderstandLabel() {
@@ -47,17 +47,6 @@ class SwapView {
     await Gestures.waitAndTap(this.swapButton);
   }
 
-  async swapCompleteLabel(sourceTokenSymbol, destTokenSymbol) {
-    try {
-      await TestHelpers.checkIfElementByTextIsVisible(
-        this.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol), 30000
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Swap complete didn't pop up: ${e}`);
-    }
-  }
-
   async tapIUnderstandPriceWarning() {
     try {
       await Gestures.waitAndTap(this.iUnderstandLabel, 3000);
@@ -66,7 +55,6 @@ class SwapView {
       console.log(`Price warning not displayed: ${e}`);
     }
   }
-
 }
 
 export default new SwapView();

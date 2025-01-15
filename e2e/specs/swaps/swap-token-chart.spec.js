@@ -35,7 +35,10 @@ xdescribe(Regression('Swap from Token view'), () => {
   const wallet = ethers.Wallet.createRandom();
 
   beforeAll(async () => {
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds(
+      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
+      wallet.address,
+    );
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
@@ -71,7 +74,8 @@ xdescribe(Regression('Swap from Token view'), () => {
   });
 
   it('should complete a USDC to DAI swap from the token chart', async () => {
-    const sourceTokenSymbol = 'ETH', destTokenSymbol = 'DAI';
+    const sourceTokenSymbol = 'ETH',
+      destTokenSymbol = 'DAI';
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnToken('Ethereum');
@@ -94,7 +98,18 @@ xdescribe(Regression('Swap from Token view'), () => {
     await SwapView.tapSwapButton();
     await TestHelpers.delay(2000);
     //Wait for Swap to complete
-    await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
+    try {
+      await Assertions.checkIfTextIsDisplayed(
+        SwapView.generateSwapCompleteLabel(
+          sourceTokenSymbol,
+          destTokenSymbol,
+        ),
+        30000,
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.log(`Swap complete didn't pop up: ${e}`);
+    }
     await TestHelpers.delay(10000);
     await device.enableSynchronization();
     await CommonView.tapBackButton();
@@ -105,6 +120,10 @@ xdescribe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
-    await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+    await Assertions.checkIfElementToHaveText(
+      ActivitiesView.firstTransactionStatus,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      60000,
+    );
   });
 });

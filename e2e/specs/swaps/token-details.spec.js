@@ -22,7 +22,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await Assertions.checkIfElementNotToHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.checkIfElementNotToHaveText(
+      TokenOverview.tokenPrice,
+      '$0',
+    );
 
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
@@ -45,9 +48,9 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Sepolia test network', async () => {
-    const sepholiaTokenSymbol = 'S';
+    const sepoliaTokenSymbol = 'S';
     await switchToSepoliaNetwork();
-    await WalletView.tapOnToken(sepholiaTokenSymbol);
+    await WalletView.tapOnToken(sepoliaTokenSymbol);
     await Assertions.checkIfVisible(TokenOverview.noChartData, 60000);
     await Assertions.checkIfElementToHaveText(TokenOverview.tokenPrice, '$0');
   });

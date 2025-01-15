@@ -1,4 +1,7 @@
-import { ActivitiesViewSelectorsIDs, ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import {
+  ActivitiesViewSelectorsIDs,
+  ActivitiesViewSelectorsText,
+} from '../../selectors/Transactions/ActivitiesView.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
 import { CommonSelectorsIDs } from '../../selectors/Common.selectors';
@@ -12,9 +15,7 @@ class ActivitiesView {
   }
 
   get container() {
-    return Matchers.getElementByID(
-      ActivitiesViewSelectorsIDs.CONTAINER,
-    );
+    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
   get confirmedLabel() {
@@ -22,11 +23,17 @@ class ActivitiesView {
   }
 
   get firstTransactionStatus() {
-    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.FIRST_ROW);
+    return Matchers.getElementByID(
+      CommonSelectorsIDs.TRANSACTION_STATUS,
+      ActivitiesView.FIRST_ROW,
+    );
   }
 
   get secondTransactionStatus() {
-    return element(by.id(CommonSelectorsIDs.TRANSACTION_STATUS)).atIndex(ActivitiesView.SECOND_ROW);
+    return Matchers.getElementByID(
+      CommonSelectorsIDs.TRANSACTION_STATUS,
+      ActivitiesView.SECOND_ROW,
+    );
   }
 
   generateSwapActivityLabel(sourceToken, destinationToken) {

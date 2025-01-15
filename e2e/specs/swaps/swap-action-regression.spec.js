@@ -38,7 +38,10 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await Tenderly.addFunds( CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl, wallet.address);
+    await Tenderly.addFunds(
+      CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
+      wallet.address,
+    );
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
@@ -71,21 +74,22 @@ describe(Regression('Multiple Swaps from Actions'), () => {
   });
 
   it.each`
-    type             | quantity  | sourceTokenSymbol | destTokenSymbol | network
-    ${'native'}$     |${'.03'}   | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
-    ${'unapproved'}$ |${'3'}     | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
-    ${'erc20'}$      |${'10'}    | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
-    `(
+    type            | quantity | sourceTokenSymbol | destTokenSymbol | network
+    ${'native'}     | ${'.03'} | ${'ETH'}          | ${'DAI'}        | ${CustomNetworks.Tenderly.Mainnet}
+    ${'unapproved'} | ${'3'}   | ${'DAI'}          | ${'USDC'}       | ${CustomNetworks.Tenderly.Mainnet}
+    ${'erc20'}      | ${'10'}  | ${'DAI'}          | ${'ETH'}        | ${CustomNetworks.Tenderly.Mainnet}
+  `(
     "should swap $type token '$sourceTokenSymbol' to '$destTokenSymbol' on '$network.providerConfig.nickname'",
     async ({ type, quantity, sourceTokenSymbol, destTokenSymbol, network }) => {
-
       await TabBarComponent.tapWallet();
 
-      if (network.providerConfig.nickname !== currentNetwork)
-      {
+      if (network.providerConfig.nickname !== currentNetwork) {
         await WalletView.tapNetworksButtonOnNavBar();
         await Assertions.checkIfToggleIsOn(NetworkListModal.testNetToggle);
-        await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
+        await NetworkListModal.changeNetworkTo(
+          network.providerConfig.nickname,
+          false,
+        );
         await NetworkEducationModal.tapGotItButton();
         await TestHelpers.delay(3000);
         currentNetwork = network.providerConfig.nickname;
@@ -109,12 +113,11 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
       //Select destination token
       await QuoteView.tapOnSelectDestToken();
-      if (destTokenSymbol !== 'ETH')
-      {
-          await QuoteView.tapSearchToken();
-          await QuoteView.typeSearchToken(destTokenSymbol);
-          await TestHelpers.delay(2000);
-          await QuoteView.selectToken(destTokenSymbol);
+      if (destTokenSymbol !== 'ETH') {
+        await QuoteView.tapSearchToken();
+        await QuoteView.typeSearchToken(destTokenSymbol);
+        await TestHelpers.delay(2000);
+        await QuoteView.selectToken(destTokenSymbol);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
       //Make sure slippage is zero for wrapped tokens
@@ -130,7 +133,18 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await SwapView.tapIUnderstandPriceWarning();
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
-      await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
+      try {
+        await Assertions.checkIfTextIsDisplayed(
+          SwapView.generateSwapCompleteLabel(
+            sourceTokenSymbol,
+            destTokenSymbol,
+          ),
+          30000,
+        );
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.log(`Swap complete didn't pop up: ${e}`);
+      }
       await device.enableSynchronization();
       await TestHelpers.delay(10000);
 
@@ -159,7 +173,10 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       if (!educationModalTapped) {
         await NetworkEducationModal.tapGotItButton();
       }
-      await NetworkListModal.changeNetworkTo(network.providerConfig.nickname, false);
+      await NetworkListModal.changeNetworkTo(
+        network.providerConfig.nickname,
+        false,
+      );
       if (!educationModalTapped) {
         await NetworkEducationModal.tapGotItButton();
         educationModalTapped = true;
