@@ -232,6 +232,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       "lineHeight": 22,
                     }
                   }
+                  testID="permission-summary-account-text"
                 >
                   <Text
                     accessibilityRole="text"

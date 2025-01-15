@@ -35,7 +35,11 @@ const AccountSelector = () => {
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const openAccountSelector = () =>
-    navigation.navigate(...createAccountSelectorNavDetails());
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({
+        disablePrivacyMode: true,
+      }),
+    );
 
   return (
     <SelectorButton onPress={openAccountSelector} style={styles.selector}>

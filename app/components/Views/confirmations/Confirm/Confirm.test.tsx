@@ -8,6 +8,21 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import Confirm from './index';
 
+jest.mock('../../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+  },
+}));
+
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
   getAddressAccountType: (str: string) => str,
@@ -23,6 +38,9 @@ describe('Confirm', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Signature request')).toBeDefined();
+    expect(
+      getByText('Review request details before you confirm.'),
+    ).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getByText('Message')).toBeDefined();
