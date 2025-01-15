@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
   TouchableWithoutFeedback,
   View,
-  StyleSheet,
   TouchableOpacity,
   Text,
   ScrollView,
@@ -11,76 +10,13 @@ import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import WebsiteIcon from '../WebsiteIcon';
-import { fontStyles } from '../../../styles/common';
-import { getHost } from '../../../util/browser';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { strings } from '../../../../locales/i18n';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import { removeBookmark } from '../../../actions/bookmarks';
-
-const MAX_RECENTS = 5;
-const ORDERED_CATEGORIES = ['sites', 'recents', 'favorites'];
-
-export const deleteFavoriteTestId = (url) => `delete-favorite-${url}`;
+import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
+import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
+import { createStyles } from './index.styles';
+import { ResultCategory } from './ResultCategory';
 
 const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
-
-const createStyles = (colors) =>
-  StyleSheet.create({
-    wrapper: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
-    contentContainer: {
-      paddingVertical: 15,
-    },
-    bookmarkIco: {
-      width: 26,
-      height: 26,
-      marginRight: 7,
-      borderRadius: 13,
-    },
-    fallbackTextStyle: {
-      fontSize: 12,
-    },
-    name: {
-      fontSize: 14,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    category: {
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.bold,
-      margin: 10,
-    },
-    url: {
-      fontSize: 12,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-    item: {
-      flex: 1,
-      marginBottom: 20,
-    },
-    itemWrapper: {
-      flexDirection: 'row',
-      marginBottom: 20,
-      paddingHorizontal: 15,
-    },
-    textContent: {
-      flex: 1,
-      marginLeft: 10,
-    },
-    bg: {
-      flex: 1,
-    },
-    deleteFavorite: {
-      marginLeft: 10,
-    },
-  });
 
 /**
  * PureComponent that renders an autocomplete
@@ -110,10 +46,6 @@ export class UrlAutocomplete extends PureComponent {
      * An array of bookmarks
      */
     bookmarks: PropTypes.array,
-    /**
-     * Function to remove a bookmark
-     */
-    removeBookmark: PropTypes.func,
   };
 
   state = {
@@ -143,6 +75,7 @@ export class UrlAutocomplete extends PureComponent {
         { name: 'url', weight: 0.5 },
       ],
     });
+    this.updateResults([]);
   }
 
   componentDidUpdate(prevProps) {
@@ -168,82 +101,40 @@ export class UrlAutocomplete extends PureComponent {
   }
 
   updateResults(results) {
-    this.mounted && this.setState({ results });
+    if (this.mounted) {
+      if (!this.props.input || this.props.input.length === 0) {
+        results = [
+          ...this.props.browserHistory,
+          ...this.props.bookmarks,
+        ]
+      }
+  
+      const resultsByCategory = results.reduce((acc, currentResult) => {
+        acc[currentResult.type] = acc[currentResult.type] || [];
+        if (
+          (currentResult.type !== 'recents' || (acc.recents.length  < MAX_RECENTS)) &&
+          !acc[currentResult.type].find(result => result.url === currentResult.url)
+         ) {
+          acc[currentResult.type] = [...acc[currentResult.type], currentResult];
+        }
+        return acc;
+      }, {});
+
+      this.setState({
+        resultsByCategory,
+        hasResults: results.length > 0,
+        categoriesWithResults: ORDERED_CATEGORIES.filter(category => resultsByCategory[category]?.length > 0),
+      })
+    }
   }
 
   onSubmitInput = () => this.props.onSubmit(this.props.input);
-
-  removeBookmark = (bookmark) => {
-    this.props.removeBookmark(bookmark);
-  }
-
-  renderUrlOption = ({url, name, type}, onPress) => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    name = typeof name === 'string' ? name : getHost(url);
-    return (
-      <TouchableOpacity
-        containerStyle={styles.item}
-        onPress={onPress}
-        key={url}
-      >
-        <View style={styles.itemWrapper}>
-          <WebsiteIcon
-            style={styles.bookmarkIco}
-            url={url}
-            title={name}
-            textStyle={styles.fallbackTextStyle}
-          />
-          <View style={styles.textContent}>
-            <Text style={styles.name} numberOfLines={1}>
-              {name}
-            </Text>
-            <Text style={styles.url} numberOfLines={1}>
-              {url}
-            </Text>
-          </View>
-          {
-            type === 'favorites' && (
-              <ButtonIcon
-                testID={deleteFavoriteTestId(url)}
-                style={styles.deleteFavorite}              
-                iconName={IconName.Trash}
-                onPress={() => this.removeBookmark({url, name})}
-              />
-            )
-          }
-        </View>
-      </TouchableOpacity>
-    );
-  };
 
   render() {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
 
-    let results = [];
-    if (!this.props.input || this.props.input.length === 0) {
-      results = [
-        ...this.props.browserHistory.reverse(),
-        ...this.props.bookmarks,
-      ]
-    } else {
-      results = this.state.results;
-    }
-
-    const resultsByCategory = results.reduce((acc, currentResult) => {
-      acc[currentResult.type] = acc[currentResult.type] || [];
-      if (
-        (currentResult.type !== 'recents' || (acc.recents.length  < MAX_RECENTS)) &&
-        !acc[currentResult.type].find(result => result.url === currentResult.url)
-       ) {
-        acc[currentResult.type] = [...acc[currentResult.type], currentResult];
-      }
-      return acc;
-    }, {});
-
-    if (results.length === 0) {
+    if (!this.state.hasResults) {
       return (
         <View style={{...styles.wrapper, ...styles.contentContainer}}>
           <TouchableOpacity
@@ -268,24 +159,18 @@ export class UrlAutocomplete extends PureComponent {
       );
     }
 
-    const categoriesWithResults = ORDERED_CATEGORIES.filter(category => resultsByCategory[category]?.length > 0);
-
     return (
       <ScrollView style={styles.wrapper} contentContainerStyle={styles.contentContainer}>
         {
-          categoriesWithResults.map(category => (
-              <View key={category}>
-                <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-                {resultsByCategory[category].map((result) => {
-                  const onPress = () => {
-                    this.props.onSubmit(result.url);
-                  };
-                  return this.renderUrlOption(result, onPress);
-                })}
-              </View>
-            )
+          this.state.categoriesWithResults.map(category => (
+            <ResultCategory
+              key={category}
+              category={category}
+              results={this.state.resultsByCategory[category]}
+              onSubmit={this.props.onSubmit}
+            />
           )
-        }
+        )}
         <TouchableWithoutFeedback
           style={styles.bg}
           onPress={this.props.onDismiss}
@@ -298,14 +183,10 @@ export class UrlAutocomplete extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  browserHistory: state.browser.history.map(i => ({...i, type: 'recents'})),
-  bookmarks: state.bookmarks.map(i => ({...i, type: 'favorites'})),
-});
-
-const mapDispatchToProps = (dispatch) => ({
-  removeBookmark: (bookmark) => dispatch(removeBookmark(bookmark)),
+  browserHistory: selectBrowserHistoryWithType(state),
+  bookmarks: selectBrowserBookmarksWithType(state),
 });
 
 UrlAutocomplete.contextType = ThemeContext;
 
-export default connect(mapStateToProps, mapDispatchToProps)(UrlAutocomplete);
+export default connect(mapStateToProps)(UrlAutocomplete);

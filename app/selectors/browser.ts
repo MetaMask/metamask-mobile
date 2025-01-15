@@ -1,0 +1,17 @@
+import { RootState } from "../reducers";
+import { createDeepEqualSelector } from "./util";
+
+type SiteItem = {
+    url: string;
+    name: string;
+}
+
+export const selectBrowserHistoryWithType = createDeepEqualSelector(
+    (state: RootState) => state.browser.history,
+    (history: SiteItem[]) => history.map(item => ({...item, type: 'recents'})).reverse()
+);
+
+export const selectBrowserBookmarksWithType = createDeepEqualSelector(
+    (state: RootState) => state.browser.bookmarks,
+    (bookmarks: SiteItem[]) => bookmarks.map(item => ({...item, type: 'favorites'}))
+);
