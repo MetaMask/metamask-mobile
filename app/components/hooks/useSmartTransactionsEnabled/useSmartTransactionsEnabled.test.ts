@@ -97,10 +97,17 @@ describe('useSmartTransactionsEnabled', () => {
   it('dismissBanner updates preferences through setFeatureFlag', async () => {
     const { result } = renderHook(() => useSmartTransactionsEnabled());
 
+    // Verify mock is clean at start
+    expect(jest.mocked(Engine.context.PreferencesController.setFeatureFlag)).not.toHaveBeenCalled();
+
     await act(async () => {
       await result.current.dismissBanner();
     });
 
+    // Verify mock was called exactly once
+    expect(jest.mocked(Engine.context.PreferencesController.setFeatureFlag)).toHaveBeenCalledTimes(1);
+
+    // Verify correct arguments
     expect(
       jest.mocked(Engine.context.PreferencesController.setFeatureFlag)
     ).toHaveBeenCalledWith(
