@@ -17,6 +17,7 @@ const styleSheet = (colors: Theme['colors']) =>
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'flex-end',
+      alignItems: 'center',
       borderColor: importedColors.transparent,
       borderWidth: 0,
       padding: 0,
