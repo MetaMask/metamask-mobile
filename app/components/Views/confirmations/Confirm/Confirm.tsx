@@ -20,7 +20,7 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal>
+    <BottomModal canCloseOnBackdropClick={false}>
       <View style={styles.container}>
         <View>
           <Title />

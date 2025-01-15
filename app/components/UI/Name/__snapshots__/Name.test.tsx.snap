@@ -3,17 +3,20 @@
 exports[`Name recognized address should render image 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 99,
-      "flexDirection": "row",
-      "gap": 5,
-      "paddingLeft": 8,
-      "paddingRight": 8,
-      "paddingVertical": 4,
-    }
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#f2f4f6",
+        "borderRadius": 99,
+        "flexDirection": "row",
+        "gap": 5,
+        "paddingLeft": 8,
+        "paddingRight": 8,
+        "paddingVertical": 4,
+      },
+      undefined,
+    ]
   }
 >
   <View
@@ -102,17 +105,20 @@ exports[`Name recognized address should render image 1`] = `
 exports[`Name recognized address should return name 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 99,
-      "flexDirection": "row",
-      "gap": 5,
-      "paddingLeft": 8,
-      "paddingRight": 8,
-      "paddingVertical": 4,
-    }
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#f2f4f6",
+        "borderRadius": 99,
+        "flexDirection": "row",
+        "gap": 5,
+        "paddingLeft": 8,
+        "paddingRight": 8,
+        "paddingVertical": 4,
+      },
+      undefined,
+    ]
   }
 >
   <View
@@ -201,17 +207,20 @@ exports[`Name recognized address should return name 1`] = `
 exports[`Name unknown address displays checksummed address 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 99,
-      "flexDirection": "row",
-      "gap": 5,
-      "paddingLeft": 8,
-      "paddingRight": 8,
-      "paddingVertical": 4,
-    }
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#f2f4f6",
+        "borderRadius": 99,
+        "flexDirection": "row",
+        "gap": 5,
+        "paddingLeft": 8,
+        "paddingRight": 8,
+        "paddingVertical": 4,
+      },
+      undefined,
+    ]
   }
 >
   <SvgMock
