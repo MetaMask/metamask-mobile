@@ -29,14 +29,7 @@ interface TokenListProps {
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   goToAddToken: () => void;
-  setIsAddTokenEnabled: (arg: boolean) => void;
 }
-
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 export const TokenList = ({
   tokens,
   refreshing,
@@ -44,12 +37,8 @@ export const TokenList = ({
   onRefresh,
   showRemoveMenu,
   goToAddToken,
-  setIsAddTokenEnabled,
 }: TokenListProps) => {
-
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
-
   const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
