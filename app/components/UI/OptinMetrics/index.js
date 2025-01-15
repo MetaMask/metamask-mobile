@@ -337,23 +337,38 @@ class OptinMetrics extends PureComponent {
       isDataCollectionForMarketingEnabled,
       setDataCollectionForMarketing,
     } = this.props;
+
+    // Set marketing consent trait based on user selection
+    const dataCollectionForMarketingTraits = {
+      has_marketing_consent: Boolean(
+        this.props.isDataCollectionForMarketingEnabled,
+      ),
+    };
+
     await metrics.enable();
+
+    // Track the analytics preference event first
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          ...dataCollectionForMarketingTraits,
+          is_metrics_opted_in: true,
+          location: 'onboarding_metametrics',
+          updated_after_onboarding: false,
+        })
+        .build(),
+    );
+
+    // Handle null case for marketing consent
+    if (
+      isDataCollectionForMarketingEnabled === null &&
+      setDataCollectionForMarketing
+    ) {
+      setDataCollectionForMarketing(false);
+    }
+
     InteractionManager.runAfterInteractions(async () => {
-      // add traits to user for identification
-
-      if (
-        isDataCollectionForMarketingEnabled === null &&
-        setDataCollectionForMarketing
-      ) {
-        setDataCollectionForMarketing(false);
-      }
-
-      // trait indicating if user opts in for data collection for marketing
-      let dataCollectionForMarketingTraits;
-      if (this.props.isDataCollectionForMarketingEnabled) {
-        dataCollectionForMarketingTraits = { has_marketing_consent: true };
-      }
-
       // consolidate device and user settings traits
       const consolidatedTraits = {
         ...dataCollectionForMarketingTraits,
@@ -381,21 +396,7 @@ class OptinMetrics extends PureComponent {
           delay += eventTrackingDelay;
         });
       }
-
       this.props.clearOnboardingEvents();
-
-      // track event for user opting in on metrics and data collection for marketing
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            ...dataCollectionForMarketingTraits,
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
-          })
-          .build(),
-      );
     });
     this.continue();
   };
