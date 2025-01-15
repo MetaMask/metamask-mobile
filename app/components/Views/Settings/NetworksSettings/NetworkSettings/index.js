@@ -11,6 +11,7 @@ import {
 import { connect } from 'react-redux';
 import { typography } from '@metamask/design-tokens';
 import isUrl from 'is-url';
+import { throttle } from 'lodash';
 import {
   fontStyles,
   colors as staticColors,
@@ -1537,7 +1538,11 @@ export class NetworkSettings extends PureComponent {
         networkConfigurations.defaultRpcEndpointIndex
       ] ?? {};
 
-    NetworkController.setActiveNetwork(networkClientId);
+    const throttledSetActiveNetwork = throttle(async (id) => {
+      await NetworkController.setActiveNetwork(id);
+    }, 300);
+
+    throttledSetActiveNetwork(networkClientId);
 
     setTimeout(async () => {
       await updateIncomingTransactions([CHAIN_IDS.MAINNET]);

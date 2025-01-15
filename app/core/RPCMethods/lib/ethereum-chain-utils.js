@@ -1,6 +1,7 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
 import { isSafeChainId } from '@metamask/controller-utils';
+import { throttle } from 'lodash';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
@@ -296,7 +297,11 @@ export async function switchToNetwork({
       networkConfigurationId || networkConfiguration.networkType,
     );
   } else {
-    NetworkController.setActiveNetwork(
+    const throttledSetActiveNetwork = throttle(async (id) => {
+      await NetworkController.setActiveNetwork(id);
+    }, 300);
+
+    throttledSetActiveNetwork(
       networkConfigurationId || networkConfiguration.networkType,
     );
   }

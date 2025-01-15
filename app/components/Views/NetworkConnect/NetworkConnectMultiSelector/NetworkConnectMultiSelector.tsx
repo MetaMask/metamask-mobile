@@ -4,7 +4,7 @@ import { SafeAreaView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import { isEqual } from 'lodash';
+import { isEqual, throttle } from 'lodash';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
@@ -116,9 +116,11 @@ const NetworkConnectMultiSelector = ({
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
-          await Engine.context.NetworkController.setActiveNetwork(
-            networkClientId,
-          );
+          const throttledSetActiveNetwork = throttle(async (id: string) => {
+            await Engine.context.NetworkController.setActiveNetwork(id);
+          }, 300);
+
+          throttledSetActiveNetwork(networkClientId as string);
         }
       }
 

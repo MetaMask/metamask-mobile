@@ -9,6 +9,7 @@ import {
 import { ScrollView } from 'react-native-gesture-handler';
 import { ChainId, toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
+import { throttle } from 'lodash';
 
 import LoadingNetworksSkeleton from './LoadingNetworksSkeleton';
 import ScreenLayout from '../../components/ScreenLayout';
@@ -145,7 +146,11 @@ function NetworkSwitcher() {
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
       const { NetworkController } = Engine.context;
-      NetworkController.setActiveNetwork(type);
+      const throttledSetActiveNetwork = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      throttledSetActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
@@ -164,7 +169,11 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        NetworkController.setActiveNetwork(networkClientId);
+        const throttledSetActiveNetwork = throttle(async (id: string) => {
+          await NetworkController.setActiveNetwork(id);
+        }, 300);
+
+        throttledSetActiveNetwork(networkClientId as string);
         navigateToGetStarted();
       }
     },
