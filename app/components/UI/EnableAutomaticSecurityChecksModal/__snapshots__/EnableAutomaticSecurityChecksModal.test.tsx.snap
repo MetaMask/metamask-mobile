@@ -398,13 +398,7 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                               testID="enable-automatic-checks-screen-container-image"
                             >
                               <Image
-                                source={
-                                  {
-                                    "default": {
-                                      "uri": "MockImage",
-                                    },
-                                  }
-                                }
+                                source={1}
                               />
                             </View>
                             <Text

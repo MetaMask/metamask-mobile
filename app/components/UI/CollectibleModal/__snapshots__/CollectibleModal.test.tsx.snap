@@ -105,7 +105,7 @@ exports[`CollectibleModal should render correctly 1`] = `
             onError={[Function]}
             source={
               {
-                "uri": "MockImage",
+                "uri": "",
               }
             }
             style={

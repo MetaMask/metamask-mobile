@@ -433,11 +433,7 @@ exports[`LearnMoreModal render matches snapshot 1`] = `
                               }
                             >
                               <Image
-                                source={
-                                  {
-                                    "uri": "MockImage",
-                                  }
-                                }
+                                source={1}
                                 style={
                                   {
                                     "borderRadius": 12,
