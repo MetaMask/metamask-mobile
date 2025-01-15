@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StakingBalance render matches snapshot 1`] = `
-<View>
+<View
+  testID="staking-balance-container"
+>
   <TouchableOpacity
     onLongPress={[Function]}
     onPress={[Function]}
@@ -469,7 +471,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
 `;
 
 exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
-<View>
+<View
+  testID="staking-balance-container"
+>
   <TouchableOpacity
     onLongPress={[Function]}
     onPress={[Function]}
