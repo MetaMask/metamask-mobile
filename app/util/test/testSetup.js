@@ -337,6 +337,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
+require('@shopify/flash-list/jestSetup');
 // eslint-disable-next-line import/no-commonjs
 require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
