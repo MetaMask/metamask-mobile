@@ -137,6 +137,7 @@ import {
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import { updateTransactionToMaxValue } from './utils';
+import SmartTransactionsEnabledBanner from '../../../../../components/Views/confirmations/components/SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1413,11 +1414,14 @@ class Confirm extends PureComponent {
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {this.state.transactionMeta?.id && (
-            <TransactionBlockaidBanner
-              transactionId={this.state.transactionMeta.id}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <>
+              <TransactionBlockaidBanner
+                transactionId={this.state.transactionMeta.id}
+                style={styles.blockaidBanner}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+              <SmartTransactionsEnabledBanner style={styles.smartTransactionsEnabledBanner}/>
+            </>
           )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
