@@ -38,7 +38,7 @@ const isNonPermitSupportedByDecodingAPI = (
   );
 };
 
-export default function useTypesSignSimulationEnabled() {
+export default function useTypedSignSimulationEnabled() {
   const { approvalRequest } = useApprovalRequest();
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,

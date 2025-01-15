@@ -1,6 +1,6 @@
 import React from 'react';
 
-import useTypesSignSimulationEnabled from '../../../../../hooks/useTypedSignSimulationEnabled';
+import useTypedSignSimulationEnabled from '../../../../../hooks/useTypedSignSimulationEnabled';
 import { isRecognizedPermit } from '../../../../../utils/signature';
 import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import DecodedSimulation from './TypedSignDecoded';
@@ -9,7 +9,7 @@ import PermitSimulation from './TypedSignPermit';
 const TypedSignV3V4Simulation: React.FC<object> = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
-  const isSimulationSupported = useTypesSignSimulationEnabled();
+  const isSimulationSupported = useTypedSignSimulationEnabled();
 
   if (!isSimulationSupported || !signatureRequest) {
     return null;
