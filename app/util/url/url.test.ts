@@ -1,4 +1,9 @@
-import { isPortfolioUrl, isBridgeUrl, isValidASCIIURL, toPunycodeURL } from './index';
+import {
+  isPortfolioUrl,
+  isBridgeUrl,
+  isValidASCIIURL,
+  toPunycodeURL,
+} from './index';
 import AppConstants from '../../core/AppConstants';
 
 describe('URL Check Functions', () => {
@@ -73,13 +78,19 @@ describe('URL Check Functions', () => {
     });
 
     it('returns true for URL with its hostname containing ASCII characters and its path containing non-ASCII characters', () => {
-      expect(isValidASCIIURL('https://infura.io/gnosis?x=iոfura.io')).toStrictEqual(true);
-      expect(isValidASCIIURL('infura.io:7777/gnosis?x=iոfura.io')).toStrictEqual(true);
+      expect(
+        isValidASCIIURL('https://infura.io/gnosis?x=iոfura.io'),
+      ).toStrictEqual(true);
+      expect(
+        isValidASCIIURL('infura.io:7777/gnosis?x=iոfura.io'),
+      ).toStrictEqual(true);
     });
 
     it('returns false for URL with its hostname containing non-ASCII characters', () => {
       expect(isValidASCIIURL('https://iոfura.io/gnosis')).toStrictEqual(false);
-      expect(isValidASCIIURL('iոfura.io:7777/gnosis?x=test')).toStrictEqual(false);
+      expect(isValidASCIIURL('iոfura.io:7777/gnosis?x=test')).toStrictEqual(
+        false,
+      );
     });
 
     it('returns false for empty string', () => {
@@ -107,9 +118,9 @@ describe('URL Check Functions', () => {
       expect(toPunycodeURL('https://www.google.com')).toStrictEqual(
         'https://www.google.com',
       );
-      expect(toPunycodeURL('https://opensea.io/language=français')).toStrictEqual(
-        'https://opensea.io/language=fran%C3%A7ais',
-      );
+      expect(
+        toPunycodeURL('https://opensea.io/language=français'),
+      ).toStrictEqual('https://opensea.io/language=fran%C3%A7ais');
     });
   });
 });

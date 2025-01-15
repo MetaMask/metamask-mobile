@@ -14,6 +14,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../../../util/networks';
+import { mockNetworkState } from '../../../../../util/test/network';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -167,5 +168,40 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
     });
+  });
+
+  it('should not render if asset chainId is not a staking supporting chain', () => {
+    const { queryByText, queryByTestId } = renderWithProvider(
+      <StakingBalance asset={{ ...MOCK_STAKED_ETH_ASSET, chainId: '0x4' }} />,
+      { state: mockInitialState },
+    );
+    expect(queryByTestId('staking-balance-container')).toBeNull();
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.unstake'))).toBeNull();
+    expect(queryByText(strings('stake.claim'))).toBeNull();
+  });
+
+  it('should not render claim link or action buttons if asset.chainId is not selected chainId', () => {
+    const { queryByText, queryByTestId } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              NetworkController: {
+                ...mockNetworkState({ chainId: '0x4268' }),
+              },
+            },
+          },
+        },
+      },
+    );
+    expect(queryByTestId('staking-balance-container')).toBeTruthy();
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.unstake'))).toBeNull();
+    expect(queryByText(strings('stake.claim'))).toBeNull();
   });
 });
