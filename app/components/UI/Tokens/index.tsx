@@ -279,9 +279,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     // Dependencies for multichain implementation
     selectedAccountTokensChains,
     isPopularNetwork,
-    tokenNetworkFilter,
     multiChainCurrencyRates,
-    networkConfigurationsByChainId,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
   ]);

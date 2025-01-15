@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, RefreshControl } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -62,12 +62,14 @@ export const TokenList = ({
       setShowScamWarningModal,
     ],
   );
+  const memoizedTokens = useMemo(() => tokens, [tokens]);
 
   return tokens?.length > 0 ? (
     <FlashList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
-      data={tokens}
+      data={memoizedTokens}
       renderItem={renderItem}
+      estimatedItemSize={tokens.length}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
         <TokenListFooter
