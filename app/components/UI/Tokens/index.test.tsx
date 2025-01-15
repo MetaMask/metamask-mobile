@@ -248,10 +248,14 @@ jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   })),
 }));
 
-jest.mock('../Stake/hooks/useStakingChain', () => ({
-  useStakingChainByChainId: () => ({
+jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
     isStakingSupportedChain: true,
-  }),
+  })),
+  useStakingChainByChainId: jest.fn(() => ({
+    isStakingSupportedChain: true,
+  })),
 }));
 
 const Stack = createStackNavigator();

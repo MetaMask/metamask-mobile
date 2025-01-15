@@ -25,6 +25,8 @@ import { RootState } from '../../../../../reducers';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
+import useStakingChain from '../../hooks/useStakingChain';
+import Engine from '../../../../../core/Engine';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -37,11 +39,14 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
 
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const chainId = useSelector(selectChainId);
-
-  const { refreshPooledStakingEligibility } = useStakingEligibility();
+  const { isEligible } = useStakingEligibility();
+  const { isStakingSupportedChain } = useStakingChain();
 
   const onStakeButtonPress = async () => {
-    const { isEligible } = await refreshPooledStakingEligibility();
+    if (!isStakingSupportedChain) {
+      const { NetworkController } = Engine.context;
+      await NetworkController.setActiveNetwork('mainnet');
+    }
     if (isEligible) {
       navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
     } else {
