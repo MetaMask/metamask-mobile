@@ -16,6 +16,13 @@ import NativeValueDisplay from '../components/NativeValueDisplay';
 import SimulationValueDisplay from '../components/ValueDisplay';
 import StaticSimulation from '../Static';
 
+const styles = {
+  unavailableContainer: {
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+};
+
 export enum StateChangeType {
   NFTListingReceive = 'NFTListingReceive',
   NFTBiddingReceive = 'NFTBiddingReceive',
@@ -192,7 +199,7 @@ const DecodedSimulation: React.FC<object> = () => {
         stateChangeFragment.length ? (
           stateChangeFragment
         ) : (
-          <View style={{ paddingHorizontal: 8, paddingBottom: 8 }}>
+          <View style={styles.unavailableContainer}>
             <Text>{strings('confirm.simulation.unavailable')}</Text>
           </View>
         )

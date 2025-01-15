@@ -12,7 +12,7 @@ import { DecodingData } from '@metamask/signature-controller';
 type ApprovalRequestType = ApprovalRequest<any> & {
   decodingData?: DecodingData;
   decodingLoading?: boolean;
-};;
+};
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
