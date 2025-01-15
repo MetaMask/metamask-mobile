@@ -109,7 +109,9 @@ describe('NetworkVerificationInfo', () => {
     );
 
     expect(() =>
-      getByText('Attackers sometimes mimic sites by making small changes to the site address. Make sure you\'re interacting with the intended Network URL before you continue. Punycode version: https://xn--ifura-dig.io/gnosis')
+      getByText(
+        "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version: https://xn--ifura-dig.io/gnosis",
+      ),
     ).toThrow('Unable to find an element with text');
   });
 
@@ -127,7 +129,11 @@ describe('NetworkVerificationInfo', () => {
         />,
       );
 
-      expect(getByText('Attackers sometimes mimic sites by making small changes to the site address. Make sure you\'re interacting with the intended Network URL before you continue. Punycode version: https://xn--ifura-dig.io/gnosis')).toBeTruthy();
+      expect(
+        getByText(
+          "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version: https://xn--ifura-dig.io/gnosis",
+        ),
+      ).toBeTruthy();
     });
   });
 });

@@ -6,10 +6,9 @@ import {
   importWalletWithRecoveryPhrase,
   switchToSepoliaNetwork,
 } from '../../viewHelper';
-import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-import TestHelpers from '../../helpers'
+import TestHelpers from '../../helpers';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
@@ -23,7 +22,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await Assertions.checkIfElementNotToHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.checkIfElementNotToHaveText(
+      TokenOverview.tokenPrice,
+      '$0',
+    );
 
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);
@@ -46,9 +48,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
   });
 
   it('should not display the chart when using Sepolia test network', async () => {
+    const sepoliaTokenSymbol = 'S';
     await switchToSepoliaNetwork();
-    await WalletView.tapOnToken(CustomNetworks.Sepolia.providerConfig.ticker);
-    await Assertions.checkIfNotVisible(TokenOverview.noChartData);
+    await WalletView.tapOnToken(sepoliaTokenSymbol);
+    await Assertions.checkIfVisible(TokenOverview.noChartData, 60000);
     await Assertions.checkIfElementToHaveText(TokenOverview.tokenPrice, '$0');
   });
 });
