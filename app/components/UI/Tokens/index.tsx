@@ -178,7 +178,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             const balance =
               multiChainTokenBalances?.[curToken.address as Hex] ||
               curToken.balance;
-            return !isZero(balance) || curToken.isStaked;
+            return curToken.isNative || !isZero(balance) || curToken.isStaked;
           });
         }
       } else {
