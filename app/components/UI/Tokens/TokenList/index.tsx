@@ -83,7 +83,6 @@ export const TokenList = ({
     <FlashList
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokens}
-      estimatedItemSize={50}
       renderItem={renderItem}
       keyExtractor={(_, index) => index.toString()}
       ListFooterComponent={
