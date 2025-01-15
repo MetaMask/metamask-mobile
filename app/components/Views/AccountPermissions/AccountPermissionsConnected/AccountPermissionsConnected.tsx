@@ -10,10 +10,7 @@ import SheetHeader from '../../../../component-library/components/Sheet/SheetHea
 import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
-import {
-  getDecimalChainId,
-  isMultichainVersion1Enabled,
-} from '../../../../util/networks';
+import { getDecimalChainId } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { switchActiveAccounts } from '../../../../core/Permissions';
@@ -152,23 +149,19 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      {isMultichainVersion1Enabled && (
-        <View style={styles.header}>
-          <Avatar
-            variant={AvatarVariant.Favicon}
-            imageSource={favicon}
-            size={AvatarSize.Md}
-            style={styles.favicon}
-          />
-          <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
-        </View>
-      )}
+      <View style={styles.header}>
+        <Avatar
+          variant={AvatarVariant.Favicon}
+          imageSource={favicon}
+          size={AvatarSize.Md}
+          style={styles.favicon}
+        />
+        <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
+      </View>
       <View style={styles.body}>
-        {isMultichainVersion1Enabled && (
-          <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
-            {strings('accounts.connected_accounts_title')}
-          </Text>
-        )}
+        <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
+          {strings('accounts.connected_accounts_title')}
+        </Text>
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
@@ -179,21 +172,17 @@ const AccountPermissionsConnected = ({
         isRemoveAccountEnabled
       />
       {renderSheetAction()}
-      {isMultichainVersion1Enabled && (
-        <Button
-          style={styles.managePermissionsButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('permissions.manage_permissions')}
-          size={ButtonSize.Lg}
-          onPress={() => {
-            onSetPermissionsScreen(
-              AccountPermissionsScreens.PermissionsSummary,
-            );
-          }}
-          testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
-          width={ButtonWidthTypes.Full}
-        />
-      )}
+      <Button
+        style={styles.managePermissionsButton}
+        variant={ButtonVariants.Secondary}
+        label={strings('permissions.manage_permissions')}
+        size={ButtonSize.Lg}
+        onPress={() => {
+          onSetPermissionsScreen(AccountPermissionsScreens.PermissionsSummary);
+        }}
+        testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
+        width={ButtonWidthTypes.Full}
+      />
     </>
   );
 };

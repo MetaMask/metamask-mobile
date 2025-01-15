@@ -11,7 +11,6 @@ import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
   getDecimalChainId,
-  isMultichainVersion1Enabled,
   getNetworkImageSource,
 } from '../../../../util/networks';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -128,35 +127,31 @@ const NetworkPermissionsConnected = ({
 
   return (
     <>
-      {isMultichainVersion1Enabled && (
-        <View style={styles.header}>
-          <Avatar
-            variant={AvatarVariant.Favicon}
-            imageSource={favicon}
-            size={AvatarSize.Md}
-          />
-        </View>
-      )}
+      <View style={styles.header}>
+        <Avatar
+          variant={AvatarVariant.Favicon}
+          imageSource={favicon}
+          size={AvatarSize.Md}
+        />
+      </View>
       <View style={styles.body}>
-        {isMultichainVersion1Enabled && (
-          <View style={styles.sectionTitleContainer}>
-            <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
-              {strings('permissions.permitted_networks')}
-            </Text>
-            <View style={styles.infoButtonContainer}>
-              <ButtonIcon
-                size={ButtonIconSizes.Md}
-                iconName={IconName.Info}
-                iconColor={IconColor.Default}
-                onPress={() => {
-                  navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                    screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
-                  });
-                }}
-              />
-            </View>
+        <View style={styles.sectionTitleContainer}>
+          <Text style={styles.sectionTitle} variant={TextVariant.HeadingSM}>
+            {strings('permissions.permitted_networks')}
+          </Text>
+          <View style={styles.infoButtonContainer}>
+            <ButtonIcon
+              size={ButtonIconSizes.Md}
+              iconName={IconName.Info}
+              iconColor={IconColor.Default}
+              onPress={() => {
+                navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+                  screen: Routes.SHEET.PERMITTED_NETWORKS_INFO_SHEET,
+                });
+              }}
+            />
           </View>
-        )}
+        </View>
       </View>
       <View style={styles.networkSelectorListContainer}>
         <NetworkSelectorList
@@ -188,23 +183,19 @@ const NetworkPermissionsConnected = ({
           isMultiSelect={false}
         />
       </View>
-      {isMultichainVersion1Enabled && (
-        <Button
-          style={styles.managePermissionsButton}
-          variant={ButtonVariants.Secondary}
-          label={strings('permissions.edit_permissions')}
-          testID={
-            NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON
-          }
-          size={ButtonSize.Lg}
-          onPress={() => {
-            onSetPermissionsScreen(
-              AccountPermissionsScreens.ConnectMoreNetworks,
-            );
-          }}
-          width={ButtonWidthTypes.Full}
-        />
-      )}
+      <Button
+        style={styles.managePermissionsButton}
+        variant={ButtonVariants.Secondary}
+        label={strings('permissions.edit_permissions')}
+        testID={
+          NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON
+        }
+        size={ButtonSize.Lg}
+        onPress={() => {
+          onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks);
+        }}
+        width={ButtonWidthTypes.Full}
+      />
     </>
   );
 };
