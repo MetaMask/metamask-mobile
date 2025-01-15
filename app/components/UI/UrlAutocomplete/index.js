@@ -4,14 +4,13 @@ import {
   View,
   TouchableOpacity,
   Text,
-  ScrollView,
   SectionList,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { connect } from 'react-redux';
-import { ThemeContext, mockTheme } from '../../../util/theme';
+import { ThemeContext } from '../../../util/theme';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { createStyles } from './index.styles';

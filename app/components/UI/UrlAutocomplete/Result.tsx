@@ -1,14 +1,14 @@
-import { memo, useCallback } from "react";
-import { TouchableOpacity, View, Text } from "react-native";
-import { useTheme } from "../../../util/theme";
-import { getHost } from "../../../util/browser";
-import WebsiteIcon from "../WebsiteIcon";
-import ButtonIcon from "../../../component-library/components/Buttons/ButtonIcon";
-import { deleteFavoriteTestId } from "../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds";
-import { IconName } from "../../../component-library/components/Icons/Icon";
-import { useDispatch } from "react-redux";
-import { removeBookmark } from "../../../actions/bookmarks";
-import { createStyles } from "./index.styles";
+import React, { memo, useCallback } from 'react';
+import { TouchableOpacity, View, Text } from 'react-native';
+import { useTheme } from '../../../util/theme';
+import { getHost } from '../../../util/browser';
+import WebsiteIcon from '../WebsiteIcon';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useDispatch } from 'react-redux';
+import { removeBookmark } from '../../../actions/bookmarks';
+import { createStyles } from './index.styles';
 
 interface ResultProps {
     result: {
@@ -29,7 +29,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
 
     const onPressRemove = useCallback(() => {
         dispatch(removeBookmark(result));
-    }, [dispatch]);
+    }, [dispatch, result]);
 
     return (
       <TouchableOpacity
@@ -55,7 +55,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
             result.type === 'favorites' && (
               <ButtonIcon
                 testID={deleteFavoriteTestId(result.url)}
-                style={styles.deleteFavorite}              
+                style={styles.deleteFavorite}
                 iconName={IconName.Trash}
                 onPress={onPressRemove}
               />

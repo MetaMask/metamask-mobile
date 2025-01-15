@@ -1,7 +1,7 @@
-import { RootState } from "../reducers";
-import { createDeepEqualSelector } from "./util";
+import { RootState } from '../reducers';
+import { createDeepEqualSelector } from './util';
 
-type SiteItem = {
+interface SiteItem {
     url: string;
     name: string;
 }
