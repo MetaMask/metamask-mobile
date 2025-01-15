@@ -90,8 +90,8 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
      * Gets browser url bar icon based on connection type
      */
     const connectionTypeIcon = useMemo(() => {
-      // Default to blank icon
-      let iconName = IconName.Blank;
+      // Default to unsecure icon
+      let iconName = IconName.LockSlash;
 
       switch (connectionType) {
         case ConnectionType.SECURE:
