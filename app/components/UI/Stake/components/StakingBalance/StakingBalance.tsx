@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Hex } from '@metamask/utils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -35,7 +36,7 @@ import {
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
-import useStakingChain from '../../hooks/useStakingChain';
+import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import useVaultData from '../../hooks/useVaultData';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
@@ -56,7 +57,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
-  const { isStakingSupportedChain } = useStakingChain();
+  const { isStakingSupportedChain } = useStakingChainByChainId(
+    asset.chainId as Hex,
+  );
 
   const {
     pooledStakesData,
@@ -71,7 +74,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
     formattedStakedBalanceFiat: stakedBalanceFiat,
-  } = useBalance();
+  } = useBalance(asset.chainId as Hex);
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -97,6 +100,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   }
 
   const renderStakingContent = () => {
+    if (chainId !== asset.chainId) {
+      return <></>;
+    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
@@ -165,7 +171,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   };
 
   return (
-    <View>
+    <View testID="staking-balance-container">
       {hasEthToUnstake && (
         <AssetElement
           asset={asset}
@@ -177,7 +183,10 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(chainId, asset.symbol)}
+                imageSource={NetworkBadgeSource(
+                  asset.chainId as Hex,
+                  asset.ticker || asset.symbol,
+                )}
                 name={networkName}
               />
             }
