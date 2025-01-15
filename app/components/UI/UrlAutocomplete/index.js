@@ -122,8 +122,6 @@ export class UrlAutocomplete extends PureComponent {
 
   componentDidMount() {
     this.createSearchIndex();
-
-    this.timer = null;
     this.mounted = true;
   }
 
@@ -149,14 +147,7 @@ export class UrlAutocomplete extends PureComponent {
 
   componentDidUpdate(prevProps) {
     if (prevProps.input !== this.props.input) {
-      if (this.timer) {
-        clearTimeout(this.timer);
-      }
-
       this.processInput();
-      // this.timer = setTimeout(() => {
-      //   this.processInput();
-      // }, 50);
     } else if (prevProps.bookmarks.length !== this.props.bookmarks.length) {
       this.createSearchIndex();
       this.processInput();
