@@ -1,7 +1,16 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 6ccbe9c..f3397ab 100644
+index 6ccbe9c..417a55e 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
+@@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+-var _NftController_instances, _NftController_mutex, _NftController_selectedAccountId, _NftController_chainId, _NftController_ipfsGateway, _NftController_openSeaEnabled, _NftController_useIpfsSubdomains, _NftController_isIpfsGatewayEnabled, _NftController_onNftAdded, _NftController_onNetworkControllerNetworkDidChange, _NftController_onPreferencesControllerStateChange, _NftController_onSelectedAccountChange, _NftController_updateNestedNftState, _NftController_getNftCollectionApi, _NftController_getNftInformationFromApi, _NftController_getNftInformationFromTokenURI, _NftController_getNftURIAndStandard, _NftController_getNftInformation, _NftController_getNftContractInformationFromContract, _NftController_getNftContractInformation, _NftController_addIndividualNft, _NftController_addNftContract, _NftController_removeAndIgnoreIndividualNft, _NftController_removeIndividualNft, _NftController_removeNftContract, _NftController_validateWatchNft, _NftController_getCorrectChainId, _NftController_getAddressOrSelectedAddress, _NftController_updateNftUpdateForAccount;
++var _NftController_instances, _NftController_mutex, _NftController_selectedAccountId, _NftController_chainId, _NftController_ipfsGateway, _NftController_displayNftMedia, _NftController_useIpfsSubdomains, _NftController_isIpfsGatewayEnabled, _NftController_onNftAdded, _NftController_onNetworkControllerNetworkDidChange, _NftController_onPreferencesControllerStateChange, _NftController_onSelectedAccountChange, _NftController_updateNestedNftState, _NftController_getNftCollectionApi, _NftController_getNftInformationFromApi, _NftController_getNftInformationFromTokenURI, _NftController_getNftURIAndStandard, _NftController_getNftInformation, _NftController_getNftContractInformationFromContract, _NftController_getNftContractInformation, _NftController_addIndividualNft, _NftController_addNftContract, _NftController_removeAndIgnoreIndividualNft, _NftController_removeIndividualNft, _NftController_removeNftContract, _NftController_validateWatchNft, _NftController_getCorrectChainId, _NftController_getAddressOrSelectedAddress, _NftController_updateNftUpdateForAccount;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.NftController = exports.getDefaultNftControllerState = void 0;
+ const address_1 = require("@ethersproject/address");
 @@ -53,7 +53,7 @@ class NftController extends base_controller_1.BaseController {
       * @param options - The controller options.
       * @param options.chainId - The chain ID of the current network.
