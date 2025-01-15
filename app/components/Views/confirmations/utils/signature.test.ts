@@ -1,6 +1,7 @@
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { parseTypedDataMessage, isRecognizedPermit } from './signature';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
+import { SignatureRequest } from '@metamask/signature-controller';
 
 describe('Signature Utils', () => {
   describe('parseTypedDataMessage', () => {
@@ -45,28 +46,56 @@ describe('Signature Utils', () => {
   });
 
   describe('isRecognizedPermit', () => {
-    it('should return true for recognized permit types', () => {
-      const mockRequest: ApprovalRequest<{ data: string }> = {
-        requestData: {
-          data: JSON.stringify({
-            primaryType: PRIMARY_TYPES_PERMIT[0]
-          })
-        }
-      } as ApprovalRequest<{ data: string }>;
+    describe('when the request is an ApprovalRequest', () => {
+      it('should return true for recognized permit types', () => {
+        const mockRequest: ApprovalRequest<{ data: string }> = {
+          requestData: {
+            data: JSON.stringify({
+              primaryType: PRIMARY_TYPES_PERMIT[0]
+            })
+          }
+        } as ApprovalRequest<{ data: string }>;
 
-      expect(isRecognizedPermit(mockRequest)).toBe(true);
+        expect(isRecognizedPermit(mockRequest)).toBe(true);
+      });
+
+      it('should return false for unrecognized permit types', () => {
+        const mockRequest: ApprovalRequest<{ data: string }> = {
+          requestData: {
+            data: JSON.stringify({
+              primaryType: 'UnrecognizedType'
+            })
+          }
+        } as ApprovalRequest<{ data: string }>;
+
+        expect(isRecognizedPermit(mockRequest)).toBe(false);
+      });
     });
 
-    it('should return false for unrecognized permit types', () => {
-      const mockRequest: ApprovalRequest<{ data: string }> = {
-        requestData: {
-          data: JSON.stringify({
-            primaryType: 'UnrecognizedType'
-          })
-        }
-      } as ApprovalRequest<{ data: string }>;
+    describe('when the request is a SignatureRequest', () => {
+      it('should return true for recognized permit types', () => {
+        const mockRequest: SignatureRequest = {
+          messageParams: {
+            data: JSON.stringify({
+              primaryType: PRIMARY_TYPES_PERMIT[0]
+            })
+          }
+        } as SignatureRequest;
 
-      expect(isRecognizedPermit(mockRequest)).toBe(false);
+        expect(isRecognizedPermit(mockRequest)).toBe(true);
+      });
+
+      it('should return false for unrecognized permit types', () => {
+        const mockRequest: SignatureRequest = {
+          messageParams: {
+            data: JSON.stringify({
+              primaryType: 'UnrecognizedType'
+            })
+          }
+        } as SignatureRequest;
+
+        expect(isRecognizedPermit(mockRequest)).toBe(false);
+      });
     });
   });
 });
