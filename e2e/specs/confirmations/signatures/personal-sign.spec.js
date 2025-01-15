@@ -14,7 +14,7 @@ import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
-  const mockRemoteFeatureApi = {
+  const testSpecificMock = {
     GET: [
       {
         urlEndpoint:
@@ -38,7 +38,7 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .withPermissionControllerConnectedToTestDapp()
           .build(),
         restartDevice: true,
-        testSpecificMock: mockRemoteFeatureApi,
+        testSpecificMock,
         ganacheOptions: defaultGanacheOptions,
       },
       async () => {
