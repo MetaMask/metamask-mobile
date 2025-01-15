@@ -61,21 +61,6 @@ export const TokenList = ({
 
   const styles = createStyles(colors);
 
-  const showDetectedTokens = () => {
-    navigation.navigate(...createDetectedTokensNavDetails());
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
-        .addProperties({
-          source: 'detected',
-          chain_id: getDecimalChainId(chainId),
-          tokens: detectedTokens?.map(
-            (token) => `${token.symbol} - ${token.address}`,
-          ),
-        })
-        .build(),
-    );
-    setIsAddTokenEnabled(true);
-  };
   const renderItem = useCallback(
     ({ item }) => (
       <TokenListItem
