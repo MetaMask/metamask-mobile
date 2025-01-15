@@ -1287,16 +1287,19 @@
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "earn_button": "Earn",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "earn": "Earn",
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
       "swap": "Swapping not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
+      "earn": "Earning not supported for this account",
       "action": "This action is not supported for this account"
     },
     "description": "Description",
@@ -1313,6 +1316,7 @@
     "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
+    "earn_description": "Earn rewards on your tokens",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",

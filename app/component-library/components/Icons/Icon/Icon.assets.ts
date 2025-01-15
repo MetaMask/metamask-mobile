@@ -138,6 +138,7 @@ import snapsroundSVG from './assets/snaps-round.svg';
 import snapsSVG from './assets/snaps.svg';
 import sparkleSVG from './assets/sparkle.svg';
 import speedometerSVG from './assets/speedometer.svg';
+import sproutSVG from './assets/sprout.svg';
 import squareSVG from './assets/square.svg';
 import starSVG from './assets/star.svg';
 import studentSVG from './assets/student.svg';
@@ -306,6 +307,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Snaps]: snapsSVG,
   [IconName.Sparkle]: sparkleSVG,
   [IconName.Speedometer]: speedometerSVG,
+  [IconName.Sprout]: sproutSVG,
   [IconName.Square]: squareSVG,
   [IconName.Star]: starSVG,
   [IconName.Student]: studentSVG,
