@@ -5,12 +5,15 @@ import {
   EthMethod,
 } from '@metamask/keyring-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
+import { captureException } from '@sentry/react-native';
 import migration from './066';
 
 jest.mock('../../util/Logger');
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+
+const mockedCaptureException = jest.mocked(captureException);
 
 interface StateType {
   engine: {
@@ -143,17 +146,17 @@ describe('migration #66', () => {
     },
   };
 
-  it('should return state if not valid', () => {
+  it('returns state if not valid', () => {
     const result = migration(MOCK_INVALID_STATE);
     expect(result).toEqual(MOCK_INVALID_STATE);
   });
 
-  it('should return state if empty accounts', () => {
+  it('returns state if empty accounts', () => {
     const result = migration(MOCK_EMPTY_STATE);
     expect(result).toEqual(MOCK_EMPTY_STATE);
   });
 
-  it('should not modify accounts that already have valid scopes', () => {
+  it('preserves accounts that have valid scopes', () => {
     const stateCopy = JSON.parse(
       JSON.stringify(MOCK_STATE_WITH_EXISTING_SCOPES),
     );
@@ -161,7 +164,7 @@ describe('migration #66', () => {
     expect(result).toEqual(MOCK_STATE_WITH_EXISTING_SCOPES);
   });
 
-  it('should add correct scopes for all account types', () => {
+  it('adds correct scopes for all account types', () => {
     const stateCopy = JSON.parse(JSON.stringify(MOCK_STATE_WITH_ACCOUNTS));
     const result = migration(stateCopy) as StateType;
     const accounts =
@@ -185,7 +188,7 @@ describe('migration #66', () => {
     ]);
   });
 
-  it('should handle malformed account objects gracefully', () => {
+  it('handles malformed account objects gracefully', () => {
     const malformedState: StateType = {
       engine: {
         backgroundState: {
@@ -226,7 +229,7 @@ describe('migration #66', () => {
     expect(accounts['valid-1']?.scopes).toEqual([EthScopes.Namespace]);
   });
 
-  it('should handle invalid scopes property gracefully', () => {
+  it('handles invalid scopes property gracefully', () => {
     const stateWithInvalidScopes: StateType = {
       engine: {
         backgroundState: {
@@ -303,5 +306,50 @@ describe('migration #66', () => {
     expect(accounts['invalid-1']?.scopes).toEqual([EthScopes.Namespace]);
     expect(accounts['invalid-2']?.scopes).toEqual([EthScopes.Namespace]);
     expect(accounts['invalid-3']?.scopes).toEqual([EthScopes.Namespace]);
+  });
+
+  it('logs unknown account types to Sentry', () => {
+    const stateWithUnknownType: StateType = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: 'unknown-1',
+              accounts: {
+                'unknown-1': {
+                  id: 'unknown-1',
+                  // @ts-expect-error Testing unknown account type
+                  type: 'unknown-type',
+                  address: '0x123',
+                  options: {},
+                  metadata: {
+                    name: 'Unknown Account',
+                    keyring: { type: 'HD Key Tree' },
+                    importTime: Date.now(),
+                  },
+                  methods: [],
+                  scopes: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const result = migration(stateWithUnknownType) as StateType;
+    const accounts =
+      result.engine.backgroundState.AccountsController.internalAccounts
+        .accounts;
+
+    // Verify scopes are set to default EVM namespace
+    expect(accounts['unknown-1']?.scopes).toEqual([EthScopes.Namespace]);
+
+    // Verify Sentry exception was captured
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        'Migration 66: Unknown account type unknown-type, defaulting to EVM namespace',
+      ),
+    );
   });
 });

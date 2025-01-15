@@ -13,6 +13,27 @@ import { captureException } from '@sentry/react-native';
 
 const migrationVersion = 66;
 
+function getScopesForAccountType(accountType: string): string[] {
+  switch (accountType) {
+    case EthAccountType.Eoa:
+    case EthAccountType.Erc4337:
+      return [EthScopes.Namespace];
+    case BtcAccountType.P2wpkh:
+      // Default to mainnet scope if address is missing or invalid
+      return [BtcScopes.Mainnet];
+    case SolAccountType.DataAccount:
+      return [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet];
+    default:
+      // Default to EVM namespace for unknown account types
+      captureException(
+        new Error(
+          `Migration ${migrationVersion}: Unknown account type ${accountType}, defaulting to EVM namespace`,
+        ),
+      );
+      return [EthScopes.Namespace];
+  }
+}
+
 /**
  * Migration for adding scopes to accounts in the AccountsController.
  * Each account type gets its appropriate scopes:
@@ -72,31 +93,7 @@ export default function migrate(state: unknown) {
       `Migration ${migrationVersion}: Adding scopes for account type ${account.type}`,
     );
 
-    switch (account.type) {
-      case EthAccountType.Eoa:
-      case EthAccountType.Erc4337:
-        account.scopes = [EthScopes.Namespace];
-        break;
-      case BtcAccountType.P2wpkh:
-        // Default to mainnet scope if address is missing or invalid
-        account.scopes = [BtcScopes.Mainnet];
-        break;
-      case SolAccountType.DataAccount:
-        account.scopes = [
-          SolScopes.Mainnet,
-          SolScopes.Testnet,
-          SolScopes.Devnet,
-        ];
-        break;
-      default:
-        // Default to EVM namespace for unknown account types
-        account.scopes = [EthScopes.Namespace];
-        captureException(
-          new Error(
-            `Migration ${migrationVersion}: : Unknown account type ${account.type}, defaulting to EVM namespace`,
-          ),
-        );
-    }
+    account.scopes = getScopesForAccountType(account.type as string);
   }
 
   return state;
