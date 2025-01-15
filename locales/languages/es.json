@@ -470,7 +470,7 @@
     "learn_more": "Más información",
     "add_collectibles": "AGREGAR NFT",
     "no_transactions": "No tiene transacciones.",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Cambie de red para ver las transacciones",
     "send_button": "Enviar",
     "deposit_button": "Depositar",
     "copy_address": "Copie",
@@ -566,7 +566,7 @@
     "description_content_1": "Nos gustaría recopilar datos básicos de uso para mejorar MetaMask. Tenga en cuenta que nunca venderemos los datos que nos proporcione aquí.",
     "description_content_2": "Al recopilar métricas, siempre serán...",
     "description_content_3": "Conozca cómo protegemos su privacidad mientras recopilamos datos de uso para su perfil.",
-    "checkbox": "Utilizaremos estos datos para saber cómo interactúa con nuestras comunicaciones de marketing. Podemos compartir noticias relevantes (como características de productos).",
+    "checkbox": "Utilizaremos estos datos para saber cómo usted interactúa con nuestras comunicaciones de marketing. Podremos compartir noticias relevantes (como características de productos).",
     "action_description_1_prefix": "Privadas:",
     "action_description_2_prefix": "Generales:",
     "action_description_3_prefix": "Opcionales:",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "Identificador de cadena",
     "network_rpc_url": "URL de la red",
     "network_rpc_url_label": "URL de RPC de la red",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Nueva URL de red por defecto",
     "current_label": "Actual",
     "new_label": "Nuevo",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Solicitud de firma"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Solicitud de",
     "message": "Mensaje",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Este sitio solicita su firma",
     "details": "Detalles",
     "account": "Cuenta",

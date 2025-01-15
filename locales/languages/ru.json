@@ -470,7 +470,7 @@
     "learn_more": "Подробнее",
     "add_collectibles": "Импорт NFT",
     "no_transactions": "У вас нет транзакций!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Смените сеть для просмотра транзакций",
     "send_button": "Отправить",
     "deposit_button": "Депозит",
     "copy_address": "Копировать",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "ID блокчейна",
     "network_rpc_url": "URL сети",
     "network_rpc_url_label": "URL-адрес сетевого RPC",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Новый URL-адрес сети по умолчанию",
     "current_label": "Текущая",
     "new_label": "Новая",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Запрос подписи"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Запрос от",
     "message": "Сообщение",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
     "details": "Подробности",
     "account": "Счет",

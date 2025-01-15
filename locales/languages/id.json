@@ -470,7 +470,7 @@
     "learn_more": "Pelajari selengkapnya",
     "add_collectibles": "Impor NFT",
     "no_transactions": "Belum ada transaksi!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Alihkan jaringan untuk melihat transaksi",
     "send_button": "Kirim",
     "deposit_button": "Deposit",
     "copy_address": "Salin",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "ID Chain",
     "network_rpc_url": "URL Jaringan",
     "network_rpc_url_label": "URL RPC Jaringan",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "URL jaringan default baru",
     "current_label": "Saat ini",
     "new_label": "Baru",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Permintaan tanda tangan"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Permintaan dari",
     "message": "Pesan",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
     "details": "Detail",
     "account": "Akun",

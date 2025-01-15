@@ -470,7 +470,7 @@
     "learn_more": "了解更多",
     "add_collectibles": "添加收藏品",
     "no_transactions": "您没有交易！",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "请切换网络以查看交易",
     "send_button": "发送",
     "deposit_button": "保证金",
     "copy_address": "复制",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "链 ID",
     "network_rpc_url": "网络URL",
     "network_rpc_url_label": "网络 RPC（远程过程调用）URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "新的默认网络 URL",
     "current_label": "当前",
     "new_label": "新增",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "签名请求"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "请求来自",
     "message": "消息",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "此网站要求您签名",
     "details": "详情",
     "account": "账户",

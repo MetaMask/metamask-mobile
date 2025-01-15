@@ -470,7 +470,7 @@
     "learn_more": "Matuto pa",
     "add_collectibles": "Mag-import ng mga NFT",
     "no_transactions": "Wala kang transaksyon!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Pakisuyong lumipat ng network para tingnan ang mga transaksyon",
     "send_button": "Magpadala",
     "deposit_button": "Magdeposito",
     "copy_address": "Kopyahin",
@@ -566,7 +566,7 @@
     "description_content_1": "Nais naming mangalap ng data para sa batayang paggamit upang mapahusay ang MetaMask. Dapat mong malaman na hindi namin ibebenta ang data na iyong ibibigay rito.",
     "description_content_2": "Kapag kami ay nangangalap ng metrics, ito ay palaging...",
     "description_content_3": "Matuto kung paano namin pinoprotektahan ang iyong privacy habang nangongolekta ng data ng paggamit para sa iyong profile.",
-    "checkbox": "Gagamitin namin ang data na ito upang matutunan paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
+    "checkbox": "Gagamitin namin ang data na ito para matutunan kung paano ka nakikipag-ugnayan sa aming mga komunikasyon sa marketing. Maaari kaming magbahagi ng kaugnay na balita (tulad ng mga tampok ng produkto).",
     "action_description_1_prefix": "Pribado:",
     "action_description_2_prefix": "Pangkalahatan:",
     "action_description_3_prefix": "Opsyonal:",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "ID ng Chain",
     "network_rpc_url": "URL ng Network",
     "network_rpc_url_label": "RPC URL ng Network",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Bagong URL ng default network",
     "current_label": "Kasalukuyan",
     "new_label": "Bago",
@@ -3340,9 +3341,9 @@
     "user_reject_transaction": "Tinanggihan ng user ang transaksyon",
     "user_reject_transaction_message": "Tinanggihan ng user ang transaksyon sa Ledger device.",
     "multiple_devices_error_message": "Hindi pa sinusuportahan ang maraming device. Para magdagdag ng bagong Ledger device, kakailanganin mong mag-alis ng lumang device.",
-    "hd_path_error": "HD Path is invalid: {{path}}",
-    "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
-    "account_name_existed": "Account {{accountName}} already exists"
+    "hd_path_error": "Hindi balido ang HD Path: {{path}}",
+    "unspecified_error_during_connect": "Hindi tiyak na error sa pagkonekta ng Ledger Hardware,",
+    "account_name_existed": "Mayroon nang account na {{accountName}}"
   },
   "account_actions": {
     "edit_name": "I-edit ang pangalan ng account",
@@ -3351,8 +3352,8 @@
     "add_new_account": "Magdagdag ng bagong account",
     "add_hardware_wallet": "Magdagdag ng wallet na hardware",
     "import_account": "Mag-import ng account",
-    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_testnet": "Magdagdag ng bagong Bitcoin Account (Testnet)",
+    "add_bitcoin_account_mainnet": "Magdagdag ng bagong Bitcoin Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Ipakita ang NFT",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Kahilingan sa paglagda"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Hiling mula sa/kay",
     "message": "Mensahe",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
     "details": "Mga detalye",
     "account": "Account",

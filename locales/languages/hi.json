@@ -470,7 +470,7 @@
     "learn_more": "ज्यादा जानें।",
     "add_collectibles": "NFT इम्पोर्ट करें",
     "no_transactions": "आपके पास कोई लेन-देन नहीं है!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "कृपया ट्रांसेक्शन देखने के लिए नेटवर्क बदलें",
     "send_button": "भेजें",
     "deposit_button": "जमा करें",
     "copy_address": "कॉपी करें",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "चेन आईडी",
     "network_rpc_url": "नेटवर्क यूआरएल",
     "network_rpc_url_label": "नेटवर्क RPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "नया डिफॉल्ट नेटवर्क URL",
     "current_label": "मौजूदा",
     "new_label": "नया",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "हस्ताक्षर का अनुरोध"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "इनसे मिला अनुरोध",
     "message": "संदेश",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "यह साइट आपका सिग्नेचर मांग रही है",
     "details": "विवरण",
     "account": "अकाउंट",

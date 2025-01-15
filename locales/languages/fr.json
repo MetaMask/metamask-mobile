@@ -470,7 +470,7 @@
     "learn_more": "En savoir plus",
     "add_collectibles": "Importer des NFT",
     "no_transactions": "Vous n’avez aucune transaction !",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Veuillez changer de réseau pour visualiser les transactions",
     "send_button": "Envoyer",
     "deposit_button": "Dépôt",
     "copy_address": "Copiez",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "Identifiant de la chaîne",
     "network_rpc_url": "URL du réseau",
     "network_rpc_url_label": "URL de RPC du réseau",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Nouvelle URL par défaut du réseau",
     "current_label": "Actuel",
     "new_label": "Nouveau",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Demande de signature"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Demande de",
     "message": "Message",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Ce site demande votre signature",
     "details": "Détails",
     "account": "Compte",

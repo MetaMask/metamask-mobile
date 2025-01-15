@@ -470,7 +470,7 @@
     "learn_more": "Tìm hiểu thêm",
     "add_collectibles": "Nhập NFT",
     "no_transactions": "Bạn không có giao dịch nào!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Vui lòng chuyển mạng để xem giao dịch",
     "send_button": "Gửi",
     "deposit_button": "Nạp",
     "copy_address": "Sao chép",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "Mã chuỗi",
     "network_rpc_url": "URL mạng",
     "network_rpc_url_label": "URL Mạng RPC",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "URL mạng mặc định mới",
     "current_label": "Hiện tại",
     "new_label": "Mới",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Yêu cầu chữ ký"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Yêu cầu từ",
     "message": "Thông báo",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Trang web này đang yêu cầu chữ ký của bạn",
     "details": "Chi tiết",
     "account": "Tài khoản",
