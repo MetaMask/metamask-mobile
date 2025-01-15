@@ -46,15 +46,10 @@ export const TokenList = ({
   goToAddToken,
   setIsAddTokenEnabled,
 }: TokenListProps) => {
-  const navigation =
-    useNavigation<
-      StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-    >();
+
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const chainId = useSelector(selectChainId);
-  const detectedTokens = useSelector(selectDetectedTokens);
   const privacyMode = useSelector(selectPrivacyMode);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
