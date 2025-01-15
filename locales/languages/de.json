@@ -470,7 +470,7 @@
     "learn_more": "Mehr erfahren",
     "add_collectibles": "NFTs importieren",
     "no_transactions": "Sie haben keine Transaktionen!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Wechseln Sie bitte das Netzwerk, um Transaktionen anzuzeigen",
     "send_button": "Senden",
     "deposit_button": "Einzahlen",
     "copy_address": "Kopieren",
@@ -566,7 +566,7 @@
     "description_content_1": "Wir würden gerne grundlegende Nutzungsdaten sammeln, um MetaMask zu verbessern. Sie sollten wissen, dass wir die Daten, die Sie uns hier zur Verfügung stellen, niemals verkaufen.",
     "description_content_2": "Wenn wir Metriken sammeln, wird es immer wie folgt sein ...",
     "description_content_3": "Erfahren Sie, wie wir Ihre Privatsphäre schützen, während wir Nutzungsdaten für Ihr Profil sammeln.",
-    "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation umgehen. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
+    "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation interagieren. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
     "action_description_1_prefix": "Privat:",
     "action_description_2_prefix": "Allgemein:",
     "action_description_3_prefix": "Optional:",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "Chain-ID",
     "network_rpc_url": "Netzwerk-URL",
     "network_rpc_url_label": "Netzwerk-RPC-URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Neue Standard-Netzwerk-URL",
     "current_label": "Aktuell",
     "new_label": "Neu",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "Signaturanfrage"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Anfrage von",
     "message": "Nachricht",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Diese Website ersucht um Ihre Signatur",
     "details": "Details",
     "account": "Konto",

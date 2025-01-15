@@ -470,7 +470,7 @@
     "learn_more": "더 알아보기",
     "add_collectibles": "NFT 가져오기",
     "no_transactions": "트랜잭션이 없습니다!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "트랜잭션을 보려면 네트워크를 전환하세요",
     "send_button": "보내기",
     "deposit_button": "예금",
     "copy_address": "복사",
@@ -566,7 +566,7 @@
     "description_content_1": "MetaMask를 개선하기 위해 기본적인 데이터 사용 데이터를 수집하고자 합니다. MetaMask는 제공받은 데이터를 절대 판매하지 않습니다.",
     "description_content_2": "메트릭을 수집할 때는 항상...",
     "description_content_3": "프로필 사용 데이터를 수집하는 동안 개인정보 보호 방법을 알아보세요.",
-    "checkbox": "당사는 이 데이터를 사용하여 사용자가 마케팅 커뮤니케이션과 어떻게 상호 작용하는지 파악합니다. 관련 뉴스(예: 제품 기능)를 공유할 수 있습니다.",
+    "checkbox": "당사는 사용자가 마케팅 커뮤니케이션과 상호작용하는 방식을 파악하기 위해 이 데이터를 사용합니다. 관련 소식(제품 기능 등)을 공유할 수 있습니다.",
     "action_description_1_prefix": "개인 정보:",
     "action_description_2_prefix": "일반:",
     "action_description_3_prefix": "선택 사항:",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "체인 ID",
     "network_rpc_url": "네트워크 URL",
     "network_rpc_url_label": "네트워크 RPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "새 기본 네트워크 URL",
     "current_label": "현재",
     "new_label": "신규",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "서명 요청"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "요청자:",
     "message": "메시지",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "서명이 필요한 사이트입니다",
     "details": "세부 정보",
     "account": "계정",

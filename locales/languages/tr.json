@@ -470,7 +470,7 @@
     "learn_more": "Daha fazlasını öğren",
     "add_collectibles": "NFT'leri içe aktar",
     "no_transactions": "Hiç işleminiz yok!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "İşlemleri görüntülemek için lütfen ağ değiştirin",
     "send_button": "Gönder",
     "deposit_button": "Para Yatır",
     "copy_address": "Hata",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "Zincir Kimliği",
     "network_rpc_url": "Ağ URL adresi",
     "network_rpc_url_label": "Ağ RPC URL adresi",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "Yeni varsayılan ağ URL adresi",
     "current_label": "Mevcut",
     "new_label": "Yeni",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "İmza talebi"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Talebi gönderen",
     "message": "Mesaj",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
     "details": "Ayrıntılar",
     "account": "Hesap",

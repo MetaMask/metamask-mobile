@@ -470,7 +470,7 @@
     "learn_more": "詳細",
     "add_collectibles": "NFTをインポート",
     "no_transactions": "トランザクションがありません！",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "トランザクションを表示するにはネットワークを切り替えてください",
     "send_button": "送信",
     "deposit_button": "入金",
     "copy_address": "コピー",
@@ -1791,6 +1791,7 @@
     "network_chain_id": "チェーンID",
     "network_rpc_url": "ネットワークURL",
     "network_rpc_url_label": "ネットワークRPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "新しいデフォルトのネットワークURL",
     "current_label": "現在",
     "new_label": "新",
@@ -3571,8 +3572,12 @@
     "title": {
       "signature": "署名要求"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "要求元",
     "message": "メッセージ",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "このサイトが署名を求めています",
     "details": "詳細",
     "account": "アカウント",
