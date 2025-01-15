@@ -30,7 +30,7 @@ import Tenderly from '../../tenderly';
 
 const fixtureServer = new FixtureServer();
 
-xdescribe(Regression('Swap from Token view'), () => {
+describe(Regression('Swap from Token view'), () => {
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet = ethers.Wallet.createRandom();
 
@@ -110,8 +110,8 @@ xdescribe(Regression('Swap from Token view'), () => {
       // eslint-disable-next-line no-console
       console.log(`Swap complete didn't pop up: ${e}`);
     }
-    await TestHelpers.delay(10000);
     await device.enableSynchronization();
+    await TestHelpers.delay(10000);
     await CommonView.tapBackButton();
 
     // Check the swap activity completed
