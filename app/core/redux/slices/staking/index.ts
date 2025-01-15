@@ -1,8 +1,8 @@
 import type {
   PooledStake,
   VaultData,
-  VaultAprs,
-  VaultDailyApys,
+  VaultDailyApy,
+  VaultApyAverages,
 } from '@metamask/stake-sdk';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { createSelector } from 'reselect';
@@ -12,8 +12,8 @@ interface PooledStakingState {
   pooledStakes: PooledStake;
   exchangeRate: string;
   vaultData: VaultData;
-  vaultAprs: VaultAprs;
-  vaultApys: VaultDailyApys[];
+  vaultApys: VaultDailyApy[];
+  vaultApyAverages: VaultApyAverages;
   isEligible: boolean;
 }
 
@@ -21,8 +21,8 @@ export const initialState: PooledStakingState = {
   pooledStakes: {} as PooledStake,
   exchangeRate: '',
   vaultData: {} as VaultData,
-  vaultAprs: {} as VaultAprs,
   vaultApys: [],
+  vaultApyAverages: {} as VaultApyAverages,
   isEligible: false,
 };
 
@@ -45,11 +45,11 @@ const slice = createSlice({
     setVaultData: (state, action: PayloadAction<VaultData>) => {
       state.vaultData = action.payload;
     },
-    setVaultAprs: (state, action: PayloadAction<VaultAprs>) => {
-      state.vaultAprs = action.payload;
-    },
-    setVaultApys: (state, action: PayloadAction<VaultDailyApys[]>) => {
+    setVaultApys: (state, action: PayloadAction<VaultDailyApy[]>) => {
       state.vaultApys = action.payload;
+    },
+    setVaultApyAverages: (state, action: PayloadAction<VaultApyAverages>) => {
+      state.vaultApyAverages = action.payload;
     },
     setStakingEligibility: (state, action: PayloadAction<boolean>) => {
       state.isEligible = action.payload;
@@ -62,8 +62,8 @@ export default reducer;
 export const {
   setPooledStakes,
   setVaultData,
-  setVaultAprs,
   setVaultApys,
+  setVaultApyAverages,
   setStakingEligibility,
 } = actions;
 
@@ -85,17 +85,17 @@ export const selectVaultData = createSelector(
   }),
 );
 
-export const selectVaultAprs = createSelector(
+export const selectVaultApys = createSelector(
   selectPooledStakingState,
-  (stakingStake) => ({
-    vaultAprs: stakingStake.vaultAprs,
+  (stakingState) => ({
+    vaultApys: stakingState.vaultApys,
   }),
 );
 
-export const selectVaultApys = createSelector(
+export const selectVaultApyAverages = createSelector(
   selectPooledStakingState,
-  (stakingStake) => ({
-    vaultApys: stakingStake.vaultApys,
+  (stakingState) => ({
+    vaultApyAverages: stakingState.vaultApyAverages,
   }),
 );
 

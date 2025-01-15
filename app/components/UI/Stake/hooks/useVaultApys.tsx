@@ -15,6 +15,7 @@ const useVaultApys = () => {
   const dispatch = useDispatch();
 
   const { vaultApys } = useSelector(selectVaultApys);
+
   const chainId = useSelector(selectChainId);
 
   const { stakingApiService } = useStakeContext();
@@ -44,9 +45,9 @@ const useVaultApys = () => {
   }, [chainId, dispatch, stakingApiService]);
 
   useEffect(() => {
-    if (Object.keys(vaultApys).length) return;
+    if (vaultApys.length) return;
     fetchVaultApys();
-  }, [fetchVaultApys, vaultApys]);
+  }, [fetchVaultApys, vaultApys.length]);
 
   return {
     vaultApys,

@@ -4,17 +4,17 @@ import { hexToNumber } from '@metamask/utils';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import {
-  selectVaultAprs,
-  setVaultAprs,
+  selectVaultApyAverages,
+  setVaultApyAverages,
 } from '../../../../core/redux/slices/staking';
 
-const useVaultAprs = () => {
+const useVaultApyAverages = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const dispatch = useDispatch();
 
-  const { vaultAprs } = useSelector(selectVaultAprs);
+  const { vaultApyAverages } = useSelector(selectVaultApyAverages);
   const chainId = useSelector(selectChainId);
 
   const { stakingApiService } = useStakeContext();
@@ -27,28 +27,29 @@ const useVaultAprs = () => {
 
     try {
       const numericChainId = hexToNumber(chainId);
-      const vaultAprsResponse = await stakingApiService.getVaultAprs(
+      const vaultAprsResponse = await stakingApiService.getVaultApyAverages(
         numericChainId,
       );
-      dispatch(setVaultAprs(vaultAprsResponse));
+      dispatch(setVaultApyAverages(vaultAprsResponse));
     } catch (err) {
-      setError('Failed to fetch vault APRs');
+      console.log('err: ', err);
+      setError('Failed to fetch vault APY averages');
     } finally {
       setIsLoading(false);
     }
   }, [chainId, dispatch, stakingApiService]);
 
   useEffect(() => {
-    if (Object.keys(vaultAprs).length) return;
+    if (Object.keys(vaultApyAverages).length) return;
     fetchVaultAprs();
-  }, [fetchVaultAprs, vaultAprs]);
+  }, [fetchVaultAprs, vaultApyAverages]);
 
   return {
-    vaultAprs,
-    refreshVaultAprs: fetchVaultAprs,
-    isLoadingVaultAprs: isLoading,
+    vaultApyAverages,
+    refreshVaultApyAverages: fetchVaultAprs,
+    isLoadingVaultApyAverages: isLoading,
     error,
   };
 };
 
-export default useVaultAprs;
+export default useVaultApyAverages;

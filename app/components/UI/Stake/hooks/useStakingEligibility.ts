@@ -31,6 +31,7 @@ const useStakingEligibility = () => {
       dispatch(setStakingEligibility(eligible));
       return { isEligible: eligible };
     } catch (err) {
+      console.error(err);
       setError('Failed to fetch pooled staking eligibility');
       return { isEligible: false };
     } finally {

@@ -4,7 +4,10 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { screen } from '@testing-library/react-native';
-import { MOCK_VAULT_APRS, MOCK_VAULT_DAILY_APYS } from './mockVaultRewards';
+import {
+  MOCK_VAULT_APY_AVERAGES,
+  MOCK_VAULT_DAILY_APYS,
+} from './mockVaultRewards';
 import { fireLayoutEvent } from './InteractiveTimespanChart/InteractiveTimespanChart.testUtils';
 
 jest.mock('@react-navigation/native', () => {
@@ -22,12 +25,12 @@ jest.mock('../../hooks/useStakeContext', () => ({
   useStakeContext: jest.fn(() => MOCK_POOL_STAKING_SDK),
 }));
 
-jest.mock('../../hooks/useVaultAprs', () => ({
+jest.mock('../../hooks/useVaultApyAverages', () => ({
   __esModule: true,
   default: () => ({
-    vaultAprs: MOCK_VAULT_APRS,
-    isLoadingVaultAprs: false,
-    refreshVaultAprs: jest.fn(),
+    vaultApyAverages: MOCK_VAULT_APY_AVERAGES,
+    isLoadingVaultApyAverages: false,
+    refreshVaultApyAverages: jest.fn(),
   }),
 }));
 
