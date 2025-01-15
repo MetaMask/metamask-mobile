@@ -36,7 +36,6 @@ export enum TraceName {
   SwitchBuiltInNetwork = 'Switch to Built in Network',
   SwitchCustomNetwork = 'Switch to Custom Network',
   VaultCreation = 'Login Vault Creation',
-  AccountList = 'Account List',
   StoreInit = 'Store Initialization',
 }
 
