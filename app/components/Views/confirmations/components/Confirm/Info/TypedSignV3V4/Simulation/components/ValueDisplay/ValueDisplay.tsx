@@ -133,6 +133,8 @@ const SimulationValueDisplay: React.FC<
     }
 
     function handlePressTokenValue() {
+      if (!tokenId) { return; }
+      
       setHasValueModalOpen(true);
     }
 
@@ -164,8 +166,8 @@ const SimulationValueDisplay: React.FC<
             </Box>
           </View>
         </Box>
-        <Box compact noBorder>
-          {/*
+        <Box compact noBorder style={styles.fiatDisplay}>
+          {/**
             TODO - add fiat shorten prop after tooltip logic has been updated
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
           */}

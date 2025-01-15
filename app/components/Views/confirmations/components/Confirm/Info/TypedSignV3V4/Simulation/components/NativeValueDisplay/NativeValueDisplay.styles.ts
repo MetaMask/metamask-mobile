@@ -12,19 +12,19 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    fiatDisplay: {
-      paddingEnd: 8,
-    },
-    flexRowTokenValueAndAddress: {
+    flexRowValueDisplay: {
       display: 'flex',
-      flexDirection: 'row',
       justifyContent: 'flex-end',
+      flexDirection: 'row',
       alignItems: 'center',
       borderColor: importedColors.transparent,
       borderWidth: 0,
       padding: 0,
     },
-    tokenAddress: {
+    fiatDisplay: {
+      paddingEnd: 8,
+    },
+    tokenAssetPill: {
       marginStart: 4,
     },
     tokenValueTooltipContent: {

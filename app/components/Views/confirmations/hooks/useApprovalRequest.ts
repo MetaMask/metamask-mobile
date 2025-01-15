@@ -5,10 +5,14 @@ import { useSelector } from 'react-redux';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
+import { DecodingData } from '@metamask/signature-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ApprovalRequestType = ApprovalRequest<any>;
+type ApprovalRequestType = ApprovalRequest<any> & {
+  decodingData?: DecodingData;
+  decodingLoading?: boolean;
+};;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
