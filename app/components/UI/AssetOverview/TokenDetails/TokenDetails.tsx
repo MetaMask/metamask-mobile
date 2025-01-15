@@ -147,7 +147,9 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   return (
     <View style={styles.tokenDetailsContainer}>
-      {asset.isETH && isPooledStakingFeatureEnabled() && <StakingEarnings />}
+      {asset.isETH && isPooledStakingFeatureEnabled() && (
+        <StakingEarnings asset={asset} />
+      )}
       {(asset.isETH || tokenMetadata) && (
         <TokenDetailsList tokenDetails={tokenDetails} />
       )}
