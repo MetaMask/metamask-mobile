@@ -3,6 +3,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
+import AppConstants from '../../../core/AppConstants';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -63,6 +64,7 @@ const mockProps = {
   chainId: '0x1',
   isInTabsView: false,
   initialUrl: 'https://metamask.io',
+  homePageUrl: AppConstants.HOMEPAGE_URL,
 };
 
 describe('BrowserTab', () => {
