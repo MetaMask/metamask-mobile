@@ -11,12 +11,16 @@ const styleSheet = (params: { theme: Theme }) => {
       marginStart: -8,
       paddingBottom: 4,
     },
+    dataRow: {
+      paddingHorizontal: 0,
+      paddingBottom: 16,
+    },
     title: {
       color: theme.colors.text.default,
       ...fontStyles.normal,
       fontSize: 14,
       fontWeight: '500',
-      marginBottom: 4,
+      marginBottom: 16,
     },
   });
 };
