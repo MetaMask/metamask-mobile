@@ -46,6 +46,7 @@ import {
   setCurrentRoute,
   onNavigationReady,
 } from '../../../actions/navigation';
+import { setMetaMetricsId } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
@@ -748,9 +749,12 @@ const App = (props) => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await metrics.addTraitsToUser(consolidatedTraits);
+      return await metrics.getMetaMetricsId();
     };
 
-    initMetrics().catch((err) => {
+    initMetrics().then((metaMetricsId) => {
+      dispatch(setMetaMetricsId(metaMetricsId));
+    }).catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
   }, []);

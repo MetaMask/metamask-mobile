@@ -514,6 +514,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
+      getMetaMetricsId: () => store.getState().user.metaMetricsId,
     });
 
     const phishingController = new PhishingController({
