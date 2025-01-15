@@ -753,11 +753,12 @@ const App = (props) => {
     };
 
     initMetrics().then((metaMetricsId) => {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       dispatch(setMetaMetricsId(metaMetricsId));
     }).catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
+    // no need to include dispatch as a dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
