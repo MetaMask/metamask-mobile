@@ -4995,16 +4995,15 @@
     immer "^9.0.6"
     nanoid "^3.1.31"
 
-"@metamask/phishing-controller@^12.0.2", "@metamask/phishing-controller@^12.0.3":
-  version "12.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.0.3.tgz#f1a5a2046e4c7a04613b4c41bc19771cf8235db7"
-  integrity sha512-CR1qN2FkMJp+MyNSXVTvrZY7MjCdkvsofW/kyv6oshPtLV6BGBWFyueS2UgjMNsmQDW/vMXUJMZfcMS6rs3S4w==
+"@metamask/phishing-controller@^12.0.2", "@metamask/phishing-controller@^12.3.1":
+  version "12.3.1"
+  resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.3.1.tgz#392138101c2bf15c6bf10c3737e48893229778e0"
+  integrity sha512-r6m48uAnrUPOfqcNANZuX4/lu61OtJuSN67i+xCqHjHBApd8D9npwvu7nnHUiV0dA8kdjB5CyRJgp9jbZGi95A==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/controller-utils" "^11.3.0"
+    "@metamask/base-controller" "^7.0.2"
+    "@metamask/controller-utils" "^11.4.4"
     "@noble/hashes" "^1.4.0"
     "@types/punycode" "^2.1.0"
-    eth-phishing-detect "^1.2.0"
     ethereum-cryptography "^2.1.2"
     fastest-levenshtein "^1.0.16"
     punycode "^2.1.1"
@@ -16322,13 +16321,6 @@ eth-method-registry@^4.0.0:
   dependencies:
     "@metamask/ethjs-contract" "^0.4.1"
     "@metamask/ethjs-query" "^0.7.1"
-
-eth-phishing-detect@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/eth-phishing-detect/-/eth-phishing-detect-1.2.0.tgz#11b357776b2d1b98a9ac594a1343e5184fc26bf0"
-  integrity sha512-+M7D4dhu5tkSA9b5eiBwDeJCjwy+7Lv49nuTEw8fNZIZUAVZC3d2XHatBq1MOW7J8kxNGbBdgBuIf65opI7Tkg==
-  dependencies:
-    fast-levenshtein "^2.0.6"
 
 eth-url-parser@1.0.4:
   version "1.0.4"
