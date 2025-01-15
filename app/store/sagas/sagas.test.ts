@@ -156,6 +156,7 @@ describe('startAppServices', () => {
       // Dispatch both required actions
       .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
       .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .dispatch({ tyep: UserActionType.SET_METAMETRICS_ID })
       .run();
 
     // Verify services are started

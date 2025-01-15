@@ -1,4 +1,3 @@
-import { setMetaMetricsId } from '.';
 import { type AppThemeKey } from '../../util/theme/models';
 import { type Action } from 'redux';
 
