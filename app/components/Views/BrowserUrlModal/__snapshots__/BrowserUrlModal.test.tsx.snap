@@ -21,6 +21,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 10,
         }
@@ -29,10 +30,13 @@ exports[`BrowserUrlModal should render correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#f2f4f6",
-            "borderRadius": 30,
+            "backgroundColor": "#ffffff",
+            "borderColor": "#bbc0c5",
+            "borderRadius": 8,
+            "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
+            "height": 40,
           }
         }
       >
@@ -44,7 +48,7 @@ exports[`BrowserUrlModal should render correctly 1`] = `
           keyboardType="web-search"
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
-          placeholder="Search or Type URL"
+          placeholder="Search by site or address"
           placeholderTextColor="#9fa6ae"
           returnKeyType="go"
           selectTextOnFocus={true}

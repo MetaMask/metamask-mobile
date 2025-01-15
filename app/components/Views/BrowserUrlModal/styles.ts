@@ -14,9 +14,10 @@ export const createStyles = (colors: any) =>
     urlModalContent: {
       flexDirection: 'row',
       paddingHorizontal: 10,
+      backgroundColor: colors.background.default,
       alignItems: 'center',
     },
-    clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
+    clearButton: { marginLeft: 5, alignSelf: 'center' },
     urlInput: {
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
@@ -39,8 +40,11 @@ export const createStyles = (colors: any) =>
     } as any,
     searchWrapper: {
       flexDirection: 'row',
-      borderRadius: 30,
-      backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      height: Device.isAndroid() ? 50 : 40,
+      backgroundColor: colors.background.default,
       flex: 1,
     },
   });

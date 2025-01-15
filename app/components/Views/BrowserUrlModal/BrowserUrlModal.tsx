@@ -7,7 +7,6 @@ import {
   InteractionManager,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
@@ -20,6 +19,8 @@ import Routes from '../../../constants/navigation/Routes';
 import Device from '../../../util/device';
 
 import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
+import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
 export interface BrowserUrlParams {
   onUrlInputSubmit: (inputValue: string | undefined) => void;
@@ -94,13 +95,13 @@ const BrowserUrlModal = () => {
             autoFocus
           />
           {autocompleteValue ? (
-            <TouchableOpacity
-              onPress={clearSearchInput}
+            <ButtonIcon
+              iconName={IconName.Close}
+              iconColor={IconColor.Default}
+              size={ButtonIconSizes.Md}
               style={styles.clearButton}
-              testID={BrowserURLBarSelectorsIDs.URL_CLEAR_ICON}
-            >
-              <Icon name="times-circle" size={18} color={colors.icon.default} />
-            </TouchableOpacity>
+              onPress={clearSearchInput}
+            />
           ) : null}
         </View>
         <TouchableOpacity
