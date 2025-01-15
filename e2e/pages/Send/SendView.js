@@ -2,6 +2,9 @@ import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
+import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors'
+import Assertions from '../../utils/Assertions';
+
 
 class SendView {
   get cancelButton() {
@@ -20,9 +23,18 @@ class SendView {
         );
   }
 
+  get backButton() {
+    return Matchers.getElementByID(SendViewSelectorsIDs.SEND_BACK_BUTTON);
+  }
+
   get addAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADD_ADDRESS_BUTTON);
   }
+
+  get sendAddressConfirmation() {
+    return Matchers.getElementByID(AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON);
+  }
+
   get removeAddressButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.ADDRESS_REMOVE_BUTTON);
   }
@@ -40,6 +52,10 @@ class SendView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapBackButton() {
+    await Gestures.TapAtIndex(this.backButton, 0);
   }
 
   async scrollToSavedAccount() {
@@ -70,6 +86,11 @@ class SendView {
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
     await TestHelpers.delay(1000);
+  }
+
+  async splitAddressText(){
+    const attributes = await (await this.sendAddressConfirmation).getAttributes();
+    return await attributes.label.split(' ');
   }
 }
 export default new SendView();

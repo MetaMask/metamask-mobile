@@ -134,6 +134,7 @@ exports[`Confirm should render correctly 1`] = `
                       "fontWeight": "400",
                     }
                   }
+                  testID="send-back-button"
                 >
                   Back
                 </Text>
