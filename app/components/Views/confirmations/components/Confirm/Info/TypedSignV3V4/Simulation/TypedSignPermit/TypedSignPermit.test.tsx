@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../../../../../util/test/renderWithP
 import { typedSignV4ConfirmationState } from '../../../../../../../../../util/test/confirm-data-helpers';
 import PermitSimulation from './TypedSignPermit';
 
-jest.mock('../../../../../../../core/Engine', () => ({
+jest.mock('../../../../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
       findNetworkClientIdByChainId: () => 'mainnet',

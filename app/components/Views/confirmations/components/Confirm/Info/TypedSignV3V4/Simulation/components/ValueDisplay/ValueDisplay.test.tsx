@@ -20,13 +20,13 @@ const mockInitialState = {
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../../../../../../hooks/useMetrics');
-jest.mock('../../../../../hooks/useGetTokenStandardAndDetails');
+jest.mock('../../../../../../../../../hooks/useMetrics');
+jest.mock('../../../../../../../hooks/useGetTokenStandardAndDetails');
 
 
-jest.mock('../../../../../../../../util/address', () => ({
+jest.mock('../../../../../../../../../../util/address', () => ({
   getTokenDetails: jest.fn(),
-  renderShortAddress: jest.requireActual('../../../../../../../../util/address').renderShortAddress
+  renderShortAddress: jest.requireActual('../../../../../../../../../../util/address').renderShortAddress
 }));
 
 describe('SimulationValueDisplay', () => {
