@@ -40,6 +40,7 @@ import { toggleUseSafeChainsListValidation } from '../../../util/networks/engine
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkApprovalBottomSheet.selectors';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
+import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
 
 interface Alert {
   alertError: string;
@@ -79,6 +80,8 @@ const NetworkVerificationInfo = ({
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
   const showReviewDefaultRpcUrlChangesModal = () =>
     setShowReviewDefaultRpcUrlChanges(!showReviewDefaultRpcUrlChanges);
+
+  const customRpcUrl = customNetworkInformation.rpcUrl;
 
   const goToLearnMore = () => {
     Linking.openURL(
@@ -241,6 +244,27 @@ const NetworkVerificationInfo = ({
     return null;
   };
 
+  const renderBannerNetworkUrlNonAsciiDetected = () => {
+    if (!customRpcUrl || isValidASCIIURL(customRpcUrl)) {
+      return null;
+    }
+    const punycodeUrl = toPunycodeURL(customRpcUrl);
+
+    return (
+      <View style={styles.alertBar}>
+        <Banner
+          severity={BannerAlertSeverity.Warning}
+          variant={BannerVariant.Alert}
+          description={
+            strings('networks.network_rpc_url_warning_punycode') +
+            '\n' +
+            punycodeUrl
+          }
+        />
+      </View>
+    );
+  };
+
   const renderCustomNetworkBanner = () => (
     <View style={styles.alertBar}>
       <Banner
@@ -281,9 +305,7 @@ const NetworkVerificationInfo = ({
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.current_label')}
           </Text>
-          <Text style={styles.textSection}>
-            {customNetworkInformation.rpcUrl}
-          </Text>
+          <Text style={styles.textSection}>{customRpcUrl}</Text>
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.new_label')}
           </Text>
@@ -390,6 +412,7 @@ const NetworkVerificationInfo = ({
         />
         {renderAlerts()}
         {renderBanner()}
+        {renderBannerNetworkUrlNonAsciiDetected()}
         {isCustomNetwork && renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
           <Text>

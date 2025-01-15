@@ -11,31 +11,24 @@ export const createStyles = (colors: any) =>
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    urlModal: {
-      justifyContent: 'flex-start',
-      margin: 0,
-    },
     urlModalContent: {
       flexDirection: 'row',
-      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
       paddingHorizontal: 10,
-      height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
-      backgroundColor: colors.background.default,
+      alignItems: 'center',
     },
     clearButton: { paddingHorizontal: 12, justifyContent: 'center' },
     urlInput: {
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
       paddingLeft: 15,
+      paddingVertical: 6,
       flex: 1,
       color: colors.text.default,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any,
     cancelButton: {
-      marginTop: -6,
       marginLeft: 10,
-      justifyContent: 'center',
     },
     cancelButtonText: {
       fontSize: 14,
@@ -48,7 +41,6 @@ export const createStyles = (colors: any) =>
       flexDirection: 'row',
       borderRadius: 30,
       backgroundColor: colors.background.alternative,
-      height: Device.isAndroid() ? 40 : 30,
       flex: 1,
     },
   });
