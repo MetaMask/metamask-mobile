@@ -44,6 +44,7 @@ import codecircleSVG from './assets/code-circle.svg';
 import coinSVG from './assets/coin.svg';
 import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
+import contactsSVG from './assets/contacts.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
 import customizeSVG from './assets/customize.svg';
@@ -100,14 +101,18 @@ import moneySVG from './assets/money.svg';
 import monitorSVG from './assets/monitor.svg';
 import morehorizontalSVG from './assets/more-horizontal.svg';
 import moreverticalSVG from './assets/more-vertical.svg';
+import networkSVG from './assets/network.svg';
 import notificationcircleSVG from './assets/notification-circle.svg';
 import notificationSVG from './assets/notification.svg';
+import paperSVG from './assets/paper.svg';
 import passwordcheckSVG from './assets/password-check.svg';
 import peopleSVG from './assets/people.svg';
+import permissionsSVG from './assets/permissions.svg';
 import plantSVG from './assets/plant.svg';
 import plugSVG from './assets/plug.svg';
 import plusandminusSVG from './assets/plus-and-minus.svg';
 import programmingarrowsSVG from './assets/programming-arrows.svg';
+import profileSVG from './assets/profile.svg';
 import qrcodeSVG from './assets/qr-code.svg';
 import questionSVG from './assets/question.svg';
 import receivedSVG from './assets/received.svg';
@@ -212,6 +217,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Coin]: coinSVG,
   [IconName.Confirmation]: confirmationSVG,
   [IconName.Connect]: connectSVG,
+  [IconName.Contacts]: contactsSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
   [IconName.Customize]: customizeSVG,
@@ -268,14 +274,18 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Monitor]: monitorSVG,
   [IconName.MoreHorizontal]: morehorizontalSVG,
   [IconName.MoreVertical]: moreverticalSVG,
+  [IconName.Network]: networkSVG,
   [IconName.NotificationCircle]: notificationcircleSVG,
   [IconName.Notification]: notificationSVG,
+  [IconName.Paper]: paperSVG,
   [IconName.PasswordCheck]: passwordcheckSVG,
   [IconName.People]: peopleSVG,
+  [IconName.Permissions]: permissionsSVG,
   [IconName.Plant]: plantSVG,
   [IconName.Plug]: plugSVG,
   [IconName.PlusAndMinus]: plusandminusSVG,
   [IconName.ProgrammingArrows]: programmingarrowsSVG,
+  [IconName.Profile]: profileSVG,
   [IconName.QrCode]: qrcodeSVG,
   [IconName.Question]: questionSVG,
   [IconName.Received]: receivedSVG,

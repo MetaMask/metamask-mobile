@@ -12,6 +12,7 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Actions]: IconName.SwapVertical,
   [TabBarIconKey.Activity]: IconName.Activity,
   [TabBarIconKey.Setting]: IconName.Setting,
+  [TabBarIconKey.Profile]: IconName.Profile,
 };
 
 export const TAB_BAR_HEIGHT = Device.isAndroid() ? 62 : 48;

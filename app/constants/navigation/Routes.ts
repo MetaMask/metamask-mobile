@@ -86,6 +86,9 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    CONTACTS: 'ContactsSettings',
+    SETTINGS: 'Settings',
+    PROFILE_SETTINGS: 'ProfileSettings',
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',

@@ -127,6 +127,7 @@ const getStories = () => {
     "./app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx": require("../app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx"),
     "./app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx"),
     "./app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": require("../app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx"),
+    "./app/components/UI/SettingsDrawer/index.stories.tsx": require("../app/components/UI/SettingsDrawer/index.stories.tsx"),
   };
 };
 
