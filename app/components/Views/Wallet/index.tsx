@@ -97,6 +97,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import NftGrid from '../../UI/NftGrid';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -680,7 +681,7 @@ const Wallet = ({
               // @ts-ignore
               tokens={assets}
             />
-            <CollectibleContracts
+            <NftGrid
               // TODO - Extend component to support injected tabLabel prop.
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
@@ -688,6 +689,14 @@ const Wallet = ({
               key={'nfts-tab'}
               navigation={navigation}
             />
+            {/* <CollectibleContracts
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              tabLabel={strings('wallet.collectibles')}
+              key={'nfts-tab'}
+              navigation={navigation}
+            /> */}
           </ScrollableTabView>
         </>
       </View>
