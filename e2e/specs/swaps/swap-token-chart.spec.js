@@ -20,7 +20,6 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
@@ -112,7 +111,6 @@ describe(Regression('Swap from Token view'), () => {
     }
     await device.enableSynchronization();
     await TestHelpers.delay(10000);
-    await CommonView.tapBackButton();
 
     // Check the swap activity completed
     await TabBarComponent.tapActivity();

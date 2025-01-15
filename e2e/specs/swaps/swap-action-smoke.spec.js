@@ -148,7 +148,6 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         // eslint-disable-next-line no-console
         console.log(`Swap complete didn't pop up: ${e}`);
       }
-      await SwapView.swapCompleteLabel(sourceTokenSymbol, destTokenSymbol);
       await device.enableSynchronization();
       await TestHelpers.delay(10000);
 
