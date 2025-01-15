@@ -12,18 +12,13 @@ import {
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
   const testSpecificMock = {
-    GET: [
-      {
-        urlEndpoint:
-          'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-        response: [{ confirmation_redesign: { signatures: false } }],
-        responseCode: 200,
-      },
-    ],
+    GET: [mockEvents.GET.remoteFeatureFlags],
   };
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -39,7 +34,7 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
-        testSpecificMock,
+        // testSpecificMock,
       },
       async () => {
         await loginToApp();
