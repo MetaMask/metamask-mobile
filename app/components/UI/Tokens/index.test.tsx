@@ -236,10 +236,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../UI/Stake/constants', () => ({
-  isPooledStakingFeatureEnabled: jest.fn().mockReturnValue(true),
-}));
-
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -252,10 +248,14 @@ jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   })),
 }));
 
-jest.mock('../Stake/hooks/useStakingChain', () => ({
-  useStakingChainByChainId: () => ({
+jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
     isStakingSupportedChain: true,
-  }),
+  })),
+  useStakingChainByChainId: jest.fn(() => ({
+    isStakingSupportedChain: true,
+  })),
 }));
 
 const Stack = createStackNavigator();
