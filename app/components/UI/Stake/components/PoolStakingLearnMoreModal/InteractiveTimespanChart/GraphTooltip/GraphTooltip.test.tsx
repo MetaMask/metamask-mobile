@@ -7,17 +7,6 @@ describe('GraphTooltip', () => {
     const props: GraphTooltipProps = {
       title: 'Sample Title',
       subtitle: 'Sample Subtitle',
-    };
-
-    const { toJSON } = renderWithProvider(<GraphTooltip {...props} />);
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('supports customizing color', () => {
-    const props: GraphTooltipProps = {
-      title: 'Sample Title',
-      subtitle: 'Sample Subtitle',
       color: 'blue',
     };
 

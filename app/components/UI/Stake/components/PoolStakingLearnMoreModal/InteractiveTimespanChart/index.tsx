@@ -38,13 +38,14 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
    * yAccessor={(point: DataPoint) => point.daily_apy}
    * />
    *
-   * In the above example, the yAccessor informs the graph that we'd like to extract the daily_apy values and use them as the data points.
+   * In the above example, the yAccessor informs the graph that we'd like to extract
+   * the daily_apy values and use them as the y-axis data points.
    */
-  yAccessor: Accessor<T, number>;
+  yAccessor?: Accessor<T, number>;
   titleAccessor?: Accessor<T, string>;
-  defaultTitle: string;
+  defaultTitle?: string;
   subtitleAccessor?: Accessor<T, string>;
-  defaultSubtitle: string;
+  defaultSubtitle?: string;
   onTimespanPressed?: (numDataPointsToDisplay: number) => void;
   graphOptions?: Partial<GraphOptions>;
   testID?: string;
@@ -52,21 +53,28 @@ export interface InteractiveTimespanChartProps<T extends DataPoint> {
 }
 
 /**
- * How the Graph Works:
+ * Interactive Graph Guide
  *
- * 1. The graph takes an array of number to serve as data points.
- * 2. Using the data points, the graph is divided into equal-width segments, one for each data point. This is done by dividing the chart width by the number of data points.
- * 3. Using the array of segments, we calculate the center of each segment. This is used for "snapping" with small datasets.
+ * The graph takes an array of number or objects to serve as data points.
  *
+ * When data points are of type number[]
+ * 1. No need to define the yAccessor prop.
+ * 2. Defining the titleAccessor property is recommended. This allows the title to update dynamically when a user selects a point.
+ * If you just want to show the value you can use the following titleAccessor={(point) => point.toString()}
+ *
+ * When data points are of type object[]
+ * 1. The yAccessor prop must be defined to tell the graph which object key to use for the y-axis values.
+ * 2. Defining the titleAccessor property is recommended. This allows the title to update dynamically when a user selects a point.
+ *
+ * How the graph works
+ * 1. Using the data points values, the graph is divided into equal-width segments, one for each data point. This is done by dividing the chart width by the number of data points.
+ * 2. Using the array of segments, we calculate the center of each segment. This is used for "snapping" with small datasets.
+ * A small dataset is one that has 10 or less data points. A dataset with more than 10 points is considered standard.
+ *
+ * Snapping Mechanism (small datasets only)
  * This chart uses a snapping mechanism to feel more intuitive while dragging horizontally with small datasets.
  * The chart uses a snap threshold that provides some "give" before transitioning to the next data point.
  * This "give" is based on the distance from the center of a segment/data point.
- *
- * Legend:
- * - Segment Widths: The chart is divided into equal-width segments, one for each data point.
- * - Segment Centers: Each data point is associated with a center position within its segment to determine where snapping should occur.
- * - Snap Threshold: A portion of the segment width (e.g. 25%) that defines how far past a segment's boundary the cursor can go
- * before snapping to the next segment. Snapping is only enabled for small datasets since there isn't a need for snapping with large datasets.
  */
 
 const InteractiveTimespanChart = <T extends DataPoint>({
@@ -115,7 +123,14 @@ const InteractiveTimespanChart = <T extends DataPoint>({
       const subtitles: string[] = [];
 
       dataPointsToShow.forEach((point) => {
-        values.push(yAccessor(point));
+        if (typeof point === 'number') {
+          values.push(point);
+        }
+
+        if (typeof point === 'object' && yAccessor) {
+          values.push(yAccessor?.(point));
+        }
+
         if (titleAccessor) {
           titles.push(titleAccessor(point));
         }
@@ -244,13 +259,15 @@ const InteractiveTimespanChart = <T extends DataPoint>({
     <View testID={testID}>
       <ChartTimespanButtonGroup
         buttons={timespanButtons}
-        onTimePress={handleTimespanPressed}
+        onPress={handleTimespanPressed}
         isLoading={isLoading}
       />
       {Boolean(parsedDataPointValues.length) && (
         <GraphTooltip
-          title={parsedTitleValues[selectedPointIndex] ?? defaultTitle}
-          subtitle={parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle}
+          title={parsedTitleValues[selectedPointIndex] ?? defaultTitle ?? ''}
+          subtitle={
+            parsedSubtitleValues[selectedPointIndex] ?? defaultSubtitle ?? ''
+          }
           color={color}
           isLoading={isLoading}
         />

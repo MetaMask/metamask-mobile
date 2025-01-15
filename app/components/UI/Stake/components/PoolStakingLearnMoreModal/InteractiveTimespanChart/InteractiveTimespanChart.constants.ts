@@ -16,13 +16,6 @@ export const CHART_BUTTONS: ChartButton[] = [
   { label: strings('stake.interactive_chart.timespan_buttons.6M'), value: 180 },
 ];
 
-export enum CHART_TIMESPAN_VALUES {
-  ONE_WEEK = 7,
-  ONE_MONTH = 30,
-  THREE_MONTHS = 90,
-  SIX_MONTHS = 180,
-}
-
 const DEFAULT_INSET = 0;
 
 export const DEFAULT_GRAPH_OPTIONS: GraphOptions = {

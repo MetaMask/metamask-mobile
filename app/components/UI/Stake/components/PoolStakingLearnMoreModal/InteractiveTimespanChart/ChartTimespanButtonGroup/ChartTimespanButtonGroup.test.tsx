@@ -10,7 +10,7 @@ describe('ChartTimespanButtonGroup', () => {
   it('render matches snapshot', () => {
     const props: ChartTimespanButtonGroupProps = {
       buttons: CHART_BUTTONS,
-      onTimePress: noop,
+      onPress: noop,
     };
 
     const { toJSON } = renderWithProvider(
@@ -23,7 +23,7 @@ describe('ChartTimespanButtonGroup', () => {
   it('updates active timespan button onPress', async () => {
     const props: ChartTimespanButtonGroupProps = {
       buttons: CHART_BUTTONS,
-      onTimePress: noop,
+      onPress: noop,
     };
 
     const { getByText } = renderWithProvider(

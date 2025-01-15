@@ -35,13 +35,13 @@ const ChartTimespanButton = ({
 
 export interface ChartTimespanButtonGroupProps {
   buttons: ChartButton[];
-  onTimePress: (numDaysToDisplay: number) => void;
+  onPress: (numDaysToDisplay: number) => void;
   isLoading?: boolean;
 }
 
 const ChartTimespanButtonGroup = ({
   buttons,
-  onTimePress,
+  onPress,
   isLoading = false,
 }: ChartTimespanButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, { isSelected: false });
@@ -50,7 +50,7 @@ const ChartTimespanButtonGroup = ({
 
   const handlePress = (index: number) => {
     setSelectedIndex(index);
-    onTimePress?.(buttons?.[index]?.value);
+    onPress?.(buttons?.[index]?.value);
   };
 
   if (isLoading) {
