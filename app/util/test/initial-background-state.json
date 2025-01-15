@@ -327,5 +327,13 @@
     "isAccountSyncingReadyToBeDispatched": false,
     "isProfileSyncingEnabled": true,
     "isProfileSyncingUpdateLoading": false
+  },
+  "MultichainBalancesController": {
+    "balances": {}
+  },
+  "RatesController": {
+    "cryptocurrencies": [],
+    "fiatCurrency": "",
+    "rates": {}
   }
 }
