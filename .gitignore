@@ -24,6 +24,7 @@ project.xcworkspace
 ios/debug.xcconfig
 ios/release.xcconfig
 .xcode.env.local
+**/.xcode.env.local
 
 # android / intellij
 build/
@@ -84,7 +85,7 @@ tests
 .vscode
 
 # CocoaPods
-/ios/Pods/
+**/Pods/
 
 # Language files to add
 /locales/languagesToUpdate/*.json
@@ -136,3 +137,11 @@ android/app/src/main/assets/modules.json
 .expo
 dist/
 web-build/
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
