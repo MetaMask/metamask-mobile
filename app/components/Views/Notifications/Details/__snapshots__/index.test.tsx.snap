@@ -719,7 +719,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               }
               source={
                 {
-                  "uri": "MockImage",
+                  "uri": "",
                 }
               }
               style={
@@ -800,11 +800,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -925,11 +921,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "uri": "MockImage",
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,

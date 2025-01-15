@@ -150,7 +150,7 @@ const SimulationValueDisplay: React.FC<
               <Text>
                 {credit && '+ '}
                 {debit && '- '}
-                {tokenValue !== null &&
+                {tokenValue  !== null &&
                   shortenString(tokenValue || '', {
                     truncatedCharLimit: 15,
                     truncatedStartChars: 15,
