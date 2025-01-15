@@ -59,7 +59,17 @@ export const mockEvents = {
     remoteFeatureFlags: {
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
-      response: [{ confirmation_redesign: { signatures: false } }],
+      response: [
+        {
+          mobileMinimumVersions: {
+            androidMinimumAPIVersion: 21,
+            appMinimumBuild: 1243,
+            appleMinimumOS: 6,
+          },
+        },
+        { testFlagForThreshold: [[Object], [Object], [Object]] },
+        { confirmation_redesign: { signatures: false } },
+      ],
       responseCode: 200,
     },
   },
