@@ -22,7 +22,7 @@ describe(SmokeAssets('NFT Details page'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it.only('show nft details', async () => {
+  it('show nft details', async () => {
     await withFixtures(
       {
         dapp: true,

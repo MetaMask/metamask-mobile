@@ -1,12 +1,21 @@
 import React, { useCallback, useRef } from 'react';
-import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Alert,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import CollectibleMedia from '../CollectibleMedia';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
-import { collectiblesSelector } from '../../../reducers/collectibles';
+import {
+  collectiblesSelector,
+  isNftFetchingProgressSelector,
+} from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -16,11 +25,11 @@ import {
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import styleSheet from './NftGrid.styles';
 import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
+import CollectibleDetectionModal from '../CollectibleDetectionModal';
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -48,6 +57,7 @@ interface NftGridProps {
 
 function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
   const collectibles = useSelector(collectiblesSelector);
+  const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const actionSheetRef = useRef<ActionSheetType>(null);
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
     null,
@@ -129,17 +139,20 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
     <View style={styles.itemWrapper} testID="collectible-contracts">
       {collectibles.length === 0 && (
         <View style={styles.footer} key={'collectible-contracts-footer'}>
-          {/* {isNftFetchingProgress ? (
-                <ActivityIndicator
-                  size="large"
-                  style={styles.spinner}
-                  testID={SpinnerTestId}
-                />
-              ) : null}
-      
-              <Text style={styles.emptyText}>
-                {strings('wallet.no_collectibles')}
-              </Text> */}
+          {/* fetching state */}
+          {isNftFetchingProgress && (
+            <ActivityIndicator
+              size="large"
+              // style={styles.spinner}
+              // testID={SpinnerTestId}
+            />
+          )}
+          <CollectibleDetectionModal />
+          {!isNftFetchingProgress && collectibles.length === 0 && (
+            <Text style={styles.emptyText}>
+              {strings('wallet.no_collectibles')}
+            </Text>
+          )}
           <TouchableOpacity
             onPress={() =>
               navigation.push('AddAsset', { assetType: 'collectible' })

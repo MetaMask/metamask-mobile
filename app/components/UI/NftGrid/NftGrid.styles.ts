@@ -25,6 +25,11 @@ const styleSheet = () =>
       alignItems: 'center',
       //   marginTop: 8,
     },
+    emptyText: {
+      // color: colors.text.alternative,
+      marginBottom: 8,
+      fontSize: 14,
+    },
   });
 
 export default styleSheet;
