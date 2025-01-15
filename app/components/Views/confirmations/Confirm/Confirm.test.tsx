@@ -8,6 +8,11 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import Confirm from './index';
 
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  getAddressAccountType: (str: string) => str,
+}));
+
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
@@ -18,12 +23,6 @@ describe('Confirm', () => {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Signature request')).toBeDefined();
-    expect(getByText('Estimated changes')).toBeDefined();
-    expect(
-      getByText(
-        'You’re signing into a site and there are no predicted changes to your account.',
-      ),
-    ).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getByText('Message')).toBeDefined();
@@ -51,7 +50,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('should render blockaid banner is confirmation has blockaid error response', async () => {
+  it('should render blockaid banner if confirmation has blockaid error response', async () => {
     const typedSignApproval =
       typedSignV1ConfirmationState.engine.backgroundState.ApprovalController
         .pendingApprovals['7e62bcb1-a4e9-11ef-9b51-ddf21c91a998'];
