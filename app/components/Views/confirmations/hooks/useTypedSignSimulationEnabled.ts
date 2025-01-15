@@ -1,11 +1,9 @@
 import { useSelector } from 'react-redux';
-import { ApprovalRequest } from '@metamask/approval-controller';
-import { MESSAGE_TYPE } from '../../../../core/createTracingMiddleware';
+import { SignTypedDataVersion } from '@metamask/eth-sig-util';
+import { MessageParamsTyped, SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
 import { isRecognizedPermit, parseTypedDataMessage } from '../utils/signature';
-import useApprovalRequest from './useApprovalRequest';
-
-type ApprovalRequestType = ApprovalRequest<{ data: string }>;
+import { useSignatureRequest } from './useSignatureRequest';
 
 const NON_PERMIT_SUPPORTED_TYPES_SIGNS = [
   {
@@ -20,9 +18,9 @@ const NON_PERMIT_SUPPORTED_TYPES_SIGNS = [
 ];
 
 const isNonPermitSupportedByDecodingAPI = (
-  approvalRequest: ApprovalRequestType,
+  signatureRequest: SignatureRequest,
 ) => {
-  const data = approvalRequest.requestData?.data as string;
+  const data = signatureRequest.messageParams?.data as string;
   if (!data) { return false; }
 
   const {
@@ -39,23 +37,26 @@ const isNonPermitSupportedByDecodingAPI = (
 };
 
 export default function useTypedSignSimulationEnabled() {
-  const { approvalRequest } = useApprovalRequest();
+  const signatureRequest = useSignatureRequest();
   const useTransactionSimulations = useSelector(
     selectUseTransactionSimulations,
   );
 
-  if (!approvalRequest) {
+  if (!signatureRequest) {
     return undefined;
   }
 
-  const signatureMethod = approvalRequest?.requestData?.signatureMethod;
-  const isTypedSignV3V4 =
-    signatureMethod === MESSAGE_TYPE.ETH_SIGN_TYPED_DATA_V4 ||
-    signatureMethod === MESSAGE_TYPE.ETH_SIGN_TYPED_DATA_V3;
-  const isPermit = isRecognizedPermit(approvalRequest);
+  const requestType = signatureRequest.type;
+  const signatureMethod = (signatureRequest.messageParams as MessageParamsTyped)?.version;
+
+  const isTypedSignV3V4 = requestType === SignatureRequestType.TypedSign && (
+    signatureMethod === SignTypedDataVersion.V3 ||
+    signatureMethod === SignTypedDataVersion.V4
+  );
+  const isPermit = isRecognizedPermit(signatureRequest);
 
   const nonPermitSupportedByDecodingAPI: boolean =
-    isTypedSignV3V4 && isNonPermitSupportedByDecodingAPI(approvalRequest);
+    isTypedSignV3V4 && isNonPermitSupportedByDecodingAPI(signatureRequest);
 
   return (
     useTransactionSimulations &&
