@@ -13,7 +13,6 @@ import { ButtonIconSizes } from '../../../../../../../../../../component-library
 import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import { IconName , IconColor } from '../../../../../../../../../../component-library/components/Icons/Icon';
 
-import Box from '../../../../../../../../../UI/Ramp/components/Box';
 import AssetPill from '../../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
@@ -104,12 +103,12 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                   })}
               </Text>
           </ButtonPill>
-          <Box compact noBorder style={styles.tokenAssetPill}>
+          <View style={styles.tokenAssetPill}>
             <AssetPill asset={{ chainId, type: AssetType.Native }} />
-          </Box>
+          </View>
         </View>
       </View>
-      <Box compact noBorder style={styles.fiatDisplay}>
+      <View style={styles.fiatDisplay}>
         {/**
           TODO - add fiat shorten prop after tooltip logic has been updated
           {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
@@ -117,7 +116,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
         {fiatValue !== undefined && (
           <IndividualFiatDisplay fiatAmount={fiatValue} />
         )}
-      </Box>
+      </View>
       {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet

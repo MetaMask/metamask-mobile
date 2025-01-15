@@ -16,7 +16,6 @@ import {
   formatAmountMaxPrecision,
 } from '../../../../../../../../../UI/SimulationDetails/formatAmount';
 
-import Box from '../../../../../../../../../UI/Ramp/components/Box';
 import Address from '../../../../../../UI/InfoRow/InfoValue/Address/Address';
 
 import { selectContractExchangeRates } from '../../../../../../../../../../selectors/tokenRatesController';
@@ -134,13 +133,13 @@ const SimulationValueDisplay: React.FC<
 
     function handlePressTokenValue() {
       if (!tokenId) { return; }
-      
+
       setHasValueModalOpen(true);
     }
 
     return (
-      <Box style={styles.wrapper}>
-        <Box style={styles.flexRowTokenValueAndAddress}>
+      <View style={styles.wrapper}>
+        <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
             <ButtonPill
               onPress={handlePressTokenValue}
@@ -161,18 +160,18 @@ const SimulationValueDisplay: React.FC<
                 {tokenId && `#${tokenId}`}
               </Text>
             </ButtonPill>
-            <Box compact noBorder style={styles.tokenAddress}>
+            <View style={styles.tokenAddress}>
               <Address address={tokenContract} chainId={chainId} />
-            </Box>
+            </View>
           </View>
-        </Box>
-        <Box compact noBorder style={styles.fiatDisplay}>
+        </View>
+        <View style={styles.fiatDisplay}>
           {/**
             TODO - add fiat shorten prop after tooltip logic has been updated
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
           */}
           {fiatValue && <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />}
-        </Box>
+        </View>
         {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet
@@ -203,7 +202,7 @@ const SimulationValueDisplay: React.FC<
             </TouchableOpacity>
           </BottomModal>
         )}
-      </Box>
+      </View>
     );
   };
 
