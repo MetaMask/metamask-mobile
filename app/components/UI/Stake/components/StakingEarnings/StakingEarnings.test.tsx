@@ -3,6 +3,7 @@ import StakingEarnings from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
+import { TokenI } from '../../../Tokens/types';
 
 const mockNavigate = jest.fn();
 
