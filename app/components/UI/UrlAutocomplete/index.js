@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
+  SectionList,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import dappUrlList from '../../../util/dapp-url-list';
@@ -14,7 +15,8 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
 import { createStyles } from './index.styles';
-import { ResultCategory } from './ResultCategory';
+import { strings } from '../../../../locales/i18n';
+import { Result } from './Result';
 
 const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
 
@@ -49,7 +51,8 @@ export class UrlAutocomplete extends PureComponent {
   };
 
   state = {
-    results: [],
+    resultsByCategory: [],
+    hasResults: false,
   };
 
   componentDidMount() {
@@ -109,21 +112,23 @@ export class UrlAutocomplete extends PureComponent {
         ]
       }
   
-      const resultsByCategory = results.reduce((acc, currentResult) => {
-        acc[currentResult.type] = acc[currentResult.type] || [];
-        if (
-          (currentResult.type !== 'recents' || (acc.recents.length  < MAX_RECENTS)) &&
-          !acc[currentResult.type].find(result => result.url === currentResult.url)
-         ) {
-          acc[currentResult.type] = [...acc[currentResult.type], currentResult];
+      const resultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
+        let data = results.filter(result => result.type === category);
+        if (data.length === 0) {
+          return [];
         }
-        return acc;
-      }, {});
+        if (category === 'recents') {
+          data = data.slice(0, MAX_RECENTS);
+        }
+        return {
+          category,
+          data,
+        }
+      });
 
       this.setState({
         resultsByCategory,
         hasResults: results.length > 0,
-        categoriesWithResults: ORDERED_CATEGORIES.filter(category => resultsByCategory[category]?.length > 0),
       })
     }
   }
@@ -160,18 +165,21 @@ export class UrlAutocomplete extends PureComponent {
     }
 
     return (
-      <ScrollView style={styles.wrapper} contentContainerStyle={styles.contentContainer}>
-        {
-          this.state.categoriesWithResults.map(category => (
-            <ResultCategory
-              key={category}
-              category={category}
-              results={this.state.resultsByCategory[category]}
-              onSubmit={this.props.onSubmit}
-            />
-          )
+      <SectionList
+        style={styles.wrapper}
+        contentContainerStyle={styles.contentContainer}
+        sections={this.state.resultsByCategory}
+        keyExtractor={(item) => `${item.type}-${item.url}`}
+        renderSectionHeader={({section: {category}}) => (
+          <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
         )}
-      </ScrollView>
+        renderItem={({item}) => (
+          <Result
+            result={item}
+            onPress={() => this.props.onSubmit(item.url)}
+          />
+        )}
+      />
     );
   }
 }

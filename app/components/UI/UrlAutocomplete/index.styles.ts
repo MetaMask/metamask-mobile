@@ -25,7 +25,8 @@ export const createStyles = ({colors, typography}: Theme) =>
       } as TextStyle,
       category: {
         color: colors.text.default,
-        margin: 10,
+        padding: 10,
+        backgroundColor: colors.background.default,
         ...typography.lHeadingSM,
       } as TextStyle,
       url: {
@@ -34,7 +35,7 @@ export const createStyles = ({colors, typography}: Theme) =>
       } as TextStyle,
       item: {
         flex: 1,
-        marginBottom: 20,
+        marginBottom: 10,
       },
       itemWrapper: {
         flexDirection: 'row',
