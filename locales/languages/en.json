@@ -1814,6 +1814,7 @@
     "network_chain_id": "Chain ID",
     "network_rpc_url": "Network URL",
     "network_rpc_url_label": "Network RPC URL",
+    "network_rpc_url_warning_punycode": "Attackers sometimes mimic sites by making small changes to the site address. Make sure you're interacting with the intended Network URL before you continue. Punycode version:",
     "new_default_network_url": "New default network URL",
     "current_label": "Current",
     "new_label": "New",
@@ -3594,14 +3595,17 @@
     "title": {
       "signature": "Signature request"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Request from",
     "message": "Message",
+    "primary_type": "Primary type",
     "personal_sign_tooltip": "This site is asking for your signature",
     "details": "Details",
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL",
     "simulation": {
       "title": "Estimated changes",
       "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
-  selectConversionRate,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -20,9 +20,9 @@ const useBalance = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const conversionRate = useSelector(selectConversionRate) ?? 1;
   const currentCurrency = useSelector(selectCurrentCurrency);
-
+  const currencyRates = useSelector(selectCurrencyRates);
+  const conversionRate = currencyRates?.ETH?.conversionRate ?? 1;
   const rawAccountBalance = selectedAddress
     ? accountsByChainId[chainId]?.[selectedAddress]?.balance
     : '0';

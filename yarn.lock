@@ -5220,10 +5220,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.1.0.tgz#6f2702de7ba64dad3ab6586ea3ac4e5647804b0a"
   integrity sha512-RQ2MJO0X3QLnJo0rFlb83h2tNAkqqx/VNOPLc3/S2CvY3/cXy3UAEw/xRM/475BeAAkWI93yiIn/FoGUy3E0Ig==
 
-"@metamask/smart-transactions-controller@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.0.0.tgz#d5f26e3f25945dc695c7e7152f8ab4c9ffa85ac9"
-  integrity sha512-NfX4yvWlB5MQvkpp+1hsInom1+f0D+xK6b3n/csGJgsDuTWXIS+C3hdYBMS5bpZIrjobFRBG1LH+YQBBsndPHg==
+"@metamask/smart-transactions-controller@^16.0.1":
+  version "16.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.0.1.tgz#daf658e98b22f5bf57dd960a6d5d5836b0f40d34"
+  integrity sha512-ZKvBd0pMiZn6baVDVYmf9NG7HS8dWuyVz8dOVZ8ddYAGY9mBvsf9VldqHmUdAqzGqew89uLpeJbAnCYbmc4nXg==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
@@ -5378,10 +5378,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
   integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
 
-"@metamask/swaps-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-11.0.0.tgz#7f77e4c65addb5f03bcad8c651ca6a5d74f94fd5"
-  integrity sha512-SdFEIiHWRZcHrkWkyhNUO5/Cr1GjOYv7RFS3D0jaCVhgCz/0yvHlgKAq5iOgS87DVHh1Iv/uFrFswwJyRin6gQ==
+"@metamask/swaps-controller@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-12.0.0.tgz#60f256c10906f417225ebc7c99b587cafe6808a6"
+  integrity sha512-sjpN1iZnKu4BzWeIi7wUiZAa+rX+EA+SCLAmkrBcACrJQhjsKqBA4Wtrw8gI8uZrwwSfTIRFeMB6ksSiHFPzhQ==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"

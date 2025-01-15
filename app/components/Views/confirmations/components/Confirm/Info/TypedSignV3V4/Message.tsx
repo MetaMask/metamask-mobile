@@ -1,27 +1,58 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Hex } from '@metamask/utils';
+import { Text, View } from 'react-native';
 
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
+import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import InfoRow from '../../../UI/InfoRow';
+import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
+import { DataTreeInput } from '../../DataTree/DataTree';
+import styleSheet from './Message.styles';
 
 const Message = () => {
-  const { approvalRequest } = useApprovalRequest();
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
+  const { styles } = useStyles(styleSheet, {});
 
-  const typedSignData = approvalRequest?.requestData?.data;
+  // Pending alignment of controller types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedSignData = signatureRequest?.messageParams?.data as any;
 
   if (!typedSignData) {
     return null;
   }
 
-  const parsedData = JSON.stringify(typedSignData);
+  const { sanitizedMessage, primaryType } =
+    parseSanitizeTypedDataMessage(typedSignData);
 
-  const firstDataValue = parsedData?.substring(0, 100);
-
-  // todo: detailed data tree to be implemented
   return (
     <SignatureMessageSection
-      messageCollapsed={<Text>{firstDataValue}</Text>}
-      messageExpanded={<Text>{parsedData}</Text>}
+      messageCollapsed={
+        <InfoRow
+          label={strings('confirm.primary_type')}
+          style={styles.collpasedInfoRow}
+        >
+          {primaryType}
+        </InfoRow>
+      }
+      messageExpanded={
+        <View>
+          <Text style={styles.title}>{strings('confirm.message')}</Text>
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.dataRow}
+          >
+            {primaryType}
+          </InfoRow>
+          <DataTree
+            data={sanitizedMessage.value as unknown as DataTreeInput}
+            chainId={chainId}
+          />
+        </View>
+      }
       copyMessageText={typedSignData}
     />
   );
