@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import setSignatureRequestSecurityAlertResponse from '../../../../../../actions/signatureRequest';
 import { store } from '../../../../../../store';
 import { useTheme } from '../../../../../../util/theme';
-import useConfirmationRedesignEnabled from '../../../hooks/useConfirmationRedesignEnabled';
+import { useConfirmationRedesignEnabled } from '../../../hooks/useConfirmationRedesignEnabled';
 import PersonalSign from '../../PersonalSign';
 import TypedSign from '../../TypedSign';
 import { MessageParams } from '../types';
