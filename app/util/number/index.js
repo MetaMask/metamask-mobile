@@ -349,7 +349,7 @@ export function isBN(value) {
 /**
  * Determines if a string is a valid decimal
  *
- * @param {string} value - String to check
+ * @param {number | string} value - String to check
  * @returns {boolean} - True if the string is a valid decimal
  */
 export function isDecimal(value) {
@@ -378,6 +378,22 @@ export function toBN(value) {
  */
 export function isNumber(str) {
   return regex.number.test(str);
+}
+
+/**
+ * Determines if a value is a number
+ *
+ * @param {number | string | null | undefined} value - Value to check
+ * @returns {boolean} - True if the value is a valid number
+ */
+export function isNumberValue(value) {
+  if (value === null || value === undefined) { return false; }
+
+  if (typeof value === 'number') {
+    return !Number.isNaN(value) && Number.isFinite(value);
+  }
+
+  return isDecimal(value);
 }
 
 export const dotAndCommaDecimalFormatter = (value) => {

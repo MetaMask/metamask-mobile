@@ -10,6 +10,17 @@ import Confirm from './index';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../util/address', () => ({
@@ -46,7 +57,7 @@ describe('Confirm', () => {
     expect(getByText('Estimated changes')).toBeDefined();
     expect(
       getByText(
-        'You’re signing into a site and there are no predicted changes to your account.',
+        "You're signing into a site and there are no predicted changes to your account.",
       ),
     ).toBeDefined();
     expect(getByText('Request from')).toBeDefined();
