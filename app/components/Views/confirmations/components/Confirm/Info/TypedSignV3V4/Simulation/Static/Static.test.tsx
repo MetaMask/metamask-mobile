@@ -20,7 +20,7 @@ describe('StaticSimulation', () => {
 
   it('shows loader when isLoading is true', () => {
     const { queryByTestId } = render(
-      <StaticSimulation {...mockProps} isLoading />
+      <StaticSimulation {...mockProps} isLoading />,
     );
 
     expect(queryByTestId('confirm-v3v4-simulation-loader')).toBeDefined();
@@ -33,7 +33,7 @@ describe('StaticSimulation', () => {
         {...mockProps}
         simulationElements={simulationElements}
         isLoading={false}
-      />
+      />,
     );
 
     expect(getByText('Test Simulation')).toBeDefined();

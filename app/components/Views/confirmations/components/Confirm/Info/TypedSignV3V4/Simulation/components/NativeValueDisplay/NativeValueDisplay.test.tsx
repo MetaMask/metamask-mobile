@@ -1,4 +1,3 @@
-
 import React from 'react';
 import NativeValueDisplay from './NativeValueDisplay';
 import { backgroundState } from '../../../../../../../../../../util/test/initial-root-state';
