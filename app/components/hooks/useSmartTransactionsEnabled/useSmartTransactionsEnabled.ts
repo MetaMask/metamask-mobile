@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -22,6 +22,30 @@ export interface RootState {
 }
 
 const useSmartTransactionsEnabled = () => {
+  // START TEMP DEBUG CODE - REMOVE BEFORE PR
+  useEffect(() => {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      Logger.log('STX BANNER RESET:', process.env.RESET_STX_BANNER);
+
+
+    }
+    if (__DEV__ && Boolean(process.env.RESET_STX_BANNER)) {
+      try {
+        Engine.context.PreferencesController.setFeatureFlag(
+          'smartTransactionsBannerDismissed',
+          false
+        );
+        // eslint-disable-next-line no-console
+        console.log('DEBUG: Reset STX banner state');
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to reset STX banner state:', error);
+      }
+    }
+  }, []);
+  // END TEMP DEBUG CODE - REMOVE BEFORE PR
+
   const isEnabled = useSelector(
     (state: RootState) =>
       state.engine.backgroundState.PreferencesController
