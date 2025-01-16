@@ -12,15 +12,12 @@ export const selectConversionRate = createSelector(
   selectChainId,
   selectTicker,
   (state: RootState) => state.settings.showFiatOnTestnets,
-  (_: RootState, chainId?: string) => chainId, // Optional chainId parameter
   (
     currencyRateControllerState: CurrencyRateState,
-    currentChainId: string,
+    chainId: string,
     ticker: string,
     showFiatOnTestnets,
-    providedChainId?: string | undefined,
   ) => {
-    const chainId = providedChainId || currentChainId;
     if (chainId && isTestNet(chainId) && !showFiatOnTestnets) {
       return undefined;
     }

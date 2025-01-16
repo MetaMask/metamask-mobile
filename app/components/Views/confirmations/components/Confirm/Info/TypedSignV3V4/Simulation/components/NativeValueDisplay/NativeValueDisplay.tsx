@@ -5,7 +5,7 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import { RootState } from '../../../../../../../../../../reducers';
-import { selectConversionRate } from '../../../../../../../../../../selectors/currencyRateController';
+// import { selectConversionRate } from '../../../../../../../../../../selectors/currencyRateController';
 import { useTheme } from '../../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
@@ -58,8 +58,9 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
   const { colors } = useTheme();
   const styles = styleSheet(colors);
 
+  // todo: fix w/ upcoming selectConversionRateByChainId
   const conversionRate = useSelector((state: RootState) =>
-    selectConversionRate(state, chainId),
+    selectConversionRate(state),
   );
 
   const tokenAmount = isNumberValue(value) ? calcTokenAmount(value, NATIVE_DECIMALS) : null;
