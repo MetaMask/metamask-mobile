@@ -48,15 +48,14 @@ export const parseTypedDataMessage = (dataToParse: string) => {
 /**
  * Returns true if the request is a recognized Permit Typed Sign signature request
  *
- * @param request - The confirmation request to check
+ * @param request - The signature request to check
  */
-export const isRecognizedPermit = (request?: ApprovalRequest<{ data: string }> | SignatureRequest) => {
+export const isRecognizedPermit = (request: SignatureRequest) => {
   if (!request) {
     return false;
   }
 
-  const data = (request as ApprovalRequest<{ data: string }>).requestData?.data
-    || (request as SignatureRequest).messageParams?.data as string;
+  const data = (request as SignatureRequest).messageParams?.data as string;
 
   const { primaryType } = parseTypedDataMessage(data);
   return PRIMARY_TYPES_PERMIT.includes(primaryType);
