@@ -35,7 +35,6 @@ describe('CurrencyRateController Selectors', () => {
         mockChainId as `0x${string}`,
         mockTicker,
         false,
-        undefined,
       );
       expect(result).toBeUndefined();
     });
@@ -48,7 +47,6 @@ describe('CurrencyRateController Selectors', () => {
         mockChainId as `0x${string}`,
         mockTicker,
         true,
-        undefined,
       );
       expect(result).toBe(3000);
     });
@@ -61,7 +59,6 @@ describe('CurrencyRateController Selectors', () => {
         mockChainId as `0x${string}`,
         '',
         true,
-        undefined,
       );
       expect(result).toBeUndefined();
     });
