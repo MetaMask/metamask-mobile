@@ -146,11 +146,7 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "uri": "MockImage",
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -376,11 +372,7 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "uri": "MockImage",
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,

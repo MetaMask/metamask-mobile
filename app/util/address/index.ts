@@ -640,12 +640,14 @@ export const getTokenDetails = async (
   tokenAddress: string,
   userAddress?: string,
   tokenId?: string,
+  networkClientId?: NetworkClientId,
 ) => {
   const { AssetsContractController } = Engine.context;
   const tokenData = await AssetsContractController.getTokenStandardAndDetails(
     tokenAddress,
     userAddress,
     tokenId,
+    networkClientId,
   );
   const { standard, name, symbol, decimals } = tokenData;
   if (standard === ERC721 || standard === ERC1155) {
