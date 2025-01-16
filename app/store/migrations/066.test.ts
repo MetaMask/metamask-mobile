@@ -7,7 +7,6 @@ import {
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import migration from './066';
-import { migration52 } from './052';
 
 jest.mock('../../util/Logger');
 jest.mock('@sentry/react-native', () => ({
