@@ -108,11 +108,14 @@ export class UrlAutocomplete extends PureComponent {
         results = [
           ...this.props.browserHistory,
           ...this.props.bookmarks,
-        ]
+        ];
       }
-  
+
       const resultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
-        let data = results.filter(result => result.type === category);
+        let data = results.filter((result, index, self) =>
+          result.type === category &&
+          index === self.findIndex(r => r.url === result.url && r.type === result.type)
+        );
         if (data.length === 0) {
           return [];
         }
@@ -122,13 +125,13 @@ export class UrlAutocomplete extends PureComponent {
         return {
           category,
           data,
-        }
+        };
       });
 
       this.setState({
         resultsByCategory,
         hasResults: results.length > 0,
-      })
+      });
     }
   }
 
