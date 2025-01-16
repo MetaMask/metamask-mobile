@@ -133,7 +133,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { toastRef } = useContext(ToastContext);
 
-  const origin: string = approvalRequest?.requestData?.origin;
+  const origin = approvalRequest?.origin;
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
@@ -176,7 +176,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       dappHostname = title;
     } else if (!isChannelId && (dappUrl || channelIdOrHostname)) {
       title = prefixUrlWithProtocol(dappUrl || channelIdOrHostname);
-      dappHostname = origin;
+      dappHostname = origin as string;
     } else {
       title = strings('sdk.unknown');
       setIsSdkUrlUnknown(true);
