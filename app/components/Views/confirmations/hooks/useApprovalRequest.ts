@@ -9,10 +9,7 @@ import { DecodingData } from '@metamask/signature-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ApprovalRequestType = ApprovalRequest<any> & {
-  decodingData?: DecodingData;
-  decodingLoading?: boolean;
-};
+type ApprovalRequestType = ApprovalRequest<any>;
 
 const useApprovalRequest = () => {
   const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
