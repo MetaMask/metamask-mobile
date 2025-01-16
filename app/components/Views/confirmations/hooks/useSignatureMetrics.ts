@@ -10,7 +10,9 @@ import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { SecurityAlertResponse } from '../components/BlockaidBanner/BlockaidBanner.types';
 import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
+import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
+import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -42,6 +44,7 @@ const getAnalyticsParams = (
 
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
+  const isSimulationEnabled = useTypedSignSimulationEnabled();
 
   const { chainId, messageParams, type } = signatureRequest ?? {};
 
@@ -53,19 +56,22 @@ export const useSignatureMetrics = () => {
         return;
       }
 
+      const eventProps = {
+        ...getAnalyticsParams(
+          messageParams as unknown as MessageParamsType,
+          type,
+          chainId,
+        ),
+        ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
+      };
+
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(event)
-          .addProperties(
-            getAnalyticsParams(
-              messageParams as unknown as MessageParamsType,
-              type,
-              chainId,
-            ),
-          )
+          .addProperties(eventProps)
           .build(),
       );
     },
-    [chainId, messageParams, type],
+    [chainId, isSimulationEnabled, messageParams, type, signatureRequest],
   );
 
   useEffect(() => {

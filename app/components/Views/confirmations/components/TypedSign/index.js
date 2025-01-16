@@ -15,6 +15,7 @@ import {
   sanitizeString,
 } from '../../../../../util/string';
 
+import { getSignatureDecodingEventProps } from '../../utils/signatureMetrics';
 import {
   addSignatureErrorListener,
   getAnalyticsParams,
@@ -114,11 +115,16 @@ class TypedSign extends PureComponent {
       metrics,
     } = this.props;
 
+    const eventProps = {
+      ...getAnalyticsParams(messageParams, 'typed_sign'),
+      ...getSignatureDecodingEventProps(messageParams),
+    };
+
     metrics.trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SIGNATURE_REQUESTED,
       )
-        .addProperties(getAnalyticsParams(messageParams, 'typed_sign'))
+        .addProperties(eventProps)
         .build(),
     );
     addSignatureErrorListener(metamaskId, this.onSignatureError);

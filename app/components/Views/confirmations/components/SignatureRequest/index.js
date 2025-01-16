@@ -19,8 +19,11 @@ import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
+import { getSignatureDecodingEventProps } from '../../utils/signatureMetrics';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
+import { selectTypedSignSimulationEnabled } from '../../../../../selectors/signatureController';
+import { selectPendingApprovals } from '../../../../../selectors/approvalController';
 
 const getCleanUrl = (url) => {
   try {
@@ -144,6 +147,14 @@ class SignatureRequest extends PureComponent {
      */
     currentPageInformation: PropTypes.object,
     /**
+     * Whether signature simulation with decoding API is enabled
+     */
+    isSimulationEnabled: PropTypes.bool,
+    /**
+     * Signature request object
+     */
+    signatureRequest: PropTypes.object,
+    /**
      * String representing signature type
      */
     type: PropTypes.string,
@@ -218,7 +229,18 @@ class SignatureRequest extends PureComponent {
   };
 
   componentDidMount = () => {
-    const { currentPageInformation, type, fromAddress } = this.props;
+    const { currentPageInformation, isSimulationEnabled, type, fromAddress, signatureRequest } = this.props;
+
+    const eventProps = {
+      ...getAnalyticsParams(
+        {
+          currentPageInformation,
+          from: fromAddress,
+        },
+        type,
+      ),
+      ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
+    };
 
     this.props.metrics.trackEvent(
       this.props.metrics
@@ -302,20 +324,22 @@ class SignatureRequest extends PureComponent {
   };
 
   onContactUsClicked = () => {
-    const { fromAddress, type } = this.props;
-    const analyticsParams = {
+    const { fromAddress, isSimulationEnabled, type, signatureRequest } = this.props;
+
+    const eventProps = {
       ...getAnalyticsParams(
         {
           from: fromAddress,
         },
         type,
       ),
+      ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
       external_link_clicked: 'security_alert_support_link',
     };
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.SIGNATURE_REQUESTED)
-        .addProperties(analyticsParams)
+        .addProperties(eventProps)
         .build(),
     );
   };
@@ -399,8 +423,10 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  isSimulationEnabled: selectTypedSignSimulationEnabled(state, Object.values(selectPendingApprovals(state) || {})[0].id),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  signatureRequest: Object.values(selectPendingApprovals(state) || {})[0],
 });
 
 SignatureRequest.contextType = ThemeContext;
