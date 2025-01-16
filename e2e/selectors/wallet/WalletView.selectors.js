@@ -25,7 +25,7 @@ export const WalletViewSelectorsIDs = {
   ACCOUNT_ACTIONS: 'main-wallet-account-actions',
   ACCOUNT_COPY_BUTTON: 'wallet-account-copy-button',
   TEST_COLLECTIBLE: 'Test Dapp NFTs #1',
-  COLLECTIBLE_FALLBACK: 'fallback-nft-with-token-id',
+  COLLECTIBLE_FALLBACK: '#1',
   NAVBAR_ADDRESS_COPY_BUTTON: 'navbar-address-copy-button',
   IMPORT_TOKEN_FOOTER_LINK: 'import-token-footer-link',
   SORT_DECLINING_BALANCE: 'sort-declining-balance',
