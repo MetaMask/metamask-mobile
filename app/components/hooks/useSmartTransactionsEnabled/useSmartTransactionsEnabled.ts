@@ -1,13 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 
+// non-optional types
 interface PreferencesState {
-  smartTransactionsOptInStatus?: boolean;
-  smartTransactionsMigrationApplied?: boolean;
+  smartTransactionsOptInStatus: boolean;
+  smartTransactionsMigrationApplied: boolean;
   featureFlags: {
-    smartTransactionsBannerDismissed?: boolean;
+    smartTransactionsBannerDismissed: boolean;
     [key: string]: boolean | undefined;
   };
 }
@@ -48,9 +49,10 @@ const useSmartTransactionsEnabled = () => {
     }
   }, []);
 
-  const shouldShowBanner = isEnabled
-    && isMigrationApplied
-    && !isBannerDismissed;
+  const shouldShowBanner = useMemo(
+    () => isEnabled && isMigrationApplied && !isBannerDismissed,
+    [isEnabled, isMigrationApplied, isBannerDismissed]
+  );
 
   return {
     isEnabled,
