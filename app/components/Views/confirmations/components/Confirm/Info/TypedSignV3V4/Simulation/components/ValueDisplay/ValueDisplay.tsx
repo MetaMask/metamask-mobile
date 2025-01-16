@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
@@ -16,13 +17,13 @@ import {
   formatAmountMaxPrecision,
 } from '../../../../../../../../../UI/SimulationDetails/formatAmount';
 
-import Box from '../../../../../../../../../UI/Ramp/components/Box';
 import Address from '../../../../../../UI/InfoRow/InfoValue/Address/Address';
 
 import { selectContractExchangeRates } from '../../../../../../../../../../selectors/tokenRatesController';
 
 import Logger from '../../../../../../../../../../util/Logger';
 import { shortenString } from '../../../../../../../../../../util/notifications/methods/common';
+import { isNumberValue } from '../../../../../../../../../../util/number';
 import { useTheme } from '../../../../../../../../../../util/theme';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 
@@ -101,26 +102,15 @@ const SimulationValueDisplay: React.FC<
       tokenDetails as TokenDetailsERC20,
     );
 
-    const fiatValue = useMemo(() => {
-      if (exchangeRate && value && !tokenId) {
-        const tokenAmount = calcTokenAmount(value, tokenDecimals);
-        return tokenAmount.multipliedBy(exchangeRate).toNumber();
-      }
-      return undefined;
-    }, [exchangeRate, tokenDecimals, tokenId, value]);
+    const tokenAmount = isNumberValue(value) && !tokenId ? calcTokenAmount(value, tokenDecimals) : null;
+    const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
-    const { tokenValue, tokenValueMaxPrecision } = useMemo(() => {
-      if (!value || tokenId) {
-        return { tokenValue: null, tokenValueMaxPrecision: null };
-      }
+    const fiatValue = isValidTokenAmount && exchangeRate && !tokenId
+      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
+      : undefined;
 
-      const tokenAmount = calcTokenAmount(value, tokenDecimals);
-
-      return {
-        tokenValue: formatAmount('en-US', tokenAmount),
-        tokenValueMaxPrecision: formatAmountMaxPrecision('en-US', tokenAmount),
-      };
-    }, [tokenDecimals, tokenId, value]);
+    const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
+    const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
 
     /** Temporary error capturing as we are building out Permit Simulations */
     if (!tokenContract) {
@@ -137,10 +127,11 @@ const SimulationValueDisplay: React.FC<
     }
 
     return (
-      <Box style={styles.wrapper}>
-        <Box style={styles.flexRowTokenValueAndAddress}>
+      <View style={styles.wrapper}>
+        <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
             <ButtonPill
+              isDisabled={!!tokenId || tokenId === '0'}
               onPress={handlePressTokenValue}
               onPressIn={handlePressTokenValue}
               onPressOut={handlePressTokenValue}
@@ -149,7 +140,7 @@ const SimulationValueDisplay: React.FC<
               <Text>
                 {credit && '+ '}
                 {debit && '- '}
-                {tokenValue !== null &&
+                {tokenValue  !== null &&
                   shortenString(tokenValue || '', {
                     truncatedCharLimit: 15,
                     truncatedStartChars: 15,
@@ -159,18 +150,18 @@ const SimulationValueDisplay: React.FC<
                 {tokenId && `#${tokenId}`}
               </Text>
             </ButtonPill>
-            <Box compact noBorder style={styles.tokenAddress}>
+            <View style={styles.marginStart4}>
               <Address address={tokenContract} chainId={chainId} />
-            </Box>
+            </View>
           </View>
-        </Box>
-        <Box compact noBorder>
-          {/*
+        </View>
+        <View style={styles.fiatDisplay}>
+          {/**
             TODO - add fiat shorten prop after tooltip logic has been updated
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
           */}
           {fiatValue && <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />}
-        </Box>
+        </View>
         {hasValueModalOpen && (
           /**
            * TODO replace BottomModal instances with BottomSheet
@@ -201,7 +192,7 @@ const SimulationValueDisplay: React.FC<
             </TouchableOpacity>
           </BottomModal>
         )}
-      </Box>
+      </View>
     );
   };
 
