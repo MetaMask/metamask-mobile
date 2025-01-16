@@ -42,7 +42,7 @@ const SignatureBlockaidBanner = () => {
         .addProperties(eventProps)
         .build(),
     );
-  }, [trackEvent, createEventBuilder, signatureRequest, type, fromAddress]);
+  }, [trackEvent, createEventBuilder, signatureRequest, type, fromAddress, isSimulationEnabled]);
 
   return (
     <BlockaidBanner
