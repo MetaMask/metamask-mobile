@@ -255,8 +255,17 @@ export const typedSignV4ConfirmationState = {
             messageParams: {
               data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"MyToken","version":"1","verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC","chainId":1},"message":{"owner":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","spender":"0x5B38Da6a701c568545dCfcB03FcB875f56beddC4","value":3000,"nonce":0,"deadline":50000000000}}',
               from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              version: 'V4',
+              requestId: 14,
+              signatureMethod: 'eth_signTypedData_v4',
+              origin: 'https://metamask.github.io',
               metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
-              origin: 'https://metamask.github.io'
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
             },
             networkClientId: '1',
             status: SignatureRequestStatus.Unapproved,

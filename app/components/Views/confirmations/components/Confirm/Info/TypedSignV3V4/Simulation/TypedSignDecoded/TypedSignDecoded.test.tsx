@@ -9,7 +9,11 @@ import {
 import { strings } from '../../../../../../../../../../locales/i18n';
 import { typedSignV4ConfirmationState } from '../../../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
-import TypedSignDecoded, { getStateChangeToolip, getStateChangeType, StateChangeType } from './TypedSignDecoded';
+import TypedSignDecoded, {
+  getStateChangeToolip,
+  getStateChangeType,
+  StateChangeType,
+} from './TypedSignDecoded';
 
 const stateChangesApprove = [
   {
@@ -75,9 +79,15 @@ const stateChangesNftBidding: DecodingDataStateChanges = [
   },
 ];
 
-const mockState = (mockStateChanges: DecodingDataStateChanges, stubDecodingLoading: boolean = false) => {
+const mockState = (
+  mockStateChanges: DecodingDataStateChanges,
+  stubDecodingLoading: boolean = false,
+) => {
   const clonedMockState = cloneDeep(typedSignV4ConfirmationState);
-  const request = clonedMockState.engine.backgroundState.SignatureController.signatureRequests['fb2029e1-b0ab-11ef-9227-05a11087c334'] as SignatureRequest;
+  const request = clonedMockState.engine.backgroundState.SignatureController
+    .signatureRequests[
+    'fb2029e1-b0ab-11ef-9227-05a11087c334'
+  ] as SignatureRequest;
   request.decodingLoading = stubDecodingLoading;
   request.decodingData = {
     stateChanges: mockStateChanges,
@@ -134,7 +144,11 @@ describe('DecodedSimulation', () => {
 
   it('renders label only once if there are multiple state changes of same changeType', async () => {
     const { getAllByText } = renderWithProvider(<TypedSignDecoded />, {
-      state: mockState([stateChangesApprove[0], stateChangesApprove[0], stateChangesApprove[0]]),
+      state: mockState([
+        stateChangesApprove[0],
+        stateChangesApprove[0],
+        stateChangesApprove[0],
+      ]),
     });
 
     expect(await getAllByText('12,345')).toHaveLength(3);
@@ -152,28 +166,34 @@ describe('DecodedSimulation', () => {
 
   describe('getStateChangeToolip', () => {
     it('return correct tooltip when permit is for listing NFT', () => {
-      const tooltip = getStateChangeToolip(
-        StateChangeType.NFTListingReceive,
+      const tooltip = getStateChangeToolip(StateChangeType.NFTListingReceive);
+      expect(tooltip).toBe(
+        strings('confirm.simulation.decoded_tooltip_list_nft'),
       );
-      expect(tooltip).toBe(strings('confirm.simulation.decoded_tooltip_list_nft'));
     });
 
     it('return correct tooltip when permit is for bidding NFT', () => {
-      const tooltip = getStateChangeToolip(
-        StateChangeType.NFTBiddingReceive,
+      const tooltip = getStateChangeToolip(StateChangeType.NFTBiddingReceive);
+      expect(tooltip).toBe(
+        strings('confirm.simulation.decoded_tooltip_bid_nft'),
       );
-      expect(tooltip).toBe(strings('confirm.simulation.decoded_tooltip_bid_nft'));
     });
   });
 
   describe('getStateChangeType', () => {
     it('return correct state change type for NFT listing receive', () => {
-      const stateChange = getStateChangeType(stateChangesNftListing, stateChangesNftListing[1]);
+      const stateChange = getStateChangeType(
+        stateChangesNftListing,
+        stateChangesNftListing[1],
+      );
       expect(stateChange).toBe(StateChangeType.NFTListingReceive);
     });
 
     it('return correct state change type for NFT bidding receive', () => {
-      const stateChange = getStateChangeType(stateChangesNftBidding, stateChangesNftBidding[1]);
+      const stateChange = getStateChangeType(
+        stateChangesNftBidding,
+        stateChangesNftBidding[1],
+      );
       expect(stateChange).toBe(StateChangeType.NFTBiddingReceive);
     });
   });

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { act } from '@testing-library/react-native';
 import SimulationValueDisplay from './ValueDisplay';
@@ -25,7 +24,9 @@ jest.mock('../../../../../../../hooks/useGetTokenStandardAndDetails');
 
 jest.mock('../../../../../../../../../../util/address', () => ({
   getTokenDetails: jest.fn(),
-  renderShortAddress: jest.requireActual('../../../../../../../../../../util/address').renderShortAddress
+  renderShortAddress: jest.requireActual(
+    '../../../../../../../../../../util/address',
+  ).renderShortAddress,
 }));
 
 describe('SimulationValueDisplay', () => {
@@ -53,7 +54,11 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('renders component correctly', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
       symbol: 'TST',
       decimals: '4',
       balance: undefined,
@@ -98,7 +103,11 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('should invoke method to track missing decimal information for ERC20 tokens only once', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
       symbol: 'TST',
       decimals: undefined,
       balance: undefined,
@@ -120,7 +129,11 @@ describe('SimulationValueDisplay', () => {
   });
 
   it('should not invoke method to track missing decimal information for ERC20 tokens', async () => {
-    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+    (
+      useGetTokenStandardAndDetails as jest.MockedFn<
+        typeof useGetTokenStandardAndDetails
+      >
+    ).mockReturnValue({
       symbol: 'TST',
       decimals: '4',
       balance: undefined,
@@ -144,10 +157,10 @@ describe('SimulationValueDisplay', () => {
   describe('when token is an ERC721 token', () => {
     beforeEach(() => {
       jest.mocked(getTokenDetails).mockResolvedValue({
-          name: 'TST',
-          symbol: 'TST',
-          standard: TokenStandard.ERC721,
-        });
+        name: 'TST',
+        symbol: 'TST',
+        standard: TokenStandard.ERC721,
+      });
     });
 
     it('should not invoke method to track missing decimal information', async () => {
