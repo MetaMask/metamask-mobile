@@ -7,6 +7,7 @@ import {
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import migration from './066';
+import { migration52 } from './052';
 
 jest.mock('../../util/Logger');
 jest.mock('@sentry/react-native', () => ({
@@ -146,6 +147,54 @@ describe('migration #66', () => {
     },
   };
 
+  it('captures exception for invalid state structure', () => {
+    const invalidState = {
+      engine: {
+        backgroundState: {
+          AccountsController: 'not an object', // Invalid type
+        },
+      },
+    };
+
+    const result = migration(invalidState);
+
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          'Invalid state structure for AccountsController',
+        ),
+      }),
+    );
+    expect(result).toBe(invalidState);
+  });
+
+  it('handles completely missing AccountsController', () => {
+    const stateWithoutAccounts = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+
+    const result = migration(stateWithoutAccounts);
+
+    expect(captureException).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          'Invalid state structure for AccountsController',
+        ),
+      }),
+    );
+    expect(result).toBe(stateWithoutAccounts);
+  });
+
+  it('handles unexpected errors', () => {
+    const malformedState = null;
+
+    const result = migration(malformedState);
+
+    expect(captureException).toHaveBeenCalled();
+    expect(result).toBe(malformedState);
+  });
   it('returns state if not valid', () => {
     const result = migration(MOCK_INVALID_STATE);
     expect(result).toEqual(MOCK_INVALID_STATE);

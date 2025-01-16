@@ -68,6 +68,11 @@ export default function migrate(state: unknown) {
       state.engine.backgroundState.AccountsController.internalAccounts.accounts,
     )
   ) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid state structure for AccountsController`,
+      ),
+    );
     return state;
   }
 
