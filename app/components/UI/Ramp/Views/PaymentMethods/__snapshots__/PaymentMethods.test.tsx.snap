@@ -495,6 +495,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             "padding": 0,
                                           },
                                           undefined,
+                                          undefined,
                                         ]
                                       }
                                     >
@@ -779,6 +780,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -1081,6 +1083,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -1942,6 +1945,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             "padding": 0,
                                           },
                                           undefined,
+                                          undefined,
                                         ]
                                       }
                                     >
@@ -2226,6 +2230,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -2528,6 +2533,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -3385,6 +3391,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -3633,6 +3640,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       {
                                         "padding": 0,
                                       },
+                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -3884,6 +3892,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                       {
                                         "padding": 0,
                                       },
+                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -6582,6 +6591,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -6830,6 +6840,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       {
                                         "padding": 0,
                                       },
+                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -7081,6 +7092,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                       {
                                         "padding": 0,
                                       },
+                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -7811,6 +7823,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             "padding": 0,
                                           },
                                           undefined,
+                                          undefined,
                                         ]
                                       }
                                     >
@@ -8095,6 +8108,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -8397,6 +8411,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -9949,6 +9964,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             "padding": 0,
                                           },
                                           undefined,
+                                          undefined,
                                         ]
                                       }
                                     >
@@ -10233,6 +10249,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
@@ -10535,6 +10552,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           {
                                             "padding": 0,
                                           },
+                                          undefined,
                                           undefined,
                                         ]
                                       }
