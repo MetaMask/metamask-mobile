@@ -108,7 +108,7 @@ const SimulationValueDisplay: React.FC<
       tokenDetails as TokenDetailsERC20,
     );
 
-    const tokenAmount = isNumberValue(value) && !tokenId ? calcTokenAmount(value, tokenDecimals) : null;
+    const tokenAmount = isNumberValue(value) && !tokenId ? calcTokenAmount(value as number | string, tokenDecimals) : null;
     const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
     const fiatValue = isValidTokenAmount && exchangeRate && !tokenId
