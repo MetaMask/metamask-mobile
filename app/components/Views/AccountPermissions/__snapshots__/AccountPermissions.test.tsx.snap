@@ -187,9 +187,73 @@ exports[`AccountPermissions renders correctly 1`] = `
               "marginVertical": 16,
             }
           }
+          testID="accounts-connected-network-picker"
         >
-          Connected accounts
-        </Text>
+          <View
+            style={null}
+          >
+            <View
+              accessibilityLabel="Ethereum Main Network"
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "height": 16,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-picker"
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#141618",
+                "flexShrink": 1,
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginHorizontal": 8,
+              }
+            }
+            testID="open-networks-text"
+          >
+            Ethereum Main Network
+          </Text>
+          <SvgMock
+            color="#141618"
+            height={12}
+            name="ArrowDown"
+            style={
+              {
+                "height": 12,
+                "width": 12,
+              }
+            }
+            testID="pickernetwork-arrow"
+            width={12}
+          />
+        </TouchableOpacity>
       </View>
       <RCTScrollView
         collapsable={false}

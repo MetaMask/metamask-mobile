@@ -29,9 +29,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     messageContainer: {
       backgroundColor: theme.colors.background.default,
-      padding: 16,
       borderRadius: 8,
       minHeight: 200,
+      maxHeight: 300,
+    },
+    scrollableSection: {
+      padding: 16,
     },
     messageExpanded: {
       color: theme.colors.text.default,

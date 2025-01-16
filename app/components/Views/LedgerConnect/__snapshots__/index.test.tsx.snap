@@ -31,11 +31,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     >
       <Image
         resizeMode="contain"
-        source={
-          {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
           {
             "height": 68,
@@ -134,11 +130,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       }
     >
       <Image
-        source={
-          {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
           {
             "height": 64,
