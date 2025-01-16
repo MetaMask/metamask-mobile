@@ -622,13 +622,14 @@ exports[`Network Selector renders correctly 1`] = `
                                   onPress={[Function]}
                                   style={
                                     {
+                                      "alignItems": "center",
                                       "backgroundColor": "#ffffff",
                                       "borderRadius": 4,
                                       "opacity": 1,
                                       "position": "relative",
                                     }
                                   }
-                                  testID="cellselect"
+                                  testID="network-cell-Linea"
                                 >
                                   <View
                                     accessibilityRole="none"
@@ -650,6 +651,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       <View
                                         style={
                                           {
+                                            "alignItems": "center",
                                             "flexDirection": "row",
                                           }
                                         }
