@@ -155,6 +155,7 @@ const Routes = {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
+      EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)

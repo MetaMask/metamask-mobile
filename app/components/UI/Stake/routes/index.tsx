@@ -10,6 +10,7 @@ import MaxInputModal from '../components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
+import EarnTokenList from '../components/EarnTokenList/EarnTokenList';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 
@@ -66,6 +67,11 @@ const StakeModalStack = () => (
       <ModalStack.Screen
         name={Routes.STAKING.MODALS.GAS_IMPACT}
         component={GasImpactModal}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.STAKING.MODALS.EARN_TOKEN_LIST}
+        component={EarnTokenList}
         options={{ headerShown: false }}
       />
     </ModalStack.Navigator>
