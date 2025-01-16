@@ -1,31 +1,14 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectUseTransactionSimulations } from '../../../../../../../selectors/preferencesController';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
-import { isRecognizedPermit } from '../../../../utils/signature';
 import InfoRowOrigin from '../Shared/InfoRowOrigin';
-import PermitSimulation from './Simulation/TypedSignPermit';
 import Message from './Message';
+import TypedSignV3V4Simulation from './Simulation';
 
-const TypedSignV3V4 = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const useSimulation = useSelector(
-    selectUseTransactionSimulations,
-  );
-
-  if (!approvalRequest) {
-    return null;
-  }
-
-  const isPermit = isRecognizedPermit(approvalRequest);
-
-  return (
+const TypedSignV3V4 = () => (
     <>
-      {isPermit && useSimulation && <PermitSimulation />}
+      <TypedSignV3V4Simulation />
       <InfoRowOrigin />
       <Message />
     </>
   );
-};
 
 export default TypedSignV3V4;

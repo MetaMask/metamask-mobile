@@ -7,7 +7,7 @@ import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagContr
 import useApprovalRequest from './useApprovalRequest';
 import useQRHardwareAwareness from './useQRHardwareAwareness';
 
-const useConfirmationRedesignEnabled = () => {
+export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isSigningQRObject, isSyncingQRHardware } = useQRHardwareAwareness();
   const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags);
@@ -42,5 +42,3 @@ const useConfirmationRedesignEnabled = () => {
 
   return { isRedesignedEnabled };
 };
-
-export default useConfirmationRedesignEnabled;
