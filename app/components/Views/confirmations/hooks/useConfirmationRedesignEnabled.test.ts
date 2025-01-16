@@ -5,7 +5,7 @@ import { personalSignatureConfirmationState } from '../../../../util/test/confir
 
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
-import useConfirmationRedesignEnabled from './useConfirmationRedesignEnabled';
+import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),

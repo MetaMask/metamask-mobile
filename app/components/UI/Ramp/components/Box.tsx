@@ -21,9 +21,6 @@ const createStyles = (colors: Colors) =>
     label: {
       marginVertical: 8,
     },
-    noBorder: {
-      borderWidth: 0,
-    },
     highlighted: {
       borderColor: colors.primary.default,
     },
@@ -41,7 +38,6 @@ interface Props {
   style?: StyleProp<ViewStyle>;
   thin?: boolean;
   activeOpacity?: number;
-  noBorder?: boolean;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
@@ -60,7 +56,6 @@ const Box: React.FC<Props> = ({
   accessible,
   accessibilityLabel,
   compact,
-  noBorder,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -82,7 +77,6 @@ const Box: React.FC<Props> = ({
             thin && styles.thin,
             highlighted && styles.highlighted,
             compact && styles.compact,
-            noBorder && styles.noBorder,
             style,
           ]}
           {...props}
