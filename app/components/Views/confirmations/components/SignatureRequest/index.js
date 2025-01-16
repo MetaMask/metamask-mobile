@@ -423,7 +423,7 @@ class SignatureRequest extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  isSimulationEnabled: selectTypedSignSimulationEnabled(state, Object.values(selectPendingApprovals(state) || {})[0].id),
+  isSimulationEnabled: selectTypedSignSimulationEnabled(state, Object.values(selectPendingApprovals(state) || {})[0]?.id),
   securityAlertResponse: state.signatureRequest.securityAlertResponse,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   signatureRequest: Object.values(selectPendingApprovals(state) || {})[0],
