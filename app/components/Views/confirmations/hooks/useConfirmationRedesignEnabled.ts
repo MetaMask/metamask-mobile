@@ -7,7 +7,7 @@ import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagContr
 import useApprovalRequest from './useApprovalRequest';
 import useQRHardwareAwareness from './useQRHardwareAwareness';
 
-const useConfirmationRedesignEnabled = () => {
+export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isSigningQRObject, isSyncingQRHardware } = useQRHardwareAwareness();
   const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags);
@@ -22,7 +22,6 @@ const useConfirmationRedesignEnabled = () => {
   const isRedesignedEnabled = useMemo(
     () =>
       (confirmation_redesign as Record<string, string>)?.signatures &&
-      process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
       // following condition will ensure that user is redirected to old designs is using QR scan aware hardware
       !isSyncingQRHardware &&
       !isSigningQRObject &&
@@ -43,5 +42,3 @@ const useConfirmationRedesignEnabled = () => {
 
   return { isRedesignedEnabled };
 };
-
-export default useConfirmationRedesignEnabled;
