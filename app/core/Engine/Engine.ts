@@ -1441,7 +1441,7 @@ export class Engine {
         }),
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
-        decodingApiUrl: process.env.DECODING_API_URL || 'https://signature-insights.api.cx.metamask.io/v1',
+        decodingApiUrl: AppConstants.DECODING_API_URL,
         // TODO: check preferences useExternalServices
         isDecodeSignatureRequestEnabled: () =>
           preferencesController.state.useTransactionSimulations,
