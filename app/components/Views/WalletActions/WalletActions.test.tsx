@@ -17,6 +17,11 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
 import Engine from '../../../core/Engine';
+import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
+
+jest.mock('../../../components/UI/Stake/constants', () => ({
+  isStablecoinLendingFeatureEnabled: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -117,6 +122,14 @@ describe('WalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
+  });
+
+  it('should render earn button if the stablecoin lending feature is enabled', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const { getByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockInitialState,
+    });
+
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
@@ -217,6 +230,7 @@ describe('WalletActions', () => {
     expect(mockNavigate).toHaveBeenCalled();
   });
   it('should call the onEarn function when the Earn button is pressed', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
@@ -232,6 +246,7 @@ describe('WalletActions', () => {
   });
 
   it('should switch to mainnet when onEarn called on unsupported staking network', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     (useStakingChain as jest.Mock).mockReturnValue({
       isStakingSupportedChain: false,
     });
