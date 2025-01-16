@@ -150,7 +150,7 @@ const SimulationValueDisplay: React.FC<
                 {tokenId && `#${tokenId}`}
               </Text>
             </ButtonPill>
-            <View style={styles.tokenAddress}>
+            <View style={styles.marginStart4}>
               <Address address={tokenContract} chainId={chainId} />
             </View>
           </View>

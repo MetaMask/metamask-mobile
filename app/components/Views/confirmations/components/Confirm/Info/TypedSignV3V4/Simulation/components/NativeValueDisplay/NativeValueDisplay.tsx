@@ -25,7 +25,11 @@ import { isNumberValue } from '../../../../../../../../../../util/number';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 import BottomModal from '../../../../../../UI/BottomModal';
 
-import styleSheet from './NativeValueDisplay.styles';
+/**
+ * Reusing ValueDisplay styles for now. See issue to handle abstracting UI
+ * @see {@link https://github.com/MetaMask/metamask-mobile/issues/12974}
+ */
+import styleSheet from '../ValueDisplay/ValueDisplay.styles';
 
 const NATIVE_DECIMALS = 18;
 
@@ -78,7 +82,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.flexRowValueDisplay}>
+      <View style={styles.marginStart4}>
         <View style={styles.valueAndAddress}>
           <ButtonPill
             onPress={handlePressTokenValue}

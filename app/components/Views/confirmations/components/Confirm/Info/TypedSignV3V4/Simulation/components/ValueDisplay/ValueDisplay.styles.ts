@@ -24,7 +24,7 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    tokenAddress: {
+    marginStart4: {
       marginStart: 4,
     },
     tokenValueTooltipContent: {
