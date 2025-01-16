@@ -22,7 +22,6 @@ export const useConfirmationRedesignEnabled = () => {
   const isRedesignedEnabled = useMemo(
     () =>
       (confirmation_redesign as Record<string, string>)?.signatures &&
-      process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
       // following condition will ensure that user is redirected to old designs is using QR scan aware hardware
       !isSyncingQRHardware &&
       !isSigningQRObject &&
