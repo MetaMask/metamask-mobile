@@ -23,7 +23,6 @@ const mockTrackEvent = jest.fn();
 jest.mock('../../../../../../../../../hooks/useMetrics');
 jest.mock('../../../../../../../hooks/useGetTokenStandardAndDetails');
 
-
 jest.mock('../../../../../../../../../../util/address', () => ({
   getTokenDetails: jest.fn(),
   renderShortAddress: jest.requireActual('../../../../../../../../../../util/address').renderShortAddress
@@ -72,11 +71,30 @@ describe('SimulationValueDisplay', () => {
       { state: mockInitialState },
     );
 
-    await act(async () => {
-      await Promise.resolve();
+    expect(await findByText('0.432')).toBeDefined();
+  });
+
+  it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+      symbol: 'TST',
+      decimals: '4',
+      balance: undefined,
+      standard: TokenStandard.ERC20,
+      decimalsNumber: 4,
     });
 
-    expect(await findByText('0.432')).toBeDefined();
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        labelChangeType={'Spending Cap'}
+        tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+        value={'1461501637330902918203684832716283019655932542975'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('Unlimited')).toBeDefined();
   });
 
   it('should invoke method to track missing decimal information for ERC20 tokens only once', async () => {
@@ -97,10 +115,6 @@ describe('SimulationValueDisplay', () => {
       />,
       { state: mockInitialState },
     );
-
-    await act(async () => {
-      await Promise.resolve();
-    });
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
@@ -123,10 +137,6 @@ describe('SimulationValueDisplay', () => {
       />,
       { state: mockInitialState },
     );
-
-    await act(async () => {
-      await Promise.resolve();
-    });
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
