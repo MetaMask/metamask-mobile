@@ -147,6 +147,7 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import { v4 as uuidv4 } from 'uuid';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -595,6 +596,7 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
+  const [isMetaMetricsConfigured, setIsMetaMetricsConfigured] = useState(false);
 
   trace({
     name: TraceName.NavInit,
@@ -739,9 +741,11 @@ const App = (props) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
+    if (isMetaMetricsConfigured) return;
+
     const initMetrics = async () => {
       const metrics = MetaMetrics.getInstance();
-      await metrics.configure();
+      const metaMetricsConfigState = await metrics.configure();
       // identify user with the latest traits
       // run only after the MetaMetrics is configured
       const consolidatedTraits = {
@@ -749,6 +753,7 @@ const App = (props) => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await metrics.addTraitsToUser(consolidatedTraits);
+      setIsMetaMetricsConfigured(metaMetricsConfigState);
       return await metrics.getMetaMetricsId();
     };
 
@@ -756,10 +761,11 @@ const App = (props) => {
       dispatch(setMetaMetricsId(metaMetricsId));
     }).catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
+      // Throw error instead of blocking Engine init
+      // metaMetricsId is a requirement for engine initialization
+      throw new Error('Error initializing. Please try again');
     });
-    // no need to include dispatch as a dependency
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
