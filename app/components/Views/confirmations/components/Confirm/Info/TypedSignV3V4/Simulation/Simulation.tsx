@@ -16,12 +16,12 @@ const TypedSignV3V4Simulation: React.FC<object> = () => {
   }
 
   const { decodingData, decodingLoading } = signatureRequest;
-  const hasDecodingData = !(
+  const hasValidDecodingData = !(
     (!decodingLoading && decodingData === undefined) ||
     decodingData?.error
   );
 
-  if (!hasDecodingData && isPermit) {
+  if (!hasValidDecodingData && isPermit) {
     return <PermitSimulation />;
   }
 
