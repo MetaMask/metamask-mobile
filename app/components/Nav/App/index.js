@@ -46,7 +46,6 @@ import {
   setCurrentRoute,
   onNavigationReady,
 } from '../../../actions/navigation';
-import { setMetaMetricsId } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
@@ -147,7 +146,6 @@ import {
   TraceOperation,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
-import { v4 as uuidv4 } from 'uuid';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -596,7 +594,6 @@ const App = (props) => {
   const dispatch = useDispatch();
   const sdkInit = useRef();
   const [onboarded, setOnboarded] = useState(false);
-  const [isMetaMetricsConfigured, setIsMetaMetricsConfigured] = useState(false);
 
   trace({
     name: TraceName.NavInit,
@@ -741,11 +738,9 @@ const App = (props) => {
   }, [dispatch, handleDeeplink, navigator, queueOfHandleDeeplinkFunctions]);
 
   useEffect(() => {
-    if (isMetaMetricsConfigured) return;
-
     const initMetrics = async () => {
       const metrics = MetaMetrics.getInstance();
-      const metaMetricsConfigState = await metrics.configure();
+      await metrics.configure();
       // identify user with the latest traits
       // run only after the MetaMetrics is configured
       const consolidatedTraits = {
@@ -753,19 +748,12 @@ const App = (props) => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await metrics.addTraitsToUser(consolidatedTraits);
-      setIsMetaMetricsConfigured(metaMetricsConfigState);
-      return await metrics.getMetaMetricsId();
     };
 
-    initMetrics().then((metaMetricsId) => {
-      dispatch(setMetaMetricsId(metaMetricsId));
-    }).catch((err) => {
+    initMetrics().catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
-      // Throw error instead of blocking Engine init
-      // metaMetricsId is a requirement for engine initialization
-      throw new Error('Error initializing. Please try again');
     });
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.
