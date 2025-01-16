@@ -1,4 +1,3 @@
-import { ApprovalRequest } from '@metamask/approval-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 
