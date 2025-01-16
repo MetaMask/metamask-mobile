@@ -82,7 +82,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
 
   return (
     <View style={styles.wrapper}>
-      <View style={styles.marginStart4}>
+      <View style={styles.flexRowTokenValueAndAddress}>
         <View style={styles.valueAndAddress}>
           <ButtonPill
             onPress={handlePressTokenValue}
@@ -102,7 +102,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                   })}
               </Text>
           </ButtonPill>
-          <View style={styles.tokenAssetPill}>
+          <View style={styles.marginStart4}>
             <AssetPill asset={{ chainId, type: AssetType.Native }} />
           </View>
         </View>
