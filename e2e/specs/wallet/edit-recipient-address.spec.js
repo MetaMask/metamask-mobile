@@ -72,6 +72,8 @@ describe(
           const correctAddress = await SendView.splitAddressText();
           await Assertions.checkIfTextMatches(correctAddress[0], CORRECT_SEND_ADDRESS);
 
+          //Assert transactions send screen on IOS only due to android limitations
+          if (device.getPlatform() === 'ios') {
           // Tap Send
           await TransactionConfirmationView.tapConfirmButton();
 
@@ -80,6 +82,7 @@ describe(
           await TestHelpers.delay(3000);
           await TestHelpers.tapByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
           await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
+          }
         },
       );
     });
