@@ -42,6 +42,7 @@ import { selectCanSignTransactions } from '../../../selectors/accountsController
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
 import Engine from '../../../core/Engine';
 import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
+import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -291,15 +292,17 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        <WalletAction
-          actionType={WalletActionType.Earn}
-          iconName={IconName.Sprout}
-          onPress={onEarn}
-          actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-          iconStyle={styles.icon}
-          iconSize={AvatarSize.Md}
-          disabled={!canSignTransactions}
-        />
+        {isStablecoinLendingFeatureEnabled() && (
+          <WalletAction
+            actionType={WalletActionType.Earn}
+            iconName={IconName.Sprout}
+            onPress={onEarn}
+            actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
       </View>
     </BottomSheet>
   );
