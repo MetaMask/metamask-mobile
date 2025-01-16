@@ -389,7 +389,7 @@
     "@storybook/react-native": "^7.6.20",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
-    "@testing-library/react-native": "12.1.2",
+    "@testing-library/react-native": "13.0.1",
     "@types/crypto-js": "^4.1.1",
     "@types/enzyme": "^3.10.12",
     "@types/eth-url-parser": "^1.0.0",
