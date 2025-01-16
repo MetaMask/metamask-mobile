@@ -29,10 +29,12 @@ import { calcTokenAmount } from '../../../../../../../../../../util/transactions
 
 import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
+import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
 import BottomModal from '../../../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
+import { strings } from '../../../../../../../../../../../locales/i18n';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -52,6 +54,9 @@ interface SimulationValueDisplayParams {
   tokenContract: Hex | string | undefined;
 
   // Optional
+
+  /** Whether a large amount can be substituted by "Unlimited" */
+  canDisplayValueAsUnlimited?: boolean;
 
   /** True if value is being credited to wallet */
   credit?: boolean;
@@ -81,6 +86,7 @@ const SimulationValueDisplay: React.FC<
   value,
   credit,
   debit,
+  canDisplayValueAsUnlimited = false,
 }) => {
     const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
@@ -112,6 +118,9 @@ const SimulationValueDisplay: React.FC<
     const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
     const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
 
+    const shouldShowUnlimitedValue = canDisplayValueAsUnlimited &&
+      Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
+
     /** Temporary error capturing as we are building out Permit Simulations */
     if (!tokenContract) {
       Logger.error(
@@ -140,8 +149,10 @@ const SimulationValueDisplay: React.FC<
               <Text>
                 {credit && '+ '}
                 {debit && '- '}
-                {tokenValue  !== null &&
-                  shortenString(tokenValue || '', {
+                {shouldShowUnlimitedValue
+                  ? strings('confirm.unlimited')
+                  : tokenValue !== null &&
+                    shortenString(tokenValue || '', {
                     truncatedCharLimit: 15,
                     truncatedStartChars: 15,
                     truncatedEndChars: 0,
