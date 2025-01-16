@@ -16,6 +16,9 @@ import { isZero } from '../lodash';
 import { regex } from '../regex';
 export { BNToHex };
 
+const MAX_DECIMALS_FOR_TOKENS = 36;
+BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
+
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
 const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
