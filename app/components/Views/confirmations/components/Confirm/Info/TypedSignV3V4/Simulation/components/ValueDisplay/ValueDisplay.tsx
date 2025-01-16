@@ -123,8 +123,6 @@ const SimulationValueDisplay: React.FC<
     }
 
     function handlePressTokenValue() {
-      if (!tokenId) { return; }
-
       setHasValueModalOpen(true);
     }
 
@@ -133,6 +131,7 @@ const SimulationValueDisplay: React.FC<
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
             <ButtonPill
+              isDisabled={!!tokenId || tokenId === '0'}
               onPress={handlePressTokenValue}
               onPressIn={handlePressTokenValue}
               onPressOut={handlePressTokenValue}
