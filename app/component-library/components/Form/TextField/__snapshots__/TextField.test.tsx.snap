@@ -24,7 +24,7 @@ exports[`TextField should render default settings correctly 1`] = `
       }
     }
   >
-    <Input
+    <ForwardRef
       autoFocus={false}
       isDisabled={false}
       isStateStylesDisabled={true}
