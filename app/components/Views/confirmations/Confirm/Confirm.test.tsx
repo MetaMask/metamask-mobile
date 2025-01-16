@@ -10,6 +10,17 @@ import Confirm from './index';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../util/address', () => ({

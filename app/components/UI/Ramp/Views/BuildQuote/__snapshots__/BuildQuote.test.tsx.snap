@@ -2604,6 +2604,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       "padding": 0,
                                     },
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -2792,6 +2793,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                     {
                                       "padding": 0,
                                     },
+                                    undefined,
                                     undefined,
                                   ]
                                 }
@@ -4192,6 +4194,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       "padding": 0,
                                     },
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -4380,6 +4383,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                     {
                                       "padding": 0,
                                     },
+                                    undefined,
                                     undefined,
                                   ]
                                 }
@@ -5780,6 +5784,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       "padding": 0,
                                     },
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -5968,6 +5973,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                     {
                                       "padding": 0,
                                     },
+                                    undefined,
                                     undefined,
                                   ]
                                 }
@@ -7368,6 +7374,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       "padding": 0,
                                     },
                                     undefined,
+                                    undefined,
                                   ]
                                 }
                               >
@@ -7556,6 +7563,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                     {
                                       "padding": 0,
                                     },
+                                    undefined,
                                     undefined,
                                   ]
                                 }
@@ -8503,6 +8511,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -8833,6 +8842,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -9126,6 +9136,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         {
                                           "padding": 0,
                                         },
+                                        undefined,
                                         undefined,
                                       ]
                                     }
@@ -11609,6 +11620,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -11939,6 +11951,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         "padding": 0,
                                       },
                                       undefined,
+                                      undefined,
                                     ]
                                   }
                                 >
@@ -12080,6 +12093,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         {
                                           "padding": 0,
                                         },
+                                        undefined,
                                         undefined,
                                       ]
                                     }
