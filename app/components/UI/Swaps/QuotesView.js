@@ -118,6 +118,7 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import SmartTransactionsEnabledBanner from '../../Views/confirmations/components/SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -147,6 +148,11 @@ const createStyles = (colors) =>
       paddingHorizontal: 20,
       marginVertical: 10,
       width: '100%',
+    },
+    smartTransactionsBanner: {
+      paddingHorizontal: 20,
+      marginHorizontal: 16,
+      marginVertical: 10,
     },
     timerWrapper: {
       backgroundColor: colors.background.alternative,
@@ -1788,7 +1794,9 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
+        <SmartTransactionsEnabledBanner />
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
+          <>
           <View style={styles.alertBar}>
             <Alert small type={AlertType.Info}>
               <Text reset bold>
@@ -1810,12 +1818,16 @@ function SwapsQuotesView({
                 )}
             </Alert>
           </View>
+          </>
         )}
         {!!selectedQuote &&
           hasEnoughTokenBalance &&
           hasEnoughEthBalance &&
           shouldDisplaySlippage && (
             <View style={styles.alertBar}>
+              <View style={styles.smartTransactionsBanner}>
+                <SmartTransactionsEnabledBanner />
+              </View>
               <ActionAlert
                 type={
                   selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH
