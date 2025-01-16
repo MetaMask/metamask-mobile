@@ -149,11 +149,11 @@ const createStyles = (colors) =>
       marginVertical: 10,
       width: '100%',
     },
-    smartTransactionsBanner: {
-      paddingHorizontal: 20,
-      marginHorizontal: 16,
-      marginVertical: 10,
-    },
+    // smartTransactionsBanner: {
+    //   paddingHorizontal: 20,
+    //   marginHorizontal: 16,
+    //   marginVertical: 10,
+    // },
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
@@ -1794,7 +1794,9 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
-        <SmartTransactionsEnabledBanner />
+        <View style={styles.alertBar}>
+          <SmartTransactionsEnabledBanner />
+        </View>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <>
           <View style={styles.alertBar}>
@@ -1825,9 +1827,6 @@ function SwapsQuotesView({
           hasEnoughEthBalance &&
           shouldDisplaySlippage && (
             <View style={styles.alertBar}>
-              <View style={styles.smartTransactionsBanner}>
-                <SmartTransactionsEnabledBanner />
-              </View>
               <ActionAlert
                 type={
                   selectedQuote.priceSlippage?.bucket === SLIPPAGE_BUCKETS.HIGH
