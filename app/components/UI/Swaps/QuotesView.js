@@ -149,11 +149,11 @@ const createStyles = (colors) =>
       marginVertical: 10,
       width: '100%',
     },
-    // smartTransactionsBanner: {
-    //   paddingHorizontal: 20,
-    //   marginHorizontal: 16,
-    //   marginVertical: 10,
-    // },
+    smartTransactionsEnabledBanner: {
+      paddingHorizontal: 20,
+      marginBottom: -8,
+      width: '100%',
+    },
     timerWrapper: {
       backgroundColor: colors.background.alternative,
       borderRadius: 20,
@@ -1794,7 +1794,7 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
-        <View style={styles.alertBar}>
+        <View style={styles.smartTransactionsEnabledBanner}>
           <SmartTransactionsEnabledBanner />
         </View>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (

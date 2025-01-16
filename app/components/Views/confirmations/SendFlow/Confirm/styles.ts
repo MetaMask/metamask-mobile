@@ -154,7 +154,7 @@ const createStyles = (colors: any) =>
       marginBottom: 24,
     },
     smartTransactionsEnabledBanner: {
-      marginBottom: 16,
+      marginBottom: -8,
       marginHorizontal: 16,
     },
   });

@@ -922,7 +922,7 @@ class ApproveTransactionReview extends PureComponent {
                       style={styles.blockaidWarning}
                       onContactUsClicked={this.onContactUsClicked}
                     />
-                    <SmartTransactionsEnabledBanner />
+                    <SmartTransactionsEnabledBanner style={styles.smartTransactionsEnabledBanner} />
                     <Text variant={TextVariant.HeadingMD} style={styles.title}>
                       {this.getTrustTitle(
                         originIsDeeplink,

@@ -120,9 +120,9 @@ const createStyles = (colors) =>
       marginHorizontal: 16,
       marginBottom: -8,
     },
-    smartTransactionsBannerContainer: {
+    smartTransactionsEnableBanner: {
       marginHorizontal: 16,
-      marginBottom: 16,
+      marginBottom: -8,
     },
   });
 
@@ -602,8 +602,8 @@ class TransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
-                    <View style={styles.smartTransactionsBannerContainer}>
-                      <SmartTransactionsEnabledBanner />
+                    <View style={styles.smartTransactionsEnableBanner}>
+                      <SmartTransactionsEnabledBanner devTestId={'TR'} />
                     </View>
                     {to && (
                       <View style={styles.accountWrapper}>
