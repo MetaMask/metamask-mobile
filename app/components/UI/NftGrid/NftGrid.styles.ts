@@ -30,6 +30,9 @@ const styleSheet = () =>
       marginBottom: 8,
       fontSize: 14,
     },
+    spinner: {
+      marginBottom: 8,
+    },
   });
 
 export default styleSheet;

@@ -137,34 +137,22 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
 
   return (
     <View style={styles.itemWrapper} testID="collectible-contracts">
-      {collectibles.length === 0 && (
-        <View style={styles.footer} key={'collectible-contracts-footer'}>
-          {/* fetching state */}
-          {isNftFetchingProgress && (
-            <ActivityIndicator
-              size="large"
-              // style={styles.spinner}
-              // testID={SpinnerTestId}
-            />
-          )}
-          <CollectibleDetectionModal />
-          {!isNftFetchingProgress && collectibles.length === 0 && (
-            <Text style={styles.emptyText}>
-              {strings('wallet.no_collectibles')}
-            </Text>
-          )}
-          <TouchableOpacity
-            onPress={() =>
-              navigation.push('AddAsset', { assetType: 'collectible' })
-            }
-            disabled={false}
-            testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
-          >
-            <Text>{strings('wallet.add_collectibles')}</Text>
-          </TouchableOpacity>
-        </View>
+      <CollectibleDetectionModal />
+      {/* fetching state */}
+      {isNftFetchingProgress && (
+        <ActivityIndicator
+          size="large"
+          style={styles.spinner}
+          // testID={SpinnerTestId}
+        />
       )}
-      {collectibles.length > 0 && (
+      {/* empty state */}
+      {!isNftFetchingProgress && collectibles.length === 0 && (
+        <Text style={styles.emptyText}>
+          {strings('wallet.no_collectibles')}
+        </Text>
+      )}
+      {!isNftFetchingProgress && collectibles.length > 0 && (
         <ScrollView contentContainerStyle={styles.contentContainerStyles}>
           {collectibles.map((collectible: Nft) => {
             if (!collectible) return null;
@@ -192,7 +180,20 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
           })}
         </ScrollView>
       )}
-
+      {!isNftFetchingProgress && (
+        <View style={styles.footer} key={'collectible-contracts-footer'}>
+          {/* additional actions. this may move to a control bar header */}
+          <TouchableOpacity
+            onPress={() =>
+              navigation.push('AddAsset', { assetType: 'collectible' })
+            }
+            disabled={false}
+            testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
+          >
+            <Text>{strings('wallet.add_collectibles')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}
