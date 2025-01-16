@@ -944,7 +944,6 @@ exports[`Tokens render matches snapshot 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -965,7 +964,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": NaN,
+                                  "tokenFiatAmount": 0,
                                 },
                               ]
                             }
@@ -991,7 +990,7 @@ exports[`Tokens render matches snapshot 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
-                              "tokenFiatAmount": NaN,
+                              "tokenFiatAmount": 0,
                             },
                           ]
                         }
@@ -1185,11 +1184,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -1532,11 +1527,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -1667,7 +1658,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -2199,7 +2190,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -2220,7 +2210,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": NaN,
+                                  "tokenFiatAmount": 0,
                                 },
                               ]
                             }
@@ -2246,7 +2236,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
-                              "tokenFiatAmount": NaN,
+                              "tokenFiatAmount": 0,
                             },
                           ]
                         }
@@ -2440,11 +2430,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -2787,11 +2773,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -2922,7 +2904,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -3454,7 +3436,6 @@ exports[`Tokens should render correctly 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -3475,7 +3456,7 @@ exports[`Tokens should render correctly 1`] = `
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": NaN,
+                                  "tokenFiatAmount": 0,
                                 },
                               ]
                             }
@@ -3501,7 +3482,7 @@ exports[`Tokens should render correctly 1`] = `
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
-                              "tokenFiatAmount": NaN,
+                              "tokenFiatAmount": 0,
                             },
                           ]
                         }
@@ -3695,11 +3676,7 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -4042,11 +4019,7 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -4177,7 +4150,7 @@ exports[`Tokens should render correctly 1`] = `
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -4709,7 +4682,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -4730,7 +4702,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "iconUrl": "",
                                   "name": "Bat",
                                   "symbol": "BAT",
-                                  "tokenFiatAmount": NaN,
+                                  "tokenFiatAmount": 0,
                                 },
                                 {
                                   "address": "0x02",
@@ -4739,7 +4711,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   "iconUrl": "",
                                   "name": "Link",
                                   "symbol": "LINK",
-                                  "tokenFiatAmount": NaN,
+                                  "tokenFiatAmount": 0,
                                 },
                               ]
                             }
@@ -4765,7 +4737,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Bat",
                               "symbol": "BAT",
-                              "tokenFiatAmount": NaN,
+                              "tokenFiatAmount": 0,
                             },
                             {
                               "address": "0x02",
@@ -4774,7 +4746,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "iconUrl": "",
                               "name": "Link",
                               "symbol": "LINK",
-                              "tokenFiatAmount": NaN,
+                              "tokenFiatAmount": 0,
                             },
                           ]
                         }
@@ -4968,11 +4940,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -5315,11 +5283,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -5450,7 +5414,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>
@@ -5581,11 +5545,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -5716,7 +5676,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                   }
                                   testID="main-balance-test-id"
                                 >
-                                  &lt; $0.01
+                                  $0
                                 </Text>
                               </View>
                             </TouchableOpacity>

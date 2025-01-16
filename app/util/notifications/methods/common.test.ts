@@ -1,6 +1,7 @@
 import {
   formatMenuItemDate,
   parseNotification,
+  shortenString,
   getLeadingZeroCount,
   formatAmount,
   getUsdAmount,
@@ -216,5 +217,32 @@ describe('parseNotification', () => {
       transaction: { kind: 'eth_received' },
       duration: 5000,
     });
+  });
+});
+
+describe('shortenString', () => {
+  it('should return the same string if it is shorter than TRUNCATED_NAME_CHAR_LIMIT', () => {
+    expect(shortenString('string')).toStrictEqual('string');
+  });
+
+  it('should return the shortened string according to the specified options', () => {
+    expect(
+      shortenString('0x1234567890123456789012345678901234567890', {
+        truncatedCharLimit: 10,
+        truncatedStartChars: 4,
+        truncatedEndChars: 4,
+      }),
+    ).toStrictEqual('0x12...7890');
+  });
+
+  it('should shorten the string and remove all characters from the end if skipCharacterInEnd is true', () => {
+    expect(
+      shortenString('0x1234567890123456789012345678901234567890', {
+        truncatedCharLimit: 10,
+        truncatedStartChars: 4,
+        truncatedEndChars: 4,
+        skipCharacterInEnd: true,
+      }),
+    ).toStrictEqual('0x12...');
   });
 });

@@ -22,7 +22,7 @@ describe('TypedSignV3V4', () => {
       state: typedSignV3ConfirmationState,
     });
     fireEvent.press(getByText('Message'));
-    expect(getAllByText('Message')).toHaveLength(2);
+    expect(getAllByText('Message')).toHaveLength(3);
     expect(getByText('From')).toBeDefined();
     expect(getByText('Cow')).toBeDefined();
     expect(getByText('To')).toBeDefined();
