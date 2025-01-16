@@ -336,13 +336,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               <Image
                                 onError={[Function]}
                                 resizeMode="contain"
-                                source={
-                                  {
-                                    "default": {
-                                      "uri": "MockImage",
-                                    },
-                                  }
-                                }
+                                source={1}
                                 style={
                                   {
                                     "height": 32,
@@ -1007,13 +1001,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                               <Image
                                 onError={[Function]}
                                 resizeMode="contain"
-                                source={
-                                  {
-                                    "default": {
-                                      "uri": "MockImage",
-                                    },
-                                  }
-                                }
+                                source={1}
                                 style={
                                   {
                                     "height": 32,

@@ -3578,7 +3578,6 @@
     "account": "Account",
     "balance": "Balanse",
     "network": "Network",
-    "rpc_url": "URL ng RPC",
     "simulation": {
       "title": "Tinantyang mga pagbabago",
       "personal_sign_info": "Nagsa-sign in ka sa isang site at walang mga inaasahang pagbabago sa iyong account.",
