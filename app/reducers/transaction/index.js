@@ -109,6 +109,8 @@ const transactionReducer = (state = initialState, action) => {
           ...getTxData(action.transaction),
         },
         ...txMeta,
+        // Retain the securityAlertResponses from the old state
+        securityAlertResponses: state.securityAlertResponses,
       };
     }
     case 'SET_TOKENS_TRANSACTION': {
