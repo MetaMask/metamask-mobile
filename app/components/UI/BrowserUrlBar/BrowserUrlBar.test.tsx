@@ -9,6 +9,10 @@ import {
   selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
+import { fireEvent } from '@testing-library/react-native';
+import { BrowserURLBarSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserURLBar.selectors';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const navigation = {
@@ -106,5 +110,109 @@ describe('BrowserUrlBar', () => {
       },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should handle text input changes', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...defaultProps} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const urlInput = getByTestId(BrowserURLBarSelectorsIDs.URL_INPUT);
+    fireEvent.changeText(urlInput, 'test.com');
+
+    expect(defaultProps.onChangeText).toHaveBeenCalledWith('test.com');
+  });
+
+  it('should handle submit editing', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...defaultProps} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const urlInput = getByTestId(BrowserURLBarSelectorsIDs.URL_INPUT);
+    fireEvent(urlInput, 'submitEditing', {
+      nativeEvent: { text: '  test.com  ' },
+    });
+
+    expect(defaultProps.onSubmitEditing).toHaveBeenCalledWith('test.com');
+  });
+
+  it('should handle clear input button press', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...defaultProps} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const clearButton = getByTestId(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+    fireEvent.press(clearButton);
+
+    expect(defaultProps.onChangeText).toHaveBeenCalledWith('');
+  });
+
+  it('should handle cancel button press', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...defaultProps} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const cancelButton = getByTestId(
+      BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+    );
+    fireEvent.press(cancelButton);
+
+    expect(defaultProps.onCancel).toHaveBeenCalled();
+    expect(defaultProps.setIsUrlBarFocused).toHaveBeenCalledWith(false);
+  });
+
+  it('should handle account right button press', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
+      { state: mockInitialState },
+    );
+
+    const accountButton = getByTestId(
+      AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
+    );
+    fireEvent.press(accountButton);
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+      params: {
+        hostInfo: {
+          metadata: {
+            origin: 'example.com',
+          },
+        },
+      },
+    });
+  });
+
+  it('should handle focus and blur events', () => {
+    const { getByTestId } = renderWithProvider(
+      <BrowserUrlBar {...defaultProps} />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const urlInput = getByTestId(BrowserURLBarSelectorsIDs.URL_INPUT);
+
+    fireEvent(urlInput, 'focus');
+    expect(defaultProps.setIsUrlBarFocused).toHaveBeenCalledWith(true);
+    expect(defaultProps.onFocus).toHaveBeenCalled();
+
+    fireEvent(urlInput, 'blur');
+    expect(defaultProps.setIsUrlBarFocused).toHaveBeenCalledWith(false);
+    expect(defaultProps.onBlur).toHaveBeenCalled();
   });
 });

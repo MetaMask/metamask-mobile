@@ -86,6 +86,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
           "width": 28,
         }
       }
+      testID="url-clear-icon"
     >
       <SvgMock
         color="#6a737d"

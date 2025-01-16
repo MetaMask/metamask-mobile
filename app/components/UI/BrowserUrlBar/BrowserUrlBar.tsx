@@ -216,6 +216,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               size={ButtonIconSizes.Md}
               style={styles.clearButton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              testID={BrowserURLBarSelectorsIDs.URL_CLEAR_ICON}
             />
           ) : null}
         </View>
