@@ -1,8 +1,8 @@
-import { BigNumber } from 'bignumber.js';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Text,TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 import { RootState } from '../../../../../../../../../../reducers';
 import { selectConversionRate } from '../../../../../../../../../../selectors/currencyRateController';
@@ -21,6 +21,7 @@ import {
 } from '../../../../../../../../../UI/SimulationDetails/formatAmount';
 import { AssetType } from '../../../../../../../../../UI/SimulationDetails/types';
 import { shortenString } from '../../../../../../../../../../util/notifications/methods/common';
+import { isNumberValue } from '../../../../../../../../../../util/number';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 import BottomModal from '../../../../../../UI/BottomModal';
 
@@ -61,21 +62,15 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
     selectConversionRate(state, chainId),
   );
 
-  const { fiatValue, tokenValue, tokenValueMaxPrecision } = useMemo(() => {
-    if (!value) {
-      return { tokenValue: null, tokenValueMaxPrecision: null };
-    }
+  const tokenAmount = isNumberValue(value) ? calcTokenAmount(value, NATIVE_DECIMALS) : null;
+  const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
-    const tokenAmount = calcTokenAmount(value, NATIVE_DECIMALS);
+  const fiatValue = isValidTokenAmount && conversionRate
+    ? tokenAmount.times(String(conversionRate)).toNumber()
+    : undefined;
 
-    return {
-      fiatValue: conversionRate
-        ? new BigNumber(tokenAmount).times(String(conversionRate)).toNumber()
-        : undefined,
-      tokenValue: formatAmount('en-US', tokenAmount),
-      tokenValueMaxPrecision: formatAmountMaxPrecision('en-US', tokenAmount),
-    };
-  }, [conversionRate, value]);
+  const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
+  const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
 
   function handlePressTokenValue() {
     setHasValueModalOpen(true);

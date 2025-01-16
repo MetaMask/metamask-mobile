@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
@@ -22,6 +23,7 @@ import { selectContractExchangeRates } from '../../../../../../../../../../selec
 
 import Logger from '../../../../../../../../../../util/Logger';
 import { shortenString } from '../../../../../../../../../../util/notifications/methods/common';
+import { isNumberValue } from '../../../../../../../../../../util/number';
 import { useTheme } from '../../../../../../../../../../util/theme';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 
@@ -100,26 +102,15 @@ const SimulationValueDisplay: React.FC<
       tokenDetails as TokenDetailsERC20,
     );
 
-    const fiatValue = useMemo(() => {
-      if (exchangeRate && value && !tokenId) {
-        const tokenAmount = calcTokenAmount(value, tokenDecimals);
-        return tokenAmount.multipliedBy(exchangeRate).toNumber();
-      }
-      return undefined;
-    }, [exchangeRate, tokenDecimals, tokenId, value]);
+    const tokenAmount = isNumberValue(value) && !tokenId ? calcTokenAmount(value, tokenDecimals) : null;
+    const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
 
-    const { tokenValue, tokenValueMaxPrecision } = useMemo(() => {
-      if (!value || tokenId) {
-        return { tokenValue: null, tokenValueMaxPrecision: null };
-      }
+    const fiatValue = isValidTokenAmount && exchangeRate && !tokenId
+      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
+      : undefined;
 
-      const tokenAmount = calcTokenAmount(value, tokenDecimals);
-
-      return {
-        tokenValue: formatAmount('en-US', tokenAmount),
-        tokenValueMaxPrecision: formatAmountMaxPrecision('en-US', tokenAmount),
-      };
-    }, [tokenDecimals, tokenId, value]);
+    const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
+    const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
 
     /** Temporary error capturing as we are building out Permit Simulations */
     if (!tokenContract) {
