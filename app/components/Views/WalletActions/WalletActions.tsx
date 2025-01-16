@@ -263,6 +263,16 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
+        <WalletAction
+          actionType={WalletActionType.Earn}
+          iconName={IconName.Plant}
+          // eslint-disable-next-line no-alert
+          onPress={() => alert('TODO: Redirect to token list bottom sheet')}
+          actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+          iconStyle={styles.icon}
+          iconSize={AvatarSize.Md}
+          disabled={false}
+        />
       </View>
     </BottomSheet>
   );
