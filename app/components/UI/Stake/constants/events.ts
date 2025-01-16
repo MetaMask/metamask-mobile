@@ -12,5 +12,6 @@ export const EVENT_LOCATIONS = {
   STAKE_CONFIRMATION_VIEW: 'StakeConfirmationView',
   UNSTAKE_INPUT_VIEW: 'UnstakeInputView',
   UNSTAKE_CONFIRMATION_VIEW: 'UnstakeConfirmationView',
+  TAB_BAR: 'TabBar',
   UNIT_TEST: 'UnitTest',
 };

@@ -40,6 +40,8 @@ import {
 } from '../../UI/Ramp/routes/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
+import { strings } from '../../../../locales/i18n';
+import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -188,6 +190,23 @@ const WalletActions = () => {
     createEventBuilder,
   ]);
 
+  const onEarn = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
+      });
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
+        .addProperties({
+          text: strings('stake.earn'),
+          location: STAKE_EVENT_LOCATIONS.TAB_BAR,
+        })
+        .build(),
+    );
+  }, [closeBottomSheetAndNavigate, createEventBuilder, navigate, trackEvent]);
+
   const sendIconStyle = useMemo(
     () => ({
       transform: [{ rotate: '-45deg' }],
@@ -266,8 +285,7 @@ const WalletActions = () => {
         <WalletAction
           actionType={WalletActionType.Earn}
           iconName={IconName.Plant}
-          // eslint-disable-next-line no-alert
-          onPress={() => alert('TODO: Redirect to token list bottom sheet')}
+          onPress={onEarn}
           actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
           iconStyle={styles.icon}
           iconSize={AvatarSize.Md}

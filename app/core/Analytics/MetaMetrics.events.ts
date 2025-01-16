@@ -304,6 +304,7 @@ enum EVENT_NAME {
   UNSTAKE_TRANSACTION_CONFIRMED = 'Unstake Transaction Confirmed',
   UNSTAKE_TRANSACTION_SUBMITTED = 'Unstake Transaction Submitted',
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS = 'Visited ETH Overview with Staked Positions',
+  EARN_BUTTON_CLICKED = 'Earn Button Clicked',
 
   // Force Upgrade | Automatic Security Checks
   FORCE_UPGRADE_UPDATE_NEEDED_PROMPT_VIEWED = 'Force Upgrade Update Needed Prompt Viewed',
@@ -990,6 +991,7 @@ const events = {
   VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS: generateOpt(
     EVENT_NAME.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
   ),
+  EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
 };
 
 /**
