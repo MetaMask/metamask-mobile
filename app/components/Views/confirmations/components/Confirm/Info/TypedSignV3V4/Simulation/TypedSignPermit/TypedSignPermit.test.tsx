@@ -19,7 +19,11 @@ describe('PermitSimulation', () => {
     });
 
     expect(getByText('Estimated changes')).toBeDefined();
-    expect(getByText('You’re giving the spender permission to spend this many tokens from your account.')).toBeDefined();
+    expect(
+      getByText(
+        "You're giving the spender permission to spend this many tokens from your account.",
+      ),
+    ).toBeDefined();
     expect(getByText('Spending cap')).toBeDefined();
     expect(getByText('3,000')).toBeDefined();
     expect(getByText('0xCcCCc...ccccC')).toBeDefined();

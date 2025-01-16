@@ -8,7 +8,7 @@ import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import styleSheet from './Confirm.styles';
 
 const Confirm = () => {
