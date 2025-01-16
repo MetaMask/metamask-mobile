@@ -32,7 +32,6 @@ const useVaultApyAverages = () => {
       );
       dispatch(setVaultApyAverages(vaultAprsResponse));
     } catch (err) {
-      console.log('err: ', err);
       setError('Failed to fetch vault APY averages');
     } finally {
       setIsLoading(false);
