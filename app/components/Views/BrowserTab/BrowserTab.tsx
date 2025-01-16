@@ -199,14 +199,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
-    const currentPage = checkUrl || resolvedUrl;
-    const prefixedUrl = prefixUrlWithProtocol(currentPage);
-    const { host: currentHost } = getUrlObj(prefixedUrl);
-    return (
-      currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
-    );
-  }, []);
+  const isHomepage = useCallback(
+    (checkUrl = null) => {
+      const currentPage = checkUrl || resolvedUrl;
+      const prefixedUrl = prefixUrlWithProtocol(currentPage);
+      const { host: currentHost } = getUrlObj(prefixedUrl);
+      return (
+        currentHost === HOMEPAGE_HOST || currentHost === OLD_HOMEPAGE_URL_HOST
+      );
+    },
+    [resolvedUrl],
+  );
 
   const notifyAllConnections = useCallback((payload) => {
     backgroundBridgeRef.current?.sendNotification(payload);
@@ -762,7 +765,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
       }
     },
-    [handleError, handleSuccessfulPageResolution, favicon],
+    [handleError, handleSuccessfulPageResolution, favicon, resolvedUrl],
   );
 
   /**
@@ -841,7 +844,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       });
       backgroundBridgeRef.current = newBridge;
     },
-    [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
+    [
+      navigation,
+      isHomepage,
+      toggleUrlModal,
+      tabId,
+      injectHomePageScripts,
+      resolvedUrl,
+    ],
   );
 
   const sendActiveAccount = useCallback(async () => {
@@ -1100,6 +1110,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     createEventBuilder,
     onSubmitEditing,
     homePageUrl,
+    resolvedUrl,
   ]);
 
   /**
@@ -1108,7 +1119,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const reload = useCallback(() => {
     onSubmitEditing(resolvedUrl);
     triggerDappViewedEvent(resolvedUrl);
-  }, [onSubmitEditing, triggerDappViewedEvent]);
+  }, [onSubmitEditing, triggerDappViewedEvent, resolvedUrl]);
 
   /**
    * Render the onboarding wizard browser step
