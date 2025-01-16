@@ -5,6 +5,7 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import CollectibleMedia from '../CollectibleMedia';
@@ -30,6 +31,7 @@ import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
+import { selectUseNftDetection } from '../../../selectors/preferencesController';
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -58,6 +60,7 @@ interface NftGridProps {
 function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
   const collectibles = useSelector(collectiblesSelector);
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+  const isNftDetectionEnabled = useSelector(selectUseNftDetection);
   const actionSheetRef = useRef<ActionSheetType>(null);
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
     null,
@@ -137,7 +140,7 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
 
   return (
     <View style={styles.itemWrapper} testID="collectible-contracts">
-      <CollectibleDetectionModal />
+      {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
       {isNftFetchingProgress && (
         <ActivityIndicator
@@ -148,9 +151,33 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
       )}
       {/* empty state */}
       {!isNftFetchingProgress && collectibles.length === 0 && (
-        <Text style={styles.emptyText}>
-          {strings('wallet.no_collectibles')}
-        </Text>
+        <View>
+          <Image
+            // style={styles.emptyImageContainer}
+            source={require('../../../images/no-nfts-placeholder.png')}
+            // resizeMode={'contain'}
+          />
+          <Text>Foo</Text>
+        </View>
+        // <View style={styles.emptyContainer}>
+        //   <Image
+        //     style={styles.emptyImageContainer}
+        //     source={require('../../../images/no-nfts-placeholder.png')}
+        //     resizeMode={'contain'}
+        //   />
+        //   <Text style={styles.emptyTitleText}>
+        //     {strings('wallet.no_nfts_yet')}
+        //   </Text>
+        //   <Text
+        //     // onPress={goToLearnMore}
+        //     onPress={() => console.log('goToLearnMore')}
+        //   >
+        //     {strings('wallet.learn_more')}
+        //   </Text>
+        // </View>
+        // <Text style={styles.emptyText}>
+        //   {strings('wallet.no_collectibles')}
+        // </Text>
       )}
       {!isNftFetchingProgress && collectibles.length > 0 && (
         <ScrollView contentContainerStyle={styles.contentContainerStyles}>
@@ -194,6 +221,7 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
           </TouchableOpacity>
         </View>
       )}
+
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}

@@ -25,13 +25,29 @@ const styleSheet = () =>
       alignItems: 'center',
       //   marginTop: 8,
     },
+    spinner: {
+      marginBottom: 8,
+    },
+    emptyContainer: {
+      // flex: 1,
+      alignItems: 'center',
+      outline: 'solid red 2px',
+    },
+    emptyImageContainer: {
+      width: 76,
+      height: 76,
+      // marginTop: 30,
+      // marginBottom: 12,
+      // tintColor: colors.icon.muted,
+    },
+    emptyTitleText: {
+      fontSize: 24,
+      // color: colors.text.alternative,
+    },
     emptyText: {
       // color: colors.text.alternative,
       marginBottom: 8,
       fontSize: 14,
-    },
-    spinner: {
-      marginBottom: 8,
     },
   });
 
