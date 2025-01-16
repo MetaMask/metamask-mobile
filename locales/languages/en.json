@@ -3618,7 +3618,7 @@
       "label_change_type_receive": "You receive",
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
-      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
+      "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
