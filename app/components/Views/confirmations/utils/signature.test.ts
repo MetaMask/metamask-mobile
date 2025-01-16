@@ -1,4 +1,3 @@
-import { ApprovalRequest } from '@metamask/approval-controller';
 import { parseTypedDataMessage, isRecognizedPermit } from './signature';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 import { SignatureRequest } from '@metamask/signature-controller';
