@@ -84,7 +84,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsBannerDismissed,
+        .featureFlags.smartTransactionsBannerDismissed,
     ).toBe(false);
   });
 
