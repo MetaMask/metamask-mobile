@@ -346,6 +346,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             "lineHeight": 22,
                           }
                         }
+                        testID="permission-summary-account-text"
                       >
                         <Text
                           accessibilityRole="text"
@@ -562,13 +563,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             <Image
                               onError={[Function]}
                               resizeMode="contain"
-                              source={
-                                {
-                                  "default": {
-                                    "uri": "MockImage",
-                                  },
-                                }
-                              }
+                              source={1}
                               style={
                                 {
                                   "height": 16,
