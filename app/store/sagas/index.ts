@@ -129,15 +129,14 @@ export function* basicFunctionalityToggle() {
  * Handles initializing app services on start up
  */
 export function* startAppServices() {
-  // Wait for persisted data to be loaded and navigation to be ready
+  // Wait for persisted data to be loaded, navigation to be ready and metametrics initialized.
+  // Remote feature flag controller requires metaMetricsId to be initialized
   yield all([
     take(UserActionType.ON_PERSISTED_DATA_LOADED),
     take(NavigationActionType.ON_NAVIGATION_READY),
-    //temp set metametrics id before engine init
     take(UserActionType.SET_METAMETRICS_ID),
   ]);
   // Start services
-  // init metametrics
   EngineService.start();
   AppStateEventProcessor.start();
   // TODO: Track a property in redux to gate keep the app until services are initialized

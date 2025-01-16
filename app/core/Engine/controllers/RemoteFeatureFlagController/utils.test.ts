@@ -21,7 +21,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: false,
-        getMetaMetricsId: () => uuidv4()
+        getMetaMetricsId: () => uuidv4(),
       });
 
       expect(controller).toBeDefined();
@@ -45,7 +45,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: initialState,
         messenger,
         disabled: false,
-        getMetaMetricsId: () => uuidv4()
+        getMetaMetricsId: () => uuidv4(),
       });
 
       expect(controller.state).toStrictEqual(initialState);
@@ -61,7 +61,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: false,
-        getMetaMetricsId: () => uuidv4()
+        getMetaMetricsId: () => uuidv4(),
       });
 
       expect(spy).toHaveBeenCalled();
@@ -77,7 +77,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: undefined,
         messenger,
         disabled: true,
-        getMetaMetricsId: () => uuidv4()
+        getMetaMetricsId: () => uuidv4(),
       });
 
       expect(spy).not.toHaveBeenCalled();
@@ -93,6 +93,7 @@ describe('RemoteFeatureFlagController utils', () => {
         state: initialState,
         messenger,
         disabled: false,
+        getMetaMetricsId: () => uuidv4(),
       });
 
       expect(controller.state).toStrictEqual({
