@@ -104,11 +104,11 @@ const StateChangeRow = ({
     stateChange;
   const nftTransactionType = getStateChangeType(stateChangeList, stateChange);
   const tooltip = shouldDisplayLabel ? getStateChangeToolip(nftTransactionType) : undefined;
-  // todo: add
-  // const canDisplayValueAsUnlimited =
-  //   assetType === TokenStandard.ERC20 &&
-  //   (changeType === DecodingDataChangeType.Approve ||
-  //     changeType === DecodingDataChangeType.Revoke);
+
+  const canDisplayValueAsUnlimited =
+    assetType === TokenStandard.ERC20 &&
+    (changeType === DecodingDataChangeType.Approve ||
+      changeType === DecodingDataChangeType.Revoke);
 
   const changeLabel = shouldDisplayLabel
     ? getStateChangeLabelMap(changeType, nftTransactionType)
@@ -133,8 +133,7 @@ const StateChangeRow = ({
             changeType === DecodingDataChangeType.Receive
           }
           debit={changeType === DecodingDataChangeType.Transfer}
-          // todo: add
-          // canDisplayValueAsUnlimited={canDisplayValueAsUnlimited}
+          canDisplayValueAsUnlimited={canDisplayValueAsUnlimited}
         />
       )}
       {assetType === 'NATIVE' && (
