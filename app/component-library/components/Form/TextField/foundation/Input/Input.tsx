@@ -13,7 +13,7 @@ import styleSheet from './Input.styles';
 import { InputProps } from './Input.types';
 import { INPUT_TEST_ID } from './Input.constants';
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(({
+const Input = React.forwardRef<TextInput, InputProps>(({
   style,
   textVariant = DEFAULT_TEXT_VARIANT,
   isStateStylesDisabled,
@@ -67,7 +67,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       autoFocus={autoFocus}
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}
-      ref={ref as React.RefObject<TextInput>}
+      ref={ref}
     />
   );
 });

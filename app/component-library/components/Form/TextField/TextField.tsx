@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -19,7 +19,7 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from './TextField.constants';
 
-const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>((
+const TextField = React.forwardRef<TextInput, TextFieldProps>((
   {
     style,
     size = DEFAULT_TEXTFIELD_SIZE,
