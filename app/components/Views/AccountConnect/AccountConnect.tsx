@@ -209,6 +209,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       const initialNetworkAvatar = {
         size: AvatarSize.Xs,
         name: networkConfigurations[chainId]?.name || '',
+        // @ts-expect-error getNetworkImageSource is not implemented in typescript
         imageSource: getNetworkImageSource({ chainId }),
       };
       setSelectedNetworkAvatars([initialNetworkAvatar]);
