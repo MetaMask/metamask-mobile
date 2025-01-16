@@ -3,11 +3,9 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
   selectConversionRateByChainId,
-  selectConversionRateFoAllChains,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
-import { selectNativeCurrencyByChainId } from './networkController';
 
 jest.mock('../../app/util/networks', () => ({
   isTestNet: jest.fn(),
