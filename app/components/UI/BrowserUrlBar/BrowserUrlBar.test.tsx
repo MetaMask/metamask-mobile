@@ -5,10 +5,17 @@ import { ConnectionType } from './BrowserUrlBar.types';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 
 const mockNavigate = jest.fn();
-
+const navigation = {
+  params: {
+    url: 'https://metamask.github.io/test-dapp/',
+  },
+};
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -16,6 +23,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useRoute: jest.fn(() => ({ params: navigation.params })),
   };
 });
 
@@ -55,6 +63,18 @@ describe('BrowserUrlBar', () => {
     setIsUrlBarFocused: jest.fn(),
     isUrlBarFocused: true,
   };
+  const propsWithoutUrlBarFocused = {
+    connectionType: ConnectionType.SECURE,
+    onSubmitEditing: jest.fn(),
+    onCancel: jest.fn(),
+    onFocus: jest.fn(),
+    onBlur: jest.fn(),
+    onChangeText: jest.fn(),
+    connectedAccounts: ['0x123'],
+    activeUrl: 'https://example.com',
+    setIsUrlBarFocused: jest.fn(),
+    isUrlBarFocused: false,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,6 +86,7 @@ describe('BrowserUrlBar', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAccountsLength) return 1;
       if (selector === selectNetworkConfigurations) return {};
+      if (selector === selectProviderConfig) return { chainId: '0x1' };
       return null;
     });
   });
@@ -74,6 +95,16 @@ describe('BrowserUrlBar', () => {
     const { toJSON } = renderWithProvider(<BrowserUrlBar {...defaultProps} />, {
       state: mockInitialState,
     });
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should render correctly when url bar is not focused', () => {
+    const { toJSON } = renderWithProvider(
+      <BrowserUrlBar {...propsWithoutUrlBarFocused} />,
+      {
+        state: mockInitialState,
+      },
+    );
     expect(toJSON()).toMatchSnapshot();
   });
 });
