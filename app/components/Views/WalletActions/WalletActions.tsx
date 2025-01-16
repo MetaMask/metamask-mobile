@@ -295,7 +295,7 @@ const WalletActions = () => {
         {isStablecoinLendingFeatureEnabled() && (
           <WalletAction
             actionType={WalletActionType.Earn}
-            iconName={IconName.Sprout}
+            iconName={IconName.Plant}
             onPress={onEarn}
             actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
             iconStyle={styles.icon}

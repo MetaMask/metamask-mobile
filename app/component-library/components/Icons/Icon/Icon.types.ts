@@ -204,7 +204,6 @@ export enum IconName {
   Snaps = 'Snaps',
   Sparkle = 'Sparkle',
   Speedometer = 'Speedometer',
-  Sprout = 'Sprout',
   Square = 'Square',
   Star = 'Star',
   Student = 'Student',
