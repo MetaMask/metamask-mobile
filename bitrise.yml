@@ -779,13 +779,11 @@ workflows:
           title: Deploy Android Build Artifacts
           is_always_run: true
           inputs:
-            - deploy_path: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+            - content: |-
+                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
+            - deploy_path: $INTERMEDIATE_ANDROID_BUILD_DIR
             - is_compress: true
             - zip_name: Android_Build_Artifacts
-      - deploy-to-bitrise-io@2.2.3:
-          inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -1036,7 +1034,9 @@ workflows:
           title: Deploy iOS Build Artifacts
           is_always_run: true
           inputs:
-            - deploy_path: ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+            - content: |-
+                  cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build
+            - deploy_path: $INTERMEDIATE_IOS_BUILD_DIR
             - is_compress: true
             - zip_name: iOS_Build_Artifacts
       - save-cache@1:
