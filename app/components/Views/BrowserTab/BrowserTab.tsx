@@ -111,7 +111,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   id: tabId,
   isIpfsGatewayEnabled,
   addToWhitelist: triggerAddToWhitelist,
-  whitelist,
   showTabs,
   linkType,
   isInTabsView,
@@ -145,7 +144,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const [connectionType, setConnectionType] = useState(ConnectionType.UNKNOWN);
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
-  const allowList = useRef<string[]>([]); // TODO: Consider improving this type
   const webStates = useRef<
     Record<string, { requested: boolean; started: boolean; ended: boolean }>
   >({});
@@ -194,6 +192,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const isTabActive = useSelector(
     (state: RootState) => state.browser.activeTab === tabId,
   );
+
+  /**
+   * whitelisted url to bypass the phishing detection
+   */
+  const whitelist = useSelector((state: RootState) => state.browser.whitelist);
 
   const isFocused = useIsFocused();
 
@@ -283,28 +286,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Check if an origin is allowed
    */
-  const isAllowedOrigin = useCallback((urlOrigin: string) => {
-    const { PhishingController } = Engine.context;
+  const isAllowedOrigin = useCallback(
+    (urlOrigin: string) => {
+      const { PhishingController } = Engine.context;
 
-    // Update phishing configuration if it is out-of-date
-    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-    // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
+      // Update phishing configuration if it is out-of-date
+      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
+      // down network requests. The configuration is updated for the next request.
+      PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(urlOrigin);
+      const phishingControllerTestResult = PhishingController.test(urlOrigin);
 
-    // Only assign the if the hostname is on the block list
-    if (
-      phishingControllerTestResult.result &&
-      phishingControllerTestResult.name
-    )
-      blockListType.current = phishingControllerTestResult.name;
+      // Only assign the if the hostname is on the block list
+      if (
+        phishingControllerTestResult.result &&
+        phishingControllerTestResult.name
+      )
+        blockListType.current = phishingControllerTestResult.name;
 
-    return (
-      allowList.current?.includes(urlOrigin) ||
-      !phishingControllerTestResult.result
-    );
-  }, []);
+      return (
+        whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
+      );
+    },
+    [whitelist],
+  );
 
   /**
    * Show a phishing modal when a url is not allowed
@@ -971,10 +976,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     }
   }, [isIpfsGatewayEnabled]);
 
-  useEffect(() => {
-    allowList.current = whitelist;
-  }, [whitelist]);
-
   /**
    * Render the progress bar
    */
@@ -1419,7 +1420,6 @@ const mapStateToProps = (state: RootState) => ({
   selectedAddress:
     selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
-  whitelist: state.browser.whitelist,
   wizardStep: state.wizard.step,
   activeChainId: selectChainId(state),
 });
