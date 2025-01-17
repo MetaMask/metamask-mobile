@@ -17,8 +17,8 @@ interface ExpandableSectionProps {
   collapsedContent: ReactNode;
   expandedContent: ReactNode;
   expandedContentTitle: string;
-  closeButtonTestId?: string;
   iconVerticalPosition?: IconVerticalPosition;
+  testID?: string;
 }
 
 export enum IconVerticalPosition {
@@ -29,8 +29,8 @@ const ExpandableSection = ({
   collapsedContent,
   expandedContent,
   expandedContentTitle,
-  closeButtonTestId,
   iconVerticalPosition,
+  testID,
 }: ExpandableSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
   const [expanded, setExpanded] = useState(false);
@@ -46,6 +46,7 @@ const ExpandableSection = ({
         onPressOut={() => setExpanded(true)}
         accessible
         activeOpacity={1}
+        testID={testID ?? 'expandableSection'}
       >
         <View style={styles.container}>
           {collapsedContent}
@@ -69,7 +70,6 @@ const ExpandableSection = ({
                 size={ButtonIconSizes.Sm}
                 onPress={() => setExpanded(false)}
                 iconName={IconName.ArrowLeft}
-                testID={closeButtonTestId ?? 'closeButtonTestId'}
               />
               <Text style={styles.expandedContentTitle}>
                 {expandedContentTitle}

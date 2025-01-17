@@ -6,12 +6,17 @@ import styleSheet from './InfoSection.styles';
 
 interface InfoSectionProps {
   children: ReactNode;
+  testId: string;
 }
 
-const InfoSection = ({ children }: InfoSectionProps) => {
+const InfoSection = ({ children, testId }: InfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  return <View style={styles.container}>{children}</View>;
+  return (
+    <View style={styles.container} testID={testId ?? 'info-section'}>
+      {children}
+    </View>
+  );
 };
 
 export default InfoSection;
