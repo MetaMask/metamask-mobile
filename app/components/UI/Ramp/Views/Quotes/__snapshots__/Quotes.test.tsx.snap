@@ -35,7 +35,6 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               "padding": 0,
             },
             undefined,
-            undefined,
           ]
         }
       >
@@ -277,7 +276,6 @@ exports[`LoadingQuotes component renders correctly 1`] = `
               "padding": 0,
             },
             undefined,
-            undefined,
           ]
         }
       >
@@ -415,7 +413,6 @@ exports[`LoadingQuotes component renders correctly 1`] = `
             {
               "padding": 0,
             },
-            undefined,
             undefined,
           ]
         }
@@ -3546,7 +3543,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                               "padding": 0,
                                             },
                                             undefined,
-                                            undefined,
                                           ]
                                         }
                                       >
@@ -3818,7 +3814,6 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -5023,7 +5018,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                     "padding": 0,
                                                   },
                                                   undefined,
-                                                  undefined,
                                                 ]
                                               }
                                             >
@@ -5295,7 +5289,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                   {
                                                     "padding": 0,
                                                   },
-                                                  undefined,
                                                   undefined,
                                                 ]
                                               }
@@ -5595,7 +5588,6 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                                   {
                                                     "padding": 0,
                                                   },
-                                                  undefined,
                                                   undefined,
                                                 ]
                                               }

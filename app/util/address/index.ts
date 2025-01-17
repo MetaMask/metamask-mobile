@@ -33,7 +33,7 @@ import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType, toChecksumHexAddress } from '@metamask/controller-utils';
 import { NetworkClientId, NetworkState } from '@metamask/network-controller';

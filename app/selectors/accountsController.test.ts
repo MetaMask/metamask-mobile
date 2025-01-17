@@ -1,7 +1,8 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType, InternalAccount } from '@metamask/keyring-api';
+import { BtcAccountType } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
   selectSelectedInternalAccount,
@@ -84,6 +85,7 @@ describe('Accounts Controller Selectors', () => {
         address: '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756',
         id: expectedUuid2,
         options: {},
+        scopes: ['eip155'],
         metadata: {
           name: 'Account 2',
           importTime: 1684232000456,
