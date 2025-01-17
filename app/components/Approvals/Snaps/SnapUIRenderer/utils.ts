@@ -89,7 +89,7 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
 
-  if (!(type in COMPONENT_MAPPING)) {
+  if (!hasProperty(COMPONENT_MAPPING, type)) {
     throw new Error(`Unknown component type: ${type}`);
   }
 
