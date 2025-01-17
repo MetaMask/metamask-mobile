@@ -51,20 +51,20 @@ const SmartTransactionsMigrationBanner = ({
   return (
     <BannerAlert
       severity={BannerAlertSeverity.Info}
-      title={strings('smart_transactions_enabled.title')}
+      title={strings('smart_transactions_migration.title')}
       description={
         <Text style={styles.textContainer}>
           <Text onPress={handleLearnMore} style={styles.link}>
-            {strings('smart_transactions_enabled.link')}
+            {strings('smart_transactions_migration.link')}
           </Text>
           <Text style={styles.description}>
-            {' '}{strings('smart_transactions_enabled.description')}
+            {' '}{strings('smart_transactions_migration.description')}
           </Text>
         </Text>
       }
       onClose={dismissBanner}
       style={styles.banner}
-      testID="smart-transactions-enabled-banner"
+      testID="smart-transactions-migration-banner"
     />
   );
 };

@@ -3637,7 +3637,7 @@
     "add_account_button": "Add account",
     "name_taken_message": "This account name already exists"
   },
-    "smart_transactions_enabled": {
+    "smart_transactions_migration": {
     "title": "Transactions just got smarter",
     "link": "Higher success rates",
     "description": " and MEV protection. Now on by default."

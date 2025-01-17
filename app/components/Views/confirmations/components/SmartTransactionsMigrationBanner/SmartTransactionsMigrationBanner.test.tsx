@@ -50,7 +50,7 @@ describe('SmartTransactionsMigrationBanner', () => {
         <SmartTransactionsMigrationBanner />
       </Provider>
     );
-    expect(queryByTestId('smart-transactions-enabled-banner')).toBeNull();
+    expect(queryByTestId('smart-transactions-migration-banner')).toBeNull();
   });
 
   it('renders banner when conditions are met', () => {
@@ -62,9 +62,9 @@ describe('SmartTransactionsMigrationBanner', () => {
       </Provider>
     );
 
-    expect(getByTestId('smart-transactions-enabled-banner')).toBeDefined();
-    expect(getByText('smart_transactions_enabled.title')).toBeDefined();
-    expect(getByText('smart_transactions_enabled.link')).toBeDefined();
+    expect(getByTestId('smart-transactions-migration-banner')).toBeDefined();
+    expect(getByText('smart_transactions_migration.title')).toBeDefined();
+    expect(getByText('smart_transactions_migration.link')).toBeDefined();
   });
 
   it('calls setFeatureFlag when close button is pressed', () => {
@@ -93,7 +93,7 @@ describe('SmartTransactionsMigrationBanner', () => {
       </Provider>
     );
 
-    const banner = getByTestId('smart-transactions-enabled-banner');
+    const banner = getByTestId('smart-transactions-migration-banner');
     expect(banner.props.style).toMatchObject(expect.objectContaining(customStyle));
   });
 });
