@@ -7,7 +7,7 @@ import {
   typedSignV1ConfirmationState,
 } from '../../../../../../util/test/confirm-data-helpers';
 import SignatureBlockaidBanner from './index';
-import { DecodingDataChangeType, MessageParamsTyped } from '@metamask/signature-controller';
+import { MessageParamsTyped } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
 
 jest.mock('react-native-gzip', () => ({
@@ -16,10 +16,6 @@ jest.mock('react-native-gzip', () => ({
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilderAddProperties = jest.fn();
-
-jest.mock('../../../hooks/useTypedSignSimulationEnabled', () => ({
-  useTypedSignSimulationEnabled: () => true,
-}));
 
 jest.mock('../../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -62,18 +58,6 @@ const typedSignV1ConfirmationStateWithBlockaidResponse = {
             messageParams: {
               ...typedSignApproval.requestData,
             } as MessageParamsTyped,
-            decodingData: {
-              stateChanges: [
-                {
-                  assetType: 'ERC20',
-                  changeType: DecodingDataChangeType.Approve,
-                  address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
-                  amount: '12345',
-                  contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                },
-              ],
-              error: undefined,
-            },
           },
         },
       },
