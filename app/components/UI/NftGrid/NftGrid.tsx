@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Image,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import CollectibleMedia from '../CollectibleMedia';
@@ -18,7 +20,10 @@ import {
   isNftFetchingProgressSelector,
 } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import {
   MetaMetricsEvents,
   useMetrics,
@@ -32,6 +37,15 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import AppConstants from '../../../core/AppConstants';
+import {
+  RefreshTestId,
+  SpinnerTestId,
+} from '../CollectibleContracts/constants';
+import NftGridItem from './NftGridItem';
+
+const noNftPlaceholderSrc = require('../../../images/no-nfts-placeholder.png');
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -65,9 +79,24 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
     null,
   );
-  const { themeAppearance } = useTheme();
+  const { themeAppearance, colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+      const { NftDetectionController, NftController } = Engine.context;
+      const actions = [
+        NftDetectionController.detectNfts(),
+        NftController.checkAndUpdateAllNftsOwnershipStatus(),
+      ];
+      await Promise.allSettled(actions);
+      setRefreshing(false);
+    });
+  }, [setRefreshing]);
 
   const onLongPressCollectible = useCallback((collectible) => {
     actionSheetRef?.current?.show();
@@ -138,90 +167,139 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
     [navigation],
   );
 
+  const renderCollectible = (collectible: Nft, index: number) => {
+    if (!collectible) return null;
+    return (
+      <TouchableOpacity
+        key={collectible.address}
+        style={styles.collectibleCard}
+        onPress={() => onItemPress(collectible)}
+        onLongPress={() => onLongPressCollectible(collectible)}
+        testID={collectible.name as string}
+      >
+        <CollectibleMedia
+          style={styles.collectibleIcon}
+          collectible={collectible}
+          isTokenImage
+        />
+        <Text numberOfLines={1} ellipsizeMode="tail">
+          {collectible.name}
+        </Text>
+        <Text numberOfLines={1} ellipsizeMode="tail">
+          {collectible.collection?.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const NftGridFooter = () => (
+    <View
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
+        {strings('wallet.no_collectibles')}
+      </Text>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.push('AddAsset', { assetType: 'collectible' })
+        }
+        disabled={false}
+        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
+      >
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Info}>
+          {strings('wallet.add_collectibles')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const NftGridEmpty = () => (
+    <View
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      <Image
+        style={{
+          height: 90,
+          width: 90,
+          tintColor: 'lightgray',
+          marginTop: 30,
+          marginBottom: 12,
+        }}
+        source={noNftPlaceholderSrc}
+        resizeMode="contain"
+      />
+      <Text
+        style={styles.headingMd}
+        variant={TextVariant.HeadingMD}
+        color={TextColor.Alternative}
+      >
+        {strings('wallet.no_nfts_yet')}
+      </Text>
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('Webview', {
+            screen: 'SimpleWebview',
+            params: { url: AppConstants.URLS.NFT },
+          })
+        }
+        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
+      >
+        <Text
+          variant={TextVariant.BodyMDMedium}
+          color={TextColor.Info}
+          onPress={() => console.log('goToLearnMore')}
+        >
+          {strings('wallet.learn_more')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <View style={styles.itemWrapper} testID="collectible-contracts">
+    <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
       {/* fetching state */}
       {isNftFetchingProgress && (
         <ActivityIndicator
           size="large"
           style={styles.spinner}
-          // testID={SpinnerTestId}
+          testID={SpinnerTestId}
         />
       )}
       {/* empty state */}
       {!isNftFetchingProgress && collectibles.length === 0 && (
-        <View>
-          <Image
-            // style={styles.emptyImageContainer}
-            source={require('../../../images/no-nfts-placeholder.png')}
-            // resizeMode={'contain'}
-          />
-          <Text>Foo</Text>
-        </View>
-        // <View style={styles.emptyContainer}>
-        //   <Image
-        //     style={styles.emptyImageContainer}
-        //     source={require('../../../images/no-nfts-placeholder.png')}
-        //     resizeMode={'contain'}
-        //   />
-        //   <Text style={styles.emptyTitleText}>
-        //     {strings('wallet.no_nfts_yet')}
-        //   </Text>
-        //   <Text
-        //     // onPress={goToLearnMore}
-        //     onPress={() => console.log('goToLearnMore')}
-        //   >
-        //     {strings('wallet.learn_more')}
-        //   </Text>
-        // </View>
-        // <Text style={styles.emptyText}>
-        //   {strings('wallet.no_collectibles')}
-        // </Text>
+        <>
+          <NftGridEmpty />
+          <NftGridFooter />
+        </>
       )}
+      {/* nft grid */}
       {!isNftFetchingProgress && collectibles.length > 0 && (
-        <ScrollView contentContainerStyle={styles.contentContainerStyles}>
-          {collectibles.map((collectible: Nft) => {
-            if (!collectible) return null;
-            return (
-              <TouchableOpacity
-                key={collectible.address}
-                style={styles.collectibleCard}
-                onPress={() => onItemPress(collectible)}
-                onLongPress={() => onLongPressCollectible(collectible)}
-                testID={collectible.name as string}
-              >
-                <CollectibleMedia
-                  style={styles.collectibleIcon}
-                  collectible={collectible}
-                  isTokenImage
-                />
-                <Text numberOfLines={1} ellipsizeMode="tail">
-                  {collectible.name}
-                </Text>
-                <Text numberOfLines={1} ellipsizeMode="tail">
-                  {collectible.collection?.name}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <FlatList
+          numColumns={3}
+          data={collectibles}
+          renderItem={({ item, index }: { item: Nft; index: number }) => (
+            <NftGridItem nft={item} navigation={navigation} />
+          )}
+          keyExtractor={(_, index) => index.toString()}
+          testID={RefreshTestId}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary.default]}
+              tintColor={colors.icon.default}
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+            />
+          }
+          ListFooterComponent={<NftGridFooter />}
+        />
       )}
-      {!isNftFetchingProgress && (
-        <View style={styles.footer} key={'collectible-contracts-footer'}>
-          {/* additional actions. this may move to a control bar header */}
-          <TouchableOpacity
-            onPress={() =>
-              navigation.push('AddAsset', { assetType: 'collectible' })
-            }
-            disabled={false}
-            testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
-          >
-            <Text>{strings('wallet.add_collectibles')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
       <ActionSheet
         ref={actionSheetRef}
         title={strings('wallet.collectible_action_title')}

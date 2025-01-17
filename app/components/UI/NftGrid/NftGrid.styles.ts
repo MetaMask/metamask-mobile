@@ -1,24 +1,19 @@
+import { useTheme } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
-    itemWrapper: {
-      paddingHorizontal: 15,
-      paddingBottom: 16,
-    },
+const styleSheet = () => {
+  const { colors } = useTheme();
+  return StyleSheet.create({
     collectibleIcon: {
       width: '100%',
       aspectRatio: 1,
     },
     collectibleCard: {
-      width: '30%',
-      padding: 3,
+      flexBasis: '33%',
+      padding: 10,
       marginBottom: 10,
-    },
-    contentContainerStyles: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between', // Optional: Adjust spacing between items
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     footer: {
       //   flex: 1,
@@ -29,20 +24,19 @@ const styleSheet = () =>
       marginBottom: 8,
     },
     emptyContainer: {
-      // flex: 1,
+      flex: 1,
       alignItems: 'center',
       outline: 'solid red 2px',
     },
     emptyImageContainer: {
-      width: 76,
-      height: 76,
+      width: 30,
+      height: 30,
       // marginTop: 30,
       // marginBottom: 12,
-      // tintColor: colors.icon.muted,
+      tintColor: colors.background,
     },
-    emptyTitleText: {
-      fontSize: 24,
-      // color: colors.text.alternative,
+    headingMd: {
+      marginTop: 10,
     },
     emptyText: {
       // color: colors.text.alternative,
@@ -50,5 +44,6 @@ const styleSheet = () =>
       fontSize: 14,
     },
   });
+};
 
 export default styleSheet;
