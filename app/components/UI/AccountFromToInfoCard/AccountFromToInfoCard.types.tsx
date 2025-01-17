@@ -1,4 +1,4 @@
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface SelectedAsset {
   isETH: boolean;
