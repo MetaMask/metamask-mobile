@@ -13,6 +13,7 @@ import { isSignatureRequest } from '../utils/confirm';
 import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
+import { SignatureRequest } from '@metamask/signature-controller';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -22,11 +23,16 @@ interface MessageParamsType {
 }
 
 const getAnalyticsParams = (
-  messageParams: MessageParamsType,
-  type: string,
-  chainId?: Hex,
+  signatureRequest: SignatureRequest,
+  isSimulationEnabled?: boolean,
 ) => {
-  const { meta = {}, from, securityAlertResponse, version } = messageParams;
+  const { chainId, messageParams, type } = signatureRequest ?? {};
+  const {
+    meta = {},
+    from,
+    securityAlertResponse,
+    version
+  } = (messageParams  as unknown as MessageParamsType) || {};
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -39,6 +45,7 @@ const getAnalyticsParams = (
     ...(securityAlertResponse
       ? getBlockaidMetricsParams(securityAlertResponse)
       : {}),
+    ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
   };
 };
 
@@ -46,7 +53,7 @@ export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
   const isSimulationEnabled = useTypedSignSimulationEnabled();
 
-  const { chainId, messageParams, type } = signatureRequest ?? {};
+  const type = signatureRequest?.type;
 
   const captureSignatureMetrics = useCallback(
     async (
@@ -56,22 +63,18 @@ export const useSignatureMetrics = () => {
         return;
       }
 
-      const eventProps = {
-        ...getAnalyticsParams(
-          messageParams as unknown as MessageParamsType,
-          type,
-          chainId,
-        ),
-        ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
-      };
-
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder(event)
-          .addProperties(eventProps)
+          .addProperties(
+            getAnalyticsParams(
+              signatureRequest as SignatureRequest,
+              isSimulationEnabled,
+            ),
+          )
           .build(),
       );
     },
-    [chainId, isSimulationEnabled, messageParams, type, signatureRequest],
+    [isSimulationEnabled, type, signatureRequest],
   );
 
   useEffect(() => {
