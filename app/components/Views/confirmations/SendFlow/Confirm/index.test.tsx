@@ -126,7 +126,6 @@ jest.mock('../../../../../util/ENSUtils', () => ({
 jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
   validateRequest: jest.fn(),
-  isChainSupported: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => {
