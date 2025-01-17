@@ -53,13 +53,7 @@ exports[`BadgeWrapper should render BadgeWrapper correctly 1`] = `
     }
   >
     <Badge
-      imageSource={
-        {
-          "default": {
-            "uri": "MockImage",
-          },
-        }
-      }
+      imageSource={1}
       isScaled={true}
       name="Ethereum"
       variant="network"

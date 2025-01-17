@@ -3,17 +3,20 @@
 exports[`InfoAddress should match snapshot 1`] = `
 <View
   style={
-    {
-      "alignItems": "center",
-      "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
-      "borderRadius": 99,
-      "flexDirection": "row",
-      "gap": 5,
-      "paddingLeft": 8,
-      "paddingRight": 8,
-      "paddingVertical": 4,
-    }
+    [
+      {
+        "alignItems": "center",
+        "alignSelf": "center",
+        "backgroundColor": "#f2f4f6",
+        "borderRadius": 99,
+        "flexDirection": "row",
+        "gap": 5,
+        "paddingLeft": 8,
+        "paddingRight": 8,
+        "paddingVertical": 4,
+      },
+      undefined,
+    ]
   }
 >
   <SvgMock

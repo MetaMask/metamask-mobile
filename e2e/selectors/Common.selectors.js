@@ -13,7 +13,7 @@ export const CommonSelectorsIDs = {
   NAV_IOS_BACK: 'nav-ios-back',
   FOX_SCREEN: 'fox-screen',
   NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
-  STATUS_CONFIRMED: 'status-confirmed-text',
+  TRANSACTION_STATUS: 'transaction-status',
   ANDROID_PROGRESS_BAR: 'android.widget.ProgressBar',
 };
 
