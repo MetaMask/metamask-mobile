@@ -59,10 +59,6 @@ export type BrowserTabProps = {
    */
   selectedAddress: string | undefined; // This should never be undefined, need to fix the accounts controller selector
   /**
-   * whitelisted url to bypass the phishing detection
-   */
-  whitelist: string[];
-  /**
    * Url coming from an external source
    * For ex. deeplinks
    */
