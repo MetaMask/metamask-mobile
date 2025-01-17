@@ -8,7 +8,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import Assertions from '../../utils/Assertions';
-import Utilities from '../../utils/Utilities';
+
 describe(Regression('Add all popular networks'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
