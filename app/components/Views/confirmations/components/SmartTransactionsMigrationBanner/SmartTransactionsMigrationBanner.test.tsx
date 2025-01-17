@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import SmartTransactionsEnabledBanner from './SmartTransactionsEnabledBanner';
+import SmartTransactionsMigrationBanner from './SmartTransactionsMigrationBanner';
 import useSmartTransactionsEnabled from '../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled';
 
 jest.mock('../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled');
@@ -8,7 +8,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-describe('SmartTransactionsEnabledBanner', () => {
+describe('SmartTransactionsMigrationBanner', () => {
   const mockDismissBanner = jest.fn();
 
   beforeEach(() => {
@@ -25,12 +25,12 @@ describe('SmartTransactionsEnabledBanner', () => {
       dismissBanner: mockDismissBanner,
     });
 
-    const { queryByTestId } = render(<SmartTransactionsEnabledBanner />);
+    const { queryByTestId } = render(<SmartTransactionsMigrationBanner />);
     expect(queryByTestId('smart-transactions-enabled-banner')).toBeNull();
   });
 
   it('renders banner when shouldShowBanner is true', () => {
-    const { getByTestId, getByText } = render(<SmartTransactionsEnabledBanner />);
+    const { getByTestId, getByText } = render(<SmartTransactionsMigrationBanner />);
 
     expect(getByTestId('smart-transactions-enabled-banner')).toBeDefined();
     expect(getByText('smart_transactions_enabled.title')).toBeDefined();
@@ -38,7 +38,7 @@ describe('SmartTransactionsEnabledBanner', () => {
   });
 
   it('calls dismissBanner when close button is pressed', () => {
-    const { getByTestId } = render(<SmartTransactionsEnabledBanner />);
+    const { getByTestId } = render(<SmartTransactionsMigrationBanner />);
 
     fireEvent.press(getByTestId('banner-close-button-icon'));
     expect(mockDismissBanner).toHaveBeenCalled();
@@ -47,7 +47,7 @@ describe('SmartTransactionsEnabledBanner', () => {
   it('accepts and applies custom styles', () => {
     const customStyle = { marginTop: 20 };
     const { getByTestId } = render(
-      <SmartTransactionsEnabledBanner style={customStyle} />,
+      <SmartTransactionsMigrationBanner style={customStyle} />,
     );
 
     const banner = getByTestId('smart-transactions-enabled-banner');

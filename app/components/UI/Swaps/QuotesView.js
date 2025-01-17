@@ -118,7 +118,7 @@ import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeCon
 import { addSwapsTransaction } from '../../../util/swaps/swaps-transactions';
 import { getTransaction1559GasFeeEstimates } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import SmartTransactionsEnabledBanner from '../../Views/confirmations/components/SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
+import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -149,7 +149,7 @@ const createStyles = (colors) =>
       marginVertical: 10,
       width: '100%',
     },
-    smartTransactionsEnabledBanner: {
+    smartTransactionsMigrationBanner: {
       paddingHorizontal: 20,
       marginBottom: -8,
       width: '100%',
@@ -1794,8 +1794,8 @@ function SwapsQuotesView({
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.topBar}>
-        <View style={styles.smartTransactionsEnabledBanner}>
-          <SmartTransactionsEnabledBanner />
+        <View style={styles.smartTransactionsMigrationBanner}>
+          <SmartTransactionsMigrationBanner />
         </View>
         {(!hasEnoughTokenBalance || !hasEnoughEthBalance) && (
           <>

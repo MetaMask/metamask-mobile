@@ -6,15 +6,15 @@ import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
-import styleSheet from './SmartTransactionsEnabledBanner.styles';
-import { SmartTransactionsEnabledBannerProps } from './SmartTransactionsEnabledBanner.types';
+import styleSheet from './SmartTransactionsMigrationBanner.styles';
+import { SmartTransactionsMigrationBannerProps } from './SmartTransactionsMigrationBanner.types';
 import useSmartTransactionsEnabled from '../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled';
 
 const SMART_TRANSACTIONS_LEARN_MORE = AppConstants.URLS.SMART_TXS;
 
-const SmartTransactionsEnabledBanner = ({
+const SmartTransactionsMigrationBanner = ({
   style,
-}: SmartTransactionsEnabledBannerProps) => {
+}: SmartTransactionsMigrationBannerProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const { shouldShowBanner, dismissBanner } = useSmartTransactionsEnabled();
 
@@ -48,4 +48,4 @@ const SmartTransactionsEnabledBanner = ({
   );
 };
 
-export default SmartTransactionsEnabledBanner;
+export default SmartTransactionsMigrationBanner;

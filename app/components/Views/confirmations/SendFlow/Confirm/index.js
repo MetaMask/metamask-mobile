@@ -137,7 +137,7 @@ import {
 } from './validation';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import { updateTransactionToMaxValue } from './utils';
-import SmartTransactionsEnabledBanner from '../../../../../components/Views/confirmations/components/SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
+import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -1420,7 +1420,7 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsEnabledBanner style={styles.smartTransactionsEnabledBanner}/>
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
             </>
           )}
           {!selectedAsset.tokenId ? (

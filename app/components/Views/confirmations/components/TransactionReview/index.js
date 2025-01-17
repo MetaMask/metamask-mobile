@@ -62,7 +62,7 @@ import TransactionReviewData from './TransactionReviewData';
 import TransactionReviewInformation from './TransactionReviewInformation';
 import TransactionReviewSummary from './TransactionReviewSummary';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import SmartTransactionsEnabledBanner from '../SmartTransactionsEnabledBanner/SmartTransactionsEnabledBanner';
+import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
 let intervalIdForEstimatedL1Fee;
@@ -120,7 +120,7 @@ const createStyles = (colors) =>
       marginHorizontal: 16,
       marginBottom: -8,
     },
-    smartTransactionsEnableBanner: {
+    SmartTransactionsMigrationBanner: {
       marginHorizontal: 16,
       marginBottom: -8,
     },
@@ -602,8 +602,8 @@ class TransactionReview extends PureComponent {
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>
-                    <View style={styles.smartTransactionsEnableBanner}>
-                      <SmartTransactionsEnabledBanner />
+                    <View style={styles.SmartTransactionsMigrationBanner}>
+                      <SmartTransactionsMigrationBanner />
                     </View>
                     {to && (
                       <View style={styles.accountWrapper}>
