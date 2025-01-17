@@ -76,7 +76,7 @@ describe('Migration #65', () => {
     ).toBeDefined();
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
@@ -106,7 +106,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -128,7 +128,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -150,7 +150,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -179,7 +179,7 @@ describe('Migration #65', () => {
     ).toBe(false);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -208,7 +208,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -238,7 +238,7 @@ describe('Migration #65', () => {
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
-        .smartTransactionsMigrationApplied,
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 });
