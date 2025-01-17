@@ -3,8 +3,28 @@ import { Theme } from '@metamask/design-tokens';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
 
-const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
-  StyleSheet.create({
+const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) => {
+  const getUrlModalContentPaddingTop = () => {
+    if (Device.isAndroid()) {
+      return 10;
+    }
+    if (Device.isIphoneX()) {
+      return 50;
+    }
+    return 27;
+  };
+
+  const getUrlModalContentHeight = () => {
+    if (Device.isAndroid()) {
+      return 59;
+    }
+    if (Device.isIphoneX()) {
+      return 87;
+    }
+    return 65;
+  };
+
+  return StyleSheet.create({
     wrapper: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
@@ -92,9 +112,9 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
     },
     urlModalContent: {
       flexDirection: 'row',
-      paddingTop: Device.isAndroid() ? 10 : Device.isIphoneX() ? 50 : 27,
+      paddingTop: getUrlModalContentPaddingTop(),
       paddingHorizontal: 10,
-      height: Device.isAndroid() ? 59 : Device.isIphoneX() ? 87 : 65,
+      height: getUrlModalContentHeight(),
       backgroundColor: colors.background.default,
     },
     searchWrapper: {
@@ -132,5 +152,6 @@ const styleSheet = ({ theme: { colors, shadows } }: { theme: Theme }) =>
       borderRadius: 4,
     },
   });
+};
 
 export default styleSheet;

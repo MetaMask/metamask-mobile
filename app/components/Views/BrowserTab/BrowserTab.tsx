@@ -171,7 +171,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     sendNotification: (payload: unknown) => void;
     onDisconnect: () => void;
     onMessage: (message: Record<string, unknown>) => void;
-  }>(); // TODO: This type can be improved and updated with typing the BackgroundBridge.js file
+  }>();
   const fromHomepage = useRef(false);
   const wizardScrollAdjustedRef = useRef(false);
   const searchEngine = useSelector(selectSearchEngine);
@@ -266,7 +266,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     }
     // Reset error state
     setError(false);
-    current && current.goBack();
+    current?.goBack?.();
   }, [backEnabled, toggleOptionsIfNeeded]);
 
   /**
@@ -277,7 +277,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
     toggleOptionsIfNeeded();
     const { current } = webviewRef;
-    current?.goForward && current.goForward();
+    current?.goForward?.();
   };
 
   /**
@@ -971,12 +971,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     }
   }, [isIpfsGatewayEnabled]);
 
-  /**
-   * Allow list updates do not propigate through the useCallbacks this updates a ref that is use in the callbacks
-   */
-  const updateAllowList = () => {
+  useEffect(() => {
     allowList.current = whitelist;
-  };
+  }, [whitelist]);
 
   /**
    * Render the progress bar
@@ -1379,7 +1376,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             onDismiss={onDismissAutocomplete}
           />
         </View>
-        {updateAllowList()}
         {isTabActive && (
           <PhishingModal
             blockedUrl={blockedUrl}
