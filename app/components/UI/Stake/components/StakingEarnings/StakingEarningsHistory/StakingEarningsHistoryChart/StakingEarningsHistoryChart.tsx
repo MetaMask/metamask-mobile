@@ -226,7 +226,7 @@ export function StakingEarningsHistoryChart({
     setBarToggle(false);
   }, [earnings]);
 
-  return earnings.length > 0 ? (
+  return earnings ? (
     <View
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout;

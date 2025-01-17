@@ -21,6 +21,7 @@ import TimePeriodButtonGroup, {
 import StakingEarningsHistoryList, {
   StakingEarningsHistoryListData,
 } from './StakingEarningsHistoryList/StakingEarningsHistoryList';
+import { ChainId } from '@metamask/controller-utils';
 
 interface StakingEarningsHistoryProps {
   asset: TokenI;
@@ -105,7 +106,10 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     earningsHistory,
     isLoading: isLoadingEarningsHistory,
     error: errorEarningsHistory,
-  } = useStakingEarningsHistory({ limitDays: EARNINGS_HISTORY_DAYS_LIMIT });
+  } = useStakingEarningsHistory({
+    chainId: asset.chainId as ChainId,
+    limitDays: EARNINGS_HISTORY_DAYS_LIMIT,
+  });
 
   const ticker = asset.ticker || asset.symbol;
 
