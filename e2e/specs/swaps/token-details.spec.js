@@ -8,12 +8,12 @@ import {
 } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-import TestHelpers from '../../helpers';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await Utilities.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

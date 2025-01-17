@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet';
 import NetworkApprovalBottomSheet from '../../pages/Network/NetworkApprovalBottomSheet';
@@ -13,7 +12,7 @@ import Assertions from '../../utils/Assertions';
 describe(Regression('Add all popular networks'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it(`Add all popular networks to verify the empty list content`, async () => {

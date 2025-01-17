@@ -20,6 +20,7 @@ import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAn
 import WalletView from '../../pages/wallet/WalletView.js';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
+import Utilities from '../../utils/Utilities.js';
 
 const fixtureServer = new FixtureServer();
 // These keys are from the fixture and are used to test the reveal private key functionality
@@ -35,13 +36,13 @@ describe(Regression('reveal private key'), () => {
   const INCORRECT_PASSWORD = 'wrongpassword';
 
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withImportedAccountKeyringController()
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

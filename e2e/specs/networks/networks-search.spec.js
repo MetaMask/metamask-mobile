@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 
 import { loginToApp } from '../../viewHelper';
@@ -9,13 +8,14 @@ import Assertions from '../../utils/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
+import Utilities from '../../utils/Utilities';
 
 const SHORT_HAND_NETWORK_TEXT = 'Ava';
 const INVALID_NETWORK_TEXT = 'cccM';
 describe(SmokeCore('Networks Search'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it(`Remove ${PopularNetworksList.Avalanche.providerConfig.nickname} network from the list, ensuring its absent in search results`, async () => {
@@ -40,8 +40,7 @@ describe(SmokeCore('Networks Search'), () => {
 
         // delete avalanche network
         await NetworkListModal.deleteNetwork();
-
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await NetworkListModal.tapDeleteButton();
 
         await Assertions.checkIfVisible(

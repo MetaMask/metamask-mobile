@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../../../helpers';
 import { SmokeMultiChainPermissions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -12,11 +11,12 @@ import Assertions from '../../../../utils/Assertions';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import Utilities from '../../../../utils/Utilities';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   describe('Initial Connection Flow', () => {
@@ -53,7 +53,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
           // Initial setup: Login and navigate to test dapp
           await loginToApp();
           await TabBarComponent.tapBrowser();
-          await TestHelpers.delay(3000);
+          await Utilities.delay(3000);
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.navigateToTestDApp();
 

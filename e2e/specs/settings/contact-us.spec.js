@@ -1,6 +1,5 @@
 'use strict';
 import { Regression } from '../../tags';
-import TestHelpers from '../../helpers';
 import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -13,16 +12,16 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
-
 describe(Regression('Settings'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

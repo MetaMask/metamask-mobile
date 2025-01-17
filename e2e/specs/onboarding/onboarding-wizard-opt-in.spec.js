@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
@@ -20,6 +19,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
 import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnhancerBottomSheet';
+import Utilities from '../../utils/Utilities';
 
 const PASSWORD = '12345678';
 
@@ -28,7 +28,7 @@ describe(
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await TestHelpers.launchApp();
+      await Utilities.launchApp();
     });
 
     it('should be able to opt-in of the onboarding-wizard', async () => {
@@ -57,14 +57,16 @@ describe(
     });
 
     it('Should dismiss Automatic Security checks screen', async () => {
-      await TestHelpers.delay(3500);
-      await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+      await Utilities.delay(3500);
+      await Assertions.checkIfVisible(
+        EnableAutomaticSecurityChecksView.container,
+      );
       await EnableAutomaticSecurityChecksView.tapNoThanks();
     });
 
     it('should dismiss the onboarding wizard', async () => {
       // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
+      await Utilities.delay(1000);
       try {
         await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();
@@ -78,9 +80,11 @@ describe(
 
     it('should dismiss the marketing consent bottom sheet', async () => {
       // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
+      await Utilities.delay(1000);
       try {
-        await Assertions.checkIfVisible(ExperienceEnhancerBottomSheet.container);
+        await Assertions.checkIfVisible(
+          ExperienceEnhancerBottomSheet.container,
+        );
         await ExperienceEnhancerBottomSheet.tapIAgree();
       } catch {
         /* eslint-disable no-console */
@@ -93,7 +97,7 @@ describe(
       await Assertions.checkIfVisible(
         ProtectYourWalletModal.collapseWalletModal,
       );
-      await TestHelpers.delay(1000);
+      await Utilities.delay(1000);
       await ProtectYourWalletModal.tapRemindMeLaterButton();
       await SkipAccountSecurityModal.tapIUnderstandCheckBox();
       await SkipAccountSecurityModal.tapSkipButton();
@@ -104,20 +108,20 @@ describe(
       await TabBarComponent.tapSettings();
       await SettingsView.tapSecurityAndPrivacy();
       await SecurityAndPrivacy.scrollToMetaMetrics();
-      await TestHelpers.delay(2000);
+      await Utilities.delay(2000);
       await Assertions.checkIfToggleIsOn(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should disable metametrics', async () => {
       await SecurityAndPrivacy.tapMetaMetricsToggle();
-      await TestHelpers.delay(1500);
+      await Utilities.delay(1500);
       await CommonView.tapOkAlert();
       await Assertions.checkIfToggleIsOff(SecurityAndPrivacy.metaMetricsToggle);
     });
 
     it('should relaunch the app and log in', async () => {
       // Relaunch app
-      await TestHelpers.relaunchApp();
+      await Utilities.relaunchApp();
       await Assertions.checkIfVisible(LoginView.container);
       await LoginView.enterPassword(PASSWORD);
       await Assertions.checkIfVisible(WalletView.container);
@@ -125,7 +129,7 @@ describe(
 
     it('should dismiss the onboarding wizard after logging in', async () => {
       // dealing with flakiness on bitrise.
-      await TestHelpers.delay(1000);
+      await Utilities.delay(1000);
       try {
         await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
         await OnboardingWizardModal.tapNoThanksButton();

@@ -4,7 +4,7 @@ import {
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
+import Utilities from '../../utils/Utilities';
 
 class ConnectedAccountsModal {
   get permissionsButton() {
@@ -89,7 +89,7 @@ class ConnectedAccountsModal {
   }
 
   async tapManagePermissionsButton() {
-    await TestHelpers.delay(4000);
+    await Utilities.delay(4000);
     await Gestures.waitAndTap(this.managePermissionsButton);
   }
 

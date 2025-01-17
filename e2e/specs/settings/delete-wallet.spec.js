@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import LoginView from '../../pages/wallet/LoginView';
@@ -13,6 +12,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import CommonView from '../../pages/CommonView';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 describe(
   SmokeCore('Log in into the app, change password then delete wallet flow'),
@@ -21,7 +21,7 @@ describe(
 
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
     });
 
     it('should log in into the app, change password then delete wallet flow', async () => {

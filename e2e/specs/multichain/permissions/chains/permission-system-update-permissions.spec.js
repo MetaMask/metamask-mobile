@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../../../helpers';
 import { SmokeMultiChainPermissions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -15,11 +14,12 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import Utilities from '../../../../utils/Utilities';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
   it.skip('allows simultaneous granting and revoking of multiple chain permissions', async () => {
     await withFixtures(
@@ -82,12 +82,12 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
         await Browser.navigateToTestDApp();
 
         // adding delay,
         // on artifact recording it shows the toast is stuck, and looks like tapNetworkAvatar is tapped but bottom sheet not coming up yet grey overlay usually behind the bottom sheet was showing, and recording stopped there, yet toast was stuck on screen for 15 seconds anduntil end of recording
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarButtonOnBrowser();
@@ -100,10 +100,9 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
 
         // Handle network education modal and close bottom sheet
         await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
         await PermissionSummaryBottomSheet.swipeToDismissModal();
-        await TestHelpers.delay(3000);
-
+        await Utilities.delay(3000);
         // Verify network switched to Sepolia in wallet view
         await TabBarComponent.tapWallet();
         await Assertions.checkIfVisible(WalletView.container);

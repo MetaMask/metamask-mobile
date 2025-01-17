@@ -2,7 +2,7 @@ import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.sel
 import { PortfolioPageSelectorsXpath } from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-import TestHelpers from '../../helpers';
+import Utilities from '../../utils/Utilities';
 
 class PortfolioHomePage {
   get connectWalletButton() {
@@ -27,12 +27,12 @@ class PortfolioHomePage {
   }
 
   async tapConnectMetaMask() {
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
     await Gestures.tapWebElement(this.connectWalletButton);
   }
 
   async closePrivacyModal() {
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
     await Gestures.tapWebElement(this.closeIconPrivacyModal);
   }
 

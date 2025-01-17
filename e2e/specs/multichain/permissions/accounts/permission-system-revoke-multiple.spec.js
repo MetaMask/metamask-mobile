@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../../../helpers';
 import Browser from '../../../../pages/Browser/BrowserView';
 import AccountListBottomSheet from '../../../../pages/wallet/AccountListBottomSheet';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -12,13 +11,14 @@ import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
 import { SmokeMultiChainPermissions } from '../../../../tags';
+import Utilities from '../../../../utils/Utilities';
 
 const AccountTwoText = 'Account 2';
 
 describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('revokes all account permissions simultaneously', async () => {
@@ -41,7 +41,7 @@ describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
 
         await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();

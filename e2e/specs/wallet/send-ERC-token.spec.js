@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AmountView from '../../pages/Send/AmountView';
@@ -13,6 +12,7 @@ import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAs
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import Utilities from '../../utils/Utilities';
 
 const TOKEN_ADDRESS = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
@@ -20,7 +20,7 @@ const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 describe(SmokeCore('Send ERC Token'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await Utilities.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -29,7 +29,7 @@ describe(SmokeCore('Send ERC Token'), () => {
 
   it('should add Sepolia testnet to my networks list', async () => {
     await WalletView.tapNetworksButtonOnNavBar();
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
     await NetworkListModal.scrollToBottomOfNetworkList();
     await NetworkListModal.tapTestNetworkSwitch();
     await NetworkListModal.scrollToBottomOfNetworkList();
@@ -60,15 +60,15 @@ describe(SmokeCore('Send ERC Token'), () => {
 
   it('should send token to address via asset overview screen', async () => {
     await WalletView.tapOnToken('ChainLink Token');
-    await TestHelpers.delay(3500);
+    await Utilities.delay(3500);
     await TokenOverview.scrollOnScreen();
-    await TestHelpers.delay(3500);
+    await Utilities.delay(3500);
     await TokenOverview.tapSendButton();
     await SendView.inputAddress(SEND_ADDRESS);
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount('0.000001');
-    await TestHelpers.delay(5000);
+    await Utilities.delay(5000);
     await AmountView.tapNextButton();
     await Assertions.checkIfTextIsDisplayed('< 0.00001 LINK');
     await TransactionConfirmationView.tapConfirmButton();

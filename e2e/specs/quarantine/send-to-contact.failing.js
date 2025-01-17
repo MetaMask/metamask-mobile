@@ -16,10 +16,10 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
 
@@ -28,7 +28,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
   const AMOUNT = '0.12345';
 
   beforeEach(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly)
       .withAddressBookController({

@@ -7,11 +7,12 @@ import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.select
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../selectors/Browser/ConnectAccountBottomSheet.selectors';
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import TestHelpers from '../../helpers';
-
+import Utilities from '../../utils/Utilities';
 class AccountListBottomSheet {
   get accountList() {
-    return Matchers.getElementByID(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    );
   }
 
   get accountTypeLabel() {
@@ -60,7 +61,10 @@ class AccountListBottomSheet {
   }
 
   getMultiselectElement(index) {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.MULTISELECT, index);
+    return Matchers.getElementByID(
+      CellComponentSelectorsIDs.MULTISELECT,
+      index,
+    );
   }
 
   getSelectWithMenuElement(index) {
@@ -102,9 +106,8 @@ class AccountListBottomSheet {
 
   async swipeToDismissAccountsModal() {
     await Gestures.swipe(this.title, 'down', 'fast', 0.6);
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
   }
-
   async tapYesToRemoveImportedAccountAlertButton() {
     await Gestures.waitAndTap(this.removeAccountAlertText);
   }

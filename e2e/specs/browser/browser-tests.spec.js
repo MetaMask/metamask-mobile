@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { SmokeCore } from '../../tags';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -14,16 +13,17 @@ import Assertions from '../../utils/Assertions';
 import ExternalSites from '../../resources/externalsites.json';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import Utilities from '../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeCore('Browser Tests'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -45,7 +45,7 @@ describe(SmokeCore('Browser Tests'), () => {
   });
 
   it('should connect to the test dapp', async () => {
-    await TestHelpers.delay(3000);
+    await Utilities.delay(3000);
     // Tap on search in bottom navbar
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(ExternalSites.TEST_DAPP);
@@ -68,21 +68,21 @@ describe(SmokeCore('Browser Tests'), () => {
   // it('should tap on the test dapp in favorites on the home page', async () => {
   //   await Browser.tapHomeButton();
   //   // Wait for page to load
-  //   await TestHelpers.delay(3000);
+  //   await Utilities.delay(3000);
   //   await Browser.tapDappInFavorites();
   //   await Assertions.checkIfTextIsDisplayed('metamask.github.io');
   //   // }
   // });
 
   it('should test invalid URL', async () => {
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
     await Browser.tapBottomSearchBar();
     // Clear text & Navigate to URL
     await Browser.navigateToURL(ExternalSites.INVALID_URL);
     await Browser.waitForBrowserPageToLoad();
     await Browser.tapReturnHomeButton();
     // Check that we are on the browser screen
-    await TestHelpers.delay(1500);
+    await Utilities.delay(1500);
   });
 
   it('should test phishing sites', async () => {
@@ -94,6 +94,6 @@ describe(SmokeCore('Browser Tests'), () => {
 
     await Browser.tapBackToSafetyButton();
     // Check that we are on the browser screen
-    await TestHelpers.delay(1500);
+    await Utilities.delay(1500);
   });
 });

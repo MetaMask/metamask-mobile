@@ -14,11 +14,11 @@ import { loginToApp } from '../../../viewHelper';
 import Assertions from '../../../utils/Assertions';
 import TokenOverview from '../../../pages/wallet/TokenOverview';
 import NetworkEducationModal from '../../../pages/Network/NetworkEducationModal';
-import TestHelpers from '../../../helpers';
 import SendView from '../../../pages/Send/SendView';
 
 import QuoteView from '../../../pages/swaps/QuoteView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import Utilities from '../../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
 
@@ -28,11 +28,11 @@ const BNB_NAME = 'BNB';
 
 describe(SmokeAssets('Import Tokens'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().withPopularNetworks().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -73,7 +73,7 @@ describe(SmokeAssets('Import Tokens'), () => {
     const bnb = WalletView.tokenInWallet('BNB');
     await Assertions.checkIfVisible(bnb);
     await WalletView.tapOnToken('BNB');
-    await TestHelpers.delay(5000);
+    await Utilities.delay(5000);
     await TokenOverview.tapSwapButton();
 
     await Assertions.checkIfVisible(NetworkEducationModal.container);

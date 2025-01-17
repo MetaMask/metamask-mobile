@@ -17,7 +17,6 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
-import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { SmokeSwaps } from '../../tags';
@@ -26,6 +25,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+import Utilities from '../../utils/Utilities.js';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
@@ -40,14 +40,13 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
     );
-
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -92,7 +91,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
           false,
         );
         await NetworkEducationModal.tapGotItButton();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
         currentNetwork = network.providerConfig.nickname;
       }
 
@@ -116,7 +115,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       if (destTokenSymbol !== 'ETH') {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await QuoteView.selectToken(destTokenSymbol);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
@@ -133,7 +132,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(SwapView.gasFee);
       await SwapView.tapIUnderstandPriceWarning();
       await Assertions.checkIfVisible(SwapView.swapButton);
-      await TestHelpers.delay(2000);
+      await Utilities.delay(2000);
       await SwapView.tapSwapButton();
       //Wait for Swap to complete
       try {
@@ -149,7 +148,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         console.log(`Swap complete didn't pop up: ${e}`);
       }
       await device.enableSynchronization();
-      await TestHelpers.delay(10000);
+      await Utilities.delay(10000);
 
       // Check the swap activity completed
       await TabBarComponent.tapActivity();

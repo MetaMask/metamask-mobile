@@ -7,7 +7,6 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 
-import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   withFixtures,
@@ -21,13 +20,13 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
-
 describe(SmokeConfirmations('Send to contract address'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should send ETH to a contract from inside the wallet', async () => {

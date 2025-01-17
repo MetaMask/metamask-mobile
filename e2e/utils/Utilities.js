@@ -1,6 +1,137 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 
+import {
+  getFixturesServerPort,
+  getGanachePort,
+  getLocalTestDappPort,
+  getMockServerPort,
+} from './fixtures/utils';
+import Utilities from './utils/Utilities';
+import { resolveConfig } from 'detox/internals';
 export default class Utilities {
+  static async openDeepLink(inputURL) {
+    await device.launchApp({
+      newInstance: true,
+      url: inputURL,
+      sourceApp: 'io.metamask',
+      launchArgs: {
+        fixtureServerPort: `${getFixturesServerPort()}`,
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      },
+    });
+  }
+
+  /**
+   * Reverses the TCP ports for necessary servers to ensure proper communication between the device and local services.
+   * Only applicable for Android devices.
+   *
+   * @async
+   * @returns {Promise<void>} Resolves once all required ports are reversed.
+   */
+  static async reverseServerPort() {
+    if (device.getPlatform() === 'android') {
+      await device.reverseTcpPort(getGanachePort());
+      await device.reverseTcpPort(getFixturesServerPort());
+      await device.reverseTcpPort(getLocalTestDappPort());
+      await device.reverseTcpPort(getMockServerPort());
+    }
+  }
+
+  /**
+   * Launches the app with the specified options.
+   * Automatically handles debug builds by using the `launchAppForDebugBuild` method.
+   *
+   * @async
+   * @param {Object} launchOptions - The options to customize app launch behavior.
+   * @returns {Promise<void>} Resolves once the app is launched.
+   */
+  static async launchApp(launchOptions) {
+    const config = await resolveConfig();
+    const platform = device.getPlatform();
+    if (config.configurationName.endsWith('debug')) {
+      return this.launchAppForDebugBuild(platform, launchOptions);
+    }
+
+    return device.launchApp(launchOptions);
+  }
+
+  /**
+   * Launches the app in debug mode using a specific deep link URL.
+   * Handles platform-specific logic for iOS and Android.
+   *
+   * @async
+   * @param {string} platform - The platform on which the app is being launched (`ios` or `android`).
+   * @param {Object} launchOptions - The options to customize app launch behavior.
+   * @returns {Promise<void>} Resolves once the app is launched.
+   */
+  static async launchAppForDebugBuild(platform, launchOptions) {
+    const deepLinkUrl = this.getDeepLinkUrl(
+      this.getDevLauncherPackagerUrl(platform),
+    );
+
+    if (platform === 'ios') {
+      await device.launchApp(launchOptions);
+      return device.openURL({
+        url: deepLinkUrl,
+      });
+    }
+
+    return device.launchApp({
+      url: deepLinkUrl,
+      ...launchOptions,
+    });
+  }
+
+  /**
+   * Constructs a deep link URL for the app to facilitate specific launch scenarios.
+   *
+   * @param {string} url - The base URL to be encoded into the deep link.
+   * @returns {string} The formatted deep link URL.
+   */
+  static getDeepLinkUrl(url) {
+    return `expo-metamask://expo-development-client/?url=${encodeURIComponent(
+      url,
+    )}`;
+  }
+
+  /**
+   * Generates the development packager URL for the Expo dev client.
+   *
+   * @param {string} platform - The platform for which the URL is being generated (`ios` or `android`).
+   * @returns {string} The URL pointing to the development server bundle.
+   */
+  static getDevLauncherPackagerUrl(platform) {
+    return `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`;
+  }
+
+  /**
+   * Relaunches the app by creating a new instance and applying specific launch arguments.
+   *
+   * @returns {Promise<void>} Resolves once the app is relaunched.
+   */
+  static relaunchApp() {
+    return this.launchApp({
+      newInstance: true,
+      launchArgs: {
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+      },
+    });
+  }
+
+  /**
+   * Delays execution for a specified duration.
+   *
+   * @param {number} ms - The number of milliseconds to delay execution.
+   * @returns {Promise<void>} Resolves after the specified delay.
+   */
+  static delay(ms) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, ms);
+    });
+  }
+
   /**
    * Formats an array of strings into a regex pattern string for exact matching.
    * This method takes an array of strings and returns a string formatted

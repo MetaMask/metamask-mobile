@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 
 import SettingsView from '../../pages/Settings/SettingsView';
@@ -13,11 +12,12 @@ import Assertions from '../../utils/Assertions';
 import ClearPrivacyModal from '../../pages/Settings/SecurityAndPrivacy/ClearPrivacyModal';
 import BrowserView from '../../pages/Browser/BrowserView';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import Utilities from '../../utils/Utilities';
 
 describe(Regression('Clear Privacy data'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should clear all dapp connections', async () => {

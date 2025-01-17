@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -16,13 +15,14 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('send an ERC20 token from a dapp', async () => {
@@ -48,11 +48,11 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
 
         // Transfer ERC20 tokens
         await TestDApp.tapERC20TransferButton();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
 
         // Tap confirm button
         await TestDApp.tapConfirmButton();

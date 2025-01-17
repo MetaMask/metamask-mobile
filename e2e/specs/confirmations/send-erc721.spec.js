@@ -1,7 +1,6 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -14,13 +13,14 @@ import {
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('send an ERC721 token from a dapp', async () => {
@@ -47,9 +47,8 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
           contractAddress: nftsAddress,
         });
         // Transfer NFT
-
         await TestDApp.tapNFTTransferButton();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
 
         await TestDApp.tapConfirmButton();
 

@@ -1,6 +1,5 @@
 'use strict';
-import TestHelpers from '../../helpers';
-import { SmokeCore } from '../../tags';
+import { Regression } from '../../tags';
 import NetworkView from '../../pages/Settings/NetworksView';
 import WalletView from '../../pages/wallet/WalletView';
 import ToastModal from '../../pages/wallet/ToastModal';
@@ -17,16 +16,17 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import Assertions from '../../utils/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
+import Utilities from '../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
 
-describe('Custom RPC Tests', () => {
+describe(Regression('Custom RPC Tests'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();
@@ -55,7 +55,7 @@ describe('Custom RPC Tests', () => {
     await NetworkView.tapRpcDropDownButton();
     await NetworkView.tapAddRpcButton();
 
-    await TestHelpers.delay(200);
+    await Utilities.delay(200);
     await NetworkView.typeInRpcUrl('abc'); // Input incorrect RPC URL
     await Assertions.checkIfVisible(NetworkView.rpcWarningBanner);
     await NetworkView.clearRpcInputBox();
@@ -192,7 +192,7 @@ describe('Custom RPC Tests', () => {
     // delete Gnosis network
     await NetworkListModal.deleteNetwork();
 
-    await TestHelpers.delay(200);
+    await Utilities.delay(200);
 
     await NetworkListModal.tapDeleteButton();
 

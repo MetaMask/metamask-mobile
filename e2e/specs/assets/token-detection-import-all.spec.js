@@ -4,9 +4,9 @@ import { SmokeAssets } from '../../tags';
 import WalletView from '../../pages/wallet/WalletView';
 import DetectedTokensView from '../../pages/wallet/DetectedTokensView';
 import Assertions from '../../utils/Assertions';
-import TestHelpers from '../../helpers';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+import Utilities from '../../utils/Utilities';
 
 const ETHEREUM_NAME = 'Ethereum';
 const USDC_NAME = 'USDC';
@@ -14,7 +14,7 @@ const USDC_NAME = 'USDC';
 describe(SmokeAssets('Import all tokens detected'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should import all tokens detected automatically', async () => {

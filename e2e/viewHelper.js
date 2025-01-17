@@ -19,8 +19,6 @@ import CreatePasswordView from './pages/Onboarding/CreatePasswordView';
 import ProtectYourWalletView from './pages/Onboarding/ProtectYourWalletView';
 import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 
-import TestHelpers from './helpers';
-
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
@@ -28,6 +26,7 @@ import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
+import Utilities from './utils/Utilities';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -45,7 +44,8 @@ export const closeOnboardingModals = async () => {
 These onboarding modals are becoming a bit wild. We need less of these so we don't
 have to have all these workarounds in the tests
   */
-  await TestHelpers.delay(1000);
+
+  await Utilities.delay(1000);
 
   // Handle Onboarding wizard
   try {
@@ -70,7 +70,7 @@ have to have all these workarounds in the tests
 };
 
 export const skipNotificationsDeviceSettings = async () => {
-  await TestHelpers.delay(1000);
+  await Utilities.delay(1000);
 
   try {
     await Assertions.checkIfVisible(
@@ -94,7 +94,7 @@ export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   await OnboardingView.tapImportWalletFromSeedPhrase();
 
   await MetaMetricsOptIn.tapAgreeButton();
-  await TestHelpers.delay(3500);
+  await Utilities.delay(3500);
   await acceptTermOfUse();
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -105,7 +105,7 @@ export const importWalletWithRecoveryPhrase = async (seedPhrase, password) => {
   await ImportWalletView.reEnterPassword(password ?? validAccount.password);
 
   //'Should dismiss Enable device Notifications checks alert'
-  await TestHelpers.delay(3500);
+  await Utilities.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
@@ -143,7 +143,7 @@ export const CreateNewWallet = async () => {
   await device.enableSynchronization();
   await Assertions.checkIfVisible(WalletView.container);
 
-  await TestHelpers.delay(3500);
+  await Utilities.delay(3500);
   await OnboardingSuccessView.tapDone();
   //'Should dismiss Enable device Notifications checks alert'
   await this.skipNotificationsDeviceSettings();
@@ -167,7 +167,7 @@ export const addLocalhostNetwork = async () => {
   await SettingsView.tapNetworks();
   await Assertions.checkIfVisible(NetworkView.networkContainer);
 
-  await TestHelpers.delay(3000);
+  await Utilities.delay(3000);
   await NetworkView.tapAddNetworkButton();
   await NetworkView.switchToCustomNetworks();
 
@@ -180,7 +180,7 @@ export const addLocalhostNetwork = async () => {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
-  await TestHelpers.delay(3000);
+  await Utilities.delay(3000);
 
   await Assertions.checkIfVisible(NetworkEducationModal.container);
   await Assertions.checkIfElementToHaveText(

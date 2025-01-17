@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 import { Regression } from '../../tags';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
@@ -21,13 +20,14 @@ import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModa
 import OnboardingSuccessView from '../../pages/Onboarding/OnboardingSuccessView';
 import Assertions from '../../utils/Assertions';
 import ToastModal from '../../pages/wallet/ToastModal';
+import Utilities from '../../utils/Utilities';
 
 const PASSWORD = '12345678';
 
 describe(Regression('Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should no longer be connected to the dapp after deleting wallet', async () => {
@@ -49,7 +49,7 @@ describe(Regression('Permission System'), () => {
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await ConnectedAccountsModal.scrollToBottomOfModal();
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
 
         //go to settings then security & privacy
         await TabBarComponent.tapSettings();
@@ -67,16 +67,15 @@ describe(Regression('Permission System'), () => {
         await DeleteWalletModal.typeDeleteInInputBox();
         await DeleteWalletModal.tapDeleteMyWalletButton();
         await Assertions.checkIfNotVisible(DeleteWalletModal.container);
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await Assertions.checkIfVisible(OnboardingView.container);
         if (device.getPlatform() === 'ios') {
           await Assertions.checkIfVisible(ToastModal.notificationTitle);
           await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         } else {
-          await TestHelpers.delay(3000);
+          await Utilities.delay(3000);
         }
         await OnboardingView.tapCreateWallet();
-
         // Create new wallet
         await Assertions.checkIfVisible(MetaMetricsOptIn.container);
         await MetaMetricsOptIn.tapAgreeButton();

@@ -10,13 +10,13 @@ import {
 } from '../../../api-mocking/mock-server';
 import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import Utilities from '../../../utils/Utilities';
 
 describe(SmokeIdentity('Account syncing'), () => {
   beforeAll(async () => {
@@ -37,9 +37,8 @@ describe(SmokeIdentity('Account syncing'), () => {
     );
 
     jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
-
-    await TestHelpers.launchApp({
+    await Utilities.reverseServerPort();
+    await Utilities.launchApp({
       newInstance: true,
       delete: true,
     });

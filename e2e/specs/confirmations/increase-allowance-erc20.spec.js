@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -14,13 +13,14 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import Utilities from '../../utils/Utilities';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 - Increase Allowance'), () => {
   beforeAll(async () => {
     if (device.getPlatform() === 'android') {
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
     }
   });
 

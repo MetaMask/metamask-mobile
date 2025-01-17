@@ -12,14 +12,14 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import FiatOnTestnetsBottomSheet from '../../pages/Settings/Advanced/FiatOnTestnetsBottomSheet.js';
 import Assertions from '../../utils/Assertions.js';
-import TestHelpers from '../../helpers.js';
+import Utilities from '../../utils/Utilities.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(SmokeAssets('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should show fiat values on testnets when enabled', async () => {
@@ -44,7 +44,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
         );
 
         // Wait for network switch toast to disapear
-        await TestHelpers.delay(2500);
+        await Utilities.delay(2500);
 
         // Enable fiat on testnets setting
         await TabBarComponent.tapSettings();

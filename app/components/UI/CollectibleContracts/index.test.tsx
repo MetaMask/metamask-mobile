@@ -14,11 +14,11 @@ import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
 import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
-import TestHelpers from '../../../../e2e/helpers';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { RootState } from '../../../reducers';
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import Utilities from '../../../../e2e/utils/Utilities';
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -482,8 +482,7 @@ describe('CollectibleContracts', () => {
     await act(async () => {
       await refreshControl.props.onRefresh();
     });
-
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
 
     expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
     expect(spyOnDetectNfts).toHaveBeenCalledTimes(1);

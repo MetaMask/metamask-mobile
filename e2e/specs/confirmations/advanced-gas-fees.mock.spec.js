@@ -12,9 +12,9 @@ import {
 } from '../../fixtures/fixture-helper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import Utilities from '../../utils/Utilities';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -22,15 +22,12 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
   let mockServer;
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should edit priority gas settings and send ETH', async () => {
-
-    const testSpecificMock  = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
     };
     await withFixtures(
       {
@@ -46,9 +43,9 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await Assertions.checkIfVisible(WalletView.container);
 
         //Tap send Icon
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await TabBarComponent.tapActions();
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);

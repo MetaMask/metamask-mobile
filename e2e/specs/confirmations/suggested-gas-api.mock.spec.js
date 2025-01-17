@@ -19,9 +19,9 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import Accounts from '../../../wdio/helpers/Accounts.js';
 import { withFixtures } from '../../fixtures/fixture-helper.js';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
-import TestHelpers from '../../helpers.js';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+import Utilities from '../../utils/Utilities.js';
 
 describe(
   Regression(
@@ -31,7 +31,7 @@ describe(
     let mockServer;
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
       mockServer = await startMockServer({
         GET: [mockEvents.GET.suggestedGasFeesMainNetError],
       });
