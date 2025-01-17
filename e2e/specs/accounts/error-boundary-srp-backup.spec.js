@@ -12,6 +12,7 @@ import { SmokeAccounts } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
+import Utilities from '../../utils/Utilities';
 const PASSWORD = '123123123';
 
 describe(SmokeAccounts('Error Boundary Screen'), () => {
