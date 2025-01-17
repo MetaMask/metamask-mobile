@@ -775,15 +775,17 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
-      - deploy-to-bitrise-io@2.3:
-          title: Deploy Android Build Artifacts
-          is_always_run: true
+      - script@1:
+          title: Prepare Android Build Artifact
           inputs:
             - content: |-
-                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
-            - deploy_path: $INTERMEDIATE_ANDROID_BUILD_DIR
+               cp -r "$BITRISE_SOURCE_DIR/android/app/build/outputs/apk/qa/release/app-qa-release.apk" "$BITRISE_DEPLOY_DIR"
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy Android Build Artifacts
+          inputs:
+            - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: Android_Build_Artifacts
+            - zip_name: Android_QA_Artifact
       - save-cache@1:
           title: Save node_modules
           inputs:
@@ -1030,15 +1032,18 @@ workflows:
                 ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
+      - script@1:
+          title: Prepare iOS Build Artifact
+          inputs:
+            - content: |-
+               cp -r "$BITRISE_SOURCE_DIR/ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app" "$BITRISE_DEPLOY_DIR"
       - deploy-to-bitrise-io@2.3:
           title: Deploy iOS Build Artifacts
           is_always_run: true
           inputs:
-            - content: |-
-                  cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build
-            - deploy_path: $INTERMEDIATE_IOS_BUILD_DIR
+            - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
-            - zip_name: iOS_Build_Artifacts
+            - zip_name: iOS_QA_Artifact
       - save-cache@1:
           title: Save node_modules
           inputs:
