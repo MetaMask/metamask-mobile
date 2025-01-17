@@ -21,7 +21,6 @@ import {
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
   UserActionType,
-  SetMetaMetricsIdAction,
 } from './types';
 
 export * from './types';
@@ -150,18 +149,6 @@ export function checkedAuth(initialScreen: string): CheckedAuthAction {
       initialScreen,
     },
   };
-}
-
-/**
- * Temporary action to initialize metametricsId before Engine Init
- *
- * @param metaMetricsId - MetaMetrics ID
- */
-export function setMetaMetricsId(metaMetricsId: string): SetMetaMetricsIdAction {
-  return {
-    type: UserActionType.SET_METAMETRICS_ID,
-    payload: { metaMetricsId },
-  }
 }
 
 /**

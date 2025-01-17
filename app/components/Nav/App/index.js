@@ -46,7 +46,6 @@ import {
   setCurrentRoute,
   onNavigationReady,
 } from '../../../actions/navigation';
-import { setMetaMetricsId } from '../../../actions/user';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
@@ -749,14 +748,12 @@ const App = (props) => {
         ...generateUserSettingsAnalyticsMetaData(),
       };
       await metrics.addTraitsToUser(consolidatedTraits);
-      const id = await metrics.getMetaMetricsId();
-      dispatch(setMetaMetricsId(id));
     };
 
     initMetrics().catch((err) => {
       Logger.error(err, 'Error initializing MetaMetrics');
     });
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     // Init SDKConnect only if the navigator is ready, user is onboarded, and SDK is not initialized.

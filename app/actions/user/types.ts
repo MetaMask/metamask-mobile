@@ -23,7 +23,6 @@ export enum UserActionType {
   SET_GAS_EDUCATION_CAROUSEL_SEEN = 'SET_GAS_EDUCATION_CAROUSEL_SEEN',
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
-  SET_METAMETRICS_ID = 'SET_METAMETRICS_ID',
 }
 
 // User actions
@@ -86,10 +85,6 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
   payload: { initialScreen: string };
 };
 
-export type SetMetaMetricsIdAction = Action<UserActionType.SET_METAMETRICS_ID> & {
-  payload: { metaMetricsId: string };
-};
-
 /**
  * User actions union type
  */
@@ -113,5 +108,4 @@ export type UserAction =
   | LoadingUnsetAction
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
-  | CheckedAuthAction
-  | SetMetaMetricsIdAction;
+  | CheckedAuthAction;

@@ -16,5 +16,4 @@ export interface UserState {
   initialScreen: string;
   appTheme: AppThemeKey;
   ambiguousAddressEntries: Record<string, unknown>;
-  metaMetricsId: string;
 }
