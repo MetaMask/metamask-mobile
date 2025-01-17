@@ -40,6 +40,5 @@ export default function launchDarklyURL(
 
   const url = `${baseURL}/${version}/flags?client=${client}&distribution=${metamaskBuildType}&environment=${environment}`;
 
-  console.log('>>>>>>>>>> ', url);
   return url;
 }
