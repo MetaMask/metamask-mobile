@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import Device from '../../util/device';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -498,4 +499,4 @@ export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 export const isPortfolioViewEnabled = () =>
-  process.env.PORTFOLIO_VIEW === 'true';
+  Device.isIos() && process.env.PORTFOLIO_VIEW === 'true';
