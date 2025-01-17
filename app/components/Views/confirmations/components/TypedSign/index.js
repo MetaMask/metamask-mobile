@@ -29,12 +29,8 @@ import { isExternalHardwareAccount } from '../../../../../util/address';
 import createExternalSignModelNav from '../../../../../util/hardwareWallet/signatureUtils';
 import { SigningBottomSheetSelectorsIDs } from '../../../../../../e2e/selectors/Browser/SigningBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
-import { selectPendingApprovals } from '../../../../../selectors/approvalController';
 import { selectNetworkTypeByChainId } from '../../../../../selectors/networkController';
-import {
-  selectSignatureRequestById,
-  selectTypedSignSimulationEnabled,
-} from '../../../../../selectors/signatureController';
+import { selectSignatureRequestById } from '../../../../../selectors/signatureController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -95,14 +91,6 @@ class TypedSign extends PureComponent {
      */
     showExpandedMessage: PropTypes.bool,
     /**
-     * Indicated whether or not the simulation is enabled
-     */
-    isSimulationEnabled: PropTypes.bool,
-    /**
-     * Signature request object
-     */
-    signatureRequest: PropTypes.object,
-    /**
      * Security alert response object
      */
     securityAlertResponse: PropTypes.object,
@@ -122,16 +110,14 @@ class TypedSign extends PureComponent {
 
   componentDidMount = () => {
     const {
-      isSimulationEnabled,
       messageParams: { metamaskId },
       messageParams,
       metrics,
-      signatureRequest,
     } = this.props;
 
     const eventProps = {
       ...getAnalyticsParams(messageParams, 'typed_sign'),
-      ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
+      ...getSignatureDecodingEventProps(messageParams),
     };
 
     metrics.trackEvent(
@@ -166,33 +152,23 @@ class TypedSign extends PureComponent {
   };
 
   rejectSignature = async () => {
-    const {
-      isSimulationEnabled,
-      messageParams,
-      onReject,
-      securityAlertResponse,
-      signatureRequest,
-    } = this.props;
-
+    const { messageParams, onReject, securityAlertResponse } = this.props;
     await handleSignatureAction(
       onReject,
       messageParams,
       typedSign[messageParams.version],
       securityAlertResponse,
       false,
-      { isSimulationEnabled, signatureRequest },
     );
   };
 
   confirmSignature = async () => {
     const {
-      isSimulationEnabled,
       messageParams,
       onConfirm,
       onReject,
       navigation,
       securityAlertResponse,
-      signatureRequest,
     } = this.props;
     if (!isExternalHardwareAccount(messageParams.from)) {
       await handleSignatureAction(
@@ -201,7 +177,6 @@ class TypedSign extends PureComponent {
         typedSign[messageParams.version],
         securityAlertResponse,
         true,
-        { isSimulationEnabled, signatureRequest },
       );
     } else {
       navigation.navigate(
@@ -340,13 +315,8 @@ const mapStateToProps = (state, ownProps) => {
   );
 
   return {
-    isSimulationEnabled: selectTypedSignSimulationEnabled(
-      state,
-      signatureRequest?.id,
-    ),
     networkType: selectNetworkTypeByChainId(state, signatureRequest?.chainId),
     securityAlertResponse: state.signatureRequest.securityAlertResponse,
-    signatureRequest: Object.values(selectPendingApprovals(state) || {})[0],
   };
 };
 

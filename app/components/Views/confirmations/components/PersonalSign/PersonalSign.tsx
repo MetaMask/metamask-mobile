@@ -32,8 +32,6 @@ import { selectSignatureRequestById } from '../../../../../selectors/signatureCo
 import { selectNetworkTypeByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
-import { getSignatureDecodingEventProps } from '../../utils/signatureMetrics';
-import { useTypedSignSimulationEnabled } from '../../hooks/useTypedSignSimulationEnabled';
 
 /**
  * Converts a hexadecimal string to a utf8 string.
@@ -83,8 +81,6 @@ const PersonalSign = ({
   const networkType = useSelector((state: RootState) =>
     selectNetworkTypeByChainId(state, chainId as Hex),
   );
-
-  const isSimulationEnabled = useTypedSignSimulationEnabled();
 
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,15 +174,9 @@ const PersonalSign = ({
   const rejectSignature = async () => {
     await onReject();
     showWalletConnectNotification(false);
-
-    const eventProps = {
-      ...getAnalyticsParams(),
-      ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
-    };
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SIGNATURE_REJECTED)
-        .addProperties(eventProps)
+        .addProperties(getAnalyticsParams())
         .build(),
     );
   };
@@ -195,15 +185,9 @@ const PersonalSign = ({
     if (!isExternalHardwareAccount(messageParams.from)) {
       await onConfirm();
       showWalletConnectNotification(true);
-
-      const eventProps = {
-        ...getAnalyticsParams(),
-        ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
-      };
-
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SIGNATURE_APPROVED)
-          .addProperties(eventProps)
+          .addProperties(getAnalyticsParams())
           .build(),
       );
     } else {

@@ -6,7 +6,6 @@ import { WALLET_CONNECT_ORIGIN } from '../walletconnect';
 import AppConstants from '../../core/AppConstants';
 import { InteractionManager } from 'react-native';
 import { strings } from '../../../locales/i18n';
-import { getSignatureDecodingEventProps } from '../../components/Views/confirmations/utils/signatureMetrics';
 import { selectChainId } from '../../selectors/networkController';
 import { store } from '../../store';
 import { getBlockaidMetricsParams } from '../blockaid';
@@ -14,6 +13,7 @@ import Device from '../device';
 import { getDecimalChainId } from '../networks';
 import Logger from '../Logger';
 import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+
 export const typedSign = {
   V1: 'eth_signTypedData',
   V3: 'eth_signTypedData_v3',
@@ -102,27 +102,18 @@ export const handleSignatureAction = async (
   signType,
   securityAlertResponse,
   confirmation,
-  {
-    isSimulationEnabled,
-    signatureRequest,
-  }
 ) => {
   await onAction();
   showWalletConnectNotification(messageParams, confirmation);
-
   MetaMetrics.getInstance().trackEvent(
     MetricsEventBuilder.createEventBuilder(
       confirmation
         ? MetaMetricsEvents.SIGNATURE_APPROVED
         : MetaMetricsEvents.SIGNATURE_REJECTED,
     )
-      .addProperties({
-        ...getAnalyticsParams(messageParams, signType, securityAlertResponse),
-        ...getSignatureDecodingEventProps(
-          signatureRequest,
-          isSimulationEnabled,
-        ),
-      })
+      .addProperties(
+        getAnalyticsParams(messageParams, signType, securityAlertResponse),
+      )
       .build(),
   );
 };
