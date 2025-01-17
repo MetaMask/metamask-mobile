@@ -1,4 +1,4 @@
-import { ApprovalRequest } from '@metamask/approval-controller';
+import { SignatureRequest } from '@metamask/signature-controller';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 
 /**
@@ -47,9 +47,15 @@ export const parseTypedDataMessage = (dataToParse: string) => {
 /**
  * Returns true if the request is a recognized Permit Typed Sign signature request
  *
- * @param request - The confirmation request to check
+ * @param request - The signature request to check
  */
-export const isRecognizedPermit = (approvalRequest: ApprovalRequest<{ data: string }>) => {
-  const { primaryType } = parseTypedDataMessage(approvalRequest.requestData.data);
+export const isRecognizedPermit = (request: SignatureRequest) => {
+  if (!request) {
+    return false;
+  }
+
+  const data = (request as SignatureRequest).messageParams?.data as string;
+
+  const { primaryType } = parseTypedDataMessage(data);
   return PRIMARY_TYPES_PERMIT.includes(primaryType);
 };
