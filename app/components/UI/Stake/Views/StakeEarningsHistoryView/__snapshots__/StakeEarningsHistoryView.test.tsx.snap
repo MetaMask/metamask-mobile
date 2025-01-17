@@ -42,6 +42,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 "backgroundColor": "transparent",
                 "borderColor": "#0376c9",
                 "borderRadius": 8,
+                "borderWidth": 0,
                 "flexDirection": "row",
                 "height": 40,
                 "justifyContent": "center",
@@ -55,7 +56,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#ffffff",
+                  "color": "#9fa6ae",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
