@@ -26,9 +26,9 @@ describe('SmartTransactionsMigrationBanner', () => {
       backgroundState: {
         PreferencesController: {
           smartTransactionsOptInStatus: true,
-          smartTransactionsMigrationApplied: true,
           featureFlags: {
             smartTransactionsBannerDismissed: false,
+            smartTransactionsMigrationApplied: true,
           },
           ...override,
         },
