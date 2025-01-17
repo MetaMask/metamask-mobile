@@ -30,7 +30,6 @@ const SignatureBlockaidBanner = () => {
       ),
       external_link_clicked: 'security_alert_support_link',
     };
-
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SIGNATURE_REQUESTED)
         .addProperties(analyticsParams)

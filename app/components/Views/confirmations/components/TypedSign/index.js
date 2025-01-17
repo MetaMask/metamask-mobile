@@ -114,14 +114,6 @@ class TypedSign extends PureComponent {
       metrics,
     } = this.props;
 
-<<<<<<< Updated upstream
-    const eventProps = {
-      ...getAnalyticsParams(messageParams, 'typed_sign'),
-      ...getSignatureDecodingEventProps(messageParams),
-    };
-
-=======
->>>>>>> Stashed changes
     metrics.trackEvent(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SIGNATURE_REQUESTED,

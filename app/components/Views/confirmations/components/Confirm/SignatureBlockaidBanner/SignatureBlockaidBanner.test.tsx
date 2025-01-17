@@ -7,8 +7,6 @@ import {
   typedSignV1ConfirmationState,
 } from '../../../../../../util/test/confirm-data-helpers';
 import SignatureBlockaidBanner from './index';
-import { MessageParamsTyped } from '@metamask/signature-controller';
-import { Hex } from '@metamask/utils';
 
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
@@ -48,23 +46,6 @@ const typedSignV1ConfirmationStateWithBlockaidResponse = {
               ...typedSignApproval.requestData,
               securityAlertResponse,
             },
-          },
-        },
-      },
-      SignatureController: {
-        signatureRequests: {
-          '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
-            chainId: '0x1' as Hex,
-            messageParams: {
-              ...typedSignApproval.requestData,
-            } as MessageParamsTyped,
-          },
-        },
-      },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
           },
         },
       },

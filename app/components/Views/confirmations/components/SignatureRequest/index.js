@@ -19,7 +19,6 @@ import ActionView, { ConfirmButtonState } from '../../../../UI/ActionView';
 import QRSigningDetails from '../../../../UI/QRHardware/QRSigningDetails';
 import withQRHardwareAwareness from '../../../../UI/QRHardware/withQRHardwareAwareness';
 import WebsiteIcon from '../../../../UI/WebsiteIcon';
-import { getSignatureDecodingEventProps } from '../../utils/signatureMetrics';
 import BlockaidBanner from '../BlockaidBanner/BlockaidBanner';
 import { ResultType } from '../BlockaidBanner/BlockaidBanner.types';
 
@@ -304,7 +303,6 @@ class SignatureRequest extends PureComponent {
 
   onContactUsClicked = () => {
     const { fromAddress, type } = this.props;
-
     const analyticsParams = {
       ...getAnalyticsParams(
         {
