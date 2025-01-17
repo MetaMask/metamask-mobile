@@ -18,6 +18,7 @@ interface ExpandableSectionProps {
   expandedContent: ReactNode;
   expandedContentTitle: string;
   iconVerticalPosition?: IconVerticalPosition;
+  collapseButtonTestID?: string;
   testID?: string;
 }
 
@@ -30,6 +31,7 @@ const ExpandableSection = ({
   expandedContent,
   expandedContentTitle,
   iconVerticalPosition,
+  collapseButtonTestID,
   testID,
 }: ExpandableSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -70,6 +72,7 @@ const ExpandableSection = ({
                 size={ButtonIconSizes.Sm}
                 onPress={() => setExpanded(false)}
                 iconName={IconName.ArrowLeft}
+                testID={collapseButtonTestID ?? 'collapseButtonTestID'}
               />
               <Text style={styles.expandedContentTitle}>
                 {expandedContentTitle}
