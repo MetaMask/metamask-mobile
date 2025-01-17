@@ -89,6 +89,11 @@ const snapMethodMiddlewareBuilder = (
         origin,
         ...args,
       ).state,
+       resolveInterface: controllerMessenger.call.bind(
+      controllerMessenger,
+      'SnapInterfaceController:resolveInterface',
+      origin,
+    ),
     getSnap: controllerMessenger.call.bind(
       controllerMessenger,
       'SnapController:get',
