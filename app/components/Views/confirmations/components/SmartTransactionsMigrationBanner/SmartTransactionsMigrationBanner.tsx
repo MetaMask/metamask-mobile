@@ -17,8 +17,6 @@ import {
   selectSmartTransactionsOptInStatus
 } from '../../../../../selectors/preferencesController';
 
-const SMART_TRANSACTIONS_LEARN_MORE = AppConstants.URLS.SMART_TXS;
-
 const SmartTransactionsMigrationBanner = ({
   style,
 }: SmartTransactionsMigrationBannerProps) => {
@@ -46,7 +44,7 @@ const SmartTransactionsMigrationBanner = ({
   }
 
   const handleLearnMore = () => {
-    Linking.openURL(SMART_TRANSACTIONS_LEARN_MORE);
+    Linking.openURL(AppConstants.URLS.SMART_TXS);
     dismissBanner();
   };
 

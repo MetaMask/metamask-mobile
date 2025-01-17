@@ -500,7 +500,6 @@ class TransactionReview extends PureComponent {
   }
 
   renderTransactionReview = () => {
-    Logger.log('TransactionReview RENDER TEST');
     const {
       transactionConfirmed,
       primaryCurrency,
