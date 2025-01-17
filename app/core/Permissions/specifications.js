@@ -410,5 +410,6 @@ export const unrestrictedMethods = Object.freeze([
   'snap_updateInterface',
   'snap_getInterfaceState',
   'snap_getInterfaceContext',
+  'snap_resolveInterface',
   ///: END:ONLY_INCLUDE_IF
 ]);
