@@ -1,9 +1,7 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
@@ -11,6 +9,7 @@ import FixtureBuilder, {
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
+import Utilities from '../../utils/Utilities';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
@@ -80,7 +79,7 @@ function mockAccountsApi(transactions) {
 describe(SmokeCore('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   xit('displays standard incoming transaction', async () => {
@@ -164,7 +163,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await Assertions.checkIfTextIsNotDisplayed('Received ETH');
       },
     );
@@ -190,12 +189,11 @@ describe(SmokeCore('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await TestHelpers.delay(2000);
+        await Utilities.delay(2000);
         await Assertions.checkIfTextIsNotDisplayed('Received ETH');
       },
     );
   });
-
   xit('displays notification', async () => {
     await withFixtures(
       {

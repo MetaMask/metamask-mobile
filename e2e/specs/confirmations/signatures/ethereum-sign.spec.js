@@ -10,14 +10,14 @@ import {
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
-import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import Utilities from '../../../utils/Utilities';
 
 describe(SmokeConfirmations('Ethereum Sign'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('Sign in with Ethereum', async () => {

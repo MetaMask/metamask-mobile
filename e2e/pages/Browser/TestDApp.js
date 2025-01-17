@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import { getLocalTestDappPort } from '../../fixtures/utils';
 
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
@@ -9,6 +8,7 @@ import enContent from '../../../locales/languages/en.json';
 import Browser from '../Browser/BrowserView';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import Utilities from '../../utils/Utilities';
 
 export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
@@ -228,7 +228,7 @@ class TestDApp {
     await Browser.navigateToURL(
       `${TEST_DAPP_LOCAL_URL}?scrollTo=''&contract=${contractAddress}`,
     );
-    await TestHelpers.delay(3000); // should have a better assertion that waits until the webpage loads
+    await Utilities.delay(3000); // should have a better assertion that waits until the webpage loads
   }
 
   async switchChainFromTestDapp() {

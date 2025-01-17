@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../../../helpers';
 import { SmokeMultiChainPermissions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -9,11 +8,12 @@ import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
+import Utilities from '../../../../utils/Utilities';
 
 describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('revokes dapp access for single account while maintaining other connections', async () => {

@@ -1,5 +1,4 @@
 import { SmokeAccounts } from '../../../tags';
-import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
 
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -15,6 +14,7 @@ import {
 } from '../../../fixtures/fixture-helper';
 import { getFixturesServerPort } from '../../../fixtures/utils';
 import FixtureServer from '../../../fixtures/fixture-server';
+import Utilities from '../../../utils/Utilities';
 
 const fixtureServer = new FixtureServer();
 
@@ -28,11 +28,11 @@ describe(
 
     beforeAll(async () => {
       jest.setTimeout(150000);
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
       const fixture = new FixtureBuilder().build();
       await startFixtureServer(fixtureServer);
       await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
+      await Utilities.launchApp({
         launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
       await loginToApp();

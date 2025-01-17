@@ -1,7 +1,6 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -16,12 +15,13 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 import Assertions from '../../utils/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('approve all ERC721 tokens', async () => {

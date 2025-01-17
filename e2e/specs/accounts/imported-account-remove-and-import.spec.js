@@ -18,6 +18,7 @@ import Assertions from '../../utils/Assertions.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors.js';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import Utilities from '../../utils/Utilities.js';
 
 const fixtureServer = new FixtureServer();
 // This key is for testing private key import only
@@ -30,13 +31,13 @@ describe(
   Regression('removes and reimports an account using a private key'),
   () => {
     beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
       const fixture = new FixtureBuilder()
         .withImportedAccountKeyringController()
         .build();
       await startFixtureServer(fixtureServer);
       await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
+      await Utilities.launchApp({
         launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
       await loginToApp();
@@ -53,7 +54,9 @@ describe(
       // Remove the imported account
       await AccountListBottomSheet.longPressAccountAtIndex(ACCOUNT_INDEX);
       await AccountListBottomSheet.tapYesToRemoveImportedAccountAlertButton();
-      await Assertions.checkIfNotVisible(AccountListBottomSheet.accountTypeLabel);
+      await Assertions.checkIfNotVisible(
+        AccountListBottomSheet.accountTypeLabel,
+      );
 
       // Import account again
       await AccountListBottomSheet.tapAddAccountButton();

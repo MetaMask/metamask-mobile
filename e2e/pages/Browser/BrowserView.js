@@ -1,4 +1,3 @@
-import TestHelpers from '../../helpers';
 import { TEST_DAPP_LOCAL_URL } from './TestDApp';
 import {
   BrowserViewSelectorsIDs,
@@ -10,7 +9,7 @@ import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
-
+import Utilities from '../../utils/Utilities';
 class Browser {
   get searchButton() {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.SEARCH_BUTTON);
@@ -185,7 +184,7 @@ class Browser {
   }
 
   async waitForBrowserPageToLoad() {
-    await TestHelpers.delay(5000);
+    await Utilities.delay(5000);
   }
 
   async navigateToTestDApp() {

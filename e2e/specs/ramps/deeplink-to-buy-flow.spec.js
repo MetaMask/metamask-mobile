@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../helpers';
 
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -15,9 +14,10 @@ import Assertions from '../../utils/Assertions';
 
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
+import Utilities from '../../utils/Utilities';
 describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   beforeEach(async () => {

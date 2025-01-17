@@ -1,7 +1,6 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
@@ -16,6 +15,8 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import Utilities from '../../utils/Utilities';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
@@ -23,7 +24,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should send ETH to an EOA from inside the wallet', async () => {
@@ -48,10 +49,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-
-        await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT} ${TOKEN_NAME}`,
-        );
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });
@@ -83,10 +81,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-
-        await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT} ${TOKEN_NAME}`,
-        );
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });

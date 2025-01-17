@@ -1,7 +1,6 @@
 'use strict';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import TestHelpers from '../../../../helpers';
 import Browser from '../../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import TestDApp from '../../../../pages/Browser/TestDApp';
@@ -14,11 +13,12 @@ import Assertions from '../../../../utils/Assertions';
 import { loginToApp } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import Utilities from '../../../../utils/Utilities';
 
 describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   describe('When a dApp requests to switch to a new chain', () => {

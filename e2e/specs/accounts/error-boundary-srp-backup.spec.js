@@ -9,16 +9,16 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SmokeAccounts } from '../../tags';
-import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
+import Utilities from '../../utils/Utilities';
 const PASSWORD = '123123123';
 
 describe(SmokeAccounts('Error Boundary Screen'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('should trigger error boundary screen to reveal SRP', async () => {

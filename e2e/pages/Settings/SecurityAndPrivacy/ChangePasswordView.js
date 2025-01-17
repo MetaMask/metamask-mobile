@@ -1,4 +1,3 @@
-import TestHelpers from '../../../helpers';
 import {
   RESET_PASSWORD_CONFIRM_INPUT_BOX_ID,
   RESET_PASSWORD_ANDROID_TERM_CHECKBOX_ID,
@@ -8,7 +7,7 @@ import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/Sec
 
 import Matchers from '../../../utils/Matchers';
 import Gestures from '../../../utils/Gestures';
-
+import Utilities from '../../../utils/Utilities';
 class ChangePasswordView {
   get title() {
     return Matchers.getElementByText(
@@ -49,7 +48,7 @@ class ChangePasswordView {
       await Gestures.waitAndTap(this.iosUnderstandCheck);
     } else {
       // Tap by the I understand text
-      await TestHelpers.delay(1000);
+      await Utilities.delay(1000);
       await Gestures.waitAndTap(this.androidUnderstandCheck);
     }
   }

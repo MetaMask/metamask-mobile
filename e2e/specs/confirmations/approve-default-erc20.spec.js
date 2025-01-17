@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -16,6 +15,7 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import Assertions from '../../utils/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
+import Utilities from '../../utils/Utilities';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -24,10 +24,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     if (device.getPlatform() === 'android') {
-      await TestHelpers.reverseServerPort();
+      await Utilities.reverseServerPort();
     }
   });
-
   it('approve default ERC20 token amount from a dapp', async () => {
     await withFixtures(
       {

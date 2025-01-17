@@ -14,7 +14,6 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
@@ -26,6 +25,7 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
+import Utilities from '../../utils/Utilities.js';
 
 const fixtureServer = new FixtureServer();
 
@@ -38,13 +38,13 @@ describe(Regression('Swap from Token view'), () => {
       CustomNetworks.Tenderly.Mainnet.providerConfig.rpcUrl,
       wallet.address,
     );
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(CustomNetworks.Tenderly.Mainnet)
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -87,7 +87,7 @@ describe(Regression('Swap from Token view'), () => {
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken(destTokenSymbol);
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
     await QuoteView.selectToken(destTokenSymbol);
     await QuoteView.tapOnGetQuotes();
     await Assertions.checkIfVisible(SwapView.fetchingQuotes);
@@ -95,14 +95,11 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(SwapView.gasFee);
     await SwapView.tapIUnderstandPriceWarning();
     await SwapView.tapSwapButton();
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
     //Wait for Swap to complete
     try {
       await Assertions.checkIfTextIsDisplayed(
-        SwapView.generateSwapCompleteLabel(
-          sourceTokenSymbol,
-          destTokenSymbol,
-        ),
+        SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
         30000,
       );
     } catch (e) {
@@ -110,7 +107,7 @@ describe(Regression('Swap from Token view'), () => {
       console.log(`Swap complete didn't pop up: ${e}`);
     }
     await device.enableSynchronization();
-    await TestHelpers.delay(10000);
+    await Utilities.delay(10000);
 
     // Check the swap activity completed
     await TabBarComponent.tapActivity();

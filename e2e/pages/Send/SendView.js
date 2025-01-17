@@ -1,8 +1,7 @@
-import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
-
+import Utilities from '../../utils/Utilities';
 class SendView {
   get cancelButton() {
     return Matchers.getElementByID(SendViewSelectorsIDs.SEND_CANCEL_BUTTON);
@@ -66,10 +65,9 @@ class SendView {
   async tapAddAddressToAddressBook() {
     await Gestures.waitAndTap(this.addAddressButton);
   }
-
   async removeAddress() {
     await Gestures.waitAndTap(this.removeAddressButton);
-    await TestHelpers.delay(1000);
+    await Utilities.delay(1000);
   }
 }
 export default new SendView();

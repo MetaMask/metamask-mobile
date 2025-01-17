@@ -1,16 +1,16 @@
 import TermsOfUseModal from '../../pages/Onboarding/TermsOfUseModal';
-import TestHelpers from '../../helpers';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
 import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
 import Assertions from '../../utils/Assertions';
 import { Regression } from '../../tags';
+import Utilities from '../../utils/Utilities';
 
 describe(Regression('Term of Use Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await Utilities.launchApp();
   });
 
   it('should displayed Term of Use when first launching app', async () => {
@@ -25,7 +25,7 @@ describe(Regression('Term of Use Modal'), () => {
   });
 
   it('should prevent attempts to bypass term of use', async () => {
-    await TestHelpers.relaunchApp();
+    await Utilities.relaunchApp();
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
     await Assertions.checkIfVisible(OnboardingView.container);
@@ -42,7 +42,7 @@ describe(Regression('Term of Use Modal'), () => {
   });
 
   it('should restart app after accepting terms', async () => {
-    await TestHelpers.relaunchApp();
+    await Utilities.relaunchApp();
     await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
     await Assertions.checkIfVisible(OnboardingView.container);

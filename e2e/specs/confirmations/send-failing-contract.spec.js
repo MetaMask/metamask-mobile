@@ -1,7 +1,6 @@
 'use strict';
 
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -15,22 +14,20 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeConfirmations('Failing contracts'), () => {
   const FAILING_CONTRACT = SMART_CONTRACTS.FAILING;
 
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('sends a failing contract transaction', async () => {
-
-    const testSpecificMock  = {
-        GET: [
-          mockEvents.GET.suggestedGasFeesApiGanache
-        ],
-      };
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
+    };
     await withFixtures(
       {
         dapp: true,
@@ -54,10 +51,10 @@ describe(SmokeConfirmations('Failing contracts'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: failingAddress,
         });
-        
+
         // Send a failing transaction
         await TestDApp.tapSendFailingTransactionButton();
-        await TestHelpers.delay(3000);
+        await Utilities.delay(3000);
 
         await TestDApp.tapConfirmButton();
 
@@ -66,10 +63,10 @@ describe(SmokeConfirmations('Failing contracts'), () => {
 
         // Assert the failed transaction is displayed
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION
+          ActivitiesViewSelectorsText.SMART_CONTRACT_INTERACTION,
         );
         await Assertions.checkIfTextIsDisplayed(
-          ActivitiesViewSelectorsText.FAILED_TEXT
+          ActivitiesViewSelectorsText.FAILED_TEXT,
         );
       },
     );

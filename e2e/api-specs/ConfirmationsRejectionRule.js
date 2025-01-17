@@ -1,7 +1,6 @@
 import { device } from 'detox';
 import { addToQueue } from './helpers';
 import paramsToObj from '@open-rpc/test-coverage/build/utils/params-to-obj';
-import TestHelpers from '../helpers';
 import Matchers from '../utils/Matchers';
 import Gestures from '../utils/Gestures';
 import ConnectBottomSheet from '../pages/Browser/ConnectBottomSheet';
@@ -13,6 +12,7 @@ import fs from 'fs';
 
 import Assertions from '../utils/Assertions';
 import PermissionSummaryBottomSheet from '../pages/Browser/PermissionSummaryBottomSheet';
+import Utilities from '../utils/Utilities';
 
 const getBase64FromPath = async (path) => {
   const data = await fs.promises.readFile(path);
@@ -67,7 +67,7 @@ export default class ConfirmationsRejectRule {
             await Assertions.checkIfNotVisible(
               PermissionSummaryBottomSheet.container,
             );
-            await TestHelpers.delay(3000);
+            await Utilities.delay(3000);
 
             try {
               await Assertions.checkIfVisible(SpamFilterModal.title);
@@ -138,7 +138,7 @@ export default class ConfirmationsRejectRule {
         resolve,
         reject,
         task: async () => {
-          await TestHelpers.delay(3000);
+          await Utilities.delay(3000);
           const imagePath = await device.takeScreenshot(
             `afterRequest-${this.getTitle()}`,
           );
@@ -150,7 +150,7 @@ export default class ConfirmationsRejectRule {
             type: 'image',
           });
           let cancelButton;
-          await TestHelpers.delay(3000);
+          await Utilities.delay(3000);
           if (this.allCapsCancel.includes(call.methodName)) {
             await AssetWatchBottomSheet.tapCancelButton();
           } else {

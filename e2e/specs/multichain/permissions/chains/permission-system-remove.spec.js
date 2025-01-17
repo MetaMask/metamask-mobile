@@ -1,5 +1,4 @@
 'use strict';
-import TestHelpers from '../../../../helpers';
 import { SmokeMultiChainPermissions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
@@ -17,11 +16,12 @@ import TestDApp from '../../../../pages/Browser/TestDApp';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+import Utilities from '../../../../utils/Utilities';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('handles permission cleanup when removing a connected chain', async () => {

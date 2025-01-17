@@ -1,6 +1,5 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import TestHelpers from '../../helpers';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
@@ -13,13 +12,14 @@ import SkipAccountSecurityModal from '../../pages/Onboarding/SkipAccountSecurity
 import OnboardingWizardModal from '../../pages/Onboarding/OnboardingWizardModal';
 import { acceptTermOfUse } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
+import Utilities from '../../utils/Utilities';
 
 const PASSWORD = '12345678';
 
 describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await Utilities.launchApp();
   });
 
   it('should show the onboarding screen', async () => {
@@ -65,14 +65,16 @@ describe(SmokeCore('Start Exploring'), () => {
   });
 
   it('Should dismiss Automatic Security checks screen', async () => {
-    await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+    await Utilities.delay(3500);
+    await Assertions.checkIfVisible(
+      EnableAutomaticSecurityChecksView.container,
+    );
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
   it('should go through the onboarding wizard flow', async () => {
     // Check that Take the tour CTA is visible and tap it
-    await TestHelpers.delay(3000);
+    await Utilities.delay(3000);
     await Assertions.checkIfVisible(OnboardingWizardModal.stepOneContainer);
     await OnboardingWizardModal.tapTakeTourButton();
     await Assertions.checkIfVisible(OnboardingWizardModal.stepTwoContainer);
@@ -113,7 +115,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await OnboardingWizardModal.tapGotItButton();
     // Check that we are on the Browser page
     // dealing with flakiness on bitrise.
-    await TestHelpers.delay(2500);
+    await Utilities.delay(2500);
     await Assertions.checkIfVisible(Browser.browserScreenID);
   });
 });

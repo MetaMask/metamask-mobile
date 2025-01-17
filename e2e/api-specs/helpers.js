@@ -1,5 +1,5 @@
-import TestHelpers from '../helpers';
 import { v4 as uuid } from 'uuid';
+import Utilities from '../utils/Utilities';
 
 export const taskQueue = [];
 let isProcessing = false;
@@ -32,7 +32,7 @@ const pollResult = async (driver, generatedKey) => {
     addToQueue({
       name: 'pollResult',
       task: async () => {
-        await TestHelpers.delay(500);
+        await Utilities.delay(500);
         const text = await driver.runScript(
           (el, g) => window[g],
           [generatedKey],

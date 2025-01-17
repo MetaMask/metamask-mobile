@@ -8,7 +8,6 @@ import {
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
@@ -16,16 +15,17 @@ import BrowserView from '../../pages/Browser/BrowserView';
 import PortfolioHomePage from '../../pages/Browser/PortfolioHomePage';
 import Assertions from '../../utils/Assertions';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
+import Utilities from '../../utils/Utilities';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeCore('Connect account to Portfolio'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().withKeyringController().build();
     fixture.state.user.seedphraseBackedUp = false;
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -53,7 +53,7 @@ describe(SmokeCore('Connect account to Portfolio'), () => {
     }
     await device.disableSynchronization();
     await PortfolioHomePage.tapConnectMetaMask();
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
     await ConnectBottomSheet.tapConnectButton();
     await device.enableSynchronization();
   });

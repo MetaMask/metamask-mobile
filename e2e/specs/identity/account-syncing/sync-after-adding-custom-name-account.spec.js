@@ -10,7 +10,6 @@ import {
 } from '../../../api-mocking/mock-server';
 import { accountsSyncMockResponse } from './mockData';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
-import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
@@ -19,6 +18,7 @@ import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBotto
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import Utilities from '../../../utils/Utilities';
 
 describe(SmokeIdentity('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
@@ -26,7 +26,7 @@ describe(SmokeIdentity('Account syncing'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
 
     const mockServer = await startMockServer();
 
@@ -51,8 +51,7 @@ describe(SmokeIdentity('Account syncing'), () => {
         return JSON.parse(decryptedAccountName).n;
       }),
     );
-
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       newInstance: true,
       delete: true,
     });
@@ -81,7 +80,7 @@ describe(SmokeIdentity('Account syncing'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapCreateAccount();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
-    await TestHelpers.delay(2000);
+    await Utilities.delay(2000);
     await WalletView.tapCurrentMainWalletAccountActions();
 
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
@@ -94,7 +93,7 @@ describe(SmokeIdentity('Account syncing'), () => {
   });
 
   it('retrieves same accounts after importing the same SRP', async () => {
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       newInstance: true,
       delete: true,
     });

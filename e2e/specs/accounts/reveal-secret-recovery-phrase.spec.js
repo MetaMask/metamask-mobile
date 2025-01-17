@@ -23,6 +23,7 @@ import {
 } from '../../fixtures/fixture-helper.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
 import Assertions from '../../utils/Assertions.js';
+import Utilities from '../../utils/Utilities.js';
 
 const fixtureServer = new FixtureServer();
 const PASSWORD = '123123123';
@@ -32,11 +33,11 @@ const QUIZ_QUESTION_2 = 2;
 
 describe(SmokeAccounts('Secret Recovery Phrase Reveal from Settings'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
     const fixture = new FixtureBuilder().withDefaultFixture().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await Utilities.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

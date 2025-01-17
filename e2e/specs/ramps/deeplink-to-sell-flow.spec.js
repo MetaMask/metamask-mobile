@@ -4,7 +4,6 @@ import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 
-import TestHelpers from '../../helpers';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { SmokeRamps } from '../../tags';
 
@@ -15,10 +14,11 @@ import NetworkAddedBottomSheet from '../../pages/Network/NetworkAddedBottomSheet
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeRamps('Sell Crypto Deeplinks'), () => {
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   beforeEach(async () => {

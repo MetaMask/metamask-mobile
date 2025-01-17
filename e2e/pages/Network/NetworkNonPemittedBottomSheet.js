@@ -8,7 +8,6 @@ import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
 } from '../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
-import TestHelpers from '../../helpers';
 
 class NetworkNonPemittedBottomSheet {
   get addThisNetworkTitle() {

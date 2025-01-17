@@ -1,6 +1,5 @@
 ('use strict');
 import { SmokeAssets } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -14,13 +13,14 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../utils/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
+import Utilities from '../../utils/Utilities';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeAssets('Asset Watch:'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('Should Import ERC20 Token via Dapp', async () => {
@@ -46,7 +46,7 @@ describe(SmokeAssets('Asset Watch:'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000); // Because loading the dapp is slow on CI
+        await Utilities.delay(3000); // Because loading the dapp is slow on CI
 
         await TestDApp.tapAddERC20TokenToWalletButton();
         await Assertions.checkIfVisible(AssetWatchBottomSheet.container);

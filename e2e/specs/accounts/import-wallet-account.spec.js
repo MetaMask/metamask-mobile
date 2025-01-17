@@ -8,7 +8,7 @@ import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import CommonView from '../../pages/CommonView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
-import TestHelpers from '../../helpers';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeAccounts('Import account via private to wallet'), () => {
   // This key is for testing private key import only
@@ -18,7 +18,7 @@ describe(SmokeAccounts('Import account via private to wallet'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await TestHelpers.launchApp();
+    await Utilities.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

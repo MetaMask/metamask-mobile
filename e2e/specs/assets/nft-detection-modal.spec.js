@@ -6,17 +6,17 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
 import { SmokeAssets } from '../../tags';
 
 import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeAssets('NFT Detection Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('show nft detection modal after user switches to mainnet and taps cancel when nft detection toggle is off', async () => {
@@ -35,7 +35,7 @@ describe(SmokeAssets('NFT Detection Modal'), () => {
         await Assertions.checkIfVisible(NftDetectionModal.container);
 
         // fix flaky test: toast should desapear to get access to cancel button
-        await TestHelpers.delay(5000);
+        await Utilities.delay(5000);
 
         await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen

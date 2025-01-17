@@ -1,7 +1,6 @@
 'use strict';
 
 import { SmokeAssets } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -13,13 +12,14 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
+import Utilities from '../../utils/Utilities';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
   const TEST_DAPP_CONTRACT = 'TestDappNFTs';
   beforeAll(async () => {
     jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
+    await Utilities.reverseServerPort();
   });
 
   it('show nft details', async () => {
