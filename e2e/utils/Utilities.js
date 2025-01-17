@@ -5,8 +5,7 @@ import {
   getGanachePort,
   getLocalTestDappPort,
   getMockServerPort,
-} from './fixtures/utils';
-import Utilities from './utils/Utilities';
+} from '../fixtures/utils';
 import { resolveConfig } from 'detox/internals';
 export default class Utilities {
   static async openDeepLink(inputURL) {
@@ -16,7 +15,7 @@ export default class Utilities {
       sourceApp: 'io.metamask',
       launchArgs: {
         fixtureServerPort: `${getFixturesServerPort()}`,
-        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+        detoxURLBlacklistRegex: this.BlacklistURLs,
       },
     });
   }
