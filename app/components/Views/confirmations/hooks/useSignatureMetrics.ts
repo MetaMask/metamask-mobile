@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import type { Hex } from '@metamask/utils';
 
 import getDecimalChainId from '../../../../util/networks/getDecimalChainId';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
