@@ -6,7 +6,7 @@ import styleSheet from './InfoSection.styles';
 
 interface InfoSectionProps {
   children: ReactNode;
-  testID: string;
+  testID?: string;
 }
 
 const InfoSection = ({ children, testID }: InfoSectionProps) => {
