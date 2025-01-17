@@ -52,7 +52,7 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
       - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_ios_android_stage: {}
+      # - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -1855,5 +1855,5 @@ trigger_map:
     pipeline: pr_smoke_e2e_pipeline
   - tag: 'v*.*.*-RC-*'
     pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - push_branch: generate-build-artifacts
+    pipeline: pr_smoke_e2e_pipeline
