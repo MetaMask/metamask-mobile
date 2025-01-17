@@ -775,6 +775,13 @@ workflows:
             - key: '{{ getenv "CCACHE_KEY" }}'
             - paths: |-
                 ccache
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy Android Build Artifacts
+          is_always_run: true
+          inputs:
+            - deploy_path: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
+            - is_compress: true
+            - zip_name: Android_Build_Artifacts
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
@@ -1025,6 +1032,13 @@ workflows:
                 ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
                 ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
           title: Save iOS build
+      - deploy-to-bitrise-io@2.3:
+          title: Deploy iOS Build Artifacts
+          is_always_run: true
+          inputs:
+            - deploy_path: ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
+            - is_compress: true
+            - zip_name: iOS_Build_Artifacts
       - save-cache@1:
           title: Save node_modules
           inputs:
