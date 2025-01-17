@@ -603,7 +603,7 @@ class TransactionReview extends PureComponent {
                       />
                     </View>
                     <View style={styles.smartTransactionsEnableBanner}>
-                      <SmartTransactionsEnabledBanner devTestId={'TR'} />
+                      <SmartTransactionsEnabledBanner />
                     </View>
                     {to && (
                       <View style={styles.accountWrapper}>
