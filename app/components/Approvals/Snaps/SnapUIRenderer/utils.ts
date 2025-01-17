@@ -6,8 +6,6 @@ import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { decode } from 'html-entities';
 
-// TODO: Theme isn't properly setup yet
-// const colors = Theme.colors;
 
 export interface MapToTemplateParams {
   map: Record<string, number>;
