@@ -16,7 +16,7 @@ const InfoRowOrigin = () => {
 
   return (
     <InfoSection
-      testId={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
+      testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
     >
       <InfoRow
         label={strings('confirm.request_from')}
