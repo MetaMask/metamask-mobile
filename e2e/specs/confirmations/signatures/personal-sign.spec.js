@@ -1,21 +1,24 @@
 'use strict';
-import Assertions from '../../../utils/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
-import FooterActions from '../../../pages/Browser/Confirmations/FooterActions.js';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
-import PageSections from '../../../pages/Browser/Confirmations/PageSections.js';
-import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes.js';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import TestDApp from '../../../pages/Browser/TestDApp';
-import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
+import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
+import TestDApp from '../../../pages/Browser/TestDApp';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
+import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Personal Sign'), () => {
+  const testSpecificMock = {
+    GET: [mockEvents.GET.remoteFeatureFlags],
+  };
+
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
@@ -31,6 +34,7 @@ describe(SmokeConfirmations('Personal Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -38,23 +42,17 @@ describe(SmokeConfirmations('Personal Sign'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
 
-        // cancel request
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(RequestTypes.PersonalSignRequest);
-        await FooterActions.tapCancelButton();
-        await Assertions.checkIfNotVisible(RequestTypes.PersonalSignRequest);
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapCancelButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
 
         await TestDApp.tapPersonalSignButton();
-        await Assertions.checkIfVisible(RequestTypes.PersonalSignRequest);
-
-        // check different sections are visible
-        await Assertions.checkIfVisible(PageSections.AccountNetworkSection);
-        await Assertions.checkIfVisible(PageSections.OriginInfoSection);
-        await Assertions.checkIfVisible(PageSections.MessageSection);
-
-        // confirm request
-        await FooterActions.tapConfirmButton();
-        await Assertions.checkIfNotVisible(RequestTypes.PersonalSignRequest);
+        await Assertions.checkIfVisible(SigningBottomSheet.personalRequest);
+        await SigningBottomSheet.tapSignButton();
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
       },
     );
   });
