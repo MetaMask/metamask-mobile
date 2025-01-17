@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useStakeContext } from './useStakeContext';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
 import { hexToNumber } from '@metamask/utils';
+import { ChainId } from '@metamask/controller-utils';
+import { StakingApiService } from '@metamask/stake-sdk';
 
 interface EarningHistory {
   sumRewards: string;
@@ -15,13 +15,15 @@ interface EarningHistoryResponse {
   userRewards: EarningHistory[];
 }
 
+const stakingApiService = new StakingApiService();
+
 const useStakingEarningsHistory = ({
+  chainId,
   limitDays = 365,
 }: {
+  chainId: ChainId;
   limitDays: number;
 }) => {
-  const { stakingApiService } = useStakeContext();
-  const chainId = useSelector(selectChainId);
   const numericChainId = hexToNumber(chainId);
   const [earningsHistory, setEarningsHistory] = useState<
     EarningHistory[] | null
@@ -50,7 +52,7 @@ const useStakingEarningsHistory = ({
         setIsLoading(false);
       }
     }
-  }, [numericChainId, stakingApiService, selectedAddress, limitDays]);
+  }, [numericChainId, selectedAddress, limitDays]);
 
   useEffect(() => {
     fetchEarningsHistory();

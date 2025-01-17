@@ -31,7 +31,7 @@ const StakingEarningsHistoryList = ({
   let lastGroupHeader: string | null = null;
   return (
     <View style={styles.stakingEarningsHistoryListContainer}>
-      {earnings.length > 0 ? (
+      {earnings ? (
         <>
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
             Payout history
