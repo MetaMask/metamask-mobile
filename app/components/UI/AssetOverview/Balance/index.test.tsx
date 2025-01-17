@@ -8,7 +8,7 @@ import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { NetworkBadgeSource } from './Balance';
-import { isPortfolioViewEnabledFunction } from '../../../../util/networks';
+import { isPortfolioViewEnabled } from '../../../../util/networks';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -37,6 +37,8 @@ const mockDAI = {
   symbol: 'DAI',
   isETH: false,
   logo: 'image-path',
+  chainId: '0x1',
+  isNative: false,
 };
 
 const mockETH = {
@@ -52,13 +54,25 @@ const mockETH = {
   symbol: 'ETH',
   isETH: true,
   logo: 'image-path',
+  chainId: '0x1',
+  isNative: true,
 };
 
-const mockInitialState = {
-  engine: {
-    backgroundState,
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    NetworkController: {
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+          rpcUrl: 'https://mainnet.infura.io/v3',
+          ticker: 'ETH',
+          type: 'custom',
+        },
+      }),
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
   },
-};
+}));
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
@@ -67,8 +81,50 @@ jest.mock('../../../../util/networks', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  isPortfolioViewEnabledFunction: jest.fn(),
+  isPortfolioViewEnabled: jest.fn(),
 }));
+
+jest.mock('../../Stake/hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: () => ({
+    pooledStakesData: {
+      account: '0xabc',
+      assets: '10000000000000000',
+      exitRequests: [],
+      lifetimeRewards: '100000000000000',
+    },
+    exchangeRate: 1.018,
+    hasStakedPositions: true,
+    hasEthToUnstake: true,
+    isLoadingPooledStakesData: false,
+  }),
+}));
+
+jest.mock('../../Stake/hooks/useVaultData', () => ({
+  __esModule: true,
+  default: () => ({
+    vaultData: {
+      apy: '2.437033146840025387168141592920355',
+      capacity: '1000000000000000000000000000000000000000000000000000000000000',
+      feePercent: 1500,
+      totalAssets: '10000000000000000000000',
+      vaultAddress: '0xdef',
+    },
+  }),
+}));
+
+jest.mock('../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: () => ({
+    isEligible: true,
+  }),
+}));
+
+const mockInitialState = {
+  engine: {
+    backgroundState,
+  },
+};
 
 describe('Balance', () => {
   const mockStore = configureMockStore();
@@ -95,23 +151,27 @@ describe('Balance', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly with a fiat balance', () => {
-    const wrapper = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled()) {
+    it('should render correctly with a fiat balance', () => {
+      const wrapper = render(
+        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+  }
 
-  it('should render correctly without a fiat balance', () => {
-    const wrapper = render(
-      <Balance
-        asset={mockDAI}
-        mainBalance="123"
-        secondaryBalance={undefined}
-      />,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
+  if (!isPortfolioViewEnabled()) {
+    it('should render correctly without a fiat balance', () => {
+      const wrapper = render(
+        <Balance
+          asset={mockDAI}
+          mainBalance="123"
+          secondaryBalance={undefined}
+        />,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+  }
 
   it('should fire navigation event for non native tokens', () => {
     const { queryByTestId } = render(
@@ -123,13 +183,19 @@ describe('Balance', () => {
   });
 
   it('should not fire navigation event for native tokens', () => {
-    const { queryByTestId } = render(
+    const { queryAllByTestId } = render(
       <Provider store={store}>
-        <Balance asset={mockETH} mainBalance="100" secondaryBalance="200" />
+        <Balance asset={mockETH} mainBalance="100" secondaryBalance="200" />,
       </Provider>,
     );
-    const assetElement = queryByTestId('asset-ETH');
-    fireEvent.press(assetElement);
+
+    // Includes native ETH and staked ETH
+    const ethElements = queryAllByTestId('asset-ETH');
+
+    ethElements.forEach((ethElement) => {
+      fireEvent.press(ethElement);
+    });
+
     expect(mockNavigate).toHaveBeenCalledTimes(0);
   });
 
@@ -155,11 +221,39 @@ describe('Balance', () => {
     });
 
     it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
-      (isPortfolioViewEnabledFunction as jest.Mock).mockImplementation(
-        () => true,
-      );
+      if (isPortfolioViewEnabled()) {
+        const result = NetworkBadgeSource('0xe708', 'LINEA');
+        expect(result).toBeDefined();
+      }
+    });
+  });
+});
+
+describe('NetworkBadgeSource', () => {
+  it('returns testnet image for a testnet chainId', () => {
+    const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+    expect(result).toBeDefined();
+  });
+
+  it('returns mainnet Ethereum image for mainnet chainId', () => {
+    const result = NetworkBadgeSource('0x1', 'ETH');
+    expect(result).toBeDefined();
+  });
+
+  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
+    const result = NetworkBadgeSource('0xe708', 'LINEA');
+    expect(result).toBeDefined();
+  });
+
+  it('returns undefined if no image is found', () => {
+    const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+    expect(result).toBeUndefined();
+  });
+
+  it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
+    if (isPortfolioViewEnabled()) {
       const result = NetworkBadgeSource('0xe708', 'LINEA');
       expect(result).toBeDefined();
-    });
+    }
   });
 });

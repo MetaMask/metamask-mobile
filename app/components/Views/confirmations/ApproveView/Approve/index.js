@@ -13,7 +13,6 @@ import ApproveTransactionReview from '../../components/ApproveTransactionReview'
 import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../../util/networks';
 
 import {
   setTransactionObject,
@@ -66,7 +65,10 @@ import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import {
   selectGasFeeEstimates,
@@ -280,7 +282,8 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
     const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
@@ -306,8 +309,13 @@ class Approve extends PureComponent {
   };
 
   handleGetGasLimit = async () => {
+    const { networkClientId } = this.props;
     const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    const estimation = await getGasLimit(
+      { ...transaction, gas: undefined },
+      false,
+      networkClientId,
+    );
     setTransactionObject({ gas: estimation.gas });
   };
 

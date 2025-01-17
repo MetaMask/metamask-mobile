@@ -17,6 +17,7 @@ import {
   prepareTransaction,
   setTransactionObject,
   resetTransaction,
+  setMaxValueMode,
 } from '../../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -78,6 +79,7 @@ import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -485,6 +487,14 @@ class Amount extends PureComponent {
      * Type of gas fee estimate provided by the gas fee controller.
      */
     gasEstimateType: PropTypes.string,
+    /**
+     * Function that sets the max value mode
+     */
+    setMaxValueMode: PropTypes.func,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -872,10 +882,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -926,9 +941,17 @@ class Amount extends PureComponent {
   };
 
   onInputChange = (inputValue, selectedAsset, useMax) => {
-    const { contractExchangeRates, conversionRate, currentCurrency, ticker } =
-      this.props;
+    const {
+      contractExchangeRates,
+      conversionRate,
+      currentCurrency,
+      ticker,
+      setMaxValueMode,
+    } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
+
+    setMaxValueMode(useMax ?? false);
+
     let inputValueConversion,
       renderableInputValueConversion,
       hasExchangeRate,
@@ -1557,6 +1580,7 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -1567,6 +1591,7 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   resetTransaction: () => dispatch(resetTransaction()),
+  setMaxValueMode: (maxValueMode) => dispatch(setMaxValueMode(maxValueMode)),
 });
 
 export default connect(

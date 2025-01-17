@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   selectChainId,
+  selectIsPopularNetwork,
   selectProviderConfig,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -51,7 +52,7 @@ import {
   TotalFiatBalancesCrossChains,
   useGetTotalFiatBalanceCrossChains,
 } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getChainIdsToPoll } from '../../../../../selectors/tokensController';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 
@@ -68,11 +69,14 @@ export const PortfolioBalance = () => {
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
+
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     [selectedInternalAccount as InternalAccount],
-    isTokenNetworkFilterEqualCurrentNetwork,
+    !isTokenNetworkFilterEqualCurrentNetwork && isPopularNetwork,
     allChainIDs,
   );
+
   const totalFiatBalancesCrossChain: TotalFiatBalancesCrossChains =
     useGetTotalFiatBalanceCrossChains(
       [selectedInternalAccount as InternalAccount],
@@ -110,14 +114,14 @@ export const PortfolioBalance = () => {
 
   let total;
   if (isOriginalNativeTokenSymbol) {
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       total = totalFiatBalance ?? 0;
     } else {
       const tokenFiatTotal = balance?.tokenFiat ?? 0;
       const ethFiatTotal = balance?.ethFiat ?? 0;
       total = tokenFiatTotal + ethFiatTotal;
     }
-  } else if (isPortfolioViewEnabled) {
+  } else if (isPortfolioViewEnabled()) {
     total = totalTokenFiat ?? 0;
   } else {
     total = balance?.tokenFiat ?? 0;
@@ -175,7 +179,7 @@ export const PortfolioBalance = () => {
       return null;
     }
 
-    if (isPortfolioViewEnabled) {
+    if (isPortfolioViewEnabled()) {
       return (
         <AggregatedPercentageCrossChains
           privacyMode={privacyMode}

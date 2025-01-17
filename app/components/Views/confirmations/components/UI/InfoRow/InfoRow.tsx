@@ -24,7 +24,7 @@ const InfoRow = ({ label, children, tooltip, style = {} }: InfoRowProps) => {
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>
       ) : (
-        children
+        <View style={styles.valueComponent}>{children}</View>
       )}
     </View>
   );

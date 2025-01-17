@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import Device from '../../util/device';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -41,7 +42,6 @@ import {
   SEPOLIA_BLOCK_EXPLORER,
   SEPOLIA_FAUCET,
 } from '../../constants/urls';
-import { getNonceLock } from '../../util/transaction-controller';
 
 /**
  * List of the supported networks
@@ -350,14 +350,6 @@ export function isPrefixedFormattedHexString(value) {
   return regex.prefixedFormattedHexString.test(value);
 }
 
-export const getNetworkNonce = async ({ from }, networkClientId) => {
-  const { nextNonce, releaseLock } = await getNonceLock(from, networkClientId);
-
-  releaseLock();
-
-  return nextNonce;
-};
-
 export function blockTagParamIndex(payload) {
   switch (payload.method) {
     // blockTag is at index 2
@@ -506,7 +498,5 @@ export const isChainPermissionsFeatureEnabled =
 export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
-export const isPortfolioViewEnabled = process.env.PORTFOLIO_VIEW === 'true';
-
-export const isPortfolioViewEnabledFunction = () =>
-  process.env.PORTFOLIO_VIEW === 'true';
+export const isPortfolioViewEnabled = () =>
+  Device.isIos() && process.env.PORTFOLIO_VIEW === 'true';

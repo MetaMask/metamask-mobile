@@ -52,16 +52,11 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     <TouchableOpacity
       avatarProps={
         {
-          "imageSource": {
-            "default": {
-              "uri": "MockImage",
-            },
-          },
+          "imageSource": 1,
           "name": "Mainnet",
           "variant": "Network",
         }
       }
-      secondaryText="etherscan.io"
       style={
         {
           "backgroundColor": "#ffffff",
@@ -99,13 +94,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "default": {
-                  "uri": "MockImage",
-                },
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,
@@ -139,22 +128,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             testID="cellbase-avatar-title"
           >
             Mainnet
-          </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            etherscan.io
           </Text>
         </View>
         <View
@@ -198,16 +171,11 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
     <TouchableOpacity
       avatarProps={
         {
-          "imageSource": {
-            "default": {
-              "uri": "MockImage",
-            },
-          },
+          "imageSource": 1,
           "name": "Linea Mainnet",
           "variant": "Network",
         }
       }
-      secondaryText="lineascan.build"
       style={
         {
           "backgroundColor": "#ffffff",
@@ -245,13 +213,7 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
           <Image
             onError={[Function]}
             resizeMode="contain"
-            source={
-              {
-                "default": {
-                  "uri": "MockImage",
-                },
-              }
-            }
+            source={1}
             style={
               {
                 "height": 32,
@@ -285,22 +247,6 @@ exports[`IncomingTransactionsSettings should render correctly 1`] = `
             testID="cellbase-avatar-title"
           >
             Linea Mainnet
-          </Text>
-          <Text
-            accessibilityRole="text"
-            numberOfLines={1}
-            style={
-              {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
-                "letterSpacing": 0,
-                "lineHeight": 22,
-              }
-            }
-          >
-            lineascan.build
           </Text>
         </View>
         <View

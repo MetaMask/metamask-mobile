@@ -118,7 +118,6 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
       <View
         style={
           {
-            "alignItems": "center",
             "backgroundColor": "#ffffff",
             "flexDirection": "row",
             "padding": 16,
@@ -165,9 +164,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
           <TouchableOpacity
             avatarProps={
               {
-                "imageSource": {
-                  "uri": "MockImage",
-                },
+                "imageSource": 1,
                 "name": "Mainnet",
                 "size": "24",
                 "style": {
@@ -213,11 +210,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 24,

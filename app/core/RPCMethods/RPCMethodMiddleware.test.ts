@@ -1,13 +1,14 @@
-import {
-  JsonRpcEngine,
+import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
+import type {
+  Json,
   JsonRpcFailure,
-  JsonRpcMiddleware,
+  JsonRpcParams,
   JsonRpcRequest,
   JsonRpcResponse,
   JsonRpcSuccess,
-} from 'json-rpc-engine';
+} from '@metamask/utils';
+import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import type { TransactionParams } from '@metamask/transaction-controller';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
@@ -110,8 +111,8 @@ const jsonrpc = '2.0' as const;
  * @throws If the given value is not a valid {@link JsonRpcSuccess} object.
  */
 function assertIsJsonRpcSuccess(
-  response: JsonRpcResponse<unknown>,
-): asserts response is JsonRpcSuccess<unknown> {
+  response: JsonRpcResponse<Json>,
+): asserts response is JsonRpcSuccess<Json> {
   if ('error' in response) {
     throw new Error(`Response failed with error '${JSON.stringify('error')}'`);
   } else if (!('result' in response)) {
@@ -215,8 +216,8 @@ async function callMiddleware({
   middleware,
   request,
 }: {
-  middleware: JsonRpcMiddleware<unknown, unknown>;
-  request: JsonRpcRequest<unknown>;
+  middleware: JsonRpcMiddleware<JsonRpcParams, Json>;
+  request: JsonRpcRequest<JsonRpcParams>;
 }) {
   const engine = new JsonRpcEngine();
   engine.push(middleware);
@@ -435,7 +436,6 @@ describe('getRpcMethodMiddleware', () => {
       permissionController.createPermissionMiddleware({
         origin: hostMock,
       });
-    // @ts-expect-error JsonRpcId (number | string | void) doesn't match PS middleware's id, which is (string | number | null)
     engine.push(permissionMiddleware);
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -1116,7 +1116,8 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as TransactionParams;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -1139,12 +1140,17 @@ describe('getRpcMethodMiddleware', () => {
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
+        expectedError.message,
+      );
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as TransactionParams;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
@@ -1253,7 +1259,7 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'personal_ecRecover',
-        params: [undefined, helloWorldSignature],
+        params: [undefined, helloWorldSignature] as JsonRpcParams,
       };
       const expectedError = rpcErrors.internal('Missing data parameter');
 

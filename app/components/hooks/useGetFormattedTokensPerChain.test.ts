@@ -5,7 +5,7 @@ import {
 import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useGetFormattedTokensPerChain } from './useGetFormattedTokensPerChain';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -20,13 +20,11 @@ const mockInitialState: DeepPartial<RootState> = {
                 address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
                 symbol: 'USDC',
                 decimals: 6,
-                name: 'USDC',
               },
               {
                 address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
                 symbol: 'DAI',
                 decimals: 18,
-                name: 'Dai Stablecoin',
               },
             ],
           },
@@ -39,7 +37,6 @@ const mockInitialState: DeepPartial<RootState> = {
                 image:
                   'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x0d1e753a25ebda689453309112904807625befbe.png',
                 aggregators: ['CoinGecko', 'Lifi', 'Rubic'],
-                name: 'PancakeSwap',
               },
             ],
           },
@@ -180,18 +177,6 @@ describe('useGetFormattedTokensPerChain', () => {
             },
           ],
         },
-        {
-          chainId: '0xe708',
-          tokensWithBalances: [
-            {
-              address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-              symbol: 'CAKE',
-              decimals: 18,
-              balance: '0.00164',
-              tokenBalanceFiat: 0,
-            },
-          ],
-        },
       ],
     };
 
@@ -207,6 +192,7 @@ describe('useGetFormattedTokensPerChain', () => {
       },
     );
 
+    // Note, we are currently only aggregating for popular networks
     expect(result.current).toEqual(expectedResult);
   });
 });

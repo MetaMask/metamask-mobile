@@ -60,7 +60,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js'],
+      files: ['scripts/**/*.js', 'app.config.js'],
       rules: {
         'no-console': 0,
         'import/no-commonjs': 0,
@@ -76,7 +76,13 @@ module.exports = {
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
-        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}'
+        'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
+        'app/components/hooks/DisplayName/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/components/Confirm/DataTree/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/components/Confirm/Info/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/components/PersonalSign/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/components/SignatureRequest/**/*.{js,ts,tsx}',
+        'app/components/Views/confirmations/components/TypedSign/**/*.{js,ts,tsx}',
       ],
       rules: {
         'no-restricted-syntax': [
@@ -91,7 +97,7 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker'
+              'selectTicker',
             ]
               .map((method) => `(${method})`)
               .join('|')}/]`,

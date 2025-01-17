@@ -3,8 +3,13 @@ import { WalletDevice } from '@metamask/transaction-controller';
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
 
-const { addTransaction, estimateGas, estimateGasFee, ...proxyMethods } =
-  TransactionControllerUtils;
+const {
+  addTransaction,
+  estimateGas,
+  getNetworkNonce,
+  estimateGasFee,
+  ...proxyMethods
+} = TransactionControllerUtils;
 
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
 const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
@@ -32,6 +37,7 @@ jest.mock('../../core/Engine', () => ({
       updateSecurityAlertResponse: jest.fn(),
       updateTransaction: jest.fn(),
       wipeTransactions: jest.fn(),
+      updateEditableParams: jest.fn(),
     },
   },
 }));
@@ -89,6 +95,58 @@ describe('Transaction Controller Util', () => {
           ],
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('getNetworkNonce', () => {
+    const nonceMock = 123;
+    const fromMock = '0x123';
+    const networkClientIdMock = 'testNetworkClientId';
+
+    beforeEach(() => {
+      jest.spyOn(Engine.context.TransactionController, 'getNonceLock');
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns value from TransactionController', async () => {
+      (
+        Engine.context.TransactionController.getNonceLock as jest.Mock
+      ).mockResolvedValueOnce({
+        nextNonce: nonceMock,
+        releaseLock: jest.fn(),
+      });
+
+      expect(
+        await TransactionControllerUtils.getNetworkNonce(
+          { from: fromMock },
+          networkClientIdMock,
+        ),
+      ).toBe(nonceMock);
+
+      expect(
+        Engine.context.TransactionController.getNonceLock,
+      ).toHaveBeenCalledWith(fromMock, networkClientIdMock);
+    });
+
+    it('releases nonce lock', async () => {
+      const releaseLockMock = jest.fn();
+
+      (
+        Engine.context.TransactionController.getNonceLock as jest.Mock
+      ).mockResolvedValueOnce({
+        nextNonce: nonceMock,
+        releaseLock: releaseLockMock,
+      });
+
+      await TransactionControllerUtils.getNetworkNonce(
+        { from: fromMock },
+        networkClientIdMock,
+      );
+
+      expect(releaseLockMock).toHaveBeenCalledTimes(1);
     });
   });
 });

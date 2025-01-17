@@ -2,7 +2,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
   selectCurrencyRates,
-  selectConversionRateFoAllChains,
+  selectConversionRateByChainId,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
@@ -65,6 +65,41 @@ describe('CurrencyRateController Selectors', () => {
     });
   });
 
+  describe('selectConversionRateByChainId', () => {
+    const mockChainId = '1';
+    const mockNativeCurrency = 'ETH';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns undefined if on a testnet and fiat is disabled', () => {
+      (isTestNet as jest.Mock).mockReturnValue(true);
+
+      const result = selectConversionRateByChainId.resultFunc(
+        mockCurrencyRateState.currencyRates as unknown as CurrencyRateState['currencyRates'],
+        mockChainId as `0x${string}`,
+        false,
+        mockNativeCurrency,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the conversion rate for the native currency of the chain id', () => {
+      (isTestNet as jest.Mock).mockReturnValue(false);
+
+      const result = selectConversionRateByChainId.resultFunc(
+        mockCurrencyRateState.currencyRates as unknown as CurrencyRateState['currencyRates'],
+        mockChainId as `0x${string}`,
+        true,
+        mockNativeCurrency,
+      );
+
+      expect(result).toBe(3000);
+    });
+  });
+
   describe('selectCurrentCurrency', () => {
     it('returns the current currency from the state', () => {
       const result = selectCurrentCurrency.resultFunc(
@@ -84,31 +119,15 @@ describe('CurrencyRateController Selectors', () => {
   });
 
   describe('selectCurrencyRates', () => {
-    it('returns the currency rates from the state', () => {
-      const result = selectCurrencyRates.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
-    });
-
-    it('returns undefined if currency rates are not set', () => {
-      const result = selectCurrencyRates.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('selectConversionRateFoAllChains', () => {
     it('returns all conversion rates from the state', () => {
-      const result = selectConversionRateFoAllChains.resultFunc(
+      const result = selectCurrencyRates.resultFunc(
         mockCurrencyRateState as unknown as CurrencyRateState,
       );
       expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
     });
 
     it('returns undefined if conversion rates are not set', () => {
-      const result = selectConversionRateFoAllChains.resultFunc(
+      const result = selectCurrencyRates.resultFunc(
         {} as unknown as CurrencyRateState,
       );
       expect(result).toBeUndefined();

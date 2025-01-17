@@ -154,9 +154,9 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/accounts/constants';
+} from './controllers/AccountsController/constants';
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/accounts/utils';
+import { createAccountsController } from './controllers/AccountsController/utils';
 import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
@@ -190,6 +190,8 @@ import {
 import { snapKeyringBuilder } from '../SnapKeyring';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermissions';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { HandleSnapRequestArgs } from '../Snaps/types';
 import { handleSnapRequest } from '../Snaps/utils';
 ///: END:ONLY_INCLUDE_IF
@@ -197,18 +199,22 @@ import { getSmartTransactionMetricsProperties } from '../../util/smart-transacti
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
-  Controllers,
   EngineState,
   EngineContext,
   TransactionEventPayload,
+  StatefulControllers,
 } from './types';
+import {
+  BACKGROUND_STATE_CHANGE_EVENT_NAMES,
+  STATELESS_NON_CONTROLLER_NAMES,
+} from './constants';
 import {
   getGlobalChainId,
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
+import { logEngineCreation } from './utils/logger';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -239,9 +245,7 @@ export class Engine {
   /**
    * ComposableController reference containing all child controllers
    */
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  datamodel: any;
+  datamodel: ComposableController<EngineState, StatefulControllers>;
 
   /**
    * Object containing the info for the latest incoming tx block
@@ -274,6 +278,8 @@ export class Engine {
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
   ) {
+    logEngineCreation(initialState, initialKeyringState);
+
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     const isBasicFunctionalityToggleEnabled = () =>
@@ -449,7 +455,25 @@ export class Engine {
         allowedActions: [`${networkController.name}:getNetworkClientById`],
         allowedEvents: [],
       }),
-      state: initialState.CurrencyRateController,
+      // normalize `null` currencyRate to `0`
+      // TODO: handle `null` currencyRate by hiding fiat values instead
+      state: {
+        ...initialState.CurrencyRateController,
+        currencyRates: Object.fromEntries(
+          Object.entries(
+            initialState.CurrencyRateController?.currencyRates ?? {
+              ETH: {
+                conversionRate: 0,
+                conversionDate: 0,
+                usdConversionRate: null,
+              },
+            },
+          ).map(([k, v]) => [
+            k,
+            { ...v, conversionRate: v.conversionRate ?? 0 },
+          ]),
+        ),
+      },
     });
 
     const gasFeeController = new GasFeeController({
@@ -715,7 +739,7 @@ export class Engine {
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
         ),
-      includeStakedAssets: isPooledStakingFeatureEnabled(),
+      includeStakedAssets: true,
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -951,8 +975,8 @@ export class Engine {
         disableSnaps: !isBasicFunctionalityToggleEnabled(),
       }),
       clientCryptography: {
-        pbkdf2Sha512: pbkdf2
-      }
+        pbkdf2Sha512: pbkdf2,
+      },
     });
 
     const authenticationController = new AuthenticationController.Controller({
@@ -1022,12 +1046,17 @@ export class Engine {
           'NotificationServicesController:selectIsNotificationServicesEnabled',
           AccountsControllerListAccountsAction,
           AccountsControllerUpdateAccountMetadataAction,
+          'NetworkController:getState',
+          'NetworkController:addNetwork',
+          'NetworkController:removeNetwork',
+          'NetworkController:updateNetwork',
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           AccountsControllerAccountAddedEvent,
           AccountsControllerAccountRenamedEvent,
+          'NetworkController:networkRemoved',
         ],
       }),
       nativeScryptCrypto: scrypt,
@@ -1216,7 +1245,10 @@ export class Engine {
       state: initialState.SmartTransactionsController,
       messenger: this.controllerMessenger.getRestricted({
         name: 'SmartTransactionsController',
-        allowedActions: ['NetworkController:getNetworkClientById'],
+        allowedActions: [
+          'NetworkController:getNetworkClientById',
+          'NetworkController:getState',
+        ],
         allowedEvents: ['NetworkController:stateChange'],
       }),
       getTransactions: this.transactionController.getTransactions.bind(
@@ -1277,7 +1309,9 @@ export class Engine {
               .addProperties({
                 token_standard: 'ERC20',
                 asset_type: 'token',
-                chain_id: getDecimalChainId(getGlobalChainId(networkController)),
+                chain_id: getDecimalChainId(
+                  getGlobalChainId(networkController),
+                ),
               })
               .build(),
           ),
@@ -1379,16 +1413,12 @@ export class Engine {
           // allowedActions: [
           //   'GasFeeController:getEIP1559GasFeeEstimates',
           // ],
-          allowedActions: [
-            'NetworkController:findNetworkClientIdByChainId',
-            'NetworkController:getNetworkClientById',
-          ],
-          allowedEvents: [],
+          allowedActions: ['NetworkController:getNetworkClientById'],
+          allowedEvents: ['NetworkController:networkDidChange'],
         }),
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
         fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
-        // @ts-expect-error TODO: Resolve mismatch between gas fee and swaps controller types
         fetchEstimatedMultiLayerL1Fee,
       }),
       GasFeeController: gasFeeController,
@@ -1411,6 +1441,10 @@ export class Engine {
         }),
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
+        decodingApiUrl: AppConstants.DECODING_API_URL,
+        // TODO: check preferences useExternalServices
+        isDecodeSignatureRequestEnabled: () =>
+          preferencesController.state.useTransactionSimulations,
       }),
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1457,24 +1491,21 @@ export class Engine {
       }),
     };
 
-    // Avoiding `Object.values` and `getKnownPropertyNames` for performance benefits: https://www.measurethat.net/Benchmarks/Show/7173/0/objectvalues-vs-reduce
-    const controllers = (
-      Object.keys(this.context) as (keyof Controllers)[]
-    ).reduce<Controllers[keyof Controllers][]>(
-      (controllers, controllerName) => {
-        const controller = this.context[controllerName];
-        if (controller) {
-          controllers.push(controller);
-        }
-        return controllers;
+    const childControllers = Object.assign({}, this.context);
+    STATELESS_NON_CONTROLLER_NAMES.forEach((name) => {
+      if (name in childControllers && childControllers[name]) {
+        delete childControllers[name];
+      }
+    });
+    this.datamodel = new ComposableController<EngineState, StatefulControllers>(
+      {
+        controllers: childControllers as StatefulControllers,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'ComposableController',
+          allowedActions: [],
+          allowedEvents: Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES),
+        }),
       },
-      [],
-    );
-
-    this.datamodel = new ComposableController(
-      // @ts-expect-error TODO: Filter out non-controller instances
-      controllers,
-      this.controllerMessenger,
     );
 
     const { NftController: nfts } = this.context;
@@ -1484,9 +1515,9 @@ export class Engine {
     }
 
     this.controllerMessenger.subscribe(
-      'TransactionController:incomingTransactionBlockReceived',
-      (blockNumber: number) => {
-        NotificationManager.gotIncomingTransaction(blockNumber);
+      'TransactionController:incomingTransactionsReceived',
+      (incomingTransactions: TransactionMeta[]) => {
+        NotificationManager.gotIncomingTransaction(incomingTransactions);
       },
     );
 
@@ -1496,7 +1527,7 @@ export class Engine {
         if (
           state.networksMetadata[state.selectedNetworkClientId].status ===
             NetworkStatus.Available &&
-            getGlobalChainId(networkController) !== currentChainId
+          getGlobalChainId(networkController) !== currentChainId
         ) {
           // We should add a state or event emitter saying the provider changed
           setTimeout(() => {
@@ -1516,7 +1547,9 @@ export class Engine {
         } catch (error) {
           console.error(
             error,
-            `Network ID not changed, current chainId: ${getGlobalChainId(networkController)}`,
+            `Network ID not changed, current chainId: ${getGlobalChainId(
+              networkController,
+            )}`,
           );
         }
       },
@@ -1644,15 +1677,16 @@ export class Engine {
   startPolling() {
     const { NetworkController, TransactionController } = this.context;
 
-    const networkClientId = getGlobalNetworkClientId(NetworkController);
+    const chainId = getGlobalChainId(NetworkController);
+
+    TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([networkClientId]);
+    TransactionController.startIncomingTransactionPolling([chainId]);
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController, SwapsController } =
-      this.context;
+    const { AccountTrackerController, NetworkController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1661,10 +1695,6 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    SwapsController.setProvider(provider, {
-      chainId: getGlobalChainId(NetworkController),
-      pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
-    });
     AccountTrackerController.refresh();
   }
 
@@ -2072,24 +2102,15 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     } = instance.datamodel.state;
-
-    // normalize `null` currencyRate to `0`
-    // TODO: handle `null` currencyRate by hiding fiat values instead
-    const modifiedCurrencyRateControllerState = {
-      ...CurrencyRateController,
-      conversionRate:
-        CurrencyRateController.conversionRate === null
-          ? 0
-          : CurrencyRateController.conversionRate,
-    };
 
     return {
       AccountTrackerController,
       AddressBookController,
       NftController,
       TokenListController,
-      CurrencyRateController: modifiedCurrencyRateControllerState,
+      CurrencyRateController,
       KeyringController,
       NetworkController,
       PhishingController,
@@ -2116,6 +2137,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     };
   },
 
@@ -2139,12 +2161,15 @@ export default {
     return instance.resetState();
   },
 
-  destroyEngine() {
-    instance?.destroyEngineInstance();
+  destroyEngine: async () => {
+    await instance?.destroyEngineInstance();
     instance = null;
   },
 
-  init(state: Partial<EngineState> | undefined, keyringState = null) {
+  init(
+    state: Partial<EngineState> | undefined,
+    keyringState: KeyringControllerState | null = null,
+  ) {
     instance = Engine.instance || new Engine(state, keyringState);
     Object.freeze(instance);
     return instance;

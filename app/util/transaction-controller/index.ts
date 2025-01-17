@@ -17,7 +17,10 @@ export async function addTransaction(
 }
 
 // Keeping this export as function to put more logic in the future
-export async function estimateGas(transaction: TransactionParams, networkClientId: NetworkClientId) {
+export async function estimateGas(
+  transaction: TransactionParams,
+  networkClientId: NetworkClientId,
+) {
   const { TransactionController } = Engine.context;
   return await TransactionController.estimateGas(transaction, networkClientId);
 }
@@ -104,3 +107,21 @@ export function wipeTransactions(
   const { TransactionController } = Engine.context;
   return TransactionController.wipeTransactions(...args);
 }
+
+export function updateEditableParams(
+  ...args: Parameters<BaseTransactionController['updateEditableParams']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateEditableParams(...args);
+}
+
+export const getNetworkNonce = async (
+  { from }: { from: string },
+  networkClientId: NetworkClientId,
+) => {
+  const { nextNonce, releaseLock } = await getNonceLock(from, networkClientId);
+
+  releaseLock();
+
+  return nextNonce;
+};

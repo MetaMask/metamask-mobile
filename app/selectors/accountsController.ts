@@ -4,7 +4,8 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
+import { EthMethod } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -55,6 +56,7 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
     const accountId = accountsControllerState.internalAccounts.selectedAccount;
     const account =
       accountsControllerState.internalAccounts.accounts[accountId];
+
     if (!account) {
       const err = new Error(
         `selectSelectedInternalAccount: Account with ID ${accountId} not found.`,

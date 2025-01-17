@@ -70,6 +70,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -184,6 +185,7 @@ function SwapsAmountView({
   accounts,
   selectedAddress,
   chainId,
+  selectedNetworkClientId,
   providerConfig,
   networkConfigurations,
   balances,
@@ -277,7 +279,7 @@ function SwapsAmountView({
 
             trackEvent(
               createEventBuilder(MetaMetricsEvents.SWAPS_OPENED)
-                .addSensitiveProperties(parameters)
+                .addProperties(parameters)
                 .build(),
             );
           });
@@ -299,8 +301,12 @@ function SwapsAmountView({
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        await SwapsController.fetchAggregatorMetadataWithCache();
-        await SwapsController.fetchTopAssetsWithCache();
+        await SwapsController.fetchAggregatorMetadataWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
+        await SwapsController.fetchTopAssetsWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
       } catch (error) {
         Logger.error(
           error,
@@ -308,7 +314,7 @@ function SwapsAmountView({
         );
       }
     })();
-  }, []);
+  }, [selectedNetworkClientId]);
 
   useEffect(() => {
     (async () => {
@@ -322,7 +328,9 @@ function SwapsAmountView({
           setInitialLoadingTokens(true);
         }
         setLoadingTokens(true);
-        await SwapsController.fetchTokenWithCache();
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
         setLoadingTokens(false);
         setInitialLoadingTokens(false);
       } catch (error) {
@@ -335,7 +343,7 @@ function SwapsAmountView({
         setInitialLoadingTokens(false);
       }
     })();
-  }, [swapsControllerTokens, swapsTokens]);
+  }, [swapsControllerTokens, swapsTokens, selectedNetworkClientId]);
 
   const canSetAnInitialSourceToken =
     !isSourceSet &&
@@ -1008,6 +1016,10 @@ SwapsAmountView.propTypes = {
    */
   chainId: PropTypes.string,
   /**
+   * Selected network client ID
+   */
+  selectedNetworkClientId: PropTypes.string,
+  /**
    * Network configurations
    */
   networkConfigurations: PropTypes.object,
@@ -1029,6 +1041,7 @@ const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   chainId: selectChainId(state),
+  selectedNetworkClientId: selectSelectedNetworkClientId(state),
   tokensWithBalance: swapsTokensWithBalanceSelector(state),
   tokensTopAssets: swapsTopAssetsSelector(state),
 });
