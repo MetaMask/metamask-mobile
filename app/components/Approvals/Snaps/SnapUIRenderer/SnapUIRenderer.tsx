@@ -32,7 +32,6 @@ const SnapUIRendererComponent = ({
     (state) => getMemoizedInterface(state, interfaceId),
     // We only want to update the state if the content has changed.
     // We do this to avoid useless re-renders.
-    // oldState {"content": {"key": null, "props": {"children": [Array]}, "type": "Box"}, "context": null, "snapId": "npm:@metamask/dialog-example-snap", "state": {}} newState undefined
     (oldState, newState) =>
       isEqual(oldState?.content ?? null, newState?.content ?? null),
   );
