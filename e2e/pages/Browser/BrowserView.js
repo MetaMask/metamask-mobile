@@ -145,6 +145,7 @@ class Browser {
   }
 
   async tapNetworkAvatarButtonOnBrowser() {
+    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.networkAvatarButton);
   }
 
