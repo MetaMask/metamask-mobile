@@ -7,14 +7,11 @@ import { useMetrics } from '../../../../../hooks/useMetrics';
 import BlockaidBanner from '../../../components/BlockaidBanner/BlockaidBanner';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
-import { getSignatureDecodingEventProps } from '../../../utils/signatureMetrics';
 import styleSheet from './SignatureBlockaidBanner.styles';
-import { useTypedSignSimulationEnabled } from '../../../hooks/useTypedSignSimulationEnabled';
 
 const SignatureBlockaidBanner = () => {
   const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
-  const isSimulationEnabled = useTypedSignSimulationEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
 
@@ -33,7 +30,6 @@ const SignatureBlockaidBanner = () => {
         },
         type,
       ),
-      ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
       external_link_clicked: 'security_alert_support_link',
     };
 
@@ -42,7 +38,7 @@ const SignatureBlockaidBanner = () => {
         .addProperties(eventProps)
         .build(),
     );
-  }, [trackEvent, createEventBuilder, signatureRequest, type, fromAddress, isSimulationEnabled]);
+  }, [trackEvent, createEventBuilder, type, fromAddress]);
 
   return (
     <BlockaidBanner

@@ -52,19 +52,6 @@ const typedSignV1ConfirmationStateWithBlockaidResponse = {
               ...typedSignApproval.requestData,
               securityAlertResponse,
             },
-            decodingData: {
-              stateChanges: [
-                {
-                  assetType: 'ERC20',
-                  changeType: DecodingDataChangeType.Approve,
-                  address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
-                  amount: '12345',
-                  contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                },
-              ],
-              decodingLoading: false,
-              error: undefined,
-            },
           },
         },
       },
@@ -130,9 +117,6 @@ describe('Confirm', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilderAddProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        decoding_change_types: ['APPROVE'],
-        decoding_description: null,
-        decoding_response: 'CHANGE',
         external_link_clicked: 'security_alert_support_link',
       }),
     );
