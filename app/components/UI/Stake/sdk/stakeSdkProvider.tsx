@@ -4,7 +4,6 @@ import {
   PooledStakingContract,
   type StakingApiService,
   isSupportedChain,
-  StakingApiEnvironments,
 } from '@metamask/stake-sdk';
 import React, {
   useState,
