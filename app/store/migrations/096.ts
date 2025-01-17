@@ -7,8 +7,8 @@ export interface State {
     backgroundState: {
       PreferencesController: {
         smartTransactionsOptInStatus: boolean;
-        smartTransactionsMigrationApplied: boolean;
         featureFlags: {
+          smartTransactionsMigrationApplied: boolean;
           smartTransactionsBannerDismissed: boolean;
         };
       };
@@ -77,6 +77,7 @@ export default function migrate(state: unknown) {
   if (!preferences.featureFlags) {
     preferences.featureFlags = {
       smartTransactionsBannerDismissed: false,
+      smartTransactionsMigrationApplied: false,
     };
   }
 
@@ -90,9 +91,9 @@ export default function migrate(state: unknown) {
     (currentOptInStatus === false && !hasExistingSmartTransactions(newState))
   ) {
     preferences.smartTransactionsOptInStatus = true;
-    preferences.smartTransactionsMigrationApplied = true;
+    preferences.featureFlags.smartTransactionsMigrationApplied = true;
   } else {
-    preferences.smartTransactionsMigrationApplied = true;
+    preferences.featureFlags.smartTransactionsMigrationApplied = true;
   }
 
   preferences.featureFlags.smartTransactionsBannerDismissed = false;

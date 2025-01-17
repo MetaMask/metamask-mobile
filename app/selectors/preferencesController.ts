@@ -150,7 +150,7 @@ export const selectPrivacyMode = createSelector(
 export const selectSmartTransactionsMigrationApplied = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    preferencesControllerState.smartTransactionsMigrationApplied ?? false,
+    preferencesControllerState.featureFlags?.smartTransactionsMigrationApplied ?? false,
 );
 
 export const selectSmartTransactionsBannerDismissed = createSelector(
