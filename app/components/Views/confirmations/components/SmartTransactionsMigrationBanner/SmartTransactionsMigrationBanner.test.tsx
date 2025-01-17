@@ -1,53 +1,96 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 import SmartTransactionsMigrationBanner from './SmartTransactionsMigrationBanner';
-import useSmartTransactionsEnabled from '../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled';
+import Engine from '../../../../../core/Engine';
 
-jest.mock('../../../../hooks/useSmartTransactionsEnabled/useSmartTransactionsEnabled');
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setFeatureFlag: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
 describe('SmartTransactionsMigrationBanner', () => {
-  const mockDismissBanner = jest.fn();
+  const mockStore = configureMockStore();
+  const mockSetFeatureFlag = jest.mocked(Engine.context.PreferencesController.setFeatureFlag);
 
-  beforeEach(() => {
-    (useSmartTransactionsEnabled as jest.Mock).mockReturnValue({
-      shouldShowBanner: true,
-      dismissBanner: mockDismissBanner,
-    });
-    mockDismissBanner.mockClear();
+  const createMockState = (override = {}) => ({
+    engine: {
+      backgroundState: {
+        PreferencesController: {
+          smartTransactionsOptInStatus: true,
+          smartTransactionsMigrationApplied: true,
+          featureFlags: {
+            smartTransactionsBannerDismissed: false,
+          },
+          ...override,
+        },
+      },
+    },
   });
 
-  it('renders nothing when shouldShowBanner is false', () => {
-    (useSmartTransactionsEnabled as jest.Mock).mockReturnValue({
-      shouldShowBanner: false,
-      dismissBanner: mockDismissBanner,
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const { queryByTestId } = render(<SmartTransactionsMigrationBanner />);
+  it('renders nothing when banner should be hidden', () => {
+    const store = mockStore(createMockState({
+      featureFlags: { smartTransactionsBannerDismissed: true },
+    }));
+
+    const { queryByTestId } = render(
+      <Provider store={store}>
+        <SmartTransactionsMigrationBanner />
+      </Provider>
+    );
     expect(queryByTestId('smart-transactions-enabled-banner')).toBeNull();
   });
 
-  it('renders banner when shouldShowBanner is true', () => {
-    const { getByTestId, getByText } = render(<SmartTransactionsMigrationBanner />);
+  it('renders banner when conditions are met', () => {
+    const store = mockStore(createMockState());
+
+    const { getByTestId, getByText } = render(
+      <Provider store={store}>
+        <SmartTransactionsMigrationBanner />
+      </Provider>
+    );
 
     expect(getByTestId('smart-transactions-enabled-banner')).toBeDefined();
     expect(getByText('smart_transactions_enabled.title')).toBeDefined();
     expect(getByText('smart_transactions_enabled.link')).toBeDefined();
   });
 
-  it('calls dismissBanner when close button is pressed', () => {
-    const { getByTestId } = render(<SmartTransactionsMigrationBanner />);
+  it('calls setFeatureFlag when close button is pressed', () => {
+    const store = mockStore(createMockState());
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <SmartTransactionsMigrationBanner />
+      </Provider>
+    );
 
     fireEvent.press(getByTestId('banner-close-button-icon'));
-    expect(mockDismissBanner).toHaveBeenCalled();
+    expect(mockSetFeatureFlag).toHaveBeenCalledWith(
+      'smartTransactionsBannerDismissed',
+      true,
+    );
   });
 
   it('accepts and applies custom styles', () => {
+    const store = mockStore(createMockState());
     const customStyle = { marginTop: 20 };
+
     const { getByTestId } = render(
-      <SmartTransactionsMigrationBanner style={customStyle} />,
+      <Provider store={store}>
+        <SmartTransactionsMigrationBanner style={customStyle} />
+      </Provider>
     );
 
     const banner = getByTestId('smart-transactions-enabled-banner');
