@@ -35,7 +35,7 @@ describe(Regression('Change Account Name'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await Utilities.launchApp({
+    await TestHelpers.launchApp({
       ganacheOptions: defaultGanacheOptions,
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
