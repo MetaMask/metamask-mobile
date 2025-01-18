@@ -154,10 +154,8 @@ import {
   AccountsControllerSelectedAccountChangeEvent,
   AccountsControllerAccountAddedEvent,
   AccountsControllerAccountRenamedEvent,
-} from './controllers/AccountsController/constants';
-import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { createAccountsController } from './controllers/AccountsController/utils';
-import { createRemoteFeatureFlagController } from './controllers/RemoteFeatureFlagController';
+} from './controllers/accounts-controller/constants';
+import { createRemoteFeatureFlagController } from './controllers/remote-feature-flag-controller';
 import { captureException } from '@sentry/react-native';
 import { lowerCase } from 'lodash';
 import {
@@ -215,6 +213,9 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { initControllers } from './utils';
+import { AccountsControllerInit } from './controllers/accounts-controller/utils';
+import { Controller, ControllerInitFunction } from './modular-controller.types';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -356,25 +357,14 @@ export class Engine {
       chainId: getGlobalChainId(networkController),
     });
 
-    // Create AccountsController
-    const accountsControllerMessenger: AccountsControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          'SnapController:stateChange',
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
-    const accountsController = createAccountsController({
-      messenger: accountsControllerMessenger,
-      initialState: initialState.AccountsController,
+    // Modular controller initialization
+    const controllerInitFunctions = [AccountsControllerInit];
+    const { controllersByName } = this.#initControllers({
+      initFunctions: controllerInitFunctions,
+      initState: initialState as EngineState,
     });
+
+    const accountsController = controllersByName.AccountsController;
 
     const nftController = new NftController({
       chainId: getGlobalChainId(networkController),
@@ -1564,6 +1554,24 @@ export class Engine {
     this._addTransactionControllerListeners();
 
     Engine.instance = this;
+  }
+
+  #initControllers({
+    initFunctions,
+    initState,
+  }: {
+    initFunctions: ControllerInitFunction<Controller>[];
+    initState: EngineState;
+  }) {
+    const initRequest = {
+      baseControllerMessenger: this.controllerMessenger,
+      persistedState: initState,
+    };
+
+    return initControllers({
+      initFunctions,
+      initRequest,
+    });
   }
 
   // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
