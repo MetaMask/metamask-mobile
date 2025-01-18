@@ -11,6 +11,7 @@ import { UINT256_BN_MAX_VALUE } from '../../constants/transaction';
 import { NEGATIVE_TOKEN_DECIMALS } from '../../constants/error';
 import {
   generateTransferData,
+  calcTokenAmount,
   decodeApproveData,
   decodeTransferData,
   getMethodData,
@@ -42,6 +43,7 @@ import Engine from '../../core/Engine';
 import { strings } from '../../../locales/i18n';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Provider } from '@metamask/network-controller';
+import BigNumber from 'bignumber.js';
 
 jest.mock('@metamask/controller-utils', () => ({
   ...jest.requireActual('@metamask/controller-utils'),
@@ -104,6 +106,52 @@ describe('Transactions utils :: generateTransferData', () => {
       '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001',
     );
   });
+});
+
+describe('Transactions utils :: calcTokenAmount', () => {
+  it.each([
+    // number values
+    [0, 5, '0'],
+    [123456, undefined, '123456'],
+    [123456, 5, '1.23456'],
+    [123456, 6, '0.123456'],
+    // Do not delete the following test. Testing decimal = 36 is important because it has broken
+    // BigNumber#div in the past when the value that was passed into it was not a BigNumber.
+    [123456, 36, '1.23456e-31'],
+    [3000123456789678, 6, '3000123456.789678'],
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+    [3000123456789123456789123456789, 3, '3.0001234567891233e+27'], // expected precision lost
+    // eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+    [3000123456789123456789123456789, 6, '3.0001234567891233e+24'], // expected precision lost
+    // string values
+    ['0', 5, '0'],
+    ['123456', undefined, '123456'],
+    ['123456', 5, '1.23456'],
+    ['123456', 6, '0.123456'],
+    ['3000123456789678', 6, '3000123456.789678'],
+    [
+      '3000123456789123456789123456789',
+      3,
+      '3.000123456789123456789123456789e+27',
+    ],
+    [
+      '3000123456789123456789123456789',
+      6,
+      '3.000123456789123456789123456789e+24',
+    ],
+    // BigNumber values
+    [new BigNumber('3000123456789678'), 6, '3000123456.789678'],
+    [
+      new BigNumber('3000123456789123456789123456789'),
+      6,
+      '3.000123456789123456789123456789e+24',
+    ],
+  ])(
+    'returns the value %s divided by 10^%s = %s',
+    (value, decimals, expected) => {
+      expect(calcTokenAmount(value, decimals).toString()).toBe(expected);
+    },
+  );
 });
 
 describe('Transactions utils :: decodeTransferData', () => {

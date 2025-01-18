@@ -3595,6 +3595,9 @@
     "title": {
       "signature": "Signature request"
     },
+    "sub_title": {
+      "signature": "Review request details before you confirm."
+    },
     "request_from": "Request from",
     "message": "Message",
     "primary_type": "Primary type",
@@ -3603,12 +3606,24 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
-    "rpc_url": "RPC URL",
     "simulation": {
+      "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
+      "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
+      "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
+      "label_change_type_bidding": "You bid",
+      "label_change_type_listing": "You list",
+      "label_change_type_nft_listing": "Listing price",
+      "label_change_type_permit": "Spending cap",
+      "label_change_type_permit_nft": "Withdraw",
+      "label_change_type_receive": "You receive",
+      "label_change_type_revoke": "Revoke",
+      "label_change_type_transfer": "You send",
+      "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
-      "personal_sign_info": "You’re signing into a site and there are no predicted changes to your account.",
-      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee."
-    }
+      "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
+      "unavailable": "Unavailable"
+    },
+    "unlimited": "Unlimited"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
