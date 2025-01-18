@@ -1,16 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
-  TouchableOpacity,
   Alert,
-  ScrollView,
   ActivityIndicator,
-  Image,
   FlatList,
   RefreshControl,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import CollectibleMedia from '../CollectibleMedia';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -20,36 +16,24 @@ import {
   isNftFetchingProgressSelector,
 } from '../../../reducers/collectibles';
 import { useTheme } from '../../../util/theme';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import {
   MetaMetricsEvents,
   useMetrics,
 } from '../../../components/hooks/useMetrics';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
-import { debounce } from 'lodash';
 import styleSheet from './NftGrid.styles';
 import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import { selectUseNftDetection } from '../../../selectors/preferencesController';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import AppConstants from '../../../core/AppConstants';
 import {
   RefreshTestId,
   SpinnerTestId,
 } from '../CollectibleContracts/constants';
 import NftGridItem from './NftGridItem';
-
-const noNftPlaceholderSrc = require('../../../images/no-nfts-placeholder.png');
-
-const debouncedNavigation = debounce((navigation, collectible) => {
-  navigation.navigate('NftDetails', { collectible });
-}, 200);
+import NftGridEmpty from './NftGridEmpty';
+import NftGridFooter from './NftGridFooter';
 
 interface ActionSheetType {
   show: () => void;
@@ -97,11 +81,6 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
       setRefreshing(false);
     });
   }, [setRefreshing]);
-
-  const onLongPressCollectible = useCallback((collectible) => {
-    actionSheetRef?.current?.show();
-    longPressedCollectible.current = collectible;
-  }, []);
 
   const removeNft = () => {
     const { NftController } = Engine.context;
@@ -160,107 +139,6 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
     }
   };
 
-  const onItemPress = useCallback(
-    (collectible) => {
-      debouncedNavigation(navigation, collectible);
-    },
-    [navigation],
-  );
-
-  const renderCollectible = (collectible: Nft, index: number) => {
-    if (!collectible) return null;
-    return (
-      <TouchableOpacity
-        key={collectible.address}
-        style={styles.collectibleCard}
-        onPress={() => onItemPress(collectible)}
-        onLongPress={() => onLongPressCollectible(collectible)}
-        testID={collectible.name as string}
-      >
-        <CollectibleMedia
-          style={styles.collectibleIcon}
-          collectible={collectible}
-          isTokenImage
-        />
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          {collectible.name}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          {collectible.collection?.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const NftGridFooter = () => (
-    <View
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
-        {strings('wallet.no_collectibles')}
-      </Text>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.push('AddAsset', { assetType: 'collectible' })
-        }
-        disabled={false}
-        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
-      >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Info}>
-          {strings('wallet.add_collectibles')}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const NftGridEmpty = () => (
-    <View
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
-      <Image
-        style={{
-          height: 90,
-          width: 90,
-          tintColor: 'lightgray',
-          marginTop: 30,
-          marginBottom: 12,
-        }}
-        source={noNftPlaceholderSrc}
-        resizeMode="contain"
-      />
-      <Text
-        style={styles.headingMd}
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Alternative}
-      >
-        {strings('wallet.no_nfts_yet')}
-      </Text>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('Webview', {
-            screen: 'SimpleWebview',
-            params: { url: AppConstants.URLS.NFT },
-          })
-        }
-        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
-      >
-        <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Info}
-          onPress={() => console.log('goToLearnMore')}
-        >
-          {strings('wallet.learn_more')}
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
@@ -275,8 +153,8 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
       {/* empty state */}
       {!isNftFetchingProgress && collectibles.length === 0 && (
         <>
-          <NftGridEmpty />
-          <NftGridFooter />
+          <NftGridEmpty navigation={navigation} />
+          <NftGridFooter navigation={navigation} />
         </>
       )}
       {/* nft grid */}
@@ -284,7 +162,7 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
         <FlatList
           numColumns={3}
           data={collectibles}
-          renderItem={({ item, index }: { item: Nft; index: number }) => (
+          renderItem={({ item }: { item: Nft }) => (
             <NftGridItem nft={item} navigation={navigation} />
           )}
           keyExtractor={(_, index) => index.toString()}
@@ -297,7 +175,7 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
               onRefresh={onRefresh}
             />
           }
-          ListFooterComponent={<NftGridFooter />}
+          ListFooterComponent={<NftGridFooter navigation={navigation} />}
         />
       )}
       <ActionSheet
