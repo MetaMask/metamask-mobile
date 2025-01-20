@@ -228,7 +228,6 @@ class NotificationManager {
         const {
           TokenBalancesController,
           TokenDetectionController,
-          NftDetectionController,
           AccountTrackerController,
         } = Engine.context;
         // account balances for ETH txs
