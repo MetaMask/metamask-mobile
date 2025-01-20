@@ -43,7 +43,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe(SmokeConfirmations('Personal Sign'), () => {
+describe(SmokeConfirmations('Signature Requests'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
