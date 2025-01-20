@@ -564,18 +564,16 @@ TokenSelectModal.propTypes = {
   networkConfigurations: PropTypes.object,
 };
 
-const mapStateToProps = (state) => {
-  return {
-    accounts: selectAccounts(state),
-    conversionRate: selectConversionRate(state),
-    currentCurrency: selectCurrentCurrency(state),
-    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-    tokenExchangeRates: selectContractExchangeRates(state),
-    balances: selectContractBalances(state),
-    chainId: selectChainId(state),
-    providerConfig: selectProviderConfig(state),
-    networkConfigurations: selectNetworkConfigurations(state),
-  };
-};
+const mapStateToProps = (state) => ({
+  accounts: selectAccounts(state),
+  conversionRate: selectConversionRate(state),
+  currentCurrency: selectCurrentCurrency(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+  tokenExchangeRates: selectContractExchangeRates(state),
+  balances: selectContractBalances(state),
+  chainId: selectChainId(state),
+  providerConfig: selectProviderConfig(state),
+  networkConfigurations: selectNetworkConfigurations(state),
+});
 
 export default connect(mapStateToProps)(TokenSelectModal);
