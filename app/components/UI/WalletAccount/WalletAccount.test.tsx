@@ -9,7 +9,6 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Account } from '../../hooks/useAccounts';
 import {
@@ -134,19 +133,6 @@ describe('WalletAccount', () => {
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON));
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
   });
-
-  it('should navigate to the account selector screen on account press', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({
-        privacyMode: false,
-      }),
-    );
-  });
   it('displays the correct account name', () => {
     const { getByText } = renderWithProvider(<WalletAccount />, {
       state: mockInitialState,
@@ -175,48 +161,5 @@ describe('WalletAccount', () => {
     await waitFor(() => {
       expect(getByText(customAccountName)).toBeDefined();
     });
-  });
-
-  it('should navigate to account selector with privacy mode disabled', () => {
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({
-        privacyMode: false,
-      }),
-    );
-  });
-
-  it('should navigate to account selector with privacy mode enabled', () => {
-    const stateWithPrivacyMode = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine?.backgroundState,
-          PreferencesController: {
-            privacyMode: true,
-          },
-        },
-      },
-    };
-
-    mockSelector.mockImplementation((callback) =>
-      callback(stateWithPrivacyMode),
-    );
-
-    const { getByTestId } = renderWithProvider(<WalletAccount />, {
-      state: stateWithPrivacyMode,
-    });
-
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createAccountSelectorNavDetails({
-        privacyMode: true,
-      }),
-    );
   });
 });

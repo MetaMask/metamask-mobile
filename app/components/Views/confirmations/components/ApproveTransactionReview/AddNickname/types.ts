@@ -1,6 +1,6 @@
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { NetworkType } from '@metamask/controller-utils';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
