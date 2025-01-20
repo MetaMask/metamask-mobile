@@ -22,6 +22,11 @@ const SIGNATURE_LIST = [
     requestType: RequestTypes.PersonalSignRequest,
   },
   {
+    specName: 'SIWE Sign',
+    testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
+    requestType: RequestTypes.PersonalSignRequest,
+  },
+  {
     specName: 'Typed V1 Sign',
     testDappBtn: TestDApp.tapTypedSignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
