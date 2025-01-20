@@ -9,7 +9,7 @@ jest.mock('@sentry/react-native', () => ({
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration #65', () => {
+describe('Migration #67', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -18,7 +18,7 @@ describe('Migration #65', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 65: Invalid state error: 'null'",
+      errorMessage: "FATAL ERROR: Migration 67: Invalid state error: 'null'",
       scenario: 'state is invalid',
     },
     {
@@ -26,7 +26,7 @@ describe('Migration #65', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 65: Invalid engine state error: 'null'",
+        "FATAL ERROR: Migration 67: Invalid engine state error: 'null'",
       scenario: 'engine state is invalid',
     },
     {
@@ -36,7 +36,7 @@ describe('Migration #65', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 65: Invalid engine backgroundState error: 'null'",
+        "FATAL ERROR: Migration 67: Invalid engine backgroundState error: 'null'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -46,7 +46,7 @@ describe('Migration #65', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 65: Invalid PreferencesController state error: 'null'",
+        "FATAL ERROR: Migration 67: Invalid PreferencesController state error: 'null'",
       scenario: 'PreferencesController is invalid',
     },
   ];
