@@ -1189,7 +1189,6 @@ class Amount extends PureComponent {
     const { collectibleContracts } = this.props;
     const collectibles = [];
     this.props.collectibles
-      .sort((a, b) => a.address < b.address)
       .forEach((collectible) => {
         const address = collectible.address.toLowerCase();
         const isTradable =
