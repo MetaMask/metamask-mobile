@@ -1,6 +1,6 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
-  InternalAccount,
   EthAccountType,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   BtcAccountType,
