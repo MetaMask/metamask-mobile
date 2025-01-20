@@ -12,7 +12,7 @@ import { mmStorage } from '../settings';
 
 type UnsubscribeFunc = () => void;
 
-const isSupported = async () => {
+async function isSupported() {
   try {
     const permissionStatus = await messaging().hasPermission();
     return (
@@ -24,13 +24,13 @@ const isSupported = async () => {
   } catch {
     return false;
   }
-};
+}
 
 /**
  * IOS requires device registration for remote messages through APNs.
  * To be invoked when creating or registering FCM tokens.
  */
-const registerForRemoteMessages = async () => {
+async function registerForRemoteMessages() {
   try {
     const isRegistered = messaging().isDeviceRegisteredForRemoteMessages;
     if (!isRegistered) {
@@ -39,12 +39,12 @@ const registerForRemoteMessages = async () => {
   } catch (error) {
     // Do Nothing - silently fail
   }
-};
+}
 
-const notificationHandler = async (
+async function notificationHandler(
   payload: FirebaseMessagingTypes.RemoteMessage,
   handler: (notification: INotification) => void | Promise<void>,
-) => {
+) {
   try {
     const payloadData = payload?.data?.data
       ? String(payload?.data?.data)
@@ -67,7 +67,7 @@ const notificationHandler = async (
       error,
     });
   }
-};
+}
 
 /**
  * Service that provides an interface used for `NotificationServicesPushController`
