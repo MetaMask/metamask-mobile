@@ -1,7 +1,4 @@
 package io.metamask;
-import android.content.res.Configuration;
-import expo.modules.ApplicationLifecycleDispatcher;
-import expo.modules.ReactNativeHostWrapper;
 
 import android.app.Application;
 import com.facebook.react.ReactApplication;
@@ -40,7 +37,7 @@ public class MainApplication extends Application implements ShareApplication, Re
     return BuildConfig.APPLICATION_ID + ".provider";
   }
 
-	private final ReactNativeHost mReactNativeHost = new ReactNativeHostWrapper(this, new DefaultReactNativeHost(this) {
+	private final ReactNativeHost mReactNativeHost = new DefaultReactNativeHost(this) {
 		@Override
 		public boolean getUseDeveloperSupport() {
 			return BuildConfig.DEBUG;
@@ -71,9 +68,9 @@ public class MainApplication extends Application implements ShareApplication, Re
 
 		@Override
 		protected String getJSMainModuleName() {
-			return ".expo/.virtual-metro-entry";
+			return "index";
 		}
-  	});
+  	};
 
 	@Override
 	public ReactNativeHost getReactNativeHost() {
@@ -115,12 +112,5 @@ public class MainApplication extends Application implements ShareApplication, Re
     }
 
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
-    ApplicationLifecycleDispatcher.onApplicationCreate(this);
-  }
-
-  @Override
-  public void onConfigurationChanged(Configuration newConfig) {
-    super.onConfigurationChanged(newConfig);
-    ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig);
   }
 }

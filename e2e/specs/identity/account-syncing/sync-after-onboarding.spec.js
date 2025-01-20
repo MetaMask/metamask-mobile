@@ -39,7 +39,7 @@ describe(SmokeIdentity('Account syncing'), () => {
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
-    await TestHelpers.launchApp({
+    await device.launchApp({
       newInstance: true,
       delete: true,
     });

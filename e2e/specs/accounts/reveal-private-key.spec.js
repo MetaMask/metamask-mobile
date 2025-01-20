@@ -41,7 +41,7 @@ describe(Regression('reveal private key'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await device.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

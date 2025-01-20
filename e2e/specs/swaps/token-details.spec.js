@@ -9,12 +9,11 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
-import TestHelpers from '../../helpers'
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {
@@ -23,7 +22,10 @@ describe(SmokeSwaps('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken();
-    await Assertions.checkIfElementNotToHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.checkIfElementNotToHaveText(
+      TokenOverview.tokenPrice,
+      '$0',
+    );
 
     await TokenOverview.tapChartPeriod1d();
     await Assertions.checkIfVisible(TokenOverview.chartPeriod1d);

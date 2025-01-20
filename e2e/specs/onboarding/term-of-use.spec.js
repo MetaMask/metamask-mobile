@@ -10,7 +10,7 @@ import { Regression } from '../../tags';
 describe(Regression('Term of Use Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await device.launchApp();
   });
 
   it('should displayed Term of Use when first launching app', async () => {

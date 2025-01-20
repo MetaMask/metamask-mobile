@@ -1,5 +1,4 @@
 package io.metamask;
-import expo.modules.ReactActivityDelegateWrapper;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -63,7 +62,7 @@ public class MainActivity extends ReactActivity {
    */
 	@Override
 	protected ReactActivityDelegate createReactActivityDelegate() {
-		return new ReactActivityDelegateWrapper(this, BuildConfig.IS_NEW_ARCHITECTURE_ENABLED, new DefaultReactActivityDelegate(this, getMainComponentName(), DefaultNewArchitectureEntryPoint.getFabricEnabled()) {
+		return new DefaultReactActivityDelegate(this, getMainComponentName(), DefaultNewArchitectureEntryPoint.getFabricEnabled()) {
 		@Override
 		protected Bundle getLaunchOptions() {
 			Bundle initialProperties = new Bundle();
@@ -74,6 +73,6 @@ public class MainActivity extends ReactActivity {
 			}
 			return initialProperties;
 		}
-		});
+		};
 	}
 }
