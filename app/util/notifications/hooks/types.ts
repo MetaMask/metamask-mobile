@@ -1,4 +1,4 @@
-import type { InternalAccount } from '@metamask/keyring-api';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import type { Notification } from '../../../util/notifications/types/notification';
 

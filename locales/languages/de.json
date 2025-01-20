@@ -3578,7 +3578,6 @@
     "account": "Konto",
     "balance": "Kontostand",
     "network": "Netzwerk",
-    "rpc_url": "RPC-URL",
     "simulation": {
       "title": "Geschätzte Änderungen",
       "personal_sign_info": "Sie melden sich bei einer Website an und es sind keine Änderungen an Ihrem Konto vorgesehen.",

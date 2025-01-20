@@ -7,13 +7,16 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import styleSheet from './Title.styles';
 
-const getTitle = (confirmationType?: string) => {
+const getTitleAndSubTitle = (confirmationType?: string) => {
   switch (confirmationType) {
     case TransactionType.personalSign:
     case TransactionType.signTypedData:
-      return strings('confirm.title.signature');
+      return {
+        title: strings('confirm.title.signature'),
+        subTitle: strings('confirm.sub_title.signature'),
+      };
     default:
-      return '';
+      return {};
   }
 };
 
@@ -21,11 +24,12 @@ const Title = () => {
   const { approvalRequest } = useApprovalRequest();
   const { styles } = useStyles(styleSheet, {});
 
-  const title = getTitle(approvalRequest?.type);
+  const { title, subTitle } = getTitleAndSubTitle(approvalRequest?.type);
 
   return (
     <View style={styles.titleContainer}>
       <Text style={styles.title}>{title}</Text>
+      <Text style={styles.subTitle}>{subTitle}</Text>
     </View>
   );
 };

@@ -882,7 +882,7 @@ function SwapsQuotesView({
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
         best_quote_source: selectedQuote.aggregator,
-        available_quotes: allQuotes,
+        available_quotes: allQuotes.length,
         other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
         network_fees_USD: weiToFiat(
           toWei(selectedQuoteValue?.ethFee),

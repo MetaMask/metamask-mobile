@@ -3578,7 +3578,6 @@
     "account": "アカウント",
     "balance": "残高",
     "network": "ネットワーク",
-    "rpc_url": "RPC URL",
     "simulation": {
       "title": "予測される増減額",
       "personal_sign_info": "サイトにサインインしようとしていて、予想されるアカウントの変更はありません。",

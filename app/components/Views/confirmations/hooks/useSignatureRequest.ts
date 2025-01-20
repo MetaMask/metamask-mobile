@@ -23,5 +23,5 @@ export function useSignatureRequest() {
     return undefined;
   }
 
-    return signatureRequest;
+  return signatureRequest;
 }

@@ -1,10 +1,12 @@
 import {
-  InternalAccount,
   EthAccountType,
   BtcAccountType,
   EthMethod,
   BtcMethod,
+  EthScopes,
+  BtcScopes,
 } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   isEthAccount,
   isBtcAccount,
@@ -28,6 +30,7 @@ const SOL_ADDRESSES = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 const mockEthEOAAccount: InternalAccount = {
   address: MOCK_ETH_ADDRESS,
   id: '1',
+  scopes: [EthScopes.Namespace],
   metadata: {
     name: 'Eth Account 1',
     importTime: 1684232000456,
@@ -49,6 +52,7 @@ const mockEthEOAAccount: InternalAccount = {
 const mockEthERC4337Account: InternalAccount = {
   address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
   id: '1',
+  scopes: [EthScopes.Namespace],
   metadata: {
     name: 'Eth Account ERC4337 1',
     importTime: 1684232000456,
@@ -70,6 +74,7 @@ const mockEthERC4337Account: InternalAccount = {
 const mockBTCAccount: InternalAccount = {
   address: MOCK_BTC_MAINNET_ADDRESS,
   id: '1',
+  scopes: [BtcScopes.Namespace],
   metadata: {
     name: 'Bitcoin Account',
     importTime: 1684232000456,

@@ -4,9 +4,7 @@ exports[`NetworkCell should render correctly 1`] = `
 <TouchableOpacity
   avatarProps={
     {
-      "imageSource": {
-        "uri": "MockImage",
-      },
+      "imageSource": 1,
       "name": "Ethereum Main Network",
       "variant": "Network",
     }
@@ -49,11 +47,7 @@ exports[`NetworkCell should render correctly 1`] = `
       <Image
         onError={[Function]}
         resizeMode="contain"
-        source={
-          {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
           {
             "height": 32,

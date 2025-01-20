@@ -3578,7 +3578,6 @@
     "account": "账户",
     "balance": "余额",
     "network": "网络",
-    "rpc_url": "RPC（远程过程调用）URL",
     "simulation": {
       "title": "预计变化",
       "personal_sign_info": "您正在登录某个网站，并且您的账户没有预期变化。",

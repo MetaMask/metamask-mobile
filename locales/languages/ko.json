@@ -3578,7 +3578,6 @@
     "account": "계정",
     "balance": "잔액",
     "network": "네트워크",
-    "rpc_url": "RPC URL",
     "simulation": {
       "title": "예상 변동 사항",
       "personal_sign_info": "사이트에 로그인 중이며 계정에 예상되는 변동 사항이 없습니다.",

@@ -22,7 +22,20 @@ const initialState = {
       AccountTrackerController: {
         accountsByChainId: {
           '0x1': {
-            [MOCK_ADDRESS_1]: { balance: toHex('12345678909876543210000000'), stakedBalance: toHex(MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].assets) },
+            [MOCK_ADDRESS_1]: {
+              balance: toHex('12345678909876543210000000'),
+              stakedBalance: toHex(
+                MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].assets,
+              ),
+            },
+          },
+          '0x4268': {
+            [MOCK_ADDRESS_1]: {
+              balance: toHex('22345678909876543210000000'),
+              stakedBalance: toHex(
+                MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0].assets,
+              ),
+            },
           },
         },
       },
@@ -138,5 +151,22 @@ describe('useBalance', () => {
     expect(result.current.formattedStakedBalanceETH).toBe('99999.99999 ETH'); // Formatted ETH balance
     expect(result.current.stakedBalanceFiatNumber).toBe(319999999.968); // Staked balance in fiat number
     expect(result.current.formattedStakedBalanceFiat).toBe('$319999999.96'); // should round to floor
+  });
+
+  it('returns correct stake amounts and fiat values when chainId is overriden', async () => {
+    const { result } = renderHookWithProvider(() => useBalance('0x4268'), {
+      state: initialState,
+    });
+
+    expect(result.current.balanceETH).toBe('22345678.90988');
+    expect(result.current.balanceWei.toString()).toBe(
+      '22345678909876543210000000',
+    );
+    expect(result.current.balanceFiat).toBe('$71506172511.60'); // Fiat balance
+    expect(result.current.balanceFiatNumber).toBe(71506172511.6); // Fiat number balance
+    expect(result.current.stakedBalanceWei).toBe('5791332670714232000');
+    expect(result.current.formattedStakedBalanceETH).toBe('5.79133 ETH'); // Formatted ETH balance
+    expect(result.current.stakedBalanceFiatNumber).toBe(18532.26454); // Staked balance in fiat number
+    expect(result.current.formattedStakedBalanceFiat).toBe('$18532.26'); //
   });
 });

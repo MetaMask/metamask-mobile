@@ -61,7 +61,7 @@ const ExpandableSection = ({
         </View>
       </TouchableOpacity>
       {expanded && (
-        <BottomModal hideBackground>
+        <BottomModal onClose={() => setExpanded(false)} canCloseOnBackdropClick>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ButtonIcon

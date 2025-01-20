@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native';
 
 // External dependencies
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { View } from 'react-native-animatable';
 import { TextVariant } from '../../../component-library/components/Texts/Text';

@@ -4,12 +4,18 @@ import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import StyledButton from '../../../../../../components/UI/StyledButton';
 import { useStyles } from '../../../../../../component-library/hooks';
+import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import styleSheet from './Footer.styles';
 
 const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
-  const { styles } = useStyles(styleSheet, {});
+  const { approvalRequest } = useApprovalRequest();
+  const securityAlertResponse =
+    approvalRequest?.requestData?.securityAlertResponse;
+  const { styles } = useStyles(styleSheet, {
+    hasError: securityAlertResponse !== undefined,
+  });
 
   return (
     <View style={styles.buttonsContainer}>

@@ -1428,9 +1428,14 @@ export function validateTransactionActionBalance(transaction, rate, accounts) {
   }
 }
 
+/**
+ * @param {number|string|BigNumber} value
+ * @param {number=} decimals
+ * @returns {BigNumber}
+ */
 export function calcTokenAmount(value, decimals) {
-  const multiplier = Math.pow(10, Number(decimals || 0));
-  return new BigNumber(String(value)).div(multiplier);
+  const divisor = new BigNumber(10).pow(decimals ?? 0);
+  return new BigNumber(String(value)).div(divisor);
 }
 
 export function calcTokenValue(value, decimals) {

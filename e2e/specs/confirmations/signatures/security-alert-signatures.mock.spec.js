@@ -60,7 +60,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   it('should sign typed message', async () => {
     const testSpecificMock = {
-      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      GET: [
+        mockEvents.GET.securityAlertApiSupportedChains,
+        mockEvents.GET.remoteFeatureFlags,
+      ],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
@@ -83,7 +86,10 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   it('should show security alert for malicious request', async () => {
     const testSpecificMock = {
-      GET: [mockEvents.GET.securityAlertApiSupportedChains],
+      GET: [
+        mockEvents.GET.securityAlertApiSupportedChains,
+        mockEvents.GET.remoteFeatureFlags,
+      ],
       POST: [
         {
           ...mockEvents.POST.securityAlertApiValidate,
@@ -108,6 +114,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     const testSpecificMock = {
       GET: [
         mockEvents.GET.securityAlertApiSupportedChains,
+        mockEvents.GET.remoteFeatureFlags,
         {
           urlEndpoint:
             'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',

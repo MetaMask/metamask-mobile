@@ -47,6 +47,7 @@ class Gestures {
     await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
   }
 
+
   /**
    * Wait for an element to be visible and then tap it.
    *
@@ -126,8 +127,9 @@ class Gestures {
    * @param {Promise<Detox.IndexableNativeElement>} elementID - ID of the element to replace the text in
    * @param {string} text - Text to replace the existing text in the element
    */
-  static async replaceTextInField(elementID, text) {
+  static async replaceTextInField(elementID, text, timeout = 10000) {
     const element = await elementID;
+    await waitFor(element).toBeVisible().withTimeout(timeout);
 
     await element.replaceText(text);
   }

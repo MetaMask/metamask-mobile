@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -42,7 +42,11 @@ const SignatureMessageSection = ({
           <View style={styles.copyButtonContainer}>
             <CopyButton copyText={copyMessageText} />
           </View>
-          {messageExpanded}
+          <ScrollView>
+            <View style={styles.scrollableSection}>
+              <TouchableOpacity>{messageExpanded}</TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       }
       expandedContentTitle={strings('confirm.message')}

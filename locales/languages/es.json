@@ -3578,7 +3578,6 @@
     "account": "Cuenta",
     "balance": "Saldo",
     "network": "Red",
-    "rpc_url": "URL de RPC",
     "simulation": {
       "title": "Cambios estimados",
       "personal_sign_info": "Está iniciando sesión en un sitio y no se prevén cambios en su cuenta.",

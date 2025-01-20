@@ -134,6 +134,7 @@ exports[`Confirm should render correctly 1`] = `
                       "fontWeight": "400",
                     }
                   }
+                  testID="send-back-button"
                 >
                   Back
                 </Text>
@@ -717,13 +718,7 @@ exports[`Confirm should render correctly 1`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 32,

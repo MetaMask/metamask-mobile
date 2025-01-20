@@ -165,11 +165,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               <Image
                 onError={[Function]}
                 resizeMode="contain"
-                source={
-                  {
-                    "uri": "MockImage",
-                  }
-                }
+                source={1}
                 style={
                   {
                     "height": 16,

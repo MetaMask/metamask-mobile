@@ -3578,7 +3578,6 @@
     "account": "Hesap",
     "balance": "Bakiye",
     "network": "Ağ",
-    "rpc_url": "RPC URL adresi",
     "simulation": {
       "title": "Tahmini değişiklikler",
       "personal_sign_info": "Bir siteye giriş yapıyorsunuz ve hesabınızda öngörülen herhangi bir değişiklik yok.",

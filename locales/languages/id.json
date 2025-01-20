@@ -3578,7 +3578,6 @@
     "account": "Akun",
     "balance": "Saldo",
     "network": "Jaringan",
-    "rpc_url": "URL RPC",
     "simulation": {
       "title": "Estimasi perubahan",
       "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perkiraan perubahan pada akun Anda.",
