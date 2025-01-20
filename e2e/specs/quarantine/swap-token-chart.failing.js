@@ -34,7 +34,7 @@ describe(Regression('Swap from Token view'), () => {
       .build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await TestHelpers.launchApp({
+    await device.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
@@ -107,7 +107,10 @@ describe(Regression('Swap from Token view'), () => {
     await Assertions.checkIfVisible(DetailsBottomSheet.title);
     await Assertions.checkIfElementToHaveText(
       DetailsBottomSheet.title,
-      DetailsBottomSheet.generateExpectedTitle(sourceTokenSymbol, destTokenSymbol),
+      DetailsBottomSheet.generateExpectedTitle(
+        sourceTokenSymbol,
+        destTokenSymbol,
+      ),
     );
     await Assertions.checkIfVisible(DetailsBottomSheet.statusConfirmed);
     await DetailsBottomSheet.tapOnCloseIcon();
