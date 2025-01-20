@@ -5,7 +5,7 @@ import {
   AccountsControllerState,
   getUUIDFromAddressOfNormalAccount,
 } from '@metamask/accounts-controller';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isDefaultAccountName } from '../../util/ENSUtils';
 import { ETH_EOA_METHODS } from '../../constants/eth-methods';
 

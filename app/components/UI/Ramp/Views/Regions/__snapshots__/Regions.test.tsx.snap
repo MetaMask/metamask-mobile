@@ -566,7 +566,6 @@ exports[`Regions View renders correctly 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
-                                      undefined,
                                     ]
                                   }
                                 >
@@ -1342,7 +1341,6 @@ exports[`Regions View renders correctly while loading 1`] = `
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
-                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -2571,7 +2569,6 @@ exports[`Regions View renders correctly with no data 1`] = `
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
-                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -3825,7 +3822,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
-                                      undefined,
                                     ]
                                   }
                                 >
@@ -4624,7 +4620,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         "padding": 0,
                                       },
                                       undefined,
-                                      undefined,
                                     ]
                                   }
                                 >
@@ -4946,7 +4941,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
-                                      undefined,
                                       undefined,
                                       undefined,
                                       undefined,
@@ -5799,7 +5793,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         "padding": 0,
                                       },
                                       undefined,
-                                      undefined,
                                     ]
                                   }
                                 >
@@ -6121,7 +6114,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
-                                      undefined,
                                       undefined,
                                       undefined,
                                       undefined,
@@ -6973,7 +6965,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
