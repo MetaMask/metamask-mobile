@@ -60,7 +60,7 @@ export const getFiatValue = ({
   currencyCode,
 }: {
   token: Token;
-  account: Account;
+  account?: Account;
   tokenExchangeRates: TokenExchangeRates;
   balances: Balances;
   conversionRate: number;
@@ -69,14 +69,14 @@ export const getFiatValue = ({
   const tokenAddress = safeToChecksumAddress(token.address);
 
   if (isSwapsNativeAsset(token)) {
-    const balance = renderFromWei(
-      account?.balance,
-    );
-    const balanceFiat = weiToFiatNumber(
+    const balance = account ? renderFromWei(
+      account.balance,
+    ) : undefined;
+    const balanceFiat = account ? weiToFiatNumber(
       hexToBN(account.balance),
       conversionRate,
       (currencyCode === 'usd' && 2) || undefined
-    ).toString();
+    ).toString() : undefined;
     return { balance, balanceFiat };
   }
 
@@ -123,3 +123,30 @@ export const getTokenWithFiatValue = ({
   });
   return { ...token, balance, balanceFiat };
 };
+
+export const getSortedTokensByFiatValue = ({
+  tokens,
+  account,
+  tokenExchangeRates,
+  balances,
+  conversionRate,
+  currencyCode,
+}: {
+  tokens: Token[];
+  account: Account;
+  tokenExchangeRates: TokenExchangeRates;
+  balances: Balances;
+  conversionRate: number;
+  currencyCode: string;
+}) => tokens.map((token) => getTokenWithFiatValue({
+  token,
+  account,
+  tokenExchangeRates,
+  balances,
+  conversionRate,
+  currencyCode,
+})).sort((a, b) => {
+  const bFiat = Number(b.balanceFiat ?? 0);
+  const aFiat = Number(a.balanceFiat ?? 0);
+  return bFiat - aFiat;
+});

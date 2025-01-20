@@ -52,7 +52,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
-import { getTokenWithFiatValue } from '../utils/token-list-utils';
+import { getSortedTokensByFiatValue } from '../utils/token-list-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -175,18 +175,16 @@ function TokenSelectModal({
     [tokens, excludedAddresses],
   );
 
-  const initialTokensWithFiatValue = useMemo(
+  const sortedInitialTokensWithFiatValue = useMemo(
     () =>
-      initialTokens?.map((token) =>
-        getTokenWithFiatValue({
-          token,
-          account: accounts[selectedAddress],
-          tokenExchangeRates,
-          balances,
-          conversionRate,
-          currencyCode: currentCurrency,
-        }),
-      ),
+      getSortedTokensByFiatValue({
+        tokens: initialTokens,
+        account: accounts[selectedAddress],
+        tokenExchangeRates,
+        balances,
+        conversionRate,
+        currencyCode: currentCurrency,
+      }),
     [
       initialTokens,
       accounts,
@@ -200,16 +198,14 @@ function TokenSelectModal({
 
   const filteredInitialTokens = useMemo(
     () =>
-      initialTokensWithFiatValue?.length > 0
-        ? initialTokensWithFiatValue
-            .filter(
-              (token) =>
-                typeof token !== 'undefined' &&
-                !excludedAddresses.includes(token?.address?.toLowerCase()),
-            )
-            .sort((a, b) => b.balanceFiat - a.balanceFiat)
+      sortedInitialTokensWithFiatValue?.length > 0
+        ? sortedInitialTokensWithFiatValue.filter(
+            (token) =>
+              typeof token !== 'undefined' &&
+              !excludedAddresses.includes(token?.address?.toLowerCase()),
+          )
         : filteredTokens,
-    [excludedAddresses, filteredTokens, initialTokensWithFiatValue],
+    [excludedAddresses, filteredTokens, sortedInitialTokensWithFiatValue],
   );
 
   const tokenFuse = useMemo(
