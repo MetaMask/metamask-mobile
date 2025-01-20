@@ -3,7 +3,7 @@ import { isSwapsNativeAsset } from '.';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { balanceToFiatNumber, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiatNumber } from '../../../../util/number';
 
-interface Token {
+export interface Token {
   address: string;
   aggregators: string[];
   blocked: boolean;
@@ -15,16 +15,16 @@ interface Token {
   type: string;
 }
 
-type TokenWithFiatValue = Token & {
+export type TokenWithFiatValue = Token & {
   balance: string | undefined;
   balanceFiat: string | undefined;
 };
 
-interface Account {
+export interface Account {
   balance: Hex;
 }
 
-interface TokenExchangeRate {
+export interface TokenExchangeRate {
   tokenAddress: string;
   currency: string;
   id: string;
@@ -47,9 +47,9 @@ interface TokenExchangeRate {
   pricePercentChange200d: number;
   pricePercentChange1y: number;
 }
-type TokenExchangeRates = Record<string, TokenExchangeRate>;
+export type TokenExchangeRates = Record<string, TokenExchangeRate>;
 
-type Balances = Record<string, Hex>; // token address -> atomic hex balance
+export type Balances = Record<string, Hex>; // token address -> atomic hex balance
 
 export const getFiatValue = ({
   token,
