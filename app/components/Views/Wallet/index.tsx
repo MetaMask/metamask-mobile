@@ -104,6 +104,7 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
+import { TraceName, endTrace, trace } from '../../../util/trace';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -242,6 +243,12 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  trace({ name: TraceName.Wallet });
+
+  useEffect(() => {
+    endTrace({ name: TraceName.Wallet });
+  }, []);
 
   useEffect(() => {
     if (
