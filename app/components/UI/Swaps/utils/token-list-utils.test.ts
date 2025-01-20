@@ -1,4 +1,4 @@
-import { Account, Balances, Token, getSortedTokensByFiatValue } from './token-list-utils';
+import { Account, Balances, Token, getSortedTokensByFiatValue, getFiatValue } from './token-list-utils';
 
 describe('getSortedTokensByFiatValue', () => {
   const mockAccount: Account = {
@@ -114,5 +114,85 @@ describe('getSortedTokensByFiatValue', () => {
     expect(result).toHaveLength(2);
     expect(result[0].balanceFiat).toBeUndefined();
     expect(result[1].balanceFiat).toBeUndefined();
+  });
+});
+
+describe('getFiatValue', () => {
+  it('should handle token with undefined address', () => {
+    const tokenWithoutAddress: Token = {
+      address: undefined as unknown as string, // simulating malformed data
+      symbol: 'BAD',
+      decimals: 18,
+      name: 'Bad Token',
+      iconUrl: '',
+      type: 'ERC20',
+      aggregators: [],
+      blocked: false,
+      occurrences: 1,
+    };
+
+    const result = getFiatValue({
+      token: tokenWithoutAddress,
+      tokenExchangeRates: {},
+      balances: {},
+      conversionRate: 1,
+      currencyCode: 'usd',
+    });
+
+    expect(result).toEqual({
+      balance: '0',
+      balanceFiat: undefined,
+    });
+  });
+
+  it('should handle token with no balance', () => {
+    const token: Token = {
+      address: '0x3',
+      symbol: 'NO_BAL',
+      decimals: 18,
+      name: 'No Balance Token',
+      iconUrl: '',
+      type: 'ERC20',
+      aggregators: [],
+      blocked: false,
+      occurrences: 1,
+    };
+
+    const result = getFiatValue({
+      token,
+      tokenExchangeRates: {
+        '0x3': {
+          tokenAddress: '0x3',
+          price: 100,
+          currency: 'USD',
+          id: '3',
+          marketCap: 0,
+          allTimeHigh: 0,
+          allTimeLow: 0,
+          totalVolume: 0,
+          high1d: 0,
+          low1d: 0,
+          circulatingSupply: 0,
+          dilutedMarketCap: 0,
+          marketCapPercentChange1d: 0,
+          priceChange1d: 0,
+          pricePercentChange1h: 0,
+          pricePercentChange1d: 0,
+          pricePercentChange7d: 0,
+          pricePercentChange14d: 0,
+          pricePercentChange30d: 0,
+          pricePercentChange200d: 0,
+          pricePercentChange1y: 0,
+        }
+      },
+      balances: {}, // Empty balances object
+      conversionRate: 1,
+      currencyCode: 'usd',
+    });
+
+    expect(result).toEqual({
+      balance: '0',
+      balanceFiat: '0',
+    });
   });
 });
