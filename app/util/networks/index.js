@@ -499,4 +499,4 @@ export const isPermissionsSettingsV1Enabled =
   process.env.MM_PERMISSIONS_SETTINGS_V1_ENABLED === 'true';
 
 export const isPortfolioViewEnabled = () =>
-  Device.isIos() && process.env.PORTFOLIO_VIEW === 'true';
+  process.env.PORTFOLIO_VIEW === 'true';
