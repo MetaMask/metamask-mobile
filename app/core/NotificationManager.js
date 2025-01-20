@@ -250,9 +250,6 @@ class NotificationManager {
             );
             break;
           }
-          case 'ERC721':
-            pollPromises.push(NftDetectionController.start());
-            break;
         }
         Promise.all(pollPromises);
 
@@ -434,10 +431,7 @@ class NotificationManager {
    */
   gotIncomingTransaction = async (incomingTransactions) => {
     try {
-      const {
-        AccountTrackerController,
-        AccountsController,
-      } = Engine.context;
+      const { AccountTrackerController, AccountsController } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
 
@@ -450,13 +444,14 @@ class NotificationManager {
       // If a TX has been confirmed more than 10 min ago, it's considered old
       const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
 
-      const filteredTransactions = incomingTransactions.reverse()
+      const filteredTransactions = incomingTransactions
+        .reverse()
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
               selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.status === TransactionStatus.confirmed &&
             tx.time > oldestTimeAllowed,
         );
@@ -466,7 +461,9 @@ class NotificationManager {
       }
 
       const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
-      const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
+      const amount = renderFromWei(
+        hexToBN(filteredTransactions[0].txParams.value),
+      );
       const id = filteredTransactions[0]?.id;
 
       this._showNotification({
@@ -484,7 +481,11 @@ class NotificationManager {
       // Update balance upon detecting a new incoming transaction
       AccountTrackerController.refresh();
     } catch (error) {
-      Logger.log('Notifications', 'Error while processing incoming transaction', error);
+      Logger.log(
+        'Notifications',
+        'Error while processing incoming transaction',
+        error,
+      );
     }
   };
 }

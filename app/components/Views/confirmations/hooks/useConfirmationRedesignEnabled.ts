@@ -16,7 +16,9 @@ export const useConfirmationRedesignEnabled = () => {
     type: approvalRequestType,
     requestData: { from: fromAddress },
   } = approvalRequest ?? {
-    requestData: {},
+    requestData: {
+      from: '',
+    },
   };
 
   const isRedesignedEnabled = useMemo(
