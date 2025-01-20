@@ -19,15 +19,7 @@ import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
-import {
-  balanceToFiat,
-  hexToBN,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  weiToFiat,
-} from '../../../../util/number';
-import { safeToChecksumAddress } from '../../../../util/address';
-import { isSwapsNativeAsset } from '../utils';
+import { addCurrencySymbol } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
 
@@ -60,6 +52,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
 import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
+import { getTokenWithFiatValue } from '../utils/token-list-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -181,17 +174,42 @@ function TokenSelectModal({
       ),
     [tokens, excludedAddresses],
   );
+
+  const initialTokensWithFiatValue = useMemo(
+    () =>
+      initialTokens?.map((token) =>
+        getTokenWithFiatValue({
+          token,
+          account: accounts[selectedAddress],
+          tokenExchangeRates,
+          balances,
+          conversionRate,
+        }),
+      ),
+    [
+      initialTokens,
+      accounts,
+      selectedAddress,
+      tokenExchangeRates,
+      balances,
+      conversionRate,
+    ],
+  );
+
   const filteredInitialTokens = useMemo(
     () =>
-      initialTokens?.length > 0
-        ? initialTokens.filter(
-            (token) =>
-              typeof token !== 'undefined' &&
-              !excludedAddresses.includes(token?.address?.toLowerCase()),
-          )
+      initialTokensWithFiatValue?.length > 0
+        ? initialTokensWithFiatValue
+            .filter(
+              (token) =>
+                typeof token !== 'undefined' &&
+                !excludedAddresses.includes(token?.address?.toLowerCase()),
+            )
+            .sort((a, b) => b.balanceFiat - a.balanceFiat)
         : filteredTokens,
-    [excludedAddresses, filteredTokens, initialTokens],
+    [excludedAddresses, filteredTokens, initialTokensWithFiatValue],
   );
+
   const tokenFuse = useMemo(
     () =>
       new Fuse(filteredTokens, {
@@ -228,34 +246,11 @@ function TokenSelectModal({
 
   const renderItem = useCallback(
     ({ item }) => {
-      const itemAddress = safeToChecksumAddress(item.address);
-
-      let balance, balanceFiat;
-      if (isSwapsNativeAsset(item)) {
-        balance = renderFromWei(
-          accounts[selectedAddress] && accounts[selectedAddress].balance,
-        );
-        balanceFiat = weiToFiat(
-          hexToBN(accounts[selectedAddress].balance),
-          conversionRate,
-          currentCurrency,
-        );
-      } else {
-        const exchangeRate =
-          tokenExchangeRates && itemAddress in tokenExchangeRates
-            ? tokenExchangeRates[itemAddress]?.price
-            : undefined;
-        balance =
-          itemAddress in balances
-            ? renderFromTokenMinimalUnit(balances[itemAddress], item.decimals)
-            : 0;
-        balanceFiat = balanceToFiat(
-          balance,
-          conversionRate,
-          exchangeRate,
-          currentCurrency,
-        );
-      }
+      const { balance, balanceFiat } = item;
+      const balanceFiatWithCurrencySymbol = addCurrencySymbol(
+        balanceFiat,
+        currentCurrency,
+      );
 
       return (
         <TouchableOpacity
@@ -273,8 +268,10 @@ function TokenSelectModal({
               </ListItem.Body>
               <ListItem.Amounts>
                 <ListItem.Amount>{balance}</ListItem.Amount>
-                {balanceFiat && (
-                  <ListItem.FiatAmount>{balanceFiat}</ListItem.FiatAmount>
+                {balanceFiatWithCurrencySymbol && (
+                  <ListItem.FiatAmount>
+                    {balanceFiatWithCurrencySymbol}
+                  </ListItem.FiatAmount>
                 )}
               </ListItem.Amounts>
             </ListItem.Content>
@@ -576,16 +573,18 @@ TokenSelectModal.propTypes = {
   networkConfigurations: PropTypes.object,
 };
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  tokenExchangeRates: selectContractExchangeRates(state),
-  balances: selectContractBalances(state),
-  chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-});
+const mapStateToProps = (state) => {
+  return {
+    accounts: selectAccounts(state),
+    conversionRate: selectConversionRate(state),
+    currentCurrency: selectCurrentCurrency(state),
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    tokenExchangeRates: selectContractExchangeRates(state),
+    balances: selectContractBalances(state),
+    chainId: selectChainId(state),
+    providerConfig: selectProviderConfig(state),
+    networkConfigurations: selectNetworkConfigurations(state),
+  };
+};
 
 export default connect(mapStateToProps)(TokenSelectModal);
