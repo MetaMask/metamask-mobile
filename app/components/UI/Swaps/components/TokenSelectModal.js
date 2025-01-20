@@ -279,16 +279,7 @@ function TokenSelectModal({
         </TouchableOpacity>
       );
     },
-    [
-      balances,
-      accounts,
-      selectedAddress,
-      conversionRate,
-      currentCurrency,
-      tokenExchangeRates,
-      onItemPress,
-      styles,
-    ],
+    [currentCurrency, onItemPress, styles],
   );
 
   const handleSearchPress = () => searchInput?.current?.focus();
