@@ -184,6 +184,7 @@ function TokenSelectModal({
           tokenExchangeRates,
           balances,
           conversionRate,
+          currencyCode: currentCurrency,
         }),
       ),
     [
@@ -193,6 +194,7 @@ function TokenSelectModal({
       tokenExchangeRates,
       balances,
       conversionRate,
+      currentCurrency,
     ],
   );
 
@@ -247,10 +249,9 @@ function TokenSelectModal({
   const renderItem = useCallback(
     ({ item }) => {
       const { balance, balanceFiat } = item;
-      const balanceFiatWithCurrencySymbol = addCurrencySymbol(
-        balanceFiat,
-        currentCurrency,
-      );
+      const balanceFiatWithCurrencySymbol = balanceFiat
+        ? addCurrencySymbol(balanceFiat, currentCurrency)
+        : undefined;
 
       return (
         <TouchableOpacity
@@ -268,7 +269,7 @@ function TokenSelectModal({
               </ListItem.Body>
               <ListItem.Amounts>
                 <ListItem.Amount>{balance}</ListItem.Amount>
-                {balanceFiatWithCurrencySymbol && (
+                {balanceFiat && balanceFiatWithCurrencySymbol && (
                   <ListItem.FiatAmount>
                     {balanceFiatWithCurrencySymbol}
                   </ListItem.FiatAmount>

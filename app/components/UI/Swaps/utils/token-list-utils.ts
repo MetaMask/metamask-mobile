@@ -57,12 +57,14 @@ export const getFiatValue = ({
   tokenExchangeRates,
   balances,
   conversionRate,
+  currencyCode,
 }: {
   token: Token;
   account: Account;
   tokenExchangeRates: TokenExchangeRates;
   balances: Balances;
   conversionRate: number;
+  currencyCode: string;
 }) => {
   const tokenAddress = safeToChecksumAddress(token.address);
 
@@ -73,6 +75,7 @@ export const getFiatValue = ({
     const balanceFiat = weiToFiatNumber(
       hexToBN(account.balance),
       conversionRate,
+      (currencyCode === 'usd' && 2) || undefined
     ).toString();
     return { balance, balanceFiat };
   }
@@ -101,12 +104,14 @@ export const getTokenWithFiatValue = ({
   tokenExchangeRates,
   balances,
   conversionRate,
+  currencyCode,
 }: {
   token: Token;
   account: Account;
   tokenExchangeRates: TokenExchangeRates;
   balances: Balances;
   conversionRate: number;
+  currencyCode: string;
 }): TokenWithFiatValue => {
   const { balance, balanceFiat } = getFiatValue({
     token,
@@ -114,6 +119,7 @@ export const getTokenWithFiatValue = ({
     tokenExchangeRates,
     balances,
     conversionRate,
+    currencyCode,
   });
   return { ...token, balance, balanceFiat };
 };
