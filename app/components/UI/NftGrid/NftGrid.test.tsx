@@ -499,28 +499,17 @@ describe('NftGridEmpty', () => {
   });
 
   it('calls navigation.navigate when the button is pressed', () => {
-    const { getByTestId } = render(
-      <NftGridEmpty navigation={mockNavigation} />,
-    );
-    const button = getByTestId(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
-    fireEvent.press(button);
+    const { getByText } = render(<NftGridEmpty navigation={mockNavigation} />);
+    const learnMoreText = getByText('Learn more');
+    fireEvent.press(learnMoreText);
+
+    // TODO: actually test for learn more redirect
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
       },
     });
-  });
-
-  it('logs "goToLearnMore" when the learn_more text is pressed', () => {
-    const consoleSpy = jest.spyOn(console, 'log');
-    const { getByText } = render(<NftGridEmpty navigation={mockNavigation} />);
-    const learnMoreText = getByText('Learn more');
-    fireEvent.press(learnMoreText);
-
-    // TODO: actually test for learn more redirect
-    expect(consoleSpy).toHaveBeenCalledWith('goToLearnMore');
-    consoleSpy.mockRestore();
   });
 
   it('matches the snapshot', () => {
