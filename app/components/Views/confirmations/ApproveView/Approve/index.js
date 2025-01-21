@@ -513,7 +513,7 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     const {
