@@ -12,6 +12,7 @@ import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
 import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
+import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
 
 interface MessageParamsType {
@@ -54,15 +55,10 @@ const getAnalyticsParams = (
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
   const isSimulationEnabled = useTypedSignSimulationEnabled();
+  const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const {
-    chainId,
-    decodingData,
-    decodingLoading,
-    messageParams,
-    type,
-    securityAlertResponse,
-  } = signatureRequest ?? {};
+  const { chainId, decodingData, decodingLoading, messageParams, type } =
+    signatureRequest ?? {};
 
   const captureSignatureMetrics = useCallback(
     async (

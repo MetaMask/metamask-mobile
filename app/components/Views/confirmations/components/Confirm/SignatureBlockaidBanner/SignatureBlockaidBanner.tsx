@@ -6,11 +6,13 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import BlockaidBanner from '../../../components/BlockaidBanner/BlockaidBanner';
 import { SecurityAlertResponse } from '../../BlockaidBanner/BlockaidBanner.types';
-import styleSheet from './SignatureBlockaidBanner.styles';
+import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
+import styleSheet from './SignatureBlockaidBanner.styles';
 
 const SignatureBlockaidBanner = () => {
   const signatureRequest = useSignatureRequest();
+  const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
 
@@ -38,16 +40,14 @@ const SignatureBlockaidBanner = () => {
     );
   }, [trackEvent, createEventBuilder, type, fromAddress]);
 
-  if (!signatureRequest?.securityAlertResponse) {
+  if (!securityAlertResponse) {
     return null;
   }
 
   return (
     <BlockaidBanner
       onContactUsClicked={onContactUsClicked}
-      securityAlertResponse={
-        signatureRequest?.securityAlertResponse as SecurityAlertResponse
-      }
+      securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
       style={styles.blockaidBanner}
     />
   );

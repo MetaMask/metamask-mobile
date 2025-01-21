@@ -3,10 +3,8 @@ import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { SecurityAlertResponse } from '@metamask/transaction-controller';
 
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { securityAlertResponse as mockSecurityAlertResponse } from '../../../../util/test/confirm-data-helpers';
 import { useSignatureRequest } from './useSignatureRequest';
 
 const ID_MOCK = '123-456-789';
@@ -24,11 +22,9 @@ const SIGNATURE_REQUEST_MOCK: Partial<SignatureRequest> = {
 function renderHook({
   approvalType,
   signatureRequest,
-  securityAlertResponse = undefined,
 }: {
   approvalType?: ApprovalType;
   signatureRequest: Partial<SignatureRequest>;
-  securityAlertResponse?: SecurityAlertResponse;
 }) {
   const { result } = renderHookWithProvider(useSignatureRequest, {
     state: {
@@ -49,7 +45,6 @@ function renderHook({
           },
         },
       },
-      signatureRequest: { securityAlertResponse },
     },
   });
 
@@ -59,10 +54,7 @@ function renderHook({
 describe('useSignatureRequest', () => {
   it('returns signature request matching approval request ID', () => {
     const result = renderHook({ signatureRequest: SIGNATURE_REQUEST_MOCK });
-    expect(result).toStrictEqual({
-      ...SIGNATURE_REQUEST_MOCK,
-      securityAlertResponse: undefined,
-    });
+    expect(result).toStrictEqual(SIGNATURE_REQUEST_MOCK);
   });
 
   it('returns undefined if matching signature request not found', () => {
@@ -78,16 +70,5 @@ describe('useSignatureRequest', () => {
       approvalType: ApprovalType.Transaction,
     });
     expect(result).toBeUndefined();
-  });
-
-  it('returns securityAlertResponse from state if present', () => {
-    const result = renderHook({
-      signatureRequest: SIGNATURE_REQUEST_MOCK,
-      securityAlertResponse: mockSecurityAlertResponse,
-    });
-    expect(result).toStrictEqual({
-      ...SIGNATURE_REQUEST_MOCK,
-      securityAlertResponse: mockSecurityAlertResponse,
-    });
   });
 });

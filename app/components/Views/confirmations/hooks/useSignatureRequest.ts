@@ -1,11 +1,9 @@
 import { ApprovalType } from '@metamask/controller-utils';
-import { SecurityAlertResponse } from '@metamask/transaction-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
 import { useSelector } from 'react-redux';
 
 import { selectSignatureRequestById } from '../../../../selectors/signatureController';
 import { RootState } from '../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { selectSignatureSecurityAlertResponse } from '../selectors/security-alerts';
 import useApprovalRequest from './useApprovalRequest';
 
 const SIGNATURE_APPROVAL_TYPES = [
@@ -15,9 +13,6 @@ const SIGNATURE_APPROVAL_TYPES = [
 
 export function useSignatureRequest() {
   const { approvalRequest } = useApprovalRequest();
-  const { securityAlertResponse } = useSelector(
-    selectSignatureSecurityAlertResponse,
-  );
 
   const signatureRequest = useSelector((state: RootState) =>
     selectSignatureRequestById(state, approvalRequest?.id as string),
@@ -30,7 +25,5 @@ export function useSignatureRequest() {
     return undefined;
   }
 
-  return { ...signatureRequest, securityAlertResponse } as SignatureRequest & {
-    securityAlertResponse: SecurityAlertResponse;
-  };
+  return signatureRequest as SignatureRequest;
 }
