@@ -21,3 +21,7 @@ export const ActivitiesViewSelectorsText = {
   TITLE: enContent.transactions_view.title,
 
 };
+
+export const sentMessageTokenIDs = {
+  eth: ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(enContent.unit.eth)
+};

@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import type { Hex } from '@metamask/utils';
 
 import getDecimalChainId from '../../../../util/networks/getDecimalChainId';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
@@ -10,7 +9,10 @@ import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { SecurityAlertResponse } from '../components/BlockaidBanner/BlockaidBanner.types';
 import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
+import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
+import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
+import { SignatureRequest } from '@metamask/signature-controller';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -20,11 +22,16 @@ interface MessageParamsType {
 }
 
 const getAnalyticsParams = (
-  messageParams: MessageParamsType,
-  type: string,
-  chainId?: Hex,
+  signatureRequest: SignatureRequest,
+  isSimulationEnabled?: boolean,
 ) => {
-  const { meta = {}, from, securityAlertResponse, version } = messageParams;
+  const { chainId, messageParams, type } = signatureRequest ?? {};
+  const {
+    meta = {},
+    from,
+    securityAlertResponse,
+    version
+  } = (messageParams  as unknown as MessageParamsType) || {};
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -37,13 +44,15 @@ const getAnalyticsParams = (
     ...(securityAlertResponse
       ? getBlockaidMetricsParams(securityAlertResponse)
       : {}),
+    ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
   };
 };
 
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
+  const isSimulationEnabled = useTypedSignSimulationEnabled();
 
-  const { chainId, messageParams, type } = signatureRequest ?? {};
+  const type = signatureRequest?.type;
 
   const captureSignatureMetrics = useCallback(
     async (
@@ -57,15 +66,14 @@ export const useSignatureMetrics = () => {
         MetricsEventBuilder.createEventBuilder(event)
           .addProperties(
             getAnalyticsParams(
-              messageParams as unknown as MessageParamsType,
-              type,
-              chainId,
+              signatureRequest as SignatureRequest,
+              isSimulationEnabled,
             ),
           )
           .build(),
       );
     },
-    [chainId, messageParams, type],
+    [isSimulationEnabled, type, signatureRequest],
   );
 
   useEffect(() => {
