@@ -108,7 +108,7 @@ describe('SimulationValueDisplay', () => {
     expect(await findByText('Unlimited')).toBeDefined();
   });
 
-  it('should invoke method to track missing decimal information for ERC20 tokens only once', async () => {
+  it('invokes method to track missing decimal information for ERC20 tokens only once', async () => {
     (
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
@@ -137,7 +137,7 @@ describe('SimulationValueDisplay', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it('should not invoke method to track missing decimal information for ERC20 tokens', async () => {
+  it('does not invoke method to track missing decimal information for ERC20 tokens', async () => {
     (
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
@@ -175,7 +175,7 @@ describe('SimulationValueDisplay', () => {
       });
     });
 
-    it('should not invoke method to track missing decimal information', async () => {
+    it('does not invoke method to track missing decimal information', async () => {
       renderWithProvider(
         <SimulationValueDisplay
           labelChangeType={'Withdraw'}
