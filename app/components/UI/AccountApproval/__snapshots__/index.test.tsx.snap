@@ -222,7 +222,7 @@ exports[`AccountApproval should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 10,
           "borderWidth": 1,
           "flexDirection": "row",

@@ -470,7 +470,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                       "paddingVertical": 8,
                                     },
                                     {
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "borderColor": "#0376c9",
                                     },
                                     undefined,
@@ -1222,7 +1222,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                 style={
                                   [
                                     {
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "borderColor": "#0376c9",
                                       "borderTopLeftRadius": 10,
                                       "borderTopRightRadius": 10,
@@ -1656,7 +1656,7 @@ exports[`QuotesView should render quote screen 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderTopColor": "#bbc0c566",
+                                        "borderTopColor": "#BBC0C566",
                                         "borderTopWidth": 1,
                                         "height": 0,
                                         "marginVertical": 6,

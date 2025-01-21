@@ -54,7 +54,7 @@ exports[`Tabs should render correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 10,
                 "borderWidth": 1,
                 "elevation": 8,
@@ -215,7 +215,7 @@ exports[`Tabs should render correctly 1`] = `
         "height": 50,
         "paddingHorizontal": 20,
         "paddingTop": 17,
-        "shadowColor": "#0000001a",
+        "shadowColor": "#0000001A",
         "shadowOffset": {
           "height": 2,
           "width": 0,
