@@ -142,14 +142,10 @@ export const handleSendMessage = async ({
     connection.trigger = 'resume';
 
     // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
-    if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-      connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      });
-    } else {
-      DevLogger.log(`[handleSendMessage] goBack()`);
-      await Minimizer.goBack();
-    }
+    DevLogger.log(`[handleSendMessage] goBack()`);
+    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+    });
   } catch (err) {
     Logger.log(
       err,
