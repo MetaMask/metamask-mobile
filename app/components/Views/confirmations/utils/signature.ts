@@ -1,4 +1,4 @@
-import { SignatureRequest } from '@metamask/signature-controller';
+import { SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 
 /**
@@ -50,7 +50,7 @@ export const parseTypedDataMessage = (dataToParse: string) => {
  * @param request - The signature request to check
  */
 export const isRecognizedPermit = (request: SignatureRequest) => {
-  if (!request) {
+  if (!request || request.type !== SignatureRequestType.TypedSign) {
     return false;
   }
 
