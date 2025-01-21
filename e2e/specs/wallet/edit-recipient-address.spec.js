@@ -16,12 +16,7 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import Gestures from '../../utils/Gestures';
-import {
-  ActivitiesViewSelectorsText,
-  sentMessageTokenIDs,
-} from '../../selectors/Transactions/ActivitiesView.selectors';
-import { contractConfiguration } from '../../../app/util/test/smart-contracts';
+
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
