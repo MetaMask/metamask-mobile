@@ -6,8 +6,9 @@ import BottomModal from '../components/UI/BottomModal';
 import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
+import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import useConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
+import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import styleSheet from './Confirm.styles';
 
 const Confirm = () => {
@@ -19,10 +20,12 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal>
+    <BottomModal canCloseOnBackdropClick={false}>
       <View style={styles.container}>
         <View>
           <Title />
+          {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
+          <SignatureBlockaidBanner />
           <AccountNetworkInfo />
           <Info />
         </View>

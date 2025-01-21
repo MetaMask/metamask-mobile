@@ -34,6 +34,9 @@ const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       marginTop: 8,
     },
+    valueComponent: {
+      alignSelf: 'flex-end',
+    },
   });
 };
 
