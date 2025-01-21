@@ -23,7 +23,6 @@ import {
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import styleSheet from './NftGrid.styles';
-import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import {

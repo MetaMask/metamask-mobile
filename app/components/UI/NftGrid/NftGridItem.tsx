@@ -5,8 +5,8 @@ import Text from '../../../component-library/components/Texts/Text';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import styleSheet from './NftGrid.styles';
-import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useTheme } from '../../../util/theme';
 
 const debouncedNavigation = debounce((navigation, collectible) => {
   navigation.navigate('NftDetails', { collectible });
@@ -37,7 +37,8 @@ function NftGridItem({
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
     null,
   );
-  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const styles = styleSheet(colors);
 
   const onLongPressCollectible = useCallback((collectible) => {
     actionSheetRef?.current?.show();

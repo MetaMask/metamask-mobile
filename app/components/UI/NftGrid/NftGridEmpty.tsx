@@ -3,16 +3,15 @@ import { View, TouchableOpacity, Image } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextColor,
-  TextVariant, // TextColor,
-  // TextVariant,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import styleSheet from './NftGrid.styles';
-import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AppConstants from '../../../core/AppConstants';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 import noNftPlaceholderSrc from '../../../images/no-nfts-placeholder.png';
+import { useTheme } from '../../../util/theme';
 interface NftGridNavigationParamList {
   AddAsset: { assetType: string };
   [key: string]: undefined | object;
@@ -23,7 +22,8 @@ interface NftGridProps {
 }
 
 function NftGridEmpty({ navigation }: NftGridProps) {
-  const { styles } = useStyles(styleSheet, {});
+  const { colors } = useTheme();
+  const styles = styleSheet(colors);
 
   const goToLearnMore = useCallback(
     () =>
