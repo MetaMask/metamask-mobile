@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
@@ -24,6 +24,15 @@ interface NftGridProps {
 
 function NftGridEmpty({ navigation }: NftGridProps) {
   const { styles } = useStyles(styleSheet, {});
+
+  const goToLearnMore = useCallback(
+    () =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: { url: AppConstants.URLS.NFT },
+      }),
+    [navigation],
+  );
 
   return (
     <View
@@ -64,7 +73,7 @@ function NftGridEmpty({ navigation }: NftGridProps) {
         <Text
           variant={TextVariant.BodyMDMedium}
           color={TextColor.Info}
-          onPress={() => console.log('goToLearnMore')}
+          onPress={goToLearnMore}
         >
           {strings('wallet.learn_more')}
         </Text>

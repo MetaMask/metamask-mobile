@@ -1,9 +1,8 @@
-import { useTheme } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
+import { Colors } from '../../../util/theme/models';
 
-const styleSheet = () => {
-  const { colors } = useTheme();
-  return StyleSheet.create({
+const styleSheet = (colors: Colors) =>
+  StyleSheet.create({
     collectibleIcon: {
       width: '100%',
       aspectRatio: 1,
@@ -16,9 +15,7 @@ const styleSheet = () => {
       alignItems: 'center',
     },
     footer: {
-      //   flex: 1,
       alignItems: 'center',
-      //   marginTop: 8,
     },
     spinner: {
       marginBottom: 8,
@@ -31,19 +28,16 @@ const styleSheet = () => {
     emptyImageContainer: {
       width: 30,
       height: 30,
-      // marginTop: 30,
-      // marginBottom: 12,
       tintColor: colors.background,
     },
     headingMd: {
       marginTop: 10,
     },
     emptyText: {
-      // color: colors.text.alternative,
+      color: colors.text.alternative,
       marginBottom: 8,
       fontSize: 14,
     },
   });
-};
 
 export default styleSheet;

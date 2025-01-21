@@ -77,7 +77,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     null,
   );
   const { themeAppearance, colors } = useTheme();
-  const { styles } = useStyles(styleSheet, {});
+  const styles = styleSheet(colors);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -152,12 +152,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     }
   };
 
-  /**
-   *  Method that checks if the collectible is inside the collectibles array. If it is not it means the
-   *  collectible has been ignored, hence we should not call the updateMetadata which executes the addNft fct
-   *
-   *  @returns Boolean indicating if the collectible is ignored or not.
-   */
   const isCollectibleIgnored = useCallback(
     (collectible) => {
       const found = collectibles.find(
@@ -171,12 +165,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [collectibles],
   );
 
-  /**
-   *  Method to check the token id data type of the current collectibles.
-   *
-   * @param collectible - Collectible object.
-   * @returns Boolean indicating if the collectible should be updated.
-   */
   const shouldUpdateCollectibleMetadata = (collectible: Nft) =>
     typeof collectible.tokenId === 'number' ||
     (typeof collectible.tokenId === 'string' &&
