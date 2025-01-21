@@ -8,7 +8,10 @@ import { BigNumber } from 'bignumber.js';
 import ButtonPill from '../../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import { ButtonIconSizes } from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import ButtonIcon from '../../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import { IconName , IconColor } from '../../../../../../../../../../component-library/components/Icons/Icon';
+import {
+  IconName,
+  IconColor,
+} from '../../../../../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../../../../../component-library/components/Texts/Text';
 
 import { IndividualFiatDisplay } from '../../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
@@ -75,9 +78,7 @@ interface SimulationValueDisplayParams {
   value?: number | string;
 }
 
-const SimulationValueDisplay: React.FC<
-  SimulationValueDisplayParams
-> = ({
+const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   chainId,
   labelChangeType,
   networkClientId,
@@ -89,137 +90,147 @@ const SimulationValueDisplay: React.FC<
   debit,
   canDisplayValueAsUnlimited = false,
 }) => {
-    const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
+  const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-    const { colors } = useTheme();
-    const styles = styleSheet(colors);
+  const { colors } = useTheme();
+  const styles = styleSheet(colors);
 
-    const contractExchangeRates = useSelector(selectContractExchangeRates);
-    const exchangeRate =
-      tokenContract && contractExchangeRates
-        ? contractExchangeRates[tokenContract as `0x${string}`]?.price
-        : undefined;
+  const contractExchangeRates = useSelector(selectContractExchangeRates);
+  const exchangeRate =
+    tokenContract && contractExchangeRates
+      ? contractExchangeRates[tokenContract as `0x${string}`]?.price
+      : undefined;
 
-    const {
-      details: tokenDetails,
-      isPending: isPendingTokenDetails
-    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
-    const { decimalsNumber: tokenDecimals } = tokenDetails;
+  const { details: tokenDetails, isPending: isPendingTokenDetails } =
+    useGetTokenStandardAndDetails(tokenContract, networkClientId);
+  const { decimalsNumber: tokenDecimals } = tokenDetails;
 
-    useTrackERC20WithoutDecimalInformation(
-      chainId,
-      tokenContract,
-      tokenDetails as TokenDetailsERC20,
-    );
+  useTrackERC20WithoutDecimalInformation(
+    chainId,
+    tokenContract,
+    tokenDetails as TokenDetailsERC20,
+  );
 
-    const tokenAmount = isNumberValue(value) && !tokenId ? calcTokenAmount(value as number | string, tokenDecimals) : null;
-    const isValidTokenAmount = tokenAmount !== null && tokenAmount !== undefined && tokenAmount instanceof BigNumber;
+  const tokenAmount =
+    isNumberValue(value) && !tokenId
+      ? calcTokenAmount(value as number | string, tokenDecimals)
+      : null;
+  const isValidTokenAmount =
+    tokenAmount !== null &&
+    tokenAmount !== undefined &&
+    tokenAmount instanceof BigNumber;
 
-    const fiatValue = isValidTokenAmount && exchangeRate && !tokenId
+  const fiatValue =
+    isValidTokenAmount && exchangeRate && !tokenId
       ? tokenAmount.multipliedBy(exchangeRate).toNumber()
       : undefined;
 
-    const tokenValue = isValidTokenAmount ? formatAmount('en-US', tokenAmount) : null;
-    const tokenValueMaxPrecision = isValidTokenAmount ? formatAmountMaxPrecision('en-US', tokenAmount) : null;
+  const tokenValue = isValidTokenAmount
+    ? formatAmount('en-US', tokenAmount)
+    : null;
+  const tokenValueMaxPrecision = isValidTokenAmount
+    ? formatAmountMaxPrecision('en-US', tokenAmount)
+    : null;
 
-    const shouldShowUnlimitedValue = canDisplayValueAsUnlimited &&
-      Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
+  const shouldShowUnlimitedValue =
+    canDisplayValueAsUnlimited &&
+    Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
 
-    /** Temporary error capturing as we are building out Permit Simulations */
-    if (!tokenContract) {
-      Logger.error(
-        new Error(
-          `SimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
-        ),
-      );
-      return null;
-    }
+  /** Temporary error capturing as we are building out Permit Simulations */
+  if (!tokenContract) {
+    Logger.error(
+      new Error(
+        `SimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
+      ),
+    );
+    return null;
+  }
 
-    function handlePressTokenValue() {
-      setHasValueModalOpen(true);
-    }
+  function handlePressTokenValue() {
+    setHasValueModalOpen(true);
+  }
 
-    return (
-      <View style={styles.wrapper}>
-        <View style={styles.flexRowTokenValueAndAddress}>
-          <View style={styles.valueAndAddress}>
-            {
-              isPendingTokenDetails ? 
-              (
-                <View style={styles.loaderContainer}>
-                  <Loader size={'small'} />
-                </View>
-              )
-              :
-              (
-                <ButtonPill
-                  isDisabled={!!tokenId || tokenId === '0'}
-                  onPress={handlePressTokenValue}
-                  onPressIn={handlePressTokenValue}
-                  onPressOut={handlePressTokenValue}
-                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-                >
-                  <Text>
-                    {credit && '+ '}
-                    {debit && '- '}
-                    {shouldShowUnlimitedValue
-                      ? strings('confirm.unlimited')
-                      : tokenValue !== null &&
-                        shortenString(tokenValue || '', {
-                        truncatedCharLimit: 15,
-                        truncatedStartChars: 15,
-                        truncatedEndChars: 0,
-                        skipCharacterInEnd: true,
-                      })}
-                    {tokenId && `#${tokenId}`}
-                  </Text>
-                </ButtonPill>
-              )
-          }
-            <View style={styles.marginStart4}>
-              <Address address={tokenContract} chainId={chainId} />
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.flexRowTokenValueAndAddress}>
+        <View style={styles.valueAndAddress}>
+          {isPendingTokenDetails ? (
+            <View style={styles.loaderContainer}>
+              <Loader size={'small'} />
             </View>
+          ) : (
+            <ButtonPill
+              isDisabled={!!tokenId || tokenId === '0'}
+              onPress={handlePressTokenValue}
+              onPressIn={handlePressTokenValue}
+              onPressOut={handlePressTokenValue}
+              style={[
+                credit && styles.valueIsCredit,
+                debit && styles.valueIsDebit,
+              ]}
+            >
+              <Text>
+                {credit && '+ '}
+                {debit && '- '}
+                {shouldShowUnlimitedValue
+                  ? strings('confirm.unlimited')
+                  : tokenValue !== null &&
+                    shortenString(tokenValue || '', {
+                      truncatedCharLimit: 15,
+                      truncatedStartChars: 15,
+                      truncatedEndChars: 0,
+                      skipCharacterInEnd: true,
+                    })}
+                {tokenId && `#${tokenId}`}
+              </Text>
+            </ButtonPill>
+          )}
+          <View style={styles.marginStart4}>
+            <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
-        <View style={styles.fiatDisplay}>
-          {/**
+      </View>
+      <View style={styles.fiatDisplay}>
+        {/**
             TODO - add fiat shorten prop after tooltip logic has been updated
             {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
           */}
-          {fiatValue && <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />}
-        </View>
-        {hasValueModalOpen && (
-          /**
-           * TODO replace BottomModal instances with BottomSheet
-           * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
-           */
-          <BottomModal onClose={() => setHasValueModalOpen(false)}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => setHasValueModalOpen(false)}
-            >
-              <View style={styles.valueModal} >
-                <View style={styles.valueModalHeader}>
-                  <ButtonIcon
-                    iconColor={IconColor.Default}
-                    size={ButtonIconSizes.Sm}
-                    style={styles.valueModalHeaderIcon}
-                    onPress={() => setHasValueModalOpen(false)}
-                    iconName={IconName.ArrowLeft}
-                  />
-                  <Text style={styles.valueModalHeaderText}>
-                    {labelChangeType}
-                  </Text>
-                </View>
-                <Text style={styles.valueModalText}>
-                  {tokenValueMaxPrecision}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </BottomModal>
+        {fiatValue && (
+          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
         )}
       </View>
-    );
-  };
+      {hasValueModalOpen && (
+        /**
+         * TODO replace BottomModal instances with BottomSheet
+         * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
+         */
+        <BottomModal onClose={() => setHasValueModalOpen(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setHasValueModalOpen(false)}
+          >
+            <View style={styles.valueModal}>
+              <View style={styles.valueModalHeader}>
+                <ButtonIcon
+                  iconColor={IconColor.Default}
+                  size={ButtonIconSizes.Sm}
+                  style={styles.valueModalHeaderIcon}
+                  onPress={() => setHasValueModalOpen(false)}
+                  iconName={IconName.ArrowLeft}
+                />
+                <Text style={styles.valueModalHeaderText}>
+                  {labelChangeType}
+                </Text>
+              </View>
+              <Text style={styles.valueModalText}>
+                {tokenValueMaxPrecision}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </BottomModal>
+      )}
+    </View>
+  );
+};
 
 export default SimulationValueDisplay;
