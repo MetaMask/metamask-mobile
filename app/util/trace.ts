@@ -38,7 +38,7 @@ export enum TraceName {
   VaultCreation = 'Login Vault Creation',
   AccountList = 'Account List',
   StoreInit = 'Store Initialization',
-  Wallet = 'Wallet',
+  Tokens = 'Tokens List',
 }
 
 export enum TraceOperation {

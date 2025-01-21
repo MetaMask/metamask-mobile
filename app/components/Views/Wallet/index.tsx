@@ -244,17 +244,6 @@ const Wallet = ({
       : AvatarAccountType.JazzIcon,
   );
 
-  const isFirstRender = useRef(true);
-
-  if (isFirstRender.current) {
-    trace({ name: TraceName.Wallet });
-    isFirstRender.current = false;
-  }
-
-  useEffect(() => {
-    endTrace({ name: TraceName.Wallet });
-  }, []);
-
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
