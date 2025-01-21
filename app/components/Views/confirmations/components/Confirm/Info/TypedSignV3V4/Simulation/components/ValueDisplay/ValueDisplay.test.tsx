@@ -59,11 +59,14 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { findByText } = renderWithProvider(
@@ -81,11 +84,14 @@ describe('SimulationValueDisplay', () => {
 
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { findByText } = renderWithProvider(
@@ -108,11 +114,14 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: undefined,
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: undefined,
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     renderWithProvider(
@@ -134,11 +143,14 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     renderWithProvider(

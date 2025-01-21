@@ -93,11 +93,14 @@ describe('PermitSimulation', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: 'ERC20',
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: 'ERC20',
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { getByText } = renderWithProvider(<TypedSignV3V4Simulation />, {
@@ -115,11 +118,14 @@ describe('PermitSimulation', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '2',
-      balance: undefined,
-      standard: 'ERC20',
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '2',
+        balance: undefined,
+        standard: 'ERC20',
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { getByText } = renderWithProvider(<TypedSignV3V4Simulation />, {

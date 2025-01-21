@@ -24,6 +24,9 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
+    loaderContainer: {
+      paddingEnd: 32,
+    },
     marginStart4: {
       marginStart: 4,
     },

@@ -19,6 +19,7 @@ import {
 
 import Address from '../../../../../../UI/InfoRow/InfoValue/Address/Address';
 
+import Loader from '../../../../../../../../../../component-library/components-temp/Loader/Loader';
 import { selectContractExchangeRates } from '../../../../../../../../../../selectors/tokenRatesController';
 
 import Logger from '../../../../../../../../../../util/Logger';
@@ -99,7 +100,10 @@ const SimulationValueDisplay: React.FC<
         ? contractExchangeRates[tokenContract as `0x${string}`]?.price
         : undefined;
 
-    const tokenDetails = useGetTokenStandardAndDetails(tokenContract, networkClientId);
+    const {
+      details: tokenDetails,
+      isPending: isPendingTokenDetails
+    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
     const { decimalsNumber: tokenDecimals } = tokenDetails;
 
     useTrackERC20WithoutDecimalInformation(
@@ -139,28 +143,39 @@ const SimulationValueDisplay: React.FC<
       <View style={styles.wrapper}>
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
-            <ButtonPill
-              isDisabled={!!tokenId || tokenId === '0'}
-              onPress={handlePressTokenValue}
-              onPressIn={handlePressTokenValue}
-              onPressOut={handlePressTokenValue}
-              style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-            >
-              <Text>
-                {credit && '+ '}
-                {debit && '- '}
-                {shouldShowUnlimitedValue
-                  ? strings('confirm.unlimited')
-                  : tokenValue !== null &&
-                    shortenString(tokenValue || '', {
-                    truncatedCharLimit: 15,
-                    truncatedStartChars: 15,
-                    truncatedEndChars: 0,
-                    skipCharacterInEnd: true,
-                  })}
-                {tokenId && `#${tokenId}`}
-              </Text>
-            </ButtonPill>
+            {
+              isPendingTokenDetails ? 
+              (
+                <View style={styles.loaderContainer}>
+                  <Loader size={'small'} />
+                </View>
+              )
+              :
+              (
+                <ButtonPill
+                  isDisabled={!!tokenId || tokenId === '0'}
+                  onPress={handlePressTokenValue}
+                  onPressIn={handlePressTokenValue}
+                  onPressOut={handlePressTokenValue}
+                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
+                >
+                  <Text>
+                    {credit && '+ '}
+                    {debit && '- '}
+                    {shouldShowUnlimitedValue
+                      ? strings('confirm.unlimited')
+                      : tokenValue !== null &&
+                        shortenString(tokenValue || '', {
+                        truncatedCharLimit: 15,
+                        truncatedStartChars: 15,
+                        truncatedEndChars: 0,
+                        skipCharacterInEnd: true,
+                      })}
+                    {tokenId && `#${tokenId}`}
+                  </Text>
+                </ButtonPill>
+              )
+          }
             <View style={styles.marginStart4}>
               <Address address={tokenContract} chainId={chainId} />
             </View>
