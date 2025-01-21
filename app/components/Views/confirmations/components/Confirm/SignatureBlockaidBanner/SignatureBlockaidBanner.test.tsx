@@ -13,11 +13,15 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 const mockTrackEvent = jest.fn();
+const mockCreateEventBuilderAddProperties = jest.fn();
+
 jest.mock('../../../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
-      addProperties: () => ({ build: () => ({}) }),
+      addProperties: mockCreateEventBuilderAddProperties.mockReturnValue({
+        build: () => ({}),
+      }),
     }),
   }),
 }));
@@ -36,7 +40,7 @@ const typedSignV1ConfirmationStateWithBlockaidResponse = {
       ...typedSignV1ConfirmationState.engine.backgroundState,
       ApprovalController: {
         pendingApprovals: {
-          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
+          '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
             ...typedSignApproval,
             requestData: {
               ...typedSignApproval.requestData,
@@ -71,8 +75,15 @@ describe('Confirm', () => {
         state: typedSignV1ConfirmationStateWithBlockaidResponse,
       },
     );
+
     fireEvent.press(getByTestId('accordionheader'));
     fireEvent.press(getByText('Report an issue'));
+
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilderAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        external_link_clicked: 'security_alert_support_link',
+      }),
+    );
   });
 });
