@@ -5307,15 +5307,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/selected-network-controller@^19.0.0":
-  version "19.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-19.0.0.tgz#7c950e051d6848ac5cdcf980f90196a0772425ef"
-  integrity sha512-ijCFHwZN+73VskJU+X0AoSlCTycgLveEjwUoycUeajmUuZyLV5KLLVYPKTk0Pd/aQAaO2tL9yZi0/geazNGV7A==
+"@metamask/selected-network-controller@^21.0.0":
+  version "21.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-21.0.0.tgz#d1972a2af8a241497c490c32efb1dabd39e75c52"
+  integrity sha512-U+o+R8vtKKtFSWGxY/YSBU1AOq229OsER4l7HKWv1mcGQJoWUprenqiuQZtH30KZ0iRRjP+FCG2oLRHk/FWhUg==
   dependencies:
-    "@metamask/base-controller" "^7.0.1"
-    "@metamask/json-rpc-engine" "^10.0.0"
-    "@metamask/swappable-obj-proxy" "^2.2.0"
-    "@metamask/utils" "^10.0.0"
+    "@metamask/base-controller" "^7.1.1"
+    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/swappable-obj-proxy" "^2.3.0"
+    "@metamask/utils" "^11.0.1"
 
 "@metamask/signature-controller@^23.1.0":
   version "23.1.0"
@@ -5492,6 +5492,11 @@
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.2.0.tgz#31b8e0ce57e28bf9847b3b24b214996f7748cc99"
   integrity sha512-0OjVwQtrrPFRGipw64yDUQA0CUXCK161LWCv2KlTTDZD8BKeWSNb0gbnpDI7HvhsJ0gki5gScZj1hF3ShDnBzA==
+
+"@metamask/swappable-obj-proxy@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
+  integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
 "@metamask/swaps-controller@^12.0.0":
   version "12.0.0"
