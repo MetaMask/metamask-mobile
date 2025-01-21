@@ -155,7 +155,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       <View style={styles.flexRowTokenValueAndAddress}>
         <View style={styles.valueAndAddress}>
           {isPendingTokenDetails ? (
-            <View style={styles.loaderContainer}>
+            <View style={styles.loaderContainer} testID="simulation-value-display-loader">
               <Loader size={'small'} />
             </View>
           ) : (

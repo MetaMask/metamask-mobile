@@ -82,6 +82,25 @@ describe('SimulationValueDisplay', () => {
     expect(await findByText('0.432')).toBeDefined();
   });
 
+  it('renders loading state when fetching token details', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+      details: { decimalsNumber: undefined },
+      isPending: true,
+    });
+
+    const { findByTestId } = renderWithProvider(
+      <SimulationValueDisplay
+        labelChangeType={'Spending Cap'}
+        tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+        value={'4321'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByTestId('simulation-value-display-loader')).toBeDefined();
+  });
+
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
       details: {
