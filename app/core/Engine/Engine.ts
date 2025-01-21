@@ -199,7 +199,6 @@ import { getSmartTransactionMetricsProperties } from '../../util/smart-transacti
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
   EngineState,
@@ -740,7 +739,7 @@ export class Engine {
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
         ),
-      includeStakedAssets: isPooledStakingFeatureEnabled(),
+      includeStakedAssets: true,
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1442,6 +1441,10 @@ export class Engine {
         }),
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
+        decodingApiUrl: AppConstants.DECODING_API_URL,
+        // TODO: check preferences useExternalServices
+        isDecodeSignatureRequestEnabled: () =>
+          preferencesController.state.useTransactionSimulations,
       }),
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)

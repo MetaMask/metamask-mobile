@@ -20,7 +20,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
-import { KeyringClient } from '@metamask/keyring-api';
+import { KeyringClient } from '@metamask/keyring-snap-client';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { MultichainNetworks } from '../../../core/Multichain/constants';
 import { useSelector } from 'react-redux';

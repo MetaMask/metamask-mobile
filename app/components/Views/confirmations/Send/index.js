@@ -185,8 +185,8 @@ class Send extends PureComponent {
    * Resets gas and gasPrice of transaction
    */
   async reset() {
-    const { transaction } = this.props;
-    const { gas, gasPrice } = await estimateGas(transaction);
+    const { networkClientId, transaction } = this.props;
+    const { gas, gasPrice } = await estimateGas(transaction, networkClientId);
     this.props.setTransactionObject({
       gas: hexToBN(gas),
       gasPrice: hexToBN(gasPrice),
@@ -320,8 +320,6 @@ class Send extends PureComponent {
   handleNewTxMeta = async ({
     target_address,
     action,
-    chain_id = null,
-    function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
     const { addressBook, chainId, internalAccounts, selectedAddress } =
@@ -408,7 +406,10 @@ class Send extends PureComponent {
 
       // if gas and gasPrice is not defined in the deeplink, we should define them
       if (!gas && !gasPrice) {
-        const { gas, gasPrice } = await estimateGas(this.props.transaction);
+        const { gas, gasPrice } = await estimateGas(
+          this.props.transaction,
+          this.props.networkClientId,
+        );
         newTxMeta = {
           ...newTxMeta,
           gas,
