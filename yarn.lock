@@ -4520,7 +4520,7 @@
 
 "@metamask/design-tokens@^4.2.0":
   version "4.2.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/design-tokens/-/design-tokens-4.2.0.tgz#c245d634964edf35b149fbda8d42ac92815982cd"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-4.2.0.tgz#c245d634964edf35b149fbda8d42ac92815982cd"
   integrity sha512-zkAFhqxhMQJPXx6tuN58BzsGpLggIv9k8dIjRcbs7S/2YVNyHCUkt+KF1p2+wBUXgBxflpt/yS18YZ/kFBTtEA==
 
 "@metamask/eslint-config-typescript@^9.0.0":
