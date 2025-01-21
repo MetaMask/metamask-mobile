@@ -4518,10 +4518,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-4.0.0.tgz#3aad7e4da21c279374668e179c0b055d93aa0552"
-  integrity sha512-bpGKH06Nq6KwMRPNkQ+a/H2vNfX/ViIkpUHkx0FnkastL4+G63lcFS8Nv8mmi9zI24k3l0a2zvsSb/KsvFWTzA==
+"@metamask/design-tokens@^4.2.0":
+  version "4.2.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/design-tokens/-/design-tokens-4.2.0.tgz#c245d634964edf35b149fbda8d42ac92815982cd"
+  integrity sha512-zkAFhqxhMQJPXx6tuN58BzsGpLggIv9k8dIjRcbs7S/2YVNyHCUkt+KF1p2+wBUXgBxflpt/yS18YZ/kFBTtEA==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
