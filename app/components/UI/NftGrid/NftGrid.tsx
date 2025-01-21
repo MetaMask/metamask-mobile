@@ -38,6 +38,7 @@ import {
 import NftGridItem from './NftGridItem';
 import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
+import { useNavigation } from '@react-navigation/native';
 
 interface ActionSheetType {
   show: () => void;
@@ -54,12 +55,15 @@ interface NftGridNavigationParamList {
 }
 
 interface NftGridProps {
-  navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
   chainId: string;
   selectedAddress: string;
 }
 
-function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
+function NftGrid({ chainId, selectedAddress }: NftGridProps) {
+  const navigation =
+    useNavigation<
+      StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>
+    >();
   const collectibles = useSelector(collectiblesSelector).filter(
     (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
   );
@@ -206,7 +210,6 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
       });
 
       if (updatable.length !== 0) {
-        console.log('UPDATABLE: ', updatable, selectedAddress);
         await NftController.updateNftMetadata({
           nfts: updatable,
           userAddress: selectedAddress,

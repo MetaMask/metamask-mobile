@@ -198,11 +198,7 @@ describe('NftGrid', () => {
 
   it('should only get owned collectibles', () => {
     const { queryByTestId } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId={CHAIN_IDS.MAINNET}
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
       {
         state: mockState,
       },
@@ -242,11 +238,7 @@ describe('NftGrid', () => {
       .mockImplementation(async () => undefined);
 
     const { getByTestId: getByTestIdBefore } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId="0x1"
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -256,7 +248,6 @@ describe('NftGrid', () => {
 
     // const { getByTestId: getByTestIdAfter } = renderWithProvider(
     //   <NftGrid
-    //     navigation={mockNavigation}
     //     chainId="0x1"
     //     selectedAddress={MOCK_ADDRESS}
     //   />,
@@ -305,11 +296,7 @@ describe('NftGrid', () => {
       .mockImplementation(async () => undefined);
 
     const { getByTestId } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId="0x1"
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -318,11 +305,7 @@ describe('NftGrid', () => {
     expect(nftImageBefore.props.source.uri).toEqual(nftItemData[0].image);
 
     renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId="0x1"
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -372,11 +355,7 @@ describe('NftGrid', () => {
       .mockImplementation(async () => undefined);
 
     const { getByTestId } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId="0x1"
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -417,11 +396,7 @@ describe('NftGrid', () => {
     };
 
     const { queryByTestId } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId="0x1"
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -478,11 +453,7 @@ describe('NftGrid', () => {
     };
 
     const { queryByTestId } = renderWithProvider(
-      <NftGrid
-        navigation={mockNavigation}
-        chainId={CHAIN_IDS.MAINNET}
-        selectedAddress={MOCK_ADDRESS}
-      />,
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },

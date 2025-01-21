@@ -686,16 +686,7 @@ const Wallet = ({
               // @ts-ignore
               tabLabel={strings('wallet.collectibles')}
               key={'nfts-tab'}
-              navigation={navigation}
             />
-            {/* <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              tabLabel={strings('wallet.collectibles')}
-              key={'nfts-tab'}
-              navigation={navigation}
-            /> */}
           </ScrollableTabView>
         </>
       </View>
