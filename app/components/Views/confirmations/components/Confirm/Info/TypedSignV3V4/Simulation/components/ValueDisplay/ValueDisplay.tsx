@@ -31,7 +31,7 @@ import { isNumberValue } from '../../../../../../../../../../util/number';
 import { useTheme } from '../../../../../../../../../../util/theme';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 
-import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
