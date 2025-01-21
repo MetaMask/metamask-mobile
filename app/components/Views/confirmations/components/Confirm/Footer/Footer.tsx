@@ -2,7 +2,11 @@ import React from 'react';
 import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import StyledButton from '../../../../../../components/UI/StyledButton';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
@@ -12,27 +16,28 @@ const Footer = () => {
   const { onConfirm, onReject } = useConfirmActions();
   const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const { styles } = useStyles(styleSheet, {
-    hasError: securityAlertResponse !== undefined,
-  });
+  const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={styles.buttonsContainer}>
-      <StyledButton
+      <Button
         onPress={onReject}
-        containerStyle={styles.rejectButton}
-        type={'normal'}
-      >
-        {strings('confirm.reject')}
-      </StyledButton>
+        label={strings('confirm.reject')}
+        style={styles.footerButton}
+        size={ButtonSize.Lg}
+        variant={ButtonVariants.Secondary}
+        width={ButtonWidthTypes.Full}
+      />
       <View style={styles.buttonDivider} />
-      <StyledButton
+      <Button
         onPress={onConfirm}
-        containerStyle={styles.confirmButton}
-        type={'confirm'}
-      >
-        {strings('confirm.confirm')}
-      </StyledButton>
+        label={strings('confirm.confirm')}
+        style={styles.footerButton}
+        size={ButtonSize.Lg}
+        variant={ButtonVariants.Primary}
+        width={ButtonWidthTypes.Full}
+        isDanger={securityAlertResponse !== undefined}
+      />
     </View>
   );
 };
