@@ -25,6 +25,8 @@ const styleSheet = (colors: Theme['colors']) =>
       padding: 0,
     },
     loaderContainer: {
+      // prevents loader from expanding beyond its intrinsic size in flex container
+      height: 20,
       paddingEnd: 32,
     },
     marginStart4: {
