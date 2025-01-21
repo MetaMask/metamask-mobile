@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Alert,
@@ -26,7 +26,11 @@ import styleSheet from './NftGrid.styles';
 import { useStyles } from '../../hooks/useStyles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import CollectibleDetectionModal from '../CollectibleDetectionModal';
-import { selectUseNftDetection } from '../../../selectors/preferencesController';
+import {
+  selectDisplayNftMedia,
+  selectIsIpfsGatewayEnabled,
+  selectUseNftDetection,
+} from '../../../selectors/preferencesController';
 import {
   RefreshTestId,
   SpinnerTestId,
@@ -56,7 +60,12 @@ interface NftGridProps {
 }
 
 function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
-  const collectibles = useSelector(collectiblesSelector);
+  const collectibles = useSelector(collectiblesSelector).filter(
+    (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
+  );
+  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+  const displayNftMedia = useSelector(selectDisplayNftMedia);
+  const useNftDetection = useSelector(selectUseNftDetection);
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const isNftDetectionEnabled = useSelector(selectUseNftDetection);
   const actionSheetRef = useRef<ActionSheetType>(null);
@@ -139,6 +148,93 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
     }
   };
 
+  /**
+   *  Method that checks if the collectible is inside the collectibles array. If it is not it means the
+   *  collectible has been ignored, hence we should not call the updateMetadata which executes the addNft fct
+   *
+   *  @returns Boolean indicating if the collectible is ignored or not.
+   */
+  const isCollectibleIgnored = useCallback(
+    (collectible) => {
+      const found = collectibles.find(
+        (elm: Nft) =>
+          elm.address === collectible.address &&
+          elm.tokenId === collectible.tokenId,
+      );
+      if (found) return false;
+      return true;
+    },
+    [collectibles],
+  );
+
+  /**
+   *  Method to check the token id data type of the current collectibles.
+   *
+   * @param collectible - Collectible object.
+   * @returns Boolean indicating if the collectible should be updated.
+   */
+  const shouldUpdateCollectibleMetadata = (collectible: Nft) =>
+    typeof collectible.tokenId === 'number' ||
+    (typeof collectible.tokenId === 'string' &&
+      !Number.isNaN(Number(collectible.tokenId)));
+
+  const updateAllCollectibleMetadata = useCallback(
+    async (collectiblesArr: Nft[]) => {
+      console.log('updateAllCollectibleMetadata');
+      const { NftController } = Engine.context;
+      // Filter out ignored collectibles
+      const filteredcollectibles = collectiblesArr.filter(
+        (collectible: Nft) => !isCollectibleIgnored(collectible),
+      );
+
+      // filter removable collectible
+      const removable = filteredcollectibles.filter((single: Nft) =>
+        String(single.tokenId).includes('e+'),
+      );
+      const updatable = filteredcollectibles.filter(
+        (single: Nft) => !String(single.tokenId).includes('e+'),
+      );
+
+      removable.forEach((elm: Nft) => {
+        removeFavoriteCollectible(selectedAddress, chainId, elm);
+      });
+
+      filteredcollectibles.forEach((collectible: Nft) => {
+        if (String(collectible.tokenId).includes('e+')) {
+          removeFavoriteCollectible(selectedAddress, chainId, collectible);
+        }
+      });
+
+      if (updatable.length !== 0) {
+        console.log('UPDATABLE: ', updatable, selectedAddress);
+        await NftController.updateNftMetadata({
+          nfts: updatable,
+          userAddress: selectedAddress,
+        });
+      }
+    },
+    [isCollectibleIgnored, chainId, selectedAddress],
+  );
+
+  useEffect(() => {
+    if (!isIpfsGatewayEnabled && !displayNftMedia) {
+      return;
+    }
+    // TO DO: Move this fix to the controllers layer
+    const updatableCollectibles = collectibles.filter((single: Nft) =>
+      shouldUpdateCollectibleMetadata(single),
+    );
+    if (updatableCollectibles.length !== 0 && !useNftDetection) {
+      updateAllCollectibleMetadata(updatableCollectibles);
+    }
+  }, [
+    collectibles,
+    updateAllCollectibleMetadata,
+    isIpfsGatewayEnabled,
+    displayNftMedia,
+    useNftDetection,
+  ]);
+
   return (
     <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
@@ -169,6 +265,7 @@ function NftGrid({ navigation, chainId, selectedAddress }: NftGridProps) {
           testID={RefreshTestId}
           refreshControl={
             <RefreshControl
+              testID={RefreshTestId}
               colors={[colors.primary.default]}
               tintColor={colors.icon.default}
               refreshing={refreshing}
