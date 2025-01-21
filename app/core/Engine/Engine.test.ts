@@ -1,3 +1,4 @@
+import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState, TransactionEventPayload } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -9,7 +10,6 @@ import { store } from '../../store';
 import { MetaMetricsEvents } from '../Analytics';
 import { NetworkState } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
-import { MarketDataDetails } from '../../components/UI/Tokens';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
@@ -70,14 +70,7 @@ describe('Engine', () => {
   it('matches initial state fixture', () => {
     const engine = Engine.init({});
     const initialBackgroundState = engine.datamodel.state;
-
-    // AssetsContractController is stateless in v37 resulting in an undefined state
-    const newBackgroundState = {
-      ...backgroundState,
-      AssetsContractController: undefined,
-    };
-
-    expect(initialBackgroundState).toStrictEqual(newBackgroundState);
+    expect(initialBackgroundState).toStrictEqual(backgroundState);
   });
 
   it('setSelectedAccount throws an error if no account exists for the given address', () => {
@@ -87,6 +80,30 @@ describe('Engine', () => {
     expect(() => engine.setSelectedAccount(invalidAddress)).toThrow(
       `No account found for address: ${invalidAddress}`,
     );
+  });
+
+  it('normalizes CurrencyController state property conversionRate from null to 0', () => {
+    const ticker = 'ETH';
+    const state = {
+      CurrencyRateController: {
+        currentCurrency: 'usd' as const,
+        currencyRates: {
+          [ticker]: {
+            conversionRate: null,
+            conversionDate: 0,
+            usdConversionRate: null,
+          },
+        },
+      },
+    };
+    const engine = Engine.init(state);
+    expect(
+      engine.datamodel.state.CurrencyRateController.currencyRates[ticker],
+    ).toStrictEqual({
+      conversionRate: 0,
+      conversionDate: 0,
+      usdConversionRate: null,
+    });
   });
 
   describe('getTotalFiatAccountBalance', () => {

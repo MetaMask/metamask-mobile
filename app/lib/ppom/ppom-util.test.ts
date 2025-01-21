@@ -13,6 +13,12 @@ import {
   RpcEndpointType,
 } from '@metamask/network-controller';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import {
+  Reason,
+  ResultType,
+  SecurityAlertSource,
+} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+import Logger from '../../util/Logger';
 
 const CHAIN_ID_MOCK = '0x1';
 
@@ -310,6 +316,22 @@ describe('PPOM Utils', () => {
       });
     });
 
+    it('logs error if normalization fails', async () => {
+      const error = new Error('Test Error');
+      normalizeTransactionParamsMock.mockImplementation(() => {
+        throw error;
+      });
+
+      const spyLogger = jest.spyOn(Logger, 'log');
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+
+      expect(spyLogger).toHaveBeenCalledTimes(1);
+      expect(spyLogger).toHaveBeenCalledWith(
+        `Error validating JSON RPC using PPOM: ${error}`,
+      );
+    });
+
     it('normalizes transaction request origin before validation', async () => {
       const validateMock = jest.fn();
 
@@ -387,6 +409,35 @@ describe('PPOM Utils', () => {
         .mockRejectedValue(new Error('Test Error'));
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
+    });
+
+    it('sets security alerts response to failed when security alerts API and controller PPOM throws', async () => {
+      const spy = jest.spyOn(
+        TransactionActions,
+        'setTransactionSecurityAlertResponse',
+      );
+
+      const validateMock = new Error('Test Error');
+
+      const ppomMock = {
+        validateJsonRpc: validateMock,
+      };
+
+      MockEngine.context.PPOMController?.usePPOM.mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (callback: any) => callback(ppomMock),
+      );
+
+      await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {
+        chainId: CHAIN_ID_MOCK,
+        req: mockRequest,
+        result_type: ResultType.Failed,
+        reason: Reason.failed,
+        description: 'Validating the confirmation failed by throwing error.',
+        source: SecurityAlertSource.Local,
+      });
     });
   });
 });

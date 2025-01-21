@@ -1,11 +1,11 @@
-import type { JsonRpcRequest, PendingJsonRpcResponse } from 'json-rpc-engine';
+import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
 import { default as createTracingMiddleware, MESSAGE_TYPE } from './index';
 
 const REQUEST_MOCK = {
   id: 'testId',
   method: MESSAGE_TYPE.PERSONAL_SIGN,
-} as JsonRpcRequest<unknown>;
-const RESPONSE_MOCK = {} as PendingJsonRpcResponse<unknown>;
+} as JsonRpcRequest<JsonRpcParams>;
+const RESPONSE_MOCK = {} as PendingJsonRpcResponse<Json>;
 const NEXT_MOCK = jest.fn();
 
 jest.mock('../../util/trace', () => ({
@@ -14,7 +14,7 @@ jest.mock('../../util/trace', () => ({
 }));
 
 describe('createTracingMiddleware', () => {
-  let request: JsonRpcRequest<unknown> & { traceContext?: unknown };
+  let request: JsonRpcRequest<JsonRpcParams> & { traceContext?: unknown };
   beforeEach(() => {
     jest.clearAllMocks();
     request = { ...REQUEST_MOCK };

@@ -78,6 +78,7 @@ import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -89,7 +90,7 @@ import {
 import { selectTokens } from '../../../../../selectors/tokensController';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountChecksummedAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { PREFIX_HEX_STRING } from '../../../../../constants/transaction';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../reducers/fiatOrders';
@@ -485,6 +486,10 @@ class Amount extends PureComponent {
      * Type of gas fee estimate provided by the gas fee controller.
      */
     gasEstimateType: PropTypes.string,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -872,10 +877,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -1545,7 +1555,7 @@ const mapStateToProps = (state, ownProps) => ({
   gasFeeEstimates: selectGasFeeEstimates(state),
   providerType: selectProviderType(state),
   primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   ticker: selectTicker(state),
   tokens: selectTokens(state),
   transactionState: ownProps.transaction || state.transaction,
@@ -1557,6 +1567,7 @@ const mapStateToProps = (state, ownProps) => ({
   ),
   swapsIsLive: swapsLivenessSelector(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

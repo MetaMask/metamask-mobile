@@ -470,6 +470,7 @@
     "learn_more": "Learn more",
     "add_collectibles": "Import NFTs",
     "no_transactions": "You have no transactions!",
+    "switch_network_to_view_transactions": "Please switch network to view transactions",
     "send_button": "Send",
     "deposit_button": "Deposit",
     "copy_address": "Copy",
@@ -3361,7 +3362,10 @@
     "blind_sign_error_message": "Blind signing is not enabled on your Ledger device. Please enable it in the settings.",
     "user_reject_transaction": "User rejected the transaction",
     "user_reject_transaction_message": "The user has rejected the transaction on the Ledger device.",
-    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one."
+    "multiple_devices_error_message": "Multiple devices aren’t supported yet. To add a new Ledger device, you’ll need to remove an older one.",
+    "hd_path_error": "HD Path is invalid: {{path}}",
+    "unspecified_error_during_connect": "Unspecified error when connect Ledger Hardware,",
+    "account_name_existed": "Account {{accountName}} already exists"
   },
   "account_actions": {
     "edit_name": "Edit account name",
@@ -3369,7 +3373,9 @@
     "add_account": "Add account",
     "add_new_account": "Add new account",
     "add_hardware_wallet": "Add hardware wallet",
-    "import_account": "Import account"
+    "import_account": "Import account",
+    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
+    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",

@@ -97,6 +97,34 @@ describe('Approve', () => {
       alert: {
         isVisible: false,
       },
+      engine: {
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: {
+            ...initialRootState.engine.backgroundState.AccountsController,
+            internalAccounts: {
+              ...initialRootState.engine.backgroundState.AccountsController
+                .internalAccounts,
+              selectedAccount: '30786334-3935-4563-b064-363339643939',
+              accounts: {
+                '30786334-3935-4563-b064-363339643939': {
+                  address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+                },
+              },
+            },
+          },
+          TokensController: {
+            ...initialRootState.engine.backgroundState.TokensController,
+            allTokens: {
+              ...initialRootState.engine.backgroundState.TokensController
+                .allTokens,
+              '0x1': {
+                '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
+              },
+            },
+          },
+        },
+      },
     });
   });
 
@@ -130,6 +158,29 @@ describe('Approve', () => {
                 },
               },
             ],
+          },
+          AccountsController: {
+            ...initialRootState.engine.backgroundState.AccountsController,
+            internalAccounts: {
+              ...initialRootState.engine.backgroundState.AccountsController
+                .internalAccounts,
+              selectedAccount: '30786334-3935-4563-b064-363339643939',
+              accounts: {
+                '30786334-3935-4563-b064-363339643939': {
+                  address: '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272',
+                },
+              },
+            },
+          },
+          TokensController: {
+            ...initialRootState.engine.backgroundState.TokensController,
+            allTokens: {
+              ...initialRootState.engine.backgroundState.TokensController
+                .allTokens,
+              '0x1': {
+                '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272': [],
+              },
+            },
           },
         },
       },

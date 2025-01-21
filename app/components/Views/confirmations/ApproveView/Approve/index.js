@@ -13,7 +13,6 @@ import ApproveTransactionReview from '../../components/ApproveTransactionReview'
 import AddNickname from '../../components/ApproveTransactionReview/AddNickname';
 import Modal from 'react-native-modal';
 import { strings } from '../../../../../../locales/i18n';
-import { getNetworkNonce } from '../../../../../util/networks';
 
 import {
   setTransactionObject,
@@ -50,6 +49,7 @@ import {
   selectTicker,
   selectRpcUrl,
   selectNetworkConfigurations,
+  selectNetworkClientId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -65,7 +65,10 @@ import createStyles from './styles';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../../core/Ledger/Ledger';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import {
   selectGasFeeEstimates,
@@ -146,6 +149,10 @@ class Approve extends PureComponent {
      * A string representing the network chainId
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * An object of all saved addresses
      */
@@ -275,8 +282,9 @@ class Approve extends PureComponent {
   };
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } =
+      this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -301,8 +309,13 @@ class Approve extends PureComponent {
   };
 
   handleGetGasLimit = async () => {
+    const { networkClientId } = this.props;
     const { setTransactionObject, transaction } = this.props;
-    const estimation = await getGasLimit({ ...transaction, gas: undefined });
+    const estimation = await getGasLimit(
+      { ...transaction, gas: undefined },
+      false,
+      networkClientId,
+    );
     setTransactionObject({ gas: estimation.gas });
   };
 
@@ -949,6 +962,7 @@ const mapStateToProps = (state) => ({
   accountsLength: selectAccountsLength(state),
   primaryCurrency: selectPrimaryCurrency(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   gasFeeEstimates: selectGasFeeEstimates(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),

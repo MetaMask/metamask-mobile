@@ -50,6 +50,7 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { getBlockaidTransactionMetricsParams } from '../../../../util/blockaid';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
 } from '../../../../selectors/networkController';
 import { selectTokenList } from '../../../../selectors/tokenListController';
@@ -58,7 +59,7 @@ import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
@@ -128,6 +129,10 @@ class Send extends PureComponent {
      */
     chainId: PropTypes.string,
     /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
+    /**
      * List of accounts from the AccountsController
      */
     internalAccounts: PropTypes.array,
@@ -180,8 +185,8 @@ class Send extends PureComponent {
    * Resets gas and gasPrice of transaction
    */
   async reset() {
-    const { transaction } = this.props;
-    const { gas, gasPrice } = await estimateGas(transaction);
+    const { networkClientId, transaction } = this.props;
+    const { gas, gasPrice } = await estimateGas(transaction, networkClientId);
     this.props.setTransactionObject({
       gas: hexToBN(gas),
       gasPrice: hexToBN(gasPrice),
@@ -315,8 +320,6 @@ class Send extends PureComponent {
   handleNewTxMeta = async ({
     target_address,
     action,
-    chain_id = null,
-    function_name = null, // eslint-disable-line no-unused-vars
     parameters = null,
   }) => {
     const { addressBook, chainId, internalAccounts, selectedAddress } =
@@ -403,7 +406,10 @@ class Send extends PureComponent {
 
       // if gas and gasPrice is not defined in the deeplink, we should define them
       if (!gas && !gasPrice) {
-        const { gas, gasPrice } = await estimateGas(this.props.transaction);
+        const { gas, gasPrice } = await estimateGas(
+          this.props.transaction,
+          this.props.networkClientId,
+        );
         newTxMeta = {
           ...newTxMeta,
           gas,
@@ -551,6 +557,7 @@ class Send extends PureComponent {
     const {
       transaction: { selectedAsset, assetType },
       chainId,
+      networkClientId,
       addressBook,
     } = this.props;
     let { transaction } = this.props;
@@ -562,6 +569,7 @@ class Send extends PureComponent {
       }
       const { result, transactionMeta } = await addTransaction(transaction, {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
+        networkClientId,
         origin: TransactionTypes.MMM,
       });
       await KeyringController.resetQRKeyringState();
@@ -801,8 +809,9 @@ const mapStateToProps = (state) => ({
   networkType: selectProviderType(state),
   tokens: selectTokens(state),
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   internalAccounts: selectInternalAccounts(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
   tokenList: selectTokenList(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),

@@ -11,10 +11,8 @@ import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  getDecimalChainId,
-  handleNetworkSwitch,
-} from '../../../../../util/networks';
+import { getDecimalChainId } from '../../../../../util/networks';
+import { handleNetworkSwitch } from '../../../../../util/networks/handleNetworkSwitch';
 import {
   isENS,
   isValidHexAddress,
@@ -50,7 +48,7 @@ import {
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
-  selectSelectedInternalAccountChecksummedAddress,
+  selectSelectedInternalAccountFormattedAddress,
 } from '../../../../../selectors/accountsController';
 import AddToAddressBookWrapper from '../../../../UI/AddToAddressBookWrapper';
 import { isNetworkRampNativeTokenSupported } from '../../../../UI/Ramp/utils';
@@ -59,7 +57,7 @@ import { getRampNetworks } from '../../../../../reducers/fiatOrders';
 import SendFlowAddressFrom from '../AddressFrom';
 import SendFlowAddressTo from '../AddressTo';
 import { includes } from 'lodash';
-import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendView.selectors';
+import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/SendView.selectors';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
@@ -688,7 +686,7 @@ SendFlow.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   addressBook: selectAddressBook(state),
   chainId: selectChainId(state),
-  selectedAddress: selectSelectedInternalAccountChecksummedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   selectedAsset: state.transaction.selectedAsset,
   internalAccounts: selectInternalAccounts(state),
   ticker: selectTicker(state),

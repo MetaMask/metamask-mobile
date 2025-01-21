@@ -52,7 +52,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { shallowEqual, renderShortText } from '../../../../../util/general';
 import {
   isTestNet,
-  getNetworkNonce,
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   fetchEstimatedMultiLayerL1Fee,
@@ -86,6 +85,7 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import {
   selectChainId,
+  selectNetworkClientId,
   selectProviderType,
   selectTicker,
 } from '../../../../../selectors/networkController';
@@ -116,11 +116,14 @@ import {
 } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { updateTransaction } from '../../../../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../../../../util/transaction-controller';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { STX_NO_HASH_ERROR } from '../../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
-import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/TransactionConfirmView.selectors.js';
+import { TransactionConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/TransactionConfirmView.selectors.js';
 import {
   selectTransactionMetrics,
   updateTransactionMetrics,
@@ -193,6 +196,10 @@ class Confirm extends PureComponent {
      * Chain Id
      */
     chainId: PropTypes.string,
+    /**
+     * ID of the global network client
+     */
+    networkClientId: PropTypes.string,
     /**
      * Indicates whether hex data should be shown in transaction editor
      */
@@ -313,8 +320,8 @@ class Confirm extends PureComponent {
   );
 
   setNetworkNonce = async () => {
-    const { setNonce, setProposedNonce, transaction } = this.props;
-    const proposedNonce = await getNetworkNonce(transaction);
+    const { networkClientId, setNonce, setProposedNonce, transaction } = this.props;
+    const proposedNonce = await getNetworkNonce(transaction, networkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -344,8 +351,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -446,6 +453,7 @@ class Confirm extends PureComponent {
   componentDidMount = async () => {
     const {
       chainId,
+      networkClientId,
       showCustomNonce,
       navigation,
       providerType,
@@ -495,6 +503,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
+          networkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
@@ -668,7 +677,8 @@ class Confirm extends PureComponent {
       prepareTransaction,
       transactionState: { transaction },
     } = this.props;
-    const estimation = await getGasLimit(transaction, true);
+    const { networkClientId } = this.props;
+    const estimation = await getGasLimit(transaction, true, networkClientId);
     prepareTransaction({ ...transaction, ...estimation });
   };
 
@@ -1235,15 +1245,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-            legacyGasTransaction: gasTxn,
-            legacyGasObject: gasObj,
-            advancedGasInserted: !gasSelect,
-            stopUpdateGas: false,
-          }
+          legacyGasTransaction: gasTxn,
+          legacyGasObject: gasObj,
+          advancedGasInserted: !gasSelect,
+          stopUpdateGas: false,
+        }
         : {
-            EIP1559GasTransaction: gasTxn,
-            EIP1559GasObject: gasObj,
-          }),
+          EIP1559GasTransaction: gasTxn,
+          EIP1559GasObject: gasObj,
+        }),
     });
   };
 
@@ -1386,7 +1396,7 @@ class Confirm extends PureComponent {
               </Text>
               <Text
                 style={styles.textAmount}
-                testID={TransactionConfirmViewSelectorsIDs.COMFIRM_TXN_AMOUNT}
+                testID={TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT}
               >
                 {transactionValue}
               </Text>
@@ -1551,6 +1561,7 @@ const mapStateToProps = (state) => ({
   showHexData: state.settings.showHexData,
   showCustomNonce: state.settings.showCustomNonce,
   chainId: selectChainId(state),
+  networkClientId: selectNetworkClientId(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   selectedAsset: state.transaction.selectedAsset,
