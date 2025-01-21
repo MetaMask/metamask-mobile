@@ -147,6 +147,10 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 
+// eslint-disable-next-line import/no-nodejs-modules
+global.Buffer = require('buffer').Buffer;
+global.process = require('process');
+global.crypto = require('react-native-crypto');
 const clearStackNavigatorOptions = {
   headerShown: false,
   cardStyle: {

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import LottieView from 'lottie-react-native';
+// import LottieView from 'lottie-react-native';
 import { baseStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { Authentication } from '../../../core';
@@ -181,22 +181,22 @@ class LockScreen extends PureComponent {
     );
     const styles = this.getStyles();
 
-    if (!this.state.ready) {
-      return (
-        <LottieView
-          // eslint-disable-next-line react/jsx-no-bind
-          ref={(animation) => {
-            this.firstAnimation = animation;
-          }}
-          style={styles.animation}
-          source={require('../../../animations/bounce.json')}
-        />
-      );
-    }
+    // if (!this.state.ready) {
+    //   return (
+    //     <LottieView
+    //       // eslint-disable-next-line react/jsx-no-bind
+    //       ref={(animation) => {
+    //         this.firstAnimation = animation;
+    //       }}
+    //       style={styles.animation}
+    //       source={require('../../../animations/bounce.json')}
+    //     />
+    //   );
+    // }
 
     return (
       <View style={styles.foxAndName}>
-        <LottieView
+        {/* <LottieView
           // eslint-disable-next-line react/jsx-no-bind
           ref={(animation) => {
             this.secondAnimation = animation;
@@ -214,7 +214,7 @@ class LockScreen extends PureComponent {
           style={styles.metamaskName}
           loop={false}
           source={wordmark}
-        />
+        /> */}
       </View>
     );
   }

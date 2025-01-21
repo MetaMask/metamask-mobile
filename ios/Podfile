@@ -2,12 +2,13 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '13.4'
+platform :ios, '15.6'
 prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
-ensure_bundler!
+# ensure_bundler!
 
 linkage = ENV['USE_FRAMEWORKS']
+ENV['RCT_NEW_ARCH_ENABLED'] = '0'
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
@@ -74,7 +75,6 @@ def common_target_logic
   pod 'GoogleUtilities', :modular_headers => true
   pod 'FirebaseCore', :modular_headers => true
 
-
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
 	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
@@ -106,19 +106,19 @@ end
 
 post_install do |installer|
   # fix flipper with pika 15.3 toolchain
-  installer.pods_project.targets.each do |target|
-    if target.name == 'Flipper'
-      file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
-      system("chmod +w " + file_path)
-      contents = File.read(file_path)
-      unless contents.include?('#include <functional>')
-        File.open(file_path, 'w') do |file|
-          file.puts('#include <functional>')
-          file.puts(contents)
-        end
-      end
-    end
-  end
+  # installer.pods_project.targets.each do |target|
+  #   if target.name == 'Flipper'
+  #     file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
+  #     system("chmod +w " + file_path)
+  #     contents = File.read(file_path)
+  #     unless contents.include?('#include <functional>')
+  #       File.open(file_path, 'w') do |file|
+  #         file.puts('#include <functional>')
+  #         file.puts(contents)
+  #       end
+  #     end
+  #   end
+  # end
 
   react_native_post_install(
     installer,

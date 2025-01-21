@@ -20,10 +20,13 @@ module.exports = function (baseConfig) {
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
+      extraNodeModules: {
+        crypto: require.resolve('react-native-crypto'),
+      },
     },
     transformer: {
       babelTransformerPath: require.resolve('./metro.transform.js'),
-      assetPlugins: ['react-native-svg-asset-plugin'],
+      assetPlugins: ['expo-asset/tools/hashAssetFiles'], // Ensure expo-asset is included
       svgAssetPlugin: {
         pngCacheDir: '.png-cache',
         scales: [1],

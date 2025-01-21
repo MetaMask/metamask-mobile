@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-commonjs
 module.exports = {
   ignore: [/\/ses\.cjs/],
   presets: ['babel-preset-expo'],
@@ -24,17 +23,23 @@ module.exports = {
         './node_modules/**/@metamask/rpc-errors/**',
         './node_modules/@metamask/rpc-errors/**',
       ],
-      plugins: [['@babel/plugin-transform-classes', { loose: true }]],
+      plugins: [
+        ['@babel/plugin-transform-classes', { loose: true }],
+        ['@babel/plugin-transform-private-methods', { loose: true }],
+        ['@babel/plugin-transform-private-property-in-object', { loose: true }],
+      ],
     },
     {
       test: './app/lib/snaps',
       plugins: [['babel-plugin-inline-import', { extensions: ['.html'] }]],
     },
-    // TODO: Remove this once we have a fix for the private methods
-    // Do not apply this plugin globally since it breaks FlatList props.getItem
+    // Applying consistent "loose" mode here too:
     {
       test: './app/core/redux/ReduxService.ts',
-      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+      plugins: [
+        ['@babel/plugin-transform-private-methods', { loose: true }],
+        ['@babel/plugin-transform-private-property-in-object', { loose: true }],
+      ],
     },
   ],
   env: {

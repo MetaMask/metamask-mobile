@@ -282,7 +282,7 @@ buildIosSimulator(){
 		SIM_OPTION=""
 	fi
 	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --mode Debug --port $WATCHER_PORT $SIM_OPTION
+	npx expo run:ios --no-install Debug --port $WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){
