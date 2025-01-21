@@ -17,7 +17,7 @@ import { useRef } from 'react';
  * @param tokenAddress
  * @returns
  */
-const useGetTokenStandardAndDetails = (
+export const useGetTokenStandardAndDetails = (
   tokenAddress?: Hex | string | undefined,
   networkClientId?: NetworkClientId,
 ) => {
@@ -54,5 +54,3 @@ const useGetTokenStandardAndDetails = (
 
   return { details, isPending: isPendingRef.current };
 };
-
-export default useGetTokenStandardAndDetails;

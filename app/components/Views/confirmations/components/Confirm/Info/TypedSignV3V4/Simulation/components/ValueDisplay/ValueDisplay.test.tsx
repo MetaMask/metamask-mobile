@@ -3,7 +3,7 @@ import { act } from '@testing-library/react-native';
 import SimulationValueDisplay from './ValueDisplay';
 
 import { memoizedGetTokenStandardAndDetails } from '../../../../../../../utils/token';
-import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../../../../../../../UI/SimulationDetails/types';
 import { getTokenDetails } from '../../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../../util/test/initial-root-state';

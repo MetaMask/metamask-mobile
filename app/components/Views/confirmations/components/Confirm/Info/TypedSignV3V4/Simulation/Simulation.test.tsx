@@ -6,7 +6,7 @@ import {
   DecodingDataStateChanges,
   SignatureRequest,
 } from '@metamask/signature-controller';
-import useGetTokenStandardAndDetails from '../../../../../hooks/useGetTokenStandardAndDetails';
+import { useGetTokenStandardAndDetails } from '../../../../../hooks/useGetTokenStandardAndDetails';
 import { typedSignV4ConfirmationState } from '../../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
 import { memoizedGetTokenStandardAndDetails } from '../../../../../utils/token';
