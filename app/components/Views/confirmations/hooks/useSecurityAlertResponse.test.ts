@@ -20,12 +20,12 @@ describe('useSecurityAlertResponse', () => {
       mockSecurityAlertResponse as SecurityAlertResponse,
     );
     expect(result).toStrictEqual({
-      mockSecurityAlertResponse,
+      securityAlertResponse: mockSecurityAlertResponse,
     });
   });
 
   it('returns undefined is security alert response is not present for signature request', () => {
     const result = renderHook();
-    expect(result).toBeUndefined();
+    expect(result.securityAlertResponse).toBeUndefined();
   });
 });
