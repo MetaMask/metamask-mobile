@@ -184,7 +184,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
 
   const updateAllCollectibleMetadata = useCallback(
     async (collectiblesArr: Nft[]) => {
-      console.log('updateAllCollectibleMetadata');
       const { NftController } = Engine.context;
       // Filter out ignored collectibles
       const filteredcollectibles = collectiblesArr.filter(
