@@ -48,7 +48,7 @@ describe('signatureMetrics', () => {
 
       const result = getSignatureDecodingEventProps(
         mockDecodingData,
-        false,
+        true,
         true,
       );
       expect(result).toEqual({
