@@ -11,11 +11,7 @@ exports[`NftGridEmpty matches the snapshot 1`] = `
 >
   <Image
     resizeMode="contain"
-    source={
-      {
-        "uri": "MockImage",
-      }
-    }
+    source={1}
     style={
       {
         "height": 90,
@@ -143,7 +139,7 @@ exports[`NftGridItem matches the snapshot 1`] = `
         onError={[Function]}
         source={
           {
-            "uri": "MockImage",
+            "uri": "",
           }
         }
         style={
