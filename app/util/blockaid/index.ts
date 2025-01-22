@@ -3,10 +3,7 @@ import {
   ResultType,
   SecurityAlertResponse,
 } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import { store } from '../../store';
-import { selectChainId } from '../../selectors/networkController';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import PPOMUtils from '../../lib/ppom/ppom-util';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;
@@ -15,18 +12,13 @@ interface TransactionSecurityAlertResponseType {
 export type TransactionType = TransactionMeta &
   TransactionSecurityAlertResponseType;
 
-export const isBlockaidSupportedOnCurrentChain = async (): Promise<boolean> => {
-  const chainId = selectChainId(store.getState());
-  return await PPOMUtils.isChainSupported(chainId);
-};
-
 export const isBlockaidPreferenceEnabled = (): boolean => {
   const { PreferencesController } = Engine.context;
   return PreferencesController.state.securityAlertsEnabled;
 };
 
 export const isBlockaidFeatureEnabled = async (): Promise<boolean> =>
-  (await isBlockaidSupportedOnCurrentChain()) && isBlockaidPreferenceEnabled();
+  isBlockaidPreferenceEnabled();
 
 export const getBlockaidMetricsParams = (
   securityAlertResponse?: SecurityAlertResponse,
