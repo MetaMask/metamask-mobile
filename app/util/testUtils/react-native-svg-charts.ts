@@ -46,8 +46,8 @@ export const fireLayoutEvent = function (
    * The event options inside of `event.nativeElement.layout`
    */
   options = {
-    width: 0,
-    height: 0,
+    width: 300,
+    height: 100,
   },
 ) {
   findByProp(root, 'onLayout').forEach((n) =>

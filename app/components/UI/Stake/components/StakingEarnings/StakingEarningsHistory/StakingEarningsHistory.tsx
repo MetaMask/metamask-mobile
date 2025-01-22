@@ -9,7 +9,9 @@ import {
   renderFromWei,
 } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
-import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
+import useStakingEarningsHistory, {
+  EarningHistory,
+} from '../../../hooks/useStakingEarningsHistory';
 import {
   StakingEarningsHistoryChart,
   StakingEarningsHistoryChartData,
@@ -34,6 +36,15 @@ interface TimePeriodGroupInfo {
   listGroup: string;
   listGroupLabel: string;
   listGroupHeader: string;
+}
+
+interface EarningsHistoryData {
+  earningsHistoryChartData: {
+    earnings: StakingEarningsHistoryChartData[];
+    earningsTotal: string;
+    ticker: string;
+  };
+  earningsHistoryListData: StakingEarningsHistoryListData[];
 }
 
 const EARNINGS_HISTORY_TIME_PERIOD_DEFAULT = DateRange.MONTHLY;
@@ -114,12 +125,14 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const ticker = asset.ticker ?? asset.symbol;
 
   const formatRewardsWei = useCallback(
-    (rewards: number | string | BN, raw?: boolean) => {
-      if (!raw) {
+    (rewards: number | string | BN, isRemoveSpecialCharacters?: boolean) => {
+      if (!isRemoveSpecialCharacters) {
+        // return a string with possible special characters in display formatting
         return asset.isETH
           ? renderFromWei(rewards)
           : renderFromTokenMinimalUnit(rewards, asset.decimals);
       }
+      // return a string without special characters
       return asset.isETH
         ? fromWei(rewards)
         : fromTokenMinimalUnit(rewards, asset.decimals);
@@ -159,14 +172,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   }, [earningsHistory]);
 
   const { earningsHistoryChartData, earningsHistoryListData } = useMemo(() => {
-    const historyData: {
-      earningsHistoryChartData: {
-        earnings: StakingEarningsHistoryChartData[];
-        earningsTotal: string;
-        ticker: string;
-      };
-      earningsHistoryListData: StakingEarningsHistoryListData[];
-    } = {
+    const historyData: EarningsHistoryData = {
       earningsHistoryChartData: {
         earnings: [],
         earningsTotal: '0',
@@ -198,104 +204,147 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       listGroupLabel: '',
       listGroupHeader: '',
     };
+    let prevLastEntryTimePeriodGroupInfo: TimePeriodGroupInfo = {
+      dateStr: '',
+      chartGroup: '',
+      chartGroupLabel: '',
+      listGroup: '',
+      listGroupLabel: '',
+      listGroupHeader: '',
+    };
 
-    for (let i = transformedEarningsHistory.length - 1; i >= 0; i--) {
-      const entry = transformedEarningsHistory[i];
-      if (i === transformedEarningsHistory.length - 1) {
-        historyData.earningsHistoryChartData.earningsTotal = formatRewardsWei(
-          entry.sumRewards,
+    // update earnings total from last sumRewards key
+    const updateEarningsTotal = (entry: EarningHistory) => {
+      historyData.earningsHistoryChartData.earningsTotal = formatRewardsWei(
+        entry.sumRewards,
+      );
+    };
+
+    // handles chart specific data per entry
+    const handleChartData = (entry: EarningHistory) => {
+      const rewardsBN = new BN(entry.dailyRewards);
+      const { chartGroup: newChartGroup } = lastEntryTimePeriodGroupInfo;
+      // add rewards to total for time period
+      if (currentTimePeriodChartGroup === newChartGroup) {
+        rewardsTotalForChartTimePeriodBN =
+          rewardsTotalForChartTimePeriodBN.add(rewardsBN);
+      } else {
+        historyData.earningsHistoryChartData.earnings.unshift({
+          value: parseFloat(
+            formatRewardsWei(rewardsTotalForChartTimePeriodBN.toString(), true),
+          ),
+          label: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
+        });
+        // update current time period group
+        currentTimePeriodChartGroup = newChartGroup;
+        // reset for next time period
+        rewardsTotalForChartTimePeriodBN = new BN(rewardsBN);
+      }
+    };
+
+    // handles list specific data per entry
+    const handleListData = (entry: EarningHistory) => {
+      const rewardsBN = new BN(entry.dailyRewards);
+      const { listGroup: newListGroup } = lastEntryTimePeriodGroupInfo;
+      if (currentTimePeriodListGroup === newListGroup) {
+        rewardsTotalForListTimePeriodBN =
+          rewardsTotalForListTimePeriodBN.add(rewardsBN);
+        rewardsUsdTotalForListTimePeriod += parseFloat(entry.dailyRewardsUsd);
+      } else {
+        if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
+          trailingZeroHistoryListValues++;
+        } else {
+          trailingZeroHistoryListValues = 0;
+        }
+        historyData.earningsHistoryListData.push({
+          label: prevLastEntryTimePeriodGroupInfo.listGroupLabel,
+          groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
+          groupHeader: prevLastEntryTimePeriodGroupInfo.listGroupHeader,
+          amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
+          amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+        });
+
+        currentTimePeriodListGroup = newListGroup;
+        // reset for next time period
+        rewardsTotalForListTimePeriodBN = new BN(rewardsBN);
+        rewardsUsdTotalForListTimePeriod = parseFloat(entry.dailyRewardsUsd);
+      }
+    };
+
+    const handleListTrailingZeros = () => {
+      if (trailingZeroHistoryListValues > 0) {
+        historyData.earningsHistoryListData.splice(
+          historyData.earningsHistoryListData.length -
+            trailingZeroHistoryListValues,
+          trailingZeroHistoryListValues,
         );
       }
-      const rewardsBN = new BN(entry.dailyRewards);
-      const prevLastEntryTimePeriodGroupInfo = {
+    };
+
+    const finalizeListData = () => {
+      if (historyData.earningsHistoryChartData.earnings.length < barLimit) {
+        if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
+          trailingZeroHistoryListValues++;
+        } else {
+          trailingZeroHistoryListValues = 0;
+        }
+        historyData.earningsHistoryListData.push({
+          label: lastEntryTimePeriodGroupInfo.listGroupLabel,
+          groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
+          groupHeader: lastEntryTimePeriodGroupInfo.listGroupHeader,
+          amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
+          amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+        });
+      }
+      // removes trailing zeros from history list
+      handleListTrailingZeros();
+    };
+
+    const finalizeChartData = () => {
+      if (historyData.earningsHistoryChartData.earnings.length < barLimit) {
+        historyData.earningsHistoryChartData.earnings.unshift({
+          value: parseFloat(
+            formatRewardsWei(rewardsTotalForChartTimePeriodBN.toString(), true),
+          ),
+          label: lastEntryTimePeriodGroupInfo.chartGroupLabel,
+        });
+      }
+    };
+
+    const finalizeProcessing = () => {
+      finalizeListData();
+      finalizeChartData();
+    };
+
+    const processEntry = (entry: EarningHistory, i: number) => {
+      if (i === transformedEarningsHistory.length - 1) {
+        updateEarningsTotal(entry);
+      }
+      prevLastEntryTimePeriodGroupInfo = {
         ...lastEntryTimePeriodGroupInfo,
       };
       lastEntryTimePeriodGroupInfo = getEntryTimePeriodGroupInfo(
         entry.dateStr,
         selectedTimePeriod,
       );
-      const { chartGroup: newChartGroup, listGroup: newListGroup } =
-        lastEntryTimePeriodGroupInfo;
+      if (!currentTimePeriodChartGroup) {
+        currentTimePeriodChartGroup = lastEntryTimePeriodGroupInfo.chartGroup;
+        currentTimePeriodListGroup = lastEntryTimePeriodGroupInfo.listGroup;
+      }
       if (historyData.earningsHistoryChartData.earnings.length < barLimit) {
-        // if no current time period group, set it
-        if (!currentTimePeriodChartGroup) {
-          currentTimePeriodChartGroup = newChartGroup;
-          currentTimePeriodListGroup = newListGroup;
-        }
-        // add rewards to total for time period
-        if (currentTimePeriodChartGroup === newChartGroup) {
-          rewardsTotalForChartTimePeriodBN =
-            rewardsTotalForChartTimePeriodBN.add(rewardsBN);
-        } else {
-          historyData.earningsHistoryChartData.earnings.unshift({
-            value: parseFloat(
-              formatRewardsWei(
-                rewardsTotalForChartTimePeriodBN.toString(),
-                true,
-              ),
-            ),
-            label: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
-          });
-          // update current time period group
-          currentTimePeriodChartGroup = newChartGroup;
-          // reset for next time period
-          rewardsTotalForChartTimePeriodBN = new BN(rewardsBN);
-        }
-        // deal with history list data
-        if (currentTimePeriodListGroup === newListGroup) {
-          rewardsTotalForListTimePeriodBN =
-            rewardsTotalForListTimePeriodBN.add(rewardsBN);
-          rewardsUsdTotalForListTimePeriod += parseFloat(entry.dailyRewardsUsd);
-        } else {
-          if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
-            trailingZeroHistoryListValues++;
-          } else {
-            trailingZeroHistoryListValues = 0;
-          }
-          historyData.earningsHistoryListData.push({
-            label: prevLastEntryTimePeriodGroupInfo.listGroupLabel,
-            groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
-            groupHeader: prevLastEntryTimePeriodGroupInfo.listGroupHeader,
-            amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-            amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
-          });
-
-          currentTimePeriodListGroup = newListGroup;
-          // reset for next time period
-          rewardsTotalForListTimePeriodBN = new BN(rewardsBN);
-          rewardsUsdTotalForListTimePeriod = parseFloat(entry.dailyRewardsUsd);
-        }
+        handleChartData(entry);
+        handleListData(entry);
       }
-    }
-    if (historyData.earningsHistoryChartData.earnings.length < barLimit) {
-      if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
-        trailingZeroHistoryListValues++;
-      } else {
-        trailingZeroHistoryListValues = 0;
-      }
-      historyData.earningsHistoryChartData.earnings.unshift({
-        value: parseFloat(
-          formatRewardsWei(rewardsTotalForChartTimePeriodBN.toString(), true),
-        ),
-        label: lastEntryTimePeriodGroupInfo.chartGroupLabel,
-      });
-      historyData.earningsHistoryListData.push({
-        label: lastEntryTimePeriodGroupInfo.listGroupLabel,
-        groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
-        groupHeader: lastEntryTimePeriodGroupInfo.listGroupHeader,
-        amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-        amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
-      });
-    }
+    };
 
-    // removes trailing zeros from history list
-    if (trailingZeroHistoryListValues > 0) {
-      historyData.earningsHistoryListData.splice(
-        historyData.earningsHistoryListData.length -
-          trailingZeroHistoryListValues,
-        trailingZeroHistoryListValues,
-      );
-    }
+    const processEntries = () => {
+      for (let i = transformedEarningsHistory.length - 1; i >= 0; i--) {
+        processEntry(transformedEarningsHistory[i], i);
+      }
+      finalizeProcessing();
+    };
+
+    processEntries();
 
     return historyData;
   }, [
