@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
@@ -14,21 +15,22 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 
-const useBalance = () => {
+const useBalance = (chainId?: Hex) => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
-  const chainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
+  const balanceChainId = chainId || selectedChainId;
   const conversionRate = currencyRates?.ETH?.conversionRate ?? 1;
   const rawAccountBalance = selectedAddress
-    ? accountsByChainId[chainId]?.[selectedAddress]?.balance
+    ? accountsByChainId[balanceChainId]?.[selectedAddress]?.balance
     : '0';
 
   const stakedBalance = selectedAddress
-    ? accountsByChainId[chainId]?.[selectedAddress]?.stakedBalance || '0'
+    ? accountsByChainId[balanceChainId]?.[selectedAddress]?.stakedBalance || '0'
     : '0';
 
   const balanceETH = useMemo(
