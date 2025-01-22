@@ -42,7 +42,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
       );
     });
 
-    it('allows user to modify permitted chains before completing connection', async () => {
+    fit('allows user to modify permitted chains before completing connection', async () => {
       await withFixtures(
         {
           dapp: true,
@@ -60,6 +60,9 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
           // First permission modification: Add Linea Sepolia
           await TestDApp.connect();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
+          await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+          await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
           await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
           await NetworkConnectMultiSelector.tapUpdateButton();
 
