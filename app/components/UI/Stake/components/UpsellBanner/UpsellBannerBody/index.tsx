@@ -1,11 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import styleSheet from './UpsellBannerInteractive.styles';
-import { UpsellBannerInteractiveProps } from '../UpsellBanner.types';
+import styleSheet from './UpsellBannerBody.styles';
+import { UpsellBannerBodyProps } from '../UpsellBanner.types';
 import { useStyles } from '../../../../../hooks/useStyles';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
   TextColor,
@@ -16,14 +13,13 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-const UpsellBannerInteractive = ({
+const UpsellBannerBody = ({
   primaryText,
   secondaryText,
   tertiaryText,
-  buttonLabel,
-  onButtonPress,
   onTooltipPress,
-}: UpsellBannerInteractiveProps) => {
+  endAccessory,
+}: UpsellBannerBodyProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -47,14 +43,10 @@ const UpsellBannerInteractive = ({
         </View>
       </View>
       <View style={styles.right}>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={buttonLabel}
-          onPress={onButtonPress}
-        />
+        {React.isValidElement(endAccessory) && endAccessory}
       </View>
     </View>
   );
 };
 
-export default UpsellBannerInteractive;
+export default UpsellBannerBody;

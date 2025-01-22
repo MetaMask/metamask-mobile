@@ -4,20 +4,29 @@ import {
   UPSELL_BANNER_VARIANTS,
   UpsellBannerProps,
 } from './UpsellBanner.types';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 
 describe('UpsellBanner', () => {
   const baseProps = {
     primaryText: 'you could earn',
     secondaryText: '$454',
     tertiaryText: 'per year on your tokens',
+    endAccessory: (
+      <Button
+        label={'Earn 4.5%'}
+        variant={ButtonVariants.Secondary}
+        onPress={jest.fn()}
+      />
+    ),
   };
 
-  describe('UpsellBannerReadOnly', () => {
+  describe('UpsellBannerHeader variant', () => {
     it('render matches screenshot', () => {
       const props: UpsellBannerProps = {
-        variant: UPSELL_BANNER_VARIANTS.READ_ONLY,
+        variant: UPSELL_BANNER_VARIANTS.HEADER,
         ...baseProps,
       };
 
@@ -27,13 +36,11 @@ describe('UpsellBanner', () => {
     });
   });
 
-  describe('UpsellBannerInteractive', () => {
+  describe('UpsellBannerBody variant', () => {
     it('render matches screenshot', () => {
       const props: UpsellBannerProps = {
-        variant: UPSELL_BANNER_VARIANTS.INTERACTIVE,
-        onButtonPress: jest.fn(),
+        variant: UPSELL_BANNER_VARIANTS.BODY,
         onTooltipPress: jest.fn(),
-        buttonLabel: `${strings('stake.earn')} 4.5%`,
         ...baseProps,
       };
 

@@ -1,24 +1,23 @@
 export enum UPSELL_BANNER_VARIANTS {
-  READ_ONLY = 'READ_ONLY',
-  INTERACTIVE = 'INTERACTIVE',
+  HEADER = 'HEADER',
+  BODY = 'BODY',
 }
 
 interface UpsellBannerBaseProps {
   primaryText: string;
   secondaryText: string;
   tertiaryText: string;
+  endAccessory?: React.ReactNode;
 }
 
-export type UpsellBannerReadOnlyProps = UpsellBannerBaseProps;
+export type UpsellBannerHeaderProps = UpsellBannerBaseProps;
 
-export type UpsellBannerInteractiveProps = UpsellBannerBaseProps & {
-  buttonLabel: string;
-  onButtonPress: () => void;
+export type UpsellBannerBodyProps = UpsellBannerBaseProps & {
   onTooltipPress: () => void;
 };
 
 export type UpsellBannerProps =
-  | (UpsellBannerReadOnlyProps & { variant: UPSELL_BANNER_VARIANTS.READ_ONLY })
-  | (UpsellBannerInteractiveProps & {
-      variant: UPSELL_BANNER_VARIANTS.INTERACTIVE;
+  | (UpsellBannerHeaderProps & { variant: UPSELL_BANNER_VARIANTS.HEADER })
+  | (UpsellBannerBodyProps & {
+      variant: UPSELL_BANNER_VARIANTS.BODY;
     });

@@ -1,18 +1,19 @@
 import React from 'react';
 import { View } from 'react-native';
-import { UpsellBannerReadOnlyProps } from '../UpsellBanner.types';
-import styleSheet from './UpsellBannerReadOnly.styles';
+import { UpsellBannerHeaderProps } from '../UpsellBanner.types';
+import styleSheet from './UpsellBannerHeader.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 
-const UpsellBannerReadOnly = ({
+const UpsellBannerHeader = ({
   primaryText,
   secondaryText,
   tertiaryText,
-}: UpsellBannerReadOnlyProps) => {
+  endAccessory,
+}: UpsellBannerHeaderProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -22,8 +23,9 @@ const UpsellBannerReadOnly = ({
         {secondaryText}
       </Text>
       <Text color={TextColor.Alternative}>{tertiaryText}</Text>
+      {React.isValidElement(endAccessory) && endAccessory}
     </View>
   );
 };
 
-export default UpsellBannerReadOnly;
+export default UpsellBannerHeader;

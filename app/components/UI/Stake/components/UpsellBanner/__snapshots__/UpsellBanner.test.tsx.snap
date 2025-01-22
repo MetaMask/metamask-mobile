@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`UpsellBanner UpsellBannerInteractive render matches screenshot 1`] = `
+exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
 <View
   style={
     {
@@ -142,7 +142,7 @@ exports[`UpsellBanner UpsellBannerInteractive render matches screenshot 1`] = `
 </View>
 `;
 
-exports[`UpsellBanner UpsellBannerReadOnly render matches screenshot 1`] = `
+exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] = `
 <View
   style={
     {
@@ -200,5 +200,43 @@ exports[`UpsellBanner UpsellBannerReadOnly render matches screenshot 1`] = `
   >
     per year on your tokens
   </Text>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[MockFunction]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "transparent",
+        "borderColor": "#0376c9",
+        "borderRadius": 20,
+        "borderWidth": 1,
+        "flexDirection": "row",
+        "height": 40,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#0376c9",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Earn 4.5%
+    </Text>
+  </TouchableOpacity>
 </View>
 `;
