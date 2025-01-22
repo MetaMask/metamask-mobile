@@ -228,44 +228,48 @@ describe('NftGrid', () => {
 
     const spyOnCollectibles = jest
       .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData)
-      .mockReturnValueOnce(nftItemDataUpdated);
-    const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
-      .mockReturnValue(collectibleData);
+      .mockReturnValue(nftItemData);
+
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
 
     const { getByTestId: getByTestIdBefore } = renderWithProvider(
-      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
     );
+
+    jest.clearAllMocks();
+    jest
+      .spyOn(allSelectors, 'collectiblesSelector')
+      .mockReturnValue(nftItemDataUpdated);
+
     const nftImageBefore = getByTestIdBefore('nft-image');
     expect(nftImageBefore.props.source.uri).toEqual(nftItemData[0].image);
 
-    // const { getByTestId: getByTestIdAfter } = renderWithProvider(
-    //   <NftGrid
-    //     chainId="0x1"
-    //     selectedAddress={MOCK_ADDRESS}
-    //   />,
-    //   {
-    //     state: mockState,
-    //   },
-    // );
+    const { getByTestId: getByTestIdAfter } = renderWithProvider(
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
+      {
+        state: testState,
+      },
+    );
 
     await waitFor(() => {
+      // ensure only one call, and with the updated required updated metadata
       expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(1);
-      //   const nftImageAfter = getByTestIdBefore('nft-image');
-      //   expect(nftImageAfter.props.source.uri).toEqual(
-      //     nftItemDataUpdated[0].image,
-      //   );
+      expect(spyOnUpdateNftMetadata).toHaveBeenCalledWith({
+        nfts: nftItemDataUpdated,
+        userAddress: MOCK_ADDRESS,
+      });
+      const nftImageAfter = getByTestIdAfter('nft-image');
+      expect(nftImageAfter.props.source.uri).toEqual(
+        nftItemDataUpdated[0].image,
+      );
     });
 
     spyOnCollectibles.mockRestore();
-    spyOnContracts.mockRestore();
     spyOnUpdateNftMetadata.mockRestore();
   });
 
@@ -286,26 +290,29 @@ describe('NftGrid', () => {
 
     const spyOnCollectibles = jest
       .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData)
-      .mockReturnValueOnce(nftItemDataUpdated);
-    const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
-      .mockReturnValue(collectibleData);
+      .mockReturnValue(nftItemData);
+
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
 
     const { getByTestId } = renderWithProvider(
-      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
     );
+
+    jest.clearAllMocks();
+    jest
+      .spyOn(allSelectors, 'collectiblesSelector')
+      .mockReturnValue(nftItemDataUpdated);
+
     const nftImageBefore = getByTestId('nft-image');
     expect(nftImageBefore.props.source.uri).toEqual(nftItemData[0].image);
 
-    renderWithProvider(
-      <NftGrid chainId="0x1" selectedAddress={MOCK_ADDRESS} />,
+    const { getByTestId: getAfterByTestId } = renderWithProvider(
+      <NftGrid chainId={CHAIN_IDS.MAINNET} selectedAddress={MOCK_ADDRESS} />,
       {
         state: testState,
       },
@@ -313,14 +320,13 @@ describe('NftGrid', () => {
 
     await waitFor(() => {
       expect(spyOnUpdateNftMetadata).toHaveBeenCalledTimes(0);
-      //   const nftImageAfter = queryByTestId('nft-image');
-      //   expect(nftImageAfter.props.source.uri).toEqual(
-      //     nftItemDataUpdated[0].image,
-      //   );
+      const nftImageAfter = getAfterByTestId('nft-image');
+      expect(nftImageAfter.props.source.uri).toEqual(
+        nftItemDataUpdated[0].image,
+      );
     });
 
     spyOnCollectibles.mockRestore();
-    spyOnContracts.mockRestore();
     spyOnUpdateNftMetadata.mockRestore();
   });
 
@@ -490,12 +496,9 @@ describe('NftGridFooter', () => {
 
 describe('NftGridEmpty', () => {
   it('renders without crashing', () => {
-    const { getByText, getByTestId } = render(
-      <NftGridEmpty navigation={mockNavigation} />,
-    );
+    const { getByText } = render(<NftGridEmpty navigation={mockNavigation} />);
     expect(getByText('No NFTs yet')).toBeTruthy();
     expect(getByText('Learn more')).toBeTruthy();
-    expect(getByTestId(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON)).toBeTruthy();
   });
 
   it('calls navigation.navigate when the button is pressed', () => {

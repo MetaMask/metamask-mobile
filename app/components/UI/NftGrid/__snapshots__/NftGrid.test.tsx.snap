@@ -40,7 +40,6 @@ exports[`NftGridEmpty matches the snapshot 1`] = `
   </Text>
   <TouchableOpacity
     onPress={[Function]}
-    testID="import-collectible-button"
   >
     <Text
       accessibilityRole="text"
