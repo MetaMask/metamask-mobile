@@ -44,12 +44,10 @@ describe(SmokeAssets('NFT Details page'), () => {
         await WalletView.tapNftTab();
         await WalletView.scrollDownOnNFTsTab();
 
-        await WalletView.tapImportNFTButton();
         await Assertions.checkIfVisible(ImportNFTView.container);
         await ImportNFTView.typeInNFTAddress('1234');
         await ImportNFTView.typeInNFTIdentifier('');
         await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
-        //await ImportNFTView.tapBackButton();
 
         await ImportNFTView.typeInNFTAddress(nftsAddress);
         await ImportNFTView.typeInNFTIdentifier('1');
