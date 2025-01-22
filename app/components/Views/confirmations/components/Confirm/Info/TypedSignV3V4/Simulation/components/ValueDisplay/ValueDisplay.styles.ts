@@ -24,10 +24,9 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    loaderContainer: {
-      // prevents loader from expanding beyond its intrinsic size in flex container
-      height: 20,
-      paddingEnd: 32,
+    loaderButtonPillEmptyContent: {
+      height: 22,
+      width: 22,
     },
     marginStart4: {
       marginStart: 4,
