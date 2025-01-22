@@ -57,8 +57,10 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
 import { filterAssets } from './util/filterAssets';
-import { TraceName, endTrace } from '../../../util/trace';
-import { trace } from '../../../util/trace';
+import { TraceName, endTrace, trace } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
+
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -149,6 +151,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const tokensList = useMemo((): TokenI[] => {
     trace({
       name: TraceName.Tokens,
+      tags: getTraceTags(store.getState()),
     });
     // if it is not popular network, display tokens only for current network
     const filteredAssetsParam = isPopularNetwork
