@@ -176,4 +176,20 @@ describe('EngineService', () => {
       routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
     });
   });
+
+  it('should navigate to vault recovery if Engine fails to initialize', () => {
+    jest.spyOn(Engine, 'init').mockImplementation(() => {
+      throw new Error('Failed to initialize Engine');
+    });
+    engineService.start();
+    // Logs error to Sentry
+    expect(Logger.error).toHaveBeenCalledWith(
+      new Error('Failed to initialize Engine'),
+      'Failed to initialize Engine! Falling back to vault recovery.',
+    );
+    // Navigates to vault recovery
+    expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+    });
+  });
 });
