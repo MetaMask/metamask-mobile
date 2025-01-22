@@ -36,7 +36,7 @@ import BottomModal from '../../../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
 import { strings } from '../../../../../../../../../../../locales/i18n';
-import AnimatedPulse from '../../../../../../../../../../component-library/components-temp/AnimatedPulse/AnimatedPulse';
+import AnimatedPulse from '../AnimatedPulse/AnimatedPulse';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
