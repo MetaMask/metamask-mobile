@@ -68,7 +68,6 @@ function NftGridEmpty({ navigation }: NftGridProps) {
             params: { url: AppConstants.URLS.NFT },
           })
         }
-        testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
       >
         <Text
           variant={TextVariant.BodyMDMedium}
