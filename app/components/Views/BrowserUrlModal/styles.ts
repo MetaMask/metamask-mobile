@@ -47,4 +47,7 @@ export const createStyles = (colors: any) =>
       backgroundColor: colors.background.default,
       flex: 1,
     },
+    keyboardAvoidingView: {
+      flex: 1,
+    },
   });

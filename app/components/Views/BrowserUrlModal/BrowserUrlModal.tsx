@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   TextInput,
   InteractionManager,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { strings } from '../../../../locales/i18n';
@@ -75,50 +77,55 @@ const BrowserUrlModal = () => {
 
   const renderContent = () => (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.urlModalContent}>
-        <View style={styles.searchWrapper}>
-          <TextInput
-            keyboardType="web-search"
-            ref={inputRef}
-            autoCapitalize="none"
-            autoCorrect={false}
-            testID={BrowserURLBarSelectorsIDs.URL_INPUT}
-            onChangeText={setAutocompleteValue}
-            onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
-            placeholder={strings('autocomplete.placeholder')}
-            placeholderTextColor={colors.text.muted}
-            returnKeyType="go"
-            style={styles.urlInput}
-            value={autocompleteValue}
-            selectTextOnFocus
-            keyboardAppearance={themeAppearance}
-            autoFocus
-          />
-          {autocompleteValue ? (
-            <ButtonIcon
-              iconName={IconName.Close}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              style={styles.clearButton}
-              onPress={clearSearchInput}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardAvoidingView}
+      >
+        <View style={styles.urlModalContent}>
+          <View style={styles.searchWrapper}>
+            <TextInput
+              keyboardType="web-search"
+              ref={inputRef}
+              autoCapitalize="none"
+              autoCorrect={false}
+              testID={BrowserURLBarSelectorsIDs.URL_INPUT}
+              onChangeText={setAutocompleteValue}
+              onSubmitEditing={() => triggerOnSubmit(autocompleteValue || '')}
+              placeholder={strings('autocomplete.placeholder')}
+              placeholderTextColor={colors.text.muted}
+              returnKeyType="go"
+              style={styles.urlInput}
+              value={autocompleteValue}
+              selectTextOnFocus
+              keyboardAppearance={themeAppearance}
+              autoFocus
             />
-          ) : null}
+            {autocompleteValue ? (
+              <ButtonIcon
+                iconName={IconName.Close}
+                iconColor={IconColor.Default}
+                size={ButtonIconSizes.Md}
+                style={styles.clearButton}
+                onPress={clearSearchInput}
+              />
+            ) : null}
+          </View>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
+            onPress={triggerClose}
+          >
+            <Text style={styles.cancelButtonText}>
+              {strings('browser.cancel')}
+            </Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
-          onPress={triggerClose}
-        >
-          <Text style={styles.cancelButtonText}>
-            {strings('browser.cancel')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <UrlAutocomplete
-        onSubmit={triggerOnSubmit}
-        input={autocompleteValue}
-        onDismiss={triggerClose}
-      />
+        <UrlAutocomplete
+          onSubmit={triggerOnSubmit}
+          input={autocompleteValue}
+          onDismiss={triggerClose}
+        />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 
