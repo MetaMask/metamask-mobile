@@ -1,7 +1,7 @@
 /* eslint-disable import/no-commonjs */
 /**
- * Metro configuration for React Native
- * https://github.com/facebook/react-native
+ * Metro configuration
+ * https://reactnative.dev/docs/metro
  *
  * @type {import('metro-config').MetroConfig}
  */

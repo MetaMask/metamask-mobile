@@ -19,9 +19,19 @@
 			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<string>C617.1</string>
 				<string>0A2A.1</string>
+				<string>3B52.1</string>
+				<string>C617.1</string>
 				<string>DDA9.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>E174.1</string>
+				<string>85F4.1</string>
 			</array>
 		</dict>
 		<dict>
@@ -31,15 +41,6 @@
 			<array>
 				<string>35F9.1</string>
 				<string>8FFB.1</string>
-			</array>
-		</dict>
-		<dict>
-			<key>NSPrivacyAccessedAPIType</key>
-			<string>NSPrivacyAccessedAPICategoryDiskSpace</string>
-			<key>NSPrivacyAccessedAPITypeReasons</key>
-			<array>
-				<string>85F4.1</string>
-				<string>E174.1</string>
 			</array>
 		</dict>
 	</array>
