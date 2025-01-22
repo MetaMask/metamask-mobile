@@ -40,13 +40,15 @@ const StakingEarningsHistoryList = ({
             const isFirstEarningInGroup =
               earning.groupHeader !== lastGroupHeader;
             lastGroupHeader = earning.groupHeader;
+            const isGroupHeaderVisible =
+              earning.groupHeader.length > 0 && isFirstEarningInGroup;
             if (
               !filterByGroupLabel ||
               earning.groupLabel === filterByGroupLabel
             ) {
               return (
-                <View key={index}>
-                  {earning.groupHeader && isFirstEarningInGroup && (
+                <View key={`earning-history-list-item-${index}`}>
+                  {isGroupHeaderVisible && (
                     <View style={styles.lineItemGroupHeaderContainer}>
                       <Label
                         variant={TextVariant.BodyMDMedium}
@@ -56,7 +58,7 @@ const StakingEarningsHistoryList = ({
                       </Label>
                     </View>
                   )}
-                  <View style={styles.lineItemContainer} key={index}>
+                  <View style={styles.lineItemContainer}>
                     <View style={styles.leftLineItemBox}>
                       <Label
                         variant={TextVariant.BodyMDMedium}
@@ -94,7 +96,7 @@ const StakingEarningsHistoryList = ({
         <SkeletonPlaceholder>
           {Array.from({ length: 7 }).map((_, index) => (
             <SkeletonPlaceholder.Item
-              key={index}
+              key={`earning-history-skeleton-item-${index}`}
               width={343}
               height={42}
               borderRadius={6}

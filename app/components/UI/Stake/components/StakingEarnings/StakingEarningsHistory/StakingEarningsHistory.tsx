@@ -111,7 +111,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     limitDays: EARNINGS_HISTORY_DAYS_LIMIT,
   });
 
-  const ticker = asset.ticker || asset.symbol;
+  const ticker = asset.ticker ?? asset.symbol;
 
   const formatRewardsWei = useCallback(
     (rewards: number | string | BN, raw?: boolean) => {

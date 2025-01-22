@@ -32,10 +32,8 @@ interface HorizontalLinesProps {
   // BarChart component props are passed into all children
   x?: (number: number) => number;
   y?: (number: number) => number;
-  width?: number;
   height?: number;
   bandwidth?: number;
-  ticks?: number[];
   data?: StakingEarningsHistoryChartProps['earnings'];
 }
 
@@ -49,7 +47,7 @@ const HorizontalLines = ({
   strokeColor,
 }: HorizontalLinesProps) => {
   useEffect(() => {
-    onBandWidthChange && onBandWidthChange(bandWidth || 0);
+    onBandWidthChange && onBandWidthChange(bandWidth ?? 0);
   }, [bandWidth, onBandWidthChange]);
   if (!x || !y || !height || !data || !bandWidth) return null;
   return (
@@ -57,7 +55,7 @@ const HorizontalLines = ({
       {data.map((item, index) => (
         <Line
           testID={`earning-history-chart-line-${index}`}
-          key={index}
+          key={`earning-history-chart-line-${index}`}
           x1={x(index)}
           x2={x(index) + bandWidth}
           y1={y(item.value) - 0.5}
