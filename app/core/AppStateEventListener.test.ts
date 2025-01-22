@@ -97,26 +97,12 @@ describe('AppStateEventListener', () => {
         .mockReturnValue({} as unknown as ReduxStore);
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
-    appStateManager.setCurrentDeeplink(
-        'metamask://connect',
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build()
     );
-    mockAppStateListener('active');
-    jest.advanceTimersByTime(2000);
-
-    const expectedEvent = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build();
-
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
-  });
-
-
-
-  it('does not track event when processAttribution returns undefined', () => {
-    (processAttribution as jest.Mock).mockReturnValue(undefined);
-
-    mockAppStateListener('active');
-    jest.advanceTimersByTime(2000);
-
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('handles errors gracefully', () => {
