@@ -19,7 +19,6 @@ import {
 
 import Address from '../../../../../../UI/InfoRow/InfoValue/Address/Address';
 
-import Loader from '../../../../../../../../../../component-library/components-temp/Loader/Loader';
 import { selectContractExchangeRates } from '../../../../../../../../../../selectors/tokenRatesController';
 
 import Logger from '../../../../../../../../../../util/Logger';
