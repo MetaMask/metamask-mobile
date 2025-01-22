@@ -1,16 +1,16 @@
-import { useCallback, useEffect } from 'react';
 import type { Hex } from '@metamask/utils';
+import { SecurityAlertResponse } from '@metamask/transaction-controller';
+import { useCallback, useEffect } from 'react';
 
 import getDecimalChainId from '../../../../util/networks/getDecimalChainId';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-
 import { getAddressAccountType } from '../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
-import { SecurityAlertResponse } from '../components/BlockaidBanner/BlockaidBanner.types';
 import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
 import { useSignatureRequest } from './useSignatureRequest';
+import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -21,10 +21,11 @@ interface MessageParamsType {
 
 const getAnalyticsParams = (
   messageParams: MessageParamsType,
+  securityAlertResponse: SecurityAlertResponse,
   type: string,
-  chainId?: Hex,
+  chainId: Hex | undefined,
 ) => {
-  const { meta = {}, from, securityAlertResponse, version } = messageParams;
+  const { meta = {}, from, version } = messageParams;
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -42,6 +43,7 @@ const getAnalyticsParams = (
 
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
+  const { securityAlertResponse } = useSecurityAlertResponse();
 
   const { chainId, messageParams, type } = signatureRequest ?? {};
 
@@ -58,6 +60,7 @@ export const useSignatureMetrics = () => {
           .addProperties(
             getAnalyticsParams(
               messageParams as unknown as MessageParamsType,
+              securityAlertResponse as SecurityAlertResponse,
               type,
               chainId,
             ),
@@ -65,7 +68,7 @@ export const useSignatureMetrics = () => {
           .build(),
       );
     },
-    [chainId, messageParams, type],
+    [chainId, messageParams, securityAlertResponse, type],
   );
 
   useEffect(() => {
