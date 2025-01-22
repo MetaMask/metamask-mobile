@@ -42,6 +42,7 @@ export enum ChainId {
   SCROLL = 534352,
 }
 
+// TODO - remove this as it is available in CORE
 export enum TRIGGER_TYPES {
   FEATURES_ANNOUNCEMENT = 'features_announcement',
   METAMASK_SWAP_COMPLETED = 'metamask_swap_completed',
@@ -65,7 +66,7 @@ export enum TRIGGER_TYPES {
   ROCKETPOOL_STAKING_REWARDS = 'rocketpool_staking_rewards',
   NOTIONAL_LOAN_EXPIRATION = 'notional_loan_expiration',
   SPARK_FI_HEALTH_FACTOR = 'spark_fi_health_factor',
-  SNAP = 'snap'
+  SNAP = 'snap',
 }
 
 export const chains = {
