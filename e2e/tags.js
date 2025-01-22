@@ -18,7 +18,7 @@ const SmokeCore = (testName) => `${tags.smokeCore} ${testName}`;
 const SmokeConfirmations = (testName) =>
   `${tags.smokeConfirmations} ${testName}`;
 const SmokeConfirmationsRedesigned = (testName) =>
-  `${tags.SmokeConfirmationsRedesigned} ${testName}`;
+  `${tags.smokeConfirmationsRedesigned} ${testName}`;
 const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
