@@ -12,14 +12,8 @@ export const useConfirmationRedesignEnabled = () => {
   const { isSigningQRObject, isSyncingQRHardware } = useQRHardwareAwareness();
   const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags);
 
-  const {
-    type: approvalRequestType,
-    requestData: { from: fromAddress },
-  } = approvalRequest ?? {
-    requestData: {
-      from: '',
-    },
-  };
+  const approvalRequestType = approvalRequest?.type;
+  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>

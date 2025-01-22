@@ -372,9 +372,6 @@ class SmartTransactionHook {
         isSwapApproveTx: this.#isSwapApproveTx,
         isSwapTransaction: this.#isSwapTransaction,
       },
-      requestData: {
-        id: this.#approvalId,
-      },
     });
 
     Logger.log(LOG_PREFIX, 'Added approval', this.#approvalId);
