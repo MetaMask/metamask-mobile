@@ -5,7 +5,7 @@ import {
 import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
 import { useGetFormattedTokensPerChain } from './useGetFormattedTokensPerChain';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
@@ -177,18 +177,6 @@ describe('useGetFormattedTokensPerChain', () => {
             },
           ],
         },
-        {
-          chainId: '0xe708',
-          tokensWithBalances: [
-            {
-              address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-              symbol: 'CAKE',
-              decimals: 18,
-              balance: '0.00164',
-              tokenBalanceFiat: 0,
-            },
-          ],
-        },
       ],
     };
 
@@ -204,6 +192,7 @@ describe('useGetFormattedTokensPerChain', () => {
       },
     );
 
+    // Note, we are currently only aggregating for popular networks
     expect(result.current).toEqual(expectedResult);
   });
 });

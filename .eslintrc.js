@@ -97,7 +97,7 @@ module.exports = {
               'selectProviderType',
               'selectRpcUrl',
               'selectSelectedNetworkClientId',
-              'selectTicker'
+              'selectTicker',
             ]
               .map((method) => `^${method}$`)
               .join('|')}/]`,

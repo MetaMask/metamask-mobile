@@ -3578,7 +3578,6 @@
     "account": "Tài khoản",
     "balance": "Số dư",
     "network": "Mạng",
-    "rpc_url": "URL RPC",
     "simulation": {
       "title": "Thay đổi ước tính",
       "personal_sign_info": "Bạn đang đăng nhập vào một trang web và dự kiến không có thay đổi nào đối với tài khoản của bạn.",

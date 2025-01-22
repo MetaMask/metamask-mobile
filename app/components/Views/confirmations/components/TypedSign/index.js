@@ -248,7 +248,7 @@ class TypedSign extends PureComponent {
       showExpandedMessage,
       toggleExpandedMessage,
       messageParams: { from },
-      networkType
+      networkType,
     } = this.props;
     const { truncateMessage } = this.state;
     const messageWrapperStyles = [];
@@ -303,7 +303,10 @@ class TypedSign extends PureComponent {
 TypedSign.contextType = ThemeContext;
 
 const mapStateToProps = (state, ownProps) => {
-  const signatureRequest = selectSignatureRequestById(state, ownProps.messageParams.metamaskId);
+  const signatureRequest = selectSignatureRequestById(
+    state,
+    ownProps.messageParams.metamaskId,
+  );
 
   return {
     networkType: selectProviderTypeByChainId(state, signatureRequest?.chainId),

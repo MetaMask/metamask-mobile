@@ -1184,21 +1184,24 @@ class Amount extends PureComponent {
   processCollectibles = () => {
     const { collectibleContracts } = this.props;
     const collectibles = [];
-    this.props.collectibles
-      .sort((a, b) => a.address < b.address)
-      .forEach((collectible) => {
-        const address = collectible.address.toLowerCase();
-        const isTradable =
-          !collectiblesTransferInformation[address] ||
-          collectiblesTransferInformation[address].tradable;
-        if (!isTradable) return;
-        const collectibleContract = collectibleContracts.find(
-          (contract) => contract.address.toLowerCase() === address,
-        );
-        if (!collectible.name) collectible.name = collectibleContract.name;
-        if (!collectible.image) collectible.image = collectibleContract.logo;
-        collectibles.push(collectible);
-      });
+    const sortedCollectibles = [...this.props.collectibles].sort((a, b) => {
+      if (a.address < b.address) return -1;
+      if (a.address > b.address) return 1;
+      return 0;
+    });
+    sortedCollectibles.forEach((collectible) => {
+      const address = collectible.address.toLowerCase();
+      const isTradable =
+        !collectiblesTransferInformation[address] ||
+        collectiblesTransferInformation[address].tradable;
+      if (!isTradable) return;
+      const collectibleContract = collectibleContracts.find(
+        (contract) => contract.address.toLowerCase() === address,
+      );
+      if (!collectible.name) collectible.name = collectibleContract.name;
+      if (!collectible.image) collectible.image = collectibleContract.logo;
+      collectibles.push(collectible);
+    });
     return collectibles;
   };
 

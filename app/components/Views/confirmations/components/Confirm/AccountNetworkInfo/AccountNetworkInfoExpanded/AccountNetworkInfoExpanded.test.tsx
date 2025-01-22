@@ -4,6 +4,10 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { personalSignatureConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import AccountNetworkInfoExpanded from './AccountNetworkInfoExpanded';
 
+jest.mock('../../../../../../../core/Engine', () => ({
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+}));
+
 describe('AccountNetworkInfoExpanded', () => {
   it('should render correctly', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
@@ -11,10 +15,8 @@ describe('AccountNetworkInfoExpanded', () => {
     });
     expect(getByText('Account')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
-    expect(getByText('0 ETH')).toBeDefined();
+    expect(getByText('$10')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
-    expect(getByText('RPC URL')).toBeDefined();
-    expect(getByText('mainnet.infura.io/v3/', { exact: false })).toBeDefined();
   });
 });

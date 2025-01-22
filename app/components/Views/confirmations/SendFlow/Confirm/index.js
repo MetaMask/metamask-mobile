@@ -523,7 +523,7 @@ class Confirm extends PureComponent {
       ));
     } catch (error) {
       Logger.error(error, 'error while adding transaction (Confirm)');
-      navigation?.dangerouslyGetParent()?.pop();
+      navigation.navigate(Routes.WALLET_VIEW);
       Alert.alert(
         strings('transactions.transaction_error'),
         error && error.message,
@@ -1040,7 +1040,7 @@ class Confirm extends PureComponent {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: false,
         });
-        navigation && navigation.dangerouslyGetParent()?.pop();
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
       } else {
         await ApprovalController.accept(transactionMeta.id, undefined, {
           waitForResult: true,
@@ -1073,8 +1073,7 @@ class Confirm extends PureComponent {
         resetTransaction();
 
         if (!shouldUseSmartTransaction) {
-          // We popped it already earlier
-          navigation && navigation.dangerouslyGetParent()?.pop();
+          navigation.navigate(Routes.TRANSACTIONS_VIEW);
         }
       });
     } catch (error) {
@@ -1098,7 +1097,7 @@ class Confirm extends PureComponent {
         );
       }
       resetTransaction();
-      navigation?.dangerouslyGetParent()?.pop();
+      navigation.navigate(Routes.WALLET_VIEW);
     }
     this.setState({ transactionConfirmed: false });
   };
