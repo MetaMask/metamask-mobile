@@ -13,7 +13,7 @@ const StakeEarningsHistoryView = ({ route }: StakeEarningsHistoryViewProps) => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { asset } = route.params;
-  const ticker = asset.ticker || asset.symbol;
+  const ticker = asset.ticker ?? asset.symbol;
 
   useEffect(() => {
     navigation.setOptions(

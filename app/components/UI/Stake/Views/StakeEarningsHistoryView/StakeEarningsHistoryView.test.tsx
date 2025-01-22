@@ -4,16 +4,20 @@ import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 import useStakingEarningsHistory from '../../hooks/useStakingEarningsHistory';
 import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
-
+import { getStakingNavbar } from '../../../Navbar';
+jest.mock('../../../Navbar');
 jest.mock('../../hooks/useStakingEarningsHistory');
+
+const mockNavigation = {
+  navigate: jest.fn(),
+  setOptions: jest.fn(),
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      setOptions: jest.fn(),
-    }),
+    useNavigation: () => mockNavigation,
   };
 });
 jest.mock('react-native-svg-charts', () => {
@@ -58,5 +62,12 @@ describe('StakeEarningsHistoryView', () => {
     const renderedView = render(earningsHistoryView);
     fireLayoutEvent(renderedView.root);
     expect(renderedView.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls navigation setOptions to get staking navigation bar', () => {
+    const renderedView = render(earningsHistoryView);
+    fireLayoutEvent(renderedView.root);
+    expect(mockNavigation.setOptions).toHaveBeenCalled();
+    expect(getStakingNavbar).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import StakingEarningsHistory from './StakingEarningsHistory';
 import useStakingEarningsHistory from '../../../hooks/useStakingEarningsHistory';
 import { MOCK_STAKED_ETH_ASSET } from '../../../__mocks__/mockData';
@@ -142,5 +142,31 @@ describe('StakingEarningsHistory', () => {
     expect(getByText('6000.00 USD')).toBeTruthy();
     expect(getByText('+ 0.00054 ETH')).toBeTruthy();
     expect(queryByText('October')).toBeFalsy();
+  });
+
+  it('calls onTimePeriodChange and updates the selected time period', () => {
+    const { getByText } = render(
+      <StakingEarningsHistory asset={MOCK_STAKED_ETH_ASSET} />,
+    );
+
+    const timePeriodButton7D = getByText('7D');
+    fireEvent.press(timePeriodButton7D);
+
+    expect(getByText('December 31')).toBeTruthy();
+    expect(getByText('3000.00 USD')).toBeTruthy();
+    expect(getByText('+ 0.00044 ETH')).toBeTruthy();
+    expect(getByText('January 1')).toBeTruthy();
+    expect(getByText('6000.00 USD')).toBeTruthy();
+    expect(getByText('+ 0.00054 ETH')).toBeTruthy();
+
+    const timePeriodButtonY = getByText('Y');
+    fireEvent.press(timePeriodButtonY);
+
+    expect(getByText('2022')).toBeTruthy();
+    expect(getByText('3000.00 USD')).toBeTruthy();
+    expect(getByText('+ 0.00044 ETH')).toBeTruthy();
+    expect(getByText('2023')).toBeTruthy();
+    expect(getByText('6000.00 USD')).toBeTruthy();
+    expect(getByText('+ 0.00054 ETH')).toBeTruthy();
   });
 });

@@ -93,7 +93,7 @@ const getEntryTimePeriodGroupInfo = (
       timePeriodInfo.listGroupLabel = yearLabel;
       break;
     default:
-      break;
+      throw new Error('Unsupported time period');
   }
   return timePeriodInfo;
 };
