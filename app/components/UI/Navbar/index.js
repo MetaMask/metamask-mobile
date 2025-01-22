@@ -601,7 +601,9 @@ export function getSendFlowTitle(
       canGoBack ? (
         // eslint-disable-next-line react/jsx-no-bind
         <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-          <Text style={innerStyles.headerButtonText}>
+          <Text style={innerStyles.headerButtonText}
+          testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
+        >
             {strings('transaction.back')}
           </Text>
         </TouchableOpacity>
@@ -715,6 +717,7 @@ export function getOnboardingNavbarOptions(
           source={metamask_name}
           style={innerStyles.metamaskName}
           resizeMethod={'auto'}
+
         />
       </View>
     ),
