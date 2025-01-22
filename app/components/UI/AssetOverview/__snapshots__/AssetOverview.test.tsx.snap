@@ -1057,11 +1057,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "uri": "MockImage",
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
@@ -2192,13 +2188,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 <Image
                   onError={[Function]}
                   resizeMode="contain"
-                  source={
-                    {
-                      "default": {
-                        "uri": "MockImage",
-                      },
-                    }
-                  }
+                  source={1}
                   style={
                     {
                       "height": 32,
