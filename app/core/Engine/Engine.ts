@@ -215,6 +215,7 @@ import {
   getGlobalNetworkClientId,
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -515,6 +516,17 @@ export class Engine {
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
     });
+
+    const tokenSearchDiscoveryController = createTokenSearchDiscoveryController(
+      {
+        state: initialState.TokenSearchDiscoveryController,
+        messenger: this.controllerMessenger.getRestricted({
+          name: 'TokenSearchDiscoveryController',
+          allowedActions: [],
+          allowedEvents: [],
+        }),
+      },
+    );
 
     const phishingController = new PhishingController({
       messenger: this.controllerMessenger.getRestricted({
@@ -1446,6 +1458,7 @@ export class Engine {
         isDecodeSignatureRequestEnabled: () =>
           preferencesController.state.useTransactionSimulations,
       }),
+      TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: this.snapController,

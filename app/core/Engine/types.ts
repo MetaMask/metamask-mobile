@@ -170,6 +170,10 @@ import {
   RemoteFeatureFlagControllerActions,
   RemoteFeatureFlagControllerEvents,
 } from '@metamask/remote-feature-flag-controller/dist/remote-feature-flag-controller.cjs';
+import {
+  TokenSearchDiscoveryController,
+  TokenSearchDiscoveryControllerState,
+} from '@metamask/token-search-discovery-controller';
 
 /**
  * Controllers that area always instantiated
@@ -323,6 +327,7 @@ export type Controllers = {
   TokenListController: TokenListController;
   TokenDetectionController: TokenDetectionController;
   TokenRatesController: TokenRatesController;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryController;
   TokensController: TokensController;
   TransactionController: TransactionController;
   SmartTransactionsController: SmartTransactionsController;
@@ -363,6 +368,7 @@ export type EngineState = {
   PhishingController: PhishingControllerState;
   TokenBalancesController: TokenBalancesControllerState;
   TokenRatesController: TokenRatesControllerState;
+  TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
   TransactionController: TransactionControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
   SwapsController: SwapsControllerState;
