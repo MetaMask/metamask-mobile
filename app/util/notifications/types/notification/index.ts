@@ -10,13 +10,9 @@ import { TRIGGER_TYPES } from '../../constants';
  */
 export type Notification = NotificationServicesController.Types.INotification;
 
-export type HandleNotificationCallback = (
-  data: unknown | undefined
-) => void
-
 export enum PressActionId {
+  OPEN_HOME = 'open-home-press-action-id',
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
-  OPEN_TRANSACTIONS_VIEW = 'open-transactions-view-press-action-id'
 }
 
 export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
@@ -107,10 +103,10 @@ export interface MarketingNotificationData {
 }
 
 export const STAKING_PROVIDER_MAP: Record<
-NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
-| NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_STAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.ROCKETPOOL_UNSTAKE_COMPLETED
+  | NotificationServicesController.Constants.TRIGGER_TYPES.LIDO_WITHDRAWAL_COMPLETED,
   string
 > = {
   [TRIGGER_TYPES.LIDO_STAKE_COMPLETED]: 'Lido-staked ETH',

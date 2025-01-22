@@ -84,6 +84,7 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { useRegisterPushNotificationsEffect } from '../../../util/notifications/hooks/useRegisterPushNotificationsEffect';
 
 const Stack = createStackNavigator();
 
@@ -112,6 +113,8 @@ const Main = (props) => {
   const removeConnectionStatusListener = useRef();
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
+
+  useRegisterPushNotificationsEffect();
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useEnableAutomaticSecurityChecks();

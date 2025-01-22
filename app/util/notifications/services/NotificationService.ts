@@ -4,10 +4,11 @@ import notifee, {
   EventType,
   EventDetail,
   AndroidChannel,
-  Notification
+  Notification,
+  InitialNotification,
 } from '@notifee/react-native';
 
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, PressActionId } from '../types';
+import { LAUNCH_ACTIVITY, PressActionId } from '../types';
 
 import { Linking, Platform, Alert as NativeAlert } from 'react-native';
 import {
@@ -185,15 +186,15 @@ class NotificationsService {
     callback,
   }: {
     detail: EventDetail;
-    callback?: (notification: unknown) => void;
+    callback?: (notification: Notification | undefined) => void;
   }) => {
     this.decrementBadgeCount(1);
     if (detail?.notification?.id) {
       await this.cancelTriggerNotification(detail.notification.id);
     }
 
-    if (detail?.notification?.data) {
-      callback?.(detail.notification.data);
+    if (detail?.notification) {
+      callback?.(detail.notification);
     }
   };
 
@@ -202,9 +203,9 @@ class NotificationsService {
     detail,
     callback,
   }: NotifeeEvent & {
-    callback?: (notification: unknown) => void;
+    callback?: (notification: Notification | undefined) => void;
   }) => {
-    switch (type as unknown as EventType) {
+    switch (type) {
       case EventType.DELIVERED:
         this.incrementBadgeCount(1);
         break;
@@ -222,14 +223,8 @@ class NotificationsService {
     await notifee.cancelTriggerNotification(id);
   };
 
-  getInitialNotification = async (
-    callback: HandleNotificationCallback
-  ): Promise<void> => {
-    const event = await notifee.getInitialNotification()
-    if (event) {
-      callback(event.notification.data as unknown)
-    }
-  };
+  getInitialNotification = async (): Promise<InitialNotification | null> =>
+    await notifee.getInitialNotification();
 
   cancelAllNotifications = async () => {
     await notifee.cancelAllNotifications();
@@ -239,15 +234,17 @@ class NotificationsService {
     notifee.createChannel(channel);
 
   displayNotification = async ({
-    channelId,
+    channelId = ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+    pressActionId = PressActionId.OPEN_HOME,
     title,
     body,
-    data
+    data,
   }: {
-    channelId: ChannelId
-    title: string
-    body?: string
-    data?: unknown
+    channelId?: ChannelId;
+    pressActionId?: PressActionId;
+    title: string;
+    body?: string;
+    data?: unknown;
   }): Promise<void> => {
     await notifee.displayNotification({
       title,
@@ -258,9 +255,9 @@ class NotificationsService {
         largeIcon: 'ic_notification',
         channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         pressAction: {
-          id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+          id: pressActionId,
           launchActivity: LAUNCH_ACTIVITY,
-        }
+        },
       },
       ios: {
         launchImageName: 'Default',
