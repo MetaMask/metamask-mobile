@@ -13,7 +13,7 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../../fixtures/fixture-helper.js';
-import { SmokeConfirmations } from '../../../tags.js';
+import { SmokeConfirmationsRedesigned } from '../../../tags.js';
 
 const SIGNATURE_LIST = [
   {
@@ -43,7 +43,7 @@ const SIGNATURE_LIST = [
   },
 ];
 
-describe(SmokeConfirmations('Signature Requests'), () => {
+describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
     await TestHelpers.reverseServerPort();
