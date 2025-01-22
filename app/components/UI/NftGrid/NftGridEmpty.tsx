@@ -8,7 +8,6 @@ import Text, {
 import styleSheet from './NftGrid.styles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AppConstants from '../../../core/AppConstants';
-import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
 import noNftPlaceholderSrc from '../../../images/no-nfts-placeholder.png';
 import { useTheme } from '../../../util/theme';
