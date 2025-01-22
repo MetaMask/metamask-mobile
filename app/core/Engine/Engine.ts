@@ -1444,7 +1444,7 @@ export class Engine {
         decodingApiUrl: AppConstants.DECODING_API_URL,
         // TODO: check preferences useExternalServices
         isDecodeSignatureRequestEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
+          isBasicFunctionalityToggleEnabled() && preferencesController.state.useTransactionSimulations,
       }),
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
