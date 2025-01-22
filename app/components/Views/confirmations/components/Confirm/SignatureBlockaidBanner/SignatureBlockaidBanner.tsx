@@ -5,19 +5,22 @@ import { getAnalyticsParams } from '../../../../../../util/confirmation/signatur
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import BlockaidBanner from '../../../components/BlockaidBanner/BlockaidBanner';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
+import { SecurityAlertResponse } from '../../BlockaidBanner/BlockaidBanner.types';
+import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
+import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
 import styleSheet from './SignatureBlockaidBanner.styles';
 
 const SignatureBlockaidBanner = () => {
-  const { approvalRequest } = useApprovalRequest();
+  const signatureRequest = useSignatureRequest();
+  const { securityAlertResponse } = useSecurityAlertResponse();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
 
   const {
     type,
-    requestData: { from: fromAddress },
-  } = approvalRequest ?? {
-    requestData: {},
+    messageParams: { from: fromAddress },
+  } = signatureRequest ?? {
+    messageParams: {},
   };
 
   const onContactUsClicked = useCallback(() => {
@@ -37,16 +40,14 @@ const SignatureBlockaidBanner = () => {
     );
   }, [trackEvent, createEventBuilder, type, fromAddress]);
 
-  if (!approvalRequest?.requestData?.securityAlertResponse) {
+  if (!securityAlertResponse) {
     return null;
   }
 
   return (
     <BlockaidBanner
       onContactUsClicked={onContactUsClicked}
-      securityAlertResponse={
-        approvalRequest?.requestData?.securityAlertResponse
-      }
+      securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
       style={styles.blockaidBanner}
     />
   );

@@ -1,8 +1,10 @@
-import { useSelector } from 'react-redux';
-import useApprovalRequest from './useApprovalRequest';
 import { ApprovalType } from '@metamask/controller-utils';
+import { SignatureRequest } from '@metamask/signature-controller';
+import { useSelector } from 'react-redux';
+
 import { selectSignatureRequestById } from '../../../../selectors/signatureController';
 import { RootState } from '../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import useApprovalRequest from './useApprovalRequest';
 
 const SIGNATURE_APPROVAL_TYPES = [
   ApprovalType.PersonalSign,
@@ -23,5 +25,5 @@ export function useSignatureRequest() {
     return undefined;
   }
 
-  return signatureRequest;
+  return signatureRequest as SignatureRequest;
 }
