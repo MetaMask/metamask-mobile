@@ -220,7 +220,6 @@ class NotificationManager {
         const {
           TokenBalancesController,
           TokenDetectionController,
-          NftDetectionController,
           AccountTrackerController,
         } = Engine.context;
         // account balances for ETH txs
@@ -242,9 +241,6 @@ class NotificationManager {
             );
             break;
           }
-          case 'ERC721':
-            pollPromises.push(NftDetectionController.start());
-            break;
         }
         Promise.all(pollPromises);
 

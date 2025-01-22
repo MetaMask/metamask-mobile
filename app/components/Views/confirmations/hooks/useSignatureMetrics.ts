@@ -1,16 +1,19 @@
-import { useCallback, useEffect } from 'react';
 import type { Hex } from '@metamask/utils';
+import { DecodingData } from '@metamask/signature-controller';
+import { SecurityAlertResponse } from '@metamask/transaction-controller';
+import { useCallback, useEffect } from 'react';
 
 import getDecimalChainId from '../../../../util/networks/getDecimalChainId';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-
 import { getAddressAccountType } from '../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
-import { SecurityAlertResponse } from '../components/BlockaidBanner/BlockaidBanner.types';
 import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
+import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
+import { useSecurityAlertResponse } from './useSecurityAlertResponse';
+import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -21,10 +24,14 @@ interface MessageParamsType {
 
 const getAnalyticsParams = (
   messageParams: MessageParamsType,
+  securityAlertResponse: SecurityAlertResponse,
   type: string,
-  chainId?: Hex,
+  chainId: Hex | undefined,
+  decodingData: DecodingData | undefined,
+  decodingLoading: boolean,
+  isSimulationEnabled: boolean,
 ) => {
-  const { meta = {}, from, securityAlertResponse, version } = messageParams;
+  const { meta = {}, from, version } = messageParams;
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -37,13 +44,21 @@ const getAnalyticsParams = (
     ...(securityAlertResponse
       ? getBlockaidMetricsParams(securityAlertResponse)
       : {}),
+    ...getSignatureDecodingEventProps(
+      decodingData,
+      decodingLoading,
+      isSimulationEnabled,
+    ),
   };
 };
 
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
+  const isSimulationEnabled = useTypedSignSimulationEnabled();
+  const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const { chainId, messageParams, type } = signatureRequest ?? {};
+  const { chainId, decodingData, decodingLoading, messageParams, type } =
+    signatureRequest ?? {};
 
   const captureSignatureMetrics = useCallback(
     async (
@@ -58,14 +73,26 @@ export const useSignatureMetrics = () => {
           .addProperties(
             getAnalyticsParams(
               messageParams as unknown as MessageParamsType,
+              securityAlertResponse as SecurityAlertResponse,
               type,
               chainId,
+              decodingData,
+              !!decodingLoading,
+              !!isSimulationEnabled,
             ),
           )
           .build(),
       );
     },
-    [chainId, messageParams, type],
+    [
+      chainId,
+      decodingData,
+      decodingLoading,
+      isSimulationEnabled,
+      messageParams,
+      securityAlertResponse,
+      type,
+    ],
   );
 
   useEffect(() => {
