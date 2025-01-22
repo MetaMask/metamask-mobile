@@ -1,4 +1,7 @@
-import { DecodingDataStateChange, SignatureRequest } from '@metamask/signature-controller';
+import {
+  DecodingData,
+  DecodingDataStateChange,
+} from '@metamask/signature-controller';
 
 enum DecodingResponseType {
   Change = 'CHANGE',
@@ -6,9 +9,11 @@ enum DecodingResponseType {
   Loading = 'decoding_in_progress',
 }
 
-export const getSignatureDecodingEventProps = (signatureRequest?: SignatureRequest, isDecodingAPIEnabled: boolean = false) => {
-  const { decodingData, decodingLoading } = signatureRequest || {};
-
+export const getSignatureDecodingEventProps = (
+  decodingData: DecodingData | undefined,
+  decodingLoading: boolean,
+  isDecodingAPIEnabled: boolean = false,
+) => {
   if (!isDecodingAPIEnabled || !decodingData) {
     return {};
   }
@@ -19,7 +24,8 @@ export const getSignatureDecodingEventProps = (signatureRequest?: SignatureReque
     (change: DecodingDataStateChange) => change.changeType,
   );
 
-  const responseType = error?.type ??
+  const responseType =
+    error?.type ??
     (changeTypes.length
       ? DecodingResponseType.Change
       : DecodingResponseType.NoChange);
