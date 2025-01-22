@@ -347,6 +347,9 @@ describe('submitSmartTransactionHook', () => {
             isSwapApproveTx: false,
             isSwapTransaction: false,
           },
+          requestData: {
+            id: 'approvalId',
+          },
         });
         expect(
           request.approvalController.updateRequestState,
@@ -535,6 +538,9 @@ describe('submitSmartTransactionHook', () => {
               isInSwapFlow: true,
               isSwapApproveTx: true,
               isSwapTransaction: false,
+            },
+            requestData: {
+              id: 'approvalId',
             },
           });
           expect(
