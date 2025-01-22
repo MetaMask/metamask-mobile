@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { GestureResponderEvent, View } from 'react-native';
+import { GestureResponderEvent, View, LayoutChangeEvent } from 'react-native';
 import { Defs, Line, LinearGradient, Stop } from 'react-native-svg';
 import { BarChart, Grid } from 'react-native-svg-charts';
 import { useStyles } from '../../../../../../../component-library/hooks';
@@ -149,7 +149,7 @@ export function StakingEarningsHistoryChart({
   };
 
   // update bar fill color on index change
-  useMemo(() => {
+  useEffect(() => {
     setTransformedData((prev) => {
       const newTransformedData = [...prev];
       newTransformedData.forEach((data, index) => {
@@ -226,7 +226,7 @@ export function StakingEarningsHistoryChart({
 
   return earnings ? (
     <View
-      onLayout={(event) => {
+      onLayout={(event: LayoutChangeEvent) => {
         const { width } = event.nativeEvent.layout;
         setChartWidth(width);
       }}
@@ -235,10 +235,10 @@ export function StakingEarningsHistoryChart({
       <View>
         <View style={styles.stakingEarningsHistoryChartHeaderContainer}>
           <Text variant={TextVariant.HeadingLG} color={colors.success.default}>
-            {selectedBarAmount || earningsTotal} {ticker}
+            {selectedBarAmount ?? earningsTotal} {ticker}
           </Text>
           <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-            {selectedBarLabel || `Lifetime earnings`}
+            {selectedBarLabel ?? `Lifetime earnings`}
           </Text>
         </View>
         <View
