@@ -5,13 +5,13 @@ import { hexToNumber } from '@metamask/utils';
 import { ChainId } from '@metamask/controller-utils';
 import { StakingApiService } from '@metamask/stake-sdk';
 
-interface EarningHistory {
+export interface EarningHistory {
   sumRewards: string;
   dateStr: string;
   dailyRewards: string;
   dailyRewardsUsd: string;
 }
-interface EarningHistoryResponse {
+export interface EarningHistoryResponse {
   userRewards: EarningHistory[];
 }
 
