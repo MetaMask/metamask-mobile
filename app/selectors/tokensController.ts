@@ -90,7 +90,7 @@ export const getChainIdsToPoll = createDeepEqualSelector(
     return Object.keys(networkConfigurations).filter(
       (chainId) =>
         chainId === currentChainId ||
-        popularNetworksChainIds.includes(chainId as `0x${string}`),
+        popularNetworksChainIds.includes(chainId as Hex),
     );
   },
 );
