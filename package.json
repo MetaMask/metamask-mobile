@@ -306,7 +306,7 @@
     "react-native-modal": "^12.1.0",
     "react-native-os": "^1.2.6",
     "react-native-permissions": "^3.7.2",
-    "react-native-progress": "3.5.0",
+    "react-native-progress": "5.0.1",
     "react-native-qrcode-svg": "5.1.2",
     "react-native-quick-base64": "^2.0.8",
     "react-native-quick-crypto": "^0.7.8",
