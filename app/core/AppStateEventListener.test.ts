@@ -79,17 +79,36 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-        .addSensitiveProperties({
-          attributionId: 'test123',
-          utm_source: 'source',
-          utm_medium: 'medium',
-          utm_campaign: 'campaign',
-        })
-        .build(),
-    );
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
+            .addProperties({
+              attributionId: 'test123',
+              utm_source: 'source',
+              utm_medium: 'medium',
+              utm_campaign: 'campaign',
+            })
+            .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
+
+  it('tracks event when app becomes active without attribution data', () => {
+    jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue({} as unknown as ReduxStore);
+    (processAttribution as jest.Mock).mockReturnValue(undefined);
+
+    appStateManager.setCurrentDeeplink(
+        'metamask://connect',
+    );
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+
 
   it('does not track event when processAttribution returns undefined', () => {
     (processAttribution as jest.Mock).mockReturnValue(undefined);
