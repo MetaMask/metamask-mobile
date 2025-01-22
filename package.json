@@ -263,7 +263,7 @@
     "pify": "6.1.0",
     "portfinder": "^1.0.32",
     "prop-types": "15.7.2",
-    "pump": "3.0.0",
+    "pump": "3.0.2",
     "punycode": "^2.1.1",
     "qs": "6.12.1",
     "query-string": "^6.12.1",
