@@ -72,10 +72,7 @@ import AccountConnectSingle from './AccountConnectSingle';
 import AccountConnectSingleSelector from './AccountConnectSingleSelector';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
-import {
-  isMultichainVersion1Enabled,
-  getNetworkImageSource,
-} from '../../../util/networks';
+import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
@@ -212,7 +209,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       const initialNetworkAvatar = {
         size: AvatarSize.Xs,
         name: networkConfigurations[chainId]?.name || '',
-        // @ts-expect-error getNetworkImageSourcenot yet typed
+        // @ts-expect-error getNetworkImageSource is not implemented in typescript
         imageSource: getNetworkImageSource({ chainId }),
       };
       setSelectedNetworkAvatars([initialNetworkAvatar]);
@@ -724,9 +721,7 @@ const AccountConnect = (props: AccountConnectProps) => {
         hostname={hostname}
         onPrimaryActionButtonPress={() => {
           setConfirmedAddresses(selectedAddresses);
-          return isMultichainVersion1Enabled
-            ? setScreen(AccountConnectScreens.SingleConnect)
-            : undefined;
+          setScreen(AccountConnectScreens.SingleConnect);
         }}
         screenTitle={strings('accounts.edit_accounts_title')}
       />
@@ -810,9 +805,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       case AccountConnectScreens.SingleConnect:
         return isSdkUrlUnknown
           ? renderSingleConnectScreen()
-          : isMultichainVersion1Enabled
-          ? renderPermissionsSummaryScreen()
-          : renderSingleConnectScreen();
+          : renderPermissionsSummaryScreen();
       case AccountConnectScreens.SingleConnectSelector:
         return renderSingleConnectSelectorScreen();
       case AccountConnectScreens.MultiConnectSelector:
