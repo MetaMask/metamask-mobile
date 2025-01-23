@@ -4520,10 +4520,10 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/bitcoin-wallet-snap@^0.8.2":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.8.2.tgz#dd37c48366997e6e9927837e28cc65a6008d1524"
-  integrity sha512-NoqqAA7YuuFk/n0/ZgcLpaFRYKorkN5nS9mVYIkHcp1yxyduDGhrDKyYzMVcOiEmrnZSkSRt5tDulk1PQ+cdLw==
+"@metamask/bitcoin-wallet-snap@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
+  integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
@@ -4728,7 +4728,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^7.0.0":
+"@metamask/eth-snap-keyring@^7.1.0":
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-7.1.0.tgz#d472ff8c9abee1f438398d749408cd12ee44ada7"
   integrity sha512-aOP8WkapqFmne7xt7Xo39YPxA3fvwSzKEO+Eo+o76r4rBAutH6QLNO9gmy6e4wm2TG9hHzsQjceZmLns75suvg==
@@ -5535,6 +5535,11 @@
     semver "^7.5.4"
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
+
+"@metamask/solana-wallet-snap@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.2.0.tgz#7d0db28a58cbd728306427144039d28f56f6d477"
+  integrity sha512-XG1NzrJu2Xvo6PKr5f3Ij6ojEBNGh1H/2WJCcCMSoKZUEl8UG5i8rmZ+SVcZJ0Jhr88sbredNXlAzqGESz2VBA==
 
 "@metamask/stake-sdk@^0.3.0":
   version "0.3.0"
