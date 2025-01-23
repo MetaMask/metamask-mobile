@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { GestureResponderEvent, View, LayoutChangeEvent } from 'react-native';
 import { Defs, Line, LinearGradient, Stop } from 'react-native-svg';
 import { BarChart, Grid } from 'react-native-svg-charts';
