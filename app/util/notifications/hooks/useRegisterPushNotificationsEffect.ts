@@ -8,6 +8,9 @@ import Routes from '../../../constants/navigation/Routes';
 import NotificationsService from '../services/NotificationService';
 import { PressActionId } from '../types';
 import { useEffect } from 'react';
+import { isNotificationsFeatureEnabled } from '../constants';
+import { useSelector } from 'react-redux';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 
 // TODO - improve navigation types, so we have Type-Safety for navigation props
 type NavigationParams = Record<string, { notification: INotification }>;
@@ -102,14 +105,26 @@ async function onBackgroundEvent(navigation: NavigationProp<NavigationParams>) {
  */
 export function useRegisterPushNotificationsEffect() {
   const navigation: NavigationProp<NavigationParams> = useNavigation();
+  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
+  const notificationsControllerEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+  // TODO - we may need to see if push notifications are enabled to determine if we should subscribe
+  // Most likely we can toggle off notifications if there are no push notifications
+  const notificationsEnabled =
+    notificationsFlagEnabled && notificationsControllerEnabled;
 
   // App Open Effect
   useEffect(() => {
-    onAppOpenNotification(navigation);
-  }, [navigation]);
+    if (notificationsEnabled) {
+      onAppOpenNotification(navigation);
+    }
+  }, [navigation, notificationsEnabled]);
 
   // On Background and Foreground Events
   useEffect(() => {
-    onBackgroundEvent(navigation);
-  }, [navigation]);
+    if (notificationsEnabled) {
+      onBackgroundEvent(navigation);
+    }
+  }, [navigation, notificationsEnabled]);
 }
