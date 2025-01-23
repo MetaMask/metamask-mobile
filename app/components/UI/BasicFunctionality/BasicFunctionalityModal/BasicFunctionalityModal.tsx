@@ -56,6 +56,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     selectIsMetamaskNotificationsEnabled,
   );
 
+  // TODO - should we add notification logic when basic functionality is toggled?
   const { enableNotifications } = useEnableNotifications();
 
   const enableNotificationsFromModal = useCallback(async () => {

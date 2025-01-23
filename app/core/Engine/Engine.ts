@@ -1080,9 +1080,7 @@ export class Engine {
     const notificationServicesPushController =
       new NotificationServicesPushController({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController || {
-          fcmToken: '',
-        },
+        state: initialState.NotificationServicesPushController,
         env: {
           apiKey: process.env.FIREBASE_API_KEY ?? '',
           authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
@@ -1094,7 +1092,7 @@ export class Engine {
           vapidKey: process.env.VAPID_KEY ?? '',
         },
         config: {
-          isPushEnabled: true,
+          isPushFeatureEnabled: true,
           platform: 'mobile',
           pushService: {
             createRegToken,
@@ -1141,6 +1139,17 @@ export class Engine {
       },
     );
 
+    // Push Notification Side Effect - ensure permissions have been set
+    // We only need to switch push notifications off if it is enabled, but the system/device has it off
+    if (notificationServicesPushController.state.isPushEnabled) {
+      isPushNotificationsEnabled().then((isEnabled) => {
+        if (isEnabled === false)
+          notificationServicesPushController.setIsPushNotificationsEnabled(
+            false,
+          );
+      });
+    }
+
     const notificationServicesController = new NotificationServicesController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'NotificationServicesController',
@@ -1165,7 +1174,6 @@ export class Engine {
       }) as unknown as NotificationServicesControllerMessenger,
       state: initialState.NotificationServicesController,
       env: {
-        isPushIntegrated: false,
         featureAnnouncements: {
           platform: 'mobile',
           accessToken: process.env
@@ -1174,15 +1182,6 @@ export class Engine {
         },
       },
     });
-
-    // Side-Effect - Need to check push notifications are permitted to enable push notifications
-    if(notificationServicesController.state.isNotificationServicesEnabled) {
-      isPushNotificationsEnabled().then(() => {
-        notificationServicesController.disableNotificationServices();
-      });
-    }
-
-
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({

@@ -10,7 +10,10 @@ import { PressActionId } from '../types';
 import { useEffect } from 'react';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { useSelector } from 'react-redux';
-import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import {
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsEnabled,
+} from '../../../selectors/notifications';
 
 // TODO - improve navigation types, so we have Type-Safety for navigation props
 type NavigationParams = Record<string, { notification: INotification }>;
@@ -109,10 +112,13 @@ export function useRegisterPushNotificationsEffect() {
   const notificationsControllerEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  // TODO - we may need to see if push notifications are enabled to determine if we should subscribe
-  // Most likely we can toggle off notifications if there are no push notifications
+  const notificationsPushControllerEnabled = useSelector(
+    selectIsMetaMaskPushNotificationsEnabled,
+  );
   const notificationsEnabled =
-    notificationsFlagEnabled && notificationsControllerEnabled;
+    notificationsFlagEnabled &&
+    notificationsControllerEnabled &&
+    notificationsPushControllerEnabled;
 
   // App Open Effect
   useEffect(() => {

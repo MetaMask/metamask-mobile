@@ -7,7 +7,7 @@ import { strings } from '../../locales/i18n';
 import { AppState } from 'react-native';
 import NotificationsService from '../util/notifications/services/NotificationService';
 import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
-import { safeToChecksumAddress, formatAddress } from '../util/address';
+import { safeToChecksumAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
 import { selectTicker } from '../selectors/networkController';
 import { store } from '../store';
@@ -422,10 +422,7 @@ class NotificationManager {
    */
   gotIncomingTransaction = async (incomingTransactions) => {
     try {
-      const {
-        AccountTrackerController,
-        AccountsController,
-      } = Engine.context;
+      const { AccountTrackerController, AccountsController } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
 
@@ -438,13 +435,14 @@ class NotificationManager {
       // If a TX has been confirmed more than 10 min ago, it's considered old
       const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;
 
-      const filteredTransactions = incomingTransactions.reverse()
+      const filteredTransactions = incomingTransactions
+        .reverse()
         .filter(
           (tx) =>
             safeToChecksumAddress(tx.txParams?.to) ===
               selectedInternalAccountChecksummedAddress &&
             safeToChecksumAddress(tx.txParams?.from) !==
-            selectedInternalAccountChecksummedAddress &&
+              selectedInternalAccountChecksummedAddress &&
             tx.status === TransactionStatus.confirmed &&
             tx.time > oldestTimeAllowed,
         );
@@ -454,7 +452,9 @@ class NotificationManager {
       }
 
       const nonce = hexToBN(filteredTransactions[0].txParams.nonce).toString();
-      const amount = renderFromWei(hexToBN(filteredTransactions[0].txParams.value));
+      const amount = renderFromWei(
+        hexToBN(filteredTransactions[0].txParams.value),
+      );
       const id = filteredTransactions[0]?.id;
 
       this._showNotification({
@@ -472,7 +472,11 @@ class NotificationManager {
       // Update balance upon detecting a new incoming transaction
       AccountTrackerController.refresh();
     } catch (error) {
-      Logger.log('Notifications', 'Error while processing incoming transaction', error);
+      Logger.log(
+        'Notifications',
+        'Error while processing incoming transaction',
+        error,
+      );
     }
   };
 }

@@ -1,14 +1,11 @@
 import dayjs, { Dayjs } from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 
-import notifee from '@notifee/react-native';
 import localeData from 'dayjs/plugin/localeData';
 import { Web3Provider } from '@ethersproject/providers';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
 import {
-  UserStorage,
-  USER_STORAGE_VERSION_KEY,
   OnChainRawNotification,
   OnChainRawNotificationsWithNetworkFields,
 } from '@metamask/notification-services-controller/notification-services';
@@ -476,73 +473,9 @@ export const getUsdAmount = (amount: string, decimals: string, usd: string) => {
   return formatAmount(numericAmount);
 };
 
-export const hasInitialNotification = async () =>
-  Boolean(await notifee.getInitialNotification());
-
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   const timeout = new Promise<never>((_, reject) =>
     setTimeout(() => reject(new Error(strings('notifications.timeout'))), ms),
   );
   return Promise.race([promise, timeout]);
-}
-
-export interface NotificationTrigger {
-  id: string;
-  chainId: string;
-  kind: string;
-  address: string;
-}
-
-type MapTriggerFn<Result> = (trigger: NotificationTrigger) => Result;
-
-interface TraverseTriggerOpts<Result> {
-  address?: string;
-  mapTrigger?: MapTriggerFn<Result>;
-}
-
-const triggerToId = (trigger: NotificationTrigger) => trigger.id;
-const triggerIdentity = (trigger: NotificationTrigger) => trigger;
-
-function traverseUserStorageTriggers<ResultTriggers = NotificationTrigger>(
-  userStorage: UserStorage,
-  options?: TraverseTriggerOpts<ResultTriggers>,
-) {
-  const triggers: ResultTriggers[] = [];
-  const mapTrigger =
-    options?.mapTrigger ?? (triggerIdentity as MapTriggerFn<ResultTriggers>);
-
-  for (const address in userStorage) {
-    if (address === (USER_STORAGE_VERSION_KEY as unknown as string)) continue;
-    if (options?.address && address !== options.address) continue;
-    for (const chain_id in userStorage[address]) {
-      for (const uuid in userStorage[address]?.[chain_id]) {
-        if (uuid) {
-          triggers.push(
-            mapTrigger({
-              id: uuid,
-              kind: userStorage[address]?.[chain_id]?.[uuid]?.k,
-              chainId: chain_id,
-              address,
-            }),
-          );
-        }
-      }
-    }
-  }
-
-  return triggers;
-}
-
-export function getUUIDs(userStorage: UserStorage, address: string): string[] {
-  return traverseUserStorageTriggers(userStorage, {
-    address,
-    mapTrigger: triggerToId,
-  });
-}
-
-export function getAllUUIDs(userStorage: UserStorage): string[] {
-  const uuids = traverseUserStorageTriggers(userStorage, {
-    mapTrigger: triggerToId,
-  });
-  return uuids;
 }
