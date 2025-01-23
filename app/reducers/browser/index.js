@@ -1,5 +1,6 @@
 import { BrowserActionTypes } from '../../actions/browser';
 import AppConstants from '../../core/AppConstants';
+import { appendURLParams } from '../../util/browser';
 
 const initialState = {
   history: [],
@@ -40,7 +41,15 @@ const browserReducer = (state = initialState, action) => {
         ...state,
         history: [],
         favicons: [],
-        tabs: [{ url: AppConstants.HOMEPAGE_URL, id: action.id }],
+        tabs: [
+          {
+            url: appendURLParams(AppConstants.HOMEPAGE_URL, {
+              metricsEnabled: action.metricsEnabled,
+              marketingEnabled: action.marketingEnabled,
+            }).href,
+            id: action.id,
+          },
+        ],
         activeTab: action.id,
       };
     case 'CLOSE_ALL_TABS':

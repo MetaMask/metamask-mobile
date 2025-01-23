@@ -478,21 +478,46 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                           }
                         }
                       >
-                        <Text
-                          accessibilityRole="text"
+                        <View
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 20,
-                              "fontWeight": "400",
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "alignItems": "center",
+                              "marginTop": 130,
                             }
                           }
                         >
-                          You don't have any tokens!
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            You don't have any tokens!
+                          </Text>
+                          <Text
+                            accessibilityRole="text"
+                            onPress={[Function]}
+                            style={
+                              {
+                                "color": "#0376c9",
+                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                          >
+                            Show tokens without balance
+                          </Text>
+                        </View>
                       </View>
                     </View>
                   </View>

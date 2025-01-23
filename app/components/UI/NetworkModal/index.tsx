@@ -100,7 +100,6 @@ const NetworkModals = (props: NetworkProps) => {
     }[]
   >([]);
 
-  const isCustomNetwork = true;
   const showDetailsModal = () => setShowDetails(!showDetails);
   const showCheckNetworkModal = () => setShowCheckNetwork(!showCheckNetwork);
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -438,7 +437,7 @@ const NetworkModals = (props: NetworkProps) => {
                 customNetworkInformation={customNetworkInformation}
                 onReject={onClose}
                 onConfirm={addNetwork}
-                isCustomNetwork={isCustomNetwork}
+                isCustomNetwork={!showPopularNetworkModal}
               />
             </View>
           </View>

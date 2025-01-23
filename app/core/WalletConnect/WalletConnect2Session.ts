@@ -4,7 +4,7 @@ import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
-import { Platform, Linking } from 'react-native';
+import { Platform, Linking, ImageSourcePropType } from 'react-native';
 
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
@@ -113,13 +113,10 @@ class WalletConnect2Session {
           hostname: url,
           getProviderState,
           channelId,
-          setApprovedHosts: () => false,
-          getApprovedHosts: () => false,
           analytics: {},
           isMMSDK: false,
           isHomepage: () => false,
           fromHomepage: { current: false },
-          approveHost: () => false,
           injectHomePageScripts: () => false,
           navigation: this.navigation,
           // Website info
@@ -130,7 +127,7 @@ class WalletConnect2Session {
             current: name,
           },
           icon: {
-            current: icons?.[0],
+            current: icons?.[0] as ImageSourcePropType, // Need to cast here because this cames from @walletconnect/types as string
           },
           toggleUrlModal: () => null,
           wizardScrollAdjusted: { current: false },

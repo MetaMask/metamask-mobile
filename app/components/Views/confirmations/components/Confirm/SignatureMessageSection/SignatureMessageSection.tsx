@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
+import { ConfirmationPageSectionsSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import CopyButton from '../../UI/CopyButton';
@@ -51,6 +52,7 @@ const SignatureMessageSection = ({
       }
       expandedContentTitle={strings('confirm.message')}
       iconVerticalPosition={IconVerticalPosition.Top}
+      testID={ConfirmationPageSectionsSelectorIDs.MESSAGE_SECTION}
     />
   );
 };

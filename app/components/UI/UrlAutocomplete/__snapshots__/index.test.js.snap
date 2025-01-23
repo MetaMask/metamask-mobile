@@ -5,8 +5,13 @@ exports[`UrlAutocomplete should render correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "flex": 1,
-      "paddingVertical": 15,
+      "bottom": 0,
+      "display": "none",
+      "left": 0,
+      "paddingTop": 8,
+      "position": "absolute",
+      "right": 0,
+      "top": 0,
     }
   }
 >
@@ -21,7 +26,7 @@ exports[`UrlAutocomplete should render correctly 1`] = `
       }
     }
     accessible={true}
-    focusable={false}
+    focusable={true}
     onClick={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}

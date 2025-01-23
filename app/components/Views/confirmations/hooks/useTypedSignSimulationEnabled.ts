@@ -1,6 +1,10 @@
 import { useSelector } from 'react-redux';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
-import { MessageParamsTyped, SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
+import {
+  MessageParamsTyped,
+  SignatureRequest,
+  SignatureRequestType,
+} from '@metamask/signature-controller';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
 import { isRecognizedPermit, parseTypedDataMessage } from '../utils/signature';
 import { useSignatureRequest } from './useSignatureRequest';
@@ -21,7 +25,9 @@ const isNonPermitSupportedByDecodingAPI = (
   signatureRequest: SignatureRequest,
 ) => {
   const data = signatureRequest.messageParams?.data as string;
-  if (!data) { return false; }
+  if (!data) {
+    return false;
+  }
 
   const {
     domain: { name, version },
@@ -47,12 +53,13 @@ export function useTypedSignSimulationEnabled() {
   }
 
   const requestType = signatureRequest.type;
-  const signatureMethod = (signatureRequest.messageParams as MessageParamsTyped)?.version;
+  const signatureMethod = (signatureRequest.messageParams as MessageParamsTyped)
+    ?.version;
 
-  const isTypedSignV3V4 = requestType === SignatureRequestType.TypedSign && (
-    signatureMethod === SignTypedDataVersion.V3 ||
-    signatureMethod === SignTypedDataVersion.V4
-  );
+  const isTypedSignV3V4 =
+    requestType === SignatureRequestType.TypedSign &&
+    (signatureMethod === SignTypedDataVersion.V3 ||
+      signatureMethod === SignTypedDataVersion.V4);
   const isPermit = isRecognizedPermit(signatureRequest);
 
   const nonPermitSupportedByDecodingAPI: boolean =

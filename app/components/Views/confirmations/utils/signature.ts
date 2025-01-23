@@ -1,5 +1,10 @@
-import { SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
+import {
+  MessageParamsTyped,
+  SignatureRequest,
+  SignatureRequestType,
+} from '@metamask/signature-controller';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
+import { SignTypedDataVersion } from '@metamask/eth-sig-util';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -8,7 +13,8 @@ import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
  * If updating, please be mindful of this or delete this comment.
  */
 
-const REGEX_MESSAGE_VALUE_LARGE = /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
+const REGEX_MESSAGE_VALUE_LARGE =
+  /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
 
 function extractLargeMessageValue(dataToParse: string): string | undefined {
   if (typeof dataToParse !== 'string') {
@@ -44,13 +50,39 @@ export const parseTypedDataMessage = (dataToParse: string) => {
   return result;
 };
 
+interface TypedSignatureRequest {
+  messageParams: MessageParamsTyped;
+  type: SignatureRequestType.TypedSign;
+}
+
+/**
+ * Returns true if the request is Typed Sign V3 or V4 request
+ *
+ * @param signatureRequest - The signature request to check
+ */
+export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
+  const {
+    type,
+    messageParams: { version },
+  } = signatureRequest as TypedSignatureRequest;
+
+  return (
+    type === SignatureRequestType.TypedSign &&
+    (version === SignTypedDataVersion.V3 || version === SignTypedDataVersion.V4)
+  );
+};
+
 /**
  * Returns true if the request is a recognized Permit Typed Sign signature request
  *
  * @param request - The signature request to check
  */
 export const isRecognizedPermit = (request: SignatureRequest) => {
-  if (!request || request.type !== SignatureRequestType.TypedSign) {
+  if (
+    !request ||
+    request.type !== SignatureRequestType.TypedSign ||
+    !isTypedSignV3V4Request(request)
+  ) {
     return false;
   }
 
@@ -58,4 +90,20 @@ export const isRecognizedPermit = (request: SignatureRequest) => {
 
   const { primaryType } = parseTypedDataMessage(data);
   return PRIMARY_TYPES_PERMIT.includes(primaryType);
+};
+
+/**
+ * Returns primary type of typed signature request
+ *
+ * @param signatureRequest - The signature request get primary type from
+ */
+export const getSignatureRequestPrimaryType = (
+  signatureRequest: SignatureRequest,
+) => {
+  if (!isTypedSignV3V4Request(signatureRequest)) {
+    return;
+  }
+  const data = signatureRequest.messageParams?.data as string;
+  const { primaryType } = parseTypedDataMessage(data);
+  return primaryType;
 };

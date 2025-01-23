@@ -13,6 +13,33 @@ import { setMaxValueMode } from '../../../../../actions/transaction';
 
 const mockTransactionTypes = TransactionTypes;
 
+const MOCK_NFTS = [
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/113',
+    isCurrentlyOwned: true,
+    name: 'My Nft #113',
+    standard: 'ERC721',
+    tokenId: '113',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/113',
+  },
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/114',
+    isCurrentlyOwned: true,
+    name: 'My Nft #114',
+    standard: 'ERC721',
+    tokenId: '114',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/114',
+  },
+];
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     GasFeeController: {
@@ -125,8 +152,16 @@ const initialState = {
         },
       },
       NftController: {
-        allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
-        allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+        allNfts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
+        allNftContracts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
       },
       TokensController: {
         allTokens: {

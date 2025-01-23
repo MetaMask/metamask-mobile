@@ -1,4 +1,5 @@
 import React from 'react';
+import { waitFor } from '@testing-library/react-native';
 import cloneDeep from 'lodash/cloneDeep';
 import {
   DecodingDataChangeType,
@@ -98,13 +99,17 @@ const mockState = (
 
 describe('DecodedSimulation', () => {
   it('renders for ERC20 approval', async () => {
-    const { getByText } = renderWithProvider(<TypedSignDecoded />, {
+    const { getByText, getByTestId } = renderWithProvider(<TypedSignDecoded />, {
       state: mockState(stateChangesApprove),
     });
 
     expect(await getByText('Estimated changes')).toBeDefined();
     expect(await getByText('Spending cap')).toBeDefined();
-    expect(await getByText('12,345')).toBeDefined();
+
+    // Loading renders before the token value renders
+    expect(getByTestId('simulation-value-display-loader')).toBeDefined();
+
+    await waitFor(() => expect(getByText('12,345')).toBeDefined());
   });
 
   it('renders "Unlimited" for large values', async () => {
@@ -117,7 +122,8 @@ describe('DecodedSimulation', () => {
 
     expect(await getByText('Estimated changes')).toBeDefined();
     expect(await getByText('Spending cap')).toBeDefined();
-    expect(await getByText('Unlimited')).toBeDefined();
+
+    await waitFor(() => expect(getByText('Unlimited')).toBeDefined());
   });
 
   it('renders for ERC712 token', async () => {
@@ -151,8 +157,8 @@ describe('DecodedSimulation', () => {
       ]),
     });
 
-    expect(await getAllByText('12,345')).toHaveLength(3);
     expect(await getAllByText('Spending cap')).toHaveLength(1);
+    await waitFor(() => expect(getAllByText('12,345')).toHaveLength(3));
   });
 
   it('renders unavailable message if no state change is returned', async () => {
