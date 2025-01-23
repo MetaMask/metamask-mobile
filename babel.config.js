@@ -36,6 +36,10 @@ module.exports = {
       test: './app/core/redux/ReduxService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    {
+      test: './app/core/Engine/Engine.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {
