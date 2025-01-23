@@ -47,7 +47,7 @@ class Gestures {
     await element(by.text(new RegExp(`^/${textPattern} .*$/`))).tap();
   }
 
-  
+
   /**
    * Wait for an element to be visible and then tap it.
    *
