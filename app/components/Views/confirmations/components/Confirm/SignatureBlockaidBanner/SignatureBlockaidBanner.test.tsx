@@ -30,6 +30,9 @@ jest.mock('../../../../../../util/confirmation/signatureUtils', () => ({
   getAnalyticsParams: () => ({}),
 }));
 
+const typedSignApproval =
+  typedSignV1ConfirmationState.engine.backgroundState.ApprovalController
+    .pendingApprovals['7e62bcb1-a4e9-11ef-9b51-ddf21c91a998'];
 const typedSignV1ConfirmationStateWithBlockaidResponse = {
   engine: {
     ...typedSignV1ConfirmationState.engine,
