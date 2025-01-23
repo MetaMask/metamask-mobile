@@ -42,7 +42,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
       );
     });
 
-    fit('allows user to modify permitted chains before completing connection', async () => {
+    it('allows user to modify permitted chains before completing connection', async () => {
       await withFixtures(
         {
           dapp: true,
