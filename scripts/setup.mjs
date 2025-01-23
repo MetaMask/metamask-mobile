@@ -28,6 +28,9 @@ for (const arg of args) {
     case '--node':
       IS_NODE = true;
       continue;
+    case '--no-build-android':
+      BUILD_ANDROID = false
+      continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
   }
@@ -221,6 +224,9 @@ const nodeifyTask = {
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
+    if (!BUILD_ANDROID) {
+      return task.skip('Skipping jetifying npm packages.');
+    }
     if (IS_NODE) {
       return task.skip('Skipping jetifying npm packages.');
     }
