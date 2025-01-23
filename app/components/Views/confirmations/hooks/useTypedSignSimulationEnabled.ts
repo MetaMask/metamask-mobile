@@ -60,6 +60,7 @@ export function useTypedSignSimulationEnabled() {
     requestType === SignatureRequestType.TypedSign &&
     (signatureMethod === SignTypedDataVersion.V3 ||
       signatureMethod === SignTypedDataVersion.V4);
+
   const isPermit = isTypedSignV3V4 && isRecognizedPermit(signatureRequest);
 
   const nonPermitSupportedByDecodingAPI: boolean =
