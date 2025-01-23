@@ -30,14 +30,13 @@ import {
   selectIsIpfsGatewayEnabled,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
-import {
-  RefreshTestId,
-  SpinnerTestId,
-} from '../CollectibleContracts/constants';
 import NftGridItem from './NftGridItem';
 import NftGridEmpty from './NftGridEmpty';
 import NftGridFooter from './NftGridFooter';
 import { useNavigation } from '@react-navigation/native';
+
+export const RefreshTestId = 'refreshControl';
+export const SpinnerTestId = 'spinner';
 
 interface ActionSheetType {
   show: () => void;
