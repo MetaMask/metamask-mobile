@@ -1,10 +1,16 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
 import { ControllerMessenger } from '../../types';
 
+/**
+ * Get the AccountsControllerMessenger for the AccountsController.
+ *
+ * @param baseControllerMessenger - The base controller messenger.
+ * @returns The AccountsControllerMessenger.
+ */
 export function getAccountsControllerMessenger(
-  controllerMessenger: ControllerMessenger,
+  baseControllerMessenger: ControllerMessenger,
 ): AccountsControllerMessenger {
-  return controllerMessenger.getRestricted({
+  return baseControllerMessenger.getRestricted({
     name: 'AccountsController',
     allowedEvents: [
       'SnapController:stateChange',
