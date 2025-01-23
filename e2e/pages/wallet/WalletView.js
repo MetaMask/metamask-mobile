@@ -142,7 +142,7 @@ class WalletView {
   }
 
   get testCollectible() {
-    return Matchers.getElementByID('nft-collectible-name');
+    return Matchers.getElementByID("Life's A Joke #2875");
     // return device.getPlatform() === 'android'
     //   ? Matchers.getElementByLabel('nft-collectible')
     // : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
