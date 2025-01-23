@@ -159,6 +159,106 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
 
   const styles = createStyles(colors);
 
+  const getTokensToDisplay = (allTokens: TokenI[]): TokenI[] => {
+    if (hideZeroBalanceTokens) {
+      const tokensToDisplay: TokenI[] = [];
+      for (const curToken of allTokens) {
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            curToken.chainId as Hex
+          ];
+        const balance =
+          multiChainTokenBalances?.[curToken.address as Hex] ||
+          curToken.balance;
+
+        if (isUserOnCurrentNetwork) {
+          // Show tokens if balance is non-zero, native, or staked
+          if (!isZero(balance) || curToken.isNative || curToken.isStaked) {
+            tokensToDisplay.push(curToken);
+          }
+        }
+      }
+      return tokensToDisplay;
+    }
+    return allTokens;
+  };
+
+  const categorizeTokens = (filteredTokens: TokenI[]) => {
+    const nativeTokens: TokenI[] = [];
+    const nonNativeTokens: TokenI[] = [];
+
+    for (const currToken of filteredTokens) {
+      const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
+
+      // Categorize tokens as native or non-native
+      if (token.isNative) {
+        nativeTokens.push(token);
+      } else {
+        nonNativeTokens.push(token);
+      }
+    }
+
+    return [...nativeTokens, ...nonNativeTokens];
+  };
+
+  const calculateTokenFiatBalances = (assets: TokenI[]) => {
+    const tokenFiatBalances: number[] = [];
+
+    for (const token of assets) {
+      const chainId = token.chainId as Hex;
+      const multiChainExchangeRates = debouncedMultiChainMarketData?.[chainId];
+      const multiChainTokenBalances =
+        debouncedMultiChainTokenBalance?.[
+          selectedInternalAccountAddress as Hex
+        ]?.[chainId];
+      const nativeCurrency =
+        networkConfigurationsByChainId[chainId].nativeCurrency;
+      const multiChainConversionRate =
+        debouncedMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+
+      // Calculate fiat balance for the token
+      const fiatBalance =
+        token.isETH || token.isNative
+          ? parseFloat(token.balance) * multiChainConversionRate
+          : deriveBalanceFromAssetMarketDetails(
+              token,
+              multiChainTokenBalances || {},
+              multiChainExchangeRates || {},
+              multiChainConversionRate || 0,
+              currentCurrency || '',
+            ).balanceFiatCalculation;
+
+      // Add the calculated balance to the array
+      tokenFiatBalances.push(fiatBalance || 0);
+    }
+
+    const tokensWithBalances: typeof assets = [];
+
+    for (let i = 0; i < assets.length; i++) {
+      const token = assets[i];
+      const tokenWithBalance = {
+        ...token,
+        tokenFiatAmount: tokenFiatBalances[i],
+      };
+
+      tokensWithBalances.push(tokenWithBalance);
+    }
+
+    return tokensWithBalances;
+  };
+
+  const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
+    if (isAllNetworks && isPopularNetwork) {
+      return tokensToDisplay;
+    }
+    return tokensToDisplay.filter((token) => token.chainId === currentChainId);
+  };
+
   const tokensList = useMemo((): TokenI[] => {
     trace({
       name: TraceName.Tokens,
@@ -179,106 +279,13 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
         If user is on "current Network" we want to show native tokens, even with zero balance
       */
-      let tokensToDisplay = [];
-      if (hideZeroBalanceTokens) {
-        tokensToDisplay = [];
-        for (const curToken of allTokens) {
-          const multiChainTokenBalances =
-            multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-              curToken.chainId as Hex
-            ];
-          const balance =
-            multiChainTokenBalances?.[curToken.address as Hex] ||
-            curToken.balance;
+      const tokensToDisplay = getTokensToDisplay(allTokens);
 
-          if (isUserOnCurrentNetwork) {
-            // Show tokens if balance is non-zero, native, or staked
-            if (!isZero(balance) || curToken.isNative || curToken.isStaked) {
-              tokensToDisplay.push(curToken);
-            }
-          }
-        }
-      } else {
-        tokensToDisplay = allTokens;
-      }
+      const filteredTokens: TokenI[] = filterTokensByNetwork(tokensToDisplay);
 
-      // Then apply network filters
-      let filteredTokens: TokenI[] = [];
-      if (isAllNetworks && isPopularNetwork) {
-        filteredTokens = tokensToDisplay;
-      } else {
-        for (const token of tokensToDisplay) {
-          if (token.chainId === currentChainId) {
-            filteredTokens.push(token);
-          }
-        }
-      }
+      const assets = categorizeTokens(filteredTokens);
 
-      // TODO: not use reduce here for better performance and use Set for better performance
-      const nativeTokens: TokenI[] = [];
-      const nonNativeTokens: TokenI[] = [];
-
-      for (const currToken of filteredTokens) {
-        const token = currToken as TokenI & { chainId: string };
-
-        // Skip tokens if they are on a test network and the current chain is not a test network
-        if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
-          continue;
-        }
-
-        // Categorize tokens as native or non-native
-        if (token.isNative) {
-          nativeTokens.push(token);
-        } else {
-          nonNativeTokens.push(token);
-        }
-      }
-
-      const assets = [...nativeTokens, ...nonNativeTokens];
-
-      const tokenFiatBalances: number[] = [];
-
-      for (const token of assets) {
-        const chainId = token.chainId as Hex;
-        const multiChainExchangeRates =
-          debouncedMultiChainMarketData?.[chainId];
-        const multiChainTokenBalances =
-          debouncedMultiChainTokenBalance?.[
-            selectedInternalAccountAddress as Hex
-          ]?.[chainId];
-        const nativeCurrency =
-          networkConfigurationsByChainId[chainId].nativeCurrency;
-        const multiChainConversionRate =
-          debouncedMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate ||
-          0;
-
-        // Calculate fiat balance for the token
-        const fiatBalance =
-          token.isETH || token.isNative
-            ? parseFloat(token.balance) * multiChainConversionRate
-            : deriveBalanceFromAssetMarketDetails(
-                token,
-                multiChainTokenBalances || {},
-                multiChainExchangeRates || {},
-                multiChainConversionRate || 0,
-                currentCurrency || '',
-              ).balanceFiatCalculation;
-
-        // Add the calculated balance to the array
-        tokenFiatBalances.push(fiatBalance || 0);
-      }
-
-      const tokensWithBalances: typeof assets = [];
-
-      for (let i = 0; i < assets.length; i++) {
-        const token = assets[i];
-        const tokenWithBalance = {
-          ...token,
-          tokenFiatAmount: tokenFiatBalances[i],
-        };
-
-        tokensWithBalances.push(tokenWithBalance);
-      }
+      const tokensWithBalances = calculateTokenFiatBalances(assets);
 
       const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
       endTrace({
