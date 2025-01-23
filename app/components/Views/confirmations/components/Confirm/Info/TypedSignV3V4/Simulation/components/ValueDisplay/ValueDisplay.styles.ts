@@ -24,6 +24,10 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
+    loaderButtonPillEmptyContent: {
+      height: 22,
+      width: 22,
+    },
     marginStart4: {
       marginStart: 4,
     },
