@@ -9,6 +9,7 @@ import {
   memoizedGetTokenStandardAndDetails,
   TokenDetailsERC20,
 } from '../utils/token';
+import { useRef } from 'react';
 
 /**
  * Returns token details for a given token contract
@@ -16,24 +17,31 @@ import {
  * @param tokenAddress
  * @returns
  */
-const useGetTokenStandardAndDetails = (
+export const useGetTokenStandardAndDetails = (
   tokenAddress?: Hex | string | undefined,
   networkClientId?: NetworkClientId,
 ) => {
+  const isPendingRef = useRef<boolean>(false);
+
   const { value: details } =
     useAsyncResult<TokenDetailsERC20 | null>(async () => {
       if (!tokenAddress) {
         return Promise.resolve(null);
       }
 
-      return (await memoizedGetTokenStandardAndDetails({
+      isPendingRef.current = true;
+
+      const result = await memoizedGetTokenStandardAndDetails({
         tokenAddress,
         networkClientId,
-      })) as TokenDetailsERC20;
+      }) as TokenDetailsERC20;
+      isPendingRef.current = false;
+
+      return result;
     }, [tokenAddress]);
 
   if (!details) {
-    return { decimalsNumber: undefined };
+    return { details: { decimalsNumber: undefined }, isPending: isPendingRef.current };
   }
 
   const { decimals, standard } = details || {};
@@ -44,7 +52,5 @@ const useGetTokenStandardAndDetails = (
     details.decimalsNumber = parsedDecimals;
   }
 
-  return details;
+  return { details, isPending: isPendingRef.current };
 };
-
-export default useGetTokenStandardAndDetails;

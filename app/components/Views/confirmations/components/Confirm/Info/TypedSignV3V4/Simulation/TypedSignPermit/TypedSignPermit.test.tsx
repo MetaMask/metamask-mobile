@@ -1,4 +1,5 @@
 import React from 'react';
+import { waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../../../util/test/renderWithProvider';
 import { typedSignV4ConfirmationState } from '../../../../../../../../../util/test/confirm-data-helpers';
@@ -25,7 +26,8 @@ describe('PermitSimulation', () => {
       ),
     ).toBeDefined();
     expect(getByText('Spending cap')).toBeDefined();
-    expect(getByText('3,000')).toBeDefined();
     expect(getByText('0xCcCCc...ccccC')).toBeDefined();
+
+    await waitFor(() => expect(getByText('3,000')).toBeDefined());
   });
 });

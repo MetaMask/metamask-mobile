@@ -6,7 +6,16 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 // Internal dependencies.
 import RpcSelectionModal from './RpcSelectionModal';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { NetworkConfiguration } from '@metamask/network-controller';
+import {
+  NetworkConfiguration,
+  RpcEndpointType,
+} from '@metamask/network-controller';
+import Engine from '../../../../core/Engine/Engine';
+import { useSelector } from 'react-redux';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
+import { Hex } from '@metamask/utils';
+const { PreferencesController } = Engine.context;
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -55,7 +64,7 @@ const MOCK_STORE_STATE = {
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: (fn: (state: unknown) => unknown) => fn(MOCK_STORE_STATE),
+  useSelector: jest.fn(),
 }));
 
 jest.mock('react-native-safe-area-context', () => {
@@ -83,6 +92,49 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../../core/Engine/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
+    },
+  },
+}));
+
+const mockNetworks: Record<Hex, NetworkConfiguration> = {
+  [NETWORK_CHAIN_ID.MAINNET]: {
+    blockExplorerUrls: ['https://etherscan.io'],
+    chainId: NETWORK_CHAIN_ID.MAINNET,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Ethereum Mainnet',
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [
+      {
+        url: 'https://mainnet.infura.io/v3',
+        networkClientId: NETWORK_CHAIN_ID.MAINNET,
+        type: RpcEndpointType.Custom,
+        name: 'Ethereum',
+      },
+    ],
+  },
+  [NETWORK_CHAIN_ID.POLYGON]: {
+    blockExplorerUrls: ['https://polygonscan.com'],
+    chainId: NETWORK_CHAIN_ID.POLYGON,
+    defaultBlockExplorerUrlIndex: 0,
+    defaultRpcEndpointIndex: 0,
+    name: 'Polygon Mainnet',
+    nativeCurrency: 'MATIC',
+    rpcEndpoints: [
+      {
+        url: 'https://polygon-rpc.com',
+        name: 'Polygon',
+        networkClientId: NETWORK_CHAIN_ID.POLYGON,
+        type: RpcEndpointType.Custom,
+      },
+    ],
+  },
+};
 
 describe('RpcSelectionModal', () => {
   const mockRpcMenuSheetRef = {
@@ -116,6 +168,18 @@ describe('RpcSelectionModal', () => {
       alternativeText: {},
     },
   };
+
+  beforeEach(() => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectNetworkConfigurations) {
+        return mockNetworks; // to show all networks
+      }
+      return null;
+    });
+  });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   it('should render correctly when visible', () => {
     const { toJSON } = renderWithProvider(
@@ -185,5 +249,16 @@ describe('RpcSelectionModal', () => {
     );
 
     expect(queryByText('mainnet.infura.io')).toBeNull(); // Should not render any RPC URLs
+  });
+
+  it('should call preferences controller setTokenNetworkFilter', () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+    fireEvent.press(rpcUrlElement);
+    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
+      1,
+    );
   });
 });

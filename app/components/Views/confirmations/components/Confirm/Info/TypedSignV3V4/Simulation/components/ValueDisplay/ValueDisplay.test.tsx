@@ -3,7 +3,7 @@ import { act } from '@testing-library/react-native';
 import SimulationValueDisplay from './ValueDisplay';
 
 import { memoizedGetTokenStandardAndDetails } from '../../../../../../../utils/token';
-import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../../../../../../../../UI/SimulationDetails/types';
 import { getTokenDetails } from '../../../../../../../../../../util/address';
 import { backgroundState } from '../../../../../../../../../../util/test/initial-root-state';
@@ -59,11 +59,14 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { findByText } = renderWithProvider(
@@ -79,13 +82,35 @@ describe('SimulationValueDisplay', () => {
     expect(await findByText('0.432')).toBeDefined();
   });
 
+  it('renders loading state when fetching token details', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
+      details: { decimalsNumber: undefined },
+      isPending: true,
+    });
+
+    const { findByTestId } = renderWithProvider(
+      <SimulationValueDisplay
+        labelChangeType={'Spending Cap'}
+        tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+        value={'4321'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByTestId('simulation-value-display-loader')).toBeDefined();
+  });
+
   it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     const { findByText } = renderWithProvider(
@@ -102,17 +127,20 @@ describe('SimulationValueDisplay', () => {
     expect(await findByText('Unlimited')).toBeDefined();
   });
 
-  it('should invoke method to track missing decimal information for ERC20 tokens only once', async () => {
+  it('invokes method to track missing decimal information for ERC20 tokens only once', async () => {
     (
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: undefined,
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: undefined,
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     renderWithProvider(
@@ -128,17 +156,20 @@ describe('SimulationValueDisplay', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it('should not invoke method to track missing decimal information for ERC20 tokens', async () => {
+  it('does not invoke method to track missing decimal information for ERC20 tokens', async () => {
     (
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      symbol: 'TST',
-      decimals: '4',
-      balance: undefined,
-      standard: TokenStandard.ERC20,
-      decimalsNumber: 4,
+      details: {
+        symbol: 'TST',
+        decimals: '4',
+        balance: undefined,
+        standard: TokenStandard.ERC20,
+        decimalsNumber: 4,
+      },
+      isPending: false,
     });
 
     renderWithProvider(
@@ -163,7 +194,7 @@ describe('SimulationValueDisplay', () => {
       });
     });
 
-    it('should not invoke method to track missing decimal information', async () => {
+    it('does not invoke method to track missing decimal information', async () => {
       renderWithProvider(
         <SimulationValueDisplay
           labelChangeType={'Withdraw'}
