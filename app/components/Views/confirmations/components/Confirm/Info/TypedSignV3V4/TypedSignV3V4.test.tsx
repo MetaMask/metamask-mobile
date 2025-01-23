@@ -8,6 +8,15 @@ import {
 import TypedSignV3V4 from './TypedSignV3V4';
 import { fireEvent } from '@testing-library/react-native';
 
+jest.mock('../../../../../../../core/Engine', () => ({
+  resetState: jest.fn(),
+  context: {
+    NetworkController: {
+      findNetworkClientIdByChainId: () => 123,
+    },
+  },
+}));
+
 describe('TypedSignV3V4', () => {
   it('should contained required text', async () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
@@ -21,14 +30,14 @@ describe('TypedSignV3V4', () => {
   });
 
   it('should not display primaty type if simulation section is displayed', async () => {
-    const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
+    const { getByText, queryByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
     expect(getByText('Request from')).toBeDefined();
     expect(getByText('metamask.github.io')).toBeDefined();
     expect(getByText('Message')).toBeDefined();
-    expect(getByText('Primary type')).not.toBeDefined();
-    expect(getByText('Mail')).not.toBeDefined();
+    expect(queryByText('Primary type')).toBeNull();
+    expect(queryByText('Mail')).toBeNull();
   });
 
   it('should show detailed message when message section is clicked', async () => {
