@@ -19,6 +19,7 @@ import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
