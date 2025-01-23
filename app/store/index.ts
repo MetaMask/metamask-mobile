@@ -14,7 +14,6 @@ import persistConfig from './persistConfig';
 import getUIStartupSpan from '../core/Performance/UIStartup';
 import ReduxService from '../core/redux';
 import { onPersistedDataLoaded } from '../actions/user';
-import { validatePostMigrationState } from './validateMigration/validateMigration';
 
 // TODO: Improve type safety by using real Action types instead of `any`
 // TODO: Replace "any" with type
