@@ -27,7 +27,7 @@ import { isNumberValue } from '../../../../../../../../../../util/number';
 import { useTheme } from '../../../../../../../../../../util/theme';
 import { calcTokenAmount } from '../../../../../../../../../../util/transactions';
 
-import useGetTokenStandardAndDetails from '../../../../../../../hooks/useGetTokenStandardAndDetails';
+import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
@@ -35,6 +35,7 @@ import BottomModal from '../../../../../../UI/BottomModal';
 
 import styleSheet from './ValueDisplay.styles';
 import { strings } from '../../../../../../../../../../../locales/i18n';
+import AnimatedPulse from '../AnimatedPulse/AnimatedPulse';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -91,6 +92,7 @@ const SimulationValueDisplay: React.FC<
     const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
     const { colors } = useTheme();
+
     const styles = styleSheet(colors);
 
     const contractExchangeRates = useSelector(selectContractExchangeRates);
@@ -99,7 +101,10 @@ const SimulationValueDisplay: React.FC<
         ? contractExchangeRates[tokenContract as `0x${string}`]?.price
         : undefined;
 
-    const tokenDetails = useGetTokenStandardAndDetails(tokenContract, networkClientId);
+    const {
+      details: tokenDetails,
+      isPending: isPendingTokenDetails
+    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
     const { decimalsNumber: tokenDecimals } = tokenDetails;
 
     useTrackERC20WithoutDecimalInformation(
@@ -139,28 +144,36 @@ const SimulationValueDisplay: React.FC<
       <View style={styles.wrapper}>
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
-            <ButtonPill
-              isDisabled={!!tokenId || tokenId === '0'}
-              onPress={handlePressTokenValue}
-              onPressIn={handlePressTokenValue}
-              onPressOut={handlePressTokenValue}
-              style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-            >
-              <Text>
-                {credit && '+ '}
-                {debit && '- '}
-                {shouldShowUnlimitedValue
-                  ? strings('confirm.unlimited')
-                  : tokenValue !== null &&
-                    shortenString(tokenValue || '', {
-                    truncatedCharLimit: 15,
-                    truncatedStartChars: 15,
-                    truncatedEndChars: 0,
-                    skipCharacterInEnd: true,
-                  })}
-                {tokenId && `#${tokenId}`}
-              </Text>
-            </ButtonPill>
+            {
+              <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
+                <ButtonPill
+                  isDisabled={!!tokenId || tokenId === '0'}
+                  onPress={handlePressTokenValue}
+                  onPressIn={handlePressTokenValue}
+                  onPressOut={handlePressTokenValue}
+                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
+                >
+                  {isPendingTokenDetails ?
+                    <View style={styles.loaderButtonPillEmptyContent} />
+                  :
+                  <Text>
+                    {credit && '+ '}
+                    {debit && '- '}
+                    {shouldShowUnlimitedValue
+                      ? strings('confirm.unlimited')
+                      : tokenValue !== null &&
+                        shortenString(tokenValue || '', {
+                        truncatedCharLimit: 15,
+                        truncatedStartChars: 15,
+                        truncatedEndChars: 0,
+                        skipCharacterInEnd: true,
+                      })}
+                      {tokenId && `#${tokenId}`}
+                    </Text>
+                  }
+                </ButtonPill>
+              </AnimatedPulse>
+            }
             <View style={styles.marginStart4}>
               <Address address={tokenContract} chainId={chainId} />
             </View>
