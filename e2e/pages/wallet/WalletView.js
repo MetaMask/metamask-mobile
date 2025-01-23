@@ -141,21 +141,12 @@ class WalletView {
     await Gestures.waitAndTap(this.importNFTButton);
   }
 
-  get testCollectible() {
-    return Matchers.getElementByID("Life's A Joke #2875");
-    // return device.getPlatform() === 'android'
-    //   ? Matchers.getElementByLabel('nft-collectible')
-    // : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+  get mainnetCollectible() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.MAINNET_COLLECTIBLE);
   }
 
-  // get testCollectible() {
-  //   return device.getPlatform() === 'android'
-  //     ? Matchers.getElementByLabel('nft-collectible')
-  //     : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
-  // }
-
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.mainnetCollectible);
   }
 
   async tapImportTokensButton() {

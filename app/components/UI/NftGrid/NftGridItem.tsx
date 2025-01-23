@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import CollectibleMedia from '../CollectibleMedia';
 import Text from '../../../component-library/components/Texts/Text';
 import { Nft } from '@metamask/assets-controllers';

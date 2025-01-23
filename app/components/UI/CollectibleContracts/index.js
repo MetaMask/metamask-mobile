@@ -291,6 +291,7 @@ const CollectibleContracts = ({
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
 
+  
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
       setRefreshing(true);
