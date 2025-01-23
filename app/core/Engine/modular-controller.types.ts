@@ -3,16 +3,17 @@ import {
   EventConstraint,
   RestrictedControllerMessenger,
 } from '@metamask/base-controller';
-import { ControllerMessenger, StatefulControllers } from './types';
+import { ControllerMessenger, Controllers } from './types';
+import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 
-export type Controller = StatefulControllers[keyof StatefulControllers];
+export type Controller = Controllers[keyof Controllers];
 
 /** The supported controller names. */
-export type ControllerName = keyof StatefulControllers;
+export type ControllerName = keyof Controllers;
 
 /** All controller types by name. */
 export type ControllerByName = {
-  [name in ControllerName]: StatefulControllers[name];
+  [name in ControllerName]: Controllers[name];
 };
 
 /**
@@ -20,7 +21,10 @@ export type ControllerByName = {
  * e.g. `{ TransactionController: { transactions: [] } }`.
  */
 export type ControllerPersistedState = {
-  [name in ControllerName]: ControllerByName[name]['state'];
+  [Name in Exclude<
+    ControllerName,
+    (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
+  >]: ControllerByName[Name]['state'];
 };
 
 /** Generic controller messenger using base template types. */
@@ -63,12 +67,6 @@ export type ControllerInitRequest = {
    */
   persistedState: ControllerPersistedState;
 };
-
-/**
- * A single background API method available to the UI.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ControllerApi = (...args: any[]) => unknown;
 
 /**
  * Result of initializing a controller instance.
