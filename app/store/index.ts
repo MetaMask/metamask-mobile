@@ -70,10 +70,6 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
-
-    // validate the state after migration
-    const currentState = store.getState();
-    validatePostMigrationState(currentState);
   };
 
   persistor = persistStore(store, null, onPersistComplete);
