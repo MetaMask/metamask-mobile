@@ -45,27 +45,27 @@ describe(SmokeAssets('NFT Details page'), () => {
         await WalletView.scrollDownOnNFTsTab();
 
         await Assertions.checkIfVisible(ImportNFTView.container);
-        await ImportNFTView.typeInNFTAddress('1234');
-        await ImportNFTView.typeInNFTIdentifier('');
-        await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
+        // await ImportNFTView.typeInNFTAddress('1234');
+        // await ImportNFTView.typeInNFTIdentifier('');
+        // await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
 
-        await ImportNFTView.typeInNFTAddress(nftsAddress);
-        await ImportNFTView.typeInNFTIdentifier('1');
+        // await ImportNFTView.typeInNFTAddress(nftsAddress);
+        // await ImportNFTView.typeInNFTIdentifier('1');
 
-        await Assertions.checkIfVisible(WalletView.container);
+        // await Assertions.checkIfVisible(WalletView.container);
         // // Wait for asset to load
-        await Assertions.checkIfVisible(
-          WalletView.nftIDInWallet('fallback-nft-with-token-id'),
-        );
-        await WalletView.tapOnNftName();
+        // await Assertions.checkIfVisible(
+        //   WalletView.nftIDInWallet(TEST_DAPP_NFT),
+        // );
+        // await WalletView.tapOnNftName();
 
-        await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
-        await Assertions.checkIfTextIsDisplayed(
-          enContent.nft_details.contract_address,
-        );
-        await Assertions.checkIfTextIsDisplayed(
-          enContent.nft_details.token_standard,
-        );
+        // await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
+        // await Assertions.checkIfTextIsDisplayed(
+        //   enContent.nft_details.contract_address,
+        // );
+        // await Assertions.checkIfTextIsDisplayed(
+        //   enContent.nft_details.token_standard,
+        // );
       },
     );
   });

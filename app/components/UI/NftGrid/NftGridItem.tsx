@@ -29,11 +29,9 @@ interface NftGridNavigationParamList {
 function NftGridItem({
   nft,
   navigation,
-  index,
 }: {
   nft: Nft;
   navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
-  index: number;
 }) {
   const actionSheetRef = useRef<ActionSheetType>(null);
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
@@ -62,7 +60,7 @@ function NftGridItem({
       style={styles.collectibleCard}
       onPress={() => onItemPress(nft)}
       onLongPress={() => onLongPressCollectible(nft)}
-      testID={index === 0 ? 'fallback-nft-with-token-id' : (nft.name as string)}
+      testID={nft.name as string}
     >
       <CollectibleMedia
         style={styles.collectibleIcon}

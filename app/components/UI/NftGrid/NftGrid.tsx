@@ -248,7 +248,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           numColumns={3}
           data={collectibles}
           renderItem={({ item, index }: { item: Nft; index: number }) => (
-            <NftGridItem nft={item} navigation={navigation} index={index} />
+            <NftGridItem nft={item} navigation={navigation} />
           )}
           keyExtractor={(_, index) => index.toString()}
           testID={RefreshTestId}
