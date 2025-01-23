@@ -7,6 +7,7 @@ import { InteractionManager } from 'react-native';
 import { SecurityState } from '../../../reducers/security';
 import { RootState } from '../../../reducers';
 import { selectAppMinimumBuild } from '../../../selectors/featureFlagController/minimumAppVersion';
+import { selectMobileMinimumVersions } from '../../../selectors/featureFlagController/minimumAppVersion';
 
 const useMinimumVersions = () => {
   const { automaticSecurityChecksEnabled }: SecurityState = useSelector(
@@ -14,6 +15,8 @@ const useMinimumVersions = () => {
   );
 
   const appMinimumBuild = useSelector((state: RootState) => selectAppMinimumBuild(state));
+  const ffValues = useSelector((state: RootState) => selectMobileMinimumVersions(state));
+  console.log('feature flag values', ffValues);
   const currentBuildNumber = Number(getBuildNumber());
   const navigation = useNavigation();
   const shouldTriggerUpdateFlow =
