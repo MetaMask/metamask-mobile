@@ -259,7 +259,6 @@ class Login extends PureComponent {
   });
 
   async componentDidMount() {
-    this.fieldRef.current?.focus()
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
