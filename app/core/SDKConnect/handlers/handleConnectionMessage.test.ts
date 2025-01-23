@@ -4,7 +4,7 @@ import { NetworkController } from '@metamask/network-controller';
 import {
   CommunicationLayerMessage,
   MessageType,
-} from '@metamask/sdk-communication-layer';
+} // import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';

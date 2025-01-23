@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import SDKConnect from '../SDKConnect';

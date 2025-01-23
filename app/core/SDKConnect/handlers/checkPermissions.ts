@@ -1,6 +1,6 @@
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
-import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
+// import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../Engine';
 import { getPermittedAccounts } from '../../Permissions';

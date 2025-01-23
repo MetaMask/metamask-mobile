@@ -1,4 +1,4 @@
-import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
+// import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import { Connection } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import watchConnection from './watchConnection';

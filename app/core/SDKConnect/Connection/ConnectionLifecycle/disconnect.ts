@@ -1,5 +1,5 @@
 
-import { MessageType } from '@metamask/sdk-communication-layer';
+// import { MessageType } from '@metamask/sdk-communication-layer';
 import DevLogger from '../../utils/DevLogger';
 import { Connection } from '../Connection';
 

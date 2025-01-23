@@ -15,7 +15,7 @@ jest.mock('../SDKConnectConstants');
 jest.mock('../handlers/checkPermissions', () => jest.fn());
 
 // Import the mocked checkPermissions
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import checkPermissions from '../handlers/checkPermissions';
 
 describe('connectToChannel', () => {

@@ -2,12 +2,6 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
-import {
-  CommunicationLayerMessage,
-  MessageType,
-  SendAnalytics,
-  TrackingEvents,
-} from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import Engine from '../../Engine';
 import { getPermittedAccounts } from '../../Permissions';
@@ -51,7 +45,9 @@ export const handleConnectionMessage = async ({
   // Check if message has already been processed
   const rpcQueueManager = connection.rpcQueueManager;
   if (message.id && rpcQueueManager.getId(message.id)) {
-    DevLogger.log(`Connection::onMessage rpcId=${message.id} already processed`);
+    DevLogger.log(
+      `Connection::onMessage rpcId=${message.id} already processed`,
+    );
     return;
   }
 

@@ -4,7 +4,7 @@ import getRpcMethodMiddleware, {
   RPCMethodsMiddleParameters,
 } from '../../RPCMethods/RPCMethodMiddleware';
 
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';

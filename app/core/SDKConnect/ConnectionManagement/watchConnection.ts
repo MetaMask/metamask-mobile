@@ -1,4 +1,4 @@
-import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
+// import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Logger from '../../../util/Logger';

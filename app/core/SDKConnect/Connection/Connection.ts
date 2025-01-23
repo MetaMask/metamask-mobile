@@ -1,9 +1,9 @@
-import {
-  CommunicationLayerPreference,
-  EventType,
-  OriginatorInfo,
-  RemoteCommunication,
-} from '@metamask/sdk-communication-layer';
+// import {
+//   CommunicationLayerPreference,
+//   EventType,
+//   OriginatorInfo,
+//   RemoteCommunication,
+// } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { EventEmitter2 } from 'eventemitter2';
 import AppConstants from '../../AppConstants';

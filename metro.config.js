@@ -8,6 +8,7 @@
 
 const { getDefaultConfig } = require('expo/metro-config');
 const { mergeConfig } = require('@react-native/metro-config');
+const path = require('path');
 
 module.exports = function (baseConfig) {
   const defaultConfig = mergeConfig(baseConfig, getDefaultConfig(__dirname));
@@ -22,6 +23,10 @@ module.exports = function (baseConfig) {
       resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
       extraNodeModules: {
         crypto: require.resolve('react-native-crypto'),
+        module: path.resolve(
+          __dirname,
+          'node_modules/node-libs-react-native/mock/module.js',
+        ),
       },
     },
     transformer: {

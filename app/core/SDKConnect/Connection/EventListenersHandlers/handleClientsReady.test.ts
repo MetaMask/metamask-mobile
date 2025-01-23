@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { Platform } from 'react-native';
 import Device from '../../../../util/device';
 import Engine from '../../../Engine';

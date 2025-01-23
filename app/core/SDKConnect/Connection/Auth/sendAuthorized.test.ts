@@ -1,4 +1,4 @@
-import { MessageType } from '@metamask/sdk-communication-layer';
+// import { MessageType } from '@metamask/sdk-communication-layer';
 import { Connection } from '../Connection';
 import sendAuthorized from './sendAuthorized';
 

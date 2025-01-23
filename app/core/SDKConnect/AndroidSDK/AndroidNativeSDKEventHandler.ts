@@ -1,6 +1,6 @@
 import { NativeEventEmitter, NativeModules } from 'react-native';
 
-import { EventType } from '@metamask/sdk-communication-layer';
+// import { EventType } from '@metamask/sdk-communication-layer';
 
 export default class AndroidSDKEventHandler extends NativeEventEmitter {
   constructor() {

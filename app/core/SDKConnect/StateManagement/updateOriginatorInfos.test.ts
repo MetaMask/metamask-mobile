@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import StorageWrapper from '../../../store/storage-wrapper';
 import SDKConnect from '../SDKConnect';
 import updateOriginatorInfos from './updateOriginatorInfos';

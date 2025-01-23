@@ -5,11 +5,11 @@ import Engine from '../../Engine';
 import { Minimizer } from '../../NativeModules';
 import { RPCQueueManager } from '../RPCQueueManager';
 
-import {
-  EventType,
-  MessageType,
-  OriginatorInfo,
-} from '@metamask/sdk-communication-layer';
+// import {
+//   EventType,
+//   MessageType,
+//   OriginatorInfo,
+// } from '@metamask/sdk-communication-layer';
 import Logger from '../../../util/Logger';
 import AppConstants from '../../AppConstants';
 

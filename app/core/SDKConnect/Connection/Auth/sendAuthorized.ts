@@ -1,4 +1,4 @@
-import { MessageType } from '@metamask/sdk-communication-layer';
+// import { MessageType } from '@metamask/sdk-communication-layer';
 import Logger from '../../../../util/Logger';
 import { Connection } from '../Connection';
 

@@ -1,6 +1,6 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { Connection } from './Connection';
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import RPCQueueManager from '../RPCQueueManager';
 import sendAuthorized from './Auth/sendAuthorized';
 import {

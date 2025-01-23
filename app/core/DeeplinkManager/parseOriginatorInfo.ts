@@ -1,4 +1,4 @@
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// import { OriginatorInfo } // import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
 
 /**
  * Parses and validates a base64-encoded JSON string into an OriginatorInfo object.

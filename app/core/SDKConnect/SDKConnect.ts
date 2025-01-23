@@ -2,7 +2,7 @@ import { NativeEventSubscription } from 'react-native';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 
-import { OriginatorInfo } from '@metamask/sdk-communication-layer';
+// // import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { NavigationContainerRef } from '@react-navigation/native';
 import Engine from '../../core/Engine';
 import AndroidService from './AndroidSDK/AndroidService';
