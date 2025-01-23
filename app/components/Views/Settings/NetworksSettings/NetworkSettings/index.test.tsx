@@ -58,6 +58,9 @@ jest.mock('../../../../../core/Engine', () => ({
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
+    },
   },
 }));
 
