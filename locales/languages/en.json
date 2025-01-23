@@ -3378,7 +3378,8 @@
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account",
     "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)",
+    "add_solana_account_mainnet": "Add a new Solana Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",

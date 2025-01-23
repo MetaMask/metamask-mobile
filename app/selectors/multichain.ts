@@ -220,6 +220,7 @@ export const selectAccountTokensAcrossChains = createSelector(
   },
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /**
  * Get the state of the `bitcoinSupportEnabled` flag.
  *
@@ -239,3 +240,14 @@ export function selectIsBitcoinSupportEnabled(state: RootState) {
 export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
   return state.multichainSettings.bitcoinTestnetSupportEnabled;
 }
+
+/**
+ * Get the state of the `solanaSupportEnabled` flag.
+ *
+ * @param {*} state
+ * @returns The state of the `solanaSupportEnabled` flag.
+ */
+export function selectIsSolanaSupportEnabled(state: RootState) {
+  return state.multichainSettings.solanaSupportEnabled;
+}
+///: END:ONLY_INCLUDE_IF

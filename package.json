@@ -234,6 +234,7 @@
     "@segment/sovran-react-native": "^1.0.4",
     "@sentry/integrations": "6.3.1",
     "@sentry/react-native": "^5.33.0",
+    "@solana/addresses": "2.0.0-rc.4",
     "@tradle/react-native-http": "2.0.1",
     "@walletconnect/client": "^1.8.0",
     "@walletconnect/core": "^2.17.2",
@@ -556,7 +557,7 @@
     "fs": "react-native-level-fs"
   },
   "engines": {
-    "node": "^20.17.0",
+    "node": "^20.18.0",
     "yarn": "^1.22.22"
   },
   "lavamoat": {

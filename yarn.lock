@@ -7259,6 +7259,55 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
+"@solana/addresses@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0-rc.4.tgz#13ca6dce9bf131d4990ea72f66624b041ac15166"
+  integrity sha512-AR9g6pZMqCZeH/dShmaqyTQRCgWtZpYPQZYMazA6I5EsrKq1A40Cfxqgb/iMNl/g3vfVunT25UASH3YwBQyL/A==
+  dependencies:
+    "@solana/assertions" "2.0.0-rc.4"
+    "@solana/codecs-core" "2.0.0-rc.4"
+    "@solana/codecs-strings" "2.0.0-rc.4"
+    "@solana/errors" "2.0.0-rc.4"
+
+"@solana/assertions@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0-rc.4.tgz#0c6e921aa9b560c269a76a4a00bf15dbdbc1c0f8"
+  integrity sha512-CkTwoysagNAOjWynNzvrS5842/uDhEBjRbmgYRFurbWNLjo62j3eTYJKgTcMml7nc564Y4gObC5lUwWShGMZ/A==
+  dependencies:
+    "@solana/errors" "2.0.0-rc.4"
+
+"@solana/codecs-core@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0-rc.4.tgz#c4280d68877a078df4b430871db159f95534fcd3"
+  integrity sha512-JIrTSps032mSE3wBxW3bXOqWfoy4CMy1CX/XeVCijyh5kLVxZTSDIdRTYdePdL1yzaOZF1Xysvt1DhOUgBdM+A==
+  dependencies:
+    "@solana/errors" "2.0.0-rc.4"
+
+"@solana/codecs-numbers@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0-rc.4.tgz#ad95848d64dbaab4f6f0935d042df00802c84bba"
+  integrity sha512-ZJR7TaUO65+3Hzo3YOOUCS0wlzh17IW+j0MZC2LCk1R0woaypRpHKj4iSMYeQOZkMxsd9QT3WNvjFrPC2qA6Sw==
+  dependencies:
+    "@solana/codecs-core" "2.0.0-rc.4"
+    "@solana/errors" "2.0.0-rc.4"
+
+"@solana/codecs-strings@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0-rc.4.tgz#6a9223c074ab2422a7da3a8fc60cd398c6b8e167"
+  integrity sha512-LGfK2RL0BKjYYUfzu2FG/gTgCsYOMz9FKVs2ntji6WneZygPxJTV5W98K3J8Rl0JewpCSCFQH3xjLSHBJUS0fA==
+  dependencies:
+    "@solana/codecs-core" "2.0.0-rc.4"
+    "@solana/codecs-numbers" "2.0.0-rc.4"
+    "@solana/errors" "2.0.0-rc.4"
+
+"@solana/errors@2.0.0-rc.4":
+  version "2.0.0-rc.4"
+  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0-rc.4.tgz#4a5aa0d82206b07f31e729262f47def34397ac61"
+  integrity sha512-0PPaMyB81keEHG/1pnyEuiBVKctbXO641M2w3CIOrYT/wzjunfF0FTxsqq9wYJeYo0AyiefCKGgSPs6wiY2PpQ==
+  dependencies:
+    chalk "^5.3.0"
+    commander "^12.1.0"
+
 "@spruceid/siwe-parser@2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@spruceid/siwe-parser/-/siwe-parser-2.1.0.tgz#59859ccfd02403179bcf115d9e02a7dc953a0820"
@@ -13492,6 +13541,11 @@ chalk@^2.0.1, chalk@^2.4.2:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
+chalk@^5.3.0:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.4.1.tgz#1b48bf0963ec158dce2aacf69c093ae2dd2092d8"
+  integrity sha512-zgVZuo2WcZgfUEmsn6eO3kINexW8RAE4maiQ8QNs8CtpPCSyMiYsULR3HQYkm3w8FIA3SberyMJMSldGsW+U3w==
+
 char-regex@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/char-regex/-/char-regex-1.0.2.tgz#d744358226217f981ed58f479b1d6bcc29545dcf"
@@ -13978,6 +14032,11 @@ commander@^10.0.1:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
   integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
+
+commander@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-12.1.0.tgz#01423b36f501259fdaac4d0e4d60c96c991585d3"
+  integrity sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==
 
 commander@^2.19.0, commander@^2.20.0:
   version "2.20.3"
