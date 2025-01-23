@@ -15,20 +15,20 @@ PODS:
     - ExpoModulesCore
   - EXFont (11.4.0):
     - ExpoModulesCore
-  - EXJSONUtils (0.7.1)
-  - EXManifests (0.7.2):
+  - EXJSONUtils (0.9.0)
+  - EXManifests (0.9.0):
     - ExpoModulesCore
   - Expo (49.0.23):
     - ExpoModulesCore
-  - expo-dev-client (2.4.13):
+  - expo-dev-client (3.1.0):
     - EXManifests
     - expo-dev-launcher
     - expo-dev-menu
     - expo-dev-menu-interface
     - EXUpdatesInterface
-  - expo-dev-launcher (2.4.15):
+  - expo-dev-launcher (3.1.0):
     - EXManifests
-    - expo-dev-launcher/Main (= 2.4.15)
+    - expo-dev-launcher/Main (= 3.1.0)
     - expo-dev-menu
     - expo-dev-menu-interface
     - ExpoModulesCore
@@ -36,7 +36,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTAppDelegate
-  - expo-dev-launcher/Main (2.4.15):
+  - expo-dev-launcher/Main (3.1.0):
     - EXManifests
     - expo-dev-launcher/Unsafe
     - expo-dev-menu
@@ -46,7 +46,7 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTAppDelegate
-  - expo-dev-launcher/Unsafe (2.4.15):
+  - expo-dev-launcher/Unsafe (3.1.0):
     - EXManifests
     - expo-dev-menu
     - expo-dev-menu-interface
@@ -55,23 +55,27 @@ PODS:
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - React-RCTAppDelegate
-  - expo-dev-menu (3.2.4):
-    - expo-dev-menu/Main (= 3.2.4)
+  - expo-dev-menu (4.1.0):
+    - expo-dev-menu/Main (= 4.1.0)
+    - expo-dev-menu/ReactNativeCompatibles (= 4.1.0)
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - expo-dev-menu-interface (1.3.0)
-  - expo-dev-menu/Main (3.2.4):
+  - expo-dev-menu-interface (1.4.0)
+  - expo-dev-menu/Main (4.1.0):
     - EXManifests
     - expo-dev-menu-interface
     - expo-dev-menu/Vendored
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - expo-dev-menu/SafeAreaView (3.2.4):
+  - expo-dev-menu/ReactNativeCompatibles (4.1.0):
+    - RCT-Folly (= 2021.07.22.00)
+    - React-Core
+  - expo-dev-menu/SafeAreaView (4.1.0):
     - ExpoModulesCore
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
-  - expo-dev-menu/Vendored (3.2.4):
+  - expo-dev-menu/Vendored (4.1.0):
     - expo-dev-menu/SafeAreaView
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
@@ -83,7 +87,7 @@ PODS:
     - React-NativeModulesApple
     - React-RCTAppDelegate
     - ReactCommon/turbomodule/core
-  - EXUpdatesInterface (0.10.1)
+  - EXUpdatesInterface (0.12.0)
   - FBLazyVector (0.72.15)
   - FBReactNativeSpec (0.72.15):
     - RCT-Folly (= 2021.07.22.00)
@@ -810,7 +814,7 @@ PODS:
     - React
   - RNPermissions (3.10.1):
     - React-Core
-  - RNReanimated (3.3.0):
+  - RNReanimated (3.4.2):
     - DoubleConversion
     - FBLazyVector
     - glog
@@ -1291,16 +1295,16 @@ SPEC CHECKSUMS:
   EXConstants: e7d8d1bec9a20242b4f92a9d66967c3904e0dcd0
   EXFileSystem: 1aeed803248e2b62c5cde8b8d8c6cb1525fc40c1
   EXFont: aa39b3f790e2b3188986ac5e8684cf6003c00a18
-  EXJSONUtils: 6802be4282d42b97c51682468ddc1026a06f8276
-  EXManifests: bb8592a34f5339c860b6c4bc71ad583d490374fb
+  EXJSONUtils: 7fd9cb366856cc187a567dc2938ada28f9170291
+  EXManifests: 40e734c97b726f7801bec9709aa3ead6d17151c3
   Expo: 7bde63b84d4f6502de1e7963182333f39bedbf94
-  expo-dev-client: 3902515adf9d7a59e63600f16095649bef48378b
-  expo-dev-launcher: 4c4a7faf58820e798971bd3edbb79173c63e8615
-  expo-dev-menu: cc50dfc09a654cb5d74ac3482f0c49ca1268117d
-  expo-dev-menu-interface: 22ea9639725e26dfebcb16ea631ddec660827374
+  expo-dev-client: 12d9dd88efbd056eb85f1a706c891905a2f2eaba
+  expo-dev-launcher: ada23ef0663a5a64be9af560507408add783844f
+  expo-dev-menu: 6eb7fcd6d21151f4c2c2d679628d72879e3a5d2d
+  expo-dev-menu-interface: 9eb98037fb7d9c500ad5734261b43911f06afe0d
   ExpoKeepAwake: 8ab1087501f5ccb91146447756b787575b13f13e
   ExpoModulesCore: 3312621274fbba06fe382a37d8218a43cd522823
-  EXUpdatesInterface: 82ed48d417cdcd376c12ca1c2ce390d35500bed6
+  EXUpdatesInterface: 1f9cdd9e1e1026de7488ac537e9c40bc6b6fb872
   FBLazyVector: 25cbffbaec517695d376ab4bc428948cd0f08088
   FBReactNativeSpec: e03b22fbf7017a6f76641ea4472e73c915dcdda7
   Firebase: cec914dab6fd7b1bd8ab56ea07ce4e03dd251c2d
@@ -1415,7 +1419,7 @@ SPEC CHECKSUMS:
   RNNotifee: 5165d37aaf980031837be3caece2eae5a6d73ae8
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: bd0d9ca7969ff7b999aa605ee2e5919c12522bfe
-  RNReanimated: 775b3442640cbee726c53ef3acf372683fed97a3
+  RNReanimated: 7a85cf61cf3849efb530a9de2204a119f426636a
   RNScreens: f112bc5442a9a0e468809c107a43f55882d6cd98
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
   RNSentry: 984bb0495abef6c419697bef208c581f127891d1

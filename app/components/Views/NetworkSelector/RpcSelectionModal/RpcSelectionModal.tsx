@@ -1,4 +1,4 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useCallback, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -21,6 +21,10 @@ import images from 'images/image-icons';
 import hideProtocolFromUrl from '../../../../util/hideProtocolFromUrl';
 import hideKeyFromUrl from '../../../../util/hideKeyFromUrl';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import { useSelector } from 'react-redux';
+import { selectIsAllNetworks } from '../../../../selectors/networkController';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import Engine from '../../../../core/Engine/Engine';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -50,6 +54,24 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   networkConfigurations,
   styles,
 }) => {
+  const isAllNetwork = useSelector(selectIsAllNetworks);
+
+  const setTokenNetworkFilter = useCallback(
+    (chainId: string) => {
+      const isPopularNetwork =
+        chainId === CHAIN_IDS.MAINNET ||
+        chainId === CHAIN_IDS.LINEA_MAINNET ||
+        PopularList.some((network) => network.chainId === chainId);
+
+      const { PreferencesController } = Engine.context;
+      if (!isAllNetwork && isPopularNetwork) {
+        PreferencesController.setTokenNetworkFilter({
+          [chainId]: true,
+        });
+      }
+    },
+    [isAllNetwork],
+  );
   const imageSource = useMemo(() => {
     switch (showMultiRpcSelectModal.chainId) {
       case CHAIN_IDS.MAINNET:
@@ -119,6 +141,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
               gap={8}
               onPress={() => {
                 onRpcSelect(networkClientId, chainId as `0x${string}`);
+                setTokenNetworkFilter(chainId as `0x${string}`);
                 closeRpcModal();
               }}
             >
