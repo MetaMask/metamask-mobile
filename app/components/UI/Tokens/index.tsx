@@ -197,10 +197,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
               tokensToDisplay.push(curToken);
             }
           }
-          // Show tokens if balance is non-zero or staked
-          if (!isZero(balance) || curToken.isStaked) {
-            tokensToDisplay.push(curToken);
-          }
         }
       } else {
         tokensToDisplay = allTokens;
