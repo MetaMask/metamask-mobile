@@ -60,7 +60,6 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
@@ -212,11 +211,10 @@ const BrowserFlow = () => (
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER.URL_MODAL}
-      component={BrowserUrlModal}
-      options={{ animationEnabled: false, headerShown: false }}
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
