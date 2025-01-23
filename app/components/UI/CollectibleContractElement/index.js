@@ -187,11 +187,7 @@ function CollectibleContractElement({
           styles={styles.collectibleBox}
           testID={`collectible-${collectible.name}-${collectible.tokenId}`}
         >
-          <TouchableOpacity
-            onPress={onPress}
-            onLongPress={onLongPress}
-            testID={'nft-collectible'}
-          >
+          <TouchableOpacity onPress={onPress} onLongPress={onLongPress}>
             <View style={index === 1 ? styles.collectibleInTheMiddle : {}}>
               <CollectibleMedia
                 style={styles.collectibleIcon}
