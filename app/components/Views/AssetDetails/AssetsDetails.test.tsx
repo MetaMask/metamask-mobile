@@ -7,6 +7,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
+import { TokenI } from '../../UI/Tokens/types';
 
 jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
@@ -131,6 +132,17 @@ const initialState = {
 
 const store = mockStore(initialState);
 
+const mockAsset = {
+  address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  balanceFiat: '$11.89',
+  chainId: '0x89',
+  decimals: 6,
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
+  isETH: false,
+  isNative: false,
+};
+
 describe('AssetDetails', () => {
   const renderComponent = () =>
     render(
@@ -140,6 +152,7 @@ describe('AssetDetails', () => {
             params: {
               address: '0xAddress',
               chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
@@ -170,6 +183,11 @@ describe('AssetDetails', () => {
             params: {
               address: '0xAddress',
               chainId: CHAIN_IDS.MAINNET,
+              asset: {
+                address: '0xAddress',
+                chainId: CHAIN_IDS.MAINNET,
+                asset: mockAsset as unknown as TokenI,
+              },
             },
           }}
         />
@@ -220,6 +238,7 @@ describe('AssetDetails', () => {
             params: {
               address: '0xAddress',
               chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
@@ -250,6 +269,7 @@ describe('AssetDetails', () => {
             params: {
               address: '0xAddress',
               chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
