@@ -9,6 +9,7 @@ const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
+let BUILD_ANDROID = true
 let INSTALL_PODS;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
