@@ -4,7 +4,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#1c82341a",
+      "backgroundColor": "#1C82341A",
       "borderColor": "#1c8234",
       "borderLeftWidth": 4,
       "borderRadius": 4,

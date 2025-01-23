@@ -157,7 +157,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -441,7 +441,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -937,7 +937,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001a",
+                "backgroundColor": "#0000001A",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",

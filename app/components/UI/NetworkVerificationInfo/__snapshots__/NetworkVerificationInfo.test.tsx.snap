@@ -144,7 +144,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#bf52081a",
+            "backgroundColor": "#BF52081A",
             "borderColor": "#bf5208",
             "borderLeftWidth": 4,
             "borderRadius": 4,
@@ -283,7 +283,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 10,
               "borderWidth": 1,
               "marginVertical": 16,
