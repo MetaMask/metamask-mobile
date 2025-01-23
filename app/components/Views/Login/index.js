@@ -48,7 +48,6 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -74,6 +73,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import Fox from '../../../images/fantom.png';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -570,15 +570,11 @@ class Login extends PureComponent {
                 onLongPress={this.handleDownloadStateLogs}
                 activeOpacity={1}
               >
-                {Device.isAndroid() ? (
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                ) : (
-                  <AnimatedFox bgColor={colors.background.default} />
-                )}
+                <Image
+                  source={require('../../../images/fox.png')}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
               </TouchableOpacity>
 
               <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>

@@ -57,7 +57,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
@@ -573,15 +572,11 @@ class ChoosePassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              {Device.isAndroid() ? (
-                <Image
-                  source={require('../../../images/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              ) : (
-                <AnimatedFox bgColor={colors.background.default} />
-              )}
+              <Image
+                source={require('../../../images/fox.png')}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
             <Text variant={TextVariant.HeadingLG} style={styles.title}>

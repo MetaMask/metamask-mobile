@@ -43,13 +43,11 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
 
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -441,15 +439,11 @@ class Onboarding extends PureComponent {
             <View style={styles.wrapper}>
               {loading && (
                 <View style={styles.foxWrapper}>
-                  {Device.isAndroid() ? (
-                    <Image
-                      source={require('../../../images/fox.png')}
-                      style={styles.image}
-                      resizeMethod={'auto'}
-                    />
-                  ) : (
-                    <AnimatedFox bgColor={colors.background.default} />
-                  )}
+                  <Image
+                    source={require('../../../images/fox.png')}
+                    style={styles.image}
+                    resizeMethod={'auto'}
+                  />
                 </View>
               )}
               {loading ? this.renderLoader() : this.renderContent()}
