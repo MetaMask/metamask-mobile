@@ -183,11 +183,7 @@ describe('AssetDetails', () => {
             params: {
               address: '0xAddress',
               chainId: CHAIN_IDS.MAINNET,
-              asset: {
-                address: '0xAddress',
-                chainId: CHAIN_IDS.MAINNET,
-                asset: mockAsset as unknown as TokenI,
-              },
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
