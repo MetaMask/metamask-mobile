@@ -67,7 +67,11 @@ function NftGridItem({
         collectible={nft}
         isTokenImage
       />
-      <Text numberOfLines={1} ellipsizeMode="tail">
+      <Text
+        numberOfLines={1}
+        ellipsizeMode="tail"
+        testID={'nft-collectible-name'}
+      >
         {nft.name}
       </Text>
       <Text numberOfLines={1} ellipsizeMode="tail">
