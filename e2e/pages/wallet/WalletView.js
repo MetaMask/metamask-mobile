@@ -143,7 +143,7 @@ class WalletView {
 
   get testCollectible() {
     return device.getPlatform() === 'android'
-      ? Matchers.getElementById(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK)
+      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
       : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
   }
 

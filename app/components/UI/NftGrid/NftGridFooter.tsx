@@ -4,7 +4,7 @@ import { strings } from '../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text'; // TextVariant, // TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
