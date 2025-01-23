@@ -96,7 +96,6 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
-import { throttle } from 'lodash';
 
 interface infuraNetwork {
   name: string;
@@ -233,11 +232,7 @@ const NetworkSelector = () => {
       });
 
       // Set the active network
-      const networkThrottled = throttle(async (id: string) => {
-        await NetworkController.setActiveNetwork(id);
-      }, 300);
-
-      networkThrottled(clientId);
+      await NetworkController.setActiveNetwork(clientId);
 
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
@@ -292,11 +287,7 @@ const NetworkSelector = () => {
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          const networkThrottled = throttle(async (id: string) => {
-            await NetworkController.setActiveNetwork(id);
-          }, 300);
-
-          networkThrottled(networkClientId);
+          await NetworkController.setActiveNetwork(networkClientId);
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
@@ -425,11 +416,8 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      const networkThrottled = throttle(async (id: string) => {
-        await NetworkController.setActiveNetwork(id);
-      }, 300);
+      await NetworkController.setActiveNetwork(clientId);
 
-      networkThrottled(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
 

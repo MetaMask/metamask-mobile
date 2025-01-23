@@ -11,7 +11,6 @@ import {
 import { connect } from 'react-redux';
 import { typography } from '@metamask/design-tokens';
 import isUrl from 'is-url';
-import { throttle } from 'lodash';
 import {
   fontStyles,
   colors as staticColors,
