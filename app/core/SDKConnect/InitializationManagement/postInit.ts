@@ -8,14 +8,14 @@ import {
   waitForCondition,
   waitForKeychainUnlocked
 } from '../utils/wait.util';
-import { isE2E } from '../../../util/test/utils';
+import { isE2E, isSDKE2E } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if(isE2E) {
+  if(isE2E && !isSDKE2E) {
     DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
     instance.state._postInitialized = true;
     return;

@@ -12,3 +12,4 @@ export const isTest = process.env.METAMASK_ENVIRONMENT !== 'production';
 export const isE2E = process.env.IS_TEST === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
+export const isSDKE2E = process.env.SDK_DEV === 'DEV';
