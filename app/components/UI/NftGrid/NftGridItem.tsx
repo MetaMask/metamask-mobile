@@ -62,19 +62,17 @@ function NftGridItem({
       onLongPress={() => onLongPressCollectible(nft)}
       testID={nft.name as string}
     >
-      <View testID={'nft-collectible-name'}>
-        <CollectibleMedia
-          style={styles.collectibleIcon}
-          collectible={nft}
-          isTokenImage
-        />
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          {nft.name}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          {nft.collection?.name}
-        </Text>
-      </View>
+      <CollectibleMedia
+        style={styles.collectibleIcon}
+        collectible={nft}
+        isTokenImage
+      />
+      <Text numberOfLines={1} ellipsizeMode="tail">
+        {nft.name}
+      </Text>
+      <Text numberOfLines={1} ellipsizeMode="tail">
+        {nft.collection?.name}
+      </Text>
     </TouchableOpacity>
   );
 }
