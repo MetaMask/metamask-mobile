@@ -142,7 +142,7 @@ const AssetDetails = (props: Props) => {
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const isAllNetworks = useSelector(selectIsAllNetworks);
-  const tokenNetworkConfig = networkConfigurations[networkId as Hex]?.name;
+  const tokenNetworkConfig = networkConfigurations[networkId]?.name;
 
   const tokensByChain = useMemo(
     () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? [],
