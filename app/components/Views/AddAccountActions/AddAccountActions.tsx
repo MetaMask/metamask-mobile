@@ -124,7 +124,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
-      // Client to create the account using the Salana Snap
+      // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
 
       // This will trigger the Snap account creation flow (+ account renaming)
