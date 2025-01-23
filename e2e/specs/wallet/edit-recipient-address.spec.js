@@ -19,6 +19,7 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
+
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
 const SHORTHAND_ADDRESS = '0x37Cc...FACE';
@@ -27,8 +28,9 @@ const fixtureServer = new FixtureServer();
 describe(
   SmokeCore('Send ETH to the correct address after editing the recipient'),
   () => {
-    beforeEach(() => {
-      jest.setTimeout(200000);
+    beforeAll(async () => {
+      jest.setTimeout(2500000);
+      await TestHelpers.reverseServerPort();
     });
 
     afterAll(async () => {
