@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
@@ -16,6 +15,10 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { RootState } from '../reducers';
+///: END:ONLY_INCLUDE_IF
 
 interface NativeTokenBalance {
   balance: string;

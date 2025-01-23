@@ -60,7 +60,11 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBtcAccount, isSolanaAccount } from '../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  getFormattedAddressFromInternalAccount,
+} from '../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
@@ -917,10 +921,9 @@ export function getWalletNavbarOptions(
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (isBtcAccount(selectedInternalAccount)) {
-    // BTC addresses are not checksummed
-    formattedAddress = selectedInternalAccount.address;
-  }
+  formattedAddress = getFormattedAddressFromInternalAccount(
+    selectedInternalAccount,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
