@@ -4,13 +4,14 @@ import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
-import { isPortfolioViewEnabled, TESTNET_CHAIN_IDS } from '../util/networks';
+import { isPortfolioViewEnabled } from '../util/networks';
 import {
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from './networkController';
+import { PopularList } from '../util/networks/customNetworks';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
@@ -124,11 +125,13 @@ export const getChainIdsToPoll = createDeepEqualSelector(
       return [currentChainId];
     }
 
+    const popularNetworksChainIds = PopularList.map(
+      (popular) => popular.chainId,
+    );
     return Object.keys(networkConfigurations).filter(
       (chainId) =>
         chainId === currentChainId ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !TESTNET_CHAIN_IDS.includes(chainId as any),
+        popularNetworksChainIds.includes(chainId as Hex),
     );
   },
 );
