@@ -1,4 +1,4 @@
-// import { createProjectLogger } from '@metamask/utils';
+import { createProjectLogger } from '@metamask/utils';
 import {
   ControllerByName,
   ControllerInitFunction,
@@ -7,7 +7,7 @@ import {
 } from '../modular-controller.types';
 import { Controller } from '../modular-controller.types';
 
-// const log = createProjectLogger('controller-init');
+const log = createProjectLogger('controller-init');
 
 /** Result of initializing controllers. */
 export type InitControllersResult = {
@@ -32,7 +32,7 @@ export function initControllers({
   initFunctions: ControllerInitFunction<Controller>[];
   initRequest: Omit<ControllerInitRequest, 'getController'>;
 }): InitControllersResult {
-  // log('Initializing controllers', initFunctions.length);
+  log('Initializing controllers', initFunctions.length);
 
   // Will be populated with all controllers once initialized.
   let controllersByName = {} as ControllerByName;
@@ -58,11 +58,7 @@ export function initControllers({
       [name]: controller,
     };
 
-    // log('Initialized controller', name, {
-    //   api: Object.keys(api),
-    //   persistedStateKey,
-    //   memStateKey,
-    // });
+    log('Initialized controller', name);
   }
 
   return {
