@@ -214,7 +214,7 @@ import {
 } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initControllers } from './utils';
-import { AccountsControllerInit } from './controllers/accounts-controller/utils';
+import { accountsControllerInit } from './controllers/accounts-controller/utils';
 import { Controller, ControllerInitFunction } from './modular-controller.types';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -358,7 +358,7 @@ export class Engine {
     });
 
     // Modular controller initialization
-    const controllerInitFunctions = [AccountsControllerInit];
+    const controllerInitFunctions = [accountsControllerInit];
     const { controllersByName } = this.#initControllers({
       initFunctions: controllerInitFunctions,
       initState: initialState as EngineState,
