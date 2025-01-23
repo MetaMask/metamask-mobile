@@ -280,11 +280,11 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         tokensWithBalances.push(tokenWithBalance);
       }
 
+      const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
       endTrace({
         name: TraceName.Tokens,
       });
-
-      return sortAssets(tokensWithBalances, tokenSortConfig);
+      return tokensSorted;
     }
     // Previous implementation
     // Filter tokens based on hideZeroBalanceTokens flag
@@ -318,10 +318,11 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       tokenFiatAmount: tokenFiatBalances[i],
     }));
 
+    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
     endTrace({
       name: TraceName.Tokens,
-    }); // Sort the tokens based on tokenSortConfig
-    return sortAssets(tokensWithBalances, tokenSortConfig);
+    });
+    return tokensSorted;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hideZeroBalanceTokens,
