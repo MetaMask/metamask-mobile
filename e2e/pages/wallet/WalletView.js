@@ -142,9 +142,10 @@ class WalletView {
   }
 
   get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByText('#1', 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+    return Matchers.getElementByID('fallback-nft-with-token-id');
+    // return device.getPlatform() === 'android'
+    //   ? Matchers.getElementByText('#1', 1)
+    //   : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
   }
 
   async tapOnNftName() {

@@ -54,18 +54,18 @@ describe(SmokeAssets('NFT Details page'), () => {
 
         await Assertions.checkIfVisible(WalletView.container);
         // // Wait for asset to load
-        // await Assertions.checkIfVisible(
-        //   WalletView.nftIDInWallet(TEST_DAPP_NFT),
-        // );
-        // await WalletView.tapOnNftName();
+        await Assertions.checkIfVisible(
+          WalletView.nftIDInWallet('fallback-nft-with-token-id'),
+        );
+        await WalletView.tapOnNftName();
 
-        // await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
-        // await Assertions.checkIfTextIsDisplayed(
-        //   enContent.nft_details.contract_address,
-        // );
-        // await Assertions.checkIfTextIsDisplayed(
-        //   enContent.nft_details.token_standard,
-        // );
+        await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
+        await Assertions.checkIfTextIsDisplayed(
+          enContent.nft_details.contract_address,
+        );
+        await Assertions.checkIfTextIsDisplayed(
+          enContent.nft_details.token_standard,
+        );
       },
     );
   });
