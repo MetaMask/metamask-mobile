@@ -4,12 +4,13 @@ import {
   ControllerInitFunction,
   ControllerInitRequest,
   ControllerName,
+  Controller,
 } from '../modular-controller.types';
-import { Controller } from '../modular-controller.types';
 
 const log = createProjectLogger('controller-init');
 
 /** Result of initializing controllers. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type InitControllersResult = {
   /** All initialized controllers keyed by name. */
   controllersByName: ControllerByName;

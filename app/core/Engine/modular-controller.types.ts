@@ -43,6 +43,7 @@ export type BaseRestrictedControllerMessenger = RestrictedControllerMessenger<
  * Request to initialize and return a controller instance.
  * Includes standard data and methods not coupled to any specific controller.
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitRequest = {
   /**
    * Base controller messenger for the client.
@@ -71,6 +72,7 @@ export type ControllerInitRequest = {
 /**
  * Result of initializing a controller instance.
  */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ControllerInitResult<ControllerType extends Controller> = {
   /**
    * The initialized controller instance.
