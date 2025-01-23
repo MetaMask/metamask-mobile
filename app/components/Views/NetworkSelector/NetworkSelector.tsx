@@ -96,6 +96,7 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
+import { throttle } from 'lodash';
 
 interface infuraNetwork {
   name: string;
@@ -232,7 +233,12 @@ const NetworkSelector = () => {
       });
 
       // Set the active network
-      NetworkController.setActiveNetwork(clientId);
+      const networkThrottled = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      networkThrottled(clientId);
+
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
@@ -285,8 +291,16 @@ const NetworkSelector = () => {
         );
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
+        try {
+          const networkThrottled = throttle(async (id: string) => {
+            await NetworkController.setActiveNetwork(id);
+          }, 300);
 
-        await NetworkController.setActiveNetwork(networkClientId);
+          networkThrottled(networkClientId);
+        } catch (error) {
+          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+        }
+        sheetRef.current?.dismissModal();
       }
 
       setTokenNetworkFilter(chainId);
@@ -387,7 +401,7 @@ const NetworkSelector = () => {
   };
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: InfuraNetworkType) => {
+  const onNetworkChange = async (type: InfuraNetworkType) => {
     trace({
       name: TraceName.SwitchBuiltInNetwork,
       parentContext: parentSpan,
@@ -411,7 +425,11 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      NetworkController.setActiveNetwork(clientId);
+      const networkThrottled = throttle(async (id: string) => {
+        await NetworkController.setActiveNetwork(id);
+      }, 300);
+
+      networkThrottled(clientId);
       closeRpcModal();
       AccountTrackerController.refresh();
 

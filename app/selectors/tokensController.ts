@@ -7,6 +7,8 @@ import { selectSelectedInternalAccountAddress } from './accountsController';
 import { isPortfolioViewEnabled, TESTNET_CHAIN_IDS } from '../util/networks';
 import {
   selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from './networkController';
 
@@ -41,6 +43,45 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     chainId: Hex,
     selectedAddress: string | undefined,
   ) => tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex],
+);
+
+// Full selector implementation with selected address filtering
+export const selectTransformedTokens = createDeepEqualSelector(
+  selectTokensControllerState,
+  selectSelectedInternalAccountAddress,
+  selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  (
+    tokensControllerState: TokensControllerState,
+    selectedAddress: string | undefined,
+    networkId: Hex,
+    isAllNetworks: boolean,
+    isPopularNetwork: boolean,
+  ) => {
+    const allTokens = tokensControllerState?.allTokens || {};
+    if (!isAllNetworks || !isPopularNetwork) {
+      return tokensControllerState?.allTokens[networkId]?.[
+        selectedAddress as Hex
+      ];
+    }
+
+    // Filter for the selected address and transform
+    const flatList = Object.entries(allTokens).flatMap(
+      ([chainId, addresses]) => {
+        if (selectedAddress && addresses[selectedAddress]) {
+          return addresses[selectedAddress].map((token) => ({
+            ...token,
+            chainId, // Add chainId to the token property
+            address: selectedAddress, // Add the selected address as a property
+          }));
+        }
+        return [];
+      },
+    );
+
+    return flatList;
+  },
 );
 
 export const selectTokensByAddress = createSelector(

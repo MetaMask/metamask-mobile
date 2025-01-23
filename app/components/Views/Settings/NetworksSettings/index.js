@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { connect } from 'react-redux';
 import ActionSheet from '@metamask/react-native-actionsheet';
+import { throttle } from 'lodash';
 import { fontStyles } from '../../../../styles/common';
 import CustomText from '../../../../components/Base/Text';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
@@ -41,10 +42,8 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import Routes from '../../../../constants/navigation/Routes';
 import { NetworksViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import { updateIncomingTransactions } from '../../../../util/transaction-controller';
-import { NetworksTicker } from '@metamask/controller-utils';
 import NetworkSearchTextInput from '../../NetworkSelector/NetworkSearchTextInput';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { getGlobalChainId } from '../../../../util/networks/global-network';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -452,7 +451,7 @@ class NetworksSettings extends PureComponent {
       (networkConfiguration, i) => {
         const defaultRpcEndpoint =
           networkConfiguration.rpcEndpoints[
-          networkConfiguration.defaultRpcEndpointIndex
+            networkConfiguration.defaultRpcEndpointIndex
           ];
         const { color, name, url, chainId } = {
           name: networkConfiguration.name || defaultRpcEndpoint.url,
