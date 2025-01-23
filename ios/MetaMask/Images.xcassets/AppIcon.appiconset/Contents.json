@@ -1,70 +1,70 @@
 {
   "images" : [
     {
-      "filename" : "iOS App Icon_20pt@2x.png",
+      "filename" : "40.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "20x20"
     },
     {
-      "filename" : "iOS App Icon_20pt@3x.png",
+      "filename" : "60.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
       "size" : "20x20"
     },
     {
-      "filename" : "iOS App Icon_29pt@2x.png",
+      "filename" : "58.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "29x29"
     },
     {
-      "filename" : "iOS App Icon_29pt@3x.png",
+      "filename" : "87.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
       "size" : "29x29"
     },
     {
-      "filename" : "iOS App Icon_76pt.png",
+      "filename" : "76.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "38x38"
     },
     {
-      "filename" : "iOS App Icon_57pt@2x.png",
+      "filename" : "114.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
       "size" : "38x38"
     },
     {
-      "filename" : "iOS App Icon_40pt@2x.png",
+      "filename" : "80.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "40x40"
     },
     {
-      "filename" : "iOS App Icon_40pt@3x 1.png",
+      "filename" : "120 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
       "size" : "40x40"
     },
     {
-      "filename" : "iOS App Icon_40pt@3x.png",
+      "filename" : "120.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "60x60"
     },
     {
-      "filename" : "iOS App Icon_60pt@3x.png",
+      "filename" : "180.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -89,21 +89,21 @@
       "size" : "68x68"
     },
     {
-      "filename" : "iOS App Icon_76pt@2x.png",
+      "filename" : "152.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "76x76"
     },
     {
-      "filename" : "iOS App Icon_83.5@2x.png",
+      "filename" : "167.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
       "size" : "83.5x83.5"
     },
     {
-      "filename" : "iOS App Icon_1024pt@1x.png",
+      "filename" : "1024.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -115,7 +115,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_20pt@2x.png",
+      "filename" : "40 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -128,7 +128,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_20pt@3x.png",
+      "filename" : "60 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -141,7 +141,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_29pt@2x.png",
+      "filename" : "58 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -154,7 +154,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_29pt@3x.png",
+      "filename" : "87 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -167,7 +167,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_76pt.png",
+      "filename" : "76 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -180,7 +180,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS App Icon_57pt@2x 1.png",
+      "filename" : "114 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -193,7 +193,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_40pt@2x.png",
+      "filename" : "80 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -206,7 +206,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_40pt@3x.png",
+      "filename" : "120 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -219,7 +219,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_60pt@2x.png",
+      "filename" : "120 3.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -232,7 +232,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_60pt@3x.png",
+      "filename" : "180 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "3x",
@@ -281,7 +281,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_76pt@2x.png",
+      "filename" : "152 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -294,7 +294,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_83.5@2x.png",
+      "filename" : "167 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "scale" : "2x",
@@ -307,7 +307,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "iOS Dark App Icon_1024pt@1x.png",
+      "filename" : "1024 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -502,12 +502,6 @@
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
-    },
-    {
-      "filename" : "iOS App Icon_1024pt@1x-1.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "512x512"
     }
   ],
   "info" : {
