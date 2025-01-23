@@ -85,4 +85,39 @@ describe('AccountConnect', () => {
 
     expect(toJSON()).toMatchSnapshot();
   });
+
+  describe('Renders PermissionsSummary when expected', () => {
+    const mockConnectProps = {
+      route: {
+        params: {
+          hostInfo: {
+            metadata: {
+              id: 'mockId',
+              origin: 'mockOrigin',
+            },
+            permissions: {
+              eth_accounts: {
+                parentCapability: 'eth_accounts',
+              },
+            },
+          },
+          permissionRequestId: 'test',
+        },
+      },
+    };
+
+    it('should render PermissionsSummary screen when isSdkUrlUnknown is false', () => {
+      // Mock the isUUID function to return false to ensure isSdkUrlUnknown stays false
+      jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
+        isUUID: () => false,
+      }));
+
+      const { getByTestId } = renderWithProvider(
+        <AccountConnect {...mockConnectProps} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+    });
+  });
 });

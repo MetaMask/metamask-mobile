@@ -71,9 +71,7 @@ import {
   PHISHFORT_BLOCKLIST_ISSUE_URL,
   MM_ETHERSCAN_URL,
 } from '../../../constants/urls';
-import {
-  MAX_MESSAGE_LENGTH,
-} from '../../../constants/dapp';
+import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import {
   getPermittedAccounts,
@@ -117,7 +115,6 @@ import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { PermissionKeys } from '../../../core/Permissions/specifications';
 import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
-import { isMultichainVersion1Enabled } from '../../../util/networks';
 import { useIsFocused } from '@react-navigation/native';
 
 const { HOMEPAGE_URL, NOTIFICATION_NAMES, OLD_HOMEPAGE_URL_HOST } =
@@ -1632,13 +1629,7 @@ export const BrowserTab = (props) => {
   const urlRef = useRef(url.current);
   useEffect(() => {
     urlRef.current = url.current;
-    if (
-      isMultichainVersion1Enabled &&
-      urlRef.current &&
-      isFocused &&
-      !props.isInTabsView &&
-      isTabActive
-    ) {
+    if (urlRef.current && isFocused && !props.isInTabsView && isTabActive) {
       checkTabPermissions();
     }
   }, [checkTabPermissions, isFocused, props.isInTabsView, isTabActive]);
