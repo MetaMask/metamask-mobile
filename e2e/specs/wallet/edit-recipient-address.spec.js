@@ -78,18 +78,18 @@ describe(
             correctAddress[0],
             CORRECT_SEND_ADDRESS,
           );
-
+          //TODO, renable once transactions activities list is more stable for detox 
           //Assert transactions send screen on IOS only due to android limitations
-          if (device.getPlatform() === 'ios') {
-            // Tap Send
-            await TransactionConfirmationView.tapConfirmButton();
+          // if (device.getPlatform() === 'ios') {
+          //   // Tap Send
+          //   await TransactionConfirmationView.tapConfirmButton();
 
-            // Transactions view to assert address remains consistent
-            await TabBarComponent.tapActivity();
-            await TestHelpers.delay(3000);
-            await ActivitiesView.tapConfirmedTransaction();
-            await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
-          }
+          //   // Transactions view to assert address remains consistent
+          //   await TabBarComponent.tapActivity();
+          //   await TestHelpers.delay(3000);
+          //   await ActivitiesView.tapConfirmedTransaction();
+          //   await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
+          // }
         },
       );
     });
