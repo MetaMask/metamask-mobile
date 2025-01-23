@@ -1,127 +1,89 @@
+import { AccountsController } from '@metamask/accounts-controller';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import {
-  AccountsControllerMessenger,
-  AccountsControllerState,
-} from '@metamask/accounts-controller';
-import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
-import {
-  createAccountsController,
+  accountsControllerInit,
   defaultAccountsControllerState,
 } from './utils';
-import { withScope } from '@sentry/react-native';
-import { AGREED, METRICS_OPT_IN } from '../../../../constants/storage';
-import StorageWrapper from '../../../../store/storage-wrapper';
 import { logAccountsControllerCreation } from './logger';
+import { ControllerInitRequest } from '../../modular-controller.types';
 
-jest.mock('@sentry/react-native', () => ({
-  withScope: jest.fn(),
-}));
 jest.mock('./logger', () => ({
   logAccountsControllerCreation: jest.fn(),
 }));
 
-const mockedWithScope = jest.mocked(withScope);
 const mockedLogAccountsControllerCreation = jest.mocked(
   logAccountsControllerCreation,
 );
 
-describe('accountControllersUtils', () => {
-  describe('createAccountsController', () => {
-    let accountsControllerMessenger: AccountsControllerMessenger;
+jest.mock('@metamask/accounts-controller');
 
-    beforeEach(() => {
-      const globalMessenger = new ExtendedControllerMessenger();
-      accountsControllerMessenger = globalMessenger.getRestricted({
-        name: 'AccountsController',
-        allowedEvents: [
-          'SnapController:stateChange',
-          'KeyringController:accountRemoved',
-          'KeyringController:stateChange',
-        ],
-        allowedActions: [
-          'KeyringController:getAccounts',
-          'KeyringController:getKeyringsByType',
-          'KeyringController:getKeyringForAccount',
-        ],
-      });
-      // Mock required for Logger
-      StorageWrapper.getItem = jest.fn((key: string) => {
-        switch (key) {
-          case METRICS_OPT_IN:
-            return Promise.resolve(AGREED);
-          default:
-            return Promise.resolve('');
-        }
-      });
-    });
+describe('accounts controller init', () => {
+  const accountsControllerClassMock = jest.mocked(AccountsController);
+  let initRequestMock: jest.Mocked<ControllerInitRequest>;
 
-    afterEach(() => {
-      jest.resetAllMocks();
-    });
+  beforeEach(() => {
+    jest.resetAllMocks();
+    // Create controller init request mock
+    initRequestMock = buildControllerInitRequestMock();
+  });
 
+  describe('logs are registered during controller creation', () => {
     it('logs creation with default state when no initial state provided', () => {
-      createAccountsController({
-        messenger: accountsControllerMessenger,
-      });
+      accountsControllerInit(initRequestMock);
       expect(mockedLogAccountsControllerCreation).toHaveBeenCalledWith(
-        undefined,
+        defaultAccountsControllerState,
       );
     });
 
     it('logs creation with provided initial state', () => {
-      const initialState = {
+      // Set initial state
+      const initialAccountsControllerState = {
         internalAccounts: {
           accounts: {},
-          selectedAccount: '0x1',
+          selectedAccount: '0x2',
         },
       };
-      createAccountsController({
-        messenger: accountsControllerMessenger,
-        initialState,
-      });
+      // Update mock with initial state
+      initRequestMock.persistedState = {
+        ...initRequestMock.persistedState,
+        AccountsController: initialAccountsControllerState,
+      };
+      accountsControllerInit(initRequestMock);
       expect(mockedLogAccountsControllerCreation).toHaveBeenCalledWith(
-        initialState,
+        initialAccountsControllerState,
       );
     });
+  });
 
-    it('AccountsController state should be default state when no initial state is passed in', () => {
-      const accountsController = createAccountsController({
-        messenger: accountsControllerMessenger,
-      });
-      expect(accountsController.state).toEqual(defaultAccountsControllerState);
-    });
+  it('returns controller instance', () => {
+    expect(accountsControllerInit(initRequestMock).controller).toBeInstanceOf(
+      AccountsController,
+    );
+  });
 
-    it('AccountsController state should be initial state when initial state is passed in', () => {
-      const initialAccountsControllerState: AccountsControllerState = {
-        internalAccounts: {
-          accounts: {},
-          selectedAccount: '0x1',
-        },
-      };
-      const accountsController = createAccountsController({
-        messenger: accountsControllerMessenger,
-        initialState: initialAccountsControllerState,
-      });
-      expect(accountsController.state).toEqual(initialAccountsControllerState);
-    });
+  it('controller state should be default state when no initial state is passed in', () => {
+    accountsControllerInit(initRequestMock);
+    const accountsControllerState =
+      accountsControllerClassMock.mock.calls[0][0].state;
+    expect(accountsControllerState).toEqual(defaultAccountsControllerState);
+  });
 
-    it('AccountsController name should be AccountsController', () => {
-      const accountsControllerName = 'AccountsController';
-      const accountsController = createAccountsController({
-        messenger: accountsControllerMessenger,
-      });
-      expect(accountsController.name).toEqual(accountsControllerName);
-    });
-
-    it('should detect and log an error when controller fails to initialize', async () => {
-      const brokenAccountsControllerMessenger =
-        'controllerMessenger' as unknown as AccountsControllerMessenger;
-      await expect(() =>
-        createAccountsController({
-          messenger: brokenAccountsControllerMessenger,
-        }),
-      ).toThrow();
-
-      expect(mockedWithScope).toHaveBeenCalledTimes(1);
-    });
+  it('controller state should be initial state when initial state is passed in', () => {
+    // Create initial state
+    const initialAccountsControllerState = {
+      internalAccounts: {
+        accounts: {},
+        selectedAccount: '0x2',
+      },
+    };
+    // Update mock with initial state
+    initRequestMock.persistedState = {
+      ...initRequestMock.persistedState,
+      AccountsController: initialAccountsControllerState,
+    };
+    accountsControllerInit(initRequestMock);
+    const accountsControllerState =
+      accountsControllerClassMock.mock.calls[0][0].state;
+    expect(accountsControllerState).toEqual(initialAccountsControllerState);
   });
 });
