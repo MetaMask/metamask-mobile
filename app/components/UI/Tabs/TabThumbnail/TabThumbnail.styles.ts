@@ -10,12 +10,7 @@ const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;
 const height = Dimensions.get('window').height / (Device.isIphone5S() ? 4 : 5);
 let paddingTop = Dimensions.get('window').height - 190;
-if (Device.isIphoneX()) {
-  paddingTop -= 65;
-}
-if (Device.isAndroid()) {
-  paddingTop -= 10;
-}
+paddingTop -= 100;
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
