@@ -130,6 +130,7 @@ import {
   createRegToken,
   deleteRegToken,
   createSubscribeToPushNotifications,
+  isPushNotificationsEnabled,
 } from './controllers/PushNotificationController/utils';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -1173,6 +1174,15 @@ export class Engine {
         },
       },
     });
+
+    // Side-Effect - Need to check push notifications are permitted to enable push notifications
+    if(notificationServicesController.state.isNotificationServicesEnabled) {
+      isPushNotificationsEnabled().then(() => {
+        notificationServicesController.disableNotificationServices();
+      });
+    }
+
+
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({

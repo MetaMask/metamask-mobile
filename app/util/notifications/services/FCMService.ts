@@ -12,7 +12,11 @@ import { mmStorage } from '../settings';
 
 type UnsubscribeFunc = () => void;
 
-async function isSupported() {
+/**
+ * Utility to check if devices have enabled push notifications
+ * @returns boolean
+ */
+async function isPushNotificationsEnabled() {
   try {
     const permissionStatus = await messaging().hasPermission();
     return (
@@ -79,7 +83,7 @@ class FCMService {
    * @returns A promise that resolves with the registration token, or null if an error occurs
    */
   createRegToken = async (): Promise<string | null> => {
-    if (!(await isSupported())) {
+    if (!(await isPushNotificationsEnabled())) {
       return null;
     }
 
@@ -98,7 +102,7 @@ class FCMService {
    * @returns A promise that resolves with true if the token was successfully deleted, false otherwise.
    */
   deleteRegToken = async (): Promise<boolean> => {
-    if (!(await isSupported())) {
+    if (!(await isPushNotificationsEnabled())) {
       return true;
     }
 
@@ -133,6 +137,8 @@ class FCMService {
       return null;
     }
   };
+
+  isPushNotificationsEnabled = () => isPushNotificationsEnabled();
 
   /**
    * @todo - delete this, it is not used anymore

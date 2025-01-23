@@ -43,3 +43,5 @@ export const createSubscribeToPushNotifications =
 
     return unsubscribe;
   };
+
+export const isPushNotificationsEnabled = FCMService.isPushNotificationsEnabled;
