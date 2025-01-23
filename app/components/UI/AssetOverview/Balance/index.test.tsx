@@ -126,16 +126,6 @@ const mockInitialState = {
   },
 };
 
-jest.mock('../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../util/networks'),
-  getTestNetImageByChainId: jest.fn((chainId) => `testnet-image-${chainId}`),
-}));
-
-jest.mock('../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../util/networks'),
-  isPortfolioViewEnabled: jest.fn(),
-}));
-
 describe('Balance', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
