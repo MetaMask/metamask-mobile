@@ -19,7 +19,7 @@ class EditAccountNameView {
   }
 
   async updateAccountName(accountName) {
-    await Gestures.clearField(EditAccountNameView.accountNameInput);
+    await Gestures.clearField(this.accountNameInput);
     await Gestures.typeTextAndHideKeyboard(this.accountNameInput, accountName);
   }
 }
