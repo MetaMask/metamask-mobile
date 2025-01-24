@@ -160,7 +160,7 @@ const createStyles = (colors) =>
     timer: {
       fontVariant: ['tabular-nums'],
     },
-    timerHiglight: {
+    timerHighlight: {
       color: colors.error.default,
     },
     content: {
@@ -1916,7 +1916,7 @@ function SwapsQuotesView({
                   primary
                   style={[
                     styles.timer,
-                    remainingTime < 30000 && styles.timerHiglight,
+                    remainingTime < 30000 && styles.timerHighlight,
                   ]}
                 >
                   {new Date(remainingTime).toISOString().substr(15, 4)}
