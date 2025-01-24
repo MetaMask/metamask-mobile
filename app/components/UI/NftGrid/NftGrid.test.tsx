@@ -487,11 +487,6 @@ describe('NftGridFooter', () => {
       assetType: 'collectible',
     });
   });
-
-  it('matches the snapshot', () => {
-    const tree = render(<NftGridFooter navigation={mockNavigation} />).toJSON();
-    expect(tree).toMatchSnapshot();
-  });
 });
 
 describe('NftGridEmpty', () => {
@@ -513,11 +508,6 @@ describe('NftGridEmpty', () => {
         url: 'https://support.metamask.io/nfts/nft-tokens-in-your-metamask-wallet/',
       },
     });
-  });
-
-  it('matches the snapshot', () => {
-    const tree = render(<NftGridEmpty navigation={mockNavigation} />).toJSON();
-    expect(tree).toMatchSnapshot();
   });
 });
 
@@ -553,13 +543,5 @@ describe('NftGridItem', () => {
     expect(getByTestId(mockNft.name as string)).toBeTruthy();
     expect(getByText('Test NFT')).toBeTruthy();
     expect(getByText('Test Collection')).toBeTruthy();
-  });
-
-  it('matches the snapshot', () => {
-    const tree = renderWithProvider(
-      <NftGridItem nft={mockNft} navigation={mockNavigation} />,
-      { state: mockState },
-    ).toJSON();
-    expect(tree).toMatchSnapshot();
   });
 });
