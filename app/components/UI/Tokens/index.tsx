@@ -124,8 +124,9 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       ),
     ),
   ];
-  const selectedAccountTokensChains = useSelector(
-    selectAccountTokensAcrossChains,
+
+  const selectedAccountTokensChains = useSelector((state: RootState) =>
+    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -265,6 +266,11 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
       tags: getTraceTags(store.getState()),
     });
     if (isPortfolioViewEnabled()) {
+      trace({
+        name: TraceName.Tokens,
+        tags: getTraceTags(store.getState()),
+      });
+
       // MultiChain implementation
       const allTokens = Object.values(
         selectedAccountTokensChains,
