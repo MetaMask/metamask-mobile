@@ -68,7 +68,7 @@ exports[`TokenDetails should render correctly 1`] = `
           style={
             {
               "alignItems": "center",
-              "backgroundColor": "#0376c91a",
+              "backgroundColor": "#0376C91A",
               "borderRadius": 20,
               "flexDirection": "row",
               "marginLeft": 8,

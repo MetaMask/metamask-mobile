@@ -208,7 +208,7 @@ class Asset extends PureComponent {
       networkConfigurations,
     } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    const isNativeToken = route.params.isETH;
+    const isNativeToken = route.params.isNative ?? route.params.isETH;
     const isMainnet = isMainnetByChainId(chainId);
     const blockExplorer = findBlockExplorerForRpc(
       rpcUrl,
@@ -234,6 +234,7 @@ class Asset extends PureComponent {
                   isNativeCurrency: isNativeToken,
                   address: route.params?.address,
                   chainId: route.params?.chainId,
+                  asset,
                 },
               })
           : undefined,

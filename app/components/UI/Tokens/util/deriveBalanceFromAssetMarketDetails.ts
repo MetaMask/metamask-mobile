@@ -61,8 +61,22 @@ export const deriveBalanceFromAssetMarketDetails = (
           : TOKEN_RATE_UNDEFINED,
       balanceValueFormatted,
     };
+
+  const balanceFiatWithoutFormatting = asset?.balanceFiat?.replace(
+    /[^0-9.]/g,
+    '',
+  );
+  const balanceFiatBelowMinimialUnit = asset?.balanceFiat?.includes('<');
+  // TODO: if balanceFiat is below minimial unit, use the balanceFiat value
+  // balanceFiatCalculation will be NaN and balanceFiat will be < 0.01
+  // This is not ideal, but it's a workaround for now as the places we use
+  // balanceFiatCalculation are for tokens, which do not have a balanceFiat value
+  // so there is no adverse effect at the moment
+  const assetBalanceFiat = balanceFiatBelowMinimialUnit
+    ? asset.balanceFiat
+    : balanceFiatWithoutFormatting;
   const balanceFiatCalculation = Number(
-    asset.balanceFiat ||
+    assetBalanceFiat ||
       balanceToFiatNumber(balance, conversionRate, tokenMarketData.price),
   );
 
@@ -70,6 +84,9 @@ export const deriveBalanceFromAssetMarketDetails = (
     balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0
       ? addCurrencySymbol(balanceFiatCalculation, currentCurrency)
       : `< ${addCurrencySymbol('0.01', currentCurrency)}`;
+
+  // NOTE: the way we calculate the balances here loses precision for both tokens and native assets
+  // This is different than how portfolio fiat total is calculated and causes variance between the totals
 
   return { balanceFiat, balanceValueFormatted, balanceFiatCalculation };
 };

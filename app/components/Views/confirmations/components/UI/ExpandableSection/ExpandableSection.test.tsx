@@ -64,7 +64,7 @@ describe('ExpandableSection', () => {
     expect(getByText('Open')).toBeDefined();
     fireEvent.press(getByText('Open'));
     expect(getByText('Value-Text')).toBeDefined();
-    fireEvent.press(getByTestId('closeButtonTestId'));
+    fireEvent.press(getByTestId('collapseButtonTestID'));
     expect(getByText('Open')).toBeDefined();
   });
 });

@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import BigNumber from 'bignumber.js';
@@ -96,7 +96,7 @@ import {
 import {
   selectChainId,
   selectIsEIP1559Network,
-  selectNetworkClientId,
+  selectSelectedNetworkClientId,
   selectTicker,
 } from '../../../selectors/networkController';
 import {
@@ -304,6 +304,7 @@ async function resetAndStartPolling({
   destinationToken,
   sourceAmount,
   walletAddress,
+  networkClientId,
 }) {
   if (!sourceToken || !destinationToken) {
     return;
@@ -316,6 +317,7 @@ async function resetAndStartPolling({
     destinationToken,
     sourceAmount,
     walletAddress,
+    networkClientId,
   });
   await SwapsController.stopPollingAndResetState();
   await SwapsController.startFetchAndSetQuotes(
@@ -762,6 +764,8 @@ function SwapsQuotesView({
     }
   }, [error, navigation]);
 
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+
   const handleRetryFetchQuotes = useCallback(() => {
     if (error?.key === swapsUtils.SwapsError.QUOTES_EXPIRED_ERROR) {
       navigation.setParams({ leftAction: strings('navigation.back') });
@@ -776,6 +780,7 @@ function SwapsQuotesView({
         destinationToken,
         sourceAmount,
         walletAddress: selectedAddress,
+        networkClientId: selectedNetworkClientId,
       });
     } else {
       navigation.pop();
@@ -788,6 +793,7 @@ function SwapsQuotesView({
     sourceAmount,
     selectedAddress,
     navigation,
+    selectedNetworkClientId,
   ]);
 
   const updateSwapsTransactions = useCallback(
@@ -876,7 +882,7 @@ function SwapsQuotesView({
         slippage,
         custom_slippage: slippage !== AppConstants.SWAPS.DEFAULT_SLIPPAGE,
         best_quote_source: selectedQuote.aggregator,
-        available_quotes: allQuotes,
+        available_quotes: allQuotes.length,
         other_quote_selected: allQuotes[selectedQuoteId] === selectedQuote,
         network_fees_USD: weiToFiat(
           toWei(selectedQuoteValue?.ethFee),
@@ -1412,6 +1418,7 @@ function SwapsQuotesView({
       destinationToken,
       sourceAmount,
       walletAddress: selectedAddress,
+      networkClientId: selectedNetworkClientId,
     });
 
     return () => {
@@ -1425,6 +1432,7 @@ function SwapsQuotesView({
     slippage,
     sourceAmount,
     sourceToken.address,
+    selectedNetworkClientId,
   ]);
 
   /** selectedQuote alert effect */
@@ -2403,7 +2411,7 @@ SwapsQuotesView.propTypes = {
 const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
+  networkClientId: selectSelectedNetworkClientId(state),
   ticker: selectTicker(state),
   balances: selectContractBalances(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

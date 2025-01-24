@@ -53,6 +53,11 @@ const getDefaultProviderConfig = (): ProviderConfig => ({
   type: RpcEndpointType.Infura,
 });
 
+const getProviderType = (rpcEndpoint: RpcEndpoint): string =>
+  rpcEndpoint.type === RpcEndpointType.Custom
+    ? 'rpc'
+    : rpcEndpoint.networkClientId;
+
 // Helper function to create the provider config based on the network and endpoint
 export const createProviderConfig = (
   networkConfig: NetworkConfiguration,
@@ -72,10 +77,7 @@ export const createProviderConfig = (
     chainId,
     ticker: nativeCurrency,
     rpcPrefs: { ...(blockExplorerUrl && { blockExplorerUrl }) },
-    type:
-      rpcEndpoint.type === RpcEndpointType.Custom
-        ? 'rpc'
-        : rpcEndpoint.networkClientId,
+    type: getProviderType(rpcEndpoint),
     ...(rpcEndpoint.type === RpcEndpointType.Custom && {
       id: rpcEndpoint.networkClientId,
       nickname: name,
@@ -223,4 +225,26 @@ export const selectNativeCurrencyByChainId = createSelector(
   [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
   (networkConfigurations, chainId) =>
     networkConfigurations?.[chainId]?.nativeCurrency,
+);
+
+export const selectDefaultEndpointByChainId = createSelector(
+  selectNetworkConfigurations,
+  (_: RootState, chainId: Hex) => chainId,
+  (networkConfigurations, chainId) => {
+    const networkConfiguration = networkConfigurations[chainId as Hex];
+    return networkConfiguration?.rpcEndpoints?.[
+      networkConfiguration.defaultRpcEndpointIndex
+    ];
+  },
+);
+
+export const selectProviderTypeByChainId = createSelector(
+  selectDefaultEndpointByChainId,
+  (defaultEndpoint) =>
+    defaultEndpoint ? getProviderType(defaultEndpoint) : undefined,
+);
+
+export const selectRpcUrlByChainId = createSelector(
+  selectDefaultEndpointByChainId,
+  (defaultEndpoint) => defaultEndpoint?.url,
 );

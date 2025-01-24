@@ -72,7 +72,7 @@ exports[`SheetBottom should render correctly on android: android 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#bbc0c566",
+            "backgroundColor": "#BBC0C566",
             "borderRadius": 2,
             "height": 4,
             "marginTop": 4,
@@ -158,7 +158,7 @@ exports[`SheetBottom should render correctly on ios: ios 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#bbc0c566",
+            "backgroundColor": "#BBC0C566",
             "borderRadius": 2,
             "height": 4,
             "marginTop": 4,

@@ -114,7 +114,7 @@ stages:
     workflows:
       - deploy_android_to_store: {}
   create_build_qa_and_expo:
-      workflows:
+    workflows:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
@@ -160,9 +160,9 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -181,6 +181,7 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
@@ -650,6 +651,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_confirmations_redesigned_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -1247,20 +1254,20 @@ workflows:
             - content: |-
                 # Define the source path of the generated APK
                 SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
-                
+
                 # Define the destination path with the new name
                 DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-                
+
                 # Copy and rename the APK
                 cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "APK has been copied and renamed to: $DEST_APK_PATH"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk'
           title: Bitrise Deploy APK
     meta:
       bitrise.io:
@@ -1537,13 +1544,13 @@ workflows:
             - content: |-
                 # Define the source path of the generated IPA
                 SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
-                
+
                 # Define the destination path with the new name
                 DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-                
+
                 # Copy and rename the IPA
                 cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-                
+
                 # Optionally, print the new path for verification
                 echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
       - deploy-to-bitrise-io@2.2.3:
@@ -1551,7 +1558,7 @@ workflows:
           is_skippable: true
           inputs:
             - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
+            - deploy_path: '$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa'
           title: Deploy iOS IPA
   build_ios_qa:
     envs:
@@ -1757,10 +1764,10 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: true
+      MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
-      MM_SECURITY_ALERTS_API_ENABLED: true
+      MM_STABLECOIN_LENDING_UI_ENABLED: false
     - opts:
         is_expand: false
       PROJECT_LOCATION: android
@@ -1796,13 +1803,13 @@ app:
       VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1520
+      VERSION_NUMBER: 1534
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1520
+      FLASK_VERSION_NUMBER: 1534
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

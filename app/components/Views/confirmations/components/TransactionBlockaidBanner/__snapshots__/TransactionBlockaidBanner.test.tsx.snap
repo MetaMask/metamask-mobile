@@ -17,7 +17,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
   }
   style={
     {
-      "backgroundColor": "#bf52081a",
+      "backgroundColor": "#BF52081A",
       "borderColor": "#bf5208",
       "borderLeftWidth": 4,
       "borderRadius": 4,

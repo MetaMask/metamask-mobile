@@ -1,10 +1,26 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import { BrowserTab } from './';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import BrowserTab from './BrowserTab';
+import AppConstants from '../../../core/AppConstants';
+
+const mockNavigation = {
+  goBack: jest.fn(),
+  goForward: jest.fn(),
+  canGoBack: true,
+  canGoForward: true,
+  addListener: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => mockNavigation,
+    useIsFocused: () => true,
+  };
+});
 
 const mockInitialState = {
   browser: { activeTab: '' },
@@ -19,21 +35,47 @@ const mockInitialState = {
   },
 };
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn().mockImplementation(() => mockInitialState),
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: () => ({ result: true, name: 'test' }),
+    },
+  },
 }));
 
-const mockStore = configureMockStore();
-const store = mockStore(mockInitialState);
+const mockProps = {
+  id: 1,
+  activeTab: 1,
+  defaultProtocol: 'https://',
+  selectedAddress: '0x123',
+  whitelist: [],
+  bookmarks: [],
+  searchEngine: 'Google',
+  newTab: jest.fn(),
+  addBookmark: jest.fn(),
+  addToBrowserHistory: jest.fn(),
+  addToWhitelist: jest.fn(),
+  updateTabInfo: jest.fn(),
+  showTabs: jest.fn(),
+  setOnboardingWizardStep: jest.fn(),
+  wizardStep: 1,
+  isIpfsGatewayEnabled: false,
+  chainId: '0x1',
+  isInTabsView: false,
+  initialUrl: 'https://metamask.io',
+  homePageUrl: AppConstants.HOMEPAGE_URL,
+};
 
-describe('Browser', () => {
+describe('BrowserTab', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <BrowserTab initialUrl="https://metamask.io" />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<BrowserTab {...mockProps} />, {
+      state: mockInitialState,
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

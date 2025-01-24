@@ -4,7 +4,6 @@ import Summary from '../../../../../Base/Summary';
 import Text from '../../../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { isMainnetByChainId, isTestNet } from '../../../../../../util/networks';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import InfoModal from '../../../../../UI/Swaps/components/InfoModal';
 import FadeAnimationView from '../../../../../UI/FadeAnimationView';
@@ -15,7 +14,6 @@ import useModalHandler from '../../../../../Base/hooks/useModalHandler';
 import AppConstants from '../../../../../../core/AppConstants';
 import Device from '../../../../../../util/device';
 import { useTheme } from '../../../../../../util/theme';
-import { selectChainId } from '../../../../../../selectors/networkController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -453,8 +451,4 @@ TransactionReviewEIP1559.propTypes = {
   originWarning: PropTypes.bool,
 };
 
-const mapStateToProps = (state) => ({
-  chainId: selectChainId(state),
-});
-
-export default connect(mapStateToProps)(TransactionReviewEIP1559);
+export default TransactionReviewEIP1559;

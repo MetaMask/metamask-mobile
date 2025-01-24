@@ -1,4 +1,4 @@
-import UntypedEngine from '../Engine';
+import Engine from '../Engine';
 import AppConstants from '../AppConstants';
 import { getVaultFromBackup } from '../BackupVault';
 import Logger from '../../util/Logger';
@@ -12,6 +12,10 @@ import getUIStartupSpan from '../Performance/UIStartup';
 import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { KeyringControllerState } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../Analytics';
+
+const LOG_TAG = 'EngineService';
 
 interface InitializeEngineResult {
   success: boolean;
@@ -40,7 +44,7 @@ export class EngineService {
    * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
    * - V8: SES_UNHANDLED_REJECTION
    */
-  start = () => {
+  start = async () => {
     const reduxState = ReduxService.store.getState();
     trace({
       name: TraceName.EngineInitialization,
@@ -49,11 +53,13 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
     try {
-      Engine.init(state);
+      Logger.log(`${LOG_TAG}: Initializing Engine:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      Engine.init(state, null, metaMetricsId);
       this.updateControllers(Engine);
     } catch (error) {
       Logger.error(
@@ -193,6 +199,10 @@ export class EngineService {
         name: 'PPOMController',
         key: `${engine.context.PPOMController.name}:stateChange`,
       },
+      {
+        name: 'SignatureController',
+        key: `${engine.context.SignatureController.name}:stateChange`,
+      },
     ];
 
     engine.controllerMessenger.subscribeOnceIf(
@@ -235,18 +245,22 @@ export class EngineService {
     const keyringState = await getVaultFromBackup();
     const reduxState = ReduxService.store.getState();
     const state = reduxState?.engine?.backgroundState || {};
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const Engine = UntypedEngine as any;
     // This ensures we create an entirely new engine
     await Engine.destroyEngine();
     this.engineInitialized = false;
     if (keyringState) {
-      const newKeyringState = {
+      const newKeyringState: KeyringControllerState = {
         keyrings: [],
         vault: keyringState.vault,
+        isUnlocked: false,
       };
-      const instance = Engine.init(state, newKeyringState);
+
+      Logger.log(`${LOG_TAG}: Initializing Engine from backup:`, {
+        hasState: Object.keys(state).length > 0,
+      });
+
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
         this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize
