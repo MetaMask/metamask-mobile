@@ -59,6 +59,23 @@ const MOCK_STORE_STATE = {
               decimals: 18,
             },
           },
+          '0xtest': {
+            rpcEndpoints: [
+              {
+                url: 'https://test.infura.io/v3/{infuraProjectId}',
+                networkClientId: 'testMainnet',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.io'],
+            chainId: '0xtest',
+            name: 'Test Mainnet',
+            nativeCurrency: {
+              name: 'Linea Ether',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
         },
       },
     },
@@ -294,6 +311,30 @@ describe('RpcSelectionModal', () => {
       <RpcSelectionModal {...defaultProps} />,
     );
     const rpcUrlElement = getByText('mainnet.infura.io/v3');
+    fireEvent.press(rpcUrlElement);
+    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
+      0,
+    );
+  });
+
+  it('should not call preferences controller setTokenNetworkFilter when the network is not part of PopularList', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectIsAllNetworks) {
+        return false; // to show current network
+      }
+      return null;
+    });
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        showMultiRpcSelectModal={{
+          isVisible: true,
+          chainId: '0xtest',
+          networkName: 'Test Mainnet',
+        }}
+      />,
+    );
+    const rpcUrlElement = getByText('test.infura.io/v3');
     fireEvent.press(rpcUrlElement);
     expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
       0,
