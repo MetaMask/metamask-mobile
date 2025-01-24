@@ -16,6 +16,7 @@ import {
   isBtcMainnetAddress,
   isBtcTestnetAddress,
   getFormattedAddressFromInternalAccount,
+  isSolanaAccount,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -177,6 +178,17 @@ describe('MultiChain utils', () => {
     });
     it('returns false for SOL addresses', () => {
       expect(isBtcTestnetAddress(SOL_ADDRESS)).toBe(false);
+    });
+  });
+
+  describe('isSolanaAccount', () => {
+    it('returns true for Solana accounts', () => {
+      expect(isSolanaAccount(mockSolAccount)).toBe(true);
+    });
+
+    it('returns false for non-Solana accounts', () => {
+      expect(isSolanaAccount(mockEthEOAAccount)).toBe(false);
+      expect(isSolanaAccount(mockBTCAccount)).toBe(false);
     });
   });
 
