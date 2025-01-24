@@ -171,13 +171,16 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
           multiChainTokenBalances?.[curToken.address as Hex] ||
           curToken.balance;
 
-        if (isUserOnCurrentNetwork) {
+        if (!isUserOnCurrentNetwork) {
           // Show tokens if balance is non-zero, native, or staked
           if (!isZero(balance) || curToken.isNative || curToken.isStaked) {
             tokensToDisplay.push(curToken);
           }
+        } else {
+          tokensToDisplay.push(curToken);
         }
       }
+
       return tokensToDisplay;
     }
     return allTokens;
