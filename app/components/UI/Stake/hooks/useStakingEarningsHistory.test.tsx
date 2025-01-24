@@ -1,7 +1,7 @@
 import { ChainId } from '@metamask/controller-utils';
 import useStakingEarningsHistory from './useStakingEarningsHistory';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { StakingApiService } from '@metamask/stake-sdk';
+import { StakingApiService, UserDailyReward } from '@metamask/stake-sdk';
 import { waitFor } from '@testing-library/react-native';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -74,9 +74,8 @@ describe('useStakingEarningsHistory', () => {
           {
             dateStr: '2024-01-01',
             dailyRewards: '100',
-            dailyRewardsUsd: '100',
             sumRewards: '100',
-          },
+          } as UserDailyReward,
         ],
       });
 

@@ -3,10 +3,13 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import BigNumber from 'bignumber.js';
 import {
+  balanceToFiatNumber,
   fromTokenMinimalUnit,
   fromWei,
+  renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  weiToFiatNumber,
 } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
 import useStakingEarningsHistory, {
@@ -24,6 +27,15 @@ import StakingEarningsHistoryList, {
   StakingEarningsHistoryListData,
 } from './StakingEarningsHistoryList/StakingEarningsHistoryList';
 import { ChainId } from '@metamask/controller-utils';
+import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
+import { useSelector } from 'react-redux';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { Hex } from '../../../../../../util/smart-transactions/smart-publish-hook';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 interface StakingEarningsHistoryProps {
   asset: TokenI;
@@ -113,6 +125,17 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<DateRange>(
     EARNINGS_HISTORY_TIME_PERIOD_DEFAULT,
   );
+  const currentCurrency: string = useSelector(selectCurrentCurrency);
+  const multiChainMarketData = useSelector(selectTokenMarketData);
+  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+  const networkConfigurations: Record<Hex, NetworkConfiguration> = useSelector(
+    selectNetworkConfigurations,
+  );
+  const nativeCurrency =
+    networkConfigurations?.[asset.chainId as Hex]?.nativeCurrency;
+  const conversionRate =
+    multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+  const exchangeRates = multiChainMarketData?.[asset.chainId as Hex];
   const {
     earningsHistory,
     isLoading: isLoadingEarningsHistory,
@@ -121,7 +144,6 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     chainId: asset.chainId as ChainId,
     limitDays: EARNINGS_HISTORY_DAYS_LIMIT,
   });
-
   const ticker = asset.ticker ?? asset.symbol;
 
   const formatRewardsWei = useCallback(
@@ -152,6 +174,29 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     [asset.decimals, formatRewardsWei],
   );
 
+  const formatRewardsFiat = useCallback(
+    (value: string | BN) => {
+      if (asset.isETH) {
+        const weiFiatNumber = weiToFiatNumber(new BN(value), conversionRate);
+        return renderFiat(weiFiatNumber, currentCurrency, 2);
+      }
+      const tokenFiatNumber = balanceToFiatNumber(
+        renderFromTokenMinimalUnit(value, asset.decimals),
+        conversionRate,
+        exchangeRates[asset.address as Hex].price,
+      );
+      return renderFiat(tokenFiatNumber, currentCurrency, 2);
+    },
+    [
+      asset.isETH,
+      asset.decimals,
+      asset.address,
+      exchangeRates,
+      conversionRate,
+      currentCurrency,
+    ],
+  );
+
   const transformedEarningsHistory = useMemo(() => {
     if (!earningsHistory?.length) return [];
     const gapFilledEarningsHistory = [...earningsHistory];
@@ -164,7 +209,6 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       gapFilledEarningsHistory.unshift({
         dateStr: gapDate.toISOString().split('T')[0],
         dailyRewards: '0',
-        dailyRewardsUsd: '0',
         sumRewards: '0',
       });
     }
@@ -193,7 +237,6 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     let rewardsTotalForChartTimePeriodBN = new BN(0);
     let rewardsTotalForListTimePeriodBN = new BN(0);
     let trailingZeroHistoryListValues = 0;
-    let rewardsUsdTotalForListTimePeriod = 0;
     let currentTimePeriodChartGroup: string | null = null;
     let currentTimePeriodListGroup: string | null = null;
     let lastEntryTimePeriodGroupInfo: TimePeriodGroupInfo = {
@@ -249,7 +292,6 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
       if (currentTimePeriodListGroup === newListGroup) {
         rewardsTotalForListTimePeriodBN =
           rewardsTotalForListTimePeriodBN.add(rewardsBN);
-        rewardsUsdTotalForListTimePeriod += parseFloat(entry.dailyRewardsUsd);
       } else {
         if (!rewardsTotalForListTimePeriodBN.gt(new BN(0))) {
           trailingZeroHistoryListValues++;
@@ -261,13 +303,15 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
           groupLabel: prevLastEntryTimePeriodGroupInfo.chartGroupLabel,
           groupHeader: prevLastEntryTimePeriodGroupInfo.listGroupHeader,
           amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-          amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+          amountSecondaryText: formatRewardsFiat(
+            rewardsTotalForListTimePeriodBN,
+          ),
+          ticker,
         });
 
-        currentTimePeriodListGroup = newListGroup;
         // reset for next time period
+        currentTimePeriodListGroup = newListGroup;
         rewardsTotalForListTimePeriodBN = new BN(rewardsBN);
-        rewardsUsdTotalForListTimePeriod = parseFloat(entry.dailyRewardsUsd);
       }
     };
 
@@ -293,7 +337,10 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
           groupLabel: lastEntryTimePeriodGroupInfo.chartGroupLabel,
           groupHeader: lastEntryTimePeriodGroupInfo.listGroupHeader,
           amount: formatRewardsWei(rewardsTotalForListTimePeriodBN),
-          amountUsd: String(rewardsUsdTotalForListTimePeriod.toFixed(2)),
+          amountSecondaryText: formatRewardsFiat(
+            rewardsTotalForListTimePeriodBN,
+          ),
+          ticker,
         });
       }
       // removes trailing zeros from history list
@@ -354,6 +401,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
     transformedEarningsHistory,
     ticker,
     formatRewardsWei,
+    formatRewardsFiat,
   ]);
 
   const onTimePeriodChange = (newTimePeriod: DateRange) => {
@@ -372,10 +420,7 @@ const StakingEarningsHistory = ({ asset }: StakingEarningsHistoryProps) => {
         earnings={earningsHistoryChartData.earnings}
         formatValue={(value) => formatRewardsNumber(value)}
       />
-      <StakingEarningsHistoryList
-        earnings={earningsHistoryListData}
-        ticker={ticker}
-      />
+      <StakingEarningsHistoryList earnings={earningsHistoryListData} />
     </View>
   );
 };

@@ -9,7 +9,6 @@ export interface EarningHistory {
   sumRewards: string;
   dateStr: string;
   dailyRewards: string;
-  dailyRewardsUsd: string;
 }
 export interface EarningHistoryResponse {
   userRewards: EarningHistory[];
