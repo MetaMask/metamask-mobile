@@ -1,10 +1,9 @@
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useSignatureMetrics } from './useSignatureMetrics';
-import { SignatureRequestType, SignatureRequest } from '@metamask/signature-controller';
 
 const mockSigRequest = {
-  type: SignatureRequestType.PersonalSign,
+  type: 'personal_sign',
   messageParams: {
     data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
     from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
@@ -17,8 +16,8 @@ const mockSigRequest = {
     origin: 'metamask.github.io',
     metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
   },
-  chainId: '0x1' as `0x${string}`,
-} as const;
+  chainId: '0x0',
+};
 
 jest.mock('./useSignatureRequest', () => ({
   useSignatureRequest: () => mockSigRequest,
@@ -42,20 +41,7 @@ describe('useSignatureMetrics', () => {
   });
   it('should capture metrics events correctly', async () => {
     const { result } = renderHookWithProvider(() => useSignatureMetrics(), {
-      state: {
-        engine: {
-          backgroundState: {
-            PreferencesController: {
-              useTransactionSimulations: true,
-            },
-            SignatureController: {
-              signatureRequests: {
-                [mockSigRequest.messageParams.metamaskId]: mockSigRequest,
-              } as unknown as Record<string, SignatureRequest>,
-            },
-          },
-        },
-      },
+      state: {},
     });
     // first call for 'SIGNATURE_REQUESTED' event
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);

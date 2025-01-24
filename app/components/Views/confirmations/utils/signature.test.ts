@@ -1,6 +1,6 @@
 import { parseTypedDataMessage, isRecognizedPermit } from './signature';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
-import { SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
+import { SignatureRequest } from '@metamask/signature-controller';
 
 describe('Signature Utils', () => {
   describe('parseTypedDataMessage', () => {
@@ -51,8 +51,7 @@ describe('Signature Utils', () => {
           data: JSON.stringify({
             primaryType: PRIMARY_TYPES_PERMIT[0]
           })
-        },
-        type: SignatureRequestType.TypedSign
+        }
       } as SignatureRequest;
 
       expect(isRecognizedPermit(mockRequest)).toBe(true);
@@ -64,8 +63,7 @@ describe('Signature Utils', () => {
           data: JSON.stringify({
             primaryType: 'UnrecognizedType'
           })
-        },
-        type: SignatureRequestType.TypedSign
+        }
       } as SignatureRequest;
 
       expect(isRecognizedPermit(mockRequest)).toBe(false);

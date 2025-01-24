@@ -1,3 +1,4 @@
+import type { Hex } from '@metamask/utils';
 import { SecurityAlertResponse } from '@metamask/transaction-controller';
 import { useCallback, useEffect } from 'react';
 
@@ -8,10 +9,8 @@ import { getAddressAccountType } from '../../../../util/address';
 import { getBlockaidMetricsParams } from '../../../../util/blockaid';
 import { getHostFromUrl } from '../utils/generic';
 import { isSignatureRequest } from '../utils/confirm';
-import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
-import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
-import { SignatureRequest } from '@metamask/signature-controller';
+import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -21,16 +20,12 @@ interface MessageParamsType {
 }
 
 const getAnalyticsParams = (
-  signatureRequest: SignatureRequest,
-  isSimulationEnabled?: boolean,
+  messageParams: MessageParamsType,
+  securityAlertResponse: SecurityAlertResponse,
+  type: string,
+  chainId: Hex | undefined,
 ) => {
-  const { chainId, messageParams, type } = signatureRequest ?? {};
-  const {
-    meta = {},
-    from,
-    securityAlertResponse,
-    version
-  } = (messageParams  as unknown as MessageParamsType) || {};
+  const { meta = {}, from, version } = messageParams;
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -41,17 +36,16 @@ const getAnalyticsParams = (
     ui_customizations: ['redesigned_confirmation'],
     ...(meta.analytics as Record<string, string>),
     ...(securityAlertResponse
-      ? getBlockaidMetricsParams(securityAlertResponse as SecurityAlertResponse)
+      ? getBlockaidMetricsParams(securityAlertResponse)
       : {}),
-    ...getSignatureDecodingEventProps(signatureRequest, isSimulationEnabled),
   };
 };
 
 export const useSignatureMetrics = () => {
   const signatureRequest = useSignatureRequest();
-  const isSimulationEnabled = useTypedSignSimulationEnabled();
+  const { securityAlertResponse } = useSecurityAlertResponse();
 
-  const type = signatureRequest?.type;
+  const { chainId, messageParams, type } = signatureRequest ?? {};
 
   const captureSignatureMetrics = useCallback(
     async (
@@ -65,14 +59,16 @@ export const useSignatureMetrics = () => {
         MetricsEventBuilder.createEventBuilder(event)
           .addProperties(
             getAnalyticsParams(
-              signatureRequest as SignatureRequest,
-              isSimulationEnabled,
+              messageParams as unknown as MessageParamsType,
+              securityAlertResponse as SecurityAlertResponse,
+              type,
+              chainId,
             ),
           )
           .build(),
       );
     },
-    [isSimulationEnabled, type, signatureRequest],
+    [chainId, messageParams, securityAlertResponse, type],
   );
 
   useEffect(() => {
