@@ -12,7 +12,6 @@ import { ICONSIZE_BY_AVATARSIZE } from '../../Avatar.constants';
 import AvatarBase from '../../foundation/AvatarBase';
 
 // Internal dependencies.
-import { isNumber } from 'lodash';
 import { isFaviconSVG } from '../../../../../../util/favicon';
 import {
   AVATARFAVICON_IMAGE_TESTID,
@@ -28,9 +27,14 @@ const AvatarFavicon = ({
   style,
   ...props
 }: AvatarFaviconProps) => {
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [error, setError] = useState<any>(undefined);
+  const isRequireSource = !!(imageSource && typeof imageSource === 'number');
+  const isRemoteSource = !!(
+    imageSource &&
+    typeof imageSource === 'object' &&
+    'uri' in imageSource
+  );
+  const isValidSource = isRequireSource || isRemoteSource;
+  const [error, setError] = useState<Error | undefined>(undefined);
   const [svgSource, setSvgSource] = useState<string>('');
   const { styles } = useStyles(stylesheet, { style });
 
@@ -40,9 +44,7 @@ const AvatarFavicon = ({
     [setError],
   );
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSvgError = useCallback((e: any) => setError(e), [setError]);
+  const onSvgError = useCallback((e: Error) => setError(e), [setError]);
 
   // TODO add the fallback with uppercase letter initial
   //  requires that the domain is passed in as a prop from the parent
@@ -53,30 +55,29 @@ const AvatarFavicon = ({
     />
   );
 
+  // Checks if image is SVG
   useEffect(() => {
+    if (!isRemoteSource) return;
+
     const checkSvgContentType = async (uri: string) => {
       try {
         const response = await fetch(uri, { method: 'HEAD' });
         const contentType = response.headers.get('Content-Type');
         return contentType?.includes('image/svg+xml');
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
+      } catch (_) {
         return false;
       }
     };
 
-    if (imageSource && !isNumber(imageSource) && 'uri' in imageSource) {
-      const svg = isFaviconSVG(imageSource);
-      if (svg) {
-        checkSvgContentType(svg).then((isSvg) => {
-          if (isSvg) {
-            setSvgSource(svg);
-          }
-        });
-      }
+    const svg = isFaviconSVG(imageSource);
+    if (svg) {
+      checkSvgContentType(svg).then((isSvg) => {
+        if (isSvg) {
+          setSvgSource(svg);
+        }
+      });
     }
-  }, [imageSource]);
+  }, [imageSource, isRemoteSource]);
 
   const renderSvg = () =>
     svgSource ? (
@@ -86,9 +87,7 @@ const AvatarFavicon = ({
         height="100%"
         uri={svgSource}
         style={styles.image}
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError={(e: any) => onSvgError(e)}
+        onError={(e: unknown) => onSvgError(e as Error)}
       />
     ) : null;
 
@@ -106,7 +105,7 @@ const AvatarFavicon = ({
 
   return (
     <AvatarBase size={size} style={styles.base} {...props}>
-      {error ? renderFallbackFavicon() : renderFavicon()}
+      {error || !isValidSource ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );
 };
