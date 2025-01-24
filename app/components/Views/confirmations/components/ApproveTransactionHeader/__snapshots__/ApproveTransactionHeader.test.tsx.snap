@@ -15,7 +15,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "center",
         "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderRadius": 99,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -78,7 +78,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -308,7 +308,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -434,7 +434,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -664,7 +664,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,

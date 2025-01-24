@@ -4520,10 +4520,10 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/bitcoin-wallet-snap@^0.8.2":
-  version "0.8.2"
-  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.8.2.tgz#dd37c48366997e6e9927837e28cc65a6008d1524"
-  integrity sha512-NoqqAA7YuuFk/n0/ZgcLpaFRYKorkN5nS9mVYIkHcp1yxyduDGhrDKyYzMVcOiEmrnZSkSRt5tDulk1PQ+cdLw==
+"@metamask/bitcoin-wallet-snap@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
+  integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
@@ -4575,10 +4575,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-4.0.0.tgz#3aad7e4da21c279374668e179c0b055d93aa0552"
-  integrity sha512-bpGKH06Nq6KwMRPNkQ+a/H2vNfX/ViIkpUHkx0FnkastL4+G63lcFS8Nv8mmi9zI24k3l0a2zvsSb/KsvFWTzA==
+"@metamask/design-tokens@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
+  integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
 
 "@metamask/eslint-config-typescript@^9.0.0":
   version "9.0.1"
@@ -4728,7 +4728,7 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^7.0.0":
+"@metamask/eth-snap-keyring@^7.1.0":
   version "7.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-7.1.0.tgz#d472ff8c9abee1f438398d749408cd12ee44ada7"
   integrity sha512-aOP8WkapqFmne7xt7Xo39YPxA3fvwSzKEO+Eo+o76r4rBAutH6QLNO9gmy6e4wm2TG9hHzsQjceZmLns75suvg==
@@ -5535,6 +5535,11 @@
     semver "^7.5.4"
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
+
+"@metamask/solana-wallet-snap@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.2.0.tgz#7d0db28a58cbd728306427144039d28f56f6d477"
+  integrity sha512-XG1NzrJu2Xvo6PKr5f3Ij6ojEBNGh1H/2WJCcCMSoKZUEl8UG5i8rmZ+SVcZJ0Jhr88sbredNXlAzqGESz2VBA==
 
 "@metamask/stake-sdk@^0.3.0":
   version "0.3.0"
@@ -7253,6 +7258,55 @@
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
+
+"@solana/addresses@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0.tgz#d1b01a38e0b48d7e4fea223821655a0c2b903c28"
+  integrity sha512-8n3c/mUlH1/z+pM8e7OJ6uDSXw26Be0dgYiokiqblO66DGQ0d+7pqFUFZ5pEGjJ9PU2lDTSfY8rHf4cemOqwzQ==
+  dependencies:
+    "@solana/assertions" "2.0.0"
+    "@solana/codecs-core" "2.0.0"
+    "@solana/codecs-strings" "2.0.0"
+    "@solana/errors" "2.0.0"
+
+"@solana/assertions@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0.tgz#b02fc874a890f252c4595a0e35deeb1719d5f02b"
+  integrity sha512-NyPPqZRNGXs/GAjfgsw7YS6vCTXWt4ibXveS+ciy5sdmp/0v3pA6DlzYjleF9Sljrew0IiON15rjaXamhDxYfQ==
+  dependencies:
+    "@solana/errors" "2.0.0"
+
+"@solana/codecs-core@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0.tgz#31d4a6acce9ac49f786939c4e564adf9a68c56ef"
+  integrity sha512-qCG+3hDU5Pm8V6joJjR4j4Zv9md1z0RaecniNDIkEglnxmOUODnmPLWbtOjnDylfItyuZeDihK8hkewdj8cUtw==
+  dependencies:
+    "@solana/errors" "2.0.0"
+
+"@solana/codecs-numbers@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0.tgz#c08250968fa1cbfab076367b650269271061c646"
+  integrity sha512-r66i7VzJO1MZkQWZIAI6jjJOFVpnq0+FIabo2Z2ZDtrArFus/SbSEv543yCLeD2tdR/G/p+1+P5On10qF50Y1Q==
+  dependencies:
+    "@solana/codecs-core" "2.0.0"
+    "@solana/errors" "2.0.0"
+
+"@solana/codecs-strings@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0.tgz#46e728adee9a4737c3ee811af452948aab31cbd4"
+  integrity sha512-dNqeCypsvaHcjW86H0gYgAZGGkKVBeKVeh7WXlOZ9kno7PeQ2wNkpccyzDfuzaIsKv+HZUD3v/eo86GCvnKazQ==
+  dependencies:
+    "@solana/codecs-core" "2.0.0"
+    "@solana/codecs-numbers" "2.0.0"
+    "@solana/errors" "2.0.0"
+
+"@solana/errors@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0.tgz#31c87baaf4b19aaa2a1d8bbc4dfa6efd449d7bbe"
+  integrity sha512-IHlaPFSy4lvYco1oHJ3X8DbchWwAwJaL/4wZKnF1ugwZ0g0re8wbABrqNOe/jyZ84VU9Z14PYM8W9oDAebdJbw==
+  dependencies:
+    chalk "^5.3.0"
+    commander "^12.1.0"
 
 "@spruceid/siwe-parser@2.1.0":
   version "2.1.0"
@@ -13487,6 +13541,11 @@ chalk@^2.0.1, chalk@^2.4.2:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
+chalk@^5.3.0:
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-5.4.1.tgz#1b48bf0963ec158dce2aacf69c093ae2dd2092d8"
+  integrity sha512-zgVZuo2WcZgfUEmsn6eO3kINexW8RAE4maiQ8QNs8CtpPCSyMiYsULR3HQYkm3w8FIA3SberyMJMSldGsW+U3w==
+
 char-regex@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/char-regex/-/char-regex-1.0.2.tgz#d744358226217f981ed58f479b1d6bcc29545dcf"
@@ -13973,6 +14032,11 @@ commander@^10.0.1:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/commander/-/commander-10.0.1.tgz#881ee46b4f77d1c1dccc5823433aa39b022cbe06"
   integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
+
+commander@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-12.1.0.tgz#01423b36f501259fdaac4d0e4d60c96c991585d3"
+  integrity sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==
 
 commander@^2.19.0, commander@^2.20.0:
   version "2.20.3"

@@ -7,7 +7,7 @@ exports[`PickerBase should render correctly 1`] = `
     {
       "alignItems": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 4,
       "borderWidth": 1,
       "flexDirection": "row",
