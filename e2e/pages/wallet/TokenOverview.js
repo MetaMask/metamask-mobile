@@ -5,6 +5,8 @@ import {
   TokenOverviewSelectorsText
 } from '../../selectors/wallet/TokenOverview.selectors';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
+import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+
 class TokenOverview {
   get container() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
@@ -16,6 +18,14 @@ class TokenOverview {
 
   get sendButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
+  }
+
+  get unstakeButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
+  }
+
+  get stakeMoreButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
   get actionSheetSendButton() {
@@ -68,6 +78,14 @@ class TokenOverview {
 
   async tapSwapButton() {
     await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async tapStakeMoreButton() {
+    await Gestures.waitAndTap(this.stakeMoreButton);
+  }
+
+  async tapUnstakeButton() {
+    await Gestures.waitAndTap(this.unstakeButton);
   }
 
   async scrollOnScreen() {

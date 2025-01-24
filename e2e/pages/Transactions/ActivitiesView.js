@@ -22,6 +22,14 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
+  get stakeDepositedLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
+  }
+
+  get unstakeLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
+  }
+
   get firstTransactionStatus() {
     return Matchers.getElementByID(
       CommonSelectorsIDs.TRANSACTION_STATUS,
