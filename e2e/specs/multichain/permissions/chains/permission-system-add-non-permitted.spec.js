@@ -1,5 +1,5 @@
 import { SmokeMultiChainPermissions } from '../../../../tags';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
@@ -60,7 +60,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
-          await TestHelpers.delay(3000);
+          await waitForTestDappToLoad();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -95,6 +95,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
           await Assertions.checkIfNotVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );
@@ -126,6 +127,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
           await NetworkNonPemittedBottomSheet.tapAddThisNetworkButton();
 
           // Verify the permission was added by checking that disconnecting both networks shows disconnect all button
@@ -167,6 +169,7 @@ describe(
           // Verify bottom sheet appears and choose from permitted networks
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000); // Wait for the browser to load
+          await waitForTestDappToLoad();
           await Browser.navigateToTestDApp();
           await TestHelpers.delay(3000); // Wait for the toast to disappear
           await Assertions.checkIfVisible(
@@ -213,6 +216,7 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000); // Wait for the browser to load
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );

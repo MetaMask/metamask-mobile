@@ -7,7 +7,7 @@ import ToastModal from '../../../../pages/wallet/ToastModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import AddAccountBottomSheet from '../../../../pages/wallet/AddAccountBottomSheet';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
 import Assertions from '../../../../utils/Assertions';
@@ -39,6 +39,7 @@ describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
         //TODO: should re add connecting to an external swap step after detox has been updated
 
         await Browser.navigateToTestDApp();
+        await waitForTestDappToLoad();
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
         await TestHelpers.delay(2000);

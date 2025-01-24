@@ -7,7 +7,7 @@ import TestDApp from '../../../../pages/Browser/TestDApp';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import { loginToApp } from '../../../../viewHelper';
+import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
@@ -33,6 +33,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
           await Assertions.checkIfVisible(Browser.browserScreenID);
 
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
           await TestDApp.connect();
           await ConnectBottomSheet.tapConnectButton();
 
@@ -56,6 +57,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
           await TestHelpers.delay(3000);
           await Assertions.checkIfVisible(Browser.browserScreenID);
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
 
           // First permission modification: Add Linea Sepolia
           await TestDApp.connect();

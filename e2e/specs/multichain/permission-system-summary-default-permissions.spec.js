@@ -6,7 +6,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp, waitForTestDappToLoad } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
 import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryBottomSheet';
 import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
@@ -35,6 +35,7 @@ describe(
           await loginToApp();
           await TabBarComponent.tapBrowser();
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
 
           // Step 2: Navigate to permissions management
           await Browser.tapNetworkAvatarButtonOnBrowser();
