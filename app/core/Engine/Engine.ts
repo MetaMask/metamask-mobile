@@ -173,7 +173,7 @@ import SmartTransactionsController from '@metamask/smart-transactions-controller
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
-import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
+import { selectSwapsChainFeatureFlags, selectSwapsQuotes, selectSwapsTopAggId } from '../../reducers/swaps';
 import {
   SmartTransactionStatuses,
   ClientId,
@@ -1225,11 +1225,22 @@ export class Engine {
         networkController.getNetworkClientRegistry.bind(networkController),
       getNetworkState: () => networkController.state,
       hooks: {
-        publish: (transactionMeta) => {
+        publish: (transactionMeta) => {          
+          const state = store.getState();
           const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-            store.getState(),
+            state,
           );
-
+          const swapsQuotes = selectSwapsQuotes(state);
+          const swapsTopAggId = selectSwapsTopAggId(state);
+          const selectedQuote = swapsQuotes?.[swapsTopAggId];
+          const tradeTxTokenFee = selectedQuote?.tradeTxFees?.fees?.[0]?.tokenFees?.[0];
+          let transactionFees;
+          if (tradeTxTokenFee && selectedQuote?.isGasIncludedTrade) {
+            transactionFees = {
+              approvalTxFees: selectedQuote?.approvalTxFees,
+              tradeTxFees: selectedQuote?.tradeTxFees
+            }
+          }
           return submitSmartTransactionHook({
             transactionMeta,
             transactionController: this.transactionController,
@@ -1238,7 +1249,8 @@ export class Engine {
             approvalController,
             // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
             controllerMessenger: this.controllerMessenger,
-            featureFlags: selectSwapsChainFeatureFlags(store.getState()),
+            featureFlags: selectSwapsChainFeatureFlags(state),
+            transactionFees
           }) as Promise<{ transactionHash: string }>;
         },
       },
