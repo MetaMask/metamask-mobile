@@ -12,7 +12,10 @@ import {
 } from '@metamask/network-controller';
 import Engine from '../../../../core/Engine/Engine';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectIsAllNetworks,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
 const { PreferencesController, NetworkController } = Engine.context;
@@ -277,6 +280,23 @@ describe('RpcSelectionModal', () => {
     fireEvent.press(rpcUrlElement);
     expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
       1,
+    );
+  });
+
+  it('should not call preferences controller setTokenNetworkFilter when a popular networks filter is selected', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectIsAllNetworks) {
+        return true; // to show all networks
+      }
+      return null;
+    });
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+    fireEvent.press(rpcUrlElement);
+    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
+      0,
     );
   });
 });
