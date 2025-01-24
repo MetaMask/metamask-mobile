@@ -1,7 +1,7 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
+import { BtcAccountType } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
@@ -194,7 +194,6 @@ describe('Accounts Controller Selectors', () => {
 
 const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
 const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
-const MOCK_SOL_ADDRESS = 'ATrXkbX2eEPuusRoLyRMW88wcPT2aho2Lk3xErnjjFH';
 
 function getStateWithAccount(account: InternalAccount) {
   return {
@@ -226,13 +225,6 @@ const btcTestnetAccount = createMockInternalAccount(
   'Bitcoin Testnet Account',
   KeyringTypes.snap,
   BtcAccountType.P2wpkh,
-);
-
-const solAccount = createMockInternalAccount(
-  MOCK_SOL_ADDRESS,
-  'Solana Account',
-  KeyringTypes.snap,
-  SolAccountType.DataAccount,
 );
 
 describe('Bitcoin Account Selectors', () => {

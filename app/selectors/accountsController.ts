@@ -12,7 +12,6 @@ import {
   isBtcAccount,
   isBtcMainnetAddress,
   isBtcTestnetAddress,
-  isSolanaAccount,
   ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 
@@ -120,13 +119,4 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
     (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
   );
 }
-
-/**
- * A selector that returns whether the user has already created a Solana mainnet account
- */
-export function hasCreatedSolanaAccount(state: RootState): boolean {
-  const accounts = selectInternalAccounts(state);
-  return accounts.some((account) => isSolanaAccount(account));
-}
-
 ///: END:ONLY_INCLUDE_IF

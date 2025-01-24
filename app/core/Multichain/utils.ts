@@ -8,7 +8,6 @@ import {
 } from '@metamask/keyring-api';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { validate, Network } from 'bitcoin-address-validation';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -50,18 +49,6 @@ export function getFormattedAddressFromInternalAccount(
 export function isBtcAccount(account: InternalAccount): boolean {
   const { P2wpkh } = BtcAccountType;
   return Boolean(account && account.type === P2wpkh);
-}
-
-/**
- * Returns whether an address is a valid Solana address, specifically an account's.
- * Derived addresses (like Program's) will return false.
- * See: https://stackoverflow.com/questions/71200948/how-can-i-validate-a-solana-wallet-address-with-web3js
- *
- * @param address - The address to check.
- * @returns `true` if the address is a valid Solana address, `false` otherwise.
- */
-export function isSolanaAccount(account: InternalAccount): boolean {
-  return isSolanaAddress(account.address);
 }
 
 /**
