@@ -5,6 +5,9 @@ import {
   BtcMethod,
   EthScopes,
   BtcScopes,
+  SolScopes,
+  SolAccountType,
+  SolMethod,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -13,6 +16,7 @@ import {
   isBtcMainnetAddress,
   isBtcTestnetAddress,
   getFormattedAddressFromInternalAccount,
+  isSolanaAccount,
 } from '../utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -87,6 +91,22 @@ const mockBTCAccount: InternalAccount = {
   type: BtcAccountType.P2wpkh,
 };
 
+const mockSolAccount: InternalAccount = {
+  address: SOL_ADDRESSES,
+  id: '1',
+  type: SolAccountType.DataAccount,
+  methods: [SolMethod.SendAndConfirmTransaction],
+  options: {},
+  metadata: {
+    name: 'Solana Account',
+    importTime: 1684232000456,
+    keyring: {
+      type: KeyringTypes.hd,
+    },
+  },
+  scopes: [SolScopes.Namespace],
+};
+
 describe('MultiChain utils', () => {
   describe('isEthAccount', () => {
     it('returns true for EOA accounts', () => {
@@ -150,6 +170,18 @@ describe('MultiChain utils', () => {
       expect(isBtcTestnetAddress(SOL_ADDRESSES)).toBe(false);
     });
   });
+
+  describe('isSolanaAccount', () => {
+    it('returns true for Solana accounts', () => {
+      expect(isSolanaAccount(mockSolAccount)).toBe(true);
+    });
+
+    it('returns false for non-Solana accounts', () => {
+      expect(isSolanaAccount(mockEthEOAAccount)).toBe(false);
+      expect(isSolanaAccount(mockBTCAccount)).toBe(false);
+    });
+  });
+
   describe('getFormattedAddressFromInternalAccount', () => {
     it('returns checksummed address for ETH EOA accounts', () => {
       const formatted =

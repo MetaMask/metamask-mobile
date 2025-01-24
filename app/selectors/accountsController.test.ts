@@ -1,7 +1,7 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { Hex, isValidChecksumAddress } from '@metamask/utils';
-import { BtcAccountType } from '@metamask/keyring-api';
+import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
 import {
@@ -10,6 +10,7 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   hasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
+  hasCreatedSolanaMainnetAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -192,42 +193,50 @@ describe('Accounts Controller Selectors', () => {
   });
 });
 
-describe('Bitcoin Account Selectors', () => {
-  function getStateWithAccount(account: InternalAccount) {
-    return {
-      engine: {
-        backgroundState: {
-          AccountsController: {
-            internalAccounts: {
-              accounts: {
-                [account.id]: account,
-              },
-              selectedAccount: account.id,
+const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
+const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+const MOCK_SOL_ADDRESS = 'ATrXkbX2eEPuusRoLyRMW88wcPT2aho2Lk3xErnjjFH';
+
+function getStateWithAccount(account: InternalAccount) {
+  return {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [account.id]: account,
             },
+            selectedAccount: account.id,
           },
-          KeyringController: MOCK_KEYRING_CONTROLLER,
         },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
       },
-    } as RootState;
-  }
+    },
+  } as RootState;
+}
 
-  const MOCK_BTC_MAINNET_ADDRESS = 'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-  const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
+const btcMainnetAccount = createMockInternalAccount(
+  MOCK_BTC_MAINNET_ADDRESS,
+  'Bitcoin Account',
+  KeyringTypes.snap,
+  BtcAccountType.P2wpkh,
+);
 
-  const btcMainnetAccount = createMockInternalAccount(
-    MOCK_BTC_MAINNET_ADDRESS,
-    'Bitcoin Account',
-    KeyringTypes.snap,
-    BtcAccountType.P2wpkh,
-  );
+const btcTestnetAccount = createMockInternalAccount(
+  MOCK_BTC_TESTNET_ADDRESS,
+  'Bitcoin Testnet Account',
+  KeyringTypes.snap,
+  BtcAccountType.P2wpkh,
+);
 
-  const btcTestnetAccount = createMockInternalAccount(
-    MOCK_BTC_TESTNET_ADDRESS,
-    'Bitcoin Testnet Account',
-    KeyringTypes.snap,
-    BtcAccountType.P2wpkh,
-  );
+const solAccount = createMockInternalAccount(
+  MOCK_SOL_ADDRESS,
+  'Solana Account',
+  KeyringTypes.snap,
+  SolAccountType.DataAccount,
+);
 
+describe('Bitcoin Account Selectors', () => {
   describe('hasCreatedBtcMainnetAccount', () => {
     it('returns true when a BTC mainnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
@@ -249,6 +258,20 @@ describe('Bitcoin Account Selectors', () => {
     it('returns false when no BTC testnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
+    });
+  });
+});
+
+describe('Solana Account Selectors', () => {
+  describe('hasCreatedSolanaMainnetAccount', () => {
+    it('returns true when a Solana account exists', () => {
+      const state = getStateWithAccount(solAccount);
+      expect(hasCreatedSolanaMainnetAccount(state)).toBe(true);
+    });
+
+    it('returns false when no Solana account exists', () => {
+      const state = getStateWithAccount(btcMainnetAccount);
+      expect(hasCreatedSolanaMainnetAccount(state)).toBe(false);
     });
   });
 });
