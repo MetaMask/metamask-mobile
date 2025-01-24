@@ -6,6 +6,7 @@ import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
+import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
 import InfoRow from '../../../UI/InfoRow';
 import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
@@ -14,6 +15,7 @@ import styleSheet from './Message.styles';
 
 const Message = () => {
   const signatureRequest = useSignatureRequest();
+  const isSimulationSupported = useTypedSignSimulationEnabled();
   const chainId = signatureRequest?.chainId as Hex;
   const { styles } = useStyles(styleSheet, {});
 
@@ -31,12 +33,14 @@ const Message = () => {
   return (
     <SignatureMessageSection
       messageCollapsed={
-        <InfoRow
-          label={strings('confirm.primary_type')}
-          style={styles.collpasedInfoRow}
-        >
-          {primaryType}
-        </InfoRow>
+        isSimulationSupported ? undefined : (
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.collpasedInfoRow}
+          >
+            {primaryType}
+          </InfoRow>
+        )
       }
       messageExpanded={
         <View>
