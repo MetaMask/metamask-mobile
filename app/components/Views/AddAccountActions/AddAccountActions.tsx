@@ -168,6 +168,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
                 await createSolanaAccount(MultichainNetworks.SOLANA);
               }}
               disabled={isLoading || isSolanaMainnetAccountAlreadyCreated}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON
+              }
             />
           )}
           {isBitcoinSupportEnabled && (
@@ -180,6 +183,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
                 await createBitcoinAccount(MultichainNetworks.BITCOIN);
               }}
               disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
+              }
             />
           )}
           {isBitcoinTestnetSupportEnabled && (
@@ -192,6 +198,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
                 await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
               }}
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
+              }
             />
           )}
           {
