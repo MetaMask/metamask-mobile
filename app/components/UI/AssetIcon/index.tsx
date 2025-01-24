@@ -47,7 +47,7 @@ const AssetIcon = memo((props: Props) => {
   if (!props.logo) return null;
 
   const style = [styles.logo, props.customStyle];
-  const isImageUrl = isUrl(props.logo) || props.logo.substr(0, 4) === 'ipfs';
+  const isImageUrl = isUrl(props.logo) || props.logo.substring(0, 5) === 'ipfs';
   const source: ImageSourcePropType | null = isImageUrl
     ? { uri: props.logo }
     : null;
