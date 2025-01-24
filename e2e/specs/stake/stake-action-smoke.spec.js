@@ -12,7 +12,7 @@ import {
   startFixtureServer,
   stopFixtureServer,
 } from '../../fixtures/fixture-helper';
-import { CustomNetworks } from '../../resources/networks.e2e';
+import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
@@ -29,15 +29,16 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 
-let nonceCount = 0;
 const fixtureServer = new FixtureServer();
 
 describe(SmokeStake('Stake from Actions'), () => {
   const AMOUNT_TO_SEND = '.01'
+  let nonceCount = 0;
   const wallet = ethers.Wallet.createRandom();
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
+      .withNetworkController(PopularNetworksList.Avalanche)
       .withNetworkController(CustomNetworks.Holesky)
       .build();
     await startFixtureServer(fixtureServer);
@@ -71,7 +72,11 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TabBarComponent.tapActivity();
     await Assertions.checkIfTextIsNotDisplayed(
       ActivitiesViewSelectorsText.SUBMITTED_TEXT,
-      60000,
+      120000,
+    );
+    await Assertions.checkIfElementToHaveText(
+      ActivitiesView.firstTransactionStatus,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT
     );
   });
 
@@ -99,7 +104,8 @@ describe(SmokeStake('Stake from Actions'), () => {
     await StakeConfirmView.tapConfirmButton()
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await waitUntilTransactionHasCompleted();
+    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
+    await TestHelpers.delay(3000);
   })
 
   it('Stake more ETH', async () => {
@@ -107,6 +113,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(2000);
     await TokenOverview.tapStakeMoreButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.003')
@@ -115,7 +122,8 @@ describe(SmokeStake('Stake from Actions'), () => {
     await StakeConfirmView.tapConfirmButton()
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
-    await waitUntilTransactionHasCompleted();
+    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
+    await TestHelpers.delay(3000);
   })
 
   it('Unstake ETH', async () => {
@@ -123,6 +131,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(2000);
     await TokenOverview.tapUnstakeButton();
     await Assertions.checkIfVisible(StakeView.unstakeContainer);
     await StakeView.enterAmount('.002')
@@ -131,16 +140,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await StakeConfirmView.tapConfirmButton()
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
-    await waitUntilTransactionHasCompleted();
+    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
+    await TestHelpers.delay(3000);
   })
 });
-
-async function waitUntilTransactionHasCompleted() {
-  await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 60000);
-  /*
-  await Assertions.checkIfElementToHaveText(
-    ActivitiesView.firstTransactionStatus,
-    ActivitiesViewSelectorsText.CONFIRM_TEXT
-  );
-  */
-}
