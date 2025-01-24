@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.38.0",
+  "version": "7.38.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -136,7 +136,6 @@
     "ethereumjs-util/**/secp256k1": "3.8.1",
     "**/secp256k1": "4.0.4",
     "**/@metamask/rpc-errors": "7.0.1",
-    "**/@expo/image-utils/semver": "7.5.2",
     "base58-js": "1.0.0",
     "bech32": "2.0.0",
     "sha256-uint8array": "0.10.3",
@@ -144,7 +143,6 @@
     "nanoid": "^3.3.8"
   },
   "dependencies": {
-    "@config-plugins/detox": "^8.0.0",
     "@consensys/on-ramp-sdk": "1.28.8",
     "@keystonehq/bc-ur-registry-eth": "^0.19.1",
     "@keystonehq/metamask-airgapped-keyring": "^0.13.1",
@@ -159,8 +157,6 @@
     "@metamask/composable-controller": "^10.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^4.0.0",
-    "@metamask/eth-json-rpc-filters": "^9.0.0",
-    "@metamask/eth-json-rpc-middleware": "^15.0.0",
     "@metamask/eth-hd-keyring": "^9.0.0",
     "@metamask/eth-json-rpc-filters": "^8.0.0",
     "@metamask/eth-json-rpc-middleware": "^11.0.2",
@@ -172,8 +168,8 @@
     "@metamask/ethjs-contract": "^0.4.1",
     "@metamask/ethjs-query": "^0.7.1",
     "@metamask/ethjs-unit": "^0.3.0",
-    "@metamask/json-rpc-engine": "^10.0.0",
     "@metamask/gas-fee-controller": "^22.0.2",
+    "@metamask/json-rpc-engine": "^10.0.0",
     "@metamask/json-rpc-middleware-stream": "^8.0.2",
     "@metamask/key-tree": "^9.0.0",
     "@metamask/keyring-api": "^10.1.0",
