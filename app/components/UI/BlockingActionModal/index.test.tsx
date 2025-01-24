@@ -1,15 +1,15 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import BlockingActionModal from './';
 
 describe('BlockingActionModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
+    render(
       <BlockingActionModal isLoadingAction modalVisible>
         <Text>{'Please wait'}</Text>
       </BlockingActionModal>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

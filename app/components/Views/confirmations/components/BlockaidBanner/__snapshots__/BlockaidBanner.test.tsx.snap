@@ -11,10 +11,10 @@ exports[`BlockaidBanner should not render if user has not enabled blockaid 1`] =
 exports[`BlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
-      "features": Array [
+      "features": [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
         "If you approve this request, a third party known for scams might take all your assets.",
@@ -22,14 +22,14 @@ exports[`BlockaidBanner should render correctly 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Warning",
     }
   }
   style={
-    Object {
-      "backgroundColor": "#BF520819",
-      "borderColor": "#BF5208",
+    {
+      "backgroundColor": "#bf52081a",
+      "borderColor": "#bf5208",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -37,21 +37,21 @@ exports[`BlockaidBanner should render correctly 1`] = `
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#BF5208"
+      color="#bf5208"
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -61,7 +61,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -69,9 +69,9 @@ exports[`BlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -84,9 +84,9 @@ exports[`BlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -100,7 +100,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -112,9 +112,9 @@ exports[`BlockaidBanner should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -127,13 +127,13 @@ exports[`BlockaidBanner should render correctly 1`] = `
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -143,11 +143,11 @@ exports[`BlockaidBanner should render correctly 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }
@@ -164,10 +164,10 @@ exports[`BlockaidBanner should render correctly 1`] = `
 exports[`BlockaidBanner should render correctly with list attack details 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
-      "features": Array [
+      "features": [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
         "If you approve this request, a third party known for scams might take all your assets.",
@@ -175,14 +175,14 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Malicious",
     }
   }
   style={
-    Object {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+    {
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -190,21 +190,21 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -214,7 +214,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -222,9 +222,9 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -237,9 +237,9 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -253,7 +253,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -265,9 +265,9 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -280,13 +280,13 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -296,11 +296,11 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }
@@ -317,10 +317,10 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
 exports[`BlockaidBanner should render correctly with reason "raw_signature_farming" 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
-      "features": Array [
+      "features": [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
         "If you approve this request, a third party known for scams might take all your assets.",
@@ -328,14 +328,14 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         "Operator is untrusted according to previous activity",
       ],
       "reason": "raw_signature_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Malicious",
     }
   }
   style={
-    Object {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+    {
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -343,21 +343,21 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -367,7 +367,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -375,9 +375,9 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -390,9 +390,9 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -406,7 +406,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -418,9 +418,9 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -433,13 +433,13 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -449,11 +449,11 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }
@@ -467,14 +467,25 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
 </View>
 `;
 
-exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `null`;
+exports[`BlockaidBanner should render loader if reason is requestInProgress 1`] = `
+<ActivityIndicator
+  color="#bf5208"
+  size="small"
+  style={
+    {
+      "alignItems": "center",
+      "marginBottom": 10,
+      "marginTop": 10,
+    }
+  }
+/>
+`;
 
 exports[`BlockaidBanner should render normal banner alert if resultType is failed 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
-    Object {
+    {
       "marginBottom": 20,
       "marginLeft": 10,
       "marginRight": 10,
@@ -484,9 +495,9 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
 >
   <View
     style={
-      Object {
-        "backgroundColor": "#BF520819",
-        "borderColor": "#BF5208",
+      {
+        "backgroundColor": "#bf52081a",
+        "borderColor": "#bf5208",
         "borderLeftWidth": 4,
         "borderRadius": 4,
         "flexDirection": "row",
@@ -494,21 +505,21 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         "paddingLeft": 8,
       }
     }
-    testID="banneralert"
+    testID="security-alert-response-failed-banner"
   >
     <View
       style={
-        Object {
+        {
           "marginRight": 8,
         }
       }
     >
       <SvgMock
-        color="#BF5208"
+        color="#bf5208"
         height={24}
         name="Danger"
         style={
-          Object {
+          {
             "height": 24,
             "width": 24,
           }
@@ -518,7 +529,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
     </View>
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -526,9 +537,9 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -541,9 +552,9 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -561,10 +572,10 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
 exports[`BlockaidBanner should render something does not look right with contact us link when expanded 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
-      "features": Array [
+      "features": [
         "We found attack vectors in this request",
         "This request shows a fake token name and icon.",
         "If you approve this request, a third party known for scams might take all your assets.",
@@ -572,14 +583,14 @@ exports[`BlockaidBanner should render something does not look right with contact
         "Operator is untrusted according to previous activity",
       ],
       "reason": "approval_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Malicious",
     }
   }
   style={
-    Object {
-      "backgroundColor": "#D7384719",
-      "borderColor": "#D73847",
+    {
+      "backgroundColor": "#d738471a",
+      "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -587,21 +598,21 @@ exports[`BlockaidBanner should render something does not look right with contact
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#D73847"
+      color="#d73847"
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -611,7 +622,7 @@ exports[`BlockaidBanner should render something does not look right with contact
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -619,9 +630,9 @@ exports[`BlockaidBanner should render something does not look right with contact
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -634,9 +645,9 @@ exports[`BlockaidBanner should render something does not look right with contact
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -650,7 +661,7 @@ exports[`BlockaidBanner should render something does not look right with contact
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -662,9 +673,9 @@ exports[`BlockaidBanner should render something does not look right with contact
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -677,13 +688,13 @@ exports[`BlockaidBanner should render something does not look right with contact
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -693,11 +704,11 @@ exports[`BlockaidBanner should render something does not look right with contact
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }

@@ -19,7 +19,7 @@ exports[`ActionModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]

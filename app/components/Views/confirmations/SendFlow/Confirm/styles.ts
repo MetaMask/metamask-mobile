@@ -1,6 +1,8 @@
 import { fontStyles } from '../../../../../styles/common';
 import { StyleSheet } from 'react-native';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
@@ -145,6 +147,11 @@ const createStyles = (colors: any) =>
     confirmButtonWarning: {
       backgroundColor: colors.warning.default,
       borderColor: colors.warning.default,
+    },
+    simulationWrapper: {
+      marginLeft: 24,
+      marginRight: 24,
+      marginBottom: 24,
     },
   });
 

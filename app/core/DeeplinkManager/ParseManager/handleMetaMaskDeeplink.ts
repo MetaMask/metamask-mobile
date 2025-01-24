@@ -1,3 +1,4 @@
+import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import Logger from '../../../util/Logger';
 import { Minimizer } from '../../NativeModules';
@@ -7,7 +8,11 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-
+import parseOriginatorInfo from '../parseOriginatorInfo';
+import { Platform } from 'react-native';
+import Device from '../../../util/device';
+import Routes from '../../../constants/navigation/Routes';
+import AppConstants from '../../AppConstants';
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -37,8 +42,14 @@ export function handleMetaMaskDeeplink({
   }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-    if (params.redirect) {
-      Minimizer.goBack();
+    if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
+      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
+        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
+      }  else {
+        Minimizer.goBack();
+      }
     } else if (params.channelId) {
       // differentiate between  deeplink callback and socket connection
       if (params.comm === 'deeplinking') {
@@ -55,11 +66,28 @@ export function handleMetaMaskDeeplink({
           request: params.request,
         });
       } else {
+        const protocolVersion = parseInt(params.v ?? '1', 10);
+
+        DevLogger.log(
+          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${
+            params.v
+          }`,
+        );
+
+        let originatorInfo: OriginatorInfo | undefined;
+        if (params.originatorInfo) {
+          originatorInfo = parseOriginatorInfo({
+            base64OriginatorInfo: params.originatorInfo,
+          });
+        }
         handleDeeplink({
           channelId: params.channelId,
           origin,
           url,
+          protocolVersion,
           context: 'deeplink_scheme',
+          originatorInfo,
+          rpc: params.rpc,
           otherPublicKey: params.pubkey,
           sdkConnect: SDKConnect.getInstance(),
         }).catch((err) => {
@@ -81,14 +109,13 @@ export function handleMetaMaskDeeplink({
       );
     }
 
-    DevLogger.log('DeepLinkManager:: ===> params from deeplink', params);
-
     SDKConnect.getInstance().state.deeplinkingService?.handleMessage({
       channelId: params.channelId,
       url,
       message: params.message,
       dappPublicKey: params.pubkey,
       scheme: params.scheme,
+      account: params.account ?? '@',
     });
   } else if (
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
@@ -116,10 +143,22 @@ export function handleMetaMaskDeeplink({
       .catch((err) => {
         console.warn(`DeepLinkManager failed to connect`, err);
       });
-  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`)) {
-    instance._handleBuyCrypto();
-  } else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`)) {
-    instance._handleSellCrypto();
+  } else if (
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`) ||
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.BUY}`)
+  ) {
+    const rampPath = url
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY_CRYPTO}`, '')
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.BUY}`, '');
+    instance._handleBuyCrypto(rampPath);
+  } else if (
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`) ||
+    url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.SELL}`)
+  ) {
+    const rampPath = url
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL_CRYPTO}`, '')
+      .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
+    instance._handleSellCrypto(rampPath);
   }
 }
 

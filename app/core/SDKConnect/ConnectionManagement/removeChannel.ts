@@ -9,7 +9,7 @@ import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 
-function removeChannel({
+async function removeChannel({
   channelId,
   engine,
   sendTerminate,
@@ -19,7 +19,7 @@ function removeChannel({
   engine?: typeof Engine;
   sendTerminate?: boolean;
   instance: SDKConnect;
-}) {
+}): Promise<boolean> {
   // check if it is an android sdk connection, if it doesn't belong to regular connections
   const isDappConnection = instance.state.connections[channelId] === undefined;
 
@@ -36,10 +36,15 @@ function removeChannel({
 
   if (instance.state.connected[channelId]) {
     try {
-      instance.state.connected[channelId].removeConnection({
-        terminate: sendTerminate ?? false,
+      const terminated = await instance.state.connected[channelId].removeConnection({
+        terminate: true,
         context: 'SDKConnect::removeChannel',
       });
+      if(!terminated) {
+        DevLogger.log(`SDKConnect::removeChannel channelId=${channelId} terminated=${terminated} try again later`);
+        // don't delete channel, try again later
+        return terminated;
+      }
     } catch (err) {
       console.error(`Can't remove connection ${channelId}`, err);
     }
@@ -61,12 +66,18 @@ function removeChannel({
   if (engine) {
     // Remove matching permissions from controller
     const permissionsController = (
-      engine.context as { PermissionController: PermissionController<any, any> }
+      engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
     if (permissionsController.getPermissions(channelId)) {
       permissionsController.revokeAllPermissions(channelId);
     }
   }
+
+  return true;
 }
 
 export default removeChannel;

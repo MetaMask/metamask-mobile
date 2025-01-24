@@ -35,7 +35,6 @@ import { selectTicker } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../selectors/currencyRateController';
 
 const IMAGE_3_RATIO = 281 / 354;
@@ -147,7 +146,6 @@ const GasEducationCarousel = ({
   route,
   conversionRate,
   currentCurrency,
-  nativeCurrency,
   ticker,
 }) => {
   const [currentTab, setCurrentTab] = useState(1);
@@ -206,7 +204,7 @@ const GasEducationCarousel = ({
 
         const maxFeePerGasConversion = getTransactionFee({
           value: estimatedTotalGas,
-          fromCurrency: nativeCurrency,
+          fromCurrency: ticker,
           toCurrency: currentCurrency,
           numberOfDecimals: 2,
           conversionRate,
@@ -220,7 +218,7 @@ const GasEducationCarousel = ({
       setIsLoading(false);
     };
     setGasEstimates();
-  }, [conversionRate, currentCurrency, nativeCurrency]);
+  }, [conversionRate, currentCurrency, ticker]);
 
   const onPresGetStarted = () => {
     navigation.pop();
@@ -407,10 +405,6 @@ GasEducationCarousel.propTypes = {
    */
   route: PropTypes.object,
   /**
-   * Network native currency
-   */
-  nativeCurrency: PropTypes.string,
-  /**
    * Current provider ticker
    */
   ticker: PropTypes.string,
@@ -419,7 +413,6 @@ GasEducationCarousel.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   ticker: selectTicker(state),
 });
 

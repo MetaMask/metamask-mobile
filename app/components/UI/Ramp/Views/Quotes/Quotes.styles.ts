@@ -18,7 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
     timer: {
       fontVariant: ['tabular-nums'],
     },
-    timerHiglight: {
+    timerHighlight: {
       color: colors.error.default,
     },
     topBorder: {

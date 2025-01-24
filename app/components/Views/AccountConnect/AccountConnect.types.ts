@@ -1,3 +1,5 @@
+import { RequestedPermissions } from '@metamask/permission-controller';
+
 /**
  * Enum to track states of the connect screen.
  */
@@ -5,11 +7,13 @@ export enum AccountConnectScreens {
   SingleConnect = 'SingleConnect',
   SingleConnectSelector = 'SingleConnectSelector',
   MultiConnectSelector = 'MultiConnectSelector',
+  MultiConnectNetworkSelector = 'MultiConnectNetworkSelector',
 }
 
 export interface AccountConnectParams {
   hostInfo: {
-    metadata: { origin: string };
+    metadata: { origin: string; id: string };
+    permissions: RequestedPermissions;
   };
   permissionRequestId: string;
 }

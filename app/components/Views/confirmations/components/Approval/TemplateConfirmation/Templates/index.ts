@@ -1,5 +1,6 @@
 import { omit, pick } from 'lodash';
 import approvalResult from './ApprovalResult';
+import smartTransactionStatus from './SmartTransactionStatus';
 import { ApprovalTypes } from '../../../../../../../core/RPCMethods/RPCMethodMiddleware';
 import { Actions } from '../TemplateConfirmation';
 import { Colors } from '../../../../../../../util/theme/models';
@@ -19,6 +20,8 @@ export interface ConfirmationTemplateValues {
 
 export interface ConfirmationTemplate {
   getValues: (
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pendingApproval: ApprovalRequest<any>,
     strings: (key: string) => string,
     actions: Actions,
@@ -29,6 +32,7 @@ export interface ConfirmationTemplate {
 const APPROVAL_TEMPLATES: { [key: string]: ConfirmationTemplate } = {
   [ApprovalTypes.RESULT_SUCCESS]: approvalResult,
   [ApprovalTypes.RESULT_ERROR]: approvalResult,
+  [ApprovalTypes.SMART_TRANSACTION_STATUS]: smartTransactionStatus,
 };
 
 export const TEMPLATED_CONFIRMATION_APPROVAL_TYPES =
@@ -46,6 +50,8 @@ const ALLOWED_TEMPLATE_KEYS: string[] = [
 ];
 
 export function getTemplateValues(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pendingApproval: ApprovalRequest<any>,
   stringFn: (key: string) => string,
   actions: Actions,

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEffect, useRef } from 'react';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
@@ -7,19 +6,24 @@ import { createAccountConnectNavDetails } from '../../Views/AccountConnect';
 import { useSelector } from 'react-redux';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import useOriginSource from '../../hooks/useOriginSource';
 
 export interface PermissionApprovalProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
 }
 
 const PermissionApproval = (props: PermissionApprovalProps) => {
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { approvalRequest } = useApprovalRequest();
   const totalAccounts = useSelector(selectAccountsLength);
   const isProcessing = useRef<boolean>(false);
 
+  const eventSource = useOriginSource({ origin: approvalRequest?.requestData?.metadata?.origin });
+
   useEffect(() => {
-    if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS) {
+    if (approvalRequest?.type !== ApprovalTypes.REQUEST_PERMISSIONS || !eventSource) {
       isProcessing.current = false;
       return;
     }
@@ -36,10 +40,14 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
 
     isProcessing.current = true;
 
-    trackEvent(MetaMetricsEvents.CONNECT_REQUEST_STARTED, {
-      number_of_accounts: totalAccounts,
-      source: 'PERMISSION SYSTEM',
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_REQUEST_STARTED)
+        .addProperties({
+          number_of_accounts: totalAccounts,
+          source: eventSource,
+        })
+        .build(),
+    );
 
     props.navigation.navigate(
       ...createAccountConnectNavDetails({
@@ -47,7 +55,14 @@ const PermissionApproval = (props: PermissionApprovalProps) => {
         permissionRequestId: id,
       }),
     );
-  }, [approvalRequest, totalAccounts, props.navigation, trackEvent]);
+  }, [
+    approvalRequest,
+    totalAccounts,
+    props.navigation,
+    trackEvent,
+    createEventBuilder,
+    eventSource,
+  ]);
 
   return null;
 };

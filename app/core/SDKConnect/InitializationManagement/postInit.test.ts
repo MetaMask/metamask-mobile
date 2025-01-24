@@ -130,12 +130,6 @@ describe('postInit', () => {
       );
     });
 
-    it('should wait before reconnecting all', async () => {
-      await postInit(mockInstance);
-
-      expect(wait).toHaveBeenCalledWith(3000);
-    });
-
     it('should reconnect all sessions', async () => {
       await postInit(mockInstance);
 

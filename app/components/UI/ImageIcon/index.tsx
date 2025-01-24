@@ -4,6 +4,8 @@ import images from 'images/image-icons';
 
 interface ImageIconPropTypes {
   image: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   style: any;
 }
 

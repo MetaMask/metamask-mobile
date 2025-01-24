@@ -17,8 +17,8 @@ function useRampNetworksDetail() {
     } catch (requestError) {
       setError(requestError as Error);
       Logger.error(
-        'useRampNetworksDetail::getNetworksDetails',
         requestError as Error,
+        'useRampNetworksDetail::getNetworksDetails',
       );
     } finally {
       setIsLoading(false);

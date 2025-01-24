@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Token as TokenType } from '@metamask/assets-controllers';
+import {
+  MarketDataDetails,
+  Token as TokenType,
+} from '@metamask/assets-controllers';
 import EthereumAddress from '../../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import CheckBox from '@react-native-community/checkbox';
@@ -10,19 +13,29 @@ import { fontStyles } from '../../../../styles/common';
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert } from '../../../../actions/alert';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { selectChainId } from '../../../../selectors/networkController';
 import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../../util/number';
 import { useTheme } from '../../../../util/theme';
 import {
-  selectConversionRate,
+  selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
+import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
+import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
+import { Colors } from '../../../../util/theme/models';
+import { Hex } from '@metamask/utils';
+import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import { NetworkBadgeSource } from '../../../UI/AssetOverview/Balance/Balance';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../constants/network';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     logo: {
       height: 40,
@@ -31,13 +44,13 @@ const createStyles = (colors: any) =>
     tokenContainer: { flexDirection: 'row', paddingVertical: 16 },
     tokenInfoContainer: { flex: 1, marginLeft: 8, marginRight: 16 },
     tokenUnitLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 18,
       color: colors.text.default,
       marginBottom: 4,
     },
     tokenDollarLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
       marginBottom: 4,
@@ -47,7 +60,7 @@ const createStyles = (colors: any) =>
       marginBottom: 4,
     },
     tokenAddressLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.alternative,
     },
@@ -56,7 +69,7 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     addressLinkLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -70,12 +83,12 @@ const createStyles = (colors: any) =>
       flexWrap: 'wrap',
     },
     tokenAggregatorLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
     },
     aggregatorLinkLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 14,
       color: colors.primary.default,
     },
@@ -83,23 +96,39 @@ const createStyles = (colors: any) =>
   });
 
 interface Props {
-  token: TokenType;
+  token: TokenType & { chainId: Hex };
   selected: boolean;
   toggleSelected: (selected: boolean) => void;
 }
 
 const Token = ({ token, selected, toggleSelected }: Props) => {
   const { address, symbol, aggregators = [], decimals } = token;
+  const accountAddress = useSelector(selectSelectedInternalAccountAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const [expandTokenList, setExpandTokenList] = useState(false);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
-  const conversionRate = useSelector(selectConversionRate);
+  const tokenExchangeRatesAllChains = useSelector(selectTokenMarketData);
+  const currentChainId = useSelector(selectChainId);
+  const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
+  const tokenBalancesAllChains = useSelector(selectTokensBalances);
+  const balanceAllChainsForAccount =
+    tokenBalancesAllChains[accountAddress as Hex];
+  const tokenBalances =
+    balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
+  const conversionRateByChainId = useSelector(selectCurrencyRates);
+  const chainIdToUse = token.chainId ?? currentChainId;
+
+  const conversionRate =
+    conversionRateByChainId[CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId]]
+      ?.conversionRate;
+
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const exchangeRate = tokenExchangeRates[address];
+
+  const tokenMarketData =
+    (tokenExchangeRates as Record<Hex, MarketDataDetails>)?.[address as Hex] ??
+    null;
   const tokenBalance = renderFromTokenMinimalUnit(
-    tokenBalances[address],
+    tokenBalances[address as Hex],
     decimals,
   );
   const tokenBalanceWithSymbol = `${
@@ -108,7 +137,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const fiatBalance = balanceToFiat(
     tokenBalance,
     conversionRate,
-    exchangeRate,
+    tokenMarketData?.price || undefined,
     currentCurrency,
   );
 
@@ -140,11 +169,21 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
 
   return (
     <View style={styles.tokenContainer}>
-      <TokenImage
-        asset={token}
-        containerStyle={styles.logo}
-        iconStyle={styles.logo}
-      />
+      <BadgeWrapper
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource(chainIdToUse, token.symbol)}
+          />
+        }
+      >
+        <TokenImage
+          asset={token}
+          containerStyle={styles.logo}
+          iconStyle={styles.logo}
+        />
+      </BadgeWrapper>
+
       <View style={styles.tokenInfoContainer}>
         <Text style={styles.tokenUnitLabel}>{tokenBalanceWithSymbol}</Text>
         {fiatBalance ? (

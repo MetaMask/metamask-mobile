@@ -3,13 +3,11 @@ import { connect } from 'react-redux';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 import TransactionTypes from '../../../core/TransactionTypes';
-import useAddressBalance from '../../../components/hooks/useAddressBalance/useAddressBalance';
 import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
   selectTicker,
 } from '../../../selectors/networkController';
-import { selectIdentities } from '../../../selectors/preferencesController';
 import { collectConfusables } from '../../../util/confusables';
 import { decodeTransferData } from '../../../util/transactions';
 import { doENSReverseLookup } from '../../../util/ENSUtils';
@@ -17,23 +15,19 @@ import { safeToChecksumAddress } from '../../../util/address';
 import { useTheme } from '../../../util/theme';
 import InfoModal from '../Swaps/components/InfoModal';
 import useExistingAddress from '../../hooks/useExistingAddress';
-import { AddressFrom, AddressTo } from '../AddressInputs';
+import { AddressTo } from '../AddressInputs';
 import createStyles from './AccountFromToInfoCard.styles';
 import { AccountFromToInfoCardProps } from './AccountFromToInfoCard.types';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { toLowerCaseEquals } from '../../../util/general';
+import { RootState } from '../../../reducers';
+import AddressFrom from './AddressFrom';
 
 const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
-  const {
-    identities,
-    chainId,
-    onPressFromAddressIcon,
-    ticker,
-    transactionState,
-    layout = 'horizontal',
-  } = props;
+  const { internalAccounts, chainId, ticker, transactionState, origin } = props;
   const {
     transaction: { from: rawFromAddress, data, to },
     transactionTo,
-    transactionToName,
     transactionFromName,
     selectedAsset,
     ensRecipient,
@@ -50,56 +44,90 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
   const existingToAddress = useExistingAddress(toAddress);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { addressBalance: fromAccountBalance } = useAddressBalance(
-    selectedAsset,
-    fromAddress,
-  );
 
   useEffect(() => {
-    if (!fromAddress) {
-      return;
-    }
-    if (transactionFromName) {
-      setFromAccountName(transactionFromName);
-      return;
-    }
-    (async () => {
+    const fetchFromAccountDetails = async () => {
+      if (!fromAddress) {
+        return;
+      }
+
+      if (transactionFromName) {
+        if (fromAccountName !== transactionFromName) {
+          setFromAccountName(transactionFromName);
+        }
+        return;
+      }
+
       const fromEns = await doENSReverseLookup(fromAddress, chainId);
       if (fromEns) {
-        setFromAccountName(fromEns);
+        if (fromAccountName !== fromEns) {
+          setFromAccountName(fromEns);
+        }
       } else {
-        const { name: fromName } = identities[fromAddress];
-        setFromAccountName(fromName);
+        const accountWithMatchingFromAddress = internalAccounts.find(
+          (account) => toLowerCaseEquals(account.address, fromAddress),
+        );
+
+        const newName = accountWithMatchingFromAddress
+          ? accountWithMatchingFromAddress.metadata.name
+          : fromAddress;
+
+        if (fromAccountName !== newName) {
+          setFromAccountName(newName);
+        }
       }
-    })();
-  }, [fromAddress, identities, transactionFromName, chainId]);
+    };
+
+    fetchFromAccountDetails();
+  }, [
+    fromAddress,
+    transactionFromName,
+    chainId,
+    internalAccounts,
+    fromAccountName,
+  ]);
 
   useEffect(() => {
-    if (existingToAddress) {
-      setToAccountName(existingToAddress?.name);
-      return;
-    }
-    (async () => {
+    const fetchAccountDetails = async () => {
+      if (existingToAddress) {
+        if (toAccountName !== existingToAddress.name) {
+          setToAccountName(existingToAddress.name);
+        }
+        return;
+      }
+
       const toEns = await doENSReverseLookup(toAddress, chainId);
       if (toEns) {
-        setToAccountName(toEns);
-      } else if (identities[toAddress]) {
-        const { name: toName } = identities[toAddress];
-        setToAccountName(toName);
+        if (toAccountName !== toEns) {
+          setToAccountName(toEns);
+        }
+      } else {
+        const accountWithMatchingToAddress = internalAccounts.find((account) =>
+          toLowerCaseEquals(account.address, toAddress),
+        );
+
+        const newName = accountWithMatchingToAddress
+          ? accountWithMatchingToAddress.metadata.name
+          : toAddress;
+
+        if (toAccountName !== newName) {
+          setToAccountName(newName);
+        }
       }
-    })();
-  }, [existingToAddress, identities, chainId, toAddress, transactionToName]);
+    };
+
+    fetchAccountDetails();
+  }, [existingToAddress, chainId, toAddress, internalAccounts, toAccountName]);
 
   useEffect(() => {
-    const accountNames =
-      (identities &&
-        Object.keys(identities).map((hash) => identities[hash].name)) ||
-      [];
+    const accountNames = internalAccounts.map(
+      (account) => account.metadata.name,
+    );
     const isOwnAccount = ensRecipient && accountNames.includes(ensRecipient);
     if (ensRecipient && !isOwnAccount) {
       setConfusableCollection(collectConfusables(ensRecipient));
     }
-  }, [identities, ensRecipient]);
+  }, [internalAccounts, ensRecipient]);
 
   useEffect(() => {
     let toAddr;
@@ -132,32 +160,24 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         existingToAddress === undefined && !!confusableCollection.length
       }
       isConfirmScreen
-      layout={layout}
+      layout="vertical"
       toAddressName={toAccountName}
       toSelectedAddress={toAddress}
     />
   );
 
   return (
-    <>
-      <View style={styles.inputWrapper}>
-        {fromAddress && (
-          <AddressFrom
-            fromAccountAddress={fromAddress}
-            fromAccountName={fromAccountName}
-            fromAccountBalance={fromAccountBalance}
-            layout={layout}
-            onPressIcon={onPressFromAddressIcon}
-          />
-        )}
-        {existingToAddress === undefined && confusableCollection.length ? (
-          <TouchableOpacity onPress={() => setShowWarningModal(true)}>
-            {addressTo}
-          </TouchableOpacity>
-        ) : (
-          addressTo
-        )}
-      </View>
+    <View style={styles.container}>
+      {fromAddress && (
+        <AddressFrom asset={selectedAsset} from={fromAddress} origin={origin} />
+      )}
+      {existingToAddress === undefined && confusableCollection.length ? (
+        <TouchableOpacity onPress={() => setShowWarningModal(true)}>
+          {addressTo}
+        </TouchableOpacity>
+      ) : (
+        addressTo
+      )}
       <InfoModal
         body={
           <Text style={styles.text}>
@@ -168,12 +188,12 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         title={strings('transaction.confusable_title')}
         toggleModal={() => setShowWarningModal(!showWarningModal)}
       />
-    </>
+    </View>
   );
 };
 
-const mapStateToProps = (state: any) => ({
-  identities: selectIdentities(state),
+const mapStateToProps = (state: RootState) => ({
+  internalAccounts: selectInternalAccounts(state),
   chainId: selectChainId(state),
   ticker: selectTicker(state),
 });

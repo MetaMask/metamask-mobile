@@ -29,15 +29,42 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-around',
       paddingHorizontal: 10,
-      paddingVertical: 20,
-    },
-    balanceWrapper: {
-      paddingHorizontal: 16,
+      paddingTop: 20,
     },
     balanceButtons: {
       flexDirection: 'row',
       justifyContent: 'center',
       paddingTop: 20,
+      paddingHorizontal: 16,
+    },
+    activitiesButton: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'center',
+      padding: 16,
+    },
+    buttonWrapper: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    buttonText: {
+      fontSize: 12,
+      fontStyle: 'normal',
+      fontWeight: '400',
+      lineHeight: 20,
+      letterSpacing: 0.25,
+    },
+    containerStyle: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
+      alignItems: 'flex-start',
+      paddingTop: 16,
+      paddingVertical: 2,
+    },
+    icon: {
+      marginHorizontal: 16,
     },
     footerButton: {
       flexGrow: 1,
@@ -51,6 +78,10 @@ const styleSheet = (params: { theme: Theme }) => {
       marginLeft: 8,
     },
     aboutWrapper: {
+      marginBottom: 20,
+      paddingHorizontal: 16,
+    },
+    tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
     },

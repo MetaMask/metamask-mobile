@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   caveatSpecifications as snapsCaveatsSpecifications,
   endowmentCaveatSpecifications as snapsEndowmentCaveatSpecifications,
@@ -21,18 +21,23 @@ import { CaveatTypes, RestrictedMethods } from './constants';
  * The "keys" of all of permissions recognized by the PermissionController.
  * Permission keys and names have distinct meanings in the permission system.
  */
-const PermissionKeys = Object.freeze({
+export const PermissionKeys = Object.freeze({
   ...RestrictedMethods,
+  permittedChains: 'endowment:permitted-chains',
 });
 
 /**
  * Factory functions for all caveat types recognized by the
  * PermissionController.
  */
-const CaveatFactories = Object.freeze({
+export const CaveatFactories = Object.freeze({
   [CaveatTypes.restrictReturnedAccounts]: (accounts) => ({
     type: CaveatTypes.restrictReturnedAccounts,
     value: accounts,
+  }),
+  [CaveatTypes.restrictNetworkSwitching]: (chainIds) => ({
+    type: CaveatTypes.restrictNetworkSwitching,
+    value: chainIds,
   }),
 });
 
@@ -52,26 +57,48 @@ const CaveatFactories = Object.freeze({
  *
  * @param {{
  * getInternalAccounts: () => import('@metamask/keyring-api').InternalAccount[],
+ * findNetworkClientIdByChainId: (chainId: `0x${string}`) => string,
  * }} options - Options bag.
  */
-export const getCaveatSpecifications = ({ getInternalAccounts }) => ({
+export const getCaveatSpecifications = ({
+  getInternalAccounts,
+  findNetworkClientIdByChainId,
+}) => ({
   [CaveatTypes.restrictReturnedAccounts]: {
     type: CaveatTypes.restrictReturnedAccounts,
 
     decorator: (method, caveat) => async (args) => {
+      const permittedAccounts = [];
       const allAccounts = await method(args);
-      const res = caveat.value.filter(({ address }) => {
+      caveat.value.forEach((address) => {
         const addressToCompare = address.toLowerCase();
-        return allAccounts.includes(addressToCompare);
+        const isPermittedAccount = allAccounts.includes(addressToCompare);
+        if (isPermittedAccount) {
+          permittedAccounts.push(addressToCompare);
+        }
       });
-
-      return res;
+      return permittedAccounts;
     },
 
     validator: (caveat, _origin, _target) =>
       validateCaveatAccounts(caveat.value, getInternalAccounts),
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  [CaveatTypes.restrictNetworkSwitching]: {
+    type: CaveatTypes.restrictNetworkSwitching,
+    validator: (caveat, _origin, _target) =>
+      validateCaveatNetworks(caveat.value, findNetworkClientIdByChainId),
+    /**
+     * @param {any[]} leftValue
+     * @param {any[]} rightValue
+     * @returns {[any[], any[]]}
+     */
+    merger: (leftValue, rightValue) => {
+      const newValue = Array.from(new Set([...leftValue, ...rightValue]));
+      const diff = newValue.filter((value) => !leftValue.includes(value));
+      return [newValue, diff];
+    },
+  },
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ...snapsCaveatsSpecifications,
   ...snapsEndowmentCaveatSpecifications,
   ///: END:ONLY_INCLUDE_IF
@@ -184,6 +211,46 @@ export const getPermissionSpecifications = ({
       }
     },
   },
+  [PermissionKeys.permittedChains]: {
+    permissionType: PermissionType.Endowment,
+    targetName: PermissionKeys.permittedChains,
+    allowedCaveats: [CaveatTypes.restrictNetworkSwitching],
+    factory: (permissionOptions, requestData) => {
+      if (requestData === undefined) {
+        return constructPermission({
+          ...permissionOptions,
+        });
+      }
+
+      if (!requestData.approvedChainIds) {
+        throw new Error(
+          `${PermissionKeys.permittedChains}: No approved networks specified.`,
+        );
+      }
+
+      return constructPermission({
+        ...permissionOptions,
+        caveats: [
+          CaveatFactories[CaveatTypes.restrictNetworkSwitching](
+            requestData.approvedChainIds,
+          ),
+        ],
+      });
+    },
+    endowmentGetter: async (_getterOptions) => undefined,
+    validator: (permission, _origin, _target) => {
+      const { caveats } = permission;
+      if (
+        !caveats ||
+        caveats.length !== 1 ||
+        caveats[0].type !== CaveatTypes.restrictNetworkSwitching
+      ) {
+        throw new Error(
+          `${PermissionKeys.permittedChains} error: Invalid caveats. There must be a single caveat of type "${CaveatTypes.restrictNetworkSwitching}".`,
+        );
+      }
+    },
+  },
 });
 
 /**
@@ -203,8 +270,7 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
   }
 
   const internalAccounts = getInternalAccounts();
-  accounts.forEach((account) => {
-    const address = account?.address;
+  accounts.forEach((address) => {
     if (!address || typeof address !== 'string') {
       throw new Error(
         `${PermissionKeys.eth_accounts} error: Expected an array of objects that contains an Ethereum addresses. Received: "${address}".`,
@@ -225,6 +291,36 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
 }
 
 /**
+ * Validates the networks associated with a caveat. Ensures that
+ * the networks value is an array of valid chain IDs.
+ *
+ * @param {string[]} chainIdsForCaveat - The list of chain IDs to validate.
+ * @param {function(string): string} findNetworkClientIdByChainId - Function to find network client ID by chain ID.
+ * @throws {Error} If the chainIdsForCaveat is not a non-empty array of valid chain IDs.
+ */
+function validateCaveatNetworks(
+  chainIdsForCaveat,
+  findNetworkClientIdByChainId,
+) {
+  if (!Array.isArray(chainIdsForCaveat) || chainIdsForCaveat.length === 0) {
+    throw new Error(
+      `${PermissionKeys.permittedChains} error: Expected non-empty array of chainIds.`,
+    );
+  }
+
+  chainIdsForCaveat.forEach((chainId) => {
+    try {
+      findNetworkClientIdByChainId(chainId);
+    } catch (e) {
+      console.error(e);
+      throw new Error(
+        `${PermissionKeys.permittedChains} error: Received unrecognized chainId: "${chainId}". Please try adding the network first via wallet_addEthereumChain.`,
+      );
+    }
+  });
+}
+
+/**
  * All unrestricted methods recognized by the PermissionController.
  * Unrestricted methods are ignored by the permission system, but every
  * JSON-RPC request seen by the permission system must correspond to a
@@ -234,8 +330,6 @@ function validateCaveatAccounts(accounts, getInternalAccounts) {
 export const unrestrictedMethods = Object.freeze([
   'eth_blockNumber',
   'eth_call',
-  'eth_chainId',
-  'eth_coinbase',
   'eth_decrypt',
   'eth_estimateGas',
   'eth_feeHistory',
@@ -252,9 +346,6 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getLogs',
   'eth_getProof',
   'eth_getStorageAt',
-  'eth_getTransactionByBlockHashAndIndex',
-  'eth_getTransactionByBlockNumberAndIndex',
-  'eth_getTransactionByHash',
   'eth_getTransactionCount',
   'eth_getTransactionReceipt',
   'eth_getUncleByBlockHashAndIndex',
@@ -262,31 +353,61 @@ export const unrestrictedMethods = Object.freeze([
   'eth_getUncleCountByBlockHash',
   'eth_getUncleCountByBlockNumber',
   'eth_getWork',
-  'eth_hashrate',
-  'eth_mining',
   'eth_newBlockFilter',
   'eth_newFilter',
   'eth_newPendingTransactionFilter',
   'eth_protocolVersion',
   'eth_sendRawTransaction',
-  'eth_sendTransaction',
-  'eth_sign',
-  'eth_signTypedData',
   'eth_signTypedData_v1',
-  'eth_signTypedData_v3',
-  'eth_signTypedData_v4',
   'eth_submitHashrate',
   'eth_submitWork',
   'eth_syncing',
   'eth_uninstallFilter',
-  'metamask_getProviderState',
   'metamask_watchAsset',
-  'net_listening',
   'net_peerCount',
-  'net_version',
-  'personal_ecRecover',
-  'personal_sign',
-  'wallet_watchAsset',
-  'web3_clientVersion',
   'web3_sha3',
+  // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
+  'wallet_getPermissions',
+  'wallet_requestPermissions',
+  'eth_getTransactionByHash',
+  'eth_getTransactionByBlockHashAndIndex',
+  'eth_getTransactionByBlockNumberAndIndex',
+  'eth_chainId',
+  'eth_hashrate',
+  'eth_mining',
+  'net_listening',
+  'net_version',
+  'eth_requestAccounts',
+  'eth_coinbase',
+  'parity_defaultAccount',
+  'eth_sendTransaction',
+  'personal_sign',
+  'personal_ecRecover',
+  'parity_checkRequest',
+  'eth_signTypedData',
+  'eth_signTypedData_v3',
+  'eth_signTypedData_v4',
+  'web3_clientVersion',
+  'wallet_scanQRCode',
+  'wallet_watchAsset',
+  'metamask_removeFavorite',
+  'metamask_showTutorial',
+  'metamask_showAutocomplete',
+  'metamask_injectHomepageScripts',
+  'metamask_getProviderState',
+  'metamask_logWeb3ShimUsage',
+  'wallet_switchEthereumChain',
+  'wallet_addEthereumChain',
+  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  'wallet_getAllSnaps',
+  'wallet_getSnaps',
+  'wallet_requestSnaps',
+  'wallet_invokeSnap',
+  'wallet_invokeKeyring',
+  'snap_getClientStatus',
+  'snap_getFile',
+  'snap_createInterface',
+  'snap_updateInterface',
+  'snap_getInterfaceState',
+  ///: END:ONLY_INCLUDE_IF
 ]);

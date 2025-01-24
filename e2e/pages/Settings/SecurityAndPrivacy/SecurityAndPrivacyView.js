@@ -1,7 +1,4 @@
-import {
-  SECURITY_PRIVACY_REMEMBER_ME_TOGGLE,
-  SECURITY_PRIVACY_DELETE_WALLET_BUTTON,
-} from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
+import { SECURITY_PRIVACY_DELETE_WALLET_BUTTON } from '../../../../wdio/screen-objects/testIDs/Screens/SecurityPrivacy.testIds';
 import {
   SecurityPrivacyViewSelectorsIDs,
   SecurityPrivacyViewSelectorsText,
@@ -13,6 +10,23 @@ class SecurityAndPrivacy {
   get changePasswordButton() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
+    );
+  }
+
+  get revealSecretRecoveryPhraseButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
+    );
+  }
+  get clearPrivacyDataButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
+    );
+  }
+
+  get securityAndPrivacyHeading() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
     );
   }
 
@@ -33,8 +47,22 @@ class SecurityAndPrivacy {
     );
   }
 
+  get autoLockSection() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
+    );
+  }
+
+  get autoLockDefault30Seconds() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
+    );
+  }
+
   get rememberMeToggle() {
-    return Matchers.getElementByID(SECURITY_PRIVACY_REMEMBER_ME_TOGGLE);
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
+    );
   }
 
   get changePasswordSection() {
@@ -46,6 +74,15 @@ class SecurityAndPrivacy {
   get securitySettingsScroll() {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
+    );
+  }
+  get showPrivateKey() {
+    return Matchers.getElementByText('Show private key');
+  }
+
+  get showPrivateKeyButton() {
+    return Matchers.getElementByText(
+      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
@@ -67,6 +104,16 @@ class SecurityAndPrivacy {
     );
   }
 
+  get revealPrivateKeyButton() {
+    return Matchers.getElementByID(
+      SecurityPrivacyViewSelectorsIDs.SHOW_PRIVATE_KEY,
+    );
+  }
+
+  async tapRevealSecretRecoveryPhraseButton() {
+    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton);
+  }
+
   async tapChangePasswordButton() {
     await Gestures.waitAndTap(this.changePasswordButton);
   }
@@ -75,6 +122,12 @@ class SecurityAndPrivacy {
     await Gestures.waitAndTap(this.deleteWalletButton);
   }
 
+  async scrollToRevealPrivateKey() {
+    await Gestures.scrollToElement(
+      this.revealPrivateKeyButton,
+      this.scrollViewIdentifier,
+    );
+  }
   async scrollToChangePasswordView() {
     await Gestures.scrollToElement(
       this.changePasswordButton,
@@ -96,6 +149,13 @@ class SecurityAndPrivacy {
     );
   }
 
+  async scrollToClearPrivacyData() {
+    await Gestures.scrollToElement(
+      this.clearPrivacyDataButton,
+      this.scrollViewIdentifier,
+    );
+  }
+
   async scrollToMetaMetrics() {
     await Gestures.scrollToElement(
       this.metaMetricsToggle,
@@ -103,12 +163,30 @@ class SecurityAndPrivacy {
     );
   }
 
+  async scrollToAutoLockSection() {
+    await Gestures.scrollToElement(
+      this.autoLockSection,
+      this.scrollViewIdentifier,
+    );
+  }
+
+  async tapAutoLock30Seconds() {
+    await Gestures.waitAndTap(this.autoLockDefault30Seconds);
+  }
+
   async tapMetaMetricsToggle() {
     await Gestures.waitAndTap(this.metaMetricsToggle);
+  }
+  async tapClearPrivacyData() {
+    await Gestures.waitAndTap(this.clearPrivacyDataButton);
   }
 
   async tapTurnOnRememberMeToggle() {
     await Gestures.waitAndTap(this.rememberMeToggle);
+  }
+
+  async tapShowPrivateKeyButton() {
+    await Gestures.waitAndTap(this.showPrivateKey);
   }
 }
 

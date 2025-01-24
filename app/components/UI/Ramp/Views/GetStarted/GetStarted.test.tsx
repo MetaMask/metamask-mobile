@@ -7,7 +7,7 @@ import { RampType, Region } from '../../types';
 import { RampSDK } from '../../sdk';
 import useRampNetwork from '../../hooks/useRampNetwork';
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -18,7 +18,7 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
       },
     },
@@ -44,6 +44,8 @@ const mockuseRampSDKInitialValues: Partial<RampSDK> = {
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
+  intent: undefined,
+  setIntent: jest.fn(),
 };
 
 let mockUseRampSDKValues: Partial<RampSDK> = {

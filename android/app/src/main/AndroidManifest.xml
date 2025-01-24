@@ -30,7 +30,7 @@
 		android:theme="@style/AppTheme"
 		android:hardwareAccelerated="true"
 		android:usesCleartextTraffic="${isDebug}"
-		tools:targetApi="29"
+		tools:targetApi="33"
 		tools:ignore="GoogleAppIndexingWarning"
 		android:networkSecurityConfig="@xml/react_native_config"
 		android:largeHeap="true"
@@ -76,6 +76,7 @@
 				<data android:host="metamask-alternate.app.link" />
 				<data android:host="metamask.test-app.link" />
 				<data android:host="metamask-alternate.test-app.link" />
+        <data android:scheme="expo-metamask" />
 			</intent-filter>
 			<!-- Branch URI Scheme -->
 			<intent-filter>
@@ -110,6 +111,12 @@
 			</intent-filter>
 			<intent-filter>
 				<data android:scheme="https" />
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+			</intent-filter>
+      <intent-filter>
+				<data android:scheme="expo-metamask" />
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />

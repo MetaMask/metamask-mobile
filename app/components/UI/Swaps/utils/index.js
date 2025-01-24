@@ -3,6 +3,7 @@ import BigNumber from 'bignumber.js';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 
 const {
   ETH_CHAIN_ID,
@@ -14,6 +15,7 @@ const {
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
+  BASE_CHAIN_ID,
 } = swapsUtils;
 
 const allowedChainIds = [
@@ -25,8 +27,18 @@ const allowedChainIds = [
   OPTIMISM_CHAIN_ID,
   ZKSYNC_ERA_CHAIN_ID,
   LINEA_CHAIN_ID,
+  BASE_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
 ];
+
+export const allowedTestnetChainIds = [
+  NETWORKS_CHAIN_ID.GOERLI,
+  NETWORKS_CHAIN_ID.SEPOLIA,
+];
+
+if (__DEV__) {
+  allowedChainIds.push(...allowedTestnetChainIds);
+}
 
 export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ACTIVE) {
@@ -106,6 +118,7 @@ export function getQuotesNavigationsParams(route) {
  * @param {object} options.destinationToken destinationToken object from tokens API
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
+ * @param {string} networkClientId Current network client ID
  */
 export function getFetchParams({
   slippage = 1,
@@ -113,6 +126,7 @@ export function getFetchParams({
   destinationToken,
   sourceAmount,
   walletAddress,
+  networkClientId,
 }) {
   return {
     slippage,
@@ -123,6 +137,7 @@ export function getFetchParams({
     metaData: {
       sourceTokenInfo: sourceToken,
       destinationTokenInfo: destinationToken,
+      networkClientId,
     },
   };
 }

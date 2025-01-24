@@ -1,54 +1,60 @@
-import TestHelpers from '../../helpers';
-import { SwapsViewSelectors } from '../../selectors/swaps/SwapsView.selectors.js';
+import {
+  SwapsViewSelectors,
+  SwapViewSelectorsTexts,
+} from '../../selectors/swaps/SwapsView.selectors.js';
 
-import enContent from '../../../locales/languages/en.json';
-import { waitFor } from 'detox';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import TestHelpers from '../..//helpers';
 
-export default class SwapView {
-  static async isVisible() {
-    await TestHelpers.checkIfElementByTextIsVisible(
-      enContent.swaps.fetching_quotes,
-    );
-    await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_QUOTE_SUMMARY);
-    await TestHelpers.checkIfVisible(SwapsViewSelectors.SWAP_GAS_FEE);
+class SwapView {
+  get quoteSummary() {
+    return Matchers.getElementByID(SwapsViewSelectors.QUOTE_SUMMARY);
   }
 
-  static async swipeToSwap() {
-    const percentage = device.getPlatform() === 'ios' ? 0.72 : 0.85;
-    await waitFor(element(by.id(SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON)))
-      .toBeVisible(100)
-      .withTimeout(8000);
-    await TestHelpers.delay(3000);
-    await TestHelpers.swipe(
-      SwapsViewSelectors.SWIPE_TO_SWAP_BUTTON,
-      'right',
-      'fast',
-      percentage,
-    );
-    await TestHelpers.delay(2000);
+  get gasFee() {
+    return Matchers.getElementByID(SwapsViewSelectors.GAS_FEE);
   }
 
-  static async waitForSwapToComplete(sourceTokenSymbol, destTokenSymbol) {
+  get fetchingQuotes() {
+    return Matchers.getElementByText(SwapViewSelectorsTexts.FETCHING_QUOTES);
+  }
+
+  get swapButton() {
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(SwapsViewSelectors.SWAP_BUTTON)
+      : Matchers.getElementByLabel(SwapsViewSelectors.SWAP_BUTTON);
+  }
+
+  get iUnderstandLabel() {
+    return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
+  }
+
+  generateSwapCompleteLabel(sourceToken, destinationToken) {
+    let title = SwapViewSelectorsTexts.SWAP_CONFIRMED;
+    title = title.replace('{{sourceToken}}', sourceToken);
+    title = title.replace('{{destinationToken}}', destinationToken);
+    return title;
+  }
+
+  // Function to check if the button is enabled
+  async isButtonEnabled(element) {
+    const attributes = await element.getAttributes();
+    return attributes.enabled === true; // Check if enabled is true
+  }
+
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
+  }
+
+  async tapIUnderstandPriceWarning() {
     try {
-      await TestHelpers.checkIfElementByTextIsVisible(
-        `Swap complete (${sourceTokenSymbol} to ${destTokenSymbol})`,
-        60000,
-      );
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.log(`Toast message is slow to appear or did not appear: ${e}`);
-    }
-
-    await device.enableSynchronization();
-    await TestHelpers.delay(5000);
-  }
-
-  static async tapIUnderstandPriceWarning() {
-    try {
-      await TestHelpers.tapByText('I understand');
+      await Gestures.waitAndTap(this.iUnderstandLabel, 3000);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.log(`Price warning not displayed: ${e}`);
     }
   }
 }
+
+export default new SwapView();

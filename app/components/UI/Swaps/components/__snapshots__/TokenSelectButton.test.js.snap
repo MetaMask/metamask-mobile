@@ -4,7 +4,7 @@ exports[`TokenSelectButton component should Render correctly 1`] = `
 <SelectorButton>
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -23,7 +23,7 @@ exports[`TokenSelectButton component should Render correctly 2`] = `
 <SelectorButton>
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -44,7 +44,7 @@ exports[`TokenSelectButton component should Render correctly 3`] = `
 <SelectorButton>
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
@@ -65,13 +65,13 @@ exports[`TokenSelectButton component should Render correctly 4`] = `
 <SelectorButton>
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <TokenIcon
-      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      icon="https://dweb.link/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       symbol="DAI"
     />
   </View>
@@ -89,13 +89,13 @@ exports[`TokenSelectButton component should Render correctly 5`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <TokenIcon
-      icon="https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
+      icon="https://dweb.link/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ"
       symbol="DAI"
     />
   </View>

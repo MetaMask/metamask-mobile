@@ -15,7 +15,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { connect } from 'react-redux';
 import {
   passwordSet,
@@ -57,14 +57,13 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from 'react-native-animated-fox';
+import AnimatedFox from '../../Base/AnimatedFox';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { selectSelectedAddress } from '../../../selectors/preferencesController';
-
+import { enableProfileSyncing } from '../../../actions/identity';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -195,8 +194,8 @@ const createStyles = (colors) =>
     },
     showMatchingPasswords: {
       position: 'absolute',
-      top: 52,
-      right: 17,
+      top: 36,
+      right: 10,
       alignSelf: 'flex-end',
     },
   });
@@ -227,10 +226,6 @@ class ChoosePassword extends PureComponent {
      * in the redux store
      */
     setLockTime: PropTypes.func,
-    /**
-     * A string representing the selected address => account
-     */
-    selectedAddress: PropTypes.string,
     /**
      * Action to reset the flag seedphraseBackedUp in redux
      */
@@ -278,10 +273,10 @@ class ChoosePassword extends PureComponent {
 
   async componentDidMount() {
     const authData = await Authentication.getType();
-    const previouslyDisabled = await AsyncStorage.getItem(
+    const previouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
     if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
@@ -376,6 +371,7 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         new_wallet: true,
       });
+      await enableProfileSyncing();
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -383,8 +379,8 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
       // Set state in app as it was with no password
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.props.passwordUnset();
       this.props.setLockTime(-1);
       // Should we force people to enable passcode / biometrics?
@@ -433,7 +429,7 @@ class ChoosePassword extends PureComponent {
    * @param password - Password to recreate and set the vault with
    */
   recreateVault = async (password, authType) => {
-    const { KeyringController, PreferencesController } = Engine.context;
+    const { KeyringController } = Engine.context;
     const seedPhrase = await this.getSeedPhrase();
     let importedAccounts = [];
     try {
@@ -473,8 +469,6 @@ class ChoosePassword extends PureComponent {
     // Get props to restore vault
     const hdKeyring = KeyringController.state.keyrings[0];
     const existingAccountCount = hdKeyring.accounts.length;
-    const selectedAddress = this.props.selectedAddress;
-    let preferencesControllerState = PreferencesController.state;
 
     // Create previous accounts again
     for (let i = 0; i < existingAccountCount - 1; i++) {
@@ -493,18 +487,6 @@ class ChoosePassword extends PureComponent {
         e,
         'error while trying to import accounts on recreate vault',
       );
-    }
-
-    // Reset preferencesControllerState
-    preferencesControllerState = PreferencesController.state;
-
-    // Set preferencesControllerState again
-    await PreferencesController.update(preferencesControllerState);
-    // Reselect previous selected account if still available
-    if (hdKeyring.accounts.includes(selectedAddress)) {
-      Engine.setSelectedAddress(selectedAddress);
-    } else {
-      Engine.setSelectedAddress(hdKeyring.accounts[0]);
     }
   };
 
@@ -559,8 +541,8 @@ class ChoosePassword extends PureComponent {
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://metamask.zendesk.com/hc/en-us/articles/360039616872-How-can-I-reset-my-password-',
-        title: 'metamask.zendesk.com',
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        title: 'support.metamask.io',
       },
     });
   };
@@ -789,10 +771,6 @@ class ChoosePassword extends PureComponent {
 
 ChoosePassword.contextType = ThemeContext;
 
-const mapStateToProps = (state) => ({
-  selectedAddress: selectSelectedAddress(state),
-});
-
 const mapDispatchToProps = (dispatch) => ({
   passwordSet: () => dispatch(passwordSet()),
   passwordUnset: () => dispatch(passwordUnset()),
@@ -800,4 +778,4 @@ const mapDispatchToProps = (dispatch) => ({
   seedphraseNotBackedUp: () => dispatch(seedphraseNotBackedUp()),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ChoosePassword);
+export default connect(null, mapDispatchToProps)(ChoosePassword);

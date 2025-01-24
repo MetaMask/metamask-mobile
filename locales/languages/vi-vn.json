@@ -896,8 +896,7 @@
     "message": "Thông báo",
     "message_from": "Thông báo từ",
     "learn_more": "Tìm hiểu thêm",
-    "read_more": "Đọc thêm",
-    "eth_sign_warning": "Hãy thận trọng nếu tiếp tục. Hành động này có thể được dùng để rút tài sản khỏi tài khoản của bạn. Đảm bảo rằng bạn tin tưởng trang web này."
+    "read_more": "Đọc thêm"
   },
   "watch_asset_request": {
     "title": "Thêm token được đề xuất",

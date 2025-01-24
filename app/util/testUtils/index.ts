@@ -1,2 +1,4 @@
-// eslint-disable-next-line import/prefer-default-export
 export { default as createNavigationProps } from './mocks/navigation';
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

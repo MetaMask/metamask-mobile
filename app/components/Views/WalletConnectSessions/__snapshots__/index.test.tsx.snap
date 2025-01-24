@@ -3,7 +3,7 @@
 exports[`WalletConnectSessions does not render when not ready 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,13 +53,13 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -73,7 +73,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -85,7 +85,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -93,7 +93,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -105,7 +105,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -124,7 +124,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 onPressIn={[Function]}
                 onPressOut={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "borderRadius": 8,
                     "height": 32,
@@ -137,11 +137,11 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
-                    Object {
+                    {
                       "height": 24,
                       "width": 24,
                     }
@@ -154,7 +154,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -167,8 +167,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
-                    "color": "#0376C9",
+                  {
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -177,9 +177,9 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -198,7 +198,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -206,9 +206,8 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -217,7 +216,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -229,7 +228,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -247,11 +246,11 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -261,10 +260,10 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -273,9 +272,9 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -292,24 +291,23 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -320,13 +318,13 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -339,13 +337,13 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -355,7 +353,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -363,7 +361,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
@@ -382,7 +380,7 @@ exports[`WalletConnectSessions does not render when not ready 1`] = `
 exports[`WalletConnectSessions renders empty component with no active sessions 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -390,8 +388,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -402,7 +400,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -418,7 +416,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -432,13 +430,13 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -452,7 +450,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -464,7 +462,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -472,7 +470,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -484,7 +482,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -503,7 +501,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 onPressIn={[Function]}
                 onPressOut={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "borderRadius": 8,
                     "height": 32,
@@ -516,11 +514,11 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
-                    Object {
+                    {
                       "height": 24,
                       "width": 24,
                     }
@@ -533,7 +531,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -546,8 +544,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
-                    "color": "#0376C9",
+                  {
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -556,9 +554,9 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 <Text
                   accessibilityRole="text"
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -577,7 +575,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -585,9 +583,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -596,7 +593,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -608,7 +605,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -626,11 +623,11 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -640,10 +637,10 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -652,9 +649,9 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -671,24 +668,23 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -699,13 +695,13 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -718,13 +714,13 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -734,7 +730,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -742,15 +738,15 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
-                          "backgroundColor": "#FFFFFF",
+                        {
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -758,13 +754,13 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                     >
                       <RCTScrollView
                         contentContainerStyle={
-                          Object {
+                          {
                             "paddingTop": 20,
                           }
                         }
                         style={
-                          Object {
-                            "backgroundColor": "#FFFFFF",
+                          {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -772,7 +768,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                         <View>
                           <View
                             style={
-                              Object {
+                              {
                                 "alignItems": "center",
                                 "flex": 1,
                                 "justifyContent": "center",
@@ -781,8 +777,8 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                           >
                             <Text
                               style={
-                                Object {
-                                  "color": "#24272A",
+                                {
+                                  "color": "#141618",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 16,
                                   "fontWeight": "400",
@@ -810,7 +806,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
 exports[`WalletConnectSessions should render active sessions 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -818,8 +814,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -830,7 +826,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -846,7 +842,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -860,13 +856,13 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -880,7 +876,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -892,7 +888,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -900,7 +896,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -912,7 +908,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -931,7 +927,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 onPressIn={[Function]}
                 onPressOut={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "borderRadius": 8,
                     "height": 32,
@@ -944,11 +940,11 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#24272A"
+                  color="#141618"
                   height={24}
                   name="ArrowLeft"
                   style={
-                    Object {
+                    {
                       "height": 24,
                       "width": 24,
                     }
@@ -961,7 +957,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -974,8 +970,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
-                    "color": "#0376C9",
+                  {
+                    "color": "#0376c9",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -984,9 +980,9 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "Euclid Circular B",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1005,7 +1001,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1013,9 +1009,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1024,7 +1019,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1036,7 +1031,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1054,11 +1049,11 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1068,10 +1063,10 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1080,9 +1075,9 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1099,24 +1094,23 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1127,13 +1121,13 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1146,13 +1140,13 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1162,7 +1156,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1170,15 +1164,15 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
-                          "backgroundColor": "#FFFFFF",
+                        {
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
                         }
                       }
@@ -1186,13 +1180,13 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                     >
                       <RCTScrollView
                         contentContainerStyle={
-                          Object {
+                          {
                             "paddingTop": 20,
                           }
                         }
                         style={
-                          Object {
-                            "backgroundColor": "#FFFFFF",
+                          {
+                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
@@ -1201,8 +1195,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           <TouchableOpacity
                             onLongPress={[Function]}
                             style={
-                              Object {
-                                "borderBottomColor": "#D6D9DC",
+                              {
+                                "borderBottomColor": "#bbc0c566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1213,8 +1207,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             <View>
                               <View
                                 placeholderStyle={
-                                  Object {
-                                    "backgroundColor": "#F2F4F6",
+                                  {
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1223,12 +1217,12 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   onError={[Function]}
                                   onLoadEnd={[Function]}
                                   source={
-                                    Object {
+                                    {
                                       "uri": undefined,
                                     }
                                   }
                                   style={
-                                    Object {
+                                    {
                                       "height": 44,
                                       "width": 44,
                                     }
@@ -1237,7 +1231,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 <View
                                   collapsable={false}
                                   style={
-                                    Object {
+                                    {
                                       "bottom": 0,
                                       "left": 0,
                                       "opacity": 1,
@@ -1249,16 +1243,16 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "height": 44,
                                           "width": 44,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#eee",
                                         },
-                                        Object {
-                                          "backgroundColor": "#F2F4F6",
+                                        {
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -1268,7 +1262,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             </View>
                             <View
                               style={
-                                Object {
+                                {
                                   "flex": 1,
                                   "marginLeft": 20,
                                 }
@@ -1276,8 +1270,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             >
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#24272A",
+                                  {
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
@@ -1289,8 +1283,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               </Text>
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#535A61",
+                                  {
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1302,8 +1296,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               </Text>
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#535A61",
+                                  {
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1318,8 +1312,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           <TouchableOpacity
                             onLongPress={[Function]}
                             style={
-                              Object {
-                                "borderBottomColor": "#D6D9DC",
+                              {
+                                "borderBottomColor": "#bbc0c566",
                                 "borderBottomWidth": 1,
                                 "flexDirection": "row",
                                 "paddingHorizontal": 20,
@@ -1330,8 +1324,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             <View>
                               <View
                                 placeholderStyle={
-                                  Object {
-                                    "backgroundColor": "#F2F4F6",
+                                  {
+                                    "backgroundColor": "#f2f4f6",
                                   }
                                 }
                                 useNativeDriver={true}
@@ -1340,12 +1334,12 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                   onError={[Function]}
                                   onLoadEnd={[Function]}
                                   source={
-                                    Object {
+                                    {
                                       "uri": undefined,
                                     }
                                   }
                                   style={
-                                    Object {
+                                    {
                                       "height": 44,
                                       "width": 44,
                                     }
@@ -1354,7 +1348,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 <View
                                   collapsable={false}
                                   style={
-                                    Object {
+                                    {
                                       "bottom": 0,
                                       "left": 0,
                                       "opacity": 1,
@@ -1366,16 +1360,16 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 >
                                   <View
                                     style={
-                                      Array [
-                                        Object {
+                                      [
+                                        {
                                           "height": 44,
                                           "width": 44,
                                         },
-                                        Object {
+                                        {
                                           "backgroundColor": "#eee",
                                         },
-                                        Object {
-                                          "backgroundColor": "#F2F4F6",
+                                        {
+                                          "backgroundColor": "#f2f4f6",
                                         },
                                       ]
                                     }
@@ -1385,7 +1379,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             </View>
                             <View
                               style={
-                                Object {
+                                {
                                   "flex": 1,
                                   "marginLeft": 20,
                                 }
@@ -1393,8 +1387,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             >
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#24272A",
+                                  {
+                                    "color": "#141618",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
@@ -1406,8 +1400,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               </Text>
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#535A61",
+                                  {
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -1419,8 +1413,8 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                               </Text>
                               <Text
                                 style={
-                                  Object {
-                                    "color": "#535A61",
+                                  {
+                                    "color": "#6a737d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",

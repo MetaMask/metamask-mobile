@@ -3,7 +3,7 @@
 exports[`LedgerMessageSignModal should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,12 +53,12 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
+              {
                 "backgroundColor": "rgb(255, 255, 255)",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "flex": 1,
                 "shadowColor": "rgb(216, 216, 216)",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -72,7 +72,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -84,7 +84,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -92,7 +92,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -104,7 +104,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 16,
                   "opacity": 1,
                 }
@@ -117,7 +117,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                 numberOfLines={1}
                 onLayout={[Function]}
                 style={
-                  Object {
+                  {
                     "color": "rgb(28, 28, 30)",
                     "fontSize": 17,
                     "fontWeight": "600",
@@ -134,7 +134,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -142,9 +142,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -153,7 +152,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -165,7 +164,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -183,11 +182,11 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -197,10 +196,10 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -209,9 +208,9 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -228,24 +227,23 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -256,13 +254,13 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -275,13 +273,13 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -291,7 +289,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -299,14 +297,14 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <View
                       style={
-                        Object {
+                        {
                           "bottom": 0,
                           "left": 0,
                           "position": "absolute",
@@ -317,8 +315,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                     >
                       <View
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "backgroundColor": "#00000099",
                               "bottom": 0,
                               "left": 0,
@@ -326,7 +324,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                               "right": 0,
                               "top": 0,
                             },
-                            Object {
+                            {
                               "opacity": undefined,
                             },
                           ]
@@ -337,24 +335,24 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
                         style={
-                          Array [
-                            Array [
-                              Object {
+                          [
+                            [
+                              {
                                 "bottom": 0,
                                 "left": 0,
                                 "position": "absolute",
                                 "right": 0,
                                 "top": 0,
                               },
-                              Object {
-                                "transform": Array [
-                                  Object {
+                              {
+                                "transform": [
+                                  {
                                     "translateY": 1334,
                                   },
                                 ],
                               },
                             ],
-                            Object {
+                            {
                               "height": 600,
                               "justifyContent": "flex-end",
                               "margin": 0,
@@ -367,7 +365,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           disabled={false}
                           onPress={[Function]}
                           style={
-                            Object {
+                            {
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -378,8 +376,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         />
                         <View
                           style={
-                            Object {
-                              "backgroundColor": "#FFFFFF",
+                            {
+                              "backgroundColor": "#ffffff",
                               "borderRadius": 20,
                               "marginHorizontal": 8,
                               "paddingBottom": 32,
@@ -390,8 +388,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         >
                           <RCTSafeAreaView
                             style={
-                              Object {
-                                "backgroundColor": "#FFFFFF",
+                              {
+                                "backgroundColor": "#ffffff",
                                 "borderTopLeftRadius": 10,
                                 "borderTopRightRadius": 10,
                                 "height": 450,
@@ -400,7 +398,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "marginTop": 35,
@@ -409,7 +407,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "flex": 1,
                                   }
@@ -418,13 +416,9 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                               >
                                 <Image
                                   resizeMode="contain"
-                                  source={
-                                    Object {
-                                      "uri": "MockImage",
-                                    }
-                                  }
+                                  source={1}
                                   style={
-                                    Object {
+                                    {
                                       "height": 54,
                                       "overflow": "visible",
                                     }
@@ -432,7 +426,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                 />
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "flexDirection": "row",
                                       "marginHorizontal": "auto",
@@ -441,54 +435,23 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontWeight": "600",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 16,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontSize": 22,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontSize": 22,
+                                        "fontWeight": "700",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
                                   >
                                     Looking for device
                                   </Text>
                                   <View
                                     style={
-                                      Object {
+                                      {
                                         "marginLeft": 20,
                                       }
                                     }
@@ -498,265 +461,127 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                 </View>
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "marginTop": 30,
                                     }
                                   }
                                 >
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
                                     }
                                   >
-                                    Please make sure your Ledger Nano X is:
+                                    Please make sure your Ledger device is:
                                   </Text>
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "paddingLeft": 7,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "paddingLeft": 7,
+                                      }
                                     }
                                   >
-                                    1. Unlock your Ledger Nano X
+                                    1. Unlock your Ledger device
                                   </Text>
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "paddingLeft": 7,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "paddingLeft": 7,
+                                      }
                                     }
                                   >
                                     2. Install and open the Ethereum app
                                   </Text>
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "paddingLeft": 7,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "paddingLeft": 7,
+                                      }
                                     }
                                   >
                                     3. Enable Bluetooth
                                   </Text>
                                   <Text
+                                    accessibilityRole="text"
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "paddingLeft": 7,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "paddingLeft": 7,
+                                      }
                                     }
                                   >
                                     5. Do not disturb must be turned off
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "paddingLeft": 7,
+                                      }
+                                    }
+                                  >
+                                    6. Enable "blind signing" on your Ledger device.
                                   </Text>
                                 </View>
                                 <TouchableOpacity
                                   onPress={[Function]}
                                 >
                                   <Text
-                                    numerOfLines={2}
+                                    accessibilityRole="text"
+                                    numberOfLines={2}
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#24272A",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 30,
-                                          "fontWeight": "400",
-                                          "marginVertical": 2,
-                                        },
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontWeight": "600",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "color": "#0376C9",
-                                        },
-                                        undefined,
-                                        undefined,
-                                        undefined,
-                                        Object {
-                                          "flex": 1,
-                                          "flexWrap": "wrap",
-                                          "marginLeft": 20,
-                                          "marginRight": 20,
-                                          "marginTop": 40,
-                                        },
-                                      ]
+                                      {
+                                        "color": "#0376c9",
+                                        "flex": 1,
+                                        "flexWrap": "wrap",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginLeft": 20,
+                                        "marginRight": 20,
+                                        "marginTop": 40,
+                                      }
                                     }
                                   >
                                     How to install the Ethereum app on a Ledger device

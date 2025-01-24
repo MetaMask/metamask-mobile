@@ -2,10 +2,11 @@ import {
   createClient,
   GroupTraits,
   JsonMap,
+  SegmentClient,
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import {
   AGREED,
@@ -27,14 +28,15 @@ import {
   IDeleteRegulationStatus,
   IDeleteRegulationStatusResponse,
   IMetaMetrics,
-  IMetaMetricsEvent,
   ISegmentClient,
+  ITrackingEvent,
 } from './MetaMetrics.types';
-import { METAMETRICS_ANONYMOUS_ID } from './MetaMetrics.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { Config } from '@segment/analytics-react-native/lib/typescript/src/types';
 import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import { isE2E } from '../../util/test/utils';
+import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -52,6 +54,15 @@ import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettin
  * ```
  * const metrics = MetaMetrics.getInstance();
  * metrics.trackEvent(event, { property: 'value' });
+ * ```
+ *
+ * or using the new properties structure:
+ * ```
+ * const metrics = MetaMetrics.getInstance();
+ * metrics.trackEvent(event, {
+ *   properties: {property: 'value' },
+ *   sensitiveProperties: {sensitiveProperty: 'sensitiveValue' }
+ * );
  * ```
  *
  * ## Enabling MetaMetrics
@@ -174,7 +185,7 @@ class MetaMetrics implements IMetaMetrics {
    * @returns Promise containing the enabled state
    */
   #isMetaMetricsEnabled = async (): Promise<boolean> => {
-    const enabledPref = await DefaultPreference.get(METRICS_OPT_IN);
+    const enabledPref = await StorageWrapper.getItem(METRICS_OPT_IN);
     this.enabled = AGREED === enabledPref;
     if (__DEV__)
       Logger.log(`Current MetaMatrics enable state: ${this.enabled}`);
@@ -186,21 +197,21 @@ class MetaMetrics implements IMetaMetrics {
    * @private
    */
   #getIsDataRecordedFromPrefs = async (): Promise<boolean> =>
-    (await DefaultPreference.get(ANALYTICS_DATA_RECORDED)) === 'true';
+    (await StorageWrapper.getItem(ANALYTICS_DATA_RECORDED)) === 'true';
 
   /**
    * Retrieve the analytics deletion request date from the preference
    * @private
    */
   #getDeleteRegulationDateFromPrefs = async (): Promise<string> =>
-    await DefaultPreference.get(ANALYTICS_DATA_DELETION_DATE);
+    await StorageWrapper.getItem(ANALYTICS_DATA_DELETION_DATE);
 
   /**
    * Retrieve the analytics deletion regulation ID from the preference
    * @private
    */
   #getDeleteRegulationIdFromPrefs = async (): Promise<string> =>
-    await DefaultPreference.get(METAMETRICS_DELETION_REGULATION_ID);
+    await StorageWrapper.getItem(METAMETRICS_DELETION_REGULATION_ID);
 
   /**
    * Persist the analytics recording status
@@ -209,7 +220,7 @@ class MetaMetrics implements IMetaMetrics {
    */
   #setIsDataRecorded = async (isDataRecorded = false): Promise<void> => {
     this.dataRecorded = isDataRecorded;
-    await DefaultPreference.set(
+    await StorageWrapper.setItem(
       ANALYTICS_DATA_RECORDED,
       String(isDataRecorded),
     );
@@ -225,7 +236,7 @@ class MetaMetrics implements IMetaMetrics {
     deleteRegulationId: string,
   ): Promise<void> => {
     this.deleteRegulationId = deleteRegulationId;
-    await DefaultPreference.set(
+    await StorageWrapper.setItem(
       METAMETRICS_DELETION_REGULATION_ID,
       deleteRegulationId,
     );
@@ -246,7 +257,7 @@ class MetaMetrics implements IMetaMetrics {
     this.deleteRegulationDate = deletionDate;
 
     // similar to the one used in the legacy Analytics
-    await DefaultPreference.set(ANALYTICS_DATA_DELETION_DATE, deletionDate);
+    await StorageWrapper.setItem(ANALYTICS_DATA_DELETION_DATE, deletionDate);
   };
 
   /**
@@ -262,19 +273,21 @@ class MetaMetrics implements IMetaMetrics {
     // If user later enables MetaMetrics,
     // this same ID should be retrieved from preferences and reused.
     // look for a legacy ID from MixPanel integration and use it
-    const legacyId = await DefaultPreference.get(MIXPANEL_METAMETRICS_ID);
+    const legacyId = await StorageWrapper.getItem(MIXPANEL_METAMETRICS_ID);
     if (legacyId) {
       this.metametricsId = legacyId;
-      await DefaultPreference.set(METAMETRICS_ID, legacyId);
+      await StorageWrapper.setItem(METAMETRICS_ID, legacyId);
       return legacyId;
     }
 
     // look for a new Metametics ID and use it or generate a new one
-    const metametricsId = await DefaultPreference.get(METAMETRICS_ID);
+    const metametricsId: string | undefined = await StorageWrapper.getItem(
+      METAMETRICS_ID,
+    );
     if (!metametricsId) {
       // keep the id format compatible with MixPanel but base it on a UUIDv4
       this.metametricsId = uuidv4();
-      await DefaultPreference.set(METAMETRICS_ID, this.metametricsId);
+      await StorageWrapper.setItem(METAMETRICS_ID, this.metametricsId);
     } else {
       this.metametricsId = metametricsId;
     }
@@ -286,8 +299,10 @@ class MetaMetrics implements IMetaMetrics {
    */
   #resetMetaMetricsId = async (): Promise<void> => {
     try {
-      await DefaultPreference.set(METAMETRICS_ID, '');
+      await StorageWrapper.setItem(METAMETRICS_ID, '');
       this.metametricsId = await this.#getMetaMetricsId();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error resetting MetaMetrics ID');
     }
@@ -319,14 +334,14 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * Track an analytics event
+   * Send an analytics event to the Segment SDK track function
    *
    * @param event - Analytics event name
    * @param properties - Object containing any event relevant traits or properties (optional)
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    * @see https://segment.com/docs/connections/sources/catalog/libraries/mobile/react-native/#track
    */
-  #trackEvent = (
+  #trackWithSdkClient = (
     event: string,
     properties: JsonMap,
     saveDataRecording = true,
@@ -353,13 +368,15 @@ class MetaMetrics implements IMetaMetrics {
 
   /**
    * Update the user analytics preference and
-   * store in DefaultPreference
+   * store in StorageWrapper
    *
    * @param enabled - Boolean indicating if opts-in ({@link AGREED}) or opts-out ({@link DENIED})
    */
   #storeMetricsOptInPreference = async (enabled: boolean) => {
     try {
-      await DefaultPreference.set(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+      await StorageWrapper.setItem(METRICS_OPT_IN, enabled ? AGREED : DENIED);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error storing MetaMetrics enable state');
     }
@@ -404,6 +421,8 @@ class MetaMetrics implements IMetaMetrics {
           subjectIds: [this.metametricsId],
         }),
       });
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = response as any;
 
       await this.#setDeleteRegulationId(data?.data?.regulateId);
@@ -411,6 +430,8 @@ class MetaMetrics implements IMetaMetrics {
       await this.#setIsDataRecorded(false); // indicate no data recorded since request
 
       return { status: DataDeleteResponseStatus.ok };
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Analytics Deletion Task Error');
       return {
@@ -448,6 +469,8 @@ class MetaMetrics implements IMetaMetrics {
           headers: this.#getSegmentApiHeaders(),
         });
 
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data } = response as any;
         const status = data?.data?.regulation?.overallStatus;
 
@@ -455,6 +478,8 @@ class MetaMetrics implements IMetaMetrics {
           status: DataDeleteResponseStatus.ok,
           dataDeleteStatus: status || DataDeleteStatus.unknown,
         };
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.error(error, 'Analytics Deletion Task Check Error');
         return {
@@ -477,7 +502,6 @@ class MetaMetrics implements IMetaMetrics {
         writeKey: process.env.SEGMENT_WRITE_KEY as string,
         proxy: process.env.SEGMENT_PROXY_URL as string,
         debug: __DEV__,
-        anonymousId: METAMETRICS_ANONYMOUS_ID,
         // allow custom flush interval and event limit for dev and testing
         // each is optional and can be set in the .js.env file
         // if not set, the default values from the Segment SDK will be used
@@ -494,7 +518,10 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      this.instance = new MetaMetrics(createClient(config));
+      const segmentClient = isE2E ? undefined : createClient(config);
+      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
+
+      this.instance = new MetaMetrics(segmentClient as SegmentClient);
     }
     return this.instance;
   }
@@ -533,6 +560,8 @@ class MetaMetrics implements IMetaMetrics {
 
       if (__DEV__)
         Logger.log(`MetaMetrics configured with ID: ${this.metametricsId}`);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       Logger.error(error, 'Error initializing MetaMetrics');
     }
@@ -586,53 +615,86 @@ class MetaMetrics implements IMetaMetrics {
   };
 
   /**
-   * Track an anonymous event
+   * Track an event
    *
-   * This will track the event twice: once with the anonymous ID and once with the user ID
+   * The function allows to track non-anonymous and anonymous events:
+   * - with properties and without properties,
+   * - with a unique trackEvent function
    *
-   * - The anynomous event has properties set so you can know *what* but not *who*
-   * - The non-anonymous event has no properties so you can know *who* but not *what*
+   * ## Regular non-anonymous events
+   * Regular events are tracked with the user ID and can have properties set
    *
-   * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
+   * ## Anonymous events
+   * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
+   * - The anonymous event includes sensitive properties so you can know **what** but not **who**
+   * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
+   *
+   * @example prefer using the hook {@link useMetrics} in your components
+   * const { trackEvent, createEventBuilder } = useMetrics();
+   *
+   * @example basic non-anonymous tracking with no properties:
+   * trackEvent(createEventBuilder(MetaMetricsEvents.ONBOARDING_STARTED).build());
+   *
+   * @example track with non-anonymous properties:
+   * trackEvent(createEventBuilder(MetaMetricsEvents.MY_EVENT)
+   *  .addProperties({ normalProp: 'value' })
+   *  .build());
+   *
+   * @example track an anonymous event with properties
+   * trackEvent(createEventBuilder(MetaMetricsEvents.MY_EVENT)
+   *  .addSensitiveProperties({ sensitiveProp: 'value' })
+   *  .build());
+   *
+   * @example track an event with both anonymous and non-anonymous properties
+   * trackEvent(createEventBuilder(MetaMetricsEvents.MY_EVENT)
+   *  .addProperties({ normalProp: 'value' })
+   *  .addSensitiveProperties({ sensitiveProp: 'value' })
+   *  .build());
+   *
+   * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackAnonymousEvent(
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
+  trackEvent(
+    // New signature
+    event: ITrackingEvent,
+    saveDataRecording: boolean = true,
   ): void {
-    if (this.enabled) {
-      this.#trackEvent(
-        event.category,
-        { anonymous: true, ...properties },
+    if (!this.enabled) {
+      return;
+    }
+
+    // if event does not have properties, only send the non-anonymous empty event
+    // and return to prevent any additional processing
+    if (!event.hasProperties) {
+      this.#trackWithSdkClient(
+        event.name,
+        { anonymous: false },
         saveDataRecording,
       );
-      this.#trackEvent(event.category, { anonymous: true }, saveDataRecording);
+      return;
+    }
+
+    // Log all non-anonymous properties, or an empty event if there's no non-anon props.
+    // In any case, there's a non-anon event tracked, see MetaMetrics.test.ts Tracking table.
+    this.#trackWithSdkClient(
+      event.name,
+      { anonymous: false, ...event.properties },
+      saveDataRecording,
+    );
+
+    // Track all anonymous properties in an anonymous event
+    if (event.isAnonymous) {
+      this.#trackWithSdkClient(
+        event.name,
+        {
+          anonymous: true,
+          ...event.properties,
+          ...event.sensitiveProperties,
+        },
+        saveDataRecording,
+      );
     }
   }
-
-  /**
-   * Track an event - the regular way
-   *
-   * @param event - Analytics event name
-   * @param properties - Object containing any event relevant traits or properties (optional)
-   * @param saveDataRecording - param to skip saving the data recording flag (optional)
-   */
-  trackEvent = (
-    event: IMetaMetricsEvent,
-    properties: JsonMap = {},
-    saveDataRecording = true,
-  ): void => {
-    if (this.enabled) {
-      this.#trackEvent(
-        // NOTE: we use optional event to avoid undefined error in case of legacy untyped call form JS
-        event?.category,
-        { anonymous: false, ...event?.properties, ...properties },
-        saveDataRecording,
-      );
-    }
-  };
 
   /**
    * Clear the internal state of the library for the current user and reset the user ID
@@ -680,6 +742,8 @@ class MetaMetrics implements IMetaMetrics {
           await this.#checkDataDeletionTaskStatus();
         status.dataDeletionRequestStatus =
           dataDeletionTaskStatus.dataDeleteStatus;
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         Logger.log('Error checkDataDeleteStatus -', error);
         status.dataDeletionRequestStatus = DataDeleteStatus.unknown;

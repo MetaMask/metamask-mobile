@@ -3,8 +3,8 @@
 exports[`CustomNonce should render correctly 1`] = `
 <TouchableOpacity
   style={
-    Object {
-      "borderColor": "#BBC0C5",
+    {
+      "borderColor": "#bbc0c5",
       "borderRadius": 8,
       "borderWidth": 1,
       "display": "flex",
@@ -18,9 +18,9 @@ exports[`CustomNonce should render correctly 1`] = `
 >
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -28,20 +28,20 @@ exports[`CustomNonce should render correctly 1`] = `
         },
         undefined,
         undefined,
-        Object {
+        {
           "fontFamily": "EuclidCircularB-Bold",
           "fontWeight": "600",
         },
         undefined,
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
         },
         undefined,
         undefined,
         undefined,
         undefined,
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -64,9 +64,9 @@ exports[`CustomNonce should render correctly 1`] = `
   </Text>
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -74,7 +74,7 @@ exports[`CustomNonce should render correctly 1`] = `
         },
         undefined,
         undefined,
-        Object {
+        {
           "fontFamily": "EuclidCircularB-Bold",
           "fontWeight": "600",
         },
@@ -94,8 +94,8 @@ exports[`CustomNonce should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
-        Object {
-          "color": "#0376C9",
+        {
+          "color": "#0376c9",
         },
         undefined,
         undefined,
@@ -109,9 +109,9 @@ exports[`CustomNonce should render correctly 1`] = `
   </Text>
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
@@ -119,20 +119,20 @@ exports[`CustomNonce should render correctly 1`] = `
         },
         undefined,
         undefined,
-        Object {
+        {
           "fontFamily": "EuclidCircularB-Bold",
           "fontWeight": "600",
         },
         undefined,
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
         },
         undefined,
         undefined,
         undefined,
         undefined,
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -147,7 +147,7 @@ exports[`CustomNonce should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "marginLeft": "auto",
         },
       ]

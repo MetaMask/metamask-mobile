@@ -9,7 +9,7 @@ exports[`ButtonIcon should render correctly 1`] = `
   onPressIn={[Function]}
   onPressOut={[Function]}
   style={
-    Object {
+    {
       "alignItems": "center",
       "borderRadius": 8,
       "height": 24,
@@ -20,11 +20,11 @@ exports[`ButtonIcon should render correctly 1`] = `
   }
 >
   <SvgMock
-    color="#0376C9"
+    color="#141618"
     height={16}
-    name="AddSquare"
+    name="Add"
     style={
-      Object {
+      {
         "height": 16,
         "width": 16,
       }

@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
+import { BORDERWIDTH_BY_AVATARSIZE } from '../../Avatar.constants';
 
 // Internal dependencies.
 import { AvatarBaseStyleSheetVars } from './AvatarBase.types';
@@ -20,7 +21,7 @@ const styleSheet = (params: {
 }) => {
   const {
     theme,
-    vars: { style, size },
+    vars: { style, size, includesBorder },
   } = params;
   const sizeAsNum = Number(size);
 
@@ -32,6 +33,10 @@ const styleSheet = (params: {
         borderRadius: sizeAsNum / 2,
         overflow: 'hidden',
         backgroundColor: theme.colors.background.default,
+        ...(includesBorder && {
+          borderWidth: BORDERWIDTH_BY_AVATARSIZE[size],
+          borderColor: theme.colors.background.default,
+        }),
       } as ViewStyle,
       style,
     ) as ViewStyle,

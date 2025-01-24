@@ -6,16 +6,33 @@ import { act, render, waitFor } from '@testing-library/react-native';
 import useTokenBalancesController from './useTokenBalancesController';
 import { BN } from 'ethereumjs-util';
 import { cloneDeep } from 'lodash';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+
+const accountAddress = '0x123';
+const chainId = '0x1';
 
 // initial state for the test store
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: '1',
+          accounts: {
+            '1': {
+              address: accountAddress,
+            },
+          },
+        },
+      },
       TokenBalancesController: {
-        contractBalances: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+        tokenBalances: {
+          [accountAddress]: {
+            [chainId]: {
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+            }
+          }
         },
       },
     },
@@ -23,6 +40,8 @@ const mockInitialState = {
 };
 
 // test reducer for the test store
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const testBalancesReducer = (state: any, action: any) => {
   if (action.type === 'add-balances') {
     return {
@@ -33,10 +52,20 @@ const testBalancesReducer = (state: any, action: any) => {
           ...state.engine.backgroundState,
           TokenBalancesController: {
             ...state.engine.backgroundState.TokenBalancesController,
-            contractBalances: {
+            tokenBalances: {
               ...state.engine.backgroundState.TokenBalancesController
-                .contractBalances,
+                .tokenBalances,
               ...action.value,
+              [accountAddress]: {
+                ...state.engine.backgroundState.TokenBalancesController
+                  .tokenBalances[accountAddress],
+                ...action.value[accountAddress],
+                [chainId]: {
+                  ...state.engine.backgroundState.TokenBalancesController
+                    .tokenBalances[accountAddress][chainId],
+                  ...action.value[accountAddress][chainId],
+                }
+              },
             },
           },
         },
@@ -61,7 +90,11 @@ const DummyTestComponent = () => {
 };
 
 describe('useTokenBalancesController()', () => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let toJSON: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let testStore: Store<any, any>;
 
   beforeEach(async () => {
@@ -72,6 +105,8 @@ describe('useTokenBalancesController()', () => {
 
     // console.log('testStore', JSON.stringify(testStore.getState()));
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const Wrapper = ({ children }: any) => (
       <Provider store={testStore}>{children}</Provider>
     );
@@ -96,7 +131,11 @@ describe('useTokenBalancesController()', () => {
       testStore.dispatch({
         type: 'add-balances',
         value: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN(0x539),
+          [accountAddress]: {
+            [chainId]: {
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN(0x539),
+            }
+          }
         },
       });
     });
@@ -114,7 +153,11 @@ describe('useTokenBalancesController()', () => {
       testStore.dispatch({
         type: 'add-balances',
         value: {
-          '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+          [accountAddress]: {
+            [chainId]: {
+              '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN(0x2a),
+            }
+          }
         },
       });
     });

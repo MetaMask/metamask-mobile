@@ -4,11 +4,10 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
 <TouchableOpacity
   disabled={false}
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderRadius": 4,
       "opacity": 1,
-      "padding": 16,
       "position": "relative",
     }
   }
@@ -17,14 +16,21 @@ exports[`ListItemSelect should render snapshot correctly 1`] = `
     accessibilityRole="none"
     accessible={true}
     style={
-      Object {
-        "alignItems": "center",
-        "flexDirection": "row",
-        "padding": 0,
+      {
+        "padding": 16,
       }
     }
   >
-    <View />
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <View />
+    </View>
   </View>
 </TouchableOpacity>
 `;

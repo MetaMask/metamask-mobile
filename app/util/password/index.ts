@@ -33,6 +33,8 @@ export const doesPasswordMatch = async (
     if (credentials) {
       try {
         // then we verify if the stored password matches the one that can decrypt the vault
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
         await KeyringController.exportSeedPhrase(credentials.password);
         // now that we are confident that the user is logged in, we can test that the input matches
@@ -46,6 +48,8 @@ export const doesPasswordMatch = async (
           valid: false,
           message: 'The input does not match the stored password',
         };
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         return {
           valid: false,
@@ -57,6 +61,8 @@ export const doesPasswordMatch = async (
       valid: false,
       message: 'no password stored',
     };
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     return {
       valid: false,

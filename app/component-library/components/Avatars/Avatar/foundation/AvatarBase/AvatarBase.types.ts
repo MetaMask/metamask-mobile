@@ -13,6 +13,11 @@ export interface AvatarBaseProps extends ViewProps {
    * @default AvatarSize.Md
    */
   size?: AvatarSize;
+  /**
+   * Optional boolean to includes border or not.
+   * @default false
+   */
+  includesBorder?: boolean;
 }
 
 /**
@@ -21,4 +26,5 @@ export interface AvatarBaseProps extends ViewProps {
 export interface AvatarBaseStyleSheetVars
   extends Pick<AvatarBaseProps, 'style'> {
   size: AvatarSize;
+  includesBorder: boolean;
 }

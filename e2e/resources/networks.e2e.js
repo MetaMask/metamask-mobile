@@ -1,9 +1,8 @@
-import { toHex } from '@metamask/controller-utils';
+import { BlockExplorerUrl, toHex } from '@metamask/controller-utils';
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
-const TENDERLY_KEY = process.env.TENDERLY_NETWORK_ID;
 
 const PopularNetworksList = {
   Avalanche: {
@@ -11,7 +10,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('43114'),
       rpcUrl: 'https://api.avax.network/ext/bc/C/rpc',
-      nickname: 'Avalanche Mainnet C-Chain',
+      nickname: 'Avalanche C-Chain',
       ticker: 'AVAX',
     },
   },
@@ -24,22 +23,22 @@ const PopularNetworksList = {
       ticker: 'BNB',
     },
   },
-  Fantom: {
+  zkSync: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('250'),
-      rpcUrl: 'https://rpc.ftm.tools/',
-      nickname: 'Fantom Opera',
+      chainId: toHex('324'),
+      rpcUrl: `https://mainnet.era.zksync.io`,
+      nickname: 'zkSync Era Mainnet',
       ticker: 'FTM',
     },
   },
-  Harmony: {
+  Base: {
     providerConfig: {
       type: 'rpc',
-      chainId: toHex('1666600000'),
-      rpcUrl: 'https://api.harmony.one/',
-      nickname: 'Harmony Mainnet Shard 0',
-      ticker: 'ONE',
+      chainId: toHex('8453'),
+      rpcUrl: `https://base-mainnet.infura.io/v3/${infuraProjectId}`,
+      nickname: 'Base',
+      ticker: 'ETH',
     },
   },
   Optimism: {
@@ -47,7 +46,7 @@ const PopularNetworksList = {
       type: 'rpc',
       chainId: toHex('10'),
       rpcUrl: `https://optimism-mainnet.infura.io/v3/${infuraProjectId}`,
-      nickname: 'Optimism',
+      nickname: 'OP Mainnet',
       ticker: 'ETH',
     },
   },
@@ -76,30 +75,70 @@ const CustomNetworks = {
     providerConfig: {
       type: 'rpc',
       chainId: '0x1',
+      rpcUrlInvalid: 'https//rpc.mevblocker.io',
       rpcUrl: 'https://eth.llamarpc.com',
+      rpcUrlAlt: 'https://rpc.mevblocker.io',
       nickname: 'Ethereum Main Custom',
       ticker: 'ETH',
     },
   },
   Sepolia: {
     providerConfig: {
-      type: 'mainnet',
-      chainId: '11155111',
-      rpcTarget: 'https://sepolia.infura.io/v3/',
-      nickname: 'Sepolia Test Network',
+      type: 'rpc',
+      chainId: '0xaa36a7',
+      rpcTarget: `https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
+      nickname: 'Sepolia',
       ticker: 'SepoliaETH',
     },
   },
-
-  Tenderly: {
-    isCustomNetwork: true,
+  ElysiumTestnet: {
     providerConfig: {
       type: 'rpc',
-      chainId: '0x1',
-      rpcUrl: `https://rpc.tenderly.co/fork/${TENDERLY_KEY}`,
-      nickname: 'Tenderly',
-      ticker: 'ETH',
+      chainId: '0x53a',
+      rpcUrlInvalid: 'https://rpc.atlantischain.network',
+      rpcUrl: 'https://rpc.atlantischain.network',
+      rpcUrlAlt: 'https://rpc.atlantischain.network',
+      nickname: 'Elysium Testnet',
+      ticker: 'LAVA',
     },
+  },
+  Tenderly: {
+    Mainnet: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('1'),
+        rpcUrl: 'https://virtual.mainnet.rpc.tenderly.co/3472e4b3-594b-488a-a8b1-93593194615f',
+        nickname: 'Tenderly - Mainnet',
+        ticker: 'ETH',
+     },
+    },
+    Polygon: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('137'),
+        rpcUrl: 'https://virtual.polygon.rpc.tenderly.co/e834a81e-69ba-49e9-a6a5-be5b6eea3cdc',
+        nickname: 'Polygon',
+        ticker: 'POL',
+      },
+    },
+    Linea: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('59144'),
+        rpcUrl: 'https://virtual.linea.rpc.tenderly.co/2c429ceb-43db-45bc-9d84-21a40d21e0d2',
+        nickname: 'Linea',
+        ticker: 'ETH',
+      },
+    },
+    Optimism: {
+      providerConfig: {
+        type: 'rpc',
+        chainId: toHex('10'),
+        rpcUrl: 'https://virtual.optimism.rpc.tenderly.co/3170a58e-fa67-4ccc-9697-b13aff0f5c1a',
+        nickname: 'Optimism',
+        ticker: 'ETH',
+      },
+    }
   },
   Gnosis: {
     providerConfig: {
@@ -108,6 +147,7 @@ const CustomNetworks = {
       rpcUrl: 'https://rpc.gnosischain.com',
       nickname: 'Gnosis',
       ticker: 'xDAI',
+      BlockExplorerUrl: 'https://gnosisscan.io',
     },
   },
 };

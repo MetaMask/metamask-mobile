@@ -22,6 +22,7 @@ export const BADGE_WRAPPER_BADGE_TEST_ID = 'badge-wrapper-badge';
 export const DEFAULT_BADGEWRAPPER_BADGEANCHORELEMENTSHAPE =
   BadgeAnchorElementShape.Circular;
 export const DEFAULT_BADGEWRAPPER_BADGEPOSITION = BadgePosition.TopRight;
+export const BOTTOM_BADGEWRAPPER_BADGEPOSITION = BadgePosition.BottomRight;
 
 // Samples
 export const SAMPLE_BADGEWRAPPER_PROPS: BadgeWrapperProps = {

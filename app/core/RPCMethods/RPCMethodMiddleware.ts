@@ -1,10 +1,8 @@
-import { Alert } from 'react-native';
+import { MutableRefObject } from 'react';
+import { Alert, ImageSourcePropType } from 'react-native';
 import { getVersion } from 'react-native-device-info';
-import {
-  createAsyncMiddleware,
-  JsonRpcEngineCallbackError,
-} from 'json-rpc-engine';
-import { ethErrors } from 'eth-json-rpc-errors';
+import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import {
   EndFlowOptions,
   StartFlowOptions,
@@ -13,16 +11,17 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
 } from '@metamask/permission-controller';
-import Networks, {
-  blockTagParamIndex,
-  getAllNetworks,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
@@ -33,20 +32,31 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectProviderConfig,
-  selectProviderType,
-} from '../../selectors/networkController';
+import { selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
 import Logger from '../../../app/util/Logger';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { addTransaction } from '../../util/transaction-controller';
+import Routes from '../../constants/navigation/Routes';
+import { endTrace, trace, TraceName } from '../../util/trace';
+import {
+  MessageParamsTyped,
+  SignatureController,
+} from '@metamask/signature-controller';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
 let appVersion = '';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
+  showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
+};
+///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -55,14 +65,14 @@ export enum ApprovalTypes {
   SWITCH_ETHEREUM_CHAIN = 'SWITCH_ETHEREUM_CHAIN',
   REQUEST_PERMISSIONS = 'wallet_requestPermissions',
   WALLET_CONNECT = 'WALLET_CONNECT',
-  ETH_SIGN = 'eth_sign',
   PERSONAL_SIGN = 'personal_sign',
   ETH_SIGN_TYPED_DATA = 'eth_signTypedData',
   WATCH_ASSET = 'wallet_watchAsset',
   TRANSACTION = 'transaction',
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+  SMART_TRANSACTION_STATUS = 'smart_transaction_status',
+  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   ///: END:ONLY_INCLUDE_IF
@@ -71,11 +81,15 @@ export enum ApprovalTypes {
 export interface RPCMethodsMiddleParameters {
   hostname: string;
   channelId?: string; // Used for remote connections
-  getProviderState: () => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getProviderState: (origin?: string) => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -89,9 +103,6 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
-  getApprovedHosts: any;
-  setApprovedHosts: (approvedHosts: any) => void;
-  approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
 }
@@ -120,40 +131,37 @@ export const checkActiveAccountAndChainId = async ({
       hostname,
       formattedAddress,
     });
-    const validHostname = hostname?.replace(
-      AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-      '',
-    );
 
     const permissionsController = (
-      Engine.context as { PermissionController: PermissionController<any, any> }
+      Engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
     ).PermissionController;
     DevLogger.log(
-      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} validHostname=${validHostname}`,
+      `checkActiveAccountAndChainId channelId=${channelId} isWalletConnect=${isWalletConnect} hostname=${hostname}`,
       permissionsController.state,
     );
 
-    let accounts: string[] = [];
-    if (isWalletConnect) {
-      accounts = await getPermittedAccounts(validHostname);
-    } else {
-      accounts = (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-    }
+    const origin = isWalletConnect ? hostname : channelId ?? hostname;
+    const accounts = await getPermittedAccounts(origin);
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
+      DevLogger.log(`invalid accounts ${formattedAddress}`, normalizedAccounts);
       isInvalidAccount = true;
       if (accounts.length > 0) {
         // Permissions issue --- requesting incorrect address
-        throw ethErrors.rpc.invalidParams({
+        throw rpcErrors.invalidParams({
           message: `Invalid parameters: must provide a permitted Ethereum address.`,
         });
       }
     }
 
     if (isInvalidAccount) {
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Invalid parameters: must provide an Ethereum address.`,
       });
     }
@@ -190,7 +198,7 @@ export const checkActiveAccountAndChainId = async ({
       Alert.alert(
         `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
       );
-      throw ethErrors.rpc.invalidParams({
+      throw rpcErrors.invalidParams({
         message: `Invalid parameters: active chainId is different than the one provided.`,
       });
     }
@@ -208,15 +216,38 @@ const generateRawSignature = async ({
   chainId,
   channelId,
   getSource,
+  isWalletConnect,
   checkTabActive,
-}: any) => {
-  const { SignatureController } = Engine.context;
+}: {
+  version: string;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  req: any;
+  hostname: string;
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
+  analytics: { [key: string]: string | boolean };
+  chainId: number;
+  isMMSDK: boolean;
+  channelId?: string;
+  getSource: () => string;
+  isWalletConnect: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  checkTabActive: any;
+}) => {
+  endTrace({ name: TraceName.Middleware, id: req.id });
+
+  const signatureController = Engine.context
+    .SignatureController as SignatureController;
 
   const pageMeta = {
     meta: {
       url: url.current,
       title: title.current,
       icon: icon.current,
+      channelId,
       analytics: {
         request_source: getSource(),
         request_platform: analytics?.platform,
@@ -230,23 +261,28 @@ const generateRawSignature = async ({
     channelId,
     address: req.params[0],
     chainId,
-    isWalletConnect: false,
+    isWalletConnect,
   });
 
-  const rawSig = await SignatureController.newUnsignedTypedMessage(
+  const rawSig = await signatureController.newUnsignedTypedMessage(
     {
       data: req.params[1],
       from: req.params[0],
+      requestId: req.id,
       ...pageMeta,
+      channelId,
       origin: hostname,
       securityAlertResponse: req.securityAlertResponse,
-    },
+    } as MessageParamsTyped,
     req,
     version,
     {
       parseJsonData: false,
     },
+    { traceContext: req.traceContext },
   );
+
+  endTrace({ name: TraceName.Signature, id: req.id });
 
   return rawSig;
 };
@@ -279,22 +315,21 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
-}: RPCMethodsMiddleParameters) =>
+}: RPCMethodsMiddleParameters) => {
+  // Make sure to always have the correct origin
+  hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
+  const origin = isWalletConnect ? hostname : channelId ?? hostname;
+
+  DevLogger.log(
+    `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
+  );
   // all user facing RPC calls not implemented by the provider
-  createAsyncMiddleware(async (req: any, res: any, next: any) => {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
     const getEthAccounts = async () => {
-      let accounts: string[] = [];
-      const validHostname = hostname.replace(
-        AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-        '',
-      );
-      if (isMMSDK) {
-        accounts =
-          (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-      } else {
-        accounts = await getPermittedAccounts(validHostname);
-      }
+      const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
 
@@ -302,7 +337,7 @@ export const getRpcMethodMiddleware = ({
       if (!tabId) return true;
       const { browser } = store.getState();
       if (tabId !== browser.activeTab)
-        throw ethErrors.provider.userRejectedRequest();
+        throw providerErrors.userRejectedRequest();
     };
 
     const getSource = () => {
@@ -315,7 +350,7 @@ export const getRpcMethodMiddleware = ({
     const startApprovalFlow = (opts: StartFlowOptions) => {
       checkTabActive();
       Engine.context.ApprovalController.clear(
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
       );
 
       return Engine.context.ApprovalController.startFlow(opts);
@@ -333,7 +368,7 @@ export const getRpcMethodMiddleware = ({
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
       await Engine.context.ApprovalController.clear(
-        ethErrors.provider.userRejectedRequest(),
+        providerErrors.userRejectedRequest(),
       );
 
       const responseData = await Engine.context.ApprovalController.add({
@@ -345,6 +380,7 @@ export const getRpcMethodMiddleware = ({
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
@@ -359,8 +395,12 @@ export const getRpcMethodMiddleware = ({
     const [requestPermissionsHandler, getPermissionsHandler] =
       permissionRpcMethods.handlers;
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_getPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve) => {
           const handle = getPermissionsHandler.implementation(
             req,
@@ -373,30 +413,24 @@ export const getRpcMethodMiddleware = ({
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
-                  hostname,
+                  channelId ?? hostname,
                 ),
             },
           );
           handle?.catch((error) => {
-            Logger.error('Failed to get permissions', error);
+            Logger.error(error as Error, 'Failed to get permissions');
           });
         }),
       wallet_requestPermissions: async () =>
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
-          let requestId: string | undefined;
-          if (isMMSDK) {
-            // Extract id from hostname
-            requestId = hostname.replace(
-              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-              '',
-            );
-          }
           requestPermissionsHandler
             .implementation(
               req,
               res,
               next,
-              (err: JsonRpcEngineCallbackError | undefined) => {
+              (err) => {
                 if (err) {
                   return reject(err);
                 }
@@ -406,9 +440,8 @@ export const getRpcMethodMiddleware = ({
                 requestPermissionsForOrigin:
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,
-                    { origin: requestId ?? hostname },
+                    { origin: channelId ?? hostname },
                     req.params[0],
-                    { id: requestId },
                   ),
               },
             )
@@ -416,38 +449,29 @@ export const getRpcMethodMiddleware = ({
             .catch(reject);
         }),
       eth_getTransactionByHash: async () => {
-        res.result = await polyfillGasPrice('getTransactionByHash', req.params);
+        res.result = await polyfillGasPrice(
+          'getTransactionByHash',
+          origin,
+          req.params,
+        );
       },
       eth_getTransactionByBlockHashAndIndex: async () => {
         res.result = await polyfillGasPrice(
           'getTransactionByBlockHashAndIndex',
+          origin,
           req.params,
         );
       },
       eth_getTransactionByBlockNumberAndIndex: async () => {
         res.result = await polyfillGasPrice(
           'getTransactionByBlockNumberAndIndex',
+          origin,
           req.params,
         );
       },
       eth_chainId: async () => {
-        const providerConfig = selectProviderConfig(store.getState());
-        const networkType = providerConfig.type as NetworkType;
-        const isInitialNetwork =
-          networkType && getAllNetworks().includes(networkType);
-        let chainId;
-
-        if (isInitialNetwork) {
-          chainId = ChainId[networkType as keyof typeof ChainId];
-        } else if (networkType === RPC) {
-          chainId = providerConfig.chainId;
-        }
-
-        if (chainId && !chainId.startsWith('0x')) {
-          chainId = toHex(chainId);
-        }
-
-        res.result = chainId;
+        const networkProviderState = await getProviderState(origin);
+        res.result = networkProviderState.chainId;
       },
       eth_hashrate: () => {
         res.result = '0x00';
@@ -459,82 +483,41 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const networkType = selectProviderType(store.getState());
-
-        const isInitialNetwork =
-          networkType && getAllNetworks().includes(networkType);
-        if (isInitialNetwork) {
-          res.result = (Networks as any)[networkType].networkId;
-        } else {
-          return next();
-        }
+        const networkProviderState = await getProviderState(origin);
+        res.result = networkProviderState.networkVersion;
       },
       eth_requestAccounts: async () => {
         const { params } = req;
-        const validHostname = hostname.replace(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          '',
-        );
-        const permittedAccounts = await getPermittedAccounts(
-          channelId ?? validHostname,
-        );
+
+        const permittedAccounts = await getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
         } else {
           try {
             checkTabActive();
-            const currentPerm =
-              Engine.context.PermissionController.getPermissions(
-                channelId ?? validHostname,
-              );
-            const accountPerm =
-              Engine.context.PermissionController.getPermission(
-                channelId ?? validHostname,
-                'eth_accounts',
-              );
-            DevLogger.log(
-              `eth_requestAccounts currentPerm ${channelId ?? validHostname}`,
-              currentPerm,
-              accountPerm,
-            );
             await Engine.context.PermissionController.requestPermissions(
-              { origin: channelId ?? validHostname },
+              { origin },
               { eth_accounts: {} },
-              {
-                id: channelId ?? validHostname,
-                preserveExistingPermissions: true,
-              },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
-            const acc = await getPermittedAccounts(hostname);
+            const acc = await getPermittedAccounts(origin);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
             DevLogger.log(`eth_requestAccounts error`, error);
             if (error) {
-              throw ethErrors.provider.userRejectedRequest(
+              throw providerErrors.userRejectedRequest(
                 'User denied account authorization.',
               );
             }
           }
         }
       },
-      eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-
-        if (isMMSDK) {
-          // Append origin to the request so it can be parsed in UI TransactionHeader
-          DevLogger.log(
-            `SDK Transaction detected --- custom hostname -- ${hostname} --> ${
-              AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current
-            }`,
-          );
-          hostname = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + url.current;
-        }
 
         return RPCMethods.eth_sendTransaction({
           hostname,
@@ -548,6 +531,7 @@ export const getRpcMethodMiddleware = ({
             from?: string;
             chainId?: number;
           }) => {
+            // TODO this needs to be modified for per dapp selected network
             await checkActiveAccountAndChainId({
               hostname,
               address: from,
@@ -558,64 +542,14 @@ export const getRpcMethodMiddleware = ({
           },
         });
       },
-      eth_signTransaction: async () => {
-        // This is implemented later in our middleware stack – specifically, in
-        // eth-json-rpc-middleware – but our UI does not support it.
-        throw ethErrors.rpc.methodNotSupported();
-      },
-      eth_sign: async () => {
-        const { SignatureController, PreferencesController } = Engine.context;
-        const { disabledRpcMethodPreferences } = PreferencesController.state;
-        const { eth_sign } = disabledRpcMethodPreferences;
-
-        if (!eth_sign) {
-          throw ethErrors.rpc.methodNotFound(
-            'eth_sign has been disabled. You must enable it in the advanced settings',
-          );
-        }
-        const pageMeta = {
-          meta: {
-            url: url.current,
-            title: title.current,
-            icon: icon.current,
-            analytics: {
-              request_source: getSource(),
-              request_platform: analytics?.platform,
-            },
-          },
-        };
-
-        checkTabActive();
-
-        if (req.params[1].length === 66 || req.params[1].length === 67) {
-          await checkActiveAccountAndChainId({
-            hostname,
-            channelId,
-            address: req.params[0].from,
-            isWalletConnect,
-          });
-          PPOMUtil.validateRequest(req);
-          const rawSig = await SignatureController.newUnsignedMessage({
-            data: req.params[1],
-            from: req.params[0],
-            ...pageMeta,
-            origin: hostname,
-          });
-
-          res.result = rawSig;
-        } else {
-          res.result = AppConstants.ETH_SIGN_ERROR;
-          throw ethErrors.rpc.invalidParams(AppConstants.ETH_SIGN_ERROR);
-        }
-      },
 
       personal_sign: async () => {
-        const { SignatureController } = Engine.context;
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
           data: firstParam,
           from: secondParam,
+          requestId: req.id,
         };
 
         if (resemblesAddress(firstParam) && !resemblesAddress(secondParam)) {
@@ -626,6 +560,7 @@ export const getRpcMethodMiddleware = ({
         const pageMeta = {
           meta: {
             url: url.current,
+            channelId,
             title: title.current,
             icon: icon.current,
             analytics: {
@@ -635,6 +570,9 @@ export const getRpcMethodMiddleware = ({
           },
         };
 
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
+
         checkTabActive();
         await checkActiveAccountAndChainId({
           hostname,
@@ -643,13 +581,24 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect,
         });
 
-        PPOMUtil.validateRequest(req);
+        DevLogger.log(`personal_sign`, params, pageMeta, hostname);
 
-        const rawSig = await SignatureController.newUnsignedPersonalMessage({
-          ...params,
-          ...pageMeta,
-          origin: hostname,
-        });
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
+        const rawSig = await signatureController.newUnsignedPersonalMessage(
+          {
+            ...params,
+            ...pageMeta,
+            origin: hostname,
+          },
+          req,
+          { traceContext: req.traceContext },
+        );
+
+        endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;
       },
@@ -670,18 +619,23 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
-        const { SignatureController } = Engine.context;
+        endTrace({ name: TraceName.Middleware, id: req.id });
+
         const pageMeta = {
           meta: {
             url: url.current,
             title: title.current,
             icon: icon.current,
+            channelId,
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
             },
           },
         };
+
+        const signatureController = Engine.context
+          .SignatureController as SignatureController;
 
         checkTabActive();
         await checkActiveAccountAndChainId({
@@ -691,18 +645,26 @@ export const getRpcMethodMiddleware = ({
           isWalletConnect,
         });
 
-        PPOMUtil.validateRequest(req);
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
 
-        const rawSig = await SignatureController.newUnsignedTypedMessage(
+        const rawSig = await signatureController.newUnsignedTypedMessage(
           {
             data: req.params[0],
             from: req.params[1],
+            requestId: req.id,
             ...pageMeta,
             origin: hostname,
           },
           req,
           'V1',
+          { parseJsonData: false },
+          { traceContext: req.traceContext },
         );
+
+        endTrace({ name: TraceName.Signature, id: req.id });
 
         res.result = rawSig;
       },
@@ -713,7 +675,12 @@ export const getRpcMethodMiddleware = ({
             ? JSON.parse(req.params[1])
             : req.params[1];
         const chainId = data.domain.chainId;
-        PPOMUtil.validateRequest(req);
+
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
         res.result = await generateRawSignature({
           version: 'V3',
           req,
@@ -734,7 +701,12 @@ export const getRpcMethodMiddleware = ({
       eth_signTypedData_v4: async () => {
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
-        PPOMUtil.validateRequest(req);
+
+        trace(
+          { name: TraceName.PPOMValidation, parentContext: req.traceContext },
+          () => PPOMUtil.validateRequest(req),
+        );
+
         res.result = await generateRawSignature({
           version: 'V4',
           req,
@@ -762,7 +734,9 @@ export const getRpcMethodMiddleware = ({
       wallet_scanQRCode: () =>
         new Promise<void>((resolve, reject) => {
           checkTabActive();
-          navigation.navigate('QRScanner', {
+          navigation.navigate(Routes.QR_TAB_SWITCHER, {
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanSuccess: (data: any) => {
               if (!regex.exec(req.params[0], data)) {
                 reject({ message: 'NO_REGEX_MATCH', data });
@@ -781,8 +755,10 @@ export const getRpcMethodMiddleware = ({
               res.result = result;
               resolve();
             },
+            // TODO: Replace "any" with type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onScanError: (e: { toString: () => any }) => {
-              throw ethErrors.rpc.internal(e.toString());
+              throw rpcErrors.internal(e.toString());
             },
           });
         }),
@@ -792,51 +768,56 @@ export const getRpcMethodMiddleware = ({
 
       metamask_removeFavorite: async () => {
         checkTabActive();
+
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
 
         const { bookmarks } = store.getState();
 
-        Alert.alert(
-          strings('browser.remove_bookmark_title'),
-          strings('browser.remove_bookmark_msg'),
-          [
-            {
-              text: strings('browser.cancel'),
-              onPress: () => {
-                res.result = {
-                  favorites: bookmarks,
-                };
+        return new Promise<void>((resolve) => {
+          Alert.alert(
+            strings('browser.remove_bookmark_title'),
+            strings('browser.remove_bookmark_msg'),
+            [
+              {
+                text: strings('browser.cancel'),
+                onPress: () => {
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
+                style: 'cancel',
               },
-              style: 'cancel',
-            },
-            {
-              text: strings('browser.yes'),
-              onPress: () => {
-                const bookmark = { url: req.params[0] };
+              {
+                text: strings('browser.yes'),
+                onPress: () => {
+                  const bookmark = { url: req.params[0] };
 
-                store.dispatch(removeBookmark(bookmark));
+                  store.dispatch(removeBookmark(bookmark));
 
-                const { bookmarks: updatedBookmarks } = store.getState();
+                  const { bookmarks: updatedBookmarks } = store.getState();
 
-                if (isHomepage()) {
-                  injectHomePageScripts(updatedBookmarks);
-                }
+                  if (isHomepage()) {
+                    injectHomePageScripts(updatedBookmarks);
+                  }
 
-                res.result = {
-                  favorites: bookmarks,
-                };
+                  res.result = {
+                    favorites: bookmarks,
+                  };
+                  resolve();
+                },
               },
-            },
-          ],
-        );
+            ],
+          );
+        });
       },
 
       metamask_showTutorial: async () => {
         checkTabActive();
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
         wizardScrollAdjusted.current = false;
 
@@ -850,7 +831,7 @@ export const getRpcMethodMiddleware = ({
       metamask_showAutocomplete: async () => {
         checkTabActive();
         if (!isHomepage()) {
-          throw ethErrors.provider.unauthorized('Forbidden.');
+          throw providerErrors.unauthorized('Forbidden.');
         }
         fromHomepage.current = true;
         toggleUrlModal(true);
@@ -870,23 +851,13 @@ export const getRpcMethodMiddleware = ({
       },
 
       /**
-       * This method is used by the inpage provider to get its state on
+       * This method is used by the inpage provider or sdk to get its state on
        * initialization.
        */
       metamask_getProviderState: async () => {
-        let accounts: string[] = [];
-        const validHostname = hostname.replace(
-          AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-          '',
-        );
-        if (isMMSDK) {
-          accounts =
-            (await getPermittedAccounts(channelId ?? validHostname)) ?? [];
-        } else {
-          accounts = await getPermittedAccounts(validHostname);
-        }
+        const accounts = await getPermittedAccounts(origin);
         res.result = {
-          ...getProviderState(),
+          ...(await getProviderState(origin)),
           accounts,
         };
       },
@@ -942,6 +913,8 @@ export const getRpcMethodMiddleware = ({
       return next();
     }
 
+    validateOriginThrottling({ req, store });
+
     const isWhiteListedMethod = isWhitelistedRPC(req.method);
 
     try {
@@ -951,9 +924,20 @@ export const getRpcMethodMiddleware = ({
 
       isWhiteListedMethod &&
         store.dispatch(setEventStage(req.method, RPCStageTypes.COMPLETE));
-    } catch (e) {
-      isWhiteListedMethod && store.dispatch(setEventStageError(req.method, e));
-      throw e;
+    } catch (error: unknown) {
+      processOriginThrottlingRejection({
+        req,
+        error: error as {
+          message: string;
+          code?: number;
+        },
+        store,
+        navigation,
+      });
+      isWhiteListedMethod &&
+        store.dispatch(setEventStageError(req.method, error));
+      throw error;
     }
   });
+};
 export default getRpcMethodMiddleware;

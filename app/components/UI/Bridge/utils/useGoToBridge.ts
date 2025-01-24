@@ -19,9 +19,11 @@ import { isBridgeUrl } from '../../../../util/url';
  */
 export default function useGoToBridge(location: string) {
   const chainId = useSelector(selectChainId);
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>
       isBridgeUrl(tab.url),
@@ -46,11 +48,15 @@ export default function useGoToBridge(location: string) {
       screen: Routes.BROWSER.VIEW,
       params,
     });
-    trackEvent(MetaMetricsEvents.BRIDGE_LINK_CLICKED, {
-      bridgeUrl: AppConstants.BRIDGE.URL,
-      location,
-      chain_id_source: getDecimalChainId(chainId),
-      token_address_source: address,
-    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BRIDGE_LINK_CLICKED)
+        .addProperties({
+          bridgeUrl: AppConstants.BRIDGE.URL,
+          location,
+          chain_id_source: getDecimalChainId(chainId),
+          token_address_source: address,
+        })
+        .build(),
+    );
   };
 }

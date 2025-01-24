@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,7 +17,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import EthereumAddress from '../../UI/EthereumAddress';
 import Icon from 'react-native-vector-icons/Feather';
 import TokenImage from '../../UI/TokenImage';
-import Networks, { getDecimalChainId } from '../../../util/networks';
+import Networks, {
+  getDecimalChainId,
+  isPortfolioViewEnabled,
+} from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
 import NotificationManager from '../../../core/NotificationManager';
@@ -34,17 +37,35 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   selectChainId,
   selectProviderConfig,
+  selectNetworkConfigurationByChainId,
+  selectNetworkConfigurations,
+  selectIsAllNetworks,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
+  selectConversionRateBySymbol,
 } from '../../../selectors/currencyRateController';
-import { selectTokens } from '../../../selectors/tokensController';
-import { selectContractExchangeRates } from '../../../selectors/tokenRatesController';
-import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectAllTokens,
+  selectTokens,
+} from '../../../selectors/tokensController';
+import {
+  selectContractExchangeRates,
+  selectTokenMarketDataByChainId,
+} from '../../../selectors/tokenRatesController';
+import {
+  selectContractBalances,
+  selectTokensBalances,
+} from '../../../selectors/tokenBalancesController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { RootState } from 'app/reducers';
+import { Colors } from '../../../util/theme/models';
+import { Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { TokenI } from '../../UI/Tokens/types';
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       padding: 16,
@@ -58,7 +79,7 @@ const createStyles = (colors: any) =>
     },
     tokenImage: { height: 36, width: 36, marginRight: 8 },
     sectionTitleLabel: {
-      ...(fontStyles.bold as any),
+      ...fontStyles.bold,
       fontSize: 16,
       color: colors.text.default,
       marginTop: 32,
@@ -67,7 +88,7 @@ const createStyles = (colors: any) =>
       marginTop: 8,
     },
     descriptionLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 16,
       color: colors.text.default,
     },
@@ -75,12 +96,12 @@ const createStyles = (colors: any) =>
       marginTop: 48,
     },
     hideButtonLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 16,
       color: colors.error.default,
     },
     addressLinkLabel: {
-      ...(fontStyles.normal as any),
+      ...fontStyles.normal,
       fontSize: 16,
       color: colors.primary.default,
     },
@@ -96,47 +117,91 @@ const createStyles = (colors: any) =>
 interface Props {
   route: {
     params: {
-      address: string;
+      address: Hex;
+      chainId: Hex;
+      asset: TokenI;
     };
   };
 }
 
 const AssetDetails = (props: Props) => {
-  const { address } = props.route.params;
+  const { address, chainId: networkId, asset } = props.route.params;
   const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const providerConfig = useSelector(selectProviderConfig);
-  const tokens = useSelector(selectTokens);
-  const conversionRate = useSelector(selectConversionRate);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const chainId = useSelector(selectChainId);
-  const primaryCurrency = useSelector(
-    (state: any) => state.settings.primaryCurrency,
+  const allTokens = useSelector(selectAllTokens);
+  const selectedAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
   );
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
-  const tokenBalances = useSelector(selectContractBalances);
-  const token = useMemo(
+  const selectedChainId = useSelector(selectChainId);
+  const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
+  const tokens = useSelector(selectTokens);
+
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const tokenNetworkConfig = networkConfigurations[networkId]?.name;
+
+  const tokensByChain = useMemo(
+    () => allTokens?.[chainId as Hex]?.[selectedAccountAddress as Hex] ?? [],
+    [allTokens, chainId, selectedAccountAddress],
+  );
+
+  const conversionRateLegacy = useSelector(selectConversionRate);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId),
+  );
+  const conversionRateBySymbol = useSelector((state: RootState) =>
+    selectConversionRateBySymbol(
+      state,
+      networkConfigurationByChainId?.nativeCurrency,
+    ),
+  );
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const primaryCurrency = useSelector(
+    (state: RootState) => state.settings.primaryCurrency,
+  );
+  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
+  const tokenExchangeRatesByChainId = useSelector((state: RootState) =>
+    selectTokenMarketDataByChainId(state, chainId),
+  );
+  const tokenBalancesLegacy = useSelector(selectContractBalances);
+  const allTokenBalances = useSelector(selectTokensBalances);
+
+  const portfolioToken = useMemo(
+    () => tokensByChain.find((rawToken) => rawToken.address === address),
+    [tokensByChain, address],
+  );
+
+  const legacyToken = useMemo(
     () => tokens.find((rawToken) => rawToken.address === address),
     [tokens, address],
   );
+
+  const token: TokenType | undefined = isPortfolioViewEnabled()
+    ? portfolioToken
+    : legacyToken;
+
   const { symbol, decimals, aggregators = [] } = token as TokenType;
 
-  const getNetworkName = () => {
+  const getNetworkName = useCallback(() => {
     let name = '';
-    if (providerConfig.nickname) {
+    if (isPortfolioViewEnabled() && isAllNetworks) {
+      name = tokenNetworkConfig;
+    } else if (providerConfig.nickname) {
       name = providerConfig.nickname;
     } else {
       name =
-        (Networks as any)[providerConfig.type]?.name ||
-        { ...Networks.rpc, color: null }.name;
+        (Networks as Record<string, { name: string }>)[providerConfig.type]
+          ?.name || { ...Networks.rpc, color: null }.name;
     }
     return name;
-  };
+  }, [isAllNetworks, tokenNetworkConfig, providerConfig]);
 
   useEffect(() => {
+    const networkName = getNetworkName();
     navigation.setOptions(
       getNetworkNavbarOptions(
         'Token Details',
@@ -145,9 +210,11 @@ const AssetDetails = (props: Props) => {
         colors,
         undefined,
         true,
+        undefined,
+        networkName,
       ),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, getNetworkName]);
 
   const copyAddressToClipboard = async () => {
     await ClipboardManager.setString(address);
@@ -162,15 +229,18 @@ const AssetDetails = (props: Props) => {
   };
 
   const triggerHideToken = () => {
-    const { TokensController } = Engine.context as any;
+    const { TokensController } = Engine.context;
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: 'AssetHideConfirmation',
       params: {
         onConfirm: () => {
           navigation.navigate('WalletView');
-          InteractionManager.runAfterInteractions(async () => {
+          InteractionManager.runAfterInteractions(() => {
+            const { NetworkController } = Engine.context;
+            const networkClientId =
+              NetworkController.findNetworkClientIdByChainId(chainId);
             try {
-              await TokensController.ignoreTokens([address]);
+              TokensController.ignoreTokens([address], networkClientId);
               NotificationManager.showSimpleNotification({
                 status: `simple_notification`,
                 duration: 5000,
@@ -179,13 +249,17 @@ const AssetDetails = (props: Props) => {
                   tokenSymbol: symbol,
                 }),
               });
-              trackEvent(MetaMetricsEvents.TOKENS_HIDDEN, {
-                location: 'token_details',
-                token_standard: 'ERC20',
-                asset_type: 'token',
-                tokens: [`${symbol} - ${address}`],
-                chain_id: getDecimalChainId(chainId),
-              });
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKENS_HIDDEN)
+                  .addProperties({
+                    location: 'token_details',
+                    token_standard: 'ERC20',
+                    asset_type: 'token',
+                    tokens: [`${symbol} - ${address}`],
+                    chain_id: getDecimalChainId(chainId),
+                  })
+                  .build(),
+              );
             } catch (err) {
               Logger.log(err, 'AssetDetails: Failed to hide token!');
             }
@@ -242,7 +316,7 @@ const AssetDetails = (props: Props) => {
   const renderTokenSymbol = () => (
     <View style={styles.descriptionContainer}>
       <TokenImage
-        asset={{ address }}
+        asset={asset}
         containerStyle={styles.tokenImage}
         iconStyle={styles.tokenImage}
       />
@@ -252,12 +326,39 @@ const AssetDetails = (props: Props) => {
 
   const renderTokenBalance = () => {
     let balanceDisplay = '';
-    const exchangeRate =
-      address in tokenExchangeRates ? tokenExchangeRates[address] : undefined;
-    const balance =
-      address in tokenBalances
-        ? renderFromTokenMinimalUnit(tokenBalances[address], decimals)
+    const tokenExchangeRates = isPortfolioViewEnabled()
+      ? tokenExchangeRatesByChainId
+      : tokenExchangeRatesLegacy;
+    const tokenBalances = isPortfolioViewEnabled()
+      ? allTokenBalances
+      : tokenBalancesLegacy;
+
+    const multiChainTokenBalance =
+      Object.keys(allTokenBalances).length > 0
+        ? allTokenBalances[selectedAccountAddress as Hex]?.[chainId as Hex]?.[
+            address as Hex
+          ]
         : undefined;
+
+    const tokenBalance = isPortfolioViewEnabled()
+      ? multiChainTokenBalance
+      : tokenBalancesLegacy[address];
+
+    const conversionRate = isPortfolioViewEnabled()
+      ? conversionRateBySymbol
+      : conversionRateLegacy;
+
+    const exchangeRate =
+      tokenExchangeRates && address in tokenExchangeRates
+        ? tokenExchangeRates[address]?.price
+        : undefined;
+
+    const balance = tokenBalance
+      ? address in tokenBalances || isPortfolioViewEnabled() || !tokenBalance
+        ? renderFromTokenMinimalUnit(tokenBalance.toString(), decimals)
+        : undefined
+      : undefined;
+
     const balanceFiat = balance
       ? balanceToFiat(balance, conversionRate, exchangeRate, currentCurrency)
       : undefined;

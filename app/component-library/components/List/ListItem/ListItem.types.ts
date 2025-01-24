@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewStyle } from 'react-native';
+import { ViewStyle, ViewProps } from 'react-native';
 
 /**
  * Vertical Alignment Options.
@@ -13,11 +13,27 @@ export enum VerticalAlignment {
 /**
  * ListItem component props.
  */
-export interface ListItemProps {
+export interface ListItemProps extends ViewProps {
   /**
    * Content to wrap to display.
    */
   children?: React.ReactNode;
+  /**
+   * Optional prop to include content to be displayed above the ListItem.
+   */
+  topAccessory?: React.ReactNode;
+  /**
+   * Optional prop to include content to be displayed below the ListItem.
+   */
+  bottomAccessory?: React.ReactNode;
+  /**
+   * Optional prop to configure the gap between the topAccessory and the ListItem.
+   */
+  topAccessoryGap?: number;
+  /**
+   * Optional prop to configure the gap between the bottomAccessory and the ListItem.
+   */
+  bottomAccessoryGap?: number;
   /**
    * Optional prop to configure the gap between items inside the ListItem.
    */
@@ -37,5 +53,5 @@ export interface ListItemProps {
  */
 export type ListItemStyleSheetVars = Pick<
   ListItemProps,
-  'style' | 'verticalAlignment'
+  'style' | 'verticalAlignment' | 'topAccessoryGap' | 'bottomAccessoryGap'
 >;

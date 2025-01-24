@@ -57,6 +57,8 @@ const TextWithPrefixIconMeta = {
 export default TextWithPrefixIconMeta;
 
 export const TextWithPrefixIcon = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: ({ iconSize, iconName, iconColor, ...props }: any) => (
     <TextWithPrefixIconComponent
       iconProps={{ size: iconSize, name: iconName, color: iconColor }}

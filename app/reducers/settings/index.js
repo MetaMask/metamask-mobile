@@ -6,6 +6,7 @@ const initialState = {
   lockTime: -1, // Disabled by default
   useBlockieIcon: true,
   hideZeroBalanceTokens: false,
+  basicFunctionalityEnabled: true,
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -44,6 +45,22 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         primaryCurrency: action.primaryCurrency,
+      };
+    case 'SET_SHOW_FIAT_ON_TESTNETS':
+      return {
+        ...state,
+        showFiatOnTestnets: action.showFiatOnTestnets,
+      };
+    case 'TOGGLE_BASIC_FUNCTIONALITY':
+      return {
+        ...state,
+        basicFunctionalityEnabled: action.basicFunctionalityEnabled,
+      };
+
+    case 'TOGGLE_DEVICE_NOTIFICATIONS':
+      return {
+        ...state,
+        deviceNotificationEnabled: action.deviceNotificationEnabled,
       };
 
     default:

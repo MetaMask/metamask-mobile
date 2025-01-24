@@ -1,0 +1,1 @@
+export { snapKeyringBuilder } from './SnapKeyring';

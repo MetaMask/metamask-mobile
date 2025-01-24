@@ -28,10 +28,14 @@ import {
   handleReceivedMessage,
 } from './EventListenersHandlers';
 import handleClientsWaiting from './EventListenersHandlers/handleClientsWaiting';
+import setupBridge from '../handlers/setupBridge';
 
 export interface ConnectionProps {
   id: string;
   otherPublicKey: string;
+  privateKey?: string;
+  relayPersistence?: boolean;
+  protocolVersion?: number;
   origin: string;
   reconnect?: boolean;
   // Only userful in case of reconnection
@@ -45,8 +49,8 @@ export interface ConnectionProps {
   lastAuthorized?: number; // timestamp of last received activity
 }
 
-// eslint-disable-next-line
-const { version } = require('../../../../package.json');
+import packageJSON from '../../../../package.json';
+const { version: walletVersion } = packageJSON;
 
 export class Connection extends EventEmitter2 {
   channelId;
@@ -54,6 +58,7 @@ export class Connection extends EventEmitter2 {
   origin: string;
   host: string;
   navigation?: NavigationContainerRef;
+  protocolVersion: number;
   originatorInfo?: OriginatorInfo;
   isReady = false;
   backgroundBridge?: BackgroundBridge;
@@ -117,6 +122,9 @@ export class Connection extends EventEmitter2 {
   constructor({
     id,
     otherPublicKey,
+    privateKey,
+    relayPersistence,
+    protocolVersion,
     origin,
     reconnect,
     initialConnection,
@@ -149,6 +157,7 @@ export class Connection extends EventEmitter2 {
   }) {
     super();
 
+    this.isReady = relayPersistence ?? false;
     this.origin = origin;
     this.trigger = trigger;
     this.channelId = id;
@@ -164,6 +173,7 @@ export class Connection extends EventEmitter2 {
     this.rpcQueueManager = rpcQueueManager;
     // batchRPCManager should be contained to current connection
     this.batchRPCManager = new BatchRPCManager(id);
+    this.protocolVersion = protocolVersion ?? 1;
 
     this.approveHost = approveHost;
     this.getApprovedHosts = getApprovedHosts;
@@ -173,8 +183,13 @@ export class Connection extends EventEmitter2 {
     this.onTerminate = onTerminate;
 
     DevLogger.log(
-      `Connection::constructor() id=${this.channelId} initialConnection=${this.initialConnection} lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
+      `Connection::constructor() id=${
+        this.channelId
+      } typeof(protocolVersion)=${typeof protocolVersion}  protocolVersion=${protocolVersion} relayPersistence=${relayPersistence} initialConnection=${
+        this.initialConnection
+      } lastAuthorized=${this.lastAuthorized} trigger=${this.trigger}`,
       socketServerUrl,
+      originatorInfo,
     );
 
     if (!this.channelId) {
@@ -183,6 +198,8 @@ export class Connection extends EventEmitter2 {
 
     this.remote = new RemoteCommunication({
       platformType: AppConstants.MM_SDK.PLATFORM as 'metamask-mobile',
+      relayPersistence,
+      protocolVersion: this.protocolVersion,
       communicationServerUrl: this.socketServerUrl,
       communicationLayerPreference: CommunicationLayerPreference.SOCKET,
       otherPublicKey,
@@ -190,15 +207,19 @@ export class Connection extends EventEmitter2 {
       transports: ['websocket'],
       walletInfo: {
         type: 'MetaMask Mobile',
-        version,
+        version: walletVersion,
+      },
+      ecies: {
+        debug: true,
+        privateKey,
       },
       context: AppConstants.MM_SDK.PLATFORM,
       analytics: true,
       logging: {
         eciesLayer: false,
-        keyExchangeLayer: false,
-        remoteLayer: false,
-        serviceLayer: false,
+        keyExchangeLayer: true,
+        remoteLayer: true,
+        serviceLayer: true,
         // plaintext: true doesn't do anything unless using custom socket server.
         plaintext: true,
       },
@@ -206,6 +227,14 @@ export class Connection extends EventEmitter2 {
         enabled: false,
       },
     });
+
+    // if relayPersistence is true, automatically setup background bridge
+    if (originatorInfo) {
+      this.backgroundBridge = setupBridge({
+        originatorInfo,
+        connection: this,
+      });
+    }
 
     this.remote.on(EventType.CLIENTS_CONNECTED, handleClientsConnected(this));
 
@@ -240,8 +269,21 @@ export class Connection extends EventEmitter2 {
     );
   }
 
-  public connect({ withKeyExchange }: { withKeyExchange: boolean }) {
-    return connect({ instance: this, withKeyExchange });
+  public connect({
+    withKeyExchange,
+    authorized,
+    rejected,
+  }: {
+    authorized: boolean;
+    rejected?: boolean;
+    withKeyExchange: boolean;
+  }) {
+    return connect({
+      instance: this,
+      rejected,
+      withKeyExchange,
+      authorized,
+    });
   }
 
   sendAuthorized(force?: boolean) {
@@ -275,7 +317,7 @@ export class Connection extends EventEmitter2 {
     this.trigger = trigger;
   }
 
-  disconnect({ terminate, context }: { terminate: boolean; context?: string }) {
+  disconnect({ terminate, context }: { terminate: boolean; context?: string }): Promise<boolean> {
     return disconnect({ instance: this, terminate, context });
   }
 

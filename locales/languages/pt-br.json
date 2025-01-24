@@ -896,8 +896,7 @@
     "message": "Mensagem",
     "message_from": "Mensagem de",
     "learn_more": "Saiba mais",
-    "read_more": "Ler mais",
-    "eth_sign_warning": "Tenha cuidado. Esta ação pode ser usada para sacar ativos da sua conta. Você precisa confiar neste site."
+    "read_more": "Ler mais"
   },
   "watch_asset_request": {
     "title": "Adicionar token sugerido",

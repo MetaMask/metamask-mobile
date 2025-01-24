@@ -24,6 +24,8 @@ describe('useAccountsBalance', () => {
       '0x456': { balance: '200' },
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Engine.context.AccountTrackerController as any).syncBalanceWithAddresses =
       mockSyncBalanceWithAddresses;
   });

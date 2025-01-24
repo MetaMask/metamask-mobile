@@ -1,0 +1,19 @@
+diff --git a/node_modules/@metamask/rpc-errors/dist/classes.cjs b/node_modules/@metamask/rpc-errors/dist/classes.cjs
+index 2cf07ef..fbc304c 100644
+--- a/node_modules/@metamask/rpc-errors/dist/classes.cjs
++++ b/node_modules/@metamask/rpc-errors/dist/classes.cjs
+@@ -56,9 +56,14 @@ class JsonRpcError extends Error {
+                 serialized.data.cause = (0, utils_2.serializeCause)(this.data.cause);
+             }
+         }
++        /**
++        * passing the stack creates a loop, possible conflicting with hermes, since it's hermes that throws an error
++        */
++        /* 
+         if (this.stack) {
+             serialized.stack = this.stack;
+         }
++        */
+         return serialized;
+     }
+     /**

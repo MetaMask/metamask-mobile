@@ -16,10 +16,7 @@ const styleSheet = (_params: {
 }) =>
   StyleSheet.create({
     attributionBase: Object.assign({
-      height: 24,
-      flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
+      height: 40,
       marginTop: 8,
     } as ViewStyle),
     attributionItem: {
@@ -36,16 +33,9 @@ const styleSheet = (_params: {
       marginBottom: 20,
     },
     bannerSectionSmall: {
-      flexDirection: 'row',
       alignItems: 'center',
-      borderWidth: 1,
-      borderRadius: 4,
-      borderColor: _params.theme.colors.border.default,
-      marginTop: 20,
-      marginLeft: 10,
-      marginRight: 10,
-      marginBottom: 20,
-      padding: 10,
+      marginTop: 10,
+      marginBottom: 10,
     },
     bannerSectionSmallSpaced: {
       flexDirection: 'row',

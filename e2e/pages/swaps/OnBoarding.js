@@ -1,8 +1,15 @@
-import TestHelpers from '../../helpers';
-import enContent from '../../../locales/languages/en.json';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
+import { OnBoardingSelectors } from '../../selectors/swaps/OnBoarding.selectors';
 
-export default class Onboarding {
-  static async tapStartSwapping() {
-    await TestHelpers.waitAndTapText(enContent.swaps.onboarding.start_swapping);
+class Onboarding {
+  get startSwappingButton() {
+    return Matchers.getElementByText(OnBoardingSelectors.START_SWAPPING);
+  }
+
+  async tapStartSwapping() {
+    await Gestures.waitAndTap(this.startSwappingButton);
   }
 }
+
+export default new Onboarding();

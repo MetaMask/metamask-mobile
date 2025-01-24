@@ -5,5 +5,8 @@
 
   "cucumberautocomplete.steps": ["wdio/step-definitions/**/*.js"],
   "cucumberautocomplete.syncfeatures": "wdio/to/features/*.feature",
-  "cucumberautocomplete.strictGherkinCompletion": true
+  "cucumberautocomplete.strictGherkinCompletion": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "javascript.preferences.importModuleSpecifier": "relative",
+  "typescript.preferences.importModuleSpecifier": "relative"
 }

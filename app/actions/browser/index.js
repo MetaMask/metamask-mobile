@@ -36,10 +36,12 @@ export function addToHistory({ url, name }) {
 /**
  * Clears the entire browser history
  */
-export function clearHistory() {
+export function clearHistory(metricsEnabled, marketingEnabled) {
   return {
     type: 'CLEAR_BROWSER_HISTORY',
     id: Date.now(),
+    metricsEnabled,
+    marketingEnabled,
   };
 }
 
@@ -68,11 +70,13 @@ export function closeAllTabs() {
  * Creates a new tab
  *
  * @param {string} url - The website's url
+ * @param {string} linkType - optional link type
  */
-export function createNewTab(url) {
+export function createNewTab(url, linkType) {
   return {
     type: 'CREATE_NEW_TAB',
     url,
+    linkType,
     id: Date.now(),
   };
 }

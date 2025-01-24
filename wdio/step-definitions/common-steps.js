@@ -14,6 +14,10 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import LoginScreen from '../screen-objects/LoginScreen';
 import TermOfUseScreen from '../screen-objects/Modals/TermOfUseScreen';
 import WhatsNewModal from '../screen-objects/Modals/WhatsNewModal';
+import Gestures from '../helpers/Gestures';
+import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
+import ExperienceEnhancerModal from '../screen-objects/Modals/ExperienceEnhancerModal';
+import SettingsScreen from '../screen-objects/SettingsScreen';
 
 Then(/^the Welcome screen is displayed$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
@@ -21,10 +25,6 @@ Then(/^the Welcome screen is displayed$/, async () => {
 
 Given(/^the app displayed the splash animation$/, async () => {
   await WelcomeScreen.isScreenDisplayed();
-});
-
-Given(/^the splash animation disappears$/, async () => {
-  await WelcomeScreen.waitForSplashAnimationToNotExit();
 });
 
 Then(/^Terms of Use is displayed$/, async () => {
@@ -45,14 +45,14 @@ Then(/^Terms of Use is not displayed$/, async () => {
 
 Given(/^I have imported my wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
-
+  const timeOut = 3000;
+  await driver.pause(timeOut);
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.clickImportWalletButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
   await TermOfUseScreen.isDisplayed();
-  await TermOfUseScreen.textIsDisplayed();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
   if (!(await TermOfUseScreen.isCheckBoxChecked())) {
@@ -64,16 +64,16 @@ Given(/^I have imported my wallet$/, async () => {
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(validAccount.seedPhrase);
   await ImportFromSeedScreen.typeNewPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
   await ImportFromSeedScreen.typeConfirmPassword(validAccount.password);
-  await ImportFromSeedScreen.tapImportFromSeedTextToDismissKeyboard();
+  await ImportFromSeedScreen.tapConfirmPasswordTextToDismissKeyboard();
   await ImportFromSeedScreen.clickImportButton();
+  await OnboardingSucessScreen.tapDone()
 });
 
 Given(/^I create a new wallet$/, async () => {
   const validAccount = Accounts.getValidAccount();
 
-  await WelcomeScreen.waitForSplashAnimationToDisplay();
   await WelcomeScreen.waitForScreenToDisplay();
   await WelcomeScreen.clickGetStartedButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -139,6 +139,13 @@ Then(/^"([^"]*)?" is displayed/, async (text) => {
   await CommonScreen.isTextDisplayed(text);
 });
 
+Then(/^version "([^"]*)?" is displayed for app upgrade step/, async (text) => {
+  const appUpgradeText = process.env[text];
+  const timeout = 1000;
+  await driver.pause(timeout);
+  await CommonScreen.isTextDisplayed(appUpgradeText);
+});
+
 Then(/^"([^"]*)?" is not displayed/, async (text) => {
   const timeout = 1000;
   await driver.pause(timeout);
@@ -168,10 +175,11 @@ Then(
 
 When(/^I log into my wallet$/, async () => {
   await LoginScreen.tapUnlockButton();
-  await WalletMainScreen.isVisible();
+  // await driver.pause(10000); // this seems excessive. If we have to wait this long
+  await WalletMainScreen.isMainWalletViewVisible();
 });
 
-When(/^I kill the app$/, async () => {3
+When(/^I kill the app$/, async () => {
   const platform = await driver.getPlatform();
   if (platform === 'iOS') {
     await driver.terminateApp('io.metamask.MetaMask-QA');
@@ -210,7 +218,7 @@ When(/^I unlock wallet with (.*)$/, async (password) => {
 
 Then(
   /^I tap (.*) "([^"]*)?" on (.*) (.*) view/,
-  async (elementType, button, screen, type) => {
+  async (elementType, button) => {
     await CommonScreen.checkNoNotification(); // Notification appears a little late and inteferes with clicking function
     await CommonScreen.tapOnText(button);
   },
@@ -222,7 +230,7 @@ Then(/^I tap (.*) containing text "([^"]*)?"/, async (elementType, button) => {
 
 Then(
   /^I tap button "([^"]*)?" to navigate to (.*) view/,
-  async (button, screen) => {
+  async (button) => {
     await CommonScreen.tapOnText(button);
     await CommonScreen.tapOnText(button);
   },
@@ -230,14 +238,14 @@ Then(
 
 Then(
   /^(.*) "([^"]*)?" is displayed on (.*) (.*) view/,
-  async (elementType, text, type, screen) => {
+  async (elementType, text) => {
     await CommonScreen.isTextDisplayed(text);
   },
 );
 
 Then(
   /^(.*) "([^"]*)?" is not displayed on (.*) (.*) view/,
-  async (elementType, textElement, type, screen) => {
+  async (elementType, textElement) => {
     await CommonScreen.isTextElementNotDisplayed(textElement);
   },
 );
@@ -259,8 +267,77 @@ Given(/^I close the Whats New modal$/, async () => {
 
 When(/^I tap on the Settings tab option$/, async () => {
   await TabBarModal.tapSettingButton();
+  await SettingsScreen.waitForDisplay();
 });
 
 When(/^I tap on the Activity tab option$/, async () => {
   await TabBarModal.tapActivityButton();
+});
+
+When(/^I install upgrade the app$/, async () => {
+  await driver.installApp(process.env.BROWSERSTACK_ANDROID_APP_URL)
+});
+
+When(/^I scroll up$/, async () => {
+  await Gestures.swipeUp(0.5);
+});
+
+Then(/^removed test app$/, async () => {
+  const platform = await driver.getPlatform();
+  // TODO: Use environment variables for bundle IDs
+  if (platform === 'iOS') {
+    await driver.removeApp('io.metamask.MetaMask-QA');
+  }
+
+  if (platform === 'Android') {
+    await driver.removeApp('io.metamask.qa');
+  }
+});
+
+
+Then(/^I am on the "([^"]*)" account$/, async (accountName) => {
+  await CommonScreen.isTextDisplayed(accountName)
+});
+
+When(/^I tap on the Identicon$/, async () => {
+  await WalletMainScreen.tapIdenticon();
+});
+
+Then(/^tokens (.*) in account should be displayed$/, async (token) => {
+  await CommonScreen.isTextDisplayed(token)
+});
+
+Given(/^I close all the onboarding modals$/, async () => {
+  // Handle Onboarding wizard
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+
+  try {
+    // Handle Marketing consent modal
+
+    await ExperienceEnhancerModal.waitForDisplay();
+    await ExperienceEnhancerModal.tapNoThanks();
+    await ExperienceEnhancerModal.waitForDisappear();
+  } catch {
+    console.log('The marketing consent modal is not visible');
+  }
+  try {
+    await OnboardingWizardModal.isVisible();
+    await OnboardingWizardModal.tapNoThanksButton();
+    await OnboardingWizardModal.isNotVisible();
+  } catch {
+    /* eslint-disable no-console */
+
+    console.log('The onboarding modal is not visible');
+  }
+});
+Then(/^I use the back button on Android$/, async () => {
+  await driver.back();
 });

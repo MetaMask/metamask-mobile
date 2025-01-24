@@ -1,6 +1,6 @@
 import Selectors from '../../helpers/Selectors';
 
-import { TabBarSelectorIDs } from '../../../e2e/selectors/TabBar.selectors';
+import { TabBarSelectorIDs } from '../../../e2e/selectors/wallet/TabBar.selectors';
 
 import Gestures from '../../helpers/Gestures';
 import BrowserScreen from '../BrowserObject/BrowserScreen';
@@ -52,6 +52,7 @@ class TabBarModal {
   }
 
   async tapSettingButton() {
+    await driver.pause(10000);
     await Gestures.waitAndTap(this.settingsButton);
   }
 

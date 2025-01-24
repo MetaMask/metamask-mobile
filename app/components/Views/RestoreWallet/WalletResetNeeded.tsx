@@ -27,41 +27,52 @@ export const createWalletResetNeededNavDetails = createNavigationDetails(
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
   useEffect(() => {
     trackEvent(
-      MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
-      deviceMetaData,
+      createEventBuilder(
+        MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_SCREEN_VIEWED,
+      )
+        .addProperties({ ...deviceMetaData })
+        .build(),
     );
-  }, [trackEvent, deviceMetaData]);
+  }, [trackEvent, deviceMetaData, createEventBuilder]);
 
   const handleCreateNewWallet = useCallback(async () => {
     trackEvent(
-      MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
-      deviceMetaData,
+      createEventBuilder(
+        MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
+      )
+        .addProperties({ ...deviceMetaData })
+        .build(),
     );
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });
-  }, [deviceMetaData, navigation, trackEvent]);
+  }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 
   const handleTryAgain = useCallback(async () => {
     trackEvent(
-      MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
-      deviceMetaData,
+      createEventBuilder(
+        MetaMetricsEvents.VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED,
+      )
+        .addProperties({ ...deviceMetaData })
+        .build(),
     );
     navigation.replace(
       ...createRestoreWalletNavDetails({
         previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
       }),
     );
-  }, [deviceMetaData, navigation, trackEvent]);
+  }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 
   return (
     <SafeAreaView style={styles.screen}>

@@ -15,3 +15,10 @@ export interface QuickAmount {
   label: string;
   isNative?: boolean;
 }
+
+export interface RampIntent {
+  address?: string;
+  chainId?: string;
+  amount?: string;
+  currency?: string;
+}

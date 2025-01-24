@@ -4,11 +4,11 @@ exports[`SliderButton should render correctly 1`] = `
 <View
   onLayout={[Function]}
   style={
-    Array [
-      Object {
+    [
+      {
         "elevation": 0,
-        "shadowColor": "#0376C933",
-        "shadowOffset": Object {
+        "shadowColor": "#0376c933",
+        "shadowOffset": {
           "height": 2,
           "width": 0,
         },
@@ -18,13 +18,12 @@ exports[`SliderButton should render correctly 1`] = `
       undefined,
     ]
   }
-  testID="swipe-to-swap-button"
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
-        "backgroundColor": "#0260A4",
+        "backgroundColor": "#0260a4",
         "borderRadius": 60,
         "height": 60,
         "justifyContent": "center",
@@ -36,16 +35,10 @@ exports[`SliderButton should render correctly 1`] = `
   >
     <Image
       resizeMode="stretch"
-      source={
-        Object {
-          "default": Object {
-            "uri": "MockImage",
-          },
-        }
-      }
+      source={1}
       style={
-        Array [
-          Object {
+        [
+          {
             "height": "100%",
             "position": "absolute",
             "width": "100%",
@@ -54,44 +47,36 @@ exports[`SliderButton should render correctly 1`] = `
         ]
       }
     />
-    <ForwardRef(AnimatedComponentWrapper)
+    <Image
+      collapsable={false}
       resizeMode="contain"
-      source={
-        Object {
-          "default": Object {
-            "uri": "MockImage",
-          },
+      source={1}
+      style={
+        {
+          "height": "200%",
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "transform": [
+            {
+              "translateX": -142,
+            },
+          ],
         }
       }
-      style={
-        Array [
-          Object {
-            "height": "200%",
-            "left": 0,
-            "position": "absolute",
-          },
-          Object {
-            "opacity": 1,
-            "transform": Array [
-              Object {
-                "translateX": -142,
-              },
-            ],
-          },
-        ]
-      }
     />
-    <ForwardRef(AnimatedComponentWrapper)
+    <View
+      collapsable={false}
       style={
-        Object {
+        {
           "opacity": 1,
         }
       }
     >
       <Text
         style={
-          Object {
-            "color": "#FFFFFF",
+          {
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -100,35 +85,32 @@ exports[`SliderButton should render correctly 1`] = `
       >
         Incomplete Text
       </Text>
-    </ForwardRef(AnimatedComponentWrapper)>
+    </View>
   </View>
-  <ForwardRef(AnimatedComponentWrapper)
+  <View
+    collapsable={false}
     style={
-      Array [
-        Object {
-          "borderRadius": 60,
-          "height": "100%",
-          "overflow": "hidden",
-          "position": "absolute",
-        },
-        Object {
-          "backgroundColor": "rgba(2, 96, 164, 1)",
-          "width": 60,
-        },
-      ]
+      {
+        "backgroundColor": "rgba(2, 96, 164, 1)",
+        "borderRadius": 60,
+        "height": "100%",
+        "overflow": "hidden",
+        "position": "absolute",
+        "width": 60,
+      }
     }
   >
     <View
       style={
-        Array [
-          Object {
+        [
+          {
             "alignItems": "center",
             "height": "100%",
             "justifyContent": "center",
             "position": "absolute",
             "width": "100%",
           },
-          Object {
+          {
             "width": 0,
           },
         ]
@@ -136,8 +118,8 @@ exports[`SliderButton should render correctly 1`] = `
     >
       <Text
         style={
-          Object {
-            "color": "#FFFFFF",
+          {
+            "color": "#ffffff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -147,8 +129,9 @@ exports[`SliderButton should render correctly 1`] = `
         Complete Text
       </Text>
     </View>
-  </ForwardRef(AnimatedComponentWrapper)>
-  <ForwardRef(AnimatedComponentWrapper)
+  </View>
+  <View
+    collapsable={false}
     onMoveShouldSetResponder={[Function]}
     onMoveShouldSetResponderCapture={[Function]}
     onResponderEnd={[Function]}
@@ -162,25 +145,21 @@ exports[`SliderButton should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     onStartShouldSetResponderCapture={[Function]}
     style={
-      Array [
-        Object {
-          "backgroundColor": "#FFFFFF",
-          "borderColor": "#0260A4",
-          "borderRadius": 60,
-          "borderWidth": 9.6,
-          "height": 60,
-          "position": "absolute",
-          "width": 60,
-        },
-        Object {
-          "opacity": 1,
-          "transform": Array [
-            Object {
-              "translateX": 0,
-            },
-          ],
-        },
-      ]
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#0260a4",
+        "borderRadius": 60,
+        "borderWidth": 9.6,
+        "height": 60,
+        "opacity": 1,
+        "position": "absolute",
+        "transform": [
+          {
+            "translateX": 0,
+          },
+        ],
+        "width": 60,
+      }
     }
   />
 </View>

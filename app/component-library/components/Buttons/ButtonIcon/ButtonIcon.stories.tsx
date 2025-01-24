@@ -1,10 +1,10 @@
 // External dependencies.
-import { IconName } from '../../Icons/Icon';
+import { IconName, IconColor } from '../../Icons/Icon';
 
 // Internal dependencies.
 import { default as ButtonIconComponent } from './ButtonIcon';
 import { SAMPLE_BUTTONICON_PROPS } from './ButtonIcon.constants';
-import { ButtonIconSizes, ButtonIconVariants } from './ButtonIcon.types';
+import { ButtonIconSizes } from './ButtonIcon.types';
 
 const ButtonIconMeta = {
   title: 'Component Library / Buttons',
@@ -15,28 +15,31 @@ const ButtonIconMeta = {
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_BUTTONICON_PROPS.iconName,
     },
-    variant: {
-      options: ButtonIconVariants,
+    iconColor: {
+      options: IconColor,
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_BUTTONICON_PROPS.variant,
     },
     size: {
       options: ButtonIconSizes,
       control: {
         type: 'select',
       },
-      defaultValue: SAMPLE_BUTTONICON_PROPS.size,
     },
     isDisabled: {
       control: { type: 'boolean' },
-      defaultValue: SAMPLE_BUTTONICON_PROPS.isDisabled,
     },
   },
 };
 export default ButtonIconMeta;
 
-export const ButtonIcon = {};
+export const ButtonIcon = {
+  args: {
+    iconName: SAMPLE_BUTTONICON_PROPS.iconName,
+    iconColor: SAMPLE_BUTTONICON_PROPS.iconColor,
+    size: SAMPLE_BUTTONICON_PROPS.size,
+    isDisabled: SAMPLE_BUTTONICON_PROPS.isDisabled,
+  },
+};

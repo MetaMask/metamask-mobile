@@ -11,7 +11,7 @@ import {
 import { getFixturesServerPort } from '../../fixtures/utils';
 import FixtureServer from '../../fixtures/fixture-server';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
@@ -22,7 +22,7 @@ describe(Regression('Settings'), () => {
     const fixture = new FixtureBuilder().build();
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
-    await device.launchApp({
+    await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
     await loginToApp();

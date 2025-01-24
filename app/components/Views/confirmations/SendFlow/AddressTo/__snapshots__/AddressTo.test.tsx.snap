@@ -3,7 +3,7 @@
 exports[`SendFlowAddressTo should render correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flexDirection": "row",
       "marginHorizontal": 8,
       "minHeight": 52,
@@ -12,7 +12,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "width": "15%",
@@ -22,8 +22,8 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 16,
           "fontWeight": "400",
@@ -37,8 +37,8 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
   </View>
   <View
     style={
-      Array [
-        Object {
+      [
+        {
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -48,15 +48,15 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
           "minHeight": 52,
           "paddingHorizontal": 10,
         },
-        Object {
-          "borderColor": "#BBC0C5",
+        {
+          "borderColor": "#bbc0c5",
         },
       ]
     }
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
           "flexDirection": "row",
@@ -73,12 +73,12 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search, public address (0x), or ENS"
-        placeholderTextColor="#BBC0C5"
+        placeholderTextColor="#9fa6ae"
         spellCheck={false}
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -94,7 +94,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
     <TouchableOpacity
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
         }
@@ -103,26 +103,26 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
       <Text
         allowFontScaling={false}
         style={
-          Array [
-            Object {
+          [
+            {
               "color": undefined,
               "fontSize": 20,
             },
-            Array [
-              Object {
+            [
+              {
                 "alignItems": "center",
                 "flexDirection": "column",
               },
-              Object {
-                "color": "#24272A",
+              {
+                "color": "#141618",
               },
             ],
-            Object {
+            {
               "fontFamily": "anticon",
               "fontStyle": "normal",
               "fontWeight": "normal",
             },
-            Object {},
+            {},
           ]
         }
       >

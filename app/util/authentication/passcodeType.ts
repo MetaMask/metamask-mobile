@@ -6,6 +6,6 @@ import AUTHENTICATION_TYPE from '../../constants/userProperties';
  * @param type - AUTHENTICATION_TYPE
  * @returns String of passcodeType for UI display of components
  */
-// eslint-disable-next-line import/prefer-default-export
+
 export const passcodeType = (type: AUTHENTICATION_TYPE): string =>
   Device.isIos() ? type + '_ios' : type + '_android';

@@ -45,11 +45,10 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../../../selectors/currencyRateController';
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../../selectors/gasFeeController';
 
@@ -269,7 +268,6 @@ class TransactionEditor extends PureComponent {
         });
       }
 
-      await this.validate(undefined, LegacyGasData);
       // eslint-disable-next-line react/no-did-update-set-state
       this.setState(
         {
@@ -287,6 +285,8 @@ class TransactionEditor extends PureComponent {
           this.setState({ animateOnChange: false });
         },
       );
+
+      await this.validate(undefined, LegacyGasData);
     }
   };
 
@@ -398,7 +398,8 @@ class TransactionEditor extends PureComponent {
         this.props.gasFeeEstimates &&
         transaction.gas &&
         (!shallowEqual(prevProps.gasFeeEstimates, this.props.gasFeeEstimates) ||
-          !transaction.gas.eq(prevProps?.transaction?.gas))
+          !transaction.gas.eq(prevProps?.transaction?.gas) ||
+          !this.state.ready)
       ) {
         this.computeGasEstimates(gasEstimateTypeChanged);
       }
@@ -968,7 +969,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   contractBalances: selectContractBalances(state),
   networkType: selectProviderType(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   ticker: selectTicker(state),
   transaction: getNormalizedTxState(state),
   activeTabUrl: getActiveTabUrl(state),
@@ -976,7 +977,6 @@ const mapStateToProps = (state) => ({
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   primaryCurrency: state.settings.primaryCurrency,
   chainId: selectChainId(state),
 });

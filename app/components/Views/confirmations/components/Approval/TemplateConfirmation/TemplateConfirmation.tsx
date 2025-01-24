@@ -16,6 +16,8 @@ import { useAppThemeFromContext } from '../../../../../../util/theme';
 import { AcceptOptions, ApprovalRequest } from '@metamask/approval-controller';
 
 export interface TemplateConfirmationProps {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   approvalRequest: ApprovalRequest<any>;
   onConfirm: (opts?: AcceptOptions) => void;
   onCancel: () => void;

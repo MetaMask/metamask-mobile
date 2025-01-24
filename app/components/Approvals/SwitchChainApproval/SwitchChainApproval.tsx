@@ -4,7 +4,11 @@ import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import ApprovalModal from '../ApprovalModal';
 import SwitchCustomNetwork from '../../UI/SwitchCustomNetwork';
 import { networkSwitched } from '../../../actions/onboardNetwork';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../core/Engine';
+import { selectIsAllNetworks } from '../../../selectors/networkController';
+import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
+import { isPortfolioViewEnabled } from '../../../util/networks';
 
 const SwitchChainApproval = () => {
   const {
@@ -15,9 +19,20 @@ const SwitchChainApproval = () => {
   } = useApprovalRequest();
 
   const dispatch = useDispatch();
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const onConfirm = useCallback(() => {
     defaultOnConfirm();
+
+    // If portfolio view is enabled should set network filter
+    if (isPortfolioViewEnabled()) {
+      const { PreferencesController } = Engine.context;
+      PreferencesController.setTokenNetworkFilter({
+        ...(isAllNetworks ? tokenNetworkFilter : {}),
+        [approvalRequest?.requestData?.chainId]: true,
+      });
+    }
 
     dispatch(
       networkSwitched({
@@ -25,7 +40,13 @@ const SwitchChainApproval = () => {
         networkStatus: true,
       }),
     );
-  }, [approvalRequest, defaultOnConfirm, dispatch]);
+  }, [
+    approvalRequest,
+    defaultOnConfirm,
+    dispatch,
+    isAllNetworks,
+    tokenNetworkFilter,
+  ]);
 
   if (approvalRequest?.type !== ApprovalTypes.SWITCH_ETHEREUM_CHAIN)
     return null;

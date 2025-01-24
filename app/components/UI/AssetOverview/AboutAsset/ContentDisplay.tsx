@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { TextStyle, View } from 'react-native';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { useStyles } from '../../../../component-library/hooks';
 import Text, {
@@ -13,12 +13,14 @@ interface ContentDisplayProps {
   content: string;
   numberOfLines?: number;
   disclaimer?: string;
+  textStyle?: TextStyle;
 }
 
 const ContentDisplay = ({
   content,
   numberOfLines = 3,
   disclaimer,
+  textStyle,
 }: ContentDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -33,6 +35,7 @@ const ContentDisplay = ({
       <Text
         numberOfLines={isExpanded ? undefined : numberOfLines}
         color={TextColor.Alternative}
+        style={[textStyle]}
       >
         {content}
       </Text>

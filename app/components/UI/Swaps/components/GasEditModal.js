@@ -26,7 +26,6 @@ import {
 import {
   selectConversionRate,
   selectCurrentCurrency,
-  selectNativeCurrency,
 } from '../../../../selectors/currencyRateController';
 
 const GAS_OPTIONS = AppConstants.GAS_OPTIONS;
@@ -64,7 +63,6 @@ function GasEditModal({
   checkEnoughEthBalance,
   currentCurrency,
   conversionRate,
-  nativeCurrency,
   primaryCurrency,
   chainId,
   ticker,
@@ -134,7 +132,7 @@ function GasEditModal({
           {
             currentCurrency,
             conversionRate,
-            nativeCurrency,
+            nativeCurrency: ticker,
             selectedGasFee: {
               suggestedMaxFeePerGas:
                 gasFeeEstimates[gasSelected].suggestedMaxFeePerGas,
@@ -183,7 +181,6 @@ function GasEditModal({
     gasSelected,
     initialGasLimit,
     isNativeAsset,
-    nativeCurrency,
     sourceAmount,
     stopUpdateGas,
     ticker,
@@ -211,7 +208,7 @@ function GasEditModal({
           {
             currentCurrency,
             conversionRate,
-            nativeCurrency,
+            nativeCurrency: ticker,
             selectedGasFee: {
               suggestedMaxFeePerGas,
               suggestedMaxPriorityFeePerGas,
@@ -241,9 +238,9 @@ function GasEditModal({
       gasFeeEstimates,
       initialGasLimit,
       isNativeAsset,
-      nativeCurrency,
       sourceAmount,
       tradeValue,
+      ticker,
     ],
   );
 
@@ -513,10 +510,6 @@ GasEditModal.propTypes = {
    */
   tradeGasLimit: PropTypes.string,
   /**
-   * Native network currency
-   */
-  nativeCurrency: PropTypes.string,
-  /**
    * Primary currency, either ETH or Fiat
    */
   primaryCurrency: PropTypes.string,
@@ -552,7 +545,6 @@ GasEditModal.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  nativeCurrency: selectNativeCurrency(state),
   ticker: selectTicker(state),
   chainId: selectChainId(state),
   primaryCurrency: state.settings.primaryCurrency,

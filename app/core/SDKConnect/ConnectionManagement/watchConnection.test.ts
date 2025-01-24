@@ -1,5 +1,4 @@
 import { ConnectionStatus, EventType } from '@metamask/sdk-communication-layer';
-import AppConstants from '../../AppConstants';
 import { Connection } from '../Connection';
 import SDKConnect from '../SDKConnect';
 import watchConnection from './watchConnection';
@@ -69,37 +68,6 @@ describe('watchConnection', () => {
       expect(mockRemoveChannel).toHaveBeenCalledWith({
         channelId: mockConnection.channelId,
         sendTerminate: false,
-      });
-    });
-  });
-
-  describe('Handling CLIENTS_DISCONNECTED event', () => {
-    beforeEach(() => {
-      mockInstance.state.disabledHosts = {
-        [AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockConnection.channelId]: 0,
-      };
-    });
-
-    it('should update SDK loading state on CLIENTS_DISCONNECTED', () => {
-      watchConnection(mockConnection, mockInstance);
-
-      const mockClientsDisconnectedListener = mockRemoteOn.mock.calls[1][1];
-
-      mockClientsDisconnectedListener();
-
-      expect(mockUpdateSDKLoadingState).toHaveBeenCalled();
-    });
-
-    it('should remove the channel if it is disabled on CLIENTS_DISCONNECTED', () => {
-      watchConnection(mockConnection, mockInstance);
-
-      const mockClientsDisconnectedListener = mockRemoteOn.mock.calls[1][1];
-
-      mockClientsDisconnectedListener();
-
-      expect(mockRemoveChannel).toHaveBeenCalledWith({
-        channelId: mockConnection.channelId,
-        sendTerminate: true,
       });
     });
   });

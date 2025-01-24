@@ -1,12 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, Switch, Text, View } from 'react-native';
+import { Switch, Text, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { createStyles } from './styles';
-import { LOGIN_WITH_REMEMBER_ME_SWITCH } from '../../../../wdio/screen-objects/testIDs/Screens/LoginScreen.testIds';
+import { LoginViewSelectors } from '../../../../e2e/selectors/wallet/LoginView.selectors';
 import { useSelector } from 'react-redux';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { LoginOptionsSwitchSelectorsIDs } from '../../../../e2e/selectors/LoginOptionsSwitch.selectors';
 import { useTheme } from '../../../util/theme';
 
 interface Props {
@@ -32,6 +30,8 @@ const LoginOptionsSwitch = ({
   const { colors } = theme;
   const styles = createStyles(colors);
   const allowLoginWithRememberMe = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.allowLoginWithRememberMe,
   );
   const [rememberMeEnabled, setRememberMeEnabled] = useState<boolean>(false);
@@ -66,9 +66,8 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
-          testID={LoginOptionsSwitchSelectorsIDs.BIOMETRICS_SWITCH}
         />
       </View>
     );
@@ -86,9 +85,9 @@ const LoginOptionsSwitch = ({
             true: colors.primary.default,
             false: colors.border.muted,
           }}
-          thumbColor={theme.brandColors.white['000']}
+          thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
-          {...generateTestId(Platform, LOGIN_WITH_REMEMBER_ME_SWITCH)}
+          testID={LoginViewSelectors.REMEMBER_ME_SWITCH}
         />
       </View>
     );

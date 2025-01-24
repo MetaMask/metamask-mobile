@@ -1,8 +1,14 @@
-interface BodyWebView {
+export interface BodyWebViewUri {
   source: 'WebView';
   uri: string;
 }
 
+export interface BodyWebViewHtml {
+  source: 'WebView';
+  html: string;
+}
+
+export type BodyWebView = BodyWebViewUri | BodyWebViewHtml;
 interface BodyNode {
   source: 'Node';
   component: () => React.ReactNode;

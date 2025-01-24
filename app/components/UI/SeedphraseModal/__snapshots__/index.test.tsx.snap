@@ -19,7 +19,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
@@ -31,7 +31,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
 >
   <View
     accessibilityState={
-      Object {
+      {
         "busy": undefined,
         "checked": undefined,
         "disabled": undefined,
@@ -42,7 +42,6 @@ exports[`SeedphraseModal should render correctly 1`] = `
     accessible={true}
     collapsable={false}
     focusable={true}
-    forwardedRef={[Function]}
     onClick={[Function]}
     onResponderGrant={[Function]}
     onResponderMove={[Function]}
@@ -51,7 +50,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
     style={
-      Object {
+      {
         "backgroundColor": "#00000099",
         "bottom": 0,
         "height": 1334,
@@ -68,32 +67,32 @@ exports[`SeedphraseModal should render correctly 1`] = `
     onLayout={[Function]}
     pointerEvents="box-none"
     style={
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "margin": 37.5,
-            "transform": Array [
-              Object {
+            "transform": [
+              {
                 "translateY": 0,
               },
             ],
           },
-          Object {
+          {
             "flex": 1,
             "justifyContent": "center",
           },
-          Array [
-            Object {
+          [
+            {
               "margin": 0,
               "width": "100%",
             },
             undefined,
           ],
-          Object {
+          {
             "margin": 0,
           },
         ],
-        Object {
+        {
           "paddingBottom": 0,
         },
       ]
@@ -103,7 +102,6 @@ exports[`SeedphraseModal should render correctly 1`] = `
       collapsable={false}
       deviceHeight={null}
       deviceWidth={null}
-      forwardedRef={[Function]}
       hideModalContentWhileAnimating={false}
       onBackdropPress={[Function]}
       onModalHide={[Function]}
@@ -129,14 +127,14 @@ exports[`SeedphraseModal should render correctly 1`] = `
       scrollTo={null}
       statusBarTranslucent={false}
       style={
-        Object {
+        {
           "flex": 1,
           "justifyContent": "center",
           "left": 0,
           "margin": 0,
           "top": 0,
-          "transform": Array [
-            Object {
+          "transform": [
+            {
               "translateY": 1334,
             },
           ],
@@ -144,7 +142,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
         }
       }
       supportedOrientations={
-        Array [
+        [
           "portrait",
           "landscape",
         ]
@@ -154,8 +152,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
     >
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "alignItems": "center",
               "flexDirection": "column",
               "justifyContent": "center",
@@ -167,9 +165,9 @@ exports[`SeedphraseModal should render correctly 1`] = `
       >
         <View
           style={
-            Array [
-              Object {
-                "backgroundColor": "#FFFFFF",
+            [
+              {
+                "backgroundColor": "#ffffff",
                 "borderRadius": 10,
                 "width": "100%",
               },
@@ -179,8 +177,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
         >
           <View
             style={
-              Array [
-                Object {
+              [
+                {
                   "alignItems": "center",
                   "flexDirection": "row",
                 },
@@ -190,7 +188,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
           >
             <View
               style={
-                Object {
+                {
                   "flex": 1,
                   "flexDirection": "column",
                   "padding": 27,
@@ -199,7 +197,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
             >
               <View
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
                     "flexDirection": "row",
                     "justifyContent": "center",
@@ -209,15 +207,15 @@ exports[`SeedphraseModal should render correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "width": 26,
                     }
                   }
                 />
                 <Text
                   style={
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                       "flex": 1,
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
@@ -230,7 +228,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 </Text>
                 <TouchableOpacity
                   hitSlop={
-                    Object {
+                    {
                       "bottom": 10,
                       "left": 10,
                       "right": 10,
@@ -238,7 +236,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                     }
                   }
                   style={
-                    Object {
+                    {
                       "alignItems": "flex-end",
                       "padding": 5,
                     }
@@ -247,21 +245,21 @@ exports[`SeedphraseModal should render correctly 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": undefined,
                           "fontSize": 12,
                         },
-                        Object {
-                          "color": "#24272A",
+                        {
+                          "color": "#141618",
                           "fontSize": 16,
                         },
-                        Object {
+                        {
                           "fontFamily": "FontAwesome",
                           "fontStyle": "normal",
                           "fontWeight": "normal",
                         },
-                        Object {},
+                        {},
                       ]
                     }
                   >
@@ -272,8 +270,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
               <View>
                 <Text
                   style={
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -287,8 +285,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 </Text>
                 <Text
                   style={
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -302,8 +300,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 </Text>
                 <Text
                   style={
-                    Object {
-                      "color": "#24272A",
+                    {
+                      "color": "#141618",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -320,14 +318,14 @@ exports[`SeedphraseModal should render correctly 1`] = `
           </View>
           <View
             style={
-              Array [
-                Object {
-                  "borderTopColor": "#D6D9DC",
+              [
+                {
+                  "borderTopColor": "#bbc0c566",
                   "borderTopWidth": 1,
                   "flexDirection": "row",
                   "padding": 16,
                 },
-                Object {
+                {
                   "borderTopWidth": 0,
                 },
               ]

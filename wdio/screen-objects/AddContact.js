@@ -7,7 +7,7 @@ import {
   ADD_CONTACT_NAME_INPUT,
   ADD_CONTACTS_CONTAINER_ID,
 } from './testIDs/Screens/AddContact.testIds';
-import { EDIT_BUTTON } from './testIDs/Common.testIds';
+import { AddContactViewSelectorsIDs } from '../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
 
 class AddContacts {
   get container() {
@@ -31,7 +31,7 @@ class AddContacts {
   }
 
   get editButton() {
-    return Selectors.getElementByPlatform(EDIT_BUTTON);
+    return Selectors.getElementByPlatform(AddContactViewSelectorsIDs.EDIT_BUTTON);
   }
 
   async waitForDisplay() {

@@ -1,9 +1,12 @@
 import React from 'react';
 import { processFiatOrder } from '../../index';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import {
+  DeepPartial,
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import OrderDetails from './OrderDetails';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -15,6 +18,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RampSDK } from '../../sdk';
 import { PROVIDER_LINKS } from '../../types';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  MOCK_ADDRESS_1,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+} from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,13 +49,9 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
-
 const mockOrder: DeepPartial<FiatOrder> = {
   id: 'test-order-1',
-  account: '0x0',
+  account: MOCK_ADDRESS_1,
   network: '1',
   cryptoAmount: '0.01231324',
   orderType: OrderOrderTypeEnum.Buy,
@@ -136,7 +139,10 @@ function render(Component: React.ComponentType, orders = [mockOrder]) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
         fiatOrders: {
           orders: orders as FiatOrder[],
@@ -198,6 +204,10 @@ describe('OrderDetails', () => {
     const completedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
+      data: {
+        ...mockOrder.data,
+        statusDescription: 'Your ETH is now available in your account',
+      },
     };
     render(OrderDetails, [completedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -207,6 +217,11 @@ describe('OrderDetails', () => {
     const cancelledOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CANCELLED,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      },
     };
     render(OrderDetails, [cancelledOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -216,6 +231,11 @@ describe('OrderDetails', () => {
     const failedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          'Something went wrong, and Test Provider was unable to complete your order. Please try again or with another provider.',
+      },
     };
     render(OrderDetails, [failedOrder]);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -224,9 +244,9 @@ describe('OrderDetails', () => {
   it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "ONRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_destination": "1",
           "currency_destination": "ETH",
           "currency_source": "USD",
@@ -246,9 +266,9 @@ describe('OrderDetails', () => {
 
     render(OrderDetails, [testOrder]);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_PURCHASE_DETAILS_VIEWED",
-        Object {
+        {
           "chain_id_source": "1",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -365,6 +385,11 @@ describe('OrderDetails', () => {
       orderType: OrderOrderTypeEnum.Sell,
       state: FIAT_ORDER_STATES.CREATED,
       sellTxHash: undefined,
+      data: {
+        ...mockOrder.data,
+        statusDescription:
+          "To continue your order, you'll need to select the button at the bottom of this page.",
+      },
     };
     await waitFor(() => render(OrderDetails, [createdOrder]));
     expect(screen.toJSON()).toMatchSnapshot();
@@ -424,6 +449,7 @@ describe('OrderDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
       data: {
         ...mockOrder.data,
+        statusDescription: 'Your ETH is now available in your account',
         provider: {
           name: 'Test Provider',
           links: [

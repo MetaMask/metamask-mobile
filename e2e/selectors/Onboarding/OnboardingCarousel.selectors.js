@@ -7,6 +7,7 @@ export const OnboardingCarouselSelectorIDs = {
   ONE_IMAGE_ID: 'carousel-one-image',
   TWO_IMAGE_ID: 'carousel-two-image',
   THREE_IMAGE_ID: 'carousel-three-image',
+  APP_START_TIME_ID: 'app-start-time-id',
 };
 
 export const OnboardingCarouselSelectorText = {

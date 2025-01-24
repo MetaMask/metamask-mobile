@@ -1,20 +1,21 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import Browser from '../../pages/Browser';
-import AccountListView from '../../pages/AccountListView';
-import TabBarComponent from '../../pages/TabBarComponent';
-import ConnectModal from '../../pages/modals/ConnectModal';
-import ConnectedAccountsModal from '../../pages/modals/ConnectedAccountsModal';
+import Browser from '../../pages/Browser/BrowserView';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import ToastModal from '../../pages/wallet/ToastModal';
+import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import { loginToApp } from '../../viewHelper';
-import NetworkListModal from '../../pages/modals/NetworkListModal';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
 import Assertions from '../../utils/Assertions';
+import { Regression } from '../../tags';
 
-const SUSHI_SWAP = 'https://app.sushi.com/swap';
-const SUSHI_SWAP_SHORT_HAND_URL = 'app.sushi.com';
+const AccountTwoText = 'Account 2';
 
-describe('Connecting to multiple dapps and revoking permission on one but staying connected to the other', () => {
+describe(Regression('Permission System:'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
@@ -33,46 +34,37 @@ describe('Connecting to multiple dapps and revoking permission on one but stayin
         //should navigate to browser
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Browser.isVisible();
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
-        // should connect to sushi swap dapp
-        await Browser.tapUrlInputBox();
-        await Browser.navigateToURL(SUSHI_SWAP);
-        await Assertions.checkIfVisible(ConnectModal.container);
-        await ConnectModal.scrollToBottomOfModal();
-        await Browser.isAccountToastVisible('Account 1');
+        //TODO: should re add connecting to an external swap step after detox has been updated
 
-        // should connect with multiple accounts
-        await Browser.tapOpenAllTabsButton();
-        await Browser.tapOpenNewTabButton();
         await Browser.navigateToTestDApp();
-        await Browser.isAccountToastVisible('Account 1');
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfVisible(ConnectedAccountsModal.title);
+        await TestHelpers.delay(2000);
+
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
         await ConnectedAccountsModal.tapConnectMoreAccountsButton();
-        await TestHelpers.delay(1000);
-        await AccountListView.tapAddAccountButton();
-        await AccountListView.tapCreateAccountButton();
-        await AccountListView.isAccount2VisibleAtIndex(0);
-        await AccountListView.tapAccountIndex(0);
-        await AccountListView.connectAccountsButton();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateAccount();
+        if (device.getPlatform() === 'android') {
+          await Assertions.checkIfTextIsDisplayed(AccountTwoText);
+        }
+        await AccountListBottomSheet.tapAccountIndex(0);
+        await AccountListBottomSheet.tapConnectAccountsButton();
 
         // should revoke accounts
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
+        await Browser.tapNetworkAvatarButtonOnBrowser();
         await ConnectedAccountsModal.tapPermissionsButton();
         await TestHelpers.delay(1500);
         await ConnectedAccountsModal.tapDisconnectAllButton();
-        await Browser.isRevokeAllAccountToastVisible();
+        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+
         await Browser.tapNetworkAvatarButtonOnBrowser();
         await Assertions.checkIfNotVisible(ConnectedAccountsModal.title);
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfVisible(NetworkListModal.networkScroll);
         await NetworkListModal.swipeToDismissModal();
-        await NetworkListModal.isNotVisible();
-        await TestHelpers.delay(3500);
-        await Browser.tapOpenAllTabsButton();
-        await TestHelpers.tapByText(SUSHI_SWAP_SHORT_HAND_URL);
-        await Browser.tapNetworkAvatarButtonOnBrowserWhileAccountIsConnectedToDapp();
-        await NetworkListModal.isVisible();
+        await Assertions.checkIfNotVisible(NetworkListModal.networkScroll);
       },
     );
   });

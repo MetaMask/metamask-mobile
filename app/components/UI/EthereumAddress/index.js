@@ -21,7 +21,7 @@ class EthereumAddress extends PureComponent {
     address: PropTypes.string,
     /**
      * Type of formatting for the address
-     * can be "short" or "full"
+     * can be "short", "mid" or "full"
      */
     type: PropTypes.string,
   };

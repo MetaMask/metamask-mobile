@@ -1,27 +1,26 @@
 import React from 'react';
-import OnboardingWizard from './';
-import { shallow } from 'enzyme';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 
-const mockStore = configureMockStore();
-const initialState = {
-  wizard: {
-    step: 1,
-  },
-  security: {
-    isAutomaticSecurityChecksModalOpen: false,
+import OnboardingWizard from './';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+
+const navigationMock = {
+  navigate: jest.fn(),
+};
+
+const coachmarkRef = {
+  current: {
+    measure: jest.fn(),
   },
 };
-const store = mockStore(initialState);
 
 describe('OnboardingWizard', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <Provider store={store}>
-        <OnboardingWizard />
-      </Provider>,
+    const { toJSON } = renderWithProvider(
+      <OnboardingWizard
+        navigation={navigationMock}
+        coachmarkRef={coachmarkRef}
+      />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

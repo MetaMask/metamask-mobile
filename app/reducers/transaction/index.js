@@ -28,6 +28,8 @@ const initialState = {
   type: undefined,
   proposedNonce: undefined,
   nonce: undefined,
+  securityAlertResponses: {},
+  useMax: false,
 };
 
 const getAssetType = (selectedAsset) => {
@@ -108,6 +110,8 @@ const transactionReducer = (state = initialState, action) => {
           ...getTxData(action.transaction),
         },
         ...txMeta,
+        // Retain the securityAlertResponses from the old state
+        securityAlertResponses: state.securityAlertResponses,
       };
     }
     case 'SET_TOKENS_TRANSACTION': {
@@ -115,7 +119,6 @@ const transactionReducer = (state = initialState, action) => {
       const assetType = getAssetType(selectedAsset);
       return {
         ...state,
-        type: 'TOKENS_TRANSACTION',
         selectedAsset: action.asset,
         assetType,
       };
@@ -126,37 +129,16 @@ const transactionReducer = (state = initialState, action) => {
         symbol: 'ETH',
         assetType: 'ETH',
         selectedAsset: { isETH: true, symbol: 'ETH' },
-        type: 'ETHER_TRANSACTION',
         ...getTxMeta(action.transaction),
         transaction: getTxData(action.transaction),
-      };
-    case 'SET_INDIVIDUAL_TOKEN_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.token,
-        type: 'INDIVIDUAL_TOKEN_TRANSACTION',
-      };
-    case 'SET_INDIVIDUAL_COLLECTIBLE_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.collectible,
-        assetType: 'ERC721',
-        type: 'INDIVIDUAL_COLLECTIBLE_TRANSACTION',
-      };
-    case 'SET_COLLECTIBLE_CONTRACT_TRANSACTION':
-      return {
-        ...state,
-        selectedAsset: action.collectible,
-        assetType: 'ERC721',
-        type: 'CONTRACT_COLLECTIBLE_TRANSACTION',
       };
     case 'SET_TRANSACTION_SECURITY_ALERT_RESPONSE': {
       const { transactionId, securityAlertResponse } = action;
       return {
         ...state,
-        currentTransactionSecurityAlertResponse: {
-          id: transactionId,
-          response: securityAlertResponse,
+        securityAlertResponses: {
+          ...state.securityAlertResponses,
+          [transactionId]: securityAlertResponse,
         },
       };
     }
@@ -165,6 +147,18 @@ const transactionReducer = (state = initialState, action) => {
       return {
         ...state,
         id: transactionId,
+      };
+    }
+    case 'SET_MAX_VALUE_MODE': {
+      return {
+        ...state,
+        maxValueMode: action.maxValueMode,
+      };
+    }
+    case 'SET_TRANSACTION_VALUE': {
+      return {
+        ...state,
+        transaction: { ...state.transaction, value: action.value },
       };
     }
     default:

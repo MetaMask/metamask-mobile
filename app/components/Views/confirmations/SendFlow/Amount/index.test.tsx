@@ -4,21 +4,43 @@ import Amount from '.';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Engine from '../../../../../core/Engine';
 import TransactionTypes from '../../../../../core/TransactionTypes';
-import {
-  FIAT_CONVERSION_WARNING_TEXT,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_CONVERSION_VALUE,
-  TRANSACTION_AMOUNT_INPUT,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/AmountScreen.testIds.js';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 
-const mockEngine = Engine;
+import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
+
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { setMaxValueMode } from '../../../../../actions/transaction';
+
 const mockTransactionTypes = TransactionTypes;
 
+const MOCK_NFTS = [
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/113',
+    isCurrentlyOwned: true,
+    name: 'My Nft #113',
+    standard: 'ERC721',
+    tokenId: '113',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/113',
+  },
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/114',
+    isCurrentlyOwned: true,
+    name: 'My Nft #114',
+    standard: 'ERC721',
+    tokenId: '114',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/114',
+  },
+];
+
 jest.mock('../../../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
   context: {
     GasFeeController: {
       fetchGasFeeEstimates: jest.fn(() =>
@@ -73,38 +95,86 @@ jest.mock('../../../../../util/transaction-controller', () => ({
   ),
 }));
 
+jest.mock('../../../../../actions/transaction', () => ({
+  ...jest.requireActual('../../../../../actions/transaction'),
+  setMaxValueMode: jest.fn().mockReturnValue({
+    type: 'SET_MAX_VALUE_MODE',
+  }),
+}));
+
 const mockNavigate = jest.fn();
 
-const CURRENT_ACCOUNT = '0x1a';
+const CURRENT_ACCOUNT = '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 const RECEIVER_ACCOUNT = '0x2a';
 
 const initialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       NetworkController: {
-        network: '1',
-        providerConfig: {
-          ticker: 'ETH',
-          type: 'mainnet',
-          chainId: '0x1',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {
+          mainnet: {
+            status: 'available',
+            EIPS: {
+              '1559': true,
+            },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0xaa36a7': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0xaa36a7',
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                type: 'Custom',
+                url: 'http://localhost/v3/',
+              },
+            ],
+          },
         },
       },
       AccountTrackerController: {
         accounts: { [CURRENT_ACCOUNT]: { balance: '0' } },
       },
-      PreferencesController: {
-        selectedAddress: CURRENT_ACCOUNT,
-        identities: {
-          [CURRENT_ACCOUNT]: {
-            address: CURRENT_ACCOUNT,
-            name: 'Account 1',
+      AccountsController: {
+        internalAccounts: {
+          selectedAccount: CURRENT_ACCOUNT,
+          accounts: {
+            [CURRENT_ACCOUNT]: {
+              address: CURRENT_ACCOUNT,
+            },
           },
         },
       },
       NftController: {
-        allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
-        allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+        allNfts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
+        allNftContracts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [CURRENT_ACCOUNT]: [
+              {
+                address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                symbol: 'LINK',
+                decimals: 18,
+              },
+            ],
+          },
+        },
       },
     },
   },
@@ -115,6 +185,8 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
@@ -151,14 +223,34 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
               [CURRENT_ACCOUNT]: {
                 balance: 'DE0B6B3A7640000',
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
               },
             },
           },
@@ -187,6 +279,15 @@ describe('Amount', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('should set max value mode when toggled on', () => {
+    const { getByText } = renderComponent(initialState);
+
+    const useMaxButton = getByText(/Use max/);
+    fireEvent.press(useMaxButton);
+
+    expect(setMaxValueMode).toHaveBeenCalled();
+  });
+
   it('should proceed if balance is sufficient while on Native primary currency', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       engine: {
@@ -194,14 +295,34 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
               [CURRENT_ACCOUNT]: {
                 balance: '4563918244F40000',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
               },
             },
           },
@@ -228,14 +349,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 5 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -253,14 +376,34 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 1,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1,
+              },
+            },
           },
           AccountTrackerController: {
             accounts: {
               [CURRENT_ACCOUNT]: {
                 balance: '0x0',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
               },
             },
           },
@@ -287,14 +430,16 @@ describe('Amount', () => {
     const balanceText = getByText(/Balance:/);
     expect(balanceText.props.children).toBe('Balance: 0 ETH');
 
-    const nextButton = getByTestId(NEXT_BUTTON);
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
     await waitFor(() => expect(nextButton.props.disabled).toStrictEqual(false));
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$1.00');
 
@@ -315,9 +460,35 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
           },
         },
       },
@@ -339,12 +510,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$3000.00');
     expect(toJSON()).toMatchSnapshot();
@@ -357,15 +530,43 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
             },
           },
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
           },
         },
       },
@@ -386,12 +587,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '1');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('$15.00');
     expect(toJSON()).toMatchSnapshot();
@@ -405,10 +608,30 @@ describe('Amount', () => {
           ...initialState.engine.backgroundState,
           CurrencyRateController: {
             ...initialState.engine.backgroundState.CurrencyRateController,
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [],
+              },
+            },
           },
         },
       },
@@ -433,12 +656,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.00333 ETH');
     expect(toJSON()).toMatchSnapshot();
@@ -451,15 +676,43 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: CURRENT_ACCOUNT,
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
             },
           },
           CurrencyRateController: {
-            conversionRate: 3000,
             currentCurrency: 'usd',
-            nativeCurrency: 'ETH',
-            usdConversionRate: 3000,
+            currencyRates: {
+              ETH: {
+                conversionRate: 3000,
+                usdConversionRate: 3000,
+              },
+            },
           },
         },
       },
@@ -483,12 +736,14 @@ describe('Amount', () => {
       },
     });
 
-    const textInput = getByTestId(TRANSACTION_AMOUNT_INPUT);
+    const textInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
 
     fireEvent.changeText(textInput, '10');
 
     const amountConversionValue = getByTestId(
-      TRANSACTION_AMOUNT_CONVERSION_VALUE,
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_CONVERSION_VALUE,
     );
     expect(amountConversionValue.props.children).toBe('0.66667 LINK');
     expect(toJSON()).toMatchSnapshot();
@@ -501,7 +756,30 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
+            },
           },
           CurrencyRateController: {},
         },
@@ -526,7 +804,9 @@ describe('Amount', () => {
       },
     });
 
-    const fiatConversionWarningText = getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+    const fiatConversionWarningText = getByTestId(
+      AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT,
+    );
     expect(fiatConversionWarningText.props.children).toBe(
       'Fiat conversions are not available at this moment',
     );
@@ -540,8 +820,37 @@ describe('Amount', () => {
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
-            contractExchangeRates: {
-              '0x514910771AF9Ca656af840dff83E8264EcF986CA': 0.005,
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              ...initialState.engine.backgroundState.AccountsController
+                .internalAccounts,
+              accounts: {
+                ...initialState.engine.backgroundState.AccountsController
+                  .internalAccounts.accounts,
+                [CURRENT_ACCOUNT]: {
+                  address: CURRENT_ACCOUNT,
+                },
+              },
+              selectedAccount: CURRENT_ACCOUNT,
+            },
+          },
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [CURRENT_ACCOUNT]: [
+                  {
+                    address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+                    symbol: 'LINK',
+                    decimals: 18,
+                  },
+                ],
+              },
             },
           },
           CurrencyRateController: {},
@@ -568,9 +877,11 @@ describe('Amount', () => {
     });
 
     try {
-      await getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      await getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }
@@ -583,8 +894,30 @@ describe('Amount', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
+          TokensController: {
+            tokens: [],
+            allTokens: {
+              '0x1': {
+                '0xAddress1': [],
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              selectedAccount: '0xAddress1',
+              accounts: {
+                '0xAddress1': {
+                  address: '0xAddress1',
+                },
+              },
+            },
+          },
           TokenRatesController: {
-            contractExchangeRates: {},
+            marketData: {
+              '0x1': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
           },
           CurrencyRateController: {},
         },
@@ -608,9 +941,11 @@ describe('Amount', () => {
     });
 
     try {
-      getByTestId(FIAT_CONVERSION_WARNING_TEXT);
+      getByTestId(AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT);
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const expectedErrorMessage = `Unable to find an element with testID: ${FIAT_CONVERSION_WARNING_TEXT}`;
+      const expectedErrorMessage = `Unable to find an element with testID: ${AmountViewSelectorsIDs.FIAT_CONVERSION_WARNING_TEXT}`;
       const hasErrorMessage = error.message.includes(expectedErrorMessage);
       expect(hasErrorMessage).toBeTruthy();
     }

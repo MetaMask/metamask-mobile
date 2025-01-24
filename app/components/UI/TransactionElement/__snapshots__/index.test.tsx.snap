@@ -3,8 +3,11 @@
 exports[`TransactionElement should render correctly 1`] = `
 <ContextProvider
   value={
-    Object {
-      "store": Object {
+    {
+      "getServerState": undefined,
+      "noopCheck": "once",
+      "stabilityCheck": "once",
+      "store": {
         "clearActions": [Function],
         "dispatch": [Function],
         "getActions": [Function],
@@ -12,22 +15,14 @@ exports[`TransactionElement should render correctly 1`] = `
         "replaceReducer": [Function],
         "subscribe": [Function],
       },
-      "subscription": Subscription {
+      "subscription": {
+        "addNestedSub": [Function],
+        "getListeners": [Function],
         "handleChangeWrapper": [Function],
-        "listeners": Object {
-          "notify": [Function],
-        },
-        "onStateChange": [Function],
-        "parentSub": undefined,
-        "store": Object {
-          "clearActions": [Function],
-          "dispatch": [Function],
-          "getActions": [Function],
-          "getState": [Function],
-          "replaceReducer": [Function],
-          "subscribe": [Function],
-        },
-        "unsubscribe": null,
+        "isSubscribed": [Function],
+        "notifyNestedSubs": [Function],
+        "trySubscribe": [Function],
+        "tryUnsubscribe": [Function],
       },
     }
   }
@@ -35,9 +30,9 @@ exports[`TransactionElement should render correctly 1`] = `
   <Component
     i={1}
     tx={
-      Object {
+      {
         "status": "CONFIRMED",
-        "transaction": Object {
+        "transaction": {
           "from": "0x1",
           "nonce": 1,
           "to": "0x0",

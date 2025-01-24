@@ -1,12 +1,16 @@
+import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
-import Routes from '../../../../app/constants/navigation/Routes';
-import AppConstants from '../../AppConstants';
+import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../Engine';
+import { getPermittedAccounts } from '../../Permissions';
 import { Connection } from '../Connection';
-import { HOUR_IN_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import { wait } from '../utils/wait.util';
+import {
+  wait,
+  waitForCondition,
+  waitForKeychainUnlocked,
+} from '../utils/wait.util';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -20,115 +24,98 @@ export const checkPermissions = async ({
   message?: CommunicationLayerMessage;
   lastAuthorized?: number;
 }) => {
-  const OTPExpirationDuration =
-    Number(process.env.OTP_EXPIRATION_DURATION_IN_MS) || HOUR_IN_MS;
-
-  // close poientially open loading modal
-  connection.setLoading(false);
-
-  const channelWasActiveRecently =
-    !!lastAuthorized && Date.now() - lastAuthorized < OTPExpirationDuration;
-
-  DevLogger.log(
-    `checkPermissions initialConnection=${connection.initialConnection} method=${message?.method} lastAuthorized=${lastAuthorized} OTPExpirationDuration ${OTPExpirationDuration} channelWasActiveRecently ${channelWasActiveRecently}`,
-    connection.originatorInfo,
-  );
-
-  const permissionsController = (
-    engine.context as { PermissionController: PermissionController<any, any> }
-  ).PermissionController;
-
-  // only ask approval if needed
-  const approved = connection.isApproved({
-    channelId: connection.channelId,
-    context: 'checkPermission',
-  });
-  const accountPermission = permissionsController.getPermission(
-    connection.channelId,
-    'eth_accounts',
-  );
-
-  DevLogger.log(
-    `checkPermissions approved=${approved} approvalPromise=${
-      connection.approvalPromise !== undefined ? 'exists' : 'undefined'
-    }`,
-    accountPermission,
-  );
-
-  if (approved) {
-    connection.approvalPromise = undefined;
-    return true;
-  }
-
-  if (connection.approvalPromise) {
+  try {
+    // close poientially open loading modal
+    connection.setLoading(false);
     const currentRouteName = connection.navigation?.getCurrentRoute()?.name;
-    DevLogger.log(
-      `checkPermissions approvalPromise exists currentRouteName=${currentRouteName}`,
-    );
-    // Make sure the window is displayed.
-    const match = permissionsController.hasPermissions(connection.channelId);
-    DevLogger.log(`checkPermissions match`, match);
-    // Wait for result and clean the promise afterwards.
 
-    // Only wait for approval is modal currently displayed
-    if (currentRouteName === Routes.SHEET.ACCOUNT_CONNECT) {
-      // Make sure the root is displayed
-      connection.navigation?.navigate(Routes.SHEET.ACCOUNT_CONNECT);
-      DevLogger.log(`checkPermissions approvalPromise exists -- WAIT`);
+    DevLogger.log(
+      `checkPermissions initialConnection=${connection.initialConnection} method=${message?.method} lastAuthorized=${lastAuthorized}`,
+      connection.originatorInfo,
+    );
+
+    const permittedAccounts = await getPermittedAccounts(connection.channelId);
+    DevLogger.log(`checkPermissions permittedAccounts`, permittedAccounts);
+
+    if (permittedAccounts.length > 0) {
+      return true;
+    }
+
+    const permissionsController = (
+      engine.context as {
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        PermissionController: PermissionController<any, any>;
+      }
+    ).PermissionController;
+
+    // Make sure to wait for user to be on main pages before requesting permissions or request can get cancelled.
+    const pendingRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
+
+    if (currentRouteName && pendingRoutes.includes(currentRouteName)) {
+      await waitForCondition({
+        fn: (): boolean => {
+          const activeRoute = connection.navigation?.getCurrentRoute()?.name;
+          return Boolean(activeRoute && !pendingRoutes.includes(activeRoute));
+        },
+        waitTime: 1000,
+        context: 'checkPermissions',
+      });
+      // Add extra time on IOS since it takes longer to initialize keychain and detect that it is unlocked
+    }
+
+    // Wait for keychain to be unlocked before handling rpc calls.
+    const keyringController = (
+      engine.context as { KeyringController: KeyringController }
+    ).KeyringController;
+
+    await waitForKeychainUnlocked({
+      keyringController,
+      context: 'connection::on_message',
+    });
+
+    if (connection.approvalPromise) {
+      DevLogger.log(
+        `checkPermissions approvalPromise exists currentRouteName=${currentRouteName}`,
+      );
       const allowed = await connection.approvalPromise;
       DevLogger.log(
         `checkPermissions approvalPromise exists completed -- allowed`,
         allowed,
       );
-      connection.approvalPromise = undefined;
       // Add delay for backgroundBridge to complete setup
       await wait(300);
       return allowed;
     }
-    DevLogger.log(`checkPermissions approvalPromise exists -- SKIP`);
-    // Otherwise cleanup existing permissions and revalidate
-    // permissionsController.revokeAllPermissions(connection.channelId);
-  }
 
-  if (!connection.initialConnection && AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-    connection.revalidate({ channelId: connection.channelId });
-  }
-
-  DevLogger.log(
-    `checkPermissions channelWasActiveRecently=${channelWasActiveRecently} OTPExpirationDuration=${OTPExpirationDuration}`,
-    accountPermission,
-  );
-  if (channelWasActiveRecently) {
-    return true;
-  }
-
-  try {
-    const origin = connection.channelId;
-    if (accountPermission) {
-      DevLogger.log(
-        `checkPermissions accountPermission exists but not active recently -- REVOKE + ASK AGAIN`,
-      );
-      // Revoke and ask again
-      permissionsController.revokePermission(
-        connection.channelId,
-        'eth_accounts',
+    const accountPermission = permissionsController.getPermission(
+      connection.channelId,
+      'eth_accounts',
+    );
+    const moreAccountPermission = permissionsController.getPermissions(
+      connection.channelId,
+    );
+    DevLogger.log(
+      `checkPermissions accountPermission`,
+      accountPermission,
+      moreAccountPermission,
+    );
+    if (!accountPermission) {
+      connection.approvalPromise = permissionsController.requestPermissions(
+        { origin: connection.channelId },
+        { eth_accounts: {} },
+        {
+          preserveExistingPermissions: false,
+        },
       );
     }
 
-    DevLogger.log(`checkPermissions Opening requestPermissions for ${origin}`);
-    connection.approvalPromise = permissionsController.requestPermissions(
-      { origin },
-      { eth_accounts: {} },
-      { id: connection.channelId, preserveExistingPermissions: true },
-    );
-
-    await connection.approvalPromise;
-    // Clear previous permissions if already approved.
-    connection.revalidate({ channelId: connection.channelId });
-    connection.approvalPromise = undefined;
-    return true;
+    const res = await connection.approvalPromise;
+    const accounts = await getPermittedAccounts(connection.channelId);
+    DevLogger.log(`checkPermissions approvalPromise completed`, res);
+    return accounts.length > 0;
   } catch (err) {
-    DevLogger.log(`checkPermissions error`, err);
+    console.warn(`checkPermissions error`, err);
     connection.approvalPromise = undefined;
     throw err;
   }

@@ -7,7 +7,7 @@ import BuildQuote from './BuildQuote';
 import useRegions from '../../hooks/useRegions';
 import { RampSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import useCryptoCurrencies from '../../hooks/useCryptoCurrencies';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -24,6 +24,7 @@ import useBalance from '../../hooks/useBalance';
 import { toTokenMinimalUnit } from '../../../../../util/number';
 import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 
 const getByRoleButton = (name?: string | RegExp) =>
   screen.getByRole('button', { name });
@@ -37,7 +38,10 @@ function render(Component: React.ComponentType) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState: {
+            ...backgroundState,
+            AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          },
         },
       },
     },
@@ -247,6 +251,8 @@ let mockUseGasPriceEstimationValue: ReturnType<typeof useGasPriceEstimation> =
 jest.mock('../../hooks/useGasPriceEstimation', () =>
   jest.fn(() => mockUseGasPriceEstimationValue),
 );
+
+jest.mock('../../hooks/useIntentAmount');
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),

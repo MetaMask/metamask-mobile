@@ -1,37 +1,51 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 import Engine from '../../../core/Engine';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_1,
+} from '../../../util/test/accountsControllerTestUtils';
 
 const mockedEngine = Engine;
-jest.mock('../../../core/Engine.ts', () => ({
-  init: () => mockedEngine.init({}),
-  context: {
-    KeyringController: {
-      getQRKeyringState: async () => ({ subscribe: () => ({}) }),
-      state: {
-        keyrings: [
-          {
-            accounts: ['0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3'],
-            index: 0,
-            type: 'HD Key Tree',
-          },
-        ],
+
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    init: () => mockedEngine.init({}),
+    context: {
+      KeyringController: {
+        getQRKeyringState: async () => ({ subscribe: () => ({}) }),
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272'],
+              index: 0,
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 const mockInitialState = {
   settings: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       PreferencesController: {
-        selectedAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+        selectedAddress: MOCK_ADDRESS_1,
       },
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };

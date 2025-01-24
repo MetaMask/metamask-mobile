@@ -123,10 +123,12 @@ class ImportFromSeed {
     await Gestures.waitAndTap(this.importButton);
   }
 
-  async tapImportFromSeedTextToDismissKeyboard() {
+  async tapImportScreenTitleToDismissKeyboard() {
+    await Gestures.waitAndTap(this.screenTitle);
+  }
+  async tapConfirmPasswordTextToDismissKeyboard() {
     await Gestures.waitAndTap(this.confirmPasswordText);
   }
-
   async isPasswordStrengthTextCorrect(text) {
     await expect(this.passwordStrengthLabel).toHaveText(text);
   }

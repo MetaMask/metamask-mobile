@@ -1,8 +1,10 @@
 import migrate from './023';
 import { merge } from 'lodash';
-import initialRootState from '../../util/test/initial-root-state';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import initialRootState, {
+  backgroundState,
+} from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { userInitialState } from '../../reducers/user';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -58,6 +60,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: null,
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -70,6 +75,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: { addressBook: null },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -81,6 +89,9 @@ describe('Migration #23', () => {
         engine: {
           backgroundState: {
             AddressBookController: { addressBook: { 1337: null } },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -97,6 +108,9 @@ describe('Migration #23', () => {
                 1337: { '0x0000000000000000000000000000000000000001': {} },
               },
             },
+            NetworkController: {
+              networkConfigurations: {},
+            },
           },
         },
       }),
@@ -107,6 +121,13 @@ describe('Migration #23', () => {
     {
       state: merge({}, initialRootState, {
         user: null,
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurations: {},
+            },
+          },
+        },
       }),
       errorMessage: "Migration 23: Invalid user state: 'object'",
       scenario: 'user state is invalid',
@@ -210,9 +231,9 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -296,14 +317,16 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({
-      ambiguousAddressEntries: {
-        10: ['0x0000000000000000000000000000000000000002'],
-        2415: ['0x0000000000000000000000000000000000000002'],
-      },
-    });
+    expect(newState.user).toStrictEqual(
+      merge({}, userInitialState, {
+        ambiguousAddressEntries: {
+          10: ['0x0000000000000000000000000000000000000002'],
+          2415: ['0x0000000000000000000000000000000000000002'],
+        },
+      }),
+    );
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -381,9 +404,9 @@ describe('Migration #23', () => {
 
     const newState = migrate(state);
 
-    expect(newState.user).toStrictEqual({});
+    expect(newState.user).toStrictEqual(userInitialState);
     expect(newState.engine.backgroundState).toStrictEqual(
-      merge({}, initialBackgroundState, {
+      merge({}, backgroundState, {
         AddressBookController: {
           addressBook: {
             // This is unchanged because the only configured network with a network ID 1 also has
@@ -399,6 +422,9 @@ describe('Migration #23', () => {
             },
             // The entry for 10 has been removed because it had no local matches
           },
+        },
+        NetworkController: {
+          networkConfigurations: {},
         },
       }),
     );

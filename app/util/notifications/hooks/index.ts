@@ -1,50 +1,75 @@
-import { useEffect } from 'react';
-import notifee, { EventType, AndroidImportance } from '@notifee/react-native';
-import Device from '../../../util/device';
-import { STORAGE_IDS } from '../../../util/notifications/settings/storage/constants';
-import NotificationManager from '../../../core/NotificationManager';
+import { useCallback, useEffect } from 'react';
+import { NotificationServicesController } from '@metamask/notification-services-controller';
 
-const useNotificationHandler = (
-  bootstrapInitialNotification: () => Promise<void>,
-  navigation: any,
-) => {
+import { useSelector } from 'react-redux';
+import {
+  isNotificationsFeatureEnabled,
+  Notification,
+} from '../../../util/notifications';
+
+import FCMService from '../services/FCMService';
+import NotificationsService from '../services/NotificationService';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
+import { Linking } from 'react-native';
+import { NavigationContainerRef } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+
+const { TRIGGER_TYPES } = NotificationServicesController.Constants;
+
+const useNotificationHandler = (navigation: NavigationContainerRef) => {
+  /**
+   * Handles the action based on the type of notification (sent from the backend & following Notification types) that is opened
+   * @param notification - The notification that is opened
+   */
+
+  const isNotificationEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const handleNotificationCallback = useCallback(
+    async (notification: Notification) => {
+      if (!notification) {
+        return;
+      }
+      if (
+        notification.type === TRIGGER_TYPES.FEATURES_ANNOUNCEMENT &&
+        notification.data.externalLink
+      ) {
+        Linking.openURL(notification.data.externalLink.externalLinkUrl);
+      } else {
+        navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      }
+    },
+    [navigation],
+  );
+
+  const notificationEnabled = isNotificationsFeatureEnabled() && isNotificationEnabled;
+
   useEffect(() => {
-    notifee.decrementBadgeCount(1);
+    if (!notificationEnabled) return;
 
-    bootstrapInitialNotification();
-    setTimeout(() => {
-      notifee.onForegroundEvent(
-        ({ type, detail }: { type: any; detail: any }) => {
-          if (type !== EventType.DISMISSED) {
-            let data = null;
-            if (Device.isAndroid()) {
-              if (detail.notification.data) {
-                data = JSON.parse(detail.notification.data);
-              }
-            } else if (detail.notification.data) {
-              data = detail.notification.data;
-            }
-            if (data && data.action === 'tx') {
-              if (data.id) {
-                NotificationManager.setTransactionToView(data.id);
-              }
-              if (navigation) {
-                navigation.navigate('TransactionsView');
-              }
-            }
-          }
-        },
-      );
-      /**
-       * Creates a channel (required for Android)
-       */
-      notifee.createChannel({
-        id: STORAGE_IDS.ANDROID_DEFAULT_CHANNEL_ID,
-        name: 'Default',
-        importance: AndroidImportance.HIGH,
-      });
-    }, 1000);
-  }, [bootstrapInitialNotification, navigation]);
+    // Firebase Cloud Messaging
+    FCMService.registerAppWithFCM();
+    FCMService.saveFCMToken();
+    FCMService.getFCMToken();
+    FCMService.listenForMessagesBackground();
+
+    // Notifee
+    NotificationsService.onBackgroundEvent(
+      async ({ type, detail }) =>
+        await NotificationsService.handleNotificationEvent({
+          type,
+          detail,
+          callback: handleNotificationCallback,
+        }),
+    );
+
+    const unsubscribeForegroundEvent = FCMService.listenForMessagesForeground();
+
+    return () => {
+      unsubscribeForegroundEvent();
+    };
+  }, [handleNotificationCallback, notificationEnabled]);
 };
 
 export default useNotificationHandler;

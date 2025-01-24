@@ -1,3 +1,5 @@
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createNavigationProps = (params: any): any => ({
   navigation: {
     state: { params },

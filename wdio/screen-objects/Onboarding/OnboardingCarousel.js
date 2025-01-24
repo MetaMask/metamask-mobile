@@ -3,6 +3,7 @@ import {
   WELCOME_SCREEN_CAROUSEL_TITLE_ID,
 } from '../testIDs/Screens/WelcomeScreen.testIds';
 import { SPLASH_SCREEN_METAMASK_ANIMATION_ID } from '../testIDs/Components/MetaMaskAnimation.testIds';
+import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors'
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 
@@ -29,6 +30,17 @@ class WelcomeScreen {
     );
   }
 
+  async getLaunchDuration() {
+    return await Selectors.getXpathElementByResourceId(
+      OnboardingCarouselSelectorIDs.APP_START_TIME_ID,
+    );
+  }
+
+  async isGetLaunchDurationDisplayed() {
+    const element = await this.getLaunchDuration();
+    await expect(element).toBeDisplayed();
+  }
+
   async waitForSplashAnimationToDisplay() {
     const elem = await this.splashScreenMetamaskAnimationId;
     const getStartedElem = await this.getStartedButton;
@@ -42,8 +54,18 @@ class WelcomeScreen {
     }
   }
 
+  async waitForSplashAnimationToComplete() {
+    const elem = await this.splashScreenMetamaskAnimationId;
+    await elem.waitForExist();
+    await elem.waitForExist({ reverse: true });
+  }
+
   async isScreenDisplayed() {
     expect(this.screen).toBeDisplayed();
+  }
+
+  async isGetStartedButtonDisplayed() {
+    expect(this.getStartedButton).toBeDisplayed();
   }
 
   async waitForSplashAnimationToNotExit() {
@@ -94,7 +116,7 @@ class WelcomeScreen {
 
     while (screenExist) {
       await Gestures.waitAndTap(this.getStartedButton);
-      await driver.pause(5000);
+      await driver.pause(7000);
       screenExist = await element.isExisting();
     }
   }

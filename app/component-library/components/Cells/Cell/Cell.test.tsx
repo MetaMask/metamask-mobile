@@ -3,7 +3,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 // External dependencies.
-import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
+import { CellComponentSelectorsIDs } from '../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import Cell from './Cell';
@@ -16,28 +16,28 @@ describe('Cell', () => {
       <Cell variant={CellVariant.Display} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).not.toBe(null);
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).toBe(null);
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).not.toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
     const wrapper = render(
       <Cell variant={CellVariant.MultiSelect} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).toBe(null);
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).not.toBe(
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).not.toBe(
       null,
     );
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellSelect given the type Select', () => {
     const wrapper = render(
       <Cell variant={CellVariant.Select} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.DISPLAY)).toBe(null);
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.MULTISELECT)).toBe(null);
-    expect(wrapper.queryByTestId(CellModalSelectorsIDs.SELECT)).not.toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).not.toBe(null);
   });
 });

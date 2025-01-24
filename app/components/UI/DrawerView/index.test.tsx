@@ -2,36 +2,36 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import DrawerView from './';
 
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import Engine from '../../../core/Engine';
-
-const mockedEngine = Engine;
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
-      },
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
 };
 
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init({}),
-  getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
-  context: {
-    NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
+    context: {
+      KeyringController: {
+        state: {
+          keyrings: [],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
       },
     },
-  },
-}));
+  };
+});
 
 describe('DrawerView', () => {
   it('should render correctly', () => {

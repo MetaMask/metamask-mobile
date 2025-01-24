@@ -3,9 +3,9 @@
 exports[`LedgerConnect render matches latest snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
+    {
       "alignItems": "center",
-      "backgroundColor": "#FFFFFF",
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "position": "relative",
     }
@@ -13,31 +13,73 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "marginLeft": 3.5000000000000004,
         "marginRight": 3.5000000000000004,
       }
     }
   >
-    <Image
-      resizeMode="contain"
-      source={
-        Object {
-          "uri": "MockImage",
-        }
-      }
+    <View
       style={
-        Object {
-          "height": 68,
-          "width": 68,
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginTop": 20,
+          "width": "100%",
         }
       }
-    />
+    >
+      <Image
+        resizeMode="contain"
+        source={1}
+        style={
+          {
+            "height": 68,
+            "width": 68,
+          }
+        }
+      />
+      <TouchableOpacity
+        style={
+          {
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "flex-end",
+            "width": 48,
+          }
+        }
+      >
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": undefined,
+                "fontSize": 15,
+              },
+              {
+                "color": "#141618",
+                "fontSize": 28,
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </TouchableOpacity>
+    </View>
     <Text
       style={
-        Array [
-          Object {
-            "color": "#24272A",
+        [
+          {
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -45,7 +87,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -69,7 +111,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 24,
             "fontWeight": "400",
@@ -81,20 +123,16 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "marginTop": 4,
         }
       }
     >
       <Image
-        source={
-          Object {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
-          Object {
+          {
             "height": 64,
             "overflow": "visible",
             "resizeMode": "contain",
@@ -105,23 +143,23 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "marginTop": 2.5,
         }
       }
     >
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
           }
         }
       >
         <Text
           style={
-            Array [
-              Object {
-                "color": "#24272A",
+            [
+              {
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -129,7 +167,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               },
               undefined,
               undefined,
-              Object {
+              {
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontWeight": "600",
               },
@@ -153,7 +191,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
               undefined,
               undefined,
               undefined,
-              Object {
+              {
                 "fontSize": 18,
               },
             ]
@@ -164,9 +202,9 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </View>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -195,19 +233,19 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "marginTop": 1,
             },
           ]
         }
       >
-        Please make sure your Ledger Nano X is:
+        Please make sure your Ledger device is:
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -236,19 +274,19 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
         }
       >
-        1. Unlock your Ledger Nano X
+        1. Unlock your Ledger device
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -277,7 +315,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -287,9 +325,9 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -318,7 +356,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -328,9 +366,9 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -359,7 +397,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -369,9 +407,9 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -400,7 +438,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "paddingLeft": 7,
             },
           ]
@@ -411,9 +449,9 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       <Text
         onPress={[Function]}
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -421,7 +459,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             },
             undefined,
             undefined,
-            Object {
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
@@ -436,20 +474,20 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "fontSize": 16,
             },
             undefined,
             undefined,
             undefined,
             undefined,
-            Object {
-              "color": "#0376C9",
+            {
+              "color": "#0376c9",
             },
             undefined,
             undefined,
             undefined,
-            Object {
+            {
               "marginTop": 1.25,
             },
           ]
@@ -460,7 +498,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "flex": 1,
           "marginTop": 1.25,
         }
@@ -468,7 +506,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flex": 1,
           }
@@ -476,8 +514,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       >
         <View
           style={
-            Object {
-              "borderColor": "#BBC0C5",
+            {
+              "borderColor": "#bbc0c5",
               "borderRadius": 5,
               "borderWidth": 2,
               "height": 45,
@@ -487,108 +525,74 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
-            <View
-              style={
-                Object {
-                  "flex": 1,
-                }
-              }
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="select-drop-down"
             >
-              <TouchableOpacity
-                onPress={[Function]}
+              <View
+                style={
+                  {
+                    "flexDirection": "row",
+                  }
+                }
               >
-                <View
+                <Text
+                  numberOfLines={1}
                   style={
-                    Object {
-                      "flexDirection": "row",
+                    {
+                      "alignSelf": "flex-start",
+                      "color": "#141618",
+                      "flex": 1,
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "paddingBottom": 10,
+                      "paddingHorizontal": 15,
+                      "paddingTop": 10,
                     }
                   }
                 >
-                  <Text
-                    numberOfLines={1}
-                    style={
-                      Object {
-                        "alignSelf": "flex-start",
-                        "color": "#24272A",
-                        "flex": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "paddingBottom": 10,
-                        "paddingHorizontal": 15,
-                        "paddingTop": 10,
-                      }
-                    }
-                  >
-                    Ledger Nano X
-                  </Text>
-                  <Text
-                    allowFontScaling={false}
-                    style={
-                      Array [
-                        Object {
-                          "color": "#24272A",
-                          "fontSize": 24,
-                        },
-                        Object {
-                          "height": 25,
-                          "justifyContent": "flex-end",
-                          "marginRight": 10,
-                          "marginTop": 7,
-                          "textAlign": "right",
-                        },
-                        Object {
-                          "fontFamily": "Material Icons",
-                          "fontStyle": "normal",
-                          "fontWeight": "normal",
-                        },
-                        Object {},
-                      ]
-                    }
-                  >
-                    
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <Modal
-                animationType="none"
-                deviceHeight={null}
-                deviceWidth={null}
-                hardwareAccelerated={false}
-                hideModalContentWhileAnimating={false}
-                onBackdropPress={[Function]}
-                onModalHide={[Function]}
-                onModalWillHide={[Function]}
-                onModalWillShow={[Function]}
-                onRequestClose={[Function]}
-                panResponderThreshold={4}
-                scrollHorizontal={false}
-                scrollOffset={0}
-                scrollOffsetMax={0}
-                scrollTo={null}
-                statusBarTranslucent={false}
-                supportedOrientations={
-                  Array [
-                    "portrait",
-                    "landscape",
-                  ]
-                }
-                swipeThreshold={100}
-                transparent={true}
-                visible={false}
-              />
-            </View>
+                  Ledger device
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#141618",
+                        "fontSize": 24,
+                      },
+                      {
+                        "height": 25,
+                        "justifyContent": "flex-end",
+                        "marginRight": 10,
+                        "marginTop": 7,
+                        "textAlign": "right",
+                      },
+                      {
+                        "fontFamily": "Material Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
       <View
         style={
-          Object {
+          {
             "bottom": 1.25,
             "display": "flex",
             "left": 0,
@@ -604,15 +608,15 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
           disabled={false}
           onPress={[Function]}
           style={
-            Array [
-              Array [
-                Object {
+            [
+              [
+                {
                   "borderRadius": 100,
                   "justifyContent": "center",
                   "padding": 15,
                 },
-                Object {
-                  "backgroundColor": "#0376C9",
+                {
+                  "backgroundColor": "#0376c9",
                   "minHeight": 50,
                 },
                 undefined,
@@ -624,23 +628,23 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         >
           <Text
             style={
-              Array [
-                Object {
+              [
+                {
                   "color": "#007aff",
                   "fontSize": 17,
                   "fontWeight": "500",
                   "textAlign": "center",
                 },
                 null,
-                Array [
-                  Object {
+                [
+                  {
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
-                  Object {
-                    "color": "#FFFFFF",
+                  {
+                    "color": "#ffffff",
                   },
                   undefined,
                 ],

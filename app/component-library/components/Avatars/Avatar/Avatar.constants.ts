@@ -11,6 +11,7 @@ import {
   AvatarVariant,
   IconSizeByAvatarSize,
   TextVariantByAvatarSize,
+  BorderWidthByAvatarSize,
 } from './Avatar.types';
 
 // Mappings
@@ -27,6 +28,14 @@ export const TEXTVARIANT_BY_AVATARSIZE: TextVariantByAvatarSize = {
   [AvatarSize.Md]: TextVariant.HeadingSMRegular,
   [AvatarSize.Lg]: TextVariant.HeadingSMRegular,
   [AvatarSize.Xl]: TextVariant.HeadingSMRegular,
+};
+
+export const BORDERWIDTH_BY_AVATARSIZE: BorderWidthByAvatarSize = {
+  [AvatarSize.Xs]: 1.5,
+  [AvatarSize.Sm]: 2,
+  [AvatarSize.Md]: 3,
+  [AvatarSize.Lg]: 3,
+  [AvatarSize.Xl]: 3,
 };
 
 // Sample consts

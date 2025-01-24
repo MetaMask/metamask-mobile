@@ -15,7 +15,7 @@ const styleSheet = (params: {
   return StyleSheet.create({
     button: {
       backgroundColor: selected
-        ? colors.primary.default
+        ? colors.background.pressed
         : colors.background.default,
       borderRadius: 40,
       paddingVertical: 2,
@@ -27,7 +27,6 @@ const styleSheet = (params: {
     },
     label: {
       letterSpacing: 3,
-      color: selected ? colors.background.default : colors.primary.default,
       textAlign: 'center',
     } as TextStyle,
   });

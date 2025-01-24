@@ -7,7 +7,7 @@ import Device from '../../../../util/device';
 
 // Internal dependencies.
 import { TabBarStyleSheetVars } from './TabBar.types';
-
+import { TAB_BAR_HEIGHT } from './TabBar.constants';
 /**
  * Style sheet function for TabBar component.
  *
@@ -39,7 +39,7 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
     base: {
       flexDirection: 'row',
       alignItems: 'center',
-      height: Device.isAndroid() ? 62 : 48,
+      height: TAB_BAR_HEIGHT,
       paddingHorizontal: 16,
       marginBottom: bottomInset,
       backgroundColor: colors.background.default,

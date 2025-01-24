@@ -2,6 +2,7 @@ import { CaveatTypes, RestrictedMethods } from './constants';
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
+  PermissionKeys,
   unrestrictedMethods,
 } from './specifications';
 import { EthAccountType, EthMethod } from '@metamask/keyring-api';
@@ -13,7 +14,6 @@ describe('PermissionController specifications', () => {
     options: {},
     methods: [
       EthMethod.PersonalSign,
-      EthMethod.Sign,
       EthMethod.SignTransaction,
       EthMethod.SignTypedDataV1,
       EthMethod.SignTypedDataV3,
@@ -23,7 +23,7 @@ describe('PermissionController specifications', () => {
   describe('caveat specifications', () => {
     it('getCaveatSpecifications returns the expected specifications object', () => {
       const caveatSpecifications = getCaveatSpecifications({});
-      expect(Object.keys(caveatSpecifications)).toHaveLength(12);
+      expect(Object.keys(caveatSpecifications)).toHaveLength(13);
       expect(
         caveatSpecifications[CaveatTypes.restrictReturnedAccounts].type,
       ).toStrictEqual(CaveatTypes.restrictReturnedAccounts);
@@ -66,11 +66,7 @@ describe('PermissionController specifications', () => {
       describe('decorator', () => {
         it('returns array members included in the caveat value', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-            { address: '0x3', lastUsed: '3' },
-          ];
+          const caveatValues = ['0x1', '0x2', '0x3'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -90,7 +86,7 @@ describe('PermissionController specifications', () => {
 
         it('returns an empty array if no array members are included in the caveat value', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [{ address: '0x5', lastUsed: '1' }];
+          const caveatValues = ['0x5'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -106,10 +102,7 @@ describe('PermissionController specifications', () => {
 
         it('returns an empty array if the method result is an empty array', async () => {
           const getIdentities = jest.fn();
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-          ];
+          const caveatValues = ['0x1', '0x2'];
           const { decorator } = getCaveatSpecifications({ getIdentities })[
             CaveatTypes.restrictReturnedAccounts
           ];
@@ -178,11 +171,7 @@ describe('PermissionController specifications', () => {
               ...baseEoaAccount,
             },
           ]);
-          const caveatValues = [
-            { address: '0x1', lastUsed: '1' },
-            { address: '0x2', lastUsed: '2' },
-            { address: '0x3', lastUsed: '3' },
-          ];
+          const caveatValues = ['0x1', '0x2', '0x3'];
 
           const { validator } = getCaveatSpecifications({
             getInternalAccounts,
@@ -199,10 +188,13 @@ describe('PermissionController specifications', () => {
   describe('permission specifications', () => {
     it('getPermissionSpecifications returns the expected specifications object', () => {
       const permissionSpecifications = getPermissionSpecifications({});
-      expect(Object.keys(permissionSpecifications)).toHaveLength(1);
+      expect(Object.keys(permissionSpecifications)).toHaveLength(2);
       expect(
         permissionSpecifications[RestrictedMethods.eth_accounts].targetName,
       ).toStrictEqual(RestrictedMethods.eth_accounts);
+      expect(
+        permissionSpecifications[PermissionKeys.permittedChains].targetName,
+      ).toStrictEqual(PermissionKeys.permittedChains);
     });
 
     describe('eth_accounts', () => {

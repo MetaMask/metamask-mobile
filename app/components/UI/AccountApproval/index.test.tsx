@@ -1,27 +1,60 @@
 import React from 'react';
 import AccountApproval from '.';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
-        return { result: false };
-      }),
+jest.mock('../../../core/Engine', () => {
+  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
+    jest.requireActual('../../../util/test/accountsControllerTestUtils');
+  return {
+    context: {
+      PhishingController: {
+        maybeUpdateState: jest.fn(),
+        test: jest.fn((url: string) => {
+          if (url === 'phishing.com') return { result: true };
+          return { result: false };
+        }),
+      },
+      KeyringController: {
+        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
+        state: {
+          keyrings: [
+            {
+              accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
+            },
+          ],
+        },
+      },
+      AccountsController: {
+        ...mockAccountsControllerState,
+        state: mockAccountsControllerState,
+      },
     },
-    KeyringController: {
-      getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
-    },
-  },
-}));
+  };
+});
 
 const mockInitialState = {
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
+      AccountsController: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+        accounts: {
+          '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756': {
+            balance: '0x0',
+            name: 'Account 1',
+            address: '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+          },
+        },
+      },
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            '0xc4966c0d659d99699bfd7eb54d8fafee40e4a756': [],
+          },
+        },
+      },
     },
   },
 };

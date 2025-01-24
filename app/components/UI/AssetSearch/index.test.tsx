@@ -1,11 +1,11 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetSearch from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
 const mockedEngine = Engine;
 
-jest.mock('../../../core/Engine.ts', () => ({
+jest.mock('../../../core/Engine', () => ({
   init: () => mockedEngine.init({}),
   context: {
     KeyringController: {
@@ -19,7 +19,7 @@ jest.mock('../../../core/Engine.ts', () => ({
           decimals: 18,
           name: 'Synthetix Network Token',
           iconUrl:
-            'https://static.metafi.codefi.network/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png',
           type: 'erc20',
           aggregators: [
             'Aave',
@@ -48,7 +48,7 @@ jest.mock('../../../core/Engine.ts', () => ({
 
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState,
   },
 };
 

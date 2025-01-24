@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
@@ -36,9 +38,10 @@ import {
   selectProviderType,
   selectRpcUrl,
 } from '../../../../../../selectors/networkController';
-import { selectIdentities } from '../../../../../../selectors/preferencesController';
-import { ContractNickNameViewSelectorsIDs } from '../../../../../../../e2e/selectors/ContractNickNameView.selectors';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
+import { RootState } from '../../../../../../reducers';
+import { selectAddressBook } from '../../../../../../selectors/addressBookController';
 
 const getAnalyticsParams = () => ({});
 
@@ -52,7 +55,7 @@ const AddNickname = (props: AddNicknameProps) => {
     providerChainId,
     providerRpcTarget,
     addressBook,
-    identities,
+    internalAccounts,
     networkConfigurations,
   } = props;
 
@@ -64,7 +67,7 @@ const AddNickname = (props: AddNicknameProps) => {
   const [showFullAddress, setShowFullAddress] = useState(false);
   const [shouldDisableButton, setShouldDisableButton] = useState(true);
   const { colors, themeAppearance } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const chooseToContinue = () => {
@@ -73,18 +76,17 @@ const AddNickname = (props: AddNicknameProps) => {
   };
 
   const validateAddressOrENSFromInput = useCallback(async () => {
-    const { addressError, errorContinue } = await validateAddressOrENS({
-      toAccount: address,
+    const { addressError, errorContinue } = await validateAddressOrENS(
+      address,
       addressBook,
-      identities,
-      // TODO: This parameters is effectively ignored, it should be named `chainId`
+      internalAccounts,
       providerChainId,
-    });
+    );
 
     setAddressErr(addressError);
     setErrContinue(errorContinue);
     setAddressHasError(addressError);
-  }, [address, addressBook, identities, providerChainId]);
+  }, [address, addressBook, internalAccounts, providerChainId]);
 
   useEffect(() => {
     validateAddressOrENSFromInput();
@@ -110,10 +112,16 @@ const AddNickname = (props: AddNicknameProps) => {
       data: { msg: strings('transactions.address_copied_to_clipboard') },
     });
 
-    trackEvent(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_COPIED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
   };
 
   const saveTokenNickname = () => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { AddressBookController } = Engine.context as any;
     if (!newNickname || !address) return;
     AddressBookController.set(
@@ -123,8 +131,9 @@ const AddNickname = (props: AddNicknameProps) => {
     );
     closeModal();
     trackEvent(
-      MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME,
-      getAnalyticsParams(),
+      createEventBuilder(MetaMetricsEvents.CONTRACT_ADDRESS_NICKNAME)
+        .addProperties(getAnalyticsParams())
+        .build(),
     );
   };
 
@@ -134,6 +143,8 @@ const AddNickname = (props: AddNicknameProps) => {
 
   const toggleBlockExplorer = () => setIsBlockExplorerVisible(true);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderErrorMessage = (addressError: any) => {
     let errorMessage = addressError;
 
@@ -151,11 +162,11 @@ const AddNickname = (props: AddNicknameProps) => {
     return errorMessage;
   };
 
-  const hasBlockExplorer = shouldShowBlockExplorer({
+  const hasBlockExplorer = shouldShowBlockExplorer(
     providerType,
     providerRpcTarget,
     networkConfigurations,
-  });
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -179,10 +190,7 @@ const AddNickname = (props: AddNicknameProps) => {
             headerTextStyle={styles.headerText}
             iconStyle={styles.icon}
           />
-          <View
-            style={styles.bodyWrapper}
-            testID={ContractNickNameViewSelectorsIDs.CONTAINER}
-          >
+          <View style={styles.bodyWrapper}>
             {showFullAddress && (
               <InfoModal
                 isVisible
@@ -229,7 +237,6 @@ const AddNickname = (props: AddNicknameProps) => {
               style={styles.input}
               value={newNickname}
               editable={!addressHasError}
-              testID={ContractNickNameViewSelectorsIDs.NAME_INPUT}
               keyboardAppearance={themeAppearance}
             />
             {addressHasError && (
@@ -247,7 +254,6 @@ const AddNickname = (props: AddNicknameProps) => {
               type={'confirm'}
               disabled={shouldDisableButton}
               onPress={saveTokenNickname}
-              testID={ContractNickNameViewSelectorsIDs.CONFIRM_BUTTON}
             >
               {strings('nickname.save_nickname')}
             </StyledButton>
@@ -259,15 +265,17 @@ const AddNickname = (props: AddNicknameProps) => {
   );
 };
 
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: RootState) => ({
   providerType: selectProviderType(state),
   providerRpcTarget: selectRpcUrl(state),
   providerChainId: selectChainId(state),
-  addressBook: state.engine.backgroundState.AddressBookController.addressBook,
-  identities: selectIdentities(state),
+  addressBook: selectAddressBook(state),
+  internalAccounts: selectInternalAccounts(state),
   networkConfigurations: selectNetworkConfigurations(state),
 });
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapDispatchToProps = (dispatch: any) => ({
   showModalAlert: (config: {
     isVisible: boolean;

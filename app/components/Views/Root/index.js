@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store/';
-import SplashScreen from 'react-native-splash-screen';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
@@ -42,7 +41,8 @@ export default class Root extends PureComponent {
   constructor(props) {
     super(props);
     if (props.foxCode === '') {
-      Logger.error('WARN - foxCode is an empty string');
+      const foxCodeError = new Error('WARN - foxCode is an empty string');
+      Logger.error(foxCodeError);
     }
     SecureKeychain.init(props.foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
@@ -67,7 +67,6 @@ export default class Root extends PureComponent {
     if (isTest && isLoading) {
       return null;
     }
-    SplashScreen.hide();
 
     return (
       <Provider store={store}>

@@ -3,16 +3,16 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import Routes from '../../../../../constants/navigation/Routes';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 import { addTransaction } from '../../../../../util/transaction-controller';
-
 import SendTransaction from './SendTransaction';
-
-type DeepPartial<BaseType> = {
-  [key in keyof BaseType]?: DeepPartial<BaseType[key]>;
-};
+import APP_CONSTANTS from '../../../../../core/AppConstants';
+const { ACH_LIGHT, ACH_DARK } = APP_CONSTANTS.URLS.ICONS;
 
 const mockOrder = {
   id: 'test-id-1',
@@ -51,12 +51,8 @@ const mockOrder = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -95,11 +91,11 @@ const mockOrder = {
       idv2: '/currencies/crypto/1/0x0000000000000000000000000000000000000000',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
-      logo: 'https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/ethereum.svg',
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
       decimals: 18,
       address: '0x0000000000000000000000000000000000000000',
       symbol: 'ETH',
@@ -157,12 +153,8 @@ const mockOrder2 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -201,11 +193,11 @@ const mockOrder2 = {
       idv2: '/currencies/crypto/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       network: {
         active: true,
-        chainId: 1,
+        chainId: '1',
         chainName: 'Ethereum Mainnet',
         shortName: 'Ethereum',
       },
-      logo: 'https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png',
+      logo: 'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png',
       decimals: 18,
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       symbol: 'USDC',
@@ -243,12 +235,8 @@ const mockOrder3 = {
         },
       ],
       logo: {
-        light: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer-regular@3x.png',
-        ],
-        dark: [
-          'https://on-ramp.metafi-dev.codefi.network/assets/ACHBankTransfer@3x.png',
-        ],
+        light: [ACH_LIGHT],
+        dark: [ACH_DARK],
       },
       delay: [0, 0],
       amountTier: [3, 3],
@@ -275,7 +263,7 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
     {
       state: {
         engine: {
-          backgroundState: initialBackgroundState,
+          backgroundState,
         },
         fiatOrders: {
           orders,
@@ -368,10 +356,10 @@ describe('SendTransaction View', () => {
   it('calls analytics when rendering', async () => {
     render(SendTransaction);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_SEND_CRYPTO_PROMPT_VIEWED",
-        Object {
-          "chain_id_source": 1,
+        {
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -402,16 +390,18 @@ describe('SendTransaction View', () => {
     fireEvent.press(nextButton);
     expect(mockAddTransaction).toBeCalledTimes(1);
     expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "chainId": "0x1",
             "from": "0x1234",
             "to": "0x34256",
             "value": "0x2bea80d2171600",
           },
-          Object {
+          {
             "deviceConfirmedOn": "metamask_mobile",
+            "networkClientId": "mainnet",
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
@@ -423,10 +413,10 @@ describe('SendTransaction View', () => {
     const nextButton = screen.getByRole('button', { name: 'Next' });
     fireEvent.press(nextButton);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_SEND_TRANSACTION_INVOKED",
-        Object {
-          "chain_id_source": 1,
+        {
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -446,16 +436,18 @@ describe('SendTransaction View', () => {
     fireEvent.press(nextButton);
     expect(mockAddTransaction).toBeCalledTimes(1);
     expect(mockAddTransaction.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "data": "0xa9059cbb0000000000000000000000000000000000000000000000000000000000034256000000000000000000000000000000000000000000000000002bea80d2171600",
             "from": "0x1234",
             "to": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
             "value": "0x0",
           },
-          Object {
+          {
             "deviceConfirmedOn": "metamask_mobile",
+            "networkClientId": "mainnet",
+            "origin": "RAMPS_SEND",
           },
         ],
       ]
@@ -471,10 +463,10 @@ describe('SendTransaction View', () => {
 
     await act(async () => fireEvent.press(nextButton));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_SEND_TRANSACTION_CONFIRMED",
-        Object {
-          "chain_id_source": 1,
+        {
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",
@@ -499,10 +491,10 @@ describe('SendTransaction View', () => {
     await act(async () => fireEvent.press(nextButton));
     expect(mockDispatch).toBeCalledTimes(1);
     expect(mockDispatch.mock.calls).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Object {
-            "payload": Object {
+      [
+        [
+          {
+            "payload": {
               "orderId": "test-id-1",
               "txHash": "0x987654321",
             },
@@ -522,10 +514,10 @@ describe('SendTransaction View', () => {
 
     await act(async () => fireEvent.press(nextButton));
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
-      Array [
+      [
         "OFFRAMP_SEND_TRANSACTION_REJECTED",
-        Object {
-          "chain_id_source": 1,
+        {
+          "chain_id_source": "1",
           "crypto_amount": "0.012361263",
           "currency_destination": "USD",
           "currency_source": "ETH",

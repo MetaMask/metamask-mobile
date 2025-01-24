@@ -2,22 +2,32 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Function called when user cancels
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onCancel: any;
   /**
    * Function called when user saves the new gas
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSave: (gasTxn: any, newGasObject: any) => void;
   /**
    * Error message to show
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any;
   /**
    * Warning message to show
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   warning?: any;
   /**
    * Extend options object. Object has option keys and properties will be spread
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extendOptions?: any;
   /**
    * Function to call when update animation starts
@@ -38,9 +48,13 @@ export interface EditGasFeeLegacyUpdateProps {
   /**
    * Extra analytics params to be send with the gas analytics
    */
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   analyticsParams: any;
   view: string;
   onlyGas?: boolean;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedGasObject: any;
   hasDappSuggestedGas?: boolean;
 }

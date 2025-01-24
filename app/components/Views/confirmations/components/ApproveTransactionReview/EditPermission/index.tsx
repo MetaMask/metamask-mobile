@@ -16,6 +16,8 @@ import ErrorMessage from '../../../SendFlow/ErrorMessage';
 import { useTheme } from '../../../../../../util/theme';
 import formatNumber from '../../../../../../util/formatNumber';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {

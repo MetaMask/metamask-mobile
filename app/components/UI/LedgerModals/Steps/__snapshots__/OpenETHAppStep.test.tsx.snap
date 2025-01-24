@@ -1,16 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`OpenETHAppStep matches snapshot 1`] = `
-Array [
+[
   <Image
     resizeMode="contain"
-    source={
-      Object {
-        "uri": "MockImage",
-      }
-    }
+    source={1}
     style={
-      Object {
+      {
         "height": 54,
         "overflow": "visible",
         "resizeMode": "cover",
@@ -20,7 +16,7 @@ Array [
   />,
   <View
     style={
-      Object {
+      {
         "marginTop": 30,
       }
     }
@@ -28,9 +24,9 @@ Array [
   >
     <Text
       style={
-        Array [
-          Object {
-            "color": "#24272A",
+        [
+          {
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -38,7 +34,7 @@ Array [
           },
           undefined,
           undefined,
-          Object {
+          {
             "fontFamily": "EuclidCircularB-Bold",
             "fontWeight": "600",
           },
@@ -53,7 +49,7 @@ Array [
           undefined,
           undefined,
           undefined,
-          Object {
+          {
             "fontSize": 16,
           },
           undefined,
@@ -73,7 +69,7 @@ Array [
   </View>,
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "marginHorizontal": 30,
@@ -83,9 +79,9 @@ Array [
   >
     <Text
       style={
-        Array [
-          Object {
-            "color": "#24272A",
+        [
+          {
+            "color": "#141618",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -120,9 +116,9 @@ Array [
     >
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -159,9 +155,9 @@ Array [
       </Text>
       <Text
         style={
-          Array [
-            Object {
-              "color": "#24272A",
+          [
+            {
+              "color": "#141618",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -169,7 +165,7 @@ Array [
             },
             undefined,
             undefined,
-            Object {
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontWeight": "600",
             },
@@ -207,16 +203,16 @@ Array [
     activeOpacity={0.2}
     onPress={[MockFunction]}
     style={
-      Array [
-        Array [
-          Object {
+      [
+        [
+          {
             "borderRadius": 100,
             "justifyContent": "center",
             "padding": 15,
           },
-          Object {
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#535A61",
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#6a737d",
             "borderWidth": 1,
           },
           undefined,
@@ -227,25 +223,25 @@ Array [
   >
     <Text
       style={
-        Array [
-          Object {
+        [
+          {
             "color": "#007aff",
             "fontSize": 17,
             "fontWeight": "500",
             "textAlign": "center",
           },
           null,
-          Array [
-            Object {
+          [
+            {
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "600",
               "textAlign": "center",
             },
-            Object {
-              "color": "#535A61",
+            {
+              "color": "#6a737d",
             },
-            Object {
+            {
               "width": 600,
             },
           ],

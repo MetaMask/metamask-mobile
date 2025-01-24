@@ -1,142 +1,158 @@
-import LockManagerService from '.';
-import { AppState } from 'react-native';
-import configureMockStore from 'redux-mock-store';
+import { LockManagerService } from '.';
+import { AppState, AppStateStatus } from 'react-native';
 import { interruptBiometrics, lockApp } from '../../actions/user';
+import Logger from '../../util/Logger';
+import ReduxService, { type ReduxStore } from '../redux';
 
 jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
-      setLocked: jest.fn().mockImplementation(() => Promise.resolve({})),
+      setLocked: jest.fn().mockResolvedValue(true),
     },
   },
 }));
+
 const mockSetTimeout = jest.fn();
+
 jest.mock('react-native-background-timer', () => ({
   setTimeout: () => mockSetTimeout(),
 }));
+
 jest.mock('../SecureKeychain', () => ({
   getInstance: () => ({
     isAuthenticating: false,
   }),
 }));
 
-const initialState = {
-  settings: {
-    lockTime: 0,
-  },
-};
-const mockStore = configureMockStore();
-const defaultStore = mockStore(initialState);
+jest.mock('../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
+}));
 
-describe('startListening', () => {
-  const addEventListener = jest.spyOn(AppState, 'addEventListener');
+describe('LockManagerService', () => {
+  let lockManagerService: LockManagerService;
+  let mockAppStateListener: (state: AppStateStatus) => void;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.resetModules();
+    jest.useFakeTimers();
+    (AppState.addEventListener as jest.Mock).mockImplementation(
+      (_, listener) => {
+        mockAppStateListener = listener;
+        return { remove: jest.fn() };
+      },
+    );
+    lockManagerService = new LockManagerService();
+  });
 
   afterEach(() => {
-    LockManagerService.stopListening();
-    jest.clearAllMocks();
+    lockManagerService.stopListening();
+    jest.useRealTimers();
   });
 
-  it('should do nothing when store is undefined.', async () => {
-    LockManagerService.startListening();
-    expect(addEventListener).not.toBeCalled();
+  describe('startListening', () => {
+    it('should do nothing when app state listener is already subscribed.', async () => {
+      lockManagerService.startListening();
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+      lockManagerService.startListening();
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+      expect(Logger.log).toHaveBeenCalledWith(
+        'Already subscribed to app state listener.',
+      );
+    });
+
+    it('should add event listener when it is not yet subscribed.', async () => {
+      lockManagerService.startListening();
+      expect(AppState.addEventListener).toHaveBeenCalled();
+    });
   });
 
-  it('should do nothing when app state listener is already subscribed.', async () => {
-    LockManagerService.init(defaultStore);
-    LockManagerService.startListening();
-    expect(addEventListener).toBeCalledTimes(1);
-    LockManagerService.startListening();
-    expect(addEventListener).toBeCalledTimes(1);
+  describe('stopListening', () => {
+    it('should remove app state listener.', async () => {
+      lockManagerService.startListening();
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+      lockManagerService.stopListening();
+      lockManagerService.startListening();
+      expect(AppState.addEventListener).toHaveBeenCalledTimes(2);
+    });
   });
 
-  it('should add event listener when store is defined and listener is not yet subscribed.', async () => {
-    LockManagerService.init(defaultStore);
-    LockManagerService.startListening();
-    expect(addEventListener).toBeCalled();
-  });
-});
+  describe('handleAppStateChange', () => {
+    it('should throw an error if store is undefined.', async () => {
+      lockManagerService.startListening();
+      mockAppStateListener('active');
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error('Redux store does not exist!'),
+        'LockManagerService: Error handling app state change',
+      );
+    });
 
-describe('stopListening', () => {
-  const addEventListener = jest.spyOn(AppState, 'addEventListener');
+    it('should do nothing if lockTime is -1 while going into the background', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: -1 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('active');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
 
-  afterEach(() => {
-    LockManagerService.stopListening();
-    jest.clearAllMocks();
-  });
+    it('should do nothing if lockTime is 0 while going inactive.', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 0 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('inactive');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
 
-  it('should remove app state listener.', async () => {
-    LockManagerService.init(defaultStore);
-    LockManagerService.startListening();
-    expect(addEventListener).toBeCalledTimes(1);
-    LockManagerService.stopListening();
-    LockManagerService.startListening();
-    expect(addEventListener).toBeCalledTimes(2);
-  });
-});
+    it('should do nothing while lockTime is 0 while going from inactive to active', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 0 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('inactive');
+      mockAppStateListener('active');
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
 
-describe('handleAppStateChange', () => {
-  const addEventListener = jest.spyOn(AppState, 'addEventListener');
-  const defaultDispatch = jest.spyOn(defaultStore, 'dispatch');
+    it('should dispatch interruptBiometrics when lockTimer is undefined, lockTime is non-zero, and app state is not active', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('background');
+      expect(mockDispatch).toHaveBeenCalledWith(interruptBiometrics());
+    });
 
-  afterEach(() => {
-    LockManagerService.stopListening();
-    jest.clearAllMocks();
-  });
+    it('should dispatch lockApp when lockTimer is 0 while going into the background', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 0 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('background');
+      expect(await mockDispatch).toHaveBeenCalledWith(lockApp());
+    });
 
-  it('should do nothing if lockTime is -1 while going into the background', async () => {
-    const store = mockStore({ settings: { lockTime: -1 } });
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('background');
-    expect(defaultDispatch).not.toBeCalled();
-  });
-
-  it('should do nothing if lockTime is 0 while going inactive.', async () => {
-    const store = mockStore({ settings: { lockTime: 0 } });
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('inactive');
-    expect(defaultDispatch).not.toBeCalled();
-  });
-
-  it('should do nothing while lockTime is 0 while going from inactive to active', async () => {
-    const store = mockStore({ settings: { lockTime: 0 } });
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('inactive');
-    appStateTrigger('active');
-    expect(defaultDispatch).not.toBeCalled();
-  });
-
-  it('should dispatch interruptBiometrics when lockTimer is undefined, lockTime is non-zero, and app state is not active', async () => {
-    const store = mockStore({ settings: { lockTime: 5 } });
-    const dispatch = jest.spyOn(store, 'dispatch');
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('background');
-    expect(dispatch).toBeCalledWith(interruptBiometrics());
-  });
-
-  it('should dispatch lockApp when lockTimer is 0 while going into the background', async () => {
-    const store = mockStore({ settings: { lockTime: 0 } });
-    const dispatch = jest.spyOn(store, 'dispatch');
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('background');
-    expect(await dispatch).toBeCalledWith(lockApp());
-  });
-
-  it('should set background timer when lockTimer is non-zero while going into the background', async () => {
-    const store = mockStore({ settings: { lockTime: 5 } });
-    LockManagerService.init(store);
-    LockManagerService.startListening();
-    const appStateTrigger = addEventListener.mock.calls[0][1];
-    appStateTrigger('background');
-    expect(mockSetTimeout).toBeCalled();
+    it('should set background timer when lockTimer is non-zero while going into the background', async () => {
+      const mockDispatch = jest.fn();
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({ settings: { lockTime: 5 } }),
+        dispatch: mockDispatch,
+      } as unknown as ReduxStore);
+      lockManagerService.startListening();
+      mockAppStateListener('background');
+      expect(mockSetTimeout).toHaveBeenCalled();
+    });
   });
 });

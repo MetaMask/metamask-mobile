@@ -5,13 +5,6 @@ import { FlatListProps } from 'react-native';
 // External dependencies.
 import { Account, UseAccounts } from '../../hooks/useAccounts';
 
-export interface SelectedAccount {
-  address: string;
-  lastUsed?: number;
-}
-
-export type SelectedAccountByAddress = Record<string, SelectedAccount>;
-
 /**
  * AccountSelectorList props.
  */
@@ -63,4 +56,8 @@ export interface AccountSelectorListProps
    * Optional boolean to enable removing accounts.
    */
   isRemoveAccountEnabled?: boolean;
+  /**
+   * Optional boolean to indicate if privacy mode is enabled.
+   */
+  privacyMode?: boolean;
 }

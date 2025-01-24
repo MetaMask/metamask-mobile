@@ -2,8 +2,8 @@ import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import {
   TokenListState,
-  TokenRatesState,
-  TokensState,
+  TokenRatesControllerState,
+  TokensControllerState,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
@@ -105,7 +105,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokenRatesControllerState =
     state?.engine?.backgroundState?.TokenRatesController;
   const newTokenRatesControllerState = state?.engine?.backgroundState
-    ?.TokenRatesController as TokenRatesState;
+    ?.TokenRatesController as TokenRatesControllerState;
 
   if (!isObject(tokenRatesControllerState)) {
     captureException(
@@ -130,10 +130,12 @@ export default async function migrate(stateAsync: unknown) {
 
         if (
           !Object.prototype.hasOwnProperty.call(
+            //@ts-expect-error At the time of that migrations assets controllers version had those properties, so those users will have that property on their phone storage, the migration was casted and that where it's wrong, we shouldn't cast migrations because the structure and property names change over time.
             newTokenRatesControllerState.contractExchangeRatesByChainId,
             hexChainId,
           )
         ) {
+          //@ts-expect-error At the time of that migrations assets controllers version had those properties, so those users will have that property on their phone storage, the migration was casted and that where it's wrong, we shouldn't cast migrations because the structure and property names change over time.
           newTokenRatesControllerState.contractExchangeRatesByChainId[
             hexChainId
           ] =
@@ -155,7 +157,7 @@ export default async function migrate(stateAsync: unknown) {
   const tokensControllerState =
     state?.engine?.backgroundState?.TokensController;
   const newTokensControllerState = state?.engine?.backgroundState
-    ?.TokensController as TokensState;
+    ?.TokensController as TokensControllerState;
 
   if (!isObject(tokensControllerState)) {
     captureException(

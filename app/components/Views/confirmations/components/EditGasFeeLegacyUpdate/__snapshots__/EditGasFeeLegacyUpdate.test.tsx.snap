@@ -3,8 +3,8 @@
 exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "maxHeight": "95%",
@@ -13,10 +13,11 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
       "paddingTop": 24,
     }
   }
+  testID="edit-priority-legacy-screen"
 >
   <RCTScrollView
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
@@ -24,7 +25,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
     <View>
       <View
         accessibilityState={
-          Object {
+          {
             "busy": undefined,
             "checked": undefined,
             "disabled": undefined,
@@ -45,7 +46,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
         <View>
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flexDirection": "row",
                 "justifyContent": "space-between",
@@ -60,18 +61,18 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               <Text
                 allowFontScaling={false}
                 style={
-                  Array [
-                    Object {
-                      "color": "#24272A",
+                  [
+                    {
+                      "color": "#141618",
                       "fontSize": 24,
                     },
                     undefined,
-                    Object {
+                    {
                       "fontFamily": "Ionicons",
                       "fontStyle": "normal",
                       "fontWeight": "normal",
                     },
-                    Object {},
+                    {},
                   ]
                 }
               >
@@ -81,9 +82,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
-                  "color": "#24272A",
-                  "fontFamily": "Euclid Circular B",
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -96,18 +97,18 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             <Text
               allowFontScaling={false}
               style={
-                Array [
-                  Object {
-                    "color": "#FFFFFF",
+                [
+                  {
+                    "color": "#ffffff",
                     "fontSize": 24,
                   },
                   undefined,
-                  Object {
+                  {
                     "fontFamily": "Ionicons",
                     "fontStyle": "normal",
                     "fontWeight": "normal",
                   },
-                  Object {},
+                  {},
                 ]
               }
             >
@@ -117,20 +118,20 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
         </View>
         <View
           style={
-            Array [
-              Object {
+            [
+              {
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "paddingHorizontal": 12,
                 "paddingVertical": 8,
               },
-              Object {
+              {
                 "paddingVertical": 8,
               },
-              Object {
-                "backgroundColor": "#BF520819",
-                "borderColor": "#BF5208",
+              {
+                "backgroundColor": "#bf52081a",
+                "borderColor": "#bf5208",
               },
               undefined,
             ]
@@ -138,7 +139,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
         >
           <View
             style={
-              Object {
+              {
                 "alignItems": "center",
               }
             }
@@ -146,18 +147,18 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             <Text
               allowFontScaling={false}
               style={
-                Array [
-                  Object {
-                    "color": "#BF5208",
+                [
+                  {
+                    "color": "#bf5208",
                     "fontSize": 20,
                   },
                   undefined,
-                  Object {
+                  {
                     "fontFamily": "Material Design Icons",
                     "fontStyle": "normal",
                     "fontWeight": "normal",
                   },
-                  Object {},
+                  {},
                 ]
               }
             >
@@ -168,9 +169,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                Object {
-                  "color": "#BF5208",
-                  "fontFamily": "Euclid Circular B",
+                {
+                  "color": "#bf5208",
+                  "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -185,7 +186,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
         </View>
         <View
           style={
-            Object {
+            {
               "marginVertical": 20,
             }
           }
@@ -194,14 +195,14 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             collapsable={false}
             pointerEvents={null}
             style={
-              Object {
+              {
                 "opacity": 1,
               }
             }
           >
             <View
               style={
-                Object {
+                {
                   "alignItems": "center",
                   "marginBottom": 22,
                 }
@@ -210,9 +211,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
-                    "color": "#24272A",
-                    "fontFamily": "Euclid Circular B",
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 32,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -225,7 +226,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               </Text>
               <View
                 style={
-                  Object {
+                  {
                     "flex": 1,
                   }
                 }
@@ -233,9 +234,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  Object {
-                    "color": "#535A61",
-                    "fontFamily": "Euclid Circular B",
+                  {
+                    "color": "#6a737d",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -246,7 +247,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             </View>
             <View
               style={
-                Object {
+                {
                   "marginBottom": 20,
                 }
               }
@@ -254,7 +255,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               <View>
                 <View
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
                       "flexDirection": "row",
                       "flexWrap": "wrap",
@@ -265,7 +266,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                       }
@@ -274,9 +275,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        Object {
-                          "color": "#24272A",
-                          "fontFamily": "Euclid Circular B",
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Bold",
                           "fontSize": 14,
                           "fontWeight": "700",
                           "letterSpacing": 0,
@@ -289,7 +290,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     </Text>
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -301,20 +302,20 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 14,
                             },
-                            Object {
-                              "color": "#BBC0C5",
+                            {
+                              "color": "#9fa6ae",
                             },
-                            Object {
+                            {
                               "fontFamily": "Material Design Icons",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -325,9 +326,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
-                      "borderColor": "#BBC0C5",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -338,7 +339,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                         "marginLeft": 17,
                       }
@@ -346,7 +347,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   >
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -355,9 +356,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       }
                       onPress={[Function]}
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
-                          "borderColor": "#0376C9",
+                          "borderColor": "#0376c9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -369,22 +370,22 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 10,
                             },
-                            Object {
-                              "color": "#0376C9",
+                            {
+                              "color": "#0376c9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
-                            Object {
+                            {
                               "fontFamily": "FontAwesome",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -394,7 +395,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                         "justifyContent": "center",
@@ -407,8 +408,8 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       style={
-                        Object {
-                          "color": "#24272A",
+                        {
+                          "color": "#141618",
                           "height": 38,
                           "minWidth": 10,
                           "paddingRight": 6,
@@ -419,7 +420,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flex": 1,
                         "flexDirection": "row",
@@ -432,9 +433,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       adjustsFontSizeToFit={true}
                       numberOfLines={2}
                       style={
-                        Array [
-                          Object {
-                            "color": "#24272A",
+                        [
+                          {
+                            "color": "#141618",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 30,
                             "fontWeight": "400",
@@ -463,7 +464,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           undefined,
                           undefined,
                           undefined,
-                          Object {
+                          {
                             "flex": 1,
                             "fontSize": 11,
                             "marginRight": 14,
@@ -475,7 +476,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     />
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -484,9 +485,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       }
                       onPress={[Function]}
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
-                          "borderColor": "#0376C9",
+                          "borderColor": "#0376c9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -498,22 +499,22 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 10,
                             },
-                            Object {
-                              "color": "#0376C9",
+                            {
+                              "color": "#0376c9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
-                            Object {
+                            {
                               "fontFamily": "FontAwesome",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -524,9 +525,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
-                      "color": "#D73847",
+                      "color": "#d73847",
                       "flexDirection": "row",
                       "marginTop": 8,
                     }
@@ -535,21 +536,21 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   <Text
                     allowFontScaling={false}
                     style={
-                      Array [
-                        Object {
+                      [
+                        {
                           "color": undefined,
                           "fontSize": 14,
                         },
-                        Object {
-                          "color": "#D73847",
+                        {
+                          "color": "#d73847",
                           "paddingRight": 4,
                         },
-                        Object {
+                        {
                           "fontFamily": "FontAwesome",
                           "fontStyle": "normal",
                           "fontWeight": "normal",
                         },
-                        Object {},
+                        {},
                       ]
                     }
                   >
@@ -557,9 +558,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   </Text>
                   <Text
                     style={
-                      Array [
-                        Object {
-                          "color": "#24272A",
+                      [
+                        {
+                          "color": "#141618",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -572,15 +573,15 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                         undefined,
                         undefined,
                         undefined,
-                        Object {
-                          "color": "#D73847",
+                        {
+                          "color": "#d73847",
                         },
                         undefined,
                         undefined,
                         undefined,
                         undefined,
                         undefined,
-                        Object {
+                        {
                           "fontSize": 12,
                         },
                         undefined,
@@ -591,11 +592,11 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                         undefined,
                         undefined,
                         undefined,
-                        Object {
+                        {
                           "marginVertical": 0,
                         },
-                        Object {
-                          "color": "#24272A",
+                        {
+                          "color": "#141618",
                         },
                       ]
                     }
@@ -607,7 +608,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             </View>
             <View
               style={
-                Object {
+                {
                   "marginBottom": 20,
                 }
               }
@@ -615,7 +616,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               <View>
                 <View
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
                       "flexDirection": "row",
                       "flexWrap": "wrap",
@@ -626,7 +627,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                       }
@@ -635,9 +636,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        Object {
-                          "color": "#24272A",
-                          "fontFamily": "Euclid Circular B",
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Bold",
                           "fontSize": 14,
                           "fontWeight": "700",
                           "letterSpacing": 0,
@@ -651,9 +652,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     <Text
                       accessibilityRole="text"
                       style={
-                        Object {
-                          "color": "#535A61",
-                          "fontFamily": "Euclid Circular B",
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -665,7 +666,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     </Text>
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -677,20 +678,20 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 14,
                             },
-                            Object {
-                              "color": "#BBC0C5",
+                            {
+                              "color": "#9fa6ae",
                             },
-                            Object {
+                            {
                               "fontFamily": "Material Design Icons",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -701,9 +702,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    Object {
+                    {
                       "alignItems": "center",
-                      "borderColor": "#BBC0C5",
+                      "borderColor": "#bbc0c5",
                       "borderRadius": 6,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -714,7 +715,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                         "marginLeft": 17,
                       }
@@ -722,7 +723,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   >
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -731,9 +732,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       }
                       onPress={[Function]}
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
-                          "borderColor": "#0376C9",
+                          "borderColor": "#0376c9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -745,22 +746,22 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 10,
                             },
-                            Object {
-                              "color": "#0376C9",
+                            {
+                              "color": "#0376c9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
-                            Object {
+                            {
                               "fontFamily": "FontAwesome",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -770,7 +771,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flexDirection": "row",
                         "justifyContent": "center",
@@ -783,8 +784,8 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       onBlur={[Function]}
                       onChangeText={[Function]}
                       style={
-                        Object {
-                          "color": "#24272A",
+                        {
+                          "color": "#141618",
                           "height": 38,
                           "minWidth": 10,
                           "paddingRight": 6,
@@ -795,7 +796,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   </View>
                   <View
                     style={
-                      Object {
+                      {
                         "alignItems": "center",
                         "flex": 1,
                         "flexDirection": "row",
@@ -808,9 +809,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       adjustsFontSizeToFit={true}
                       numberOfLines={2}
                       style={
-                        Array [
-                          Object {
-                            "color": "#24272A",
+                        [
+                          {
+                            "color": "#141618",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 30,
                             "fontWeight": "400",
@@ -839,7 +840,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           undefined,
                           undefined,
                           undefined,
-                          Object {
+                          {
                             "flex": 1,
                             "fontSize": 11,
                             "marginRight": 14,
@@ -851,7 +852,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     />
                     <TouchableOpacity
                       hitSlop={
-                        Object {
+                        {
                           "bottom": 10,
                           "left": 10,
                           "right": 10,
@@ -860,9 +861,9 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       }
                       onPress={[Function]}
                       style={
-                        Object {
+                        {
                           "alignItems": "center",
-                          "borderColor": "#0376C9",
+                          "borderColor": "#0376c9",
                           "borderRadius": 100,
                           "borderWidth": 2,
                           "height": 20,
@@ -874,22 +875,22 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                       <Text
                         allowFontScaling={false}
                         style={
-                          Array [
-                            Object {
+                          [
+                            {
                               "color": undefined,
                               "fontSize": 10,
                             },
-                            Object {
-                              "color": "#0376C9",
+                            {
+                              "color": "#0376c9",
                               "paddingLeft": 0.5,
                               "paddingTop": 1,
                             },
-                            Object {
+                            {
                               "fontFamily": "FontAwesome",
                               "fontStyle": "normal",
                               "fontWeight": "normal",
                             },
-                            Object {},
+                            {},
                           ]
                         }
                       >
@@ -908,20 +909,20 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
               activeOpacity={1}
               disabled={true}
               style={
-                Array [
-                  Array [
-                    Object {
+                [
+                  [
+                    {
                       "borderRadius": 100,
                       "justifyContent": "center",
                       "padding": 15,
                     },
-                    Object {
-                      "backgroundColor": "#0376C9",
+                    {
+                      "backgroundColor": "#0376c9",
                       "minHeight": 50,
                     },
                     undefined,
                   ],
-                  Object {
+                  {
                     "opacity": 0.6,
                   },
                 ]
@@ -929,29 +930,29 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             >
               <Text
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "color": "#007aff",
                       "fontSize": 17,
                       "fontWeight": "500",
                       "textAlign": "center",
                     },
-                    Object {
+                    {
                       "color": "#dcdcdc",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "fontFamily": "EuclidCircularB-Bold",
                         "fontSize": 14,
                         "fontWeight": "600",
                         "textAlign": "center",
                       },
-                      Object {
-                        "color": "#FFFFFF",
+                      {
+                        "color": "#ffffff",
                       },
                       undefined,
                     ],
-                    Object {
+                    {
                       "opacity": 0.6,
                     },
                   ]
@@ -981,7 +982,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
           scrollTo={null}
           statusBarTranslucent={false}
           supportedOrientations={
-            Array [
+            [
               "portrait",
               "landscape",
             ]

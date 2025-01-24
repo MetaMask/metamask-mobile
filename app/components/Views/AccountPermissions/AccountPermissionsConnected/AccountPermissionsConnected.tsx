@@ -1,9 +1,8 @@
 // Third party dependencies.
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useCallback, useContext } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { ProviderConfig } from '@metamask/network-controller';
 
 // External dependencies.
 import SheetActions from '../../../../component-library/components-temp/SheetActions';
@@ -12,9 +11,8 @@ import { strings } from '../../../../../locales/i18n';
 import TagUrl from '../../../../component-library/components/Tags/TagUrl';
 import PickerNetwork from '../../../../component-library/components/Pickers/PickerNetwork';
 import {
-  getNetworkNameFromProviderConfig,
-  getNetworkImageSource,
   getDecimalChainId,
+  isMultichainVersion1Enabled,
 } from '../../../../util/networks';
 import AccountSelectorList from '../../../../components/UI/AccountSelectorList';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
@@ -26,13 +24,29 @@ import {
 import getAccountNameWithENS from '../../../../util/accounts';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectProviderConfig } from '../../../../selectors/networkController';
-import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Modals/ConnectedAccountModal.selectors';
+import {
+  selectProviderConfig,
+  ProviderConfig,
+} from '../../../../selectors/networkController';
+import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
+import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 
 // Internal dependencies.
 import { AccountPermissionsConnectedProps } from './AccountPermissionsConnected.types';
 import styles from './AccountPermissionsConnected.styles';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import Text, {
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../component-library/components/Buttons/Button';
 
 const AccountPermissionsConnected = ({
   ensByAccountAddress,
@@ -49,25 +63,18 @@ const AccountPermissionsConnected = ({
   urlWithProtocol,
 }: AccountPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const providerConfig: ProviderConfig = useSelector(selectProviderConfig);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
-  const networkImageSource = useMemo(() => {
-    const { type, chainId } = providerConfig;
-    return getNetworkImageSource({ networkType: type, chainId });
-  }, [providerConfig]);
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const activeAddress = selectedAddresses[0];
   const { toastRef } = useContext(ToastContext);
 
   const onConnectMoreAccounts = useCallback(() => {
     onSetSelectedAddresses([]);
-    onSetPermissionsScreen(AccountPermissionsScreens.Connect);
+    onSetPermissionsScreen(AccountPermissionsScreens.ConnectMoreAccounts);
   }, [onSetSelectedAddresses, onSetPermissionsScreen]);
 
   const openRevokePermissions = () =>
@@ -95,6 +102,7 @@ const AccountPermissionsConnected = ({
         ],
         accountAddress: address,
         accountAvatarType,
+        hasNoTimeout: false,
       });
     },
     [
@@ -113,10 +121,14 @@ const AccountPermissionsConnected = ({
       screen: Routes.SHEET.NETWORK_SELECTOR,
     });
 
-    trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-      chain_id: getDecimalChainId(providerConfig.chainId),
-    });
-  }, [providerConfig.chainId, navigate, trackEvent]);
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+        .addProperties({
+          chain_id: getDecimalChainId(providerConfig.chainId),
+        })
+        .build(),
+    );
+  }, [providerConfig.chainId, navigate, trackEvent, createEventBuilder]);
 
   const renderSheetAction = useCallback(
     () => (
@@ -140,24 +152,46 @@ const AccountPermissionsConnected = ({
 
   return (
     <>
-      <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      {!isMultichainVersion1Enabled && (
+        <SheetHeader title={strings('accounts.connected_accounts_title')} />
+      )}
+      {isMultichainVersion1Enabled && (
+        <View style={styles.header}>
+          <Avatar
+            variant={AvatarVariant.Favicon}
+            imageSource={favicon}
+            size={AvatarSize.Md}
+            style={styles.favicon}
+          />
+          <Text variant={TextVariant.HeadingMD}>{hostname}</Text>
+        </View>
+      )}
       <View style={styles.body}>
-        <TagUrl
-          imageSource={favicon}
-          label={urlWithProtocol}
-          cta={{
-            label: strings('accounts.permissions'),
-            onPress: openRevokePermissions,
-          }}
-          iconName={secureIcon}
-        />
-        <PickerNetwork
-          label={networkName}
-          imageSource={networkImageSource}
-          onPress={switchNetwork}
-          style={styles.networkPicker}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        />
+        {!isMultichainVersion1Enabled && (
+          <TagUrl
+            imageSource={favicon}
+            label={urlWithProtocol}
+            cta={{
+              label: strings('accounts.permissions'),
+              onPress: openRevokePermissions,
+            }}
+            iconName={secureIcon}
+          />
+        )}
+        {isMultichainVersion1Enabled && (
+          <Text style={styles.sectionTitle} variant={TextVariant.BodyMDMedium}>
+            {strings('accounts.connected_accounts_title')}
+          </Text>
+        )}
+        {!isMultichainVersion1Enabled && (
+          <PickerNetwork
+            label={providerConfig?.nickname || networkName}
+            imageSource={networkImageSource}
+            onPress={switchNetwork}
+            style={styles.networkPicker}
+            testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+          />
+        )}
       </View>
       <AccountSelectorList
         onSelectAccount={switchActiveAccount}
@@ -168,6 +202,21 @@ const AccountPermissionsConnected = ({
         isRemoveAccountEnabled
       />
       {renderSheetAction()}
+      {isMultichainVersion1Enabled && (
+        <Button
+          style={styles.managePermissionsButton}
+          variant={ButtonVariants.Secondary}
+          label={strings('permissions.manage_permissions')}
+          size={ButtonSize.Lg}
+          onPress={() => {
+            onSetPermissionsScreen(
+              AccountPermissionsScreens.PermissionsSummary,
+            );
+          }}
+          testID={ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS}
+          width={ButtonWidthTypes.Full}
+        />
+      )}
     </>
   );
 };

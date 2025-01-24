@@ -1,15 +1,23 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render, screen } from '@testing-library/react-native';
 import AnimatedTransactionModal from './';
 import { View } from 'react-native';
+import { ThemeContext } from '../../../util/theme';
+
+const mockTheme = {
+  colors: { background: { default: 'white' } },
+  themeAppearance: 'light',
+};
 
 describe('AnimatedTransactionModal', () => {
   it('should render correctly', () => {
-    const wrapper = shallow(
-      <AnimatedTransactionModal>
-        <View />
-      </AnimatedTransactionModal>,
+    render(
+      <ThemeContext.Provider value={mockTheme}>
+        <AnimatedTransactionModal>
+          <View />
+        </AnimatedTransactionModal>
+      </ThemeContext.Provider>,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 /* eslint-disable import/no-commonjs */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* eslint-disable @typescript-eslint/no-var-requires */
@@ -10,38 +10,49 @@ import {
   createSwappableProxy,
   createEventEmitterProxy,
 } from '@metamask/swappable-obj-proxy';
-import { JsonRpcEngine } from 'json-rpc-engine';
-import { createEngineStream } from 'json-rpc-middleware-stream';
-import { NetworksChainId } from '@metamask/controller-utils';
+import { JsonRpcEngine } from '@metamask/json-rpc-engine';
+import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
+import EthQuery from '@metamask/eth-query';
 
 import Engine from '../Engine';
 import { setupMultiplex } from '../../util/streams';
 import Logger from '../../util/Logger';
-import { getAllNetworks } from '../../util/networks';
 import snapMethodMiddlewareBuilder from './SnapsMethodMiddleware';
 import { SubjectType } from '@metamask/permission-controller';
 
-const ObjectMultiplex = require('@metamask/object-multiplex');
-const createFilterMiddleware = require('eth-json-rpc-filters');
-const createSubscriptionManager = require('eth-json-rpc-filters/subscriptionManager');
-const providerAsMiddleware = require('eth-json-rpc-middleware/providerAsMiddleware');
+import  ObjectMultiplex from '@metamask/object-multiplex';
+import  createFilterMiddleware from '@metamask/eth-json-rpc-filters';
+import createSubscriptionManager from '@metamask/eth-json-rpc-filters/subscriptionManager';
+import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
 
 interface ISnapBridgeProps {
   snapId: string;
   connectionStream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRPCMethodMiddleware: (args: any) => any;
 }
 
 export default class SnapBridge {
   snapId: string;
   stream: Duplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getRPCMethodMiddleware: (args: any) => any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provider: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   blockTracker: any;
 
   #mux: typeof ObjectMultiplex;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #providerProxy: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #blockTrackerProxy: any;
 
   constructor({
@@ -56,7 +67,10 @@ export default class SnapBridge {
     this.snapId = snapId;
     this.stream = connectionStream;
     this.getRPCMethodMiddleware = getRPCMethodMiddleware;
+    this.deprecatedNetworkVersions = {};
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { NetworkController } = Engine.context as any;
 
     const { provider, blockTracker } =
@@ -71,6 +85,8 @@ export default class SnapBridge {
     this.#mux = setupMultiplex(this.stream);
   }
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #setProvider = (provider: any): void => {
     if (this.#providerProxy) {
       this.#providerProxy.setTarget(provider);
@@ -80,6 +96,8 @@ export default class SnapBridge {
     this.provider = provider;
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   #setBlockTracker = (blockTracker: any): void => {
     if (this.#blockTrackerProxy) {
       this.#blockTrackerProxy.setTarget(blockTracker);
@@ -91,11 +109,10 @@ export default class SnapBridge {
     this.blockTracker = blockTracker;
   };
 
-  getProviderState() {
-    const memState = this.getState();
+  async getProviderState() {
     return {
       isUnlocked: this.isUnlocked(),
-      ...this.getProviderNetworkState(memState),
+      ...(await this.getProviderNetworkState(this.snapId)),
     };
   }
 
@@ -104,13 +121,10 @@ export default class SnapBridge {
     const outStream = this.#mux.createStream('metamask-provider');
     const engine = this.setupProviderEngine();
     const providerStream = createEngineStream({ engine });
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pump(outStream, providerStream, outStream, (err: any) => {
-      // handle any middleware cleanup
-      engine._middleware.forEach((mid: any) => {
-        if (mid.destroy && typeof mid.destroy === 'function') {
-          mid.destroy();
-        }
-      });
+      engine.destroy();
       if (err) Logger.log('Error with provider stream conn', err);
     });
   };
@@ -130,6 +144,8 @@ export default class SnapBridge {
       blockTracker: this.#blockTrackerProxy,
     });
 
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     subscriptionManager.events.on('notification', (message: any) =>
       engine.emit('notification', message),
     );
@@ -138,8 +154,14 @@ export default class SnapBridge {
     engine.push(filterMiddleware);
     engine.push(subscriptionManager.middleware);
 
-    const { context, controllerMessenger } = Engine as any;
+    const { context, controllerMessenger } = Engine;
     const { PermissionController } = context;
+
+    engine.push(
+      PermissionController.createPermissionMiddleware({
+        origin: this.snapId,
+      }),
+    );
 
     engine.push(
       snapMethodMiddlewareBuilder(
@@ -148,12 +170,6 @@ export default class SnapBridge {
         this.snapId,
         SubjectType.Snap,
       ),
-    );
-
-    engine.push(
-      PermissionController.createPermissionMiddleware({
-        origin: this.snapId,
-      }),
     );
 
     // User-Facing RPC methods
@@ -169,74 +185,46 @@ export default class SnapBridge {
     return engine;
   };
 
-  getNetworkState = ({ network }: { network: string }) => {
-    const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.providerConfig.type;
-    const networkProvider = NetworkController.state.providerConfig;
-
-    const isInitialNetwork =
-      networkType && getAllNetworks().includes(networkType);
-    let chainId;
-
-    if (isInitialNetwork) {
-      chainId = NetworksChainId[networkType];
-    } else if (networkType === 'rpc') {
-      chainId = networkProvider.chainId;
-    }
-    if (chainId && !chainId.startsWith('0x')) {
-      // Convert to hex
-      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-    }
-
-    const result = {
-      networkVersion: network,
-      chainId,
-    };
-    return result;
-  };
-
   isUnlocked = (): boolean => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController } = Engine.context as any;
     return KeyringController.isUnlocked();
   };
 
-  getState = () => {
-    const { context, datamodel } = Engine;
-    const { KeyringController } = context as any;
-    const vault = KeyringController.state.vault;
-    const { network, selectedAddress } = datamodel.flatState as any;
+  async getProviderNetworkState(origin: string) {
+    const networkClientId = Engine.controllerMessenger.call(
+      'SelectedNetworkController:getNetworkClientIdForDomain',
+      origin,
+    );
+
+    const networkClient = Engine.controllerMessenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+
+    const { chainId } = networkClient.configuration;
+
+    let networkVersion = this.deprecatedNetworkVersions[networkClientId];
+    if (!networkVersion) {
+      const ethQuery = new EthQuery(networkClient.provider);
+      networkVersion = await new Promise((resolve) => {
+        ethQuery.sendAsync({ method: 'net_version' }, (error, result) => {
+          if (error) {
+            console.error(error);
+            resolve(null);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+      this.deprecatedNetworkVersions[networkClientId] = networkVersion;
+    }
+
     return {
-      isInitialized: !!vault,
-      isUnlocked: true,
-      network,
-      selectedAddress,
-    };
-  };
-
-  getProviderNetworkState({ network }: { network: string }) {
-    const { NetworkController } = Engine.context as any;
-    const networkType = NetworkController.state.providerConfig.type;
-    const networkProvider = NetworkController.state.providerConfig;
-
-    const isInitialNetwork =
-      networkType && getAllNetworks().includes(networkType);
-    let chainId;
-
-    if (isInitialNetwork) {
-      chainId = NetworksChainId[networkType];
-    } else if (networkType === 'rpc') {
-      chainId = networkProvider.chainId;
-    }
-    if (chainId && !chainId.startsWith('0x')) {
-      // Convert to hex
-      chainId = `0x${parseInt(chainId, 10).toString(16)}`;
-    }
-
-    const result = {
-      networkVersion: network,
       chainId,
+      networkVersion: networkVersion ?? 'loading',
     };
-    return result;
   }
 }
 ///: END:ONLY_INCLUDE_IF

@@ -5,7 +5,7 @@ import { ImageSourcePropType, Platform } from 'react-native';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
-import { BrowserViewSelectorsIDs } from '../../../../../../../e2e/selectors/BrowserView.selectors';
+import { BrowserViewSelectorsIDs } from '../../../../../../../e2e/selectors/Browser/BrowserView.selectors';
 import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
@@ -28,9 +28,9 @@ const SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE: ImageSourcePropType = {
 
 /* eslint-disable-next-line */
 export const SAMPLE_AVATARNETWORK_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/ethereum.png');
-
+export const SAMPLE_AVATARNETWORK_NAME = 'Ethereum';
 export const SAMPLE_AVATARNETWORK_PROPS: AvatarNetworkProps = {
   size: DEFAULT_AVATARNETWORK_SIZE,
-  name: 'Ethereum',
+  name: SAMPLE_AVATARNETWORK_NAME,
   imageSource: SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE,
 };

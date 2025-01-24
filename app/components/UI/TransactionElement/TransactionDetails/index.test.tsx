@@ -3,12 +3,16 @@ import TransactionDetails from './';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
-import initialBackgroundState from '../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 
 const mockStore = configureMockStore();
 const initialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+    },
   },
 };
 const store = mockStore(initialState);
@@ -18,6 +22,7 @@ describe('TransactionDetails', () => {
     const wrapper = shallow(
       <Provider store={store}>
         <TransactionDetails
+          // @ts-expect-error - TransactionDetails needs to be converted to typescript
           transactionObject={{
             networkID: '1',
             status: 'confirmed',
@@ -25,6 +30,7 @@ describe('TransactionDetails', () => {
               nonce: '',
             },
           }}
+          //@ts-expect-error - TransactionDetails needs to be converted to typescript
           transactionDetails={{
             renderFrom: '0x0',
             renderTo: '0x1',

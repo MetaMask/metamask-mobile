@@ -2,6 +2,8 @@
 import { fontStyles } from '../../../styles/common';
 import { StyleSheet } from 'react-native';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
     screen: {

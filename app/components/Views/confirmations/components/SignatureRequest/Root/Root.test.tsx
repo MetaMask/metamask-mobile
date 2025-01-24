@@ -2,7 +2,7 @@ import React from 'react';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { render } from '@testing-library/react-native';
-import initialBackgroundState from '../../../../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
@@ -23,6 +23,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       getQRKeyringState: jest.fn(() =>
         Promise.resolve({ subscribe: jest.fn(), unsubscribe: jest.fn() }),
       ),
+      getOrAddQRKeyring: jest.fn(),
       state: {
         keyrings: [],
       },
@@ -32,6 +33,9 @@ jest.mock('../../../../../../core/Engine', () => ({
         on: jest.fn(),
       },
     },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
@@ -67,7 +71,7 @@ const initialState = {
   signatureRequest: {},
   engine: {
     backgroundState: {
-      ...initialBackgroundState,
+      ...backgroundState,
       AccountTrackerController: {
         accounts: {
           '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
@@ -75,22 +79,12 @@ const initialState = {
           },
         },
       },
-      PreferencesController: {
-        selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-        identities: {
-          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': {
-            address: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
-            name: 'Account 1',
-          },
-        },
-      },
       CurrencyRateController: {
-        conversionRate: 10,
         currentCurrency: 'usd',
-      },
-      NetworkController: {
-        providerConfig: {
-          chainId: '0x1',
+        currencyRates: {
+          ETH: {
+            conversionRate: 10,
+          },
         },
       },
     },

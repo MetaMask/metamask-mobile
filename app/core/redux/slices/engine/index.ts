@@ -3,6 +3,8 @@ import Engine from '../../../Engine';
 import { createAction, PayloadAction } from '@reduxjs/toolkit';
 
 const initialState = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   backgroundState: {} as any,
 };
 
@@ -16,10 +18,14 @@ export const updateBgState = createAction('UPDATE_BG_STATE', (key) => ({
   payload: key,
 }));
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const counter: any = {};
 const engineReducer = (
   // eslint-disable-next-line @typescript-eslint/default-param-last
   state = initialState,
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   action: PayloadAction<{ key: any } | undefined>,
 ) => {
   switch (action.type) {

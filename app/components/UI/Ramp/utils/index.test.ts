@@ -3,7 +3,10 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  AggregatorNetwork,
+  OrderOrderTypeEnum,
+} from '@consensys/on-ramp-sdk/dist/API';
 import {
   timeToDescription,
   TimeDescriptions,
@@ -58,6 +61,8 @@ describe('formatAmount', () => {
       () =>
         ({
           format: jest.fn().mockImplementation(() => '123,123'),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
     expect(formatAmount(123123)).toBe('123,123');
@@ -71,6 +76,8 @@ describe('formatAmount', () => {
           format: jest.fn().mockImplementation(() => {
             throw Error();
           }),
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any),
     );
     expect(formatAmount(123123)).toBe('123123');
@@ -101,11 +108,11 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(true);
   });
@@ -115,11 +122,11 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -129,11 +136,11 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -143,11 +150,11 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(true);
   });
@@ -157,11 +164,11 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -171,11 +178,37 @@ describe('isNetworkBuySupported', () => {
       isNetworkRampSupported('0x22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return false if network is the wrong format', () => {
+    expect(
+      // @ts-expect-error Testing invalid input
+      isNetworkRampSupported(1, [
+        {
+          active: true,
+          chainId: '1',
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(false);
+    expect(
+      isNetworkRampSupported('mainnet', [
+        {
+          active: true,
+          chainId: '1',
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: true,
+          shortName: 'Ethereum',
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -187,11 +220,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(true);
   });
@@ -201,11 +234,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -215,11 +248,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -229,11 +262,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -243,11 +276,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(true);
   });
@@ -257,11 +290,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: false,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -271,11 +304,11 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x22', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: true,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -285,11 +318,37 @@ describe('isNetworkBuyNativeTokenSupported', () => {
       isNetworkRampNativeTokenSupported('0x1', [
         {
           active: true,
-          chainId: 1,
+          chainId: '1',
           chainName: 'Ethereum Mainnet',
           nativeTokenSupported: false,
           shortName: 'Ethereum',
-        },
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(false);
+  });
+
+  it('should return false if network is in the wrong format', () => {
+    expect(
+      // @ts-expect-error Testing invalid input
+      isNetworkRampNativeTokenSupported(1, [
+        {
+          active: true,
+          chainId: '1',
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: false,
+          shortName: 'Ethereum',
+        } as unknown as AggregatorNetwork,
+      ]),
+    ).toBe(false);
+    expect(
+      isNetworkRampNativeTokenSupported('mainnet', [
+        {
+          active: true,
+          chainId: '1',
+          chainName: 'Ethereum Mainnet',
+          nativeTokenSupported: false,
+          shortName: 'Ethereum',
+        } as unknown as AggregatorNetwork,
       ]),
     ).toBe(false);
   });
@@ -360,6 +419,8 @@ describe('getOrderAmount', () => {
         cryptoAmount: 0.012361263,
         data: {
           ...mockOrder.data,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cryptoCurrency: undefined as any,
         },
       }),
@@ -453,7 +514,7 @@ describe('getNotificationDetails', () => {
   it('should return correct details for buy orders', () => {
     const pendingDetails = getNotificationDetails(mockOrder);
     expect(pendingDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "This should only take a few minutes...",
         "duration": 5000,
         "status": "pending",
@@ -465,7 +526,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.CANCELLED,
     });
     expect(cancelledDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "cancelled",
@@ -477,7 +538,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.FAILED,
     });
     expect(failedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Verify your payment method and card support",
         "duration": 5000,
         "status": "error",
@@ -490,7 +551,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
     });
     expect(completedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your ETH is now available",
         "duration": 5000,
         "status": "success",
@@ -502,7 +563,7 @@ describe('getNotificationDetails', () => {
   it('should return correct details for sell orders', () => {
     const pendingDetails = getNotificationDetails(mockSellOrder);
     expect(pendingDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order is now being processed.",
         "duration": 5000,
         "status": "pending",
@@ -514,7 +575,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.CANCELLED,
     });
     expect(cancelledDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order couldn´t be completed.",
         "duration": 5000,
         "status": "cancelled",
@@ -526,7 +587,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.FAILED,
     });
     expect(failedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order couldn´t be completed.",
         "duration": 5000,
         "status": "error",
@@ -539,7 +600,7 @@ describe('getNotificationDetails', () => {
       state: FIAT_ORDER_STATES.COMPLETED,
     });
     expect(completedDetails).toMatchInlineSnapshot(`
-      Object {
+      {
         "description": "Your order was successful!.",
         "duration": 5000,
         "status": "success",

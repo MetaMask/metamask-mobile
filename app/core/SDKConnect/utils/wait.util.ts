@@ -4,7 +4,8 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
-import { isTest } from '../../../util/test/utils';
+import { isE2E } from '../../../util/test/utils';
+import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
 export const wait = (ms: number) =>
@@ -17,6 +18,7 @@ export const waitForReadyClient = async (
   connectedClients: {
     [clientId: string]: DappClient;
   },
+  waitTime = 200,
 ) => {
   let i = 0;
   while (!connectedClients[id]) {
@@ -25,7 +27,7 @@ export const waitForReadyClient = async (
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };
 
@@ -62,10 +64,34 @@ export const waitForCondition = async ({
   }
 };
 
+/**
+ * Similar to `waitForCondition`, but for asynchronous conditions that return a promise.
+ */
+export const waitForAsyncCondition = async ({
+  fn,
+  context,
+  waitTime = 1000,
+}: {
+  fn: () => Promise<boolean>;
+  waitTime?: number;
+  context?: string;
+}) => {
+  let i = 0;
+  while (!(await fn())) {
+    i += 1;
+    if (i > 5 && i % 10 === 0) {
+      DevLogger.log(`Waiting for fn context=${context} to return true`);
+    }
+    await wait(waitTime);
+  }
+};
+
 export const waitForConnectionReadiness = async ({
   connection,
+  waitTime = 1000,
 }: {
   connection: Connection;
+  waitTime?: number;
 }) => {
   let i = 0;
   while (!connection.isReady) {
@@ -73,25 +99,27 @@ export const waitForConnectionReadiness = async ({
     if (i > MAX_QUEUE_LOOP) {
       throw new Error('Connection timeout - ready state not received');
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };
 
 export const waitForKeychainUnlocked = async ({
   context,
   keyringController,
+  waitTime = 1000,
 }: {
   keyringController: KeyringController;
   context?: string;
+  waitTime?: number;
 }) => {
+  // Disable during e2e tests otherwise Detox fails
+  if (isE2E) {
+    return true;
+  }
+
   let i = 1;
   if (!keyringController) {
     console.warn('Keyring controller not found');
-  }
-
-  // Disable during e2e tests otherwise Detox fails
-  if (isTest) {
-    return true;
   }
 
   let unlocked = keyringController.isUnlocked();
@@ -99,9 +127,9 @@ export const waitForKeychainUnlocked = async ({
     `wait:: waitForKeyChainUnlocked[${context}] unlocked: ${unlocked}`,
   );
   while (!unlocked) {
-    await wait(1000);
-    if (i % 60 === 0) {
-      console.warn(
+    await wait(waitTime);
+    if (i % 5 === 0) {
+      DevLogger.log(
         `SDKConnect [${context}] Waiting for keychain unlock... attempt ${i}`,
       );
     }
@@ -112,10 +140,44 @@ export const waitForKeychainUnlocked = async ({
   return unlocked;
 };
 
-export const waitForAndroidServiceBinding = async () => {
+export const waitForUserLoggedIn = async ({
+  context,
+  waitTime = 1000,
+}: {
+  waitTime?: number;
+  context?: string;
+}) => {
+  let i = 1;
+
+  // Disable during e2e tests otherwise Detox fails
+  if (isE2E) {
+    return true;
+  }
+
+  const state = store.getState();
+  let isLoggedIn = state.user.userLoggedIn ?? false;
+
+  DevLogger.log(
+    `wait:: waitForUserLoggedIn[${context}] isLoggedIn: ${isLoggedIn}`,
+  );
+  while (!isLoggedIn) {
+    await wait(waitTime);
+    if (i % 60 === 0) {
+      DevLogger.log(
+        `[wait.util] [${context}] Waiting for userLoggedIn... attempt ${i}`,
+      );
+    }
+    isLoggedIn = state.user.userLoggedIn ?? false;
+    i += 1;
+  }
+
+  return isLoggedIn;
+};
+
+export const waitForAndroidServiceBinding = async (waitTime = 500) => {
   let i = 1;
   while (SDKConnect.getInstance().isAndroidSDKBound() === false) {
-    await wait(500);
+    await wait(waitTime);
     i += 1;
     if (i > 5 && i % 10 === 0) {
       console.warn(`Waiting for Android service binding...`);
@@ -123,7 +185,10 @@ export const waitForAndroidServiceBinding = async () => {
   }
 };
 
-export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
+export const waitForEmptyRPCQueue = async (
+  manager: RPCQueueManager,
+  waitTime = 1000,
+) => {
   let i = 0;
   let queue = Object.keys(manager.get());
   while (queue.length > 0) {
@@ -132,6 +197,6 @@ export const waitForEmptyRPCQueue = async (manager: RPCQueueManager) => {
       console.warn(`RPC queue not empty after ${MAX_QUEUE_LOOP} seconds`);
       break;
     }
-    await wait(1000);
+    await wait(waitTime);
   }
 };

@@ -1,10 +1,10 @@
 import SDKConnect from '../SDKConnect';
 import removeAll from './removeAll';
 
-jest.mock('react-native-default-preference', () => ({
-  set: jest.fn().mockResolvedValue([]),
-  get: jest.fn().mockResolvedValue(JSON.stringify({})),
-  clear: jest.fn().mockResolvedValue([]),
+jest.mock('../../../store/storage-wrapper', () => ({
+  setItem: jest.fn().mockResolvedValue([]),
+  getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
+  clearAll: jest.fn().mockResolvedValue([]),
 }));
 jest.mock('../../AppConstants');
 jest.mock('../SDKConnect');

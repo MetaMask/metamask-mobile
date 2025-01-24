@@ -1,24 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TransactionBlockaidBanner should not render if currentTransactionSecurityAlertResponse.id is undefined 1`] = `null`;
+exports[`TransactionBlockaidBanner should not render if securityAlertResponses.id is undefined 1`] = `null`;
 
 exports[`TransactionBlockaidBanner should not render if transactionId passed is undefined 1`] = `null`;
 
 exports[`TransactionBlockaidBanner should render correctly 1`] = `
 <View
   securityAlertResponse={
-    Object {
+    {
       "block": 123,
       "chainId": "0x1",
       "reason": "approval_farming",
-      "req": Object {},
+      "req": {},
       "result_type": "Warning",
     }
   }
   style={
-    Object {
-      "backgroundColor": "#BF520819",
-      "borderColor": "#BF5208",
+    {
+      "backgroundColor": "#bf52081a",
+      "borderColor": "#bf5208",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -26,21 +26,21 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       "paddingLeft": 8,
     }
   }
-  testID="banneralert"
+  testID="security-alert-banner"
 >
   <View
     style={
-      Object {
+      {
         "marginRight": 8,
       }
     }
   >
     <SvgMock
-      color="#BF5208"
+      color="#bf5208"
       height={24}
       name="Danger"
       style={
-        Object {
+        {
           "height": 24,
           "width": 24,
         }
@@ -50,7 +50,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
   </View>
   <View
     style={
-      Object {
+      {
         "flex": 1,
       }
     }
@@ -58,9 +58,9 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -73,9 +73,9 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -89,7 +89,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       activeOpacity={0.5}
       onPress={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "flexDirection": "row",
           "height": 24,
@@ -101,9 +101,9 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -116,13 +116,13 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       </Text>
       <View
         style={
-          Array [
-            Object {
+          [
+            {
               "marginLeft": 4,
             },
-            Object {
-              "transform": Array [
-                Object {
+            {
+              "transform": [
+                {
                   "rotate": "0deg",
                 },
               ],
@@ -132,11 +132,11 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376C9"
+          color="#0376c9"
           height={16}
           name="ArrowDown"
           style={
-            Object {
+            {
               "height": 16,
               "width": 16,
             }

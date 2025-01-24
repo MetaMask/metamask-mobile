@@ -3,12 +3,12 @@
 import { SmokeConfirmations } from '../../tags';
 import TestHelpers from '../../helpers';
 
-import AmountView from '../../pages/AmountView';
-import SendView from '../../pages/SendView';
-import TransactionConfirmationView from '../../pages/TransactionConfirmView';
+import AmountView from '../../pages/Send/AmountView';
+import SendView from '../../pages/Send/SendView';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/TabBarComponent';
-import WalletActionsModal from '../../pages/modals/WalletActionsModal';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -16,6 +16,7 @@ import {
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeConfirmations('Send ETH'), () => {
   const TOKEN_NAME = enContent.unit.eth;
@@ -38,7 +39,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await WalletActionsModal.tapSendButton();
+        await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();
@@ -49,9 +50,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
 
-        await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT} ${TOKEN_NAME}`,
-        );
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });
@@ -73,7 +72,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await WalletActionsModal.tapSendButton();
+        await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(multisigAddress);
         await SendView.tapNextButton();
@@ -83,10 +82,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
 
         await TransactionConfirmationView.tapConfirmButton();
         await TabBarComponent.tapActivity();
-
-        await TestHelpers.checkIfElementByTextIsVisible(
-          `${AMOUNT} ${TOKEN_NAME}`,
-        );
+        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });

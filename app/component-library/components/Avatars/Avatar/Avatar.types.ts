@@ -33,18 +33,12 @@ export enum AvatarVariant {
 /**
  * Avatar component props.
  */
-export type AvatarProps = (
-  | AvatarAccountProps
-  | AvatarFaviconProps
-  | AvatarIconProps
-  | AvatarNetworkProps
-  | AvatarTokenProps
-) & {
-  /**
-   * Variant of Avatar
-   */
-  variant: AvatarVariant;
-};
+export type AvatarProps =
+  | (AvatarAccountProps & { variant: AvatarVariant.Account })
+  | (AvatarFaviconProps & { variant: AvatarVariant.Favicon })
+  | (AvatarIconProps & { variant: AvatarVariant.Icon })
+  | (AvatarNetworkProps & { variant: AvatarVariant.Network })
+  | (AvatarTokenProps & { variant: AvatarVariant.Token });
 
 /**
  * Mapping of IconSize by AvatarSize.
@@ -58,4 +52,11 @@ export type IconSizeByAvatarSize = {
  */
 export type TextVariantByAvatarSize = {
   [key in AvatarSize]: TextVariant;
+};
+
+/**
+ * Mapping of borderWidth by AvatarSize.
+ */
+export type BorderWidthByAvatarSize = {
+  [key in AvatarSize]: number;
 };

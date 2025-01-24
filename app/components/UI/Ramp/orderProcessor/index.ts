@@ -18,7 +18,10 @@ function processOrder(
       return processAggregatorOrder(order, options);
     }
     default: {
-      Logger.error('FiatOrders::ProcessOrder unrecognized provider', order);
+      const unrecognizedProviderError = new Error(
+        'FiatOrders::ProcessOrder unrecognized provider',
+      );
+      Logger.error(unrecognizedProviderError, order);
       return order;
     }
   }

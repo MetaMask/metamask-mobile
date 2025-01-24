@@ -9,6 +9,7 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import handleSendMessage from './handleSendMessage';
 import { Connection } from '../Connection';
+import { createBuyNavigationDetails } from '../../../components/UI/Ramp/routes/utils';
 
 export const handleCustomRpcCalls = async ({
   rpc,
@@ -21,6 +22,8 @@ export const handleCustomRpcCalls = async ({
   selectedAddress: string;
   selectedChainId: string;
   batchRPCManager: BatchRPCManager;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rpc: { id: string; method: string; params: any[] };
   store?: typeof import('../../../store').store;
   connection?: Connection;
@@ -46,6 +49,8 @@ export const handleCustomRpcCalls = async ({
 
     const targetRpc = params[0];
     const wrapedRpc = overwriteRPCWith({
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rpc: targetRpc as any,
       accountAddress: selectedAddress,
       selectedChainId,
@@ -112,7 +117,7 @@ export const handleCustomRpcCalls = async ({
       );
       navigation?.navigate(Routes.SWAPS);
     } else {
-      navigation?.navigate(Routes.RAMP.BUY);
+      navigation?.navigate(...createBuyNavigationDetails());
     }
 
     if (connection) {

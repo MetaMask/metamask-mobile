@@ -5,24 +5,32 @@ import React from 'react';
 import CellDisplay from './variants/CellDisplay';
 import CellMultiSelect from './variants/CellMultiSelect';
 import CellSelect from './variants/CellSelect';
-import { CellModalSelectorsIDs } from '../../../../../e2e/selectors/Modals/CellModal.selectors';
+import CellSelectWithMenu from '../../../components-temp/CellSelectWithMenu';
+import { CellComponentSelectorsIDs } from '../../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // Internal dependencies.
 import { CellProps, CellVariant } from './Cell.types';
 
-const Cell = ({ variant, ...props }: CellProps) => {
+const Cell = ({ variant, hitSlop, ...props }: CellProps) => {
   switch (variant) {
     case CellVariant.Display:
-      return <CellDisplay testID={CellModalSelectorsIDs.DISPLAY} {...props} />;
+      return <CellDisplay testID={CellComponentSelectorsIDs.DISPLAY} {...props} />;
     case CellVariant.MultiSelect:
       return (
         <CellMultiSelect
-          testID={CellModalSelectorsIDs.MULTISELECT}
+          testID={CellComponentSelectorsIDs.MULTISELECT}
           {...props}
         />
       );
     case CellVariant.Select:
-      return <CellSelect testID={CellModalSelectorsIDs.SELECT} {...props} />;
+      return <CellSelect testID={CellComponentSelectorsIDs.SELECT} {...props} />;
+    case CellVariant.SelectWithMenu:
+      return (
+        <CellSelectWithMenu
+          testID={CellComponentSelectorsIDs.SELECT_WITH_MENU}
+          {...props}
+        />
+      );
     default:
       throw new Error('Invalid Cell Variant');
   }

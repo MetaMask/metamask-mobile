@@ -19,6 +19,13 @@ export function setShowCustomNonce(showCustomNonce) {
   };
 }
 
+export function setShowFiatOnTestnets(showFiatOnTestnets) {
+  return {
+    type: 'SET_SHOW_FIAT_ON_TESTNETS',
+    showFiatOnTestnets,
+  };
+}
+
 export function setHideZeroBalanceTokens(hideZeroBalanceTokens) {
   return {
     type: 'SET_HIDE_ZERO_BALANCE_TOKENS',
@@ -44,5 +51,26 @@ export function setUseBlockieIcon(useBlockieIcon) {
   return {
     type: 'SET_USE_BLOCKIE_ICON',
     useBlockieIcon,
+  };
+}
+
+export function toggleBasicFunctionality(basicFunctionalityEnabled) {
+  return {
+    type: 'TOGGLE_BASIC_FUNCTIONALITY',
+    basicFunctionalityEnabled,
+  };
+}
+
+export function toggleDeviceNotification(deviceNotificationEnabled) {
+  return {
+    type: 'TOGGLE_DEVICE_NOTIFICATIONS',
+    deviceNotificationEnabled,
+  };
+}
+
+export function setTokenSortConfig(tokenSortConfig) {
+  return {
+    type: 'SET_TOKEN_SORT_CONFIG',
+    tokenSortConfig,
   };
 }

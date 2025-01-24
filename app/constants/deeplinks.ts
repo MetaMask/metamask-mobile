@@ -22,7 +22,9 @@ export enum ACTIONS {
   CONNECT = 'connect',
   MMSDK = 'mmsdk',
   ANDROID_SDK = 'bind',
+  BUY = 'buy',
   BUY_CRYPTO = 'buy-crypto',
+  SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
   EMPTY = '',
 }
@@ -37,6 +39,8 @@ export const PREFIXES = {
   [ACTIONS.WC]: '',
   [ACTIONS.CONNECT]: '',
   [ACTIONS.ANDROID_SDK]: '',
+  [ACTIONS.BUY]: '',
+  [ACTIONS.SELL]: '',
   [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.SELL_CRYPTO]: '',
   METAMASK: 'metamask://',

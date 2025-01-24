@@ -4,8 +4,8 @@ set -e
 set -u
 set -o pipefail
 
-SCRIPT_DIRECTORY=$( cd "${BASH_SOURCE[0]%/*}" && pwd )
-PROJECT_DIRECTORY=$( cd "${SCRIPT_DIRECTORY}" && cd ../ && pwd )
+SCRIPT_DIRECTORY=$(cd "${BASH_SOURCE[0]%/*}" && pwd)
+PROJECT_DIRECTORY=$(cd "${SCRIPT_DIRECTORY}" && cd ../ && pwd)
 
 # Generate attributions
 #
@@ -23,7 +23,7 @@ main() {
   # is also broken on Yarn v1, in that it still ends up installing some
   # packages from `devDependencies`.
   local tmp="package.json_temp"
-  jq 'del(.devDependencies)' package.json > "$tmp"
+  jq 'del(.devDependencies)' package.json >"$tmp"
   mv "$tmp" package.json
 
   rm -rf "${PROJECT_DIRECTORY}/node_modules"
@@ -41,10 +41,10 @@ main() {
   cd "${PROJECT_DIRECTORY}"
   git checkout package.json
 
-  # This condition is true when this script is run in an interactive shell
-  # See https://serverfault.com/a/146747
-  if [[ $- == *i* ]]; then
-    echo "Re-run yarn setup to restore development dependencies"
+  # Check if the script is running in a CI environment (GitHub Actions sets the CI variable to true)
+  if [ -z "${CI:-}" ]; then
+    # If not running in CI, restore development dependencies
+    yarn
   fi
 }
 

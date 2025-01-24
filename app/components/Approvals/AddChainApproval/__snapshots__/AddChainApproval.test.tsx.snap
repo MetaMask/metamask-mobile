@@ -6,7 +6,7 @@ exports[`AddChainApproval renders 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "flex-start",
         "justifyContent": "center",
       }

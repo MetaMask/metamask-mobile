@@ -18,10 +18,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
 
       - name: Install dependencies
         run: yarn --immutable
+        working-directory: '.github/scripts'
 
       - name: Run fitness functions
         env:
@@ -33,3 +33,4 @@ jobs:
           # then saved to a file called "diff".
           git diff "$(git merge-base "origin/$BASE_REF" HEAD)" HEAD -- . > ./diff
           yarn run fitness-functions -- "ci" "./diff"
+        working-directory: '.github/scripts'

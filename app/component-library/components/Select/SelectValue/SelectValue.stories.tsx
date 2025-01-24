@@ -24,6 +24,8 @@ const SelectValueStoryMeta = {
 export default SelectValueStoryMeta;
 
 export const SelectValue = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <SelectValueComponent
       {...args}

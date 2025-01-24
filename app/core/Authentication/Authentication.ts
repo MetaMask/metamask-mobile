@@ -1,16 +1,12 @@
 import SecureKeychain from '../SecureKeychain';
 import Engine from '../Engine';
-import { recreateVaultWithSamePassword } from '../Vault';
 import {
-  ENCRYPTION_LIB,
-  ORIGINAL,
   EXISTING_USER,
   BIOMETRY_CHOICE_DISABLED,
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
 } from '../../constants/storage';
-import Logger from '../../util/Logger';
 import {
   authSuccess,
   authError,
@@ -19,7 +15,6 @@ import {
   passwordSet,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-import { Store } from 'redux';
 import AuthenticationError from './AuthenticationError';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
@@ -27,12 +22,15 @@ import {
   AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_TO_LOGIN,
   AUTHENTICATION_FAILED_WALLET_CREATION,
-  AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
 } from '../../constants/error';
-import AsyncStorage from '../../store/async-storage-wrapper';
+import StorageWrapper from '../../store/storage-wrapper';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
+import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
+import ReduxService from '../redux';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -44,81 +42,30 @@ export interface AuthData {
 
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
-  private store: Store | undefined = undefined;
-  private static isInitialized = false;
-
-  /**
-   * This method creates the instance of the authentication class
-   * @param {Store} store - A redux function that will dispatch global state actions
-   */
-  init(store: Store) {
-    if (!AuthenticationService.isInitialized) {
-      AuthenticationService.isInitialized = true;
-      this.store = store;
-    } else {
-      Logger.log(
-        'Attempted to call init on AuthenticationService but an instance has already been initialized',
-      );
-    }
-  }
 
   private dispatchLogin(): void {
-    if (this.store) {
-      this.store.dispatch(logIn());
-    } else {
-      Logger.log(
-        'Attempted to dispatch logIn action but dispatch was not initialized',
-      );
-    }
+    ReduxService.store.dispatch(logIn());
   }
 
   private dispatchPasswordSet(): void {
-    if (this.store) {
-      this.store.dispatch(passwordSet());
-    } else {
-      Logger.log(
-        'Attempted to dispatch passwordSet action but dispatch was not initialized',
-      );
-    }
+    ReduxService.store.dispatch(passwordSet());
   }
 
   private dispatchLogout(): void {
-    if (this.store) {
-      this.store.dispatch(logOut());
-    } else
-      Logger.log(
-        'Attempted to dispatch logOut action but dispatch was not initialized',
-      );
+    ReduxService.store.dispatch(logOut());
   }
 
   /**
    * This method recreates the vault upon login if user is new and is not using the latest encryption lib
    * @param password - password entered on login
-   * @param selectedAddress - current address pulled from persisted state
    */
-  private loginVaultCreation = async (
-    password: string,
-    selectedAddress: string,
-  ): Promise<void> => {
+  private loginVaultCreation = async (password: string): Promise<void> => {
     // Restore vault with user entered password
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await KeyringController.submitPassword(password);
-    const encryptionLib = await AsyncStorage.getItem(ENCRYPTION_LIB);
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
-    if (encryptionLib !== ORIGINAL && existingUser) {
-      try {
-        await recreateVaultWithSamePassword(password, selectedAddress);
-        await AsyncStorage.setItem(ENCRYPTION_LIB, ORIGINAL);
-      } catch (e: any) {
-        throw new AuthenticationError(
-          (e as Error).message,
-          AUTHENTICATION_LOGIN_VAULT_CREATION_FAILED,
-          this.authData,
-        );
-      }
-    }
     password = this.wipeSensitiveData();
-    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
@@ -133,6 +80,8 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<void> => {
     // Restore vault with user entered password
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     if (clearEngine) await Engine.resetState();
     await KeyringController.createNewVaultAndRestore(password, parsedSeed);
@@ -147,6 +96,8 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
@@ -168,12 +119,14 @@ class AuthenticationService {
    * @returns @AuthData
    */
   private checkAuthenticationMethod = async (): Promise<AuthData> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
 
@@ -194,7 +147,7 @@ class AuthenticationService {
         availableBiometryType,
       };
     }
-    const existingUser = await AsyncStorage.getItem(EXISTING_USER);
+    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
     if (existingUser) {
       if (await SecureKeychain.getGenericPassword()) {
         return {
@@ -213,6 +166,8 @@ class AuthenticationService {
    * Reset vault will empty password used to clear/reset vault upon errors during login/creation
    */
   resetVault = async (): Promise<void> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     // Restore vault with empty password
     await KeyringController.submitPassword('');
@@ -295,12 +250,14 @@ class AuthenticationService {
     biometryChoice: boolean,
     rememberMe: boolean,
   ): Promise<AuthData> => {
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const availableBiometryType: any =
       await SecureKeychain.getSupportedBiometryType();
-    const biometryPreviouslyDisabled = await AsyncStorage.getItem(
+    const biometryPreviouslyDisabled = await StorageWrapper.getItem(
       BIOMETRY_CHOICE_DISABLED,
     );
-    const passcodePreviouslyDisabled = await AsyncStorage.getItem(
+    const passcodePreviouslyDisabled = await StorageWrapper.getItem(
       PASSCODE_DISABLED,
     );
 
@@ -315,7 +272,7 @@ class AuthenticationService {
       };
     } else if (
       rememberMe &&
-      this.store?.getState().security.allowLoginWithRememberMe
+      ReduxService.store.getState().security.allowLoginWithRememberMe
     ) {
       return {
         currentAuthType: AUTHENTICATION_TYPE.REMEMBER_ME,
@@ -349,12 +306,14 @@ class AuthenticationService {
     try {
       await this.createWalletVaultAndKeychain(password);
       await this.storePassword(password, authData?.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -380,12 +339,14 @@ class AuthenticationService {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
       await this.storePassword(password, authData.currentAuthType);
-      await AsyncStorage.setItem(EXISTING_USER, TRUE);
-      await AsyncStorage.removeItem(SEED_PHRASE_HINTS);
+      await StorageWrapper.setItem(EXISTING_USER, TRUE);
+      await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       this.dispatchLogin();
       this.authData = authData;
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -398,23 +359,29 @@ class AuthenticationService {
 
   /**
    * Manual user password entry for login
-   * @param selectedAddress - current address pulled from persisted state
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
    */
   userEntryAuth = async (
     password: string,
     authData: AuthData,
-    selectedAddress: string,
   ): Promise<void> => {
     try {
-      await this.loginVaultCreation(password, selectedAddress);
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
+      await this.loginVaultCreation(password);
+      endTrace({ name: TraceName.VaultCreation });
+
       await this.storePassword(password, authData.currentAuthType);
       this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp(false);
+      this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_FAILED_TO_LOGIN,
@@ -426,21 +393,22 @@ class AuthenticationService {
 
   /**
    * Attempts to use biometric/pin code/remember me to login
-   * @param selectedAddress - current address pulled from persisted state
    * @param bioStateMachineId - ID associated with each biometric session.
    * @param disableAutoLogout - Boolean that determines if the function should auto-lock when error is thrown.
    */
-  appTriggeredAuth = async ({
-    selectedAddress,
-    bioStateMachineId,
-    disableAutoLogout = false,
-  }: {
-    selectedAddress: string;
-    bioStateMachineId?: string;
-    disableAutoLogout?: boolean;
-  }): Promise<void> => {
+  appTriggeredAuth = async (
+    options: {
+      bioStateMachineId?: string;
+      disableAutoLogout?: boolean;
+    } = {},
+  ): Promise<void> => {
+    const bioStateMachineId = options?.bioStateMachineId;
+    const disableAutoLogout = options?.disableAutoLogout;
     try {
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const credentials: any = await SecureKeychain.getGenericPassword();
+
       const password = credentials?.password;
       if (!password) {
         throw new AuthenticationError(
@@ -449,37 +417,47 @@ class AuthenticationService {
           this.authData,
         );
       }
-      await this.loginVaultCreation(password, selectedAddress);
+      trace({
+        name: TraceName.VaultCreation,
+        op: TraceOperation.VaultCreation,
+      });
+      await this.loginVaultCreation(password);
+      endTrace({ name: TraceName.VaultCreation });
+
       this.dispatchLogin();
-      this.store?.dispatch(authSuccess(bioStateMachineId));
+      ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.store?.dispatch(authError(bioStateMachineId));
-      !disableAutoLogout && this.lockApp(false);
+      ReduxService.store.dispatch(authError(bioStateMachineId));
+      !disableAutoLogout && this.lockApp({ reset: false });
       throw new AuthenticationError(
         (e as Error).message,
         AUTHENTICATION_APP_TRIGGERED_AUTH_ERROR,
         this.authData,
       );
     }
-    selectedAddress = this.wipeSensitiveData();
   };
 
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async (reset = true): Promise<void> => {
-    const { KeyringController }: any = Engine.context;
+  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+    const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
       await KeyringController.setLocked();
     }
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
+    NavigationService.navigation?.reset({
+      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+    });
   };
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
 }
-// eslint-disable-next-line import/prefer-default-export
+
 export const Authentication = new AuthenticationService();

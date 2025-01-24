@@ -3,8 +3,8 @@
 exports[`ExpandedMessage should render correctly 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": "70%",
@@ -15,7 +15,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
 >
   <TouchableOpacity
     style={
-      Object {
+      {
         "alignItems": "center",
         "flexDirection": "row",
         "justifyContent": "space-between",
@@ -29,16 +29,16 @@ exports[`ExpandedMessage should render correctly 1`] = `
       name="ios-arrow-back"
       size={30}
       style={
-        Object {
-          "color": "#BBC0C5",
+        {
+          "color": "#9fa6ae",
           "flex": 1,
         }
       }
     />
     <Text
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
@@ -51,7 +51,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     </Text>
     <View
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -59,7 +59,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
   </TouchableOpacity>
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "marginBottom": 20,
       }
@@ -67,7 +67,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
   >
     <Component
       style={
-        Object {
+        {
           "borderRadius": 20,
           "height": 40,
           "marginBottom": 20,
@@ -79,8 +79,8 @@ exports[`ExpandedMessage should render correctly 1`] = `
     />
     <Text
       style={
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",
@@ -95,7 +95,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
   </View>
   <ScrollView
     style={
-      Object {
+      {
         "flex": 1,
       }
     }

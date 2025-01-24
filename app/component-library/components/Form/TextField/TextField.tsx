@@ -43,6 +43,8 @@ const TextField: React.FC<TextFieldProps> = ({
   });
 
   const onBlurHandler = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDisabled) {
         setIsFocused(false);
@@ -53,6 +55,8 @@ const TextField: React.FC<TextFieldProps> = ({
   );
 
   const onFocusHandler = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDisabled) {
         setIsFocused(true);

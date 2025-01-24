@@ -3,11 +3,24 @@ import { render } from '@testing-library/react-native';
 import WebsiteIcon from './';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
+interface WebsiteIconProps {
+  style: object;
+  viewStyle: object;
+  textStyle: object;
+  title: string;
+  url: string;
+  transparent: boolean;
+  icon: string | object;
+  faviconSource: string;
+}
+
 // Mock the HOC
 jest.mock('../../hooks/useFavicon/withFaviconAwareness', () => ({
   __esModule: true,
-  default: (Component) => (props) =>
-    <Component {...props} faviconSource="mockedFaviconSource.png" />,
+  default:
+    (Component: React.ComponentType<WebsiteIconProps>) =>
+    (props: WebsiteIconProps) =>
+      <Component {...props} faviconSource="mockedFaviconSource.png" />,
 }));
 
 describe('WebsiteIcon', () => {

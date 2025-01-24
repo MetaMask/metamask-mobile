@@ -17,6 +17,13 @@ const createStyles = () =>
       flexDirection: 'row',
       alignItems: 'center',
     },
+    marginedSwitchElement: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 32,
+    },
     switch: {
       alignSelf: 'flex-end',
     },

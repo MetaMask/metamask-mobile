@@ -32,7 +32,6 @@ Feature: Settings Change Password
     When I kill the app
     And I relaunch the app
     And the app displayed the splash animation
-    And the splash animation disappears
     And I unlock wallet with <password>
     Then Wallet view is displayed
     Examples:

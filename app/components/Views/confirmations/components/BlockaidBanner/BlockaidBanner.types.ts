@@ -31,13 +31,14 @@ export enum ResultType {
 }
 
 export interface SecurityAlertResponse {
-  reason: Reason;
-  features?: (string | Record<string, string>)[];
-  result_type: ResultType;
-  providerRequestsCount?: Record<string, number>;
   block?: number;
   chainId?: string;
+  features?: (string | Record<string, string>)[];
+  providerRequestsCount?: Record<string, number>;
+  reason: Reason;
   req?: Record<string, unknown>;
+  result_type: ResultType;
+  source?: SecurityAlertSource;
 }
 
 type BlockaidBannerAllProps = BannerAlertProps & {
@@ -52,3 +53,11 @@ export type BlockaidBannerProps = Omit<BlockaidBannerAllProps, 'severity'>;
  * Style sheet input parameters.
  */
 export type BlockaidBannerStyleSheetVars = Pick<BlockaidBannerProps, 'style'>;
+
+export enum SecurityAlertSource {
+  /** Validation performed remotely using the Security Alerts API. */
+  API = 'api',
+
+  /** Validation performed locally using the PPOM. */
+  Local = 'local',
+}

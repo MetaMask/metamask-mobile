@@ -23,10 +23,9 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
-  const { hitSlop, ...listItemProps } = props;
   return (
     <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
-      <ListItem gap={gap} style={styles.listItem} {...listItemProps}>
+      <ListItem gap={gap} style={styles.listItem}>
         <Checkbox
           style={styles.checkbox}
           isChecked={isSelected}

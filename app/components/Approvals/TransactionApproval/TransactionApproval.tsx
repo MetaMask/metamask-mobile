@@ -14,6 +14,8 @@ export enum TransactionModalType {
 
 export interface TransactionApprovalProps {
   transactionType?: TransactionModalType;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   onComplete: () => void;
   QRState?: IQRState;
@@ -62,6 +64,8 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
     return (
       <QRSigningModal
         isVisible
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         QRState={props.QRState as any}
         onSuccess={onComplete}
         onCancel={onComplete}
@@ -74,5 +78,7 @@ const TransactionApprovalInternal = (props: TransactionApprovalProps) => {
 };
 
 export const TransactionApproval = withQRHardwareAwareness(
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   TransactionApprovalInternal as any,
 );

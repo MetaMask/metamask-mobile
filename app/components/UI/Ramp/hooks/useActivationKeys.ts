@@ -13,25 +13,21 @@ interface Options {
   internal?: boolean;
 }
 
-export default function useActivationKeys(
-  options: Options = {
-    provider: false,
-    internal: false,
-  },
-) {
+export default function useActivationKeys(options: Options = {}) {
+  const { internal = false, provider = false } = options;
   const dispatch = useDispatch();
   const [sdkActivationKeys, setSdkActivationKeys] = useState<string[]>(() =>
-    SDK.getActivationKeys(),
+    internal ? SDK.getActivationKeys() : [],
   );
   const deviceActivationKeys = useSelector(getActivationKeys);
   const [isLoadingKeys, setIsLoadingKeys] = useState(true);
   const [providerInitialized, setProviderInitialized] = useState(false);
 
   useEffect(() => {
-    if (!options.internal) {
+    if (!internal) {
       return;
     }
-    if (options.provider && providerInitialized) {
+    if (provider && providerInitialized) {
       return;
     }
     (async () => {
@@ -44,16 +40,11 @@ export default function useActivationKeys(
       const sdkKeys = SDK.getActivationKeys();
       setSdkActivationKeys(sdkKeys);
       setIsLoadingKeys(false);
-      if (options?.provider) {
+      if (provider) {
         setProviderInitialized(true);
       }
     })();
-  }, [
-    deviceActivationKeys,
-    options.internal,
-    options.provider,
-    providerInitialized,
-  ]);
+  }, [deviceActivationKeys, internal, provider, providerInitialized]);
 
   const activationKeys = useMemo(() => {
     const keys = deviceActivationKeys.map((activationKey) => ({
@@ -66,7 +57,7 @@ export default function useActivationKeys(
   const dispatchAddActivationKey: (
     ...args: Parameters<typeof addActivationKey>
   ) => void = useCallback(
-    (key: string) => dispatch(addActivationKey(key)),
+    (key: string, label?: string) => dispatch(addActivationKey(key, label)),
     [dispatch],
   );
 
@@ -80,8 +71,8 @@ export default function useActivationKeys(
   const dispatchUpdateActivationKey: (
     ...args: Parameters<typeof updateActivationKey>
   ) => void = useCallback(
-    (activationKey, active) =>
-      dispatch(updateActivationKey(activationKey, active)),
+    (activationKey, label, active) =>
+      dispatch(updateActivationKey(activationKey, label, active)),
     [dispatch],
   );
   return {

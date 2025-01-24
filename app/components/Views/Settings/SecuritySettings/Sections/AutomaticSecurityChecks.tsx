@@ -10,22 +10,27 @@ import { useMetrics } from '../../../../../components/hooks/useMetrics';
 
 const AutomaticSecurityChecks = () => {
   const dispatch = useDispatch();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const automaticSecurityChecksState = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (state: any) => state.security.automaticSecurityChecksEnabled,
   );
 
   const toggleAutomaticSecurityChecks = useCallback(
     (value: boolean) => {
       trackEvent(
-        value
-          ? MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS
-          : MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
-        { platform: Platform.OS },
+        createEventBuilder(
+          value
+            ? MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_ENABLED_FROM_SETTINGS
+            : MetaMetricsEvents.AUTOMATIC_SECURITY_CHECKS_DISABLED_FROM_SETTINGS,
+        )
+          .addProperties({ platform: Platform.OS })
+          .build(),
       );
       dispatch(setAutomaticSecurityChecks(value));
     },
-    [dispatch, trackEvent],
+    [dispatch, trackEvent, createEventBuilder],
   );
   return (
     <SecurityOptionToggle

@@ -3,7 +3,7 @@
  *
  * the current available stage has been defined in RPCStageTypes enum, please extend it if you need more stages.
  *
- * Some similar RPC calls will be grouped into the same event group, for example, eth_sign, personal_sign, eth_signTypedData, eth_signTypedData_v3,
+ * Some similar RPC calls will be grouped into the same event group, for example, personal_sign, eth_signTypedData, eth_signTypedData_v3,
  * eth_signTypedData_v4 will be grouped into signingEvent group so that the UI can handle all similar RPC calls in the same way. Please refer to rpcToEventGroupMap for more details.
  *
  * rpcToEventGroupMap will be also used by RPCMiddleware to check whether RPC is whitelisted to track the event stage.
@@ -17,7 +17,6 @@ import { ActionType, iEventAction } from '../../actions/rpcEvents';
  * Mapping of RPC name to supported event group name
  */
 const rpcToEventGroupMap = new Map([
-  ['eth_sign', 'signingEvent'],
   ['personal_sign', 'signingEvent'],
   ['eth_signTypedData', 'signingEvent'],
   ['eth_signTypedData_v3', 'signingEvent'],

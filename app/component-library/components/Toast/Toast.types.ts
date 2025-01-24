@@ -3,6 +3,8 @@ import { ImageSourcePropType } from 'react-native';
 
 // External Dependencies.
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
+import { ButtonProps } from '../Buttons/Button/Button.types';
+import { IconName } from '../Icons/Icon';
 
 /**
  * Toast variants.
@@ -11,6 +13,7 @@ export enum ToastVariants {
   Plain = 'Plain',
   Account = 'Account',
   Network = 'Network',
+  Icon = 'Icon',
 }
 
 /**
@@ -33,8 +36,10 @@ export interface ToastLinkButtonOptions {
  * Common toast option shared between all other options.
  */
 interface BaseToastVariants {
+  hasNoTimeout: boolean;
   labelOptions: ToastLabelOptions;
   linkButtonOptions?: ToastLinkButtonOptions;
+  closeButtonOptions?: ButtonProps;
 }
 
 /**
@@ -62,19 +67,28 @@ interface NetworkToastOption extends BaseToastVariants {
   networkImageSource: ImageSourcePropType;
 }
 
+interface IconToastOption extends BaseToastVariants {
+  variant: ToastVariants.Icon;
+  iconName: IconName;
+  iconColor?: string;
+  backgroundColor?: string;
+}
+
 /**
  * Different toast options combined in a union type.
  */
 export type ToastOptions =
   | PlainToastOption
   | AccountToastOption
-  | NetworkToastOption;
+  | NetworkToastOption
+  | IconToastOption;
 
 /**
  * Toast component reference.
  */
 export interface ToastRef {
   showToast: (toastOptions: ToastOptions) => void;
+  closeToast: () => void;
 }
 
 /**

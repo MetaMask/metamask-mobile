@@ -1,26 +1,45 @@
-import {
-  JsonRpcEngine,
+import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
+import type {
+  Json,
   JsonRpcFailure,
-  JsonRpcMiddleware,
+  JsonRpcParams,
   JsonRpcRequest,
   JsonRpcResponse,
   JsonRpcSuccess,
-} from 'json-rpc-engine';
-import type { Transaction } from '@metamask/transaction-controller';
-import type { ProviderConfig } from '@metamask/network-controller';
-import { ethErrors } from 'eth-json-rpc-errors';
+} from '@metamask/utils';
+import { type JsonRpcError, providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
-import { RPC } from '../../constants/network';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
-import AppConstants from '../AppConstants';
-import { PermissionConstraint } from '@metamask/permission-controller';
+import {
+  PermissionConstraint,
+  PermissionController,
+} from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import initialBackgroundState from '../../util/test/initial-background-state.json';
+import { backgroundState } from '../../util/test/initial-root-state';
 import { Store } from 'redux';
 import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
+import { ControllerMessenger } from '@metamask/base-controller';
+import {
+  getCaveatSpecifications,
+  getPermissionSpecifications,
+  unrestrictedMethods,
+} from '../Permissions/specifications';
+import { EthAccountType, EthMethod } from '@metamask/keyring-api';
+import {
+  processOriginThrottlingRejection,
+  validateOriginThrottling,
+} from './spam';
+import {
+  NUMBER_OF_REJECTIONS_THRESHOLD,
+  OriginThrottlingState,
+} from '../redux/slices/originThrottling';
+import { ProviderConfig } from '../../selectors/networkController';
+
+jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
   context: {
@@ -28,7 +47,6 @@ jest.mock('../Engine', () => ({
       state: {},
     },
     SignatureController: {
-      newUnsignedMessage: jest.fn(),
       newUnsignedPersonalMessage: jest.fn(),
       newUnsignedTypedMessage: jest.fn(),
     },
@@ -37,20 +55,15 @@ jest.mock('../Engine', () => ({
       getPermissions: jest.fn(),
     },
     NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
-      },
+      getNetworkClientById: () => ({
+        configuration: {
+          chainId: '0x1',
+        },
+      }),
     },
   },
 }));
-const MockEngine = Engine as Omit<typeof Engine, 'context'> & {
-  context: {
-    NetworkController: Record<string, any>;
-    PreferencesController: Record<string, any>;
-    TransactionController: Record<string, any>;
-    PermissionController: Record<string, any>;
-  };
-};
+const MockEngine = jest.mocked(Engine);
 
 jest.mock('../../util/transaction-controller', () => ({
   __esModule: true,
@@ -75,6 +88,10 @@ jest.mock('../Permissions', () => ({
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
 
+const mockProcessOriginThrottlingRejection =
+  processOriginThrottlingRejection as jest.Mock;
+const mockValidateOriginThrottling = validateOriginThrottling as jest.Mock;
+
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
  * need to use "as const" each time.
@@ -90,8 +107,8 @@ const jsonrpc = '2.0' as const;
  * @throws If the given value is not a valid {@link JsonRpcSuccess} object.
  */
 function assertIsJsonRpcSuccess(
-  response: JsonRpcResponse<unknown>,
-): asserts response is JsonRpcSuccess<unknown> {
+  response: JsonRpcResponse<Json>,
+): asserts response is JsonRpcSuccess<Json> {
   if ('error' in response) {
     throw new Error(`Response failed with error '${JSON.stringify('error')}'`);
   } else if (!('result' in response)) {
@@ -192,8 +209,8 @@ async function callMiddleware({
   middleware,
   request,
 }: {
-  middleware: JsonRpcMiddleware<unknown, unknown>;
-  request: JsonRpcRequest<unknown>;
+  middleware: JsonRpcMiddleware<JsonRpcParams, Json>;
+  request: JsonRpcRequest<JsonRpcParams>;
 }) {
   const engine = new JsonRpcEngine();
   engine.push(middleware);
@@ -216,17 +233,26 @@ function setupGlobalState({
   activeTab,
   addTransactionResult,
   permittedAccounts,
-  providerConfig,
+  selectedNetworkClientId,
+  networksMetadata,
+  networkConfigurationsByChainId,
   selectedAddress,
+  originThrottling,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
   permittedAccounts?: Record<string, string[]>;
+  selectedNetworkClientId: string;
+  networksMetadata?: Record<string, object>;
+  networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
   selectedAddress?: string;
+  originThrottling?: OriginThrottlingState;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .spyOn(store as Store<Partial<RootState>, any>, 'getState')
     .mockImplementation(() => ({
       browser: activeTab
@@ -236,13 +262,21 @@ function setupGlobalState({
         : {},
       engine: {
         backgroundState: {
-          ...initialBackgroundState,
+          ...backgroundState,
           NetworkController: {
-            providerConfig: providerConfig || {},
+            selectedNetworkClientId: selectedNetworkClientId || '',
+            networksMetadata: networksMetadata || {},
+            networkConfigurationsByChainId:
+              networkConfigurationsByChainId || {},
           },
           PreferencesController: selectedAddress ? { selectedAddress } : {},
         },
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
+      originThrottling: originThrottling || {
+        origins: {},
+      },
     }));
   mockStore.dispatch.mockImplementation((obj) => obj);
   if (addTransactionResult) {
@@ -275,10 +309,23 @@ const signatureMock = '0x1234567890';
 function setupSignature() {
   setupGlobalState({
     activeTab: 1,
-    providerConfig: {
-      chainId: '0x1',
-      type: RPC,
-      ticker: 'ETH',
+    selectedNetworkClientId: 'mainnet',
+    networksMetadata: {},
+    networkConfigurationsByChainId: {
+      '0x1': {
+        blockExplorerUrls: ['https://etherscan.com'],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Sepolia network',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'Custom',
+            url: 'https://mainnet.infura.io/v3',
+          },
+        ],
+      },
     },
     selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
@@ -293,7 +340,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
-  it('allows unrecognized methods to pass through', async () => {
+  it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
@@ -315,20 +362,94 @@ describe('getRpcMethodMiddleware', () => {
     expect(response.result).toBe('success');
   });
 
-  const accountMethods = [
-    'eth_accounts',
-    'eth_coinbase',
-    'parity_defaultAccount',
-  ];
+  describe('with permission middleware before', () => {
+    const engine = new JsonRpcEngine();
+    const controllerMessenger = new ControllerMessenger();
+    const baseEoaAccount = {
+      type: EthAccountType.Eoa,
+      options: {},
+      methods: [
+        EthMethod.PersonalSign,
+        EthMethod.SignTransaction,
+        EthMethod.SignTypedDataV1,
+        EthMethod.SignTypedDataV3,
+        EthMethod.SignTypedDataV4,
+      ],
+    };
+    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+      {
+        address: '0x1',
+        id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
+        metadata: {
+          name: 'Test Account 1',
+          lastSelected: 1,
+          keyring: {
+            type: 'HD Key Tree',
+          },
+        },
+        ...baseEoaAccount,
+      },
+    ]);
+    const permissionController = new PermissionController({
+      messenger: controllerMessenger.getRestricted({
+        name: 'PermissionController',
+        allowedActions: [],
+        allowedEvents: [],
+      }),
+      caveatSpecifications: getCaveatSpecifications({
+        getInternalAccounts: mockGetInternalAccounts,
+        findNetworkClientIdByChainId: jest.fn(),
+      }),
+      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
+      permissionSpecifications: {
+        ...getPermissionSpecifications({
+          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
+          getInternalAccounts: mockGetInternalAccounts,
+          captureKeyringTypesWithMissingIdentities: jest
+            .fn()
+            .mockImplementation(() => []),
+        }),
+      },
+      unrestrictedMethods,
+    });
+    const permissionMiddleware =
+      permissionController.createPermissionMiddleware({
+        origin: hostMock,
+      });
+    engine.push(permissionMiddleware);
+    const middleware = getRpcMethodMiddleware(getMinimalOptions());
+    engine.push(middleware);
+
+    it('returns method not found error', async () => {
+      const fakeMethodName = 'this-is-a-fake-method';
+      const response = await engine.handle({
+        jsonrpc,
+        id: 1,
+        method: fakeMethodName,
+      });
+
+      const expectedError = rpcErrors.methodNotFound(
+        `The method "${fakeMethodName}" does not exist / is not available.`,
+      );
+
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+  });
+
+  const accountMethods = ['eth_coinbase', 'parity_defaultAccount'];
   for (const method of accountMethods) {
     describe(method, () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -353,6 +474,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalBrowserOptions(),
@@ -378,6 +500,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalWalletConnectOptions(),
@@ -401,10 +524,11 @@ describe('getRpcMethodMiddleware', () => {
       describe('SDK', () => {
         it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
+          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -429,6 +553,7 @@ describe('getRpcMethodMiddleware', () => {
           setupGlobalState({
             permittedAccounts: {},
             selectedAddress: mockAddress2,
+            selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
             ...getMinimalSDKOptions(),
@@ -451,13 +576,31 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.requestPermissions
+        >
+      >[0] = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
+          mockPermission,
           {
-            eth_accounts: {
-              parentCapability: 'eth_accounts',
-              caveats: [],
-            },
+            id: 'id',
+            origin: mockOrigin,
           },
         ],
       );
@@ -478,19 +621,33 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.getPermissions
+        >
+      > = {
+        eth_accounts: {
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          parentCapability: 'eth_accounts',
+          caveats: [
+            {
+              type: 'restrictReturnedAccounts',
+              value: [addressMock],
+            },
+          ],
+        },
+      };
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
-        () => ({
-          eth_accounts: {
-            parentCapability: 'eth_accounts',
-            caveats: [],
-          },
-        }),
+        () => mockPermission,
       );
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -505,7 +662,7 @@ describe('getRpcMethodMiddleware', () => {
       const response = await callMiddleware({ middleware, request });
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([{ parentCapability: 'eth_accounts', caveats: [] }]);
+      ).toEqual([mockPermission.eth_accounts]);
     });
   });
 
@@ -520,10 +677,23 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              chainId: '0x1',
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -555,10 +725,24 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -572,14 +756,16 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.provider.userRejectedRequest();
+        const expectedError = providerErrors.userRejectedRequest();
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
 
       it('returns a JSON-RPC error if the site does not have permission to use the referenced account', async () => {
@@ -592,10 +778,24 @@ describe('getRpcMethodMiddleware', () => {
           // Note that no accounts are permitted
           permittedAccounts: {},
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Use "Ethereum Mainnet" instead of Sepolia, as chainId '0x1' refers to Mainnet
+              nativeCurrency: 'ETH',
+            },
           },
         });
         const middleware = getRpcMethodMiddleware({
@@ -609,16 +809,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -630,10 +832,23 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           permittedAccounts: { 'example.metamask.io': [mockAddress] },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              chainId: '0x1',
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -663,10 +878,24 @@ describe('getRpcMethodMiddleware', () => {
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
           permittedAccounts: { 'example.metamask.io': [] },
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Correcting to Ethereum Mainnet as per chainId '0x1'
+              nativeCurrency: 'ETH',
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -680,16 +909,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -703,10 +934,23 @@ describe('getRpcMethodMiddleware', () => {
             '70a863a4-a756-4660-8c72-dc367d02f625': [mockAddress],
           },
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              chainId: '0x1',
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia network',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+            },
           },
           selectedAddress: mockAddress,
         });
@@ -736,10 +980,24 @@ describe('getRpcMethodMiddleware', () => {
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
           // Set minimal network controller state to support validation
-          providerConfig: {
-            chainId: '0x1',
-            type: RPC,
-            ticker: 'ETH',
+          selectedNetworkClientId: 'mainnet',
+          networksMetadata: {},
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.com'],
+              defaultBlockExplorerUrlIndex: 0,
+              defaultRpcEndpointIndex: 0,
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: 'Custom',
+                  url: 'https://mainnet.infura.io/v3',
+                },
+              ],
+              name: 'Ethereum Mainnet', // Correcting to Ethereum Mainnet as per chainId '0x1'
+              nativeCurrency: 'ETH',
+            },
           },
           selectedAddress: differentMockAddress,
         });
@@ -753,16 +1011,18 @@ describe('getRpcMethodMiddleware', () => {
           method: 'eth_sendTransaction',
           params: [mockTransactionParameters],
         };
-        const expectedError = ethErrors.rpc.invalidParams({
+        const expectedError = rpcErrors.invalidParams({
           message: `Invalid parameters: must provide an Ethereum address.`,
         });
 
         const response = await callMiddleware({ middleware, request });
 
-        expect((response as JsonRpcFailure).error).toStrictEqual({
-          code: expectedError.code,
-          message: expectedError.message,
-        });
+        expect((response as JsonRpcFailure).error.code).toBe(
+          expectedError.code,
+        );
+        expect((response as JsonRpcFailure).error.message).toBe(
+          expectedError.message,
+        );
       });
     });
 
@@ -772,10 +1032,23 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         // Set minimal network controller state to support validation
-        providerConfig: {
-          chainId: '0x1',
-          type: RPC,
-          ticker: 'ETH',
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Sepolia network',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Custom',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
+          },
         },
       });
       const middleware = getRpcMethodMiddleware({
@@ -801,6 +1074,7 @@ describe('getRpcMethodMiddleware', () => {
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
         permittedAccounts: { 'example.metamask.io': [mockAddress] },
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -822,7 +1096,8 @@ describe('getRpcMethodMiddleware', () => {
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -837,7 +1112,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal('Failed to add transaction');
+      const expectedError = rpcErrors.internal('Failed to add transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -845,16 +1120,22 @@ describe('getRpcMethodMiddleware', () => {
       expect((response as JsonRpcFailure).error.message).toBe(
         expectedError.message,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause.message).toBe(
+        expectedError.message,
+      );
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
       // Omit `from` and `chainId` here to skip validation for simplicity
       // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as Transaction;
+      const mockTransactionParameters = {} as (TransactionParams &
+        JsonRpcParams)[];
       setupGlobalState({
         addTransactionResult: Promise.reject(
           new Error('Failed to process transaction'),
         ),
+        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -866,9 +1147,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'eth_sendTransaction',
         params: [mockTransactionParameters],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Failed to process transaction',
-      );
+      const expectedError = rpcErrors.internal('Failed to process transaction');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -941,9 +1220,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'personal_ecRecover',
         params: [helloWorldMessage],
       };
-      const expectedError = ethErrors.rpc.internal(
-        'Missing signature parameter',
-      );
+      const expectedError = rpcErrors.internal('Missing signature parameter');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -962,9 +1239,9 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'personal_ecRecover',
-        params: [undefined, helloWorldSignature],
+        params: [undefined, helloWorldSignature] as JsonRpcParams,
       };
-      const expectedError = ethErrors.rpc.internal('Missing data parameter');
+      const expectedError = rpcErrors.internal('Missing data parameter');
 
       const response = await callMiddleware({ middleware, request });
 
@@ -994,70 +1271,6 @@ describe('getRpcMethodMiddleware', () => {
     });
   });
 
-  describe('eth_sign', () => {
-    async function sendRequest({ data = dataMock } = {}) {
-      const { middleware } = setupSignature();
-
-      const request = {
-        jsonrpc,
-        id: 1,
-        method: 'eth_sign',
-        params: [addressMock, data],
-      };
-
-      return (await callMiddleware({ middleware, request })) as any;
-    }
-
-    beforeEach(() => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: true };
-    });
-
-    it('creates unsigned message', async () => {
-      await sendRequest();
-
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        Engine.context.SignatureController.newUnsignedMessage,
-      ).toHaveBeenCalledWith({
-        data: dataMock,
-        from: addressMock,
-        meta: expect.any(Object),
-        origin: hostMock,
-      });
-    });
-
-    it('returns resolved value from message promise', async () => {
-      Engine.context.SignatureController.newUnsignedMessage.mockResolvedValue(
-        signatureMock,
-      );
-
-      const response = await sendRequest();
-
-      expect(response.error).toBeUndefined();
-      expect(response.result).toBe(signatureMock);
-    });
-
-    it('returns error if eth_sign disabled in preferences', async () => {
-      Engine.context.PreferencesController.state.disabledRpcMethodPreferences =
-        { eth_sign: false };
-
-      const response = await sendRequest();
-
-      expect(response.error.message).toBe(
-        'eth_sign has been disabled. You must enable it in the advanced settings',
-      );
-    });
-
-    it('returns error if data is wrong length', async () => {
-      const response = await sendRequest({ data: '0x1' });
-
-      expect(response.error.message).toBe(AppConstants.ETH_SIGN_ERROR);
-    });
-  });
-
   describe('personal_sign', () => {
     async function sendRequest() {
       const { middleware } = setupSignature();
@@ -1069,10 +1282,12 @@ describe('getRpcMethodMiddleware', () => {
         params: [dataMock, addressMock],
       };
 
-      Engine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1084,12 +1299,17 @@ describe('getRpcMethodMiddleware', () => {
       ).toHaveBeenCalledTimes(1);
       expect(
         Engine.context.SignatureController.newUnsignedPersonalMessage,
-      ).toHaveBeenCalledWith({
-        data: dataMock,
-        from: addressMock,
-        meta: expect.any(Object),
-        origin: hostMock,
-      });
+      ).toHaveBeenCalledWith(
+        {
+          data: dataMock,
+          from: addressMock,
+          meta: expect.any(Object),
+          origin: hostMock,
+          requestId: 1,
+        },
+        expect.any(Object),
+        expect.any(Object),
+      );
     });
 
     it('returns resolved value from message promise', async () => {
@@ -1106,7 +1326,7 @@ describe('getRpcMethodMiddleware', () => {
     ['eth_signTypedData_v4', 'V4', true],
   ])('%s', (methodName, version, addressFirst) => {
     async function sendRequest() {
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
 
       const { middleware } = setupSignature();
 
@@ -1120,10 +1340,12 @@ describe('getRpcMethodMiddleware', () => {
         ],
       };
 
-      Engine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
         signatureMock,
       );
 
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (await callMiddleware({ middleware, request })) as any;
     }
 
@@ -1136,16 +1358,13 @@ describe('getRpcMethodMiddleware', () => {
           from: addressMock,
           meta: expect.any(Object),
           origin: hostMock,
+          requestId: 1,
         },
         expect.any(Object),
         version,
+        { parseJsonData: false },
+        expect.any(Object),
       ];
-
-      if (version !== 'V1') {
-        expectedParams.push({
-          parseJsonData: false,
-        });
-      }
 
       expect(
         Engine.context.SignatureController.newUnsignedTypedMessage,
@@ -1166,6 +1385,88 @@ describe('getRpcMethodMiddleware', () => {
       const spy = jest.spyOn(PPOMUtil, 'validateRequest');
       await sendRequest();
       expect(spy).toBeCalledTimes(1);
+    });
+  });
+
+  describe('originThrottling', () => {
+    const assumedBlockableRPCMethod = 'eth_sendTransaction';
+    const mockBlockedOrigin = 'blocked.origin';
+
+    it('blocks the request when the origin has an active spam filter for origin', async () => {
+      // Restore mock for this test
+      mockValidateOriginThrottling.mockImplementationOnce(
+        jest.requireActual('./spam').validateOriginThrottling,
+      );
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: NUMBER_OF_REJECTIONS_THRESHOLD,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      const expectedError = jest.requireActual('./spam').SPAM_FILTER_ACTIVATED;
+      expect((response as JsonRpcFailure).error.code).toBe(expectedError.code);
+      expect((response as JsonRpcFailure).error.message).toBe(
+        expectedError.message,
+      );
+    });
+
+    it('calls processOriginThrottlingRejection hook after receiving error', async () => {
+      jest.doMock('./eth_sendTransaction', () => ({
+        __esModule: true,
+        default: jest.fn(() =>
+          Promise.reject(providerErrors.userRejectedRequest()),
+        ),
+      }));
+
+      mockProcessOriginThrottlingRejection.mockClear();
+
+      setupGlobalState({
+        originThrottling: {
+          origins: {
+            [mockBlockedOrigin]: {
+              rejections: 1,
+              lastRejection: Date.now() - 1,
+            },
+          },
+        },
+        selectedNetworkClientId: 'testNetworkId', // Added to meet the required property
+      });
+
+      const middleware = getRpcMethodMiddleware(getMinimalBrowserOptions());
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: assumedBlockableRPCMethod,
+        params: [],
+        origin: mockBlockedOrigin,
+      };
+
+      await callMiddleware({ middleware, request });
+
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledTimes(1);
+      expect(mockProcessOriginThrottlingRejection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: providerErrors.userRejectedRequest(),
+        }),
+      );
     });
   });
 });

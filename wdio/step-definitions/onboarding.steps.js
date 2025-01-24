@@ -1,7 +1,6 @@
 import { Then, When } from '@wdio/cucumber-framework';
 import ImportFromSeedScreen from '../screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreateNewWalletScreen from '../screen-objects/Onboarding/CreateNewWalletScreen.js';
-import WalletMainScreen from '../screen-objects/WalletMainScreen.js';
 import MetaMetricsScreen from '../screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingScreen from '../screen-objects/Onboarding/OnboardingScreen.js';
 import WelcomeScreen from '../screen-objects/Onboarding/OnboardingCarousel.js';
@@ -45,7 +44,7 @@ When(/^I tap "([^"]*)"/, async (text) => {
       await ImportFromSeedScreen.clickImportButton();
       break;
     case 'No, Thanks':
-      await WalletMainScreen.tapNoThanks();
+      await OnboardingWizardModal.tapNoThanksButton();
       break;
     case 'https://uniswap.exchange':
       await AddressBarScreen.tapUniswapSuggestionButton();

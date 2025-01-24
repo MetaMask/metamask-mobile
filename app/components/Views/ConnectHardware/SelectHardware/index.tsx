@@ -16,7 +16,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { getLedgerKeyring } from '../../../../core/Ledger/Ledger';
 import { fontStyles } from '../../../../styles/common';
 import {
   mockTheme,
@@ -25,7 +24,10 @@ import {
 } from '../../../../util/theme';
 import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyle = (colors: any) =>
   StyleSheet.create({
     screen: { justifyContent: 'center' },
@@ -85,7 +87,7 @@ const qrHardwareLogoDark = require(qrHardwareLogoDarkImgPath);
 
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
 
@@ -105,25 +107,19 @@ const SelectHardwareWallet = () => {
   };
 
   const navigateToConnectLedger = async () => {
-    const ledgerKeyring = await getLedgerKeyring();
-    const accounts = await ledgerKeyring.getAccounts();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CONNECT_LEDGER)
+        .addProperties({
+          device_type: HardwareDeviceTypes.LEDGER,
+        })
+        .build(),
+    );
 
-    trackEvent(MetaMetricsEvents.CONNECT_LEDGER, {
-      device_type: 'Ledger',
-    });
-
-    if (accounts.length === 0) {
-      navigation.navigate(Routes.HW.CONNECT_LEDGER);
-    } else {
-      navigation.navigate(Routes.HW.LEDGER_ACCOUNT, {
-        screen: Routes.HW.LEDGER_ACCOUNT,
-        params: {
-          accounts,
-        },
-      });
-    }
+    navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const renderHardwareButton = (image: any, onPress: any) => (
     <TouchableOpacity onPress={onPress} style={styles.hardwareButton}>
       <Image style={styles.image} source={image} resizeMode={'contain'} />

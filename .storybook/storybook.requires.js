@@ -18,10 +18,24 @@ global.STORIES = [
   },
   {
     titlePrefix: "",
+    directory: "./app/component-library/base-components",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/base-components(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
     directory: "./app/component-library/components-temp/TagColored",
     files: "**/*.stories.?(ts|tsx|js|jsx)",
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/TagColored(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components-temp/KeyValueRow",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/KeyValueRow(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
 ];
 
@@ -55,8 +69,10 @@ const getStories = () => {
     "./app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarIcon/AvatarIcon.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork.stories.tsx"),
     "./app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx": require("../app/component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.stories.tsx"),
+    "./app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories.tsx": require("../app/component-library/components/Avatars/AvatarGroup/AvatarGroup.stories.tsx"),
     "./app/component-library/components/Badges/Badge/Badge.stories.tsx": require("../app/component-library/components/Badges/Badge/Badge.stories.tsx"),
     "./app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.stories.tsx"),
+    "./app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeNotifications/BadgeNotifications.stories.tsx"),
     "./app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx": require("../app/component-library/components/Badges/Badge/variants/BadgeStatus/BadgeStatus.stories.tsx"),
     "./app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx": require("../app/component-library/components/Badges/BadgeWrapper/BadgeWrapper.stories.tsx"),
     "./app/component-library/components/Banners/Banner/Banner.stories.tsx": require("../app/component-library/components/Banners/Banner/Banner.stories.tsx"),
@@ -104,7 +120,13 @@ const getStories = () => {
     "./app/component-library/components/Texts/Text/Text.stories.tsx": require("../app/component-library/components/Texts/Text/Text.stories.tsx"),
     "./app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx": require("../app/component-library/components/Texts/TextWithPrefixIcon/TextWithPrefixIcon.stories.tsx"),
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
+    "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
+    "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
+    "./app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories.tsx": require("../app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories.tsx"),
+    "./app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx": require("../app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx"),
+    "./app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx"),
+    "./app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": require("../app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx"),
   };
 };
 

@@ -2,10 +2,7 @@ import React from 'react';
 
 import BackupAlert from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
-
-const mockEngine = Engine;
 
 const initialState = {
   user: {
@@ -21,9 +18,6 @@ const mockNavigation = {
   navigate: jest.fn(),
   dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'WalletView' }] })),
 };
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockEngine.init({}),
-}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

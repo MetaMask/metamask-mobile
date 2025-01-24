@@ -31,6 +31,8 @@ const BannerAlertMeta = {
 export default BannerAlertMeta;
 
 export const BannerAlert = {
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   render: (args: any) => (
     <BannerAlertComponent
       {...args}

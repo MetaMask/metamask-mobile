@@ -1,10 +1,12 @@
+/* eslint-disable react/no-unstable-nested-components */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useState, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
   ScrollView,
   TouchableWithoutFeedback,
-  Platform,
 } from 'react-native';
 import Text from '../../../../Base/Text';
 import StyledButton from '../../../../UI/StyledButton';
@@ -30,11 +32,7 @@ import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
 import { useAppThemeFromContext, mockTheme } from '../../../../../util/theme';
 import createStyles from './styles';
 import { EditGasFee1559UpdateProps, RenderInputProps } from './types';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import {
-  EDIT_PRIORITY_SCREEN_TEST_ID,
-  MAX_PRIORITY_FEE_INPUT_TEST_ID,
-} from '../../../../../../wdio/screen-objects/testIDs/Screens/EditGasFeeScreen.testids.js';
+import { EditGasViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/EditGasView.selectors.js';
 import {
   GAS_LIMIT_INCREMENT,
   GAS_PRICE_INCREMENT as GAS_INCREMENT,
@@ -91,7 +89,7 @@ const EditGasFee1559Update = ({
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const gasTransaction = useGasTransaction({
@@ -135,12 +133,13 @@ const EditGasFee1559Update = ({
   const toggleAdvancedOptions = useCallback(() => {
     if (!showAdvancedOptions) {
       trackEvent(
-        MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED,
-        getAnalyticsParams(),
+        createEventBuilder(MetaMetricsEvents.GAS_ADVANCED_OPTIONS_CLICKED)
+          .addProperties(getAnalyticsParams())
+          .build(),
       );
     }
     setShowAdvancedOptions(!showAdvancedOptions);
-  }, [getAnalyticsParams, showAdvancedOptions, trackEvent]);
+  }, [getAnalyticsParams, showAdvancedOptions, trackEvent, createEventBuilder]);
 
   const toggleLearnMoreModal = useCallback(() => {
     setShowLearnMoreModal(!showLearnMoreModal);
@@ -154,7 +153,11 @@ const EditGasFee1559Update = ({
   );
 
   const save = useCallback(() => {
-    trackEvent(MetaMetricsEvents.GAS_FEE_CHANGED, getAnalyticsParams());
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.GAS_FEE_CHANGED)
+        .addProperties(getAnalyticsParams())
+        .build(),
+    );
 
     const newGasPriceObject = {
       suggestedMaxFeePerGas: gasObject?.suggestedMaxFeePerGas,
@@ -163,7 +166,14 @@ const EditGasFee1559Update = ({
     };
 
     onSave(gasTransaction, newGasPriceObject);
-  }, [getAnalyticsParams, onSave, gasTransaction, gasObject, trackEvent]);
+  }, [
+    getAnalyticsParams,
+    onSave,
+    gasTransaction,
+    gasObject,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const changeGas = useCallback(
     (gas, option) => {
@@ -320,6 +330,8 @@ const EditGasFee1559Update = ({
         .filter(({ name }) => !shouldIgnore(name))
         .map(({ name, label, ...option }) => ({
           name,
+          // TODO: Replace "any" with type
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           label: function LabelComponent(selected: any, disabled: any) {
             return (
               <Text bold primary={selected && !disabled}>
@@ -440,9 +452,11 @@ const EditGasFee1559Update = ({
                   increment={GAS_LIMIT_INCREMENT}
                 />
               </View>
-              <View style={styles.rangeInputContainer}>
+              <View
+                style={styles.rangeInputContainer}
+                testID={EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID}
+              >
                 <RangeInput
-                  {...generateTestId(Platform, MAX_PRIORITY_FEE_INPUT_TEST_ID)}
                   leftLabelComponent={
                     <LeftLabelComponent
                       value="edit_gas_fee_eip1559.max_priority_fee"
@@ -591,7 +605,7 @@ const EditGasFee1559Update = ({
     <View style={styles.root}>
       <ScrollView
         style={styles.wrapper}
-        {...generateTestId(Platform, EDIT_PRIORITY_SCREEN_TEST_ID)}
+        testID={EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID}
       >
         <TouchableWithoutFeedback>
           <View>
@@ -736,9 +750,7 @@ const EditGasFee1559Update = ({
                       )}
                     {modalInfo.value === 'max_fee' &&
                       strings('edit_gas_fee_eip1559.learn_more_max_fee')}
-                    {modalInfo.value === 'new_gas_fee' &&
-                    updateOption &&
-                    updateOption.isCancel
+                    {modalInfo.value === 'new_gas_fee' && updateOption?.isCancel
                       ? strings(
                           'edit_gas_fee_eip1559.learn_more_cancel_gas_fee',
                         )

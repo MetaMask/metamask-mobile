@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import Device from '../../../util/device';
@@ -36,6 +36,10 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     snapCell: {
       marginVertical: 16,
+    },
+    snapAvatar: {
+      alignSelf: 'center',
+      marginTop: 16,
     },
     snapPermissionContainer: {
       maxHeight: 300,

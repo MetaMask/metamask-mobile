@@ -3,8 +3,8 @@
 exports[`ApprovalFlowLoader should render correctly 1`] = `
 <View
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
       "minHeight": 100,
@@ -14,7 +14,7 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "marginVertical": 12,
       }
@@ -22,8 +22,8 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
   >
     <View
       style={
-        Object {
-          "borderColor": "#F2F4F6",
+        {
+          "borderColor": "#f2f4f6",
           "borderRadius": 64,
           "borderWidth": 3.5,
           "height": 36,
@@ -34,13 +34,13 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
       <View
         collapsable={false}
         style={
-          Object {
+          {
             "height": 40,
             "left": -5.5,
             "position": "relative",
             "top": -5.5,
-            "transform": Array [
-              Object {
+            "transform": [
+              {
                 "rotate": "0deg",
               },
             ],
@@ -51,18 +51,18 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
         <Text
           allowFontScaling={false}
           style={
-            Array [
-              Object {
-                "color": "#0376C9",
+            [
+              {
+                "color": "#0376c9",
                 "fontSize": 36,
               },
               undefined,
-              Object {
+              {
                 "fontFamily": "Material Design Icons",
                 "fontStyle": "normal",
                 "fontWeight": "normal",
               },
-              Object {},
+              {},
             ]
           }
         >
@@ -73,15 +73,15 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
   </View>
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
         },
-        Object {
+        {
           "textAlign": "center",
         },
         undefined,
@@ -93,8 +93,8 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
         },
         undefined,
         undefined,
@@ -107,10 +107,10 @@ exports[`ApprovalFlowLoader should render correctly 1`] = `
         undefined,
         undefined,
         undefined,
-        Object {
+        {
           "marginVertical": 0,
         },
-        Object {
+        {
           "fontSize": 13,
           "lineHeight": 20,
           "paddingHorizontal": 24,

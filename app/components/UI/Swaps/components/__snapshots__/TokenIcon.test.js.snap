@@ -6,16 +6,10 @@ exports[`TokenIcon component should Render correctly 2`] = `
 <RemoteImage
   fadeIn={true}
   onError={[Function]}
-  source={
-    Object {
-      "default": Object {
-        "uri": "MockImage",
-      },
-    }
-  }
+  source={1}
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
@@ -33,9 +27,9 @@ exports[`TokenIcon component should Render correctly 3`] = `
 <EmptyIcon>
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
@@ -56,13 +50,13 @@ exports[`TokenIcon component should Render correctly 4`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
-      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    {
+      "uri": "https://dweb.link/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
@@ -86,21 +80,15 @@ exports[`TokenIcon component should Render correctly 6`] = `
 <RemoteImage
   fadeIn={true}
   onError={[Function]}
-  source={
-    Object {
-      "default": Object {
-        "uri": "MockImage",
-      },
-    }
-  }
+  source={1}
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
-      Object {
+      {
         "borderRadius": 18,
         "height": 36,
         "width": 36,
@@ -119,15 +107,15 @@ exports[`TokenIcon component should Render correctly 7`] = `
 >
   <Text
     style={
-      Array [
-        Object {
-          "color": "#24272A",
+      [
+        {
+          "color": "#141618",
           "fontSize": 16,
           "textAlign": "center",
           "textAlignVertical": "center",
         },
-        Object {
-          "color": "#24272A",
+        {
+          "color": "#141618",
           "fontSize": 22,
         },
         undefined,
@@ -145,18 +133,18 @@ exports[`TokenIcon component should Render correctly 8`] = `
   fadeIn={true}
   onError={[Function]}
   source={
-    Object {
-      "uri": "https://cloudflare-ipfs.com/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
+    {
+      "uri": "https://dweb.link/ipfs/QmNYVMm3iC7HEoxfvxsZbRoapdjDHj9EREFac4BPeVphSJ",
     }
   }
   style={
-    Array [
-      Object {
+    [
+      {
         "borderRadius": 12,
         "height": 24,
         "width": 24,
       },
-      Object {
+      {
         "borderRadius": 18,
         "height": 36,
         "width": 36,

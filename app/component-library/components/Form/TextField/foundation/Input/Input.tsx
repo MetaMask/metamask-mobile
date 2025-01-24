@@ -21,7 +21,7 @@ const Input: React.FC<InputProps> = ({
   isReadonly = false,
   onBlur,
   onFocus,
-  autoFocus = false,
+  autoFocus = true,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
@@ -35,6 +35,8 @@ const Input: React.FC<InputProps> = ({
   });
 
   const onBlurHandler = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDisabled) {
         setIsFocused(false);
@@ -45,6 +47,8 @@ const Input: React.FC<InputProps> = ({
   );
 
   const onFocusHandler = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (e: any) => {
       if (!isDisabled) {
         setIsFocused(true);
@@ -60,7 +64,7 @@ const Input: React.FC<InputProps> = ({
       {...props}
       style={styles.base}
       editable={!isDisabled && !isReadonly}
-      autoFocus
+      autoFocus={autoFocus}
       onBlur={onBlurHandler}
       onFocus={onFocusHandler}
     />

@@ -40,6 +40,9 @@ const styleSheet = (params: {
       marginHorizontal: 8,
       flexShrink: 1,
     },
+    networkIconContainer: {
+      marginRight: 8,
+    },
   });
 };
 

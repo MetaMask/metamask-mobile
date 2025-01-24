@@ -6,12 +6,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import { useSelector } from 'react-redux';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
-import type { NetworkState } from '@metamask/network-controller';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import Feather from 'react-native-vector-icons/Feather';
 import Box from './Box';
-import Text from '../../../Base/Text';
-import BaseListItem from '../../../Base/ListItem';
 import { toDateFormat } from '../../../../util/date';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -28,14 +27,25 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
-import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  selectNetworkConfigurations,
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
+import ListItem from '../../../../component-library/components/List/ListItem';
+import ListItemColumn, {
+  WidthType,
+} from '../../../../component-library/components/List/ListItemColumn';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
+import ListItemColumnEnd from './ListItemColumnEnd';
 
 /* eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const failedIcon = require('./images/TransactionIcon_Failed.png');
 
-// TODO: Convert into typescript and correctly type optionals
-const ListItem = BaseListItem as any;
-
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     stage: {
@@ -55,6 +65,7 @@ const createStyles = (colors: any) =>
     },
     tokenAmount: {
       fontSize: 24,
+      lineHeight: 32,
     },
     flexZero: {
       flex: 0,
@@ -65,14 +76,22 @@ const createStyles = (colors: any) =>
     group: {
       marginVertical: 8,
     },
+    textCenter: {
+      textAlign: 'center',
+    },
+    textRight: {
+      textAlign: 'right',
+    },
+    underline: {
+      textDecorationLine: 'underline',
+    },
+    listItem: {
+      paddingVertical: 0,
+    },
   });
 
 interface PropsStage {
-  stage: FiatOrder['state'];
-  pendingDescription?: string;
-  cryptocurrency?: string;
-  providerName?: string;
-  orderType?: OrderOrderTypeEnum;
+  order: FiatOrder;
   isTransacted: boolean;
 }
 
@@ -87,17 +106,12 @@ const Group: React.FC = (props) => {
   return <View style={styles.group} {...props} />;
 };
 
-const Stage: React.FC<PropsStage> = ({
-  stage,
-  pendingDescription,
-  cryptocurrency,
-  providerName,
-  orderType,
-  isTransacted,
-}: PropsStage) => {
+const Stage: React.FC<PropsStage> = ({ order, isTransacted }: PropsStage) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  switch (stage) {
+  const orderData = order.data as Order;
+
+  switch (order.state) {
     case FIAT_ORDER_STATES.COMPLETED: {
       return (
         <View style={styles.stage}>
@@ -107,25 +121,18 @@ const Stage: React.FC<PropsStage> = ({
             color={colors.success.default}
           />
           <Group>
-            <Text bold big primary centered>
+            <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
               {strings('fiat_on_ramp_aggregator.order_details.successful')}
             </Text>
-            {orderType === OrderOrderTypeEnum.Buy ? (
-              <Text small centered grey>
-                {strings('fiat_on_ramp_aggregator.order_details.your')}{' '}
-                {cryptocurrency ||
-                  strings('fiat_on_ramp_aggregator.order_details.crypto')}{' '}
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.available_in_account',
-                )}
+            {orderData.statusDescription ? (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.textCenter}
+              >
+                {orderData.statusDescription}
               </Text>
-            ) : (
-              <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.delayed_bank_transfer',
-                )}
-              </Text>
-            )}
+            ) : null}
           </Group>
         </View>
       );
@@ -136,23 +143,21 @@ const Stage: React.FC<PropsStage> = ({
         <View style={styles.stage}>
           <Image source={failedIcon} />
           <Group>
-            <Text bold big primary centered>
-              {stage === 'FAILED'
+            <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
+              {order.state === 'FAILED'
                 ? strings('fiat_on_ramp_aggregator.order_details.failed')
                 : strings('fiat_on_ramp_aggregator.order_details.cancelled')}
             </Text>
-            <Text small centered grey>
-              {strings(
-                'fiat_on_ramp_aggregator.order_details.failed_description',
-                {
-                  provider:
-                    providerName ||
-                    strings(
-                      'fiat_on_ramp_aggregator.order_details.the_provider',
-                    ),
-                },
-              )}
-            </Text>
+
+            {orderData.statusDescription ? (
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.textCenter}
+              >
+                {orderData.statusDescription}
+              </Text>
+            ) : null}
           </Group>
         </View>
       );
@@ -162,26 +167,31 @@ const Stage: React.FC<PropsStage> = ({
         <View style={styles.stage}>
           <Spinner />
           <Group>
-            <Text bold big primary centered>
+            <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
               {strings(
                 isTransacted
                   ? 'transaction.submitted'
                   : 'fiat_on_ramp_aggregator.order_details.pending',
               )}
             </Text>
-            {isTransacted ? (
-              pendingDescription ? (
-                <Text small centered grey>
-                  {pendingDescription}
-                </Text>
-              ) : null
-            ) : (
-              <Text small centered grey>
-                {strings(
-                  'fiat_on_ramp_aggregator.order_details.continue_order_description',
-                )}
+            {isTransacted && Boolean(orderData.timeDescriptionPending) ? (
+              <Text
+                variant={TextVariant.BodySM}
+                style={styles.textCenter}
+                color={TextColor.Alternative}
+              >
+                {orderData.timeDescriptionPending}
               </Text>
-            )}
+            ) : null}
+            {!isTransacted && Boolean(orderData.statusDescription) ? (
+              <Text
+                variant={TextVariant.BodySM}
+                style={styles.textCenter}
+                color={TextColor.Alternative}
+              >
+                {orderData.statusDescription}
+              </Text>
+            ) : null}
           </Group>
         </View>
       );
@@ -192,15 +202,19 @@ const Stage: React.FC<PropsStage> = ({
         <View style={styles.stage}>
           <Spinner />
           <Group>
-            <Text bold big primary centered>
-              {stage === FIAT_ORDER_STATES.PENDING
+            <Text variant={TextVariant.BodyLGMedium} style={styles.textCenter}>
+              {order.state === FIAT_ORDER_STATES.PENDING
                 ? strings('fiat_on_ramp_aggregator.order_details.processing')
                 : strings('transaction.submitted')}
             </Text>
 
-            {pendingDescription ? (
-              <Text small centered grey>
-                {pendingDescription}
+            {orderData.statusDescription ? (
+              <Text
+                variant={TextVariant.BodySM}
+                style={styles.textCenter}
+                color={TextColor.Alternative}
+              >
+                {orderData.statusDescription}
               </Text>
             ) : null}
           </Group>
@@ -215,24 +229,11 @@ interface Props {
    * Object that represents the current route info like params passed to it
    */
   order: FiatOrder;
-  /**
-   * Current network provider configuration
-   */
-  providerConfig: NetworkState['providerConfig'];
-  /**
-   * Network configurations
-   */
-  networkConfigurations: NetworkState['networkConfigurations'];
 }
 
-const OrderDetails: React.FC<Props> = ({
-  order,
-  providerConfig,
-  networkConfigurations,
-}: Props) => {
+const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   const {
     data,
-    state,
     createdAt,
     amount,
     cryptoFee,
@@ -244,6 +245,8 @@ const OrderDetails: React.FC<Props> = ({
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
+  const providerConfig = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const explorer = useBlockExplorer(providerConfig, networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
@@ -289,25 +292,32 @@ const OrderDetails: React.FC<Props> = ({
   return (
     <View>
       <Group>
-        <Stage
-          stage={state}
-          pendingDescription={orderData?.timeDescriptionPending}
-          cryptocurrency={cryptocurrency}
-          providerName={providerName}
-          orderType={order.orderType}
-          isTransacted={Boolean(order.sellTxHash)}
-        />
+        <Stage order={order} isTransacted={Boolean(order.sellTxHash)} />
         <Group>
-          <Text bold centered primary style={styles.tokenAmount}>
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            style={{
+              ...styles.tokenAmount,
+              ...styles.textCenter,
+            }}
+          >
             {renderAmount} {cryptocurrency}
           </Text>
           {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
-            <Text centered small grey>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.textCenter}
+            >
               {currencySymbol}
               {renderFiat(amountOut, currency, orderData.fiatCurrency.decimals)}
             </Text>
           ) : (
-            <Text centered small grey>
+            <Text
+              variant={TextVariant.BodySM}
+              color={TextColor.Alternative}
+              style={styles.textCenter}
+            >
               ... {currency}
             </Text>
           )}
@@ -318,7 +328,11 @@ const OrderDetails: React.FC<Props> = ({
             <TouchableOpacity
               onPress={() => handleProviderLinkPress(orderLink as string)}
             >
-              <Text small centered link>
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Primary}
+                style={styles.textCenter}
+              >
                 {strings(
                   'fiat_on_ramp_aggregator.order_details.view_order_status',
                   { provider: providerName },
@@ -329,99 +343,99 @@ const OrderDetails: React.FC<Props> = ({
         )}
       </Group>
       <Group>
-        <Box thin>
+        <Box thin compact>
           <Row>
             <Account address={order.account} transparent />
           </Row>
           <Row>
-            <ListItem.Content>
-              <ListItem.Body style={styles.transactionIdFlex}>
-                <Text black small>
+            <ListItem style={styles.listItem}>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
                   {strings('fiat_on_ramp_aggregator.order_details.id')}
                 </Text>
-              </ListItem.Body>
-              <ListItem.Amounts style={styles.transactionIdFlex}>
-                <Text small bold primary right selectable>
+              </ListItemColumn>
+              <ListItemColumn>
+                <Text variant={TextVariant.BodySMBold} selectable>
                   {orderData?.providerOrderId}
                 </Text>
-              </ListItem.Amounts>
-            </ListItem.Content>
+              </ListItemColumn>
+            </ListItem>
           </Row>
           {Boolean(date) && (
             <Row>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <Text black small>
+              <ListItem style={styles.listItem}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodySM}>
                     {strings(
                       'fiat_on_ramp_aggregator.order_details.date_and_time',
                     )}
                   </Text>
-                </ListItem.Body>
-                <ListItem.Amounts>
-                  <Text small bold primary>
-                    {date}
-                  </Text>
-                </ListItem.Amounts>
-              </ListItem.Content>
+                </ListItemColumn>
+                <ListItemColumn>
+                  <Text variant={TextVariant.BodySMBold}>{date}</Text>
+                </ListItemColumn>
+              </ListItem>
             </Row>
           )}
           {Boolean(orderData?.paymentMethod?.name) && (
-            <ListItem.Content>
-              <ListItem.Body>
-                <Text black small>
+            <ListItem style={styles.listItem}>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
                   {strings(
                     order.orderType === OrderOrderTypeEnum.Buy
                       ? 'fiat_on_ramp_aggregator.order_details.payment_method'
                       : 'fiat_on_ramp_aggregator.order_details.destination',
                   )}
                 </Text>
-              </ListItem.Body>
-              <ListItem.Amounts>
-                <Text small bold primary>
+              </ListItemColumn>
+              <ListItemColumn>
+                <Text variant={TextVariant.BodySMBold}>
                   {orderData.paymentMethod.name}
                 </Text>
-              </ListItem.Amounts>
-            </ListItem.Content>
+              </ListItemColumn>
+            </ListItem>
           )}
           {Boolean(order.provider) && (
-            <Text small right grey>
-              {providerName}
-              {supportLinkUrl ? (
-                <>
-                  {' '}
-                  •{' '}
-                  <Text
-                    small
-                    right
-                    underline
-                    grey
-                    onPress={() =>
-                      handleExplorerLinkPress(supportLinkUrl as string)
-                    }
-                  >
-                    {strings(
-                      'fiat_on_ramp_aggregator.order_details.contact_support',
-                    )}
-                  </Text>
-                </>
-              ) : null}
-            </Text>
+            <ListItem style={styles.listItem}>
+              <ListItemColumnEnd widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
+                  {providerName}
+                  {supportLinkUrl ? (
+                    <>
+                      {' '}
+                      •{' '}
+                      <Text
+                        variant={TextVariant.BodySM}
+                        style={styles.underline}
+                        onPress={() =>
+                          handleExplorerLinkPress(supportLinkUrl as string)
+                        }
+                      >
+                        {strings(
+                          'fiat_on_ramp_aggregator.order_details.contact_support',
+                        )}
+                      </Text>
+                    </>
+                  ) : null}
+                </Text>
+              </ListItemColumnEnd>
+            </ListItem>
           )}
           <Row>
-            <ListItem.Content>
-              <ListItem.Body>
-                <Text black small>
+            <ListItem style={styles.listItem}>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
                   {strings(
                     order.orderType === OrderOrderTypeEnum.Buy
                       ? 'fiat_on_ramp_aggregator.order_details.token_amount'
                       : 'fiat_on_ramp_aggregator.order_details.token_quantity_sold',
                   )}
                 </Text>
-              </ListItem.Body>
-              <ListItem.Amounts>
+              </ListItemColumn>
+              <ListItemColumn>
                 {cryptoAmount &&
                 orderData?.cryptoCurrency?.decimals !== undefined ? (
-                  <Text small bold primary>
+                  <Text variant={TextVariant.BodySMBold}>
                     {renderFromTokenMinimalUnit(
                       toTokenMinimalUnit(
                         cryptoAmount,
@@ -432,39 +446,39 @@ const OrderDetails: React.FC<Props> = ({
                     {cryptocurrency}
                   </Text>
                 ) : (
-                  <Text>...</Text>
+                  <Text variant={TextVariant.BodySMBold}>...</Text>
                 )}
-              </ListItem.Amounts>
-            </ListItem.Content>
+              </ListItemColumn>
+            </ListItem>
           </Row>
           <Group>
             <Row>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <Text black small>
+              <ListItem style={styles.listItem}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodySM}>
                     {strings(
                       'fiat_on_ramp_aggregator.order_details.exchange_rate',
                     )}
                   </Text>
-                </ListItem.Body>
-                <ListItem.Amounts style={styles.flexZero}>
+                </ListItemColumn>
+                <ListItemColumn style={styles.flexZero}>
                   {order.cryptocurrency &&
                   isFinite(exchangeRate) &&
                   currency ? (
-                    <Text small bold primary>
+                    <Text variant={TextVariant.BodySMBold}>
                       1 {order.cryptocurrency} @{' '}
                       {renderFiat(exchangeRate, currency)}
                     </Text>
                   ) : (
-                    <Text>...</Text>
+                    <Text variant={TextVariant.BodySMBold}>...</Text>
                   )}
-                </ListItem.Amounts>
-              </ListItem.Content>
+                </ListItemColumn>
+              </ListItem>
             </Row>
             <Row>
-              <ListItem.Content>
-                <ListItem.Body>
-                  <Text black small>
+              <ListItem style={styles.listItem}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodySM}>
                     {currency}{' '}
                     {strings(
                       order.orderType === OrderOrderTypeEnum.Buy
@@ -472,12 +486,12 @@ const OrderDetails: React.FC<Props> = ({
                         : 'fiat_on_ramp_aggregator.order_details.value',
                     )}
                   </Text>
-                </ListItem.Body>
-                <ListItem.Amounts>
+                </ListItemColumn>
+                <ListItemColumn>
                   {orderData?.fiatCurrency?.decimals !== undefined &&
                   amountOut &&
                   currency ? (
-                    <Text small bold primary>
+                    <Text variant={TextVariant.BodySMBold}>
                       {currencySymbol}
                       {renderFiat(
                         order.orderType === OrderOrderTypeEnum.Buy
@@ -488,24 +502,24 @@ const OrderDetails: React.FC<Props> = ({
                       )}
                     </Text>
                   ) : (
-                    <Text>...</Text>
+                    <Text variant={TextVariant.BodySMBold}>...</Text>
                   )}
-                </ListItem.Amounts>
-              </ListItem.Content>
+                </ListItemColumn>
+              </ListItem>
             </Row>
           </Group>
           <Row>
-            <ListItem.Content>
-              <ListItem.Body>
-                <Text black small>
+            <ListItem style={styles.listItem}>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
                   {strings('fiat_on_ramp_aggregator.order_details.total_fees')}
                 </Text>
-              </ListItem.Body>
-              <ListItem.Amounts>
+              </ListItemColumn>
+              <ListItemColumn>
                 {cryptoFee &&
                 currency &&
                 orderData?.fiatCurrency?.decimals !== undefined ? (
-                  <Text small bold primary>
+                  <Text variant={TextVariant.BodySMBold}>
                     {currencySymbol}
                     {renderFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
@@ -516,30 +530,30 @@ const OrderDetails: React.FC<Props> = ({
                     )}
                   </Text>
                 ) : (
-                  <Text>...</Text>
+                  <Text variant={TextVariant.BodySMBold}>...</Text>
                 )}
-              </ListItem.Amounts>
-            </ListItem.Content>
+              </ListItemColumn>
+            </ListItem>
           </Row>
 
           <View style={styles.line} />
           <Row>
-            <ListItem.Content>
-              <ListItem.Body>
-                <Text black small>
+            <ListItem style={styles.listItem}>
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodySM}>
                   {strings(
                     order.orderType === OrderOrderTypeEnum.Buy
                       ? 'fiat_on_ramp_aggregator.order_details.purchase_amount'
                       : 'fiat_on_ramp_aggregator.order_details.amount_received_total',
                   )}
                 </Text>
-              </ListItem.Body>
-              <ListItem.Amounts>
+              </ListItemColumn>
+              <ListItemColumn>
                 {currencySymbol &&
                 amount &&
                 currency &&
                 orderData?.fiatCurrency?.decimals !== undefined ? (
-                  <Text small bold primary>
+                  <Text variant={TextVariant.BodySMBold}>
                     {currencySymbol}
                     {renderFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
@@ -550,17 +564,21 @@ const OrderDetails: React.FC<Props> = ({
                     )}
                   </Text>
                 ) : (
-                  <Text>...</Text>
+                  <Text variant={TextVariant.BodySMBold}>...</Text>
                 )}
-              </ListItem.Amounts>
-            </ListItem.Content>
+              </ListItemColumn>
+            </ListItem>
           </Row>
           {Boolean(order.state === OrderStatusEnum.Completed && txHash) && (
             <Group>
               <TouchableOpacity
                 onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
               >
-                <Text blue small centered>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Primary}
+                  style={styles.textCenter}
+                >
                   {strings('fiat_on_ramp_aggregator.order_details.etherscan')}{' '}
                   {explorer.isValid
                     ? explorer.name

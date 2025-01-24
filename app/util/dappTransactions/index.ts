@@ -10,7 +10,7 @@ import { estimateGas as controllerEstimateGas } from '../transaction-controller'
 
 interface opts {
   amount?: string;
-  data?: any;
+  data?: string;
   to?: string;
 }
 
@@ -28,6 +28,7 @@ interface Transaction {
   gas: BN;
   gasPrice: BN;
   id: string;
+  networkClientId: string;
   nonce: string | undefined;
   origin: string;
   paymentRequest: boolean | undefined;
@@ -54,7 +55,6 @@ interface Transaction {
 
 interface EstimatedGas {
   gas: string;
-  gasPrice: string | undefined;
 }
 
 /**
@@ -63,26 +63,30 @@ interface EstimatedGas {
  * @param {object} opts - Object containing optional attributes object to calculate gas with (amount, data and to)
  * @returns {object} - Object containing gas estimation
  */
+
 export const estimateGas = async (
   opts: opts,
   transaction: Transaction,
 ): Promise<EstimatedGas> => {
-  const { from, selectedAsset } = transaction;
+  const { from, networkClientId, selectedAsset } = transaction;
   const {
     amount = transaction.value,
     data = transaction.data,
     to = transaction.to,
   } = opts;
+
   let estimation;
   try {
     estimation = await controllerEstimateGas({
-      amount,
+      value: amount,
       from,
       data,
       to: selectedAsset?.address ? selectedAsset.address : to,
-    });
+    }, networkClientId);
   } catch (e) {
-    estimation = { gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT };
+    estimation = {
+      gas: TransactionTypes.CUSTOM_GAS.DEFAULT_GAS_LIMIT,
+    };
   }
   return estimation;
 };
@@ -143,14 +147,14 @@ export const validateTokenAmount = async (
     }
     // If user trying to send a token that doesn't own, validate balance querying contract
     // If it fails, skip validation
-    let contractBalanceForAddress;
+    let contractBalanceForAddress: BN | undefined | number;
     if (selectedAddress === from && contractBalances[selectedAsset.address]) {
       contractBalanceForAddress = hexToBN(
         contractBalances[selectedAsset.address].toString(),
       );
     } else {
       try {
-        const { AssetsContractController }: any = Engine.context;
+        const { AssetsContractController } = Engine.context;
         contractBalanceForAddress =
           await AssetsContractController.getERC20BalanceOf(
             selectedAsset.address,
@@ -163,7 +167,10 @@ export const validateTokenAmount = async (
     if (value && !isBN(value)) return strings('transaction.invalid_amount');
     const validateAssetAmount =
       contractBalanceForAddress &&
-      lt(contractBalanceForAddress, value as unknown as number);
+      lt(
+        contractBalanceForAddress as unknown as number,
+        value as unknown as number,
+      );
     if (validateAssetAmount) return strings('transaction.insufficient');
   }
 };
@@ -173,7 +180,7 @@ export const validateCollectibleOwnership = async (
   tokenId: string,
   selectedAddress: string,
 ): Promise<string | undefined> => {
-  const { AssetsContractController }: any = Engine.context;
+  const { AssetsContractController } = Engine.context;
 
   try {
     const owner = await AssetsContractController.getERC721OwnerOf(

@@ -121,7 +121,7 @@ const createStyles = (theme) =>
       height: 4,
       width: '100%',
       borderRadius: 2,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white,
     },
     seekbarPermanentFill: {
       width: '100%',
@@ -137,7 +137,7 @@ const createStyles = (theme) =>
       top: 14,
       height: 14,
       width: 14,
-      backgroundColor: theme.brandColors.white['000'],
+      backgroundColor: theme.brandColors.white,
     },
     actionButton: {
       width: 44,
@@ -150,7 +150,7 @@ const createStyles = (theme) =>
       marginHorizontal: 8,
     },
     actionButtons: {
-      color: theme.brandColors.white['000'],
+      color: theme.brandColors.white,
     },
   });
 

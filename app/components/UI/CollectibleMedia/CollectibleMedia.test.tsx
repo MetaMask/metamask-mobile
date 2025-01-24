@@ -1,13 +1,25 @@
 import React from 'react';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 import CollectibleMedia from './CollectibleMedia';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { mockNetworkState } from '../../../util/test/network';
 
 const mockInitialState = {
   engine: {
-    backgroundState: initialBackgroundState,
+    backgroundState: {
+      ...backgroundState,
+      NetworkController: {
+        ...mockNetworkState({
+          chainId: CHAIN_IDS.MAINNET,
+          id: 'mainnet',
+          nickname: 'Ethereum Mainnet',
+          ticker: 'ETH',
+        }),
+      },
+    },
   },
 };
 
@@ -35,11 +47,13 @@ describe('CollectibleMedia', () => {
           name: 'NAME',
           image: 'IMAGE',
           imagePreview: 'IMAGE',
-          tokenId: 123,
+          tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
           tokenURI:
             'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
+          description: '123',
+          standard: 'ERC721',
         }}
       />,
       { state: mockInitialState },
@@ -54,11 +68,13 @@ describe('CollectibleMedia', () => {
           name: 'NAME',
           image: 'https://',
           imagePreview: 'https://',
-          tokenId: 123,
+          tokenId: '123',
           address: '0x123',
           backgroundColor: 'red',
           tokenURI:
             'ipfs://QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7QmXt7k3uoihWSyzduXErHFGTTQ3a9rnokzw9s4ywKXKsA7',
+          description: '123',
+          standard: 'ERC721',
         }}
       />,
       { state: mockInitialState },

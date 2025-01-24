@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`CustomNonceModal should render correctly 1`] = `
+exports[`CustomNonceModal renders correctly 1`] = `
 <ReactNativeModal
   animationIn="slideInUp"
   animationInTiming={600}
@@ -18,13 +18,13 @@ exports[`CustomNonceModal should render correctly 1`] = `
   hasBackdrop={true}
   hideModalContentWhileAnimating={false}
   isVisible={true}
-  onBackButtonPress={[Function]}
-  onBackdropPress={[Function]}
+  onBackButtonPress={[MockFunction]}
+  onBackdropPress={[MockFunction]}
   onModalHide={[Function]}
   onModalShow={[Function]}
   onModalWillHide={[Function]}
   onModalWillShow={[Function]}
-  onSwipeComplete={[Function]}
+  onSwipeComplete={[MockFunction]}
   panResponderThreshold={4}
   propagateSwipe={true}
   scrollHorizontal={false}
@@ -33,13 +33,13 @@ exports[`CustomNonceModal should render correctly 1`] = `
   scrollTo={null}
   statusBarTranslucent={false}
   style={
-    Object {
+    {
       "justifyContent": "flex-end",
       "margin": 0,
     }
   }
   supportedOrientations={
-    Array [
+    [
       "portrait",
       "landscape",
     ]
@@ -50,7 +50,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
 >
   <KeyboardAwareScrollView
     contentContainerStyle={
-      Object {
+      {
         "flex": 1,
         "justifyContent": "flex-end",
       }
@@ -65,8 +65,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
   >
     <RCTSafeAreaView
       style={
-        Object {
-          "backgroundColor": "#FFFFFF",
+        {
+          "backgroundColor": "#ffffff",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "minHeight": 200,
@@ -76,7 +76,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
       <ModalDragger />
       <View
         style={
-          Object {
+          {
             "margin": 24,
           }
         }
@@ -85,8 +85,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
           bold={true}
           centered={true}
           style={
-            Object {
-              "color": "#24272A",
+            {
+              "color": "#141618",
               "fontSize": 14,
             }
           }
@@ -95,7 +95,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "center",
               "display": "flex",
@@ -114,12 +114,12 @@ exports[`CustomNonceModal should render correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="26"
-            placeholderTextColor="#BBC0C5"
+            placeholderTextColor="#9fa6ae"
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
-              Object {
-                "color": "#24272A",
+              {
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -128,14 +128,14 @@ exports[`CustomNonceModal should render correctly 1`] = `
                 "width": 80,
               }
             }
-            value="28"
+            value="26"
           />
         </View>
         <Text
           centered={true}
           style={
-            Object {
-              "color": "#535A61",
+            {
+              "color": "#6a737d",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -151,7 +151,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </Text>
         <View
           style={
-            Object {
+            {
               "alignItems": "center",
               "alignSelf": "center",
               "display": "flex",
@@ -162,18 +162,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <TouchableOpacity
             onPress={[Function]}
             style={
-              Object {
+              {
                 "padding": 4,
               }
             }
+            testID="decrement-nonce"
           >
             <Icon
               allowFontScaling={false}
               name="minus"
               size={64}
               style={
-                Object {
-                  "color": "#0376C9",
+                {
+                  "color": "#0376c9",
                 }
               }
             />
@@ -181,18 +182,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
           <TouchableOpacity
             onPress={[Function]}
             style={
-              Object {
+              {
                 "padding": 4,
               }
             }
+            testID="increment-nonce"
           >
             <Icon
               allowFontScaling={false}
               name="plus"
               size={64}
               style={
-                Object {
-                  "color": "#0376C9",
+                {
+                  "color": "#0376c9",
                 }
               }
             />
@@ -200,58 +202,16 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </View>
         <View
           style={
-            Object {
+            {
               "height": 240,
             }
           }
         >
-          <View
-            style={
-              Object {
-                "backgroundColor": "#BF520819",
-                "borderColor": "#BF5208",
-                "borderRadius": 8,
-                "borderWidth": 1,
-                "display": "flex",
-                "flexDirection": "row",
-                "marginBottom": 16,
-                "marginTop": 10,
-                "padding": 16,
-              }
-            }
-          >
-            <Icon
-              allowFontScaling={false}
-              color="#BF5208"
-              name="exclamation-circle"
-              size={16}
-              style={
-                Object {
-                  "flex": 0,
-                  "marginTop": 6,
-                  "paddingRight": 14,
-                }
-              }
-            />
-            <Text
-              style={
-                Object {
-                  "color": "#24272A",
-                  "flex": 1,
-                  "fontSize": 12,
-                  "lineHeight": 16,
-                  "width": "100%",
-                }
-              }
-            >
-              Warning: You may encounter issues with future transactions if you continue. Use with caution.
-            </Text>
-          </View>
           <Text
             bold={true}
             style={
-              Object {
-                "color": "#24272A",
+              {
+                "color": "#141618",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -262,8 +222,8 @@ exports[`CustomNonceModal should render correctly 1`] = `
           </Text>
           <Text
             style={
-              Object {
-                "color": "#24272A",
+              {
+                "color": "#141618",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -276,7 +236,7 @@ exports[`CustomNonceModal should render correctly 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "flexDirection": "row",
             "marginBottom": 15,
           }
@@ -284,19 +244,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
       >
         <StyledButton
           containerStyle={
-            Object {
+            {
               "flex": 1,
               "marginHorizontal": 8,
             }
           }
           disabledContainerStyle={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
-          onPress={[Function]}
+          onPress={[MockFunction]}
           styleDisabled={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
@@ -306,19 +266,19 @@ exports[`CustomNonceModal should render correctly 1`] = `
         </StyledButton>
         <StyledButton
           containerStyle={
-            Object {
+            {
               "flex": 1,
               "marginHorizontal": 8,
             }
           }
           disabledContainerStyle={
-            Object {
+            {
               "opacity": 0.6,
             }
           }
           onPress={[Function]}
           styleDisabled={
-            Object {
+            {
               "opacity": 0.6,
             }
           }

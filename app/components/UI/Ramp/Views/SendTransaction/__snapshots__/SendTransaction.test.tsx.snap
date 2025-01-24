@@ -3,7 +3,7 @@
 exports[`SendTransaction View renders correctly 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -11,8 +11,8 @@ exports[`SendTransaction View renders correctly 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -23,7 +23,7 @@ exports[`SendTransaction View renders correctly 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -39,7 +39,7 @@ exports[`SendTransaction View renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -53,13 +53,13 @@ exports[`SendTransaction View renders correctly 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -73,7 +73,7 @@ exports[`SendTransaction View renders correctly 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -85,7 +85,7 @@ exports[`SendTransaction View renders correctly 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -93,7 +93,7 @@ exports[`SendTransaction View renders correctly 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -105,7 +105,7 @@ exports[`SendTransaction View renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -121,7 +121,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -129,8 +129,8 @@ exports[`SendTransaction View renders correctly 1`] = `
               >
                 <Text
                   style={
-                    Object {
-                      "color": "#0376C9",
+                    {
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -145,7 +145,7 @@ exports[`SendTransaction View renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -155,9 +155,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -166,11 +165,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -180,38 +179,23 @@ exports[`SendTransaction View renders correctly 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
                 >
-                  <View
-                    style={
-                      Array [
-                        Object {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        Object {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
-                        "color": "#535A61",
+                      {
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -224,7 +208,7 @@ exports[`SendTransaction View renders correctly 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -244,7 +228,7 @@ exports[`SendTransaction View renders correctly 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -252,9 +236,8 @@ exports[`SendTransaction View renders correctly 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -263,7 +246,7 @@ exports[`SendTransaction View renders correctly 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -275,7 +258,7 @@ exports[`SendTransaction View renders correctly 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -293,11 +276,11 @@ exports[`SendTransaction View renders correctly 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -307,10 +290,10 @@ exports[`SendTransaction View renders correctly 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -319,9 +302,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -338,24 +321,23 @@ exports[`SendTransaction View renders correctly 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -366,13 +348,13 @@ exports[`SendTransaction View renders correctly 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -385,13 +367,13 @@ exports[`SendTransaction View renders correctly 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -401,7 +383,7 @@ exports[`SendTransaction View renders correctly 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -409,23 +391,23 @@ exports[`SendTransaction View renders correctly 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
-                              "backgroundColor": "#FFFFFF",
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -434,8 +416,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -444,11 +426,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
-                                Object {
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -457,7 +439,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "justifyContent": "center",
@@ -466,8 +448,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -479,9 +461,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -493,9 +475,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -509,9 +491,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -524,8 +506,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   </Text>
                                   <View
                                     style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
+                                      {
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -536,13 +518,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     <Image
                                       onError={[Function]}
                                       resizeMode="contain"
-                                      source={
-                                        Object {
-                                          "uri": "MockImage",
-                                        }
-                                      }
+                                      source={1}
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -555,9 +533,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -571,8 +549,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -582,11 +560,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 24,
                                     }
@@ -596,8 +574,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -609,12 +587,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 <Image
                                   onError={[Function]}
                                   source={
-                                    Object {
+                                    {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
                                     }
                                   }
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 65,
                                     }
@@ -623,8 +601,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -634,11 +612,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 24,
                                     }
@@ -648,8 +626,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -660,7 +638,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                               >
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "columnGap": 4,
                                       "flexDirection": "row",
@@ -671,18 +649,18 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <Text
                                     allowFontScaling={false}
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#6A737D",
+                                      [
+                                        {
+                                          "color": "#6a737d",
                                           "fontSize": 20,
                                         },
                                         undefined,
-                                        Object {
+                                        {
                                           "fontFamily": "Material Design Icons",
                                           "fontStyle": "normal",
                                           "fontWeight": "normal",
                                         },
-                                        Object {},
+                                        {},
                                       ]
                                     }
                                   >
@@ -691,9 +669,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -711,8 +689,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                         <View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -722,11 +700,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
-                                  Object {
+                                  {
                                     "marginTop": 0,
                                   },
                                   undefined,
@@ -737,9 +715,9 @@ exports[`SendTransaction View renders correctly 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -753,8 +731,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
@@ -767,14 +745,15 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -782,14 +761,13 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#FFFFFF",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -820,7 +798,7 @@ exports[`SendTransaction View renders correctly 1`] = `
 exports[`SendTransaction View renders correctly for custom action payment method 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -828,8 +806,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -840,7 +818,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -856,7 +834,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -870,13 +848,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -890,7 +868,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -902,7 +880,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -910,7 +888,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -922,7 +900,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -938,7 +916,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -946,8 +924,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
               >
                 <Text
                   style={
-                    Object {
-                      "color": "#0376C9",
+                    {
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -962,7 +940,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -972,9 +950,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -983,11 +960,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -997,38 +974,23 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
                 >
-                  <View
-                    style={
-                      Array [
-                        Object {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        Object {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
-                        "color": "#535A61",
+                      {
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1041,7 +1003,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1061,7 +1023,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1069,9 +1031,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1080,7 +1041,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1092,7 +1053,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1110,11 +1071,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1124,10 +1085,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1136,9 +1097,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1155,24 +1116,23 @@ exports[`SendTransaction View renders correctly for custom action payment method
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1183,13 +1143,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1202,13 +1162,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1218,7 +1178,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1226,23 +1186,23 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
-                              "backgroundColor": "#FFFFFF",
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1251,8 +1211,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -1261,11 +1221,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
-                                Object {
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -1274,7 +1234,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "justifyContent": "center",
@@ -1283,8 +1243,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -1296,9 +1256,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -1310,9 +1270,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -1326,9 +1286,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1341,8 +1301,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   </Text>
                                   <View
                                     style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
+                                      {
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -1354,12 +1314,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
-                                          "uri": "https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png",
+                                        {
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -1372,9 +1332,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1388,8 +1348,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -1399,11 +1359,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 24,
                                     }
@@ -1413,8 +1373,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -1426,12 +1386,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 <Image
                                   onError={[Function]}
                                   source={
-                                    Object {
+                                    {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
                                     }
                                   }
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 65,
                                     }
@@ -1444,8 +1404,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                         <View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -1455,11 +1415,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
-                                  Object {
+                                  {
                                     "marginTop": 0,
                                   },
                                   undefined,
@@ -1470,9 +1430,9 @@ exports[`SendTransaction View renders correctly for custom action payment method
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1486,8 +1446,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
@@ -1500,14 +1460,15 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1515,14 +1476,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#FFFFFF",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -1553,7 +1513,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
 exports[`SendTransaction View renders correctly for token 1`] = `
 <View
   style={
-    Object {
+    {
       "flex": 1,
     }
   }
@@ -1561,8 +1521,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
   <RNCSafeAreaProvider
     onInsetsChange={[Function]}
     style={
-      Array [
-        Object {
+      [
+        {
           "flex": 1,
         },
         undefined,
@@ -1573,7 +1533,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
       collapsable={false}
       pointerEvents="box-none"
       style={
-        Object {
+        {
           "zIndex": 1,
         }
       }
@@ -1589,7 +1549,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "bottom": 0,
               "left": 0,
               "opacity": 1,
@@ -1603,13 +1563,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           <View
             collapsable={false}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
                 "flex": 1,
                 "shadowColor": "transparent",
-                "shadowOffset": Object {
+                "shadowOffset": {
                   "height": 0.5,
                   "width": 0,
                 },
@@ -1623,7 +1583,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           collapsable={false}
           pointerEvents="box-none"
           style={
-            Object {
+            {
               "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
@@ -1635,7 +1595,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           <View
             pointerEvents="none"
             style={
-              Object {
+              {
                 "height": 20,
               }
             }
@@ -1643,7 +1603,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           <View
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "alignItems": "center",
                 "flex": 1,
                 "flexDirection": "row",
@@ -1655,7 +1615,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-start",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1671,7 +1631,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 accessible={true}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "paddingHorizontal": 18,
                     "paddingVertical": 8,
                   }
@@ -1679,8 +1639,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               >
                 <Text
                   style={
-                    Object {
-                      "color": "#0376C9",
+                    {
+                      "color": "#0376c9",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1695,7 +1655,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "marginHorizontal": 72,
                   "opacity": 1,
                 }
@@ -1705,9 +1665,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 activeOpacity={1}
                 onPress={[Function]}
                 style={
-                  Object {
+                  {
                     "alignItems": "center",
-                    "flex": 1,
                     "justifyContent": "center",
                   }
                 }
@@ -1716,11 +1675,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   accessibilityRole="text"
                   numberOfLines={1}
                   style={
-                    Object {
-                      "color": "#24272A",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 30,
-                      "fontWeight": "400",
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -1730,38 +1689,23 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 </Text>
                 <View
                   style={
-                    Object {
+                    {
+                      "alignItems": "center",
                       "flexDirection": "row",
                     }
                   }
                 >
-                  <View
-                    style={
-                      Array [
-                        Object {
-                          "borderRadius": 100,
-                          "height": 5,
-                          "marginRight": 5,
-                          "marginTop": 4,
-                          "width": 5,
-                        },
-                        Object {
-                          "backgroundColor": "#3cc29e",
-                        },
-                      ]
-                    }
-                  />
                   <Text
                     accessibilityRole="text"
                     numberOfLines={1}
                     style={
-                      Object {
-                        "color": "#535A61",
+                      {
+                        "color": "#6a737d",
                         "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 11,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1774,7 +1718,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               collapsable={false}
               pointerEvents="box-none"
               style={
-                Object {
+                {
                   "alignItems": "flex-end",
                   "bottom": 0,
                   "justifyContent": "center",
@@ -1794,7 +1738,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
     <RNSScreenContainer
       onLayout={[Function]}
       style={
-        Object {
+        {
           "flex": 1,
         }
       }
@@ -1802,9 +1746,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
       <RNSScreen
         activityState={2}
         collapsable={false}
-        forwardedRef={[Function]}
         gestureResponseDistance={
-          Object {
+          {
             "bottom": -1,
             "end": -1,
             "start": -1,
@@ -1813,7 +1756,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
         }
         pointerEvents="box-none"
         style={
-          Object {
+          {
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -1825,7 +1768,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
         <View
           collapsable={false}
           style={
-            Object {
+            {
               "opacity": 1,
             }
           }
@@ -1843,11 +1786,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           onTransition={[Function]}
           pointerEvents="box-none"
           style={
-            Array [
-              Object {
+            [
+              {
                 "overflow": undefined,
               },
-              Object {
+              {
                 "bottom": 0,
                 "left": 0,
                 "position": "absolute",
@@ -1857,10 +1800,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
             ]
           }
           transitionSpec={
-            Object {
-              "close": Object {
+            {
+              "close": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1869,9 +1812,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   "stiffness": 1000,
                 },
               },
-              "open": Object {
+              "open": {
                 "animation": "spring",
-                "config": Object {
+                "config": {
                   "damping": 500,
                   "mass": 3,
                   "overshootClamping": true,
@@ -1888,24 +1831,23 @@ exports[`SendTransaction View renders correctly for token 1`] = `
             needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              Object {
+              {
                 "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              forwardedRef={[Function]}
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
               style={
-                Object {
+                {
                   "flex": 1,
-                  "transform": Array [
-                    Object {
+                  "transform": [
+                    {
                       "translateX": 0,
                     },
-                    Object {
+                    {
                       "translateX": 0,
                     },
                   ],
@@ -1916,13 +1858,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 collapsable={false}
                 pointerEvents="none"
                 style={
-                  Object {
+                  {
                     "backgroundColor": "rgb(242, 242, 242)",
                     "bottom": 0,
                     "left": 0,
                     "position": "absolute",
                     "shadowColor": "#000",
-                    "shadowOffset": Object {
+                    "shadowOffset": {
                       "height": 1,
                       "width": -1,
                     },
@@ -1935,13 +1877,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               />
               <View
                 style={
-                  Array [
-                    Object {
+                  [
+                    {
                       "flex": 1,
                       "overflow": "hidden",
                     },
-                    Array [
-                      Object {
+                    [
+                      {
                         "backgroundColor": "rgb(242, 242, 242)",
                       },
                       undefined,
@@ -1951,7 +1893,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               >
                 <View
                   style={
-                    Object {
+                    {
                       "flex": 1,
                       "flexDirection": "column-reverse",
                     }
@@ -1959,23 +1901,23 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 >
                   <View
                     style={
-                      Object {
+                      {
                         "flex": 1,
                       }
                     }
                   >
                     <RCTSafeAreaView
                       style={
-                        Object {
+                        {
                           "flex": 1,
                         }
                       }
                     >
                       <View
                         style={
-                          Array [
-                            Object {
-                              "backgroundColor": "#FFFFFF",
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
                               "flex": 1,
                             },
                             undefined,
@@ -1984,8 +1926,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                       >
                         <View
                           style={
-                            Array [
-                              Object {
+                            [
+                              {
                                 "flex": 1,
                               },
                               undefined,
@@ -1994,11 +1936,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                         >
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
-                                Object {
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -2007,7 +1949,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           >
                             <View
                               style={
-                                Object {
+                                {
                                   "alignItems": "center",
                                   "flex": 1,
                                   "justifyContent": "center",
@@ -2016,8 +1958,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                             >
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -2029,9 +1971,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#24272A",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -2043,9 +1985,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2059,9 +2001,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2074,8 +2016,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   </Text>
                                   <View
                                     style={
-                                      Object {
-                                        "backgroundColor": "#FFFFFF",
+                                      {
+                                        "backgroundColor": "#ffffff",
                                         "borderRadius": 12,
                                         "height": 24,
                                         "overflow": "hidden",
@@ -2087,12 +2029,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       onError={[Function]}
                                       resizeMode="contain"
                                       source={
-                                        Object {
-                                          "uri": "https://token.metaswap.codefi.network/assets/nativeCurrencyLogos/usdc.png",
+                                        {
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
                                         }
                                       }
                                       style={
-                                        Object {
+                                        {
                                           "flex": 1,
                                           "height": undefined,
                                           "width": undefined,
@@ -2105,9 +2047,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2121,8 +2063,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -2132,11 +2074,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 24,
                                     }
@@ -2146,8 +2088,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -2159,12 +2101,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 <Image
                                   onError={[Function]}
                                   source={
-                                    Object {
+                                    {
                                       "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
                                     }
                                   }
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 65,
                                     }
@@ -2173,8 +2115,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -2184,11 +2126,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6A737D"
+                                  color="#6a737d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
-                                    Object {
+                                    {
                                       "height": 24,
                                       "width": 24,
                                     }
@@ -2198,8 +2140,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               </View>
                               <View
                                 style={
-                                  Array [
-                                    Object {
+                                  [
+                                    {
                                       "marginVertical": 8,
                                     },
                                     undefined,
@@ -2210,7 +2152,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               >
                                 <View
                                   style={
-                                    Object {
+                                    {
                                       "alignItems": "center",
                                       "columnGap": 4,
                                       "flexDirection": "row",
@@ -2221,18 +2163,18 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <Text
                                     allowFontScaling={false}
                                     style={
-                                      Array [
-                                        Object {
-                                          "color": "#6A737D",
+                                      [
+                                        {
+                                          "color": "#6a737d",
                                           "fontSize": 20,
                                         },
                                         undefined,
-                                        Object {
+                                        {
                                           "fontFamily": "Material Design Icons",
                                           "fontStyle": "normal",
                                           "fontWeight": "normal",
                                         },
-                                        Object {},
+                                        {},
                                       ]
                                     }
                                   >
@@ -2241,9 +2183,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      Object {
-                                        "color": "#24272A",
-                                        "fontFamily": "Euclid Circular B",
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2261,8 +2203,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                         <View>
                           <View
                             style={
-                              Array [
-                                Object {
+                              [
+                                {
                                   "padding": 15,
                                 },
                                 undefined,
@@ -2272,11 +2214,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           >
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
-                                  Object {
+                                  {
                                     "marginTop": 0,
                                   },
                                   undefined,
@@ -2287,9 +2229,9 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  Object {
-                                    "color": "#24272A",
-                                    "fontFamily": "Euclid Circular B",
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -2303,8 +2245,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                             </View>
                             <View
                               style={
-                                Array [
-                                  Object {
+                                [
+                                  {
                                     "marginVertical": 8,
                                   },
                                   undefined,
@@ -2317,14 +2259,15 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 accessibilityRole="button"
                                 accessible={true}
                                 activeOpacity={1}
+                                disabled={false}
                                 onPress={[Function]}
                                 onPressIn={[Function]}
                                 onPressOut={[Function]}
                                 style={
-                                  Object {
+                                  {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376C9",
+                                    "backgroundColor": "#0376c9",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2332,14 +2275,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     "paddingHorizontal": 16,
                                   }
                                 }
-                                variant="Primary"
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    Object {
-                                      "color": "#FFFFFF",
-                                      "fontFamily": "Euclid Circular B",
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,

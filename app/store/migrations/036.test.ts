@@ -1,28 +1,24 @@
-import { v4 as uuid } from 'uuid';
-import { EthMethod, InternalAccount } from '@metamask/keyring-api';
-import migrate, { sha256FromAddress, Identity } from './036';
+import { EthAccountType, EthMethod, EthScopes } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
+import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 const mockedCaptureException = jest.mocked(captureException);
 
-const MOCK_ADDRESS = '0x0';
+const MOCK_ADDRESS_1 = '0x0';
 const MOCK_ADDRESS_2 = '0x1';
-
-async function addressToUUID(address: string): Promise<string> {
-  return uuid({
-    random: await sha256FromAddress(address),
-  });
-}
 
 interface Identities {
   [key: string]: Identity;
 }
 
 function createMockPreferenceControllerState(
-  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS }],
+  identities: Identity[] = [{ name: 'Account 1', address: MOCK_ADDRESS_1 }],
   selectedAddress?: string,
 ): {
   identities: Identities;
@@ -47,31 +43,32 @@ function createMockPreferenceControllerState(
   return state;
 }
 
-async function expectedInternalAccount(
+function expectedInternalAccount(
   address: string,
   nickname: string,
   lastSelected?: number,
-): Promise<InternalAccount> {
+): InternalAccount {
   return {
     address,
-    id: await addressToUUID(address),
+    scopes: [EthScopes.Namespace],
+    id: getUUIDFromAddressOfNormalAccount(address),
     metadata: {
       name: nickname,
+      importTime: Date.now(),
       keyring: {
-        type: 'HD Key Tree',
+        type: KeyringTypes.hd,
       },
       lastSelected: lastSelected ? expect.any(Number) : undefined,
     },
     options: {},
     methods: [
       EthMethod.PersonalSign,
-      EthMethod.Sign,
       EthMethod.SignTransaction,
       EthMethod.SignTypedDataV1,
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: 'eip155:eoa',
+    type: EthAccountType.Eoa,
   };
 }
 
@@ -87,6 +84,7 @@ function createMockState(
         PreferencesController: {
           ...preferenceState,
         },
+        KeyringController: { vault: {} },
       },
     },
   };
@@ -97,84 +95,86 @@ describe('Migration #036', () => {
     beforeEach(() => {
       mockedCaptureException.mockReset();
     });
-    it('should throw if state.engine is not defined', async () => {
-      const newState = await migrate({});
+    it('should throw if state.engine is not defined', () => {
+      const newState = migrate({});
       expect(newState).toStrictEqual({});
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid root engine state: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState is not defined', async () => {
+    it('should throw if state.engine.backgroundState is not defined', () => {
       const oldState = {
         engine: {
           backgroundState: undefined,
         },
       };
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid root engine backgroundState: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState.PreferencesController is not defined', async () => {
+    it('should throw if state.engine.backgroundState.PreferencesController is not defined', () => {
       const oldState = {
         engine: {
           backgroundState: {
             PreferencesController: undefined,
+            KeyringController: { vault: {} },
           },
         },
       };
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Invalid PreferencesController state: 'undefined'`,
       );
     });
-    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', async () => {
+    it('should throw if state.engine.backgroundState.PreferencesController.identities is not defined', () => {
       const oldState = {
         engine: {
           backgroundState: {
             PreferencesController: {},
+            KeyringController: { vault: {} },
           },
         },
       };
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         `Migration 36: Missing identities property from PreferencesController: 'object'`,
       );
     });
-    it('creates default state for accounts controller', async () => {
+    it('creates default state for accounts controller', () => {
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS_1]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS,
+            address: MOCK_ADDRESS_1,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: MOCK_ADDRESS_1,
       });
-      const newState = await migrate(oldState);
-
-      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
-      const resultInternalAccount = await expectedInternalAccount(
-        MOCK_ADDRESS,
+      const newState = migrate(oldState);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+      const resultInternalAccount = expectedInternalAccount(
+        MOCK_ADDRESS_1,
         'Account 1',
       );
+
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: resultInternalAccount,
+                  [expectedUuid]: resultInternalAccount,
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
             PreferencesController: {
@@ -187,6 +187,7 @@ describe('Migration #036', () => {
               },
               selectedAddress: '0x0',
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -194,20 +195,20 @@ describe('Migration #036', () => {
   });
 
   describe('createInternalAccountsForAccountsController', () => {
-    it('should create the identities into AccountsController as internal accounts', async () => {
-      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+    it('should create the identities into AccountsController as internal accounts', () => {
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: {
+          [MOCK_ADDRESS_1]: {
             name: 'Account 1',
-            address: MOCK_ADDRESS,
+            address: MOCK_ADDRESS_1,
             lastSelected: undefined,
           },
         },
-        selectedAddress: MOCK_ADDRESS,
+        selectedAddress: MOCK_ADDRESS_1,
       });
 
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
 
       expect(newState).toStrictEqual({
         engine: {
@@ -215,29 +216,30 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: await expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
             PreferencesController: expect.any(Object),
+            KeyringController: { vault: {} },
           },
         },
       });
     });
 
-    it('should keep the same name from the identities', async () => {
-      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
+    it('should keep the same name from the identities', () => {
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS }],
-          MOCK_ADDRESS,
+          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
+          MOCK_ADDRESS_1,
         ),
       );
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -245,60 +247,62 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: await expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `a random name`,
                   ),
                 },
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
     });
 
-    it('should be able to handle multiple identities', async () => {
-      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
-      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
+    it('should be able to handle multiple identities', () => {
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
       const oldState = createMockState({
         identities: {
-          [MOCK_ADDRESS]: { name: 'Account 1', address: MOCK_ADDRESS },
+          [MOCK_ADDRESS_1]: { name: 'Account 1', address: MOCK_ADDRESS_1 },
           [MOCK_ADDRESS_2]: { name: 'Account 2', address: MOCK_ADDRESS_2 },
         },
         selectedAddress: MOCK_ADDRESS_2,
       });
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: await expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
-                  [expectedUUID2]: await expectedInternalAccount(
+                  [expectedUuid2]: expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
-                selectedAccount: expectedUUID2,
+                selectedAccount: expectedUuid2,
               },
             },
             PreferencesController: expect.any(Object),
+            KeyringController: { vault: {} },
           },
         },
       });
     });
 
-    it('should handle empty identities and create default AccountsController with no internal accounts', async () => {
+    it('should handle empty identities and create default AccountsController with no internal accounts', () => {
       const oldState = createMockState({
         // Simulate `identities` being an empty object
         identities: {},
       });
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
 
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
 
@@ -312,6 +316,7 @@ describe('Migration #036', () => {
                 selectedAccount: '', // Expect no account to be selected
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
@@ -319,14 +324,14 @@ describe('Migration #036', () => {
   });
 
   describe('createSelectedAccountForAccountsController', () => {
-    it('should select the same account as the selected address', async () => {
+    it('should select the same account as the selected address', () => {
       const oldState = createMockState(
         createMockPreferenceControllerState(
-          [{ name: 'a random name', address: MOCK_ADDRESS }],
-          MOCK_ADDRESS,
+          [{ name: 'a random name', address: MOCK_ADDRESS_1 }],
+          MOCK_ADDRESS_1,
         ),
       );
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -334,15 +339,17 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: expect.any(Object),
-                selectedAccount: await addressToUUID(MOCK_ADDRESS),
+                selectedAccount:
+                  getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1),
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
     });
 
-    it("should leave selectedAccount as empty if there aren't any selectedAddress", async () => {
+    it("should leave selectedAccount as empty if there aren't any selectedAddress", () => {
       const oldState = {
         engine: {
           backgroundState: {
@@ -350,10 +357,11 @@ describe('Migration #036', () => {
               identities: {},
               selectedAddress: '',
             },
+            KeyringController: { vault: {} },
           },
         },
       };
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
       expect(newState).toStrictEqual({
         engine: {
           backgroundState: {
@@ -364,21 +372,22 @@ describe('Migration #036', () => {
                 selectedAccount: '',
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
     });
-    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', async () => {
+    it('should select the first account as the selected account if selectedAddress is undefined, and update PreferencesController accordingly', () => {
       const identities = [
-        { name: 'Account 1', address: MOCK_ADDRESS },
+        { name: 'Account 1', address: MOCK_ADDRESS_1 },
         { name: 'Account 2', address: MOCK_ADDRESS_2 },
       ];
       // explicitly set selectedAddress to undefined
       const oldState = createMockState(
         createMockPreferenceControllerState(identities, undefined),
       );
-      const expectedUUID = await addressToUUID(MOCK_ADDRESS);
-      const expectedUUID2 = await addressToUUID(MOCK_ADDRESS_2);
+      const expectedUuid = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_1);
+      const expectedUuid2 = getUUIDFromAddressOfNormalAccount(MOCK_ADDRESS_2);
 
       expect(oldState).toStrictEqual({
         engine: {
@@ -386,8 +395,8 @@ describe('Migration #036', () => {
             PreferencesController: {
               selectedAddress: undefined,
               identities: {
-                [MOCK_ADDRESS]: {
-                  address: MOCK_ADDRESS,
+                [MOCK_ADDRESS_1]: {
+                  address: MOCK_ADDRESS_1,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -398,11 +407,12 @@ describe('Migration #036', () => {
                 },
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });
 
-      const newState = await migrate(oldState);
+      const newState = migrate(oldState);
 
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
 
@@ -411,10 +421,10 @@ describe('Migration #036', () => {
           backgroundState: {
             PreferencesController: {
               // Verifying that PreferencesController's selectedAddress is updated to the first account's address
-              selectedAddress: MOCK_ADDRESS,
+              selectedAddress: MOCK_ADDRESS_1,
               identities: {
-                [MOCK_ADDRESS]: {
-                  address: MOCK_ADDRESS,
+                [MOCK_ADDRESS_1]: {
+                  address: MOCK_ADDRESS_1,
                   name: 'Account 1',
                   lastSelected: undefined,
                 },
@@ -428,19 +438,20 @@ describe('Migration #036', () => {
             AccountsController: {
               internalAccounts: {
                 accounts: {
-                  [expectedUUID]: await expectedInternalAccount(
-                    MOCK_ADDRESS,
+                  [expectedUuid]: expectedInternalAccount(
+                    MOCK_ADDRESS_1,
                     `Account 1`,
                   ),
-                  [expectedUUID2]: await expectedInternalAccount(
+                  [expectedUuid2]: expectedInternalAccount(
                     MOCK_ADDRESS_2,
                     `Account 2`,
                   ),
                 },
                 // Verifying the accounts controller's selectedAccount is updated to the first account's UUID
-                selectedAccount: expectedUUID,
+                selectedAccount: expectedUuid,
               },
             },
+            KeyringController: { vault: {} },
           },
         },
       });

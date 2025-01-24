@@ -37,6 +37,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 /**
  * View that's shown during the second step of
@@ -70,10 +71,6 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 
-  const track = (event, properties) => {
-    trackOnboarding(event, properties);
-  };
-
   useEffect(() => {
     const getSeedphrase = async () => {
       if (!words.length) {
@@ -85,7 +82,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             setView(CONFIRM_PASSWORD);
           }
         } catch (e) {
-          Logger.error('Error trying to recover SRP from keyring-controller');
+          const srpRecoveryError = new Error(
+            'Error trying to recover SRP from keyring-controller',
+          );
+          Logger.error(srpRecoveryError);
           setView(CONFIRM_PASSWORD);
         }
       }
@@ -114,7 +114,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   const revealSeedPhrase = () => {
     setSeedPhraseHidden(false);
-    track(MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_PHRASE_REVEALED,
+      ).build(),
+    );
   };
 
   const tryUnlockWithPassword = async (password) => {
@@ -210,6 +214,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               onSubmitEditing={tryUnlock}
               testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
               keyboardAppearance={themeAppearance}
+              autoCapitalize="none"
             />
             {warningIncorrectPassword && (
               <Text style={styles.warningMessageText}>

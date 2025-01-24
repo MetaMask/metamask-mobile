@@ -1,32 +1,23 @@
 /* eslint-disable no-undef */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
-import {
-  IMPORT_PRIVATE_KEY_BUTTON_ID,
-  PRIVATE_KEY_INPUT_BOX_ID,
-  IMPORT_ACCOUNT_SCREEN_ID,
-  CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-} from './testIDs/Screens/ImportAccountScreen.testIds';
+import { ImportAccountFromPrivateKeyIDs } from '../../e2e/selectors/ImportAccount/ImportAccountFromPrivateKey.selectors';
 
 class ImportAccountScreen {
   get importAccountContainer() {
-    return Selectors.getElementByPlatform(IMPORT_ACCOUNT_SCREEN_ID);
+    return Selectors.getXpathElementByResourceId(ImportAccountFromPrivateKeyIDs.CONTAINER);
   }
-  get importButton() {
-    return Selectors.getElementByPlatform(IMPORT_PRIVATE_KEY_BUTTON_ID);
-  }
+
   get closeButton() {
-    return Selectors.getElementByPlatform(
-      CLOSE_BUTTON_ON_IMPORT_ACCOUNT_SCREEN_ID,
-    );
+    return Selectors.getElementByPlatform(ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON);
   }
+
   get privateKeyInputBox() {
-    return Selectors.getElementByPlatform(PRIVATE_KEY_INPUT_BOX_ID);
+    return Selectors.getXpathElementByResourceId(ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX);
   }
 
   async typePrivateKeyAndDismissKeyboard(privateKey) {
     await Gestures.typeText(this.privateKeyInputBox, privateKey);
-    await driver.pause(2500);
   }
 
   async tapImportButton() {

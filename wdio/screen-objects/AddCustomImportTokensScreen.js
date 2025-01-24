@@ -1,31 +1,25 @@
-/* eslint-disable no-undef */
 import Gestures from '../helpers/Gestures';
 import Selectors from '../helpers/Selectors';
 import {
-  TOKEN_ADDRESS_INPUT_BOX_ID,
-  TOKEN_ADDRESS_SYMBOL_ID,
-  TOKEN_IMPORT_BUTTON_ID,
-} from './testIDs/Screens/AddCustomToken.testIds';
+  ImportTokenViewSelectorsIDs,
+  ImportTokenViewSelectorsText
+} from '../../e2e/selectors/wallet/ImportTokenView.selectors';
 
 class AddCustomImportToken {
   get customTokenAddressField() {
-    return Selectors.getElementByPlatform(TOKEN_ADDRESS_INPUT_BOX_ID);
+    return Selectors.getElementByPlatform(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
   }
 
   get importButton() {
-    return Selectors.getElementByPlatform(TOKEN_IMPORT_BUTTON_ID);
+    return Selectors.getXpathElementByText(ImportTokenViewSelectorsText.IMPORT_BUTTON);
   }
 
   get symbolField() {
-    return Selectors.getElementByPlatform(TOKEN_ADDRESS_SYMBOL_ID);
+    return Selectors.getElementByPlatform(ImportTokenViewSelectorsIDs.SYMBOL_INPUT);
   }
 
   async typeCustomTokenAddress(text) {
     await Gestures.typeText(this.customTokenAddressField, text);
-  }
-
-  async scrollToImportButton() {
-    await Gestures.swipe({ x: 300, y: 1000 }, { x: 300, y: 10 });
   }
 
   async tapImportButton() {
@@ -33,10 +27,6 @@ class AddCustomImportToken {
   }
 
   async tapTokenSymbolField() {
-    await Gestures.waitAndTap(this.symbolField);
-  }
-
-  async isTokenSymbolDisplayed() {
     await Gestures.waitAndTap(this.symbolField);
   }
 

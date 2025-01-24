@@ -3,7 +3,7 @@
  */
 import { BN, stripHexPrefix } from 'ethereumjs-util';
 import { utils as ethersUtils } from 'ethers';
-import convert from 'ethjs-unit';
+import convert from '@metamask/ethjs-unit';
 import {
   BNToHex,
   hexToBN as controllerHexToBN,
@@ -15,6 +15,9 @@ import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
 export { BNToHex };
+
+const MAX_DECIMALS_FOR_TOKENS = 36;
+BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
 
 // Big Number Constants
 const BIG_NUMBER_WEI_MULTIPLIER = new BigNumber('1000000000000000000');
@@ -349,7 +352,7 @@ export function isBN(value) {
 /**
  * Determines if a string is a valid decimal
  *
- * @param {string} value - String to check
+ * @param {number | string} value - String to check
  * @returns {boolean} - True if the string is a valid decimal
  */
 export function isDecimal(value) {
@@ -378,6 +381,22 @@ export function toBN(value) {
  */
 export function isNumber(str) {
   return regex.number.test(str);
+}
+
+/**
+ * Determines if a value is a number
+ *
+ * @param {number | string | null | undefined} value - Value to check
+ * @returns {boolean} - True if the value is a valid number
+ */
+export function isNumberValue(value) {
+  if (value === null || value === undefined) { return false; }
+
+  if (typeof value === 'number') {
+    return !Number.isNaN(value) && Number.isFinite(value);
+  }
+
+  return isDecimal(value);
 }
 
 export const dotAndCommaDecimalFormatter = (value) => {
@@ -482,6 +501,7 @@ export function addCurrencySymbol(
   currencyCode,
   extendDecimals = false,
 ) {
+  const prefix = parseFloat(amount) < 0 ? '-' : '';
   if (extendDecimals) {
     if (isNumberScientificNotationWhenString(amount)) {
       amount = amount.toFixed(18);
@@ -512,17 +532,22 @@ export function addCurrencySymbol(
     amount = parseFloat(amount).toFixed(2);
   }
 
+  const amountString = amount.toString();
+  const absAmountStr = amountString.startsWith('-')
+    ? amountString.slice(1) // Remove the first character if it's a '-'
+    : amountString;
+
   if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[currencyCode]}${absAmountStr}`;
   }
 
   const lowercaseCurrencyCode = currencyCode?.toLowerCase();
 
   if (currencySymbols[lowercaseCurrencyCode]) {
-    return `${currencySymbols[lowercaseCurrencyCode]}${amount}`;
+    return `${prefix}${currencySymbols[lowercaseCurrencyCode]}${absAmountStr}`;
   }
 
-  return `${amount} ${currencyCode}`;
+  return `${prefix}${absAmountStr} ${currencyCode}`;
 }
 
 /**
@@ -611,7 +636,7 @@ export function fastSplit(value, divider = '.') {
  * Calculates fiat balance of an asset
  *
  * @param {number|string} balance - Number corresponding to a balance of an asset
- * @param {number|null} conversionRate - ETH to current currency conversion rate
+ * @param {number|null|undefined} conversionRate - ETH to current currency conversion rate
  * @param {number|undefined} exchangeRate - Asset to ETH conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -626,6 +651,7 @@ export function balanceToFiat(
     balance === undefined ||
     balance === null ||
     exchangeRate === undefined ||
+    conversionRate === undefined ||
     exchangeRate === 0
   ) {
     return undefined;
@@ -857,4 +883,48 @@ export const formatValueToMatchTokenDecimals = (value, decimal) => {
     }
   }
   return value;
+};
+
+export const safeBNToHex = (value) => {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  return BNToHex(value);
+};
+
+/**
+ * Formats a potentially large number to the nearest unit.
+ * e.g. 1T for trillions, 2.3B for billions, 4.56M for millions, 7,890 for thousands, etc.
+ *
+ * @param t - An I18nContext translator.
+ * @param number - The number to format.
+ * @returns A localized string of the formatted number + unit.
+ */
+export const localizeLargeNumber = (i18n, number) => {
+  const oneTrillion = 1000000000000;
+  const oneBillion = 1000000000;
+  const oneMillion = 1000000;
+
+  if (number >= oneTrillion) {
+    return `${(number / oneTrillion).toFixed(2)}${i18n.t(
+      'token.trillion_abbreviation',
+    )}`;
+  } else if (number >= oneBillion) {
+    return `${(number / oneBillion).toFixed(2)}${i18n.t(
+      'token.billion_abbreviation',
+    )}`;
+  } else if (number >= oneMillion) {
+    return `${(number / oneMillion).toFixed(2)}${i18n.t(
+      'token.million_abbreviation',
+    )}`;
+  }
+  return number.toFixed(2);
+};
+
+export const convertDecimalToPercentage = (decimal) => {
+  if (typeof decimal !== 'number' || isNaN(decimal)) {
+    throw new Error('Input must be a valid number');
+  }
+  return (decimal * 100).toFixed(2) + '%';
 };

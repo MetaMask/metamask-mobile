@@ -38,7 +38,7 @@ const Timer = ({
             style={[
               styles.timer,
               remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&
-                styles.timerHiglight,
+                styles.timerHighlight,
             ]}
           >
             {new Date(remainingTime).toISOString().substring(15, 19)}

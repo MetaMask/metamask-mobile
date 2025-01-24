@@ -2,6 +2,8 @@ import { StyleSheet } from 'react-native';
 
 import Device from '../../../../../util/device';
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createStyles = (colors: any) =>
   StyleSheet.create({
     root: {

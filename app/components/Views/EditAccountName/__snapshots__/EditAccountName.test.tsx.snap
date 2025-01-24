@@ -3,8 +3,8 @@
 exports[`EditAccountName should render correctly 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "flex": 1,
       "paddingHorizontal": 16,
     }
@@ -12,9 +12,8 @@ exports[`EditAccountName should render correctly 1`] = `
 >
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 1,
         "marginHorizontal": 16,
       }
@@ -22,9 +21,8 @@ exports[`EditAccountName should render correctly 1`] = `
   >
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
-        Object {
+        {
           "marginTop": 24,
         }
       }
@@ -32,9 +30,9 @@ exports[`EditAccountName should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -46,10 +44,10 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -62,7 +60,7 @@ exports[`EditAccountName should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "flex": 1,
             }
           }
@@ -74,11 +72,11 @@ exports[`EditAccountName should render correctly 1`] = `
             onChangeText={[Function]}
             onFocus={[Function]}
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -89,16 +87,15 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="account-name-input"
-            value="Account 1"
+            value="Test Account"
           />
         </View>
       </View>
     </View>
     <View
       collapsable={false}
-      forwardedRef={[Function]}
       style={
-        Object {
+        {
           "marginTop": 24,
         }
       }
@@ -106,9 +103,9 @@ exports[`EditAccountName should render correctly 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -120,10 +117,10 @@ exports[`EditAccountName should render correctly 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#FFFFFF",
-            "borderColor": "#BBC0C5",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#0376c9",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -136,7 +133,7 @@ exports[`EditAccountName should render correctly 1`] = `
       >
         <View
           style={
-            Object {
+            {
               "flex": 1,
             }
           }
@@ -146,13 +143,13 @@ exports[`EditAccountName should render correctly 1`] = `
             editable={false}
             onBlur={[Function]}
             onFocus={[Function]}
-            placeholder="0x0"
+            placeholder="0x49a016E6736F9Ad381605c...72A6"
             style={
-              Object {
-                "backgroundColor": "#FFFFFF",
+              {
+                "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#24272A",
+                "color": "#141618",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -170,9 +167,8 @@ exports[`EditAccountName should render correctly 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flexDirection": "row",
         "marginHorizontal": 16,
       }
@@ -186,11 +182,11 @@ exports[`EditAccountName should render correctly 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376C9",
+          "borderColor": "#0376c9",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -201,16 +197,15 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      variant="Secondary"
     >
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#0376C9",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#0376c9",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }
@@ -228,10 +223,10 @@ exports[`EditAccountName should render correctly 1`] = `
       onPressIn={[Function]}
       onPressOut={[Function]}
       style={
-        Object {
+        {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376C9",
+          "backgroundColor": "#0376c9",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -241,17 +236,16 @@ exports[`EditAccountName should render correctly 1`] = `
           "paddingHorizontal": 16,
         }
       }
-      testID="save-button"
-      variant="Primary"
+      testID="edit-account-name-save-button"
     >
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#FFFFFF",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
-            "fontWeight": "400",
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 22,
           }

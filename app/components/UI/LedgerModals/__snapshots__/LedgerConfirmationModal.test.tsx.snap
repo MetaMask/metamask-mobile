@@ -3,8 +3,8 @@
 exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
 <RCTSafeAreaView
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 10,
       "borderTopRightRadius": 10,
       "height": 450,
@@ -13,7 +13,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "alignItems": "center",
         "flex": 1,
         "marginTop": 35,
@@ -22,7 +22,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
   >
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "flex": 1,
         }
@@ -31,13 +31,9 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
     >
       <Image
         resizeMode="contain"
-        source={
-          Object {
-            "uri": "MockImage",
-          }
-        }
+        source={1}
         style={
-          Object {
+          {
             "height": 54,
             "overflow": "visible",
           }
@@ -45,7 +41,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       />
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
             "flexDirection": "row",
             "marginHorizontal": "auto",
@@ -54,54 +50,23 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "fontSize": 16,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "fontSize": 22,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Bold",
+              "fontSize": 22,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
           Looking for device
         </Text>
         <View
           style={
-            Object {
+            {
               "marginLeft": 20,
             }
           }
@@ -111,265 +76,127 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
       </View>
       <View
         style={
-          Object {
+          {
             "marginTop": 30,
           }
         }
       >
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
           }
         >
-          Please make sure your Ledger Nano X is:
+          Please make sure your Ledger device is:
         </Text>
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "paddingLeft": 7,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingLeft": 7,
+            }
           }
         >
-          1. Unlock your Ledger Nano X
+          1. Unlock your Ledger device
         </Text>
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "paddingLeft": 7,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingLeft": 7,
+            }
           }
         >
           2. Install and open the Ethereum app
         </Text>
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "paddingLeft": 7,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingLeft": 7,
+            }
           }
         >
           3. Enable Bluetooth
         </Text>
         <Text
+          accessibilityRole="text"
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "paddingLeft": 7,
-              },
-            ]
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingLeft": 7,
+            }
           }
         >
           5. Do not disturb must be turned off
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#141618",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "paddingLeft": 7,
+            }
+          }
+        >
+          6. Enable "blind signing" on your Ledger device.
         </Text>
       </View>
       <TouchableOpacity
         onPress={[Function]}
       >
         <Text
-          numerOfLines={2}
+          accessibilityRole="text"
+          numberOfLines={2}
           style={
-            Array [
-              Object {
-                "color": "#24272A",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 30,
-                "fontWeight": "400",
-                "marginVertical": 2,
-              },
-              undefined,
-              undefined,
-              Object {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontWeight": "600",
-              },
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "color": "#0376C9",
-              },
-              undefined,
-              undefined,
-              undefined,
-              Object {
-                "flex": 1,
-                "flexWrap": "wrap",
-                "marginLeft": 20,
-                "marginRight": 20,
-                "marginTop": 40,
-              },
-            ]
+            {
+              "color": "#0376c9",
+              "flex": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginLeft": 20,
+              "marginRight": 20,
+              "marginTop": 40,
+            }
           }
         >
           How to install the Ethereum app on a Ledger device

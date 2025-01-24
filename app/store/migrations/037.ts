@@ -29,6 +29,16 @@ export default async function migrate(stateAsync: unknown) {
     );
     return state;
   }
+
+  const keyringControllerState = state.engine.backgroundState.KeyringController;
+  if (!isObject(keyringControllerState)) {
+    captureException(
+      new Error(
+        `Migration 37: Invalid vault in KeyringController: '${typeof keyringControllerState}'`,
+      ),
+    );
+  }
+
   const networkControllerState = state.engine.backgroundState.NetworkController;
 
   if (!isObject(networkControllerState)) {
@@ -40,12 +50,8 @@ export default async function migrate(stateAsync: unknown) {
     return state;
   }
 
+  // If there is no networkId we do not need to do anything, inpageProvider will start with is default state
   if (!networkControllerState.networkId) {
-    captureException(
-      new Error(
-        `Migration 37: Invalid NetworkController networkId not found: '${networkControllerState.networkId}'`,
-      ),
-    );
     return state;
   }
 

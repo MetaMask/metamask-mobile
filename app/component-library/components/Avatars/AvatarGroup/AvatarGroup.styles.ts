@@ -1,11 +1,12 @@
 // Third party dependencies.
-import { StyleSheet } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
 
 // Internal dependencies.
 import { AvatarGroupStyleSheetVars } from './AvatarGroup.types';
+import { OVERFLOWTEXTMARGIN_BY_AVATARSIZE } from './AvatarGroup.constants';
 
 /**
  * Style sheet function for AvatarGroup component.
@@ -19,35 +20,19 @@ const styleSheet = (params: {
   theme: Theme;
   vars: AvatarGroupStyleSheetVars;
 }) => {
-  const { theme, vars } = params;
-  const { stackWidth, stackHeight } = vars;
-  const borderWidth = 1;
-  const stackHeightWithBorder = stackHeight + borderWidth * 2;
+  const { vars } = params;
+  const { style, size } = vars;
 
   return StyleSheet.create({
-    base: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      height: stackHeightWithBorder,
-    },
-    stack: {
-      flexDirection: 'row',
-      width: stackWidth + borderWidth * 2,
-      height: stackHeightWithBorder,
-    },
-    stackedAvatarWrapper: {
-      position: 'absolute',
-      borderRadius: 50,
-      borderWidth,
-      borderColor: theme.colors.background.default,
-    },
-    overflowCounterWrapper: {
-      justifyContent: 'center',
-    },
+    base: Object.assign(
+      {
+        flexDirection: 'row',
+        alignItems: 'center',
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     textStyle: {
-      color: theme.colors.text.alternative,
-      marginLeft: 2,
-      bottom: 2,
+      marginLeft: OVERFLOWTEXTMARGIN_BY_AVATARSIZE[size],
     },
   });
 };

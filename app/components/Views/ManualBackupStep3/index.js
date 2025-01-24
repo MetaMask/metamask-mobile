@@ -1,20 +1,10 @@
 import React, { PureComponent } from 'react';
-import {
-  Alert,
-  BackHandler,
-  Text,
-  View,
-  StyleSheet,
-  Keyboard,
-  TouchableOpacity,
-} from 'react-native';
+import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
-import Emoji from 'react-native-emoji';
-import AsyncStorage from '../../../store/async-storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import OnboardingProgress from '../../UI/OnboardingProgress';
-import ActionView from '../../UI/ActionView';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -28,10 +18,10 @@ import {
   SEED_PHRASE_HINTS,
 } from '../../../constants/storage';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import DefaultPreference from 'react-native-default-preference';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import OnboardingSuccess from '../OnboardingSuccess';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -76,11 +66,6 @@ const createStyles = (colors) =>
     recoverText: {
       marginBottom: 26,
     },
-    emoji: {
-      textAlign: 'center',
-      fontSize: 65,
-      marginBottom: 16,
-    },
   });
 
 const hardwareBackPress = () => ({});
@@ -117,10 +102,6 @@ class ManualBackupStep3 extends PureComponent {
     setOnboardingWizardStep: PropTypes.func,
   };
 
-  track = (event, properties) => {
-    trackOnboarding(event, properties);
-  };
-
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -133,7 +114,7 @@ class ManualBackupStep3 extends PureComponent {
 
   componentDidMount = async () => {
     this.updateNavBar();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints =
@@ -142,7 +123,11 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    this.track(MetaMetricsEvents.WALLET_SECURITY_COMPLETED);
+    trackOnboarding(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
+      ).build(),
+    );
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 
@@ -180,11 +165,11 @@ class ManualBackupStep3 extends PureComponent {
       return;
     }
     this.toggleHint();
-    const currentSeedphraseHints = await AsyncStorage.getItem(
+    const currentSeedphraseHints = await StorageWrapper.getItem(
       SEED_PHRASE_HINTS,
     );
     const parsedHints = JSON.parse(currentSeedphraseHints);
-    await AsyncStorage.setItem(
+    await StorageWrapper.setItem(
       SEED_PHRASE_HINTS,
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
@@ -192,7 +177,7 @@ class ManualBackupStep3 extends PureComponent {
   };
 
   done = async () => {
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
@@ -232,37 +217,7 @@ class ManualBackupStep3 extends PureComponent {
             />
           </View>
         ) : null}
-        <ActionView
-          confirmTestID={ManualBackUpStepsSelectorsIDs.DONE_BUTTON}
-          confirmText={strings('manual_backup_step_3.done')}
-          onConfirmPress={this.done}
-          showCancelButton={false}
-          confirmButtonMode={'confirm'}
-          style={styles.actionView}
-        >
-          <View style={styles.wrapper}>
-            <Emoji name="tada" style={styles.emoji} />
-            <Text style={styles.congratulations}>
-              {strings('manual_backup_step_3.congratulations')}
-            </Text>
-            <Text style={[styles.baseText, styles.successText]}>
-              {strings('manual_backup_step_3.success')}
-            </Text>
-            <TouchableOpacity onPress={this.toggleHint}>
-              <Text style={[styles.baseText, styles.hintText]}>
-                {strings('manual_backup_step_3.hint')}
-              </Text>
-            </TouchableOpacity>
-            <Text style={[styles.baseText, styles.recoverText]}>
-              {strings('manual_backup_step_3.recover')}
-            </Text>
-            <TouchableOpacity onPress={this.learnMore}>
-              <Text style={[styles.baseText, styles.learnText]}>
-                {strings('manual_backup_step_3.learn')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </ActionView>
+        <OnboardingSuccess onDone={this.done} backedUpSRP />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}

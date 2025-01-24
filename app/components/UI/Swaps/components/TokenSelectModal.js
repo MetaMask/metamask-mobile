@@ -19,15 +19,7 @@ import { connect } from 'react-redux';
 import { isValidAddress } from 'ethereumjs-util';
 
 import Device from '../../../../util/device';
-import {
-  balanceToFiat,
-  hexToBN,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  weiToFiat,
-} from '../../../../util/number';
-import { safeToChecksumAddress } from '../../../../util/address';
-import { isSwapsNativeAsset } from '../utils';
+import { addCurrencySymbol } from '../../../../util/number';
 import { strings } from '../../../../../locales/i18n';
 import { fontStyles } from '../../../../styles/common';
 
@@ -53,13 +45,14 @@ import {
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
-import { selectSelectedAddress } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTheme } from '../../../../util/theme';
-import { SWAP_SEARCH_TOKEN } from '../../../../../wdio/screen-objects/testIDs/Screens/QuoteView.js';
+import { QuoteViewSelectorIDs } from '../../../../../e2e/selectors/swaps/QuoteView.selectors';
 import { getDecimalChainId } from '../../../../util/networks';
+import { getSortedTokensByFiatValue } from '../utils/token-list-utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -157,7 +150,7 @@ function TokenSelectModal({
   balances,
 }) {
   const navigation = useNavigation();
-  const { trackAnonymousEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const searchInput = useRef(null);
   const list = useRef();
@@ -181,16 +174,40 @@ function TokenSelectModal({
       ),
     [tokens, excludedAddresses],
   );
+
+  const sortedInitialTokensWithFiatValue = useMemo(
+    () =>
+      getSortedTokensByFiatValue({
+        tokens: initialTokens,
+        account: accounts[selectedAddress],
+        tokenExchangeRates,
+        balances,
+        conversionRate,
+        currencyCode: currentCurrency,
+      }),
+    [
+      initialTokens,
+      accounts,
+      selectedAddress,
+      tokenExchangeRates,
+      balances,
+      conversionRate,
+      currentCurrency,
+    ],
+  );
+
   const filteredInitialTokens = useMemo(
     () =>
-      initialTokens?.length > 0
-        ? initialTokens.filter(
+      sortedInitialTokensWithFiatValue?.length > 0
+        ? sortedInitialTokensWithFiatValue.filter(
             (token) =>
-              !excludedAddresses.includes(token.address?.toLowerCase()),
+              typeof token !== 'undefined' &&
+              !excludedAddresses.includes(token?.address?.toLowerCase()),
           )
         : filteredTokens,
-    [excludedAddresses, filteredTokens, initialTokens],
+    [excludedAddresses, filteredTokens, sortedInitialTokensWithFiatValue],
   );
+
   const tokenFuse = useMemo(
     () =>
       new Fuse(filteredTokens, {
@@ -227,34 +244,10 @@ function TokenSelectModal({
 
   const renderItem = useCallback(
     ({ item }) => {
-      const itemAddress = safeToChecksumAddress(item.address);
-
-      let balance, balanceFiat;
-      if (isSwapsNativeAsset(item)) {
-        balance = renderFromWei(
-          accounts[selectedAddress] && accounts[selectedAddress].balance,
-        );
-        balanceFiat = weiToFiat(
-          hexToBN(accounts[selectedAddress].balance),
-          conversionRate,
-          currentCurrency,
-        );
-      } else {
-        const exchangeRate =
-          itemAddress in tokenExchangeRates
-            ? tokenExchangeRates[itemAddress]
-            : undefined;
-        balance =
-          itemAddress in balances
-            ? renderFromTokenMinimalUnit(balances[itemAddress], item.decimals)
-            : 0;
-        balanceFiat = balanceToFiat(
-          balance,
-          conversionRate,
-          exchangeRate,
-          currentCurrency,
-        );
-      }
+      const { balance, balanceFiat } = item;
+      const balanceFiatWithCurrencySymbol = balanceFiat
+        ? addCurrencySymbol(balanceFiat, currentCurrency)
+        : undefined;
 
       return (
         <TouchableOpacity
@@ -272,8 +265,10 @@ function TokenSelectModal({
               </ListItem.Body>
               <ListItem.Amounts>
                 <ListItem.Amount>{balance}</ListItem.Amount>
-                {balanceFiat && (
-                  <ListItem.FiatAmount>{balanceFiat}</ListItem.FiatAmount>
+                {balanceFiat && balanceFiatWithCurrencySymbol && (
+                  <ListItem.FiatAmount>
+                    {balanceFiatWithCurrencySymbol}
+                  </ListItem.FiatAmount>
                 )}
               </ListItem.Amounts>
             </ListItem.Content>
@@ -281,16 +276,7 @@ function TokenSelectModal({
         </TouchableOpacity>
       );
     },
-    [
-      balances,
-      accounts,
-      selectedAddress,
-      conversionRate,
-      currentCurrency,
-      tokenExchangeRates,
-      onItemPress,
-      styles,
-    ],
+    [currentCurrency, onItemPress, styles],
   );
 
   const handleSearchPress = () => searchInput?.current?.focus();
@@ -303,15 +289,25 @@ function TokenSelectModal({
   const handlePressImportToken = useCallback(
     (item) => {
       const { address, symbol } = item;
-      trackAnonymousEvent(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED, {
-        address,
-        symbol,
-        chain_id: getDecimalChainId(chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CUSTOM_TOKEN_IMPORTED)
+          .addSensitiveProperties({
+            address,
+            symbol,
+            chain_id: getDecimalChainId(chainId),
+          })
+          .build(),
+      );
       hideTokenImportModal();
       onItemPress(item);
     },
-    [chainId, hideTokenImportModal, onItemPress, trackAnonymousEvent],
+    [
+      chainId,
+      hideTokenImportModal,
+      onItemPress,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleBlockExplorerPress = useCallback(() => {
@@ -414,7 +410,7 @@ function TokenSelectModal({
               value={searchString}
               onChangeText={handleSearchTextChange}
               keyboardAppearance={themeAppearance}
-              testID={SWAP_SEARCH_TOKEN}
+              testID={QuoteViewSelectorIDs.SEARCH_TOKEN}
             />
             {searchString.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
@@ -569,7 +565,7 @@ const mapStateToProps = (state) => ({
   accounts: selectAccounts(state),
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedAddress(state),
+  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   tokenExchangeRates: selectContractExchangeRates(state),
   balances: selectContractBalances(state),
   chainId: selectChainId(state),

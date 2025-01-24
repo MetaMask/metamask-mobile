@@ -42,7 +42,7 @@ function usePaymentMethods() {
             if (
               cryptoCurrencies?.some(
                 (cryptoCurrency) =>
-                  String(cryptoCurrency.network.chainId) === selectedChainId,
+                  cryptoCurrency.network.chainId === selectedChainId,
               )
             ) {
               allowed.push(method.id);

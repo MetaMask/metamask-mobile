@@ -1,35 +1,13 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import NavbarBrowserTitle from './';
-import initialBackgroundState from '../../../util/test/initial-background-state.json';
-import Engine from '../../../core/Engine';
-
-const mockedEngine = Engine;
+import { backgroundState } from '../../../util/test/initial-root-state';
 
 const mockInitialState = {
   engine: {
-    backgroundState: {
-      ...initialBackgroundState,
-      PreferencesController: {
-        selectedAddress: '0x',
-        identities: {
-          '0x': { name: 'Account 1', address: '0x' },
-        },
-      },
-    },
+    backgroundState,
   },
 };
-
-jest.mock('../../../core/Engine', () => ({
-  init: () => mockedEngine.init({}),
-  context: {
-    NetworkController: {
-      state: {
-        providerConfig: { chainId: '0x1' },
-      },
-    },
-  },
-}));
 
 describe('NavbarBrowserTitle', () => {
   it('should render correctly', () => {

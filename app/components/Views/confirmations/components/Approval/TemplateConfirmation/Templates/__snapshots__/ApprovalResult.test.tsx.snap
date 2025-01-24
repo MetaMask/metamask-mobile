@@ -3,10 +3,9 @@
 exports[`ApprovalResult renders approval result with error type 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -17,7 +16,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
@@ -25,9 +24,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -37,7 +36,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "justifyContent": "center",
         }
@@ -45,9 +44,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#D7384719",
+            "backgroundColor": "#d738471a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -56,11 +55,11 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         }
       >
         <SvgMock
-          color="#D73847"
+          color="#d73847"
           height={24}
           name="Warning"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -73,9 +72,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "space-between",
@@ -85,7 +84,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -93,9 +92,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -107,7 +106,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-end",
             "flex": 1,
           }
@@ -117,9 +116,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -132,9 +131,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -148,9 +147,8 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 0,
         "justifyContent": "center",
         "paddingVertical": 16,
@@ -159,8 +157,8 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
   >
     <View
       style={
-        Object {
-          "backgroundColor": "#FFFFFF",
+        {
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -176,10 +174,10 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376C9",
+            "backgroundColor": "#0376c9",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -189,16 +187,15 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
           style={
-            Object {
-              "color": "#FFFFFF",
-              "fontFamily": "Euclid Circular B",
+            {
+              "color": "#ffffff",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -215,10 +212,9 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
 exports[`ApprovalResult renders approval result with success type 1`] = `
 <View
   collapsable={false}
-  forwardedRef={[Function]}
   style={
-    Object {
-      "backgroundColor": "#FFFFFF",
+    {
+      "backgroundColor": "#ffffff",
       "borderTopLeftRadius": 20,
       "borderTopRightRadius": 20,
       "minHeight": 200,
@@ -229,7 +225,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
 >
   <View
     style={
-      Object {
+      {
         "paddingHorizontal": 24,
       }
     }
@@ -237,9 +233,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -249,7 +245,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     />
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
           "justifyContent": "center",
         }
@@ -257,9 +253,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "alignItems": "center",
-            "backgroundColor": "#1C823419",
+            "backgroundColor": "#1c82341a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -268,11 +264,11 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#1C8234"
+          color="#1c8234"
           height={24}
           name="Confirmation"
           style={
-            Object {
+            {
               "height": 24,
               "width": 24,
             }
@@ -285,9 +281,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     </View>
     <View
       style={
-        Object {
+        {
           "alignItems": "center",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "height": 32,
           "justifyContent": "space-between",
@@ -297,7 +293,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     >
       <View
         style={
-          Object {
+          {
             "flex": 1,
           }
         }
@@ -305,9 +301,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -319,7 +315,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       </Text>
       <View
         style={
-          Object {
+          {
             "alignItems": "flex-end",
             "flex": 1,
           }
@@ -329,9 +325,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
     <Text
       accessibilityRole="text"
       style={
-        Object {
-          "color": "#24272A",
-          "fontFamily": "Euclid Circular B",
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -344,9 +340,9 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       <Text
         accessibilityRole="text"
         style={
-          Object {
-            "color": "#24272A",
-            "fontFamily": "Euclid Circular B",
+          {
+            "color": "#141618",
+            "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -360,9 +356,8 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   </View>
   <View
     collapsable={false}
-    forwardedRef={[Function]}
     style={
-      Object {
+      {
         "flex": 0,
         "justifyContent": "center",
         "paddingVertical": 16,
@@ -371,8 +366,8 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
   >
     <View
       style={
-        Object {
-          "backgroundColor": "#FFFFFF",
+        {
+          "backgroundColor": "#ffffff",
           "flexDirection": "row",
           "paddingHorizontal": 8,
           "paddingVertical": 4,
@@ -388,10 +383,10 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
-          Object {
+          {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376C9",
+            "backgroundColor": "#0376c9",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -401,16 +396,15 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           }
         }
         testID="bottomsheetfooter-button"
-        variant="Primary"
       >
         <Text
           accessibilityRole="text"
           style={
-            Object {
-              "color": "#FFFFFF",
-              "fontFamily": "Euclid Circular B",
+            {
+              "color": "#ffffff",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "400",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

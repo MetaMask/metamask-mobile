@@ -7,7 +7,9 @@ import {
   ScrollView,
   BackHandler,
   Alert,
+  Linking,
   InteractionManager,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -17,20 +19,23 @@ import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
   withMetricsAwareness,
 } from '../../hooks/useMetrics';
-import DefaultPreference from 'react-native-default-preference';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { ThemeContext } from '../../../util/theme';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { MAINNET } from '../../../constants/network';
+import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -47,6 +52,13 @@ const createStyles = ({ colors }) =>
     },
     crossIcon: {
       color: colors.error.default,
+    },
+    checkbox: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 15,
+      marginRight: 25,
     },
     icon: {
       marginRight: 5,
@@ -74,6 +86,12 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
+      paddingVertical: 10,
+    },
+    linkText: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.info.default,
       paddingVertical: 10,
     },
     wrapper: {
@@ -114,6 +132,8 @@ const createStyles = ({ colors }) =>
  */
 class OptinMetrics extends PureComponent {
   static propTypes = {
+    isDataCollectionForMarketingEnabled: PropTypes.bool,
+    setDataCollectionForMarketing: PropTypes.func,
     /**
     /* navigation object required to push and pop other views
     */
@@ -163,16 +183,26 @@ class OptinMetrics extends PureComponent {
     return createStyles({ colors, typography });
   };
 
-  actionsList = [1, 2, 3, 4, 5].map((value) => {
-    const actionVal = value <= 2 ? 0 : 1;
-    return {
-      action: actionVal,
-      prefix: actionVal
-        ? `${strings('privacy_policy.action_description_never')} `
-        : '',
-      description: strings(`privacy_policy.action_description_${value}`),
-    };
-  });
+  actionsList = isPastPrivacyPolicyDate
+    ? [1, 2, 3].map((value) => ({
+        action: value,
+        prefix: strings(`privacy_policy.action_description_${value}_prefix`),
+        description: strings(
+          `privacy_policy.action_description_${value}_description`,
+        ),
+      }))
+    : [1, 2, 3, 4, 5].map((value) => {
+        const actionVal = value <= 2 ? 0 : 1;
+        return {
+          action: actionVal,
+          prefix: actionVal
+            ? `${strings('privacy_policy.action_description_never_legacy')} `
+            : '',
+          description: strings(
+            `privacy_policy.action_description_${value}_legacy`,
+          ),
+        };
+      });
 
   updateNavBar = () => {
     const { navigation } = this.props;
@@ -213,7 +243,7 @@ class OptinMetrics extends PureComponent {
     }
 
     // Get onboarding wizard state
-    const onboardingWizard = await DefaultPreference.get(ONBOARDING_WIZARD);
+    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
       this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
     } else {
@@ -228,7 +258,7 @@ class OptinMetrics extends PureComponent {
    * @param {object} - Object containing action and description to be rendered
    * @param {number} i - Index key
    */
-  renderAction = ({ action, description, prefix }, i) => {
+  renderLegacyAction = ({ action, description, prefix }, i) => {
     const styles = this.getStyles();
 
     return (
@@ -254,12 +284,40 @@ class OptinMetrics extends PureComponent {
     );
   };
 
+  renderAction = ({ description, prefix }, i) => {
+    const styles = this.getStyles();
+
+    return (
+      <View style={styles.action} key={i}>
+        <Entypo
+          name="check"
+          size={20}
+          style={[styles.icon, styles.checkIcon]}
+        />
+        <Text style={styles.description}>
+          <Text style={styles.descriptionBold}>{prefix + ' '}</Text>
+          {description}
+        </Text>
+      </View>
+    );
+  };
+
   /**
    * Callback on press cancel
    */
   onCancel = async () => {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
     setTimeout(async () => {
       const { clearOnboardingEvents, metrics } = this.props;
+      if (
+        isDataCollectionForMarketingEnabled === null &&
+        setDataCollectionForMarketing
+      ) {
+        setDataCollectionForMarketing(false);
+      }
       // if users refuses tracking, get rid of the stored events
       // and never send them to Segment
       // and disable analytics
@@ -273,12 +331,48 @@ class OptinMetrics extends PureComponent {
    * Callback on press confirm
    */
   onConfirm = async () => {
-    const { events, metrics } = this.props;
+    const {
+      events,
+      metrics,
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
+
+    // Set marketing consent trait based on user selection
+    const dataCollectionForMarketingTraits = {
+      has_marketing_consent: Boolean(
+        this.props.isDataCollectionForMarketingEnabled,
+      ),
+    };
+
     await metrics.enable();
+
+    // Track the analytics preference event first
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          ...dataCollectionForMarketingTraits,
+          is_metrics_opted_in: true,
+          location: 'onboarding_metametrics',
+          updated_after_onboarding: false,
+        })
+        .build(),
+    );
+
+    // Handle null case for marketing consent
+    if (
+      isDataCollectionForMarketingEnabled === null &&
+      setDataCollectionForMarketing
+    ) {
+      setDataCollectionForMarketing(false);
+    }
+
     InteractionManager.runAfterInteractions(async () => {
-      // add traits to user for identification
       // consolidate device and user settings traits
       const consolidatedTraits = {
+        ...dataCollectionForMarketingTraits,
+        is_metrics_opted_in: true,
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
       };
@@ -302,14 +396,7 @@ class OptinMetrics extends PureComponent {
           delay += eventTrackingDelay;
         });
       }
-
       this.props.clearOnboardingEvents();
-
-      // track event for user opting in
-      metrics.trackEvent(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED, {
-        analytics_option_selected: 'Metrics Opt In',
-        updated_after_onboarding: false,
-      });
     });
     this.continue();
   };
@@ -364,27 +451,43 @@ class OptinMetrics extends PureComponent {
   renderPrivacyPolicy = () => {
     const styles = this.getStyles();
 
+    if (isPastPrivacyPolicyDate) {
+      return (
+        <View>
+          <Text style={styles.privacyPolicy}>
+            <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
+            <Button
+              variant={ButtonVariants.Link}
+              label={strings('privacy_policy.privacy_policy_button')}
+              onPress={this.openPrivacyPolicy}
+            />
+            <Text>{' ' + strings('privacy_policy.fine_print_2')}</Text>
+          </Text>
+        </View>
+      );
+    }
+
     return (
       <View>
         <Text style={styles.privacyPolicy}>
-          <Text>{strings('privacy_policy.fine_print_1')}</Text>
+          <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
           {'\n\n'}
-          {strings('privacy_policy.fine_print_2a') + ' '}
+          {strings('privacy_policy.fine_print_2a_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
             onPress={this.openRPCSettings}
           />
-          {' ' + strings('privacy_policy.fine_print_2b') + ' '}
+          {' ' + strings('privacy_policy.fine_print_2b_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
             onPress={this.openDataRetentionPost}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
           />
-          {strings('privacy_policy.fine_print_2c') + ' '}
+          {strings('privacy_policy.fine_print_2c_legacy') + ' '}
           <Button
             variant={ButtonVariants.Link}
-            label={strings('privacy_policy.here')}
+            label={strings('privacy_policy.here_legacy')}
             onPress={this.openPrivacyPolicy}
           />
           {strings('unit.point')}
@@ -475,7 +578,16 @@ class OptinMetrics extends PureComponent {
     if (currentYOffset >= endThreshold) this.onScrollEndReached();
   };
 
+  handleLink = () => {
+    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
+  };
+
   render() {
+    const {
+      isDataCollectionForMarketingEnabled,
+      setDataCollectionForMarketing,
+    } = this.props;
+
     const styles = this.getStyles();
 
     return (
@@ -503,12 +615,52 @@ class OptinMetrics extends PureComponent {
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
             >
-              {strings('privacy_policy.description_content_1')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_1'
+                  : 'privacy_policy.description_content_1_legacy',
+              )}
+            </Text>
+            <Text style={styles.linkText} onPress={this.handleLink}>
+              {strings('privacy_policy.description_content_3')}
             </Text>
             <Text style={styles.content}>
-              {strings('privacy_policy.description_content_2')}
+              {strings(
+                isPastPrivacyPolicyDate
+                  ? 'privacy_policy.description_content_2'
+                  : 'privacy_policy.description_content_2_legacy',
+              )}
             </Text>
-            {this.actionsList.map((action, i) => this.renderAction(action, i))}
+            {this.actionsList.map((action, i) =>
+              isPastPrivacyPolicyDate
+                ? this.renderAction(action, i)
+                : this.renderLegacyAction(action, i),
+            )}
+            {isPastPrivacyPolicyDate ? (
+              <TouchableOpacity
+                style={styles.checkbox}
+                onPress={() =>
+                  setDataCollectionForMarketing(
+                    !isDataCollectionForMarketingEnabled,
+                  )
+                }
+                activeOpacity={1}
+              >
+                <Checkbox
+                  isChecked={isDataCollectionForMarketingEnabled}
+                  accessibilityRole={'checkbox'}
+                  accessible
+                  onPress={() =>
+                    setDataCollectionForMarketing(
+                      !isDataCollectionForMarketingEnabled,
+                    )
+                  }
+                />
+                <Text style={styles.content}>
+                  {strings('privacy_policy.checkbox')}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>
@@ -522,11 +674,15 @@ OptinMetrics.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
+  isDataCollectionForMarketingEnabled:
+    state.security.dataCollectionForMarketing,
 });
 
 const mapDispatchToProps = (dispatch) => ({
   setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
+  setDataCollectionForMarketing: (value) =>
+    dispatch(setDataCollectionForMarketing(value)),
 });
 
 export default connect(

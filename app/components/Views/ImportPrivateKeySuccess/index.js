@@ -16,8 +16,7 @@ import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-
-import { ImportPrivateKeySuccessScreenSelectorsIDs } from '../../../../e2e/selectors/ImportPrivateKeySuccessScreen.selectors';
+import { SuccessImportAccountIDs } from '../../../../e2e/selectors/ImportAccount/SuccessImportAccount.selectors';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -122,14 +121,14 @@ class ImportPrivateKeySuccess extends PureComponent {
           <View
             style={styles.content}
             testID={
-              ImportPrivateKeySuccessScreenSelectorsIDs.IMPORT_SUCESS_SCREEN_ID
+              SuccessImportAccountIDs.CONTAINER
             }
           >
             <TouchableOpacity
               onPress={this.dismiss}
               style={styles.navbarRightButton}
               testID={
-                ImportPrivateKeySuccessScreenSelectorsIDs.IMPORT_SUCESS_SCREEN_CLOSE_BUTTON_ID
+                SuccessImportAccountIDs.CLOSE_BUTTON
               }
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />

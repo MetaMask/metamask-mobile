@@ -1,54 +1,43 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { connect, useSelector } from 'react-redux';
-import { View, Dimensions, Platform } from 'react-native';
 import PropTypes from 'prop-types';
+import React, { useContext, useEffect, useRef } from 'react';
+import { View } from 'react-native';
+import { captureScreen } from 'react-native-view-shot';
+import { connect, useSelector } from 'react-redux';
+import { strings } from '../../../../locales/i18n';
+import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import {
-  createNewTab,
   closeAllTabs,
   closeTab,
+  createNewTab,
   setActiveTab,
   updateTab,
 } from '../../../actions/browser';
-import Tabs from '../../UI/Tabs';
-import { getBrowserViewNavbarOptions } from '../../UI/Navbar';
-import { captureScreen } from 'react-native-view-shot';
-import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import BrowserTab from '../BrowserTab';
-import AppConstants from '../../../core/AppConstants';
-import { baseStyles } from '../../../styles/common';
-import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getPermittedAccounts,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
-import getAccountNameWithENS from '../../../util/accounts';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import { BROWSER_SCREEN_ID } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/BrowserScreen.testIds';
-import { selectAccountsLength } from '../../../selectors/accountTrackerController';
-
+import { useAccounts } from '../../../components/hooks/useAccounts';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import AppConstants from '../../../core/AppConstants';
+import { getPermittedAccounts } from '../../../core/Permissions';
+import Logger from '../../../util/Logger';
+import getAccountNameWithENS from '../../../util/accounts';
+import Tabs from '../../UI/Tabs';
+import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
-import { isEqual } from 'lodash';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
-
-const margin = 16;
-const THUMB_WIDTH = Dimensions.get('window').width / 2 - margin * 2;
-const THUMB_HEIGHT = Device.isIos() ? THUMB_WIDTH * 1.81 : THUMB_WIDTH * 1.48;
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { appendURLParams } from '../../../util/browser';
+import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './styles';
 
 /**
  * Component that wraps all the browser
  * individual tabs and the tabs view
  */
-const Browser = (props) => {
+export const Browser = (props) => {
   const {
     route,
     navigation,
@@ -59,13 +48,14 @@ const Browser = (props) => {
     updateTab,
     activeTab: activeTabId,
     tabs,
-    accountsLength,
   } = props;
   const previousTabs = useRef(null);
-  const { colors } = useTheme();
-  const { trackEvent } = useMetrics();
+  const { top: topInset } = useSafeAreaInsets();
+  const { styles } = useStyles(styleSheet, { topInset });
+  const { trackEvent, createEventBuilder, isEnabled } = useMetrics();
   const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
+  const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { accounts, ensByAccountAddress } = useAccounts();
   const accountAvatarType = useSelector((state) =>
@@ -73,48 +63,19 @@ const Browser = (props) => {
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  // networkConfigurations has all the rpcs added by the user. We add 1 more to account the Ethereum Main Network
-  const nonTestnetNetworks =
-    Object.keys(props.networkConfigurations).length + 1;
-
-  const activeTab = tabs.find((tab) => tab.id === activeTabId);
-  const permittedAccountsList = useSelector((state) => {
-    if (!activeTab) return [];
-
-    const permissionsControllerState =
-      state.engine.backgroundState.PermissionController;
-    const hostname = new URL(activeTab.url).hostname;
-    const permittedAcc = getPermittedAccountsByHostname(
-      permissionsControllerState,
-      hostname,
-    );
-    return permittedAcc;
-  }, isEqual);
-
-  const handleRightTopButtonAnalyticsEvent = () => {
-    trackEvent(MetaMetricsEvents.OPEN_DAPP_PERMISSIONS, {
-      number_of_accounts: accountsLength,
-      number_of_accounts_connected: permittedAccountsList.length,
-      number_of_networks: nonTestnetNetworks,
-    });
-  };
-
-  useEffect(
-    () =>
-      navigation.setOptions(
-        getBrowserViewNavbarOptions(
-          route,
-          colors,
-          handleRightTopButtonAnalyticsEvent,
-        ),
-      ),
-    /* eslint-disable-next-line */
-    [navigation, route, colors],
+  const isDataCollectionForMarketingEnabled = useSelector(
+    (state) => state.security.dataCollectionForMarketing,
   );
 
-  const newTab = (url) => {
-    createNewTab(url || AppConstants.HOMEPAGE_URL);
+  const homePageUrl = () =>
+    appendURLParams(AppConstants.HOMEPAGE_URL, {
+      metricsEnabled: isEnabled(),
+      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+    }).href;
+
+  const newTab = (url, linkType) => {
+    // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+    createNewTab(url || homePageUrl(), linkType);
   };
 
   const updateTabInfo = (url, tabID) =>
@@ -127,12 +88,13 @@ const Browser = (props) => {
       ...route.params,
       showTabs: false,
       url,
-      silent: false,
     });
   };
 
   const switchToTab = (tab) => {
-    trackEvent(MetaMetricsEvents.BROWSER_SWITCH_TAB, {});
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BROWSER_SWITCH_TAB).build(),
+    );
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
     updateTabInfo(tab.url, tab.id);
@@ -145,6 +107,7 @@ const Browser = (props) => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
       const activeAccountAddress = permittedAccounts?.[0];
+
       if (activeAccountAddress) {
         const accountName = getAccountNameWithENS({
           accountAddress: activeAccountAddress,
@@ -221,15 +184,15 @@ const Browser = (props) => {
     [tabs],
   );
 
-  // Handle deeplinks.
+  // Handle links with associated timestamp.
   useEffect(
     () => {
       const newTabUrl = route.params?.newTabUrl;
       const deeplinkTimestamp = route.params?.timestamp;
       const existingTabId = route.params?.existingTabId;
       if (newTabUrl && deeplinkTimestamp) {
-        // Open url from deeplink.
-        newTab(newTabUrl);
+        // Open url from link.
+        newTab(newTabUrl, linkType);
       } else if (existingTabId) {
         const existingTab = tabs.find((tab) => tab.id === existingTabId);
         if (existingTab) {
@@ -287,7 +250,6 @@ const Browser = (props) => {
       navigation.setParams({
         ...route.params,
         url: null,
-        silent: true,
       });
     }
   };
@@ -308,7 +270,6 @@ const Browser = (props) => {
             navigation.setParams({
               ...route.params,
               url: newTab.url,
-              silent: true,
             });
           }
         });
@@ -316,7 +277,6 @@ const Browser = (props) => {
         navigation.setParams({
           ...route.params,
           url: null,
-          silent: true,
         });
       }
     }
@@ -329,7 +289,6 @@ const Browser = (props) => {
       navigation.setParams({
         ...route.params,
         showTabs: false,
-        silent: true,
       });
     }
   };
@@ -357,17 +316,20 @@ const Browser = (props) => {
       <BrowserTab
         id={tab.id}
         key={`tab_${tab.id}`}
-        initialUrl={tab.url || AppConstants.HOMEPAGE_URL}
+        initialUrl={tab.url}
+        linkType={tab.linkType}
         updateTabInfo={updateTabInfo}
         showTabs={showTabs}
         newTab={newTab}
+        isInTabsView={route.params?.showTabs}
+        homePageUrl={homePageUrl()}
       />
     ));
 
   return (
     <View
-      style={baseStyles.flexGrow}
-      {...generateTestId(Platform, BROWSER_SCREEN_ID)}
+      style={styles.browserContainer}
+      testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
       {renderBrowserTabs()}
       {renderTabsView()}
@@ -376,14 +338,12 @@ const Browser = (props) => {
 };
 
 const mapStateToProps = (state) => ({
-  accountsLength: selectAccountsLength(state),
-  networkConfigurations: selectNetworkConfigurations(state),
   tabs: state.browser.tabs,
   activeTab: state.browser.activeTab,
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  createNewTab: (url) => dispatch(createNewTab(url)),
+  createNewTab: (url, linkType) => dispatch(createNewTab(url, linkType)),
   closeAllTabs: () => dispatch(closeAllTabs()),
   closeTab: (id) => dispatch(closeTab(id)),
   setActiveTab: (id) => dispatch(setActiveTab(id)),
@@ -427,8 +387,6 @@ Browser.propTypes = {
    * Object that represents the current route info like params passed to it
    */
   route: PropTypes.object,
-  accountsLength: PropTypes.number,
-  networkConfigurations: PropTypes.object,
 };
 
 export { default as createBrowserNavDetails } from './Browser.types';

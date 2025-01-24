@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   TouchableOpacity,
@@ -14,7 +8,7 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Device from '../../../util/device';
 import AvatarAccount, {
   AvatarAccountType,
@@ -24,11 +18,7 @@ import Avatar, {
   AvatarVariant,
   AvatarSize,
 } from '../../../component-library/components/Avatars/Avatar';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-  getNetworkNameFromProviderConfig,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
@@ -36,8 +26,10 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import { selectProviderConfig } from '../../../selectors/networkController';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/AccountOverview.selectors';
+import { AccountOverviewSelectorsIDs } from '../../../../e2e/selectors/Browser/AccountOverview.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import UrlParser from 'url-parse';
 
 const styles = StyleSheet.create({
   leftButton: {
@@ -67,9 +59,11 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
-  const { trackEvent } = useMetrics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const accountAvatarType = useSelector((state: any) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -124,9 +118,13 @@ const AccountRightButton = ({
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.NETWORK_SELECTOR,
       });
-      trackEvent(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED, {
-        chain_id: getDecimalChainId(providerConfig.chainId),
-      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
+          .addProperties({
+            chain_id: getDecimalChainId(providerConfig.chainId),
+          })
+          .build(),
+      );
     } else {
       onPress?.();
     }
@@ -138,21 +136,18 @@ const AccountRightButton = ({
     navigate,
     providerConfig.chainId,
     trackEvent,
+    createEventBuilder,
   ]);
 
-  const networkName = useMemo(
-    () => getNetworkNameFromProviderConfig(providerConfig),
-    [providerConfig],
-  );
+  const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
+  // url is defined if opened while in a dapp
+  const currentUrl = route.params?.url;
+  let hostname;
+  if (currentUrl) {
+    hostname = new UrlParser(currentUrl)?.hostname;
+  }
 
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        networkType: providerConfig.type,
-        chainId: providerConfig.chainId,
-      }),
-    [providerConfig],
-  );
+  const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   const renderAvatarAccount = () => (
     <AvatarAccount type={accountAvatarType} accountAddress={selectedAddress} />

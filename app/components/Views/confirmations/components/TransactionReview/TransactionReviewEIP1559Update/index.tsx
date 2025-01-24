@@ -1,10 +1,12 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck - Confirmations team or Transactions team
 import React, { useCallback, useEffect, useState } from 'react';
-import { Linking, Platform, TouchableOpacity, View } from 'react-native';
+import { Linking, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { ESTIMATED_FEE_TEST_ID } from '../../../../../../../wdio/screen-objects/testIDs/Screens/TransactionSummaryScreen.testIds';
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
+import { EditGasViewSelectorsIDs } from '../../../../../../../e2e/selectors/SendFlow/EditGasView.selectors';
+
 import AppConstants from '../../../../../../core/AppConstants';
 import { useGasTransaction } from '../../../../../../core/GasPolling/GasPolling';
 import Device from '../../../../../../util/device';
@@ -29,7 +31,6 @@ const TransactionReviewEIP1559Update = ({
   onEdit,
   hideTotal,
   noMargin,
-  origin,
   originWarning,
   onUpdatingValuesStart,
   onUpdatingValuesEnd,
@@ -47,6 +48,8 @@ const TransactionReviewEIP1559Update = ({
   const [showLearnMoreModal, setShowLearnMoreModal] = useState(false);
   const [
     isVisibleTimeEstimateInfoModal,
+    ,
+    // extra comma above is to ignore second value in array returned from hook useModalHandler
     showTimeEstimateInfoModal,
     hideTimeEstimateInfoModal,
   ] = useModalHandler(false);
@@ -68,6 +71,7 @@ const TransactionReviewEIP1559Update = ({
   });
 
   const {
+    gasFeeMaxNative,
     renderableGasFeeMinNative,
     renderableGasFeeMinConversion,
     renderableGasFeeMaxNative,
@@ -90,7 +94,12 @@ const TransactionReviewEIP1559Update = ({
       updateTransactionState(gasTransaction);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gasEstimationReady, updateTransactionState, suggestedGasLimit]);
+  }, [
+    gasEstimationReady,
+    updateTransactionState,
+    suggestedGasLimit,
+    gasFeeMaxNative,
+  ]);
 
   const openLinkAboutGas = useCallback(
     () => Linking.openURL(AppConstants.URLS.WHY_TRANSACTION_TAKE_TIME),
@@ -125,11 +134,7 @@ const TransactionReviewEIP1559Update = ({
               orange={Boolean(originWarning)}
               noMargin
             >
-              {!origin
-                ? strings('transaction_review_eip1559.estimated_gas_fee')
-                : strings('transaction_review_eip1559.suggested_gas_fee', {
-                    origin,
-                  })}
+              {strings('transaction_review_eip1559.network_fee')}
               <TouchableOpacity
                 style={styles.gasInfoContainer}
                 onPress={() =>
@@ -158,7 +163,7 @@ const TransactionReviewEIP1559Update = ({
                 <TouchableOpacity
                   onPress={edit}
                   disabled={nativeCurrencySelected}
-                  {...generateTestId(Platform, ESTIMATED_FEE_TEST_ID)}
+                  testID={EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID}
                 >
                   <Text
                     upper
@@ -188,7 +193,7 @@ const TransactionReviewEIP1559Update = ({
                 onPress={edit}
                 disabled={!nativeCurrencySelected}
                 style={[Device.isSmallDevice() && styles.flex]}
-                {...generateTestId(Platform, ESTIMATED_FEE_TEST_ID)}
+                testID={EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID}
               >
                 <Text
                   primary

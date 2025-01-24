@@ -5,6 +5,8 @@ import Device from '../../../util/device';
 
 const breakPoint = Device.getDeviceHeight() < 700;
 
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
     bottomModal: {

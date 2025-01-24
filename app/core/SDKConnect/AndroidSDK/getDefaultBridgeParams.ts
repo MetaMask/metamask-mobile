@@ -1,3 +1,4 @@
+import { ImageSourcePropType } from 'react-native';
 import AppConstants from '../../AppConstants';
 import getRpcMethodMiddleware from '../../RPCMethods/RPCMethodMiddleware';
 import { DappClient } from './dapp-sdk-types';
@@ -12,6 +13,8 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
     getProviderState,
   }: {
     hostname: string;
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     getProviderState: any;
   }) =>
     getRpcMethodMiddleware({
@@ -21,11 +24,6 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
       getProviderState,
       isMMSDK: true,
       navigation: null, //props.navigation,
-      getApprovedHosts: (host: string) => ({
-        [host]: true,
-      }),
-      setApprovedHosts: () => true,
-      approveHost: () => ({}),
       // Website info
       url: {
         current: clientInfo.originatorInfo?.url,
@@ -34,7 +32,7 @@ const getDefaultBridgeParams = (clientInfo: DappClient) => ({
         current: clientInfo.originatorInfo?.title,
       },
       icon: {
-        current: clientInfo.originatorInfo?.icon,
+        current: clientInfo.originatorInfo?.icon as ImageSourcePropType, // TODO: Need to change the type at the @metamask/sdk-communication-layer from string to ImageSourcePropType
       },
       // Bookmarks
       isHomepage: () => false,

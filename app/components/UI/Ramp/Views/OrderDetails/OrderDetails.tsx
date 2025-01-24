@@ -25,15 +25,15 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import { useTheme } from '../../../../../util/theme';
 import Logger from '../../../../../util/Logger';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import ErrorView from '../../components/ErrorView';
 import useInterval from '../../../../hooks/useInterval';
 import AppConstants from '../../../../../core/AppConstants';
+import {
+  createBuyNavigationDetails,
+  createSellNavigationDetails,
+} from '../../routes/utils';
 
 interface OrderDetailsParams {
   orderId?: string;
@@ -45,8 +45,6 @@ export const createOrderDetailsNavDetails =
 
 const OrderDetails = () => {
   const trackEvent = useAnalytics();
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const params = useParams<OrderDetailsParams>();
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
@@ -180,11 +178,11 @@ const OrderDetails = () => {
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
-    navigation.navigate(
-      order?.orderType === OrderOrderTypeEnum.Buy
-        ? Routes.RAMP.BUY
-        : Routes.RAMP.SELL,
-    );
+    if (order?.orderType === OrderOrderTypeEnum.Buy) {
+      navigation.navigate(...createBuyNavigationDetails());
+    } else {
+      navigation.navigate(...createSellNavigationDetails());
+    }
   }, [navigation, order?.orderType]);
 
   useInterval(
@@ -244,11 +242,7 @@ const OrderDetails = () => {
       >
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <OrderDetail
-              order={order}
-              providerConfig={providerConfig}
-              networkConfigurations={networkConfigurations}
-            />
+            <OrderDetail order={order} />
           </ScreenLayout.Content>
         </ScreenLayout.Body>
         <ScreenLayout.Footer>

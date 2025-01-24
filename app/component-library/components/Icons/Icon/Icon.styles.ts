@@ -8,6 +8,8 @@ import { StyleSheet, ImageStyle } from 'react-native';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
+// TODO: Replace "any" with type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const styleSheet = (params: { vars: any }) => {
   const {
     vars: { style, size },
