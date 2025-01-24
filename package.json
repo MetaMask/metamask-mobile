@@ -290,7 +290,7 @@
     "react-native-fade-in-image": "1.4.1",
     "react-native-fast-crypto": "^2.2.0",
     "react-native-fs": "^2.20.0",
-    "react-native-gesture-handler": "^1.10.3",
+    "react-native-gesture-handler": "^2.22.1",
     "react-native-get-random-values": "^1.11.0",
     "react-native-gzip": "^1.1.0",
     "react-native-i18n": "2.0.15",
