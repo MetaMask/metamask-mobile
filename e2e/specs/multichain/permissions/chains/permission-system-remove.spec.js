@@ -6,7 +6,7 @@ import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
+import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 
 import { PopularNetworksList } from '../../../../resources/networks.e2e';
@@ -44,7 +44,6 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
 
         // Connect to DApp and configure network permissions
         await Browser.navigateToTestDApp();
-        await waitForTestDappToLoad();
         await TestDApp.connect();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();

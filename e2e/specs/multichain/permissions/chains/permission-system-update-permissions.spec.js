@@ -6,7 +6,7 @@ import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
+import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
@@ -40,7 +40,6 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
-        await waitForTestDappToLoad();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
         // Navigate to chain permissions

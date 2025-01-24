@@ -7,7 +7,7 @@ import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
+import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 
 describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
@@ -30,7 +30,6 @@ describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
         await Browser.navigateToTestDApp();
-        await waitForTestDappToLoad();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
         await ConnectedAccountsModal.tapManagePermissionsButton();

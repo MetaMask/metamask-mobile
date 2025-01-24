@@ -7,7 +7,7 @@ import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import { withFixtures } from '../../../../fixtures/fixture-helper';
-import { loginToApp, waitForTestDappToLoad } from '../../../../viewHelper';
+import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
@@ -34,7 +34,6 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
 
         // Step 2: Navigate to test dApp and open network settings
         await Browser.navigateToTestDApp();
-        await waitForTestDappToLoad();
         await Browser.tapNetworkAvatarButtonOnBrowser();
 
         // Step 3: Navigate through permission management flow

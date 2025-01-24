@@ -225,6 +225,6 @@ export const loginToApp = async () => {
 
 export const waitForTestDappToLoad = async () => {
   await TestHelpers.delay(3000);
-  await Assertions.checkIfVisible(TestDApp.testDappFoxLogo);
-  await Assertions.checkIfVisible(TestDApp.testDappPageTitle);
+  await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
+  await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
 };
