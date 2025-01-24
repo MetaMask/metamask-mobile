@@ -27,6 +27,7 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import useStakingChain from '../../hooks/useStakingChain';
 import Engine from '../../../../../core/Engine';
+import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 
 interface StakeButtonProps {
   asset: TokenI;
@@ -42,45 +43,44 @@ const StakeButtonContent = ({ asset }: StakeButtonProps) => {
   const { isEligible } = useStakingEligibility();
   const { isStakingSupportedChain } = useStakingChain();
 
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
   const onStakeButtonPress = async () => {
-    if (!isStakingSupportedChain) {
-      const { NetworkController } = Engine.context;
-      await NetworkController.setActiveNetwork('mainnet');
-    }
-    if (isEligible) {
-      navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
-    } else {
-      const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
-        tab.url.includes(AppConstants.STAKE.URL),
-      );
-      let existingTabId;
-      let newTabUrl;
-      if (existingStakeTab) {
-        existingTabId = existingStakeTab.id;
-      } else {
-        newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
-      }
-      const params = {
-        ...(newTabUrl && { newTabUrl }),
-        ...(existingTabId && { existingTabId, newTabUrl: undefined }),
-        timestamp: Date.now(),
-      };
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params,
-      });
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-          location: EVENT_LOCATIONS.HOME_SCREEN,
-          text: 'Stake',
-          token_symbol: asset.symbol,
-          url: AppConstants.STAKE.URL,
-        })
-        .build(),
-    );
+    await attemptDepositTransaction('');
+    return;
+    // if (isEligible) {
+    //   navigation.navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+    // } else {
+    //   const existingStakeTab = browserTabs.find((tab: BrowserTab) =>
+    //     tab.url.includes(AppConstants.STAKE.URL),
+    //   );
+    //   let existingTabId;
+    //   let newTabUrl;
+    //   if (existingStakeTab) {
+    //     existingTabId = existingStakeTab.id;
+    //   } else {
+    //     newTabUrl = `${AppConstants.STAKE.URL}?metamaskEntry=mobile`;
+    //   }
+    //   const params = {
+    //     ...(newTabUrl && { newTabUrl }),
+    //     ...(existingTabId && { existingTabId, newTabUrl: undefined }),
+    //     timestamp: Date.now(),
+    //   };
+    //   navigation.navigate(Routes.BROWSER.HOME, {
+    //     screen: Routes.BROWSER.VIEW,
+    //     params,
+    //   });
+    // }
+    // trackEvent(
+    //   createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
+    //     .addProperties({
+    //       chain_id: getDecimalChainId(chainId),
+    //       location: EVENT_LOCATIONS.HOME_SCREEN,
+    //       text: 'Stake',
+    //       token_symbol: asset.symbol,
+    //       url: AppConstants.STAKE.URL,
+    //     })
+    //     .build(),
+    // );
   };
 
   return (
