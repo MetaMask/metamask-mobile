@@ -19,14 +19,14 @@ on:
     secrets:
       gh_token:
         required: true
-      crowdin_project_id: 
+      crowdin_project_id:
         required: true
       crowdin_personal_token:
         required: true
 
 jobs:
   crowdin:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     env:
       GITHUB_TOKEN: ${{ secrets.gh_token }}
       CROWDIN_PERSONAL_TOKEN: ${{ secrets.crowdin_personal_token }}
@@ -37,19 +37,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.branch }}
-      
+
       - name: Modified branch name
         run: echo "modified_branch_name="${{ inputs.branch }} | sed 's#/#-#g'"" >> "$GITHUB_OUTPUT"
-        id: extract_modified_branch_name      
-      
+        id: extract_modified_branch_name
+
       - name: Check translation progress
         # when main just pull whatever you have (aka skip this) - need to test
-        if: ${{ inputs.branch != 'main' }} 
+        if: ${{ inputs.branch != 'main' }}
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:
           command: 'status translation'
           command_args: '-b ${{ steps.extract_modified_branch_name.outputs.modified_branch_name }} --fail-if-incomplete'
-      
+
       - name: Synchronize with Crowdin
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:

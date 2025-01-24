@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   process_pr:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - name: Convert PR to Draft and Add Label
         uses: actions/github-script@v6

@@ -6,7 +6,7 @@ on:
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3

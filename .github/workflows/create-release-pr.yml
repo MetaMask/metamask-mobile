@@ -19,7 +19,7 @@ jobs:
       id-token: write
 
   create-release-pr:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: generate-build-version
     permissions:
       contents: write

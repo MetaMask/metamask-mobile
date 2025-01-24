@@ -5,7 +5,7 @@ on:
 
 jobs:
   stale:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     permissions:
       issues: write
       pull-requests: write
@@ -26,4 +26,3 @@ jobs:
           days-before-issue-close: 7
           days-before-pr-close: 7
           operations-per-run: 200
-          

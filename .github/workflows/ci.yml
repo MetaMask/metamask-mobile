@@ -31,7 +31,7 @@ jobs:
             echo "No changes detected"
           fi
   dedupe:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -49,7 +49,7 @@ jobs:
             exit 1
           fi
   git-safe-dependencies:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -60,7 +60,7 @@ jobs:
       - name: Run @lavamoat/git-safe-dependencies
         run: yarn git-safe-dependencies
   scripts:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     strategy:
       matrix:
         scripts:
@@ -87,7 +87,7 @@ jobs:
             echo "No changes detected"
           fi
   unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     strategy:
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -122,7 +122,7 @@ jobs:
             echo "No changes detected"
           fi
   merge-unit-tests:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -156,7 +156,7 @@ jobs:
           fi
 
   js-bundle-size-check:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -179,7 +179,7 @@ jobs:
           path: ios/main.jsbundle
 
   ship-js-bundle-size-check:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: [js-bundle-size-check]
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
@@ -198,7 +198,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
   sonar-cloud:
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: merge-unit-tests
     steps:
       - uses: actions/checkout@v3
@@ -238,7 +238,7 @@ jobs:
             git update-index --no-assume-unchanged "$path"
           done
   sonar-cloud-quality-gate-status:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: sonar-cloud
     steps:
       - name: Checkout code
@@ -293,7 +293,7 @@ jobs:
           fi
   check-workflows:
     name: Check workflows
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - uses: actions/checkout@v4
       - name: Download actionlint
@@ -305,7 +305,7 @@ jobs:
         shell: bash
   all-jobs-pass:
     name: All jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs:
       [
         check-diff,
@@ -324,7 +324,7 @@ jobs:
         run: echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
   check-all-jobs-pass:
     name: Check all jobs pass
-    runs-on: ubuntu-20.04
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: all-jobs-pass
     if: always()
     steps:

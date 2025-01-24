@@ -1,6 +1,6 @@
 name: Crowdin - Find all branches with translations and trigger completion checks
 # This workflow will run on a schedule. It will pull all pull requests with a label of
-# ready-for-translation and create a matrix of the associated branches to run the 
+# ready-for-translation and create a matrix of the associated branches to run the
 # crowdin-reusable-translation-download.yml workflow on.
 # That workflow will check the status of the translations and if complete create a pull
 # request with the translations off of the branch.
@@ -12,7 +12,7 @@ permissions:
 # TODO: Add a schedule to run this workflow twice a day(?) once the testing is complete
 on: workflow_dispatch
 
-jobs: 
+jobs:
   run-check-and-download-for-branch:
     needs: get-branches
     if: ${{ needs.get-branches.outputs.matrix != '[]' && needs.get-branches.outputs.matrix != '' }}
@@ -29,7 +29,7 @@ jobs:
       crowdin_project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
 
   get-branches:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     outputs:
       matrix: ${{ steps.matrix-outputs.outputs.matrix }}
     steps:
@@ -41,13 +41,13 @@ jobs:
         run: |
           GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}"
           REPO="${{ github.repository }}"
-          
+
           LABEL="ready-for-translation"
           API_URL="https://api.github.com/repos/$REPO/pulls?state=open&per_page=100"
-          
+
           # Fetch the list of open pull requests with the specified label using curl
           PRS=$(curl -sS --header "Authorization: Bearer $GITHUB_TOKEN" "$API_URL")
-          
+
           BRANCHES=$(echo "$PRS" | jq -r '[.[] | select(.labels[].name == "'"$LABEL"'") | .head.ref] | @json')
           echo "Found branches: $BRANCHES"
           echo "branches=$BRANCHES" >> "$GITHUB_OUTPUT"

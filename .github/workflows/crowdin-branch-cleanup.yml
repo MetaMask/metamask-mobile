@@ -7,7 +7,7 @@ on: workflow_dispatch
 
 jobs:
   prestep:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     outputs:
       branch: ${{ steps.extract_current_branch.outputs.branch }}
       pr: ${{ steps.get-prs.outputs.pr }}
@@ -40,7 +40,7 @@ jobs:
         id: extract_modified_branch_name
 
   github_cleanup:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: prestep
     steps:
       - name: Remove label from PR
@@ -58,7 +58,7 @@ jobs:
             });
 
   crowdin_cleanup:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     needs: prestep
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

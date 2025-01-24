@@ -21,7 +21,7 @@ jobs:
         id-token: write
 
     bump-version:
-        runs-on: ubuntu-latest
+        runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
         needs: generate-build-version
         permissions:
           contents: write
@@ -32,7 +32,7 @@ jobs:
             fetch-depth: 0
             ref: ${{ inputs.base-branch }}
             token: ${{ secrets.PR_TOKEN }}
-            
+
         - name: Bump script
           env:
             HEAD_REF: ${{ inputs.base-branch }}
@@ -47,5 +47,4 @@ jobs:
             git add android/app/build.gradle
             git commit -m "Bump version number to ${{ needs.generate-build-version.outputs.build-version }}"
             git push origin HEAD:"$HEAD_REF" --force
-            
-  
+

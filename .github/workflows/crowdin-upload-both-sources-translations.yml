@@ -9,7 +9,7 @@ on: workflow_dispatch
 
 jobs:
   crowdin-upload:
-    runs-on: ubuntu-latest
+    runs-on: gha-mm-scale-set-ubuntu-22.04-amd64-med
     steps:
       - name: Extract current branch name
         shell: bash
