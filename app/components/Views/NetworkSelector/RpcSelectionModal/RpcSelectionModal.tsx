@@ -64,13 +64,6 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       const { NetworkController } = Engine.context;
       const existingNetwork = networkConfigurations[chainId];
 
-      if (!existingNetwork) {
-        Logger.error(
-          new Error(`No existing network found for chainId: ${chainId}`),
-        );
-        return;
-      }
-
       const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
         ({ networkClientId }) => clientId === networkClientId,
       );
