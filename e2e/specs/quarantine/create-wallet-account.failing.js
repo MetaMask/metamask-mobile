@@ -5,6 +5,7 @@ import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import TestHelpers from '../../helpers';
 
 const AccountTwoText = 'Account 2';
 

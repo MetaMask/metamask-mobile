@@ -9,6 +9,7 @@ import {
 import { CustomNetworks } from '../../resources/networks.e2e';
 import Assertions from '../../utils/Assertions';
 import CommonView from '../../pages/CommonView';
+import TestHelpers from '../../helpers';
 
 describe(SmokeSwaps('Token Chart Tests'), () => {
   beforeAll(async () => {

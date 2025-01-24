@@ -15,6 +15,7 @@ import {
 import Utilities from '../utils/Utilities';
 import { device } from 'detox';
 import { startMockServer, stopMockServer } from '../api-mocking/mock-server';
+import TestHelpers from '../helpers';
 
 export const DEFAULT_DAPP_SERVER_PORT = 8085;
 
