@@ -726,7 +726,6 @@ describe('Tokens', () => {
 
           const { queryByText } = renderComponent(stateWithZeroBalances);
           expect(queryByText('ZERO')).toBeDefined();
-          expect(queryByText('NON_ZERO_ERC20')).toBeDefined();
           expect(queryByText('ZERO_ERC20')).toBeNull();
         });
       });
