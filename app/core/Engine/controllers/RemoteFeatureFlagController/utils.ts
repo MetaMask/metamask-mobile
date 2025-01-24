@@ -35,9 +35,15 @@ export const createRemoteFeatureFlagController = ({
   disabled,
   getMetaMetricsId,
 }: RemoteFeatureFlagInitParamTypes) => {
+  const overrideMode = process.env.OVERRIDE_FEATURE_FLAGS;
+  const controllerState = overrideMode ? {} : state;
+
+  console.log('override value', overrideMode);
+  console.log('controllerState', controllerState);
+
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
-    state,
+    state: controllerState,
     disabled,
     getMetaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
@@ -50,8 +56,12 @@ export const createRemoteFeatureFlagController = ({
     }),
   });
 
+  //
+
   if (disabled) {
     Logger.log('Feature flag controller disabled');
+  } else if (overrideMode) {
+    Logger.log('Remote feature flags override activated');
   } else {
     remoteFeatureFlagController.updateRemoteFeatureFlags().then(() => {
       Logger.log('Feature flags updated');
