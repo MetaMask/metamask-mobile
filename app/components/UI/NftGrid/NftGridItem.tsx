@@ -29,9 +29,11 @@ interface NftGridNavigationParamList {
 function NftGridItem({
   nft,
   navigation,
+  privacyMode = false,
 }: {
   nft: Nft;
   navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
+  privacyMode: boolean;
 }) {
   const actionSheetRef = useRef<ActionSheetType>(null);
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
@@ -66,6 +68,7 @@ function NftGridItem({
         style={styles.collectibleIcon}
         collectible={nft}
         isTokenImage
+        privacyMode={privacyMode}
       />
       <Text numberOfLines={1} ellipsizeMode="tail">
         {nft.name}

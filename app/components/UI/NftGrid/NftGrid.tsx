@@ -28,6 +28,7 @@ import CollectibleDetectionModal from '../CollectibleDetectionModal';
 import {
   selectDisplayNftMedia,
   selectIsIpfsGatewayEnabled,
+  selectPrivacyMode,
   selectUseNftDetection,
 } from '../../../selectors/preferencesController';
 import NftGridItem from './NftGridItem';
@@ -65,6 +66,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const collectibles = useSelector(collectiblesSelector).filter(
     (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
   );
+  const privacyMode = useSelector(selectPrivacyMode);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const useNftDetection = useSelector(selectUseNftDetection);
@@ -247,7 +249,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           numColumns={3}
           data={collectibles}
           renderItem={({ item }: { item: Nft }) => (
-            <NftGridItem nft={item} navigation={navigation} />
+            <NftGridItem
+              nft={item}
+              navigation={navigation}
+              privacyMode={privacyMode}
+            />
           )}
           keyExtractor={(_, index) => index.toString()}
           testID={RefreshTestId}
