@@ -99,6 +99,7 @@ import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../util/device';
+import Logger from '../../../util/Logger';
 
 interface infuraNetwork {
   name: string;
