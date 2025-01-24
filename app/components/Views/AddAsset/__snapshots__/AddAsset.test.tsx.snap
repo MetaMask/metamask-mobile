@@ -21,7 +21,7 @@ exports[`AddAsset component renders correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#bf52081a",
+          "backgroundColor": "#BF52081A",
           "borderColor": "#bf5208",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -189,7 +189,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#141618",
@@ -246,7 +246,7 @@ exports[`AddAsset component renders correctly 1`] = `
                 style={
                   [
                     {
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "color": "#141618",

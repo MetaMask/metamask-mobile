@@ -129,25 +129,30 @@ exports[`Root should render correctly 1`] = `
         "colors": {
           "background": {
             "alternative": "#f2f4f6",
-            "alternativeHover": "#e7ebee",
-            "alternativePressed": "#dbe0e6",
+            "alternativeHover": "#E7EBEE",
+            "alternativePressed": "#DBE0E6",
             "default": "#ffffff",
-            "defaultHover": "#f5f5f5",
-            "defaultPressed": "#ebebeb",
-            "hover": "#0000000a",
+            "defaultHover": "#F5F5F5",
+            "defaultPressed": "#EBEBEB",
+            "hover": "#0000000A",
+            "muted": "#f2f4f6",
+            "mutedHover": "#E7EBEE",
+            "mutedPressed": "#DBE0E6",
             "pressed": "#00000014",
           },
           "border": {
-            "default": "#bbc0c5",
-            "muted": "#bbc0c566",
+            "default": "#848c96",
+            "muted": "#BBC0C566",
           },
           "error": {
             "alternative": "#8e1d28",
             "default": "#d73847",
-            "defaultHover": "#d02a3a",
-            "defaultPressed": "#bf2635",
+            "defaultHover": "#D02A3A",
+            "defaultPressed": "#BF2635",
             "inverse": "#ffffff",
-            "muted": "#d738471a",
+            "muted": "#D738471A",
+            "mutedHover": "#d7384726",
+            "mutedPressed": "#d7384733",
           },
           "flask": {
             "default": "#8b45b6",
@@ -161,32 +166,36 @@ exports[`Root should render correctly 1`] = `
           "info": {
             "default": "#0376c9",
             "inverse": "#ffffff",
-            "muted": "#0376c91a",
+            "muted": "#0376C91A",
           },
           "overlay": {
-            "alternative": "#000000cc",
+            "alternative": "#000000CC",
             "default": "#00000099",
             "inverse": "#ffffff",
           },
           "primary": {
             "alternative": "#0260a4",
             "default": "#0376c9",
-            "defaultHover": "#036ab5",
-            "defaultPressed": "#025ea1",
+            "defaultHover": "#036AB5",
+            "defaultPressed": "#025EA1",
             "inverse": "#ffffff",
-            "muted": "#0376c91a",
+            "muted": "#0376C91A",
+            "mutedHover": "#0376c926",
+            "mutedPressed": "#0376c933",
           },
           "shadow": {
-            "default": "#0000001a",
-            "error": "#ca354266",
-            "primary": "#0376c933",
+            "default": "#0000001A",
+            "error": "#CA354266",
+            "primary": "#0376C933",
           },
           "success": {
             "default": "#1c8234",
-            "defaultHover": "#18712d",
+            "defaultHover": "#18712D",
             "defaultPressed": "#156127",
             "inverse": "#ffffff",
-            "muted": "#1c82341a",
+            "muted": "#1C82341A",
+            "mutedHover": "#1c823426",
+            "mutedPressed": "#1c823433",
           },
           "text": {
             "alternative": "#6a737d",
@@ -195,16 +204,18 @@ exports[`Root should render correctly 1`] = `
           },
           "warning": {
             "default": "#bf5208",
-            "defaultHover": "#ac4a07",
+            "defaultHover": "#AC4A07",
             "defaultPressed": "#984106",
             "inverse": "#ffffff",
-            "muted": "#bf52081a",
+            "muted": "#BF52081A",
+            "mutedHover": "#bf520826",
+            "mutedPressed": "#bf520833",
           },
         },
         "shadows": {
           "size": {
             "lg": {
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -213,7 +224,7 @@ exports[`Root should render correctly 1`] = `
               "shadowRadius": 40,
             },
             "md": {
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -222,7 +233,7 @@ exports[`Root should render correctly 1`] = `
               "shadowRadius": 16,
             },
             "sm": {
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -231,7 +242,7 @@ exports[`Root should render correctly 1`] = `
               "shadowRadius": 8,
             },
             "xs": {
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,

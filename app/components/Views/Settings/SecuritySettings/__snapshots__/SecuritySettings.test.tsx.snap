@@ -146,7 +146,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#d738471a",
+              "backgroundColor": "#D738471A",
               "borderColor": "#d73847",
               "borderLeftWidth": 4,
               "borderRadius": 4,
@@ -363,7 +363,7 @@ exports[`SecuritySettings should render correctly 1`] = `
         <View
           style={
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 5,
               "borderWidth": 2,
               "marginTop": 16,
@@ -528,7 +528,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#BBC0C566",
                         "borderRadius": 16,
                       },
                     ],
@@ -536,7 +536,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
                 testID="turn-on-remember-me"
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#BBC0C566"
                 value={true}
               />
             </View>
@@ -680,7 +680,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   "alignSelf": "flex-end",
                 },
                 {
-                  "backgroundColor": "#bbc0c566",
+                  "backgroundColor": "#BBC0C566",
                   "borderRadius": 16,
                 },
               ],
@@ -688,7 +688,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           }
           testID="security-alerts-toggle"
           thumbTintColor="#ffffff"
-          tintColor="#bbc0c566"
+          tintColor="#BBC0C566"
           value={true}
         />
       </View>
@@ -814,13 +814,13 @@ exports[`SecuritySettings should render correctly 1`] = `
                     "width": 51,
                   },
                   {
-                    "backgroundColor": "#bbc0c566",
+                    "backgroundColor": "#BBC0C566",
                     "borderRadius": 16,
                   },
                 ]
               }
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={false}
             />
           </View>
@@ -1354,7 +1354,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -1362,7 +1362,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="display-use-safe-list-validation"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={true}
             />
           </View>
@@ -1474,7 +1474,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -1482,7 +1482,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="security-settings-multi-account-balances-switch"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={true}
             />
           </View>
@@ -1563,7 +1563,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 4,
                 "borderWidth": 0,
                 "padding": 16,
@@ -1657,7 +1657,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                           "alignSelf": "flex-start",
                         },
                         {
-                          "backgroundColor": "#bbc0c566",
+                          "backgroundColor": "#BBC0C566",
                           "borderRadius": 16,
                         },
                       ],
@@ -1665,7 +1665,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="incoming-mainnet-toggle"
                   thumbTintColor="#ffffff"
-                  tintColor="#bbc0c566"
+                  tintColor="#BBC0C566"
                   value={true}
                 />
               </View>
@@ -1682,7 +1682,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 4,
                 "borderWidth": 0,
                 "padding": 16,
@@ -1776,7 +1776,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                           "alignSelf": "flex-start",
                         },
                         {
-                          "backgroundColor": "#bbc0c566",
+                          "backgroundColor": "#BBC0C566",
                           "borderRadius": 16,
                         },
                       ],
@@ -1784,7 +1784,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                   }
                   testID="incoming-linea-mainnet-toggle"
                   thumbTintColor="#ffffff"
-                  tintColor="#bbc0c566"
+                  tintColor="#BBC0C566"
                   value={true}
                 />
               </View>
@@ -1876,14 +1876,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
                 ]
               }
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={true}
             />
           </View>
@@ -2011,7 +2011,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -2019,7 +2019,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="nft-display-media-mode-section"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={true}
             />
           </View>
@@ -2097,7 +2097,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#BBC0C566",
                         "borderRadius": 16,
                       },
                     ],
@@ -2105,7 +2105,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                 }
                 testID="nft-opensea-autodetect-mode-section"
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#BBC0C566"
                 value={true}
               />
             </View>
@@ -2183,7 +2183,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -2191,7 +2191,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="IPFS_GATEWAY_SECTION"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={true}
             />
           </View>
@@ -2238,7 +2238,7 @@ exports[`SecuritySettings should render correctly 1`] = `
           <View
             style={
               {
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "marginTop": 16,
@@ -2325,14 +2325,14 @@ exports[`SecuritySettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#bbc0c566",
+                        "backgroundColor": "#BBC0C566",
                         "borderRadius": 16,
                       },
                     ],
                   ]
                 }
                 thumbTintColor="#ffffff"
-                tintColor="#bbc0c566"
+                tintColor="#BBC0C566"
                 value={false}
               />
             </View>
@@ -2427,7 +2427,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -2435,7 +2435,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="metametrics-switch"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={false}
             />
           </View>
@@ -2549,7 +2549,7 @@ exports[`SecuritySettings should render correctly 1`] = `
                       "alignSelf": "flex-start",
                     },
                     {
-                      "backgroundColor": "#bbc0c566",
+                      "backgroundColor": "#BBC0C566",
                       "borderRadius": 16,
                     },
                   ],
@@ -2557,7 +2557,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               }
               testID="data-collection-switch"
               thumbTintColor="#ffffff"
-              tintColor="#bbc0c566"
+              tintColor="#BBC0C566"
               value={false}
             />
           </View>
