@@ -16,9 +16,9 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import Gestures from '../../utils/Gestures';
-import { ActivitiesViewSelectorsText, sentMessageTokenIDs } from '../../selectors/Transactions/ActivitiesView.selectors';
-import { contractConfiguration } from '../../../app/util/test/smart-contracts';
+
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
+
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
@@ -28,8 +28,9 @@ const fixtureServer = new FixtureServer();
 describe(
   SmokeCore('Send ETH to the correct address after editing the recipient'),
   () => {
-    beforeEach(() => {
-      jest.setTimeout(200000);
+    beforeAll(async () => {
+      jest.setTimeout(2500000);
+      await TestHelpers.reverseServerPort();
     });
 
     afterAll(async () => {
@@ -57,7 +58,10 @@ describe(
 
           //Assert Address
           const address = await SendView.splitAddressText();
-          await Assertions.checkIfTextMatches(address[0], INCORRECT_SEND_ADDRESS);
+          await Assertions.checkIfTextMatches(
+            address[0],
+            INCORRECT_SEND_ADDRESS,
+          );
 
           await SendView.tapBackButton();
           await AmountView.tapBackButton();
@@ -70,18 +74,21 @@ describe(
 
           // Assert correct address
           const correctAddress = await SendView.splitAddressText();
-          await Assertions.checkIfTextMatches(correctAddress[0], CORRECT_SEND_ADDRESS);
+          await Assertions.checkIfTextMatches(
+            correctAddress[0],
+            CORRECT_SEND_ADDRESS,
+          );
 
           //Assert transactions send screen on IOS only due to android limitations
           if (device.getPlatform() === 'ios') {
-          // Tap Send
-          await TransactionConfirmationView.tapConfirmButton();
+            // Tap Send
+            await TransactionConfirmationView.tapConfirmButton();
 
-          // Transactions view to assert address remains consistent
-          await TabBarComponent.tapActivity();
-          await TestHelpers.delay(3000);
-          await TestHelpers.tapByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
-          await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
+            // Transactions view to assert address remains consistent
+            await TabBarComponent.tapActivity();
+            await TestHelpers.delay(3000);
+            await ActivitiesView.tapConfirmedTransaction();
+            await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
           }
         },
       );

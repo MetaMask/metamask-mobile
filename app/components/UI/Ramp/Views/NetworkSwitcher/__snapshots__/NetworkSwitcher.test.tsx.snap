@@ -994,7 +994,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     }
                                                   }
                                                 >
-                                                  Add custom network
+                                                  Add Network
                                                 </Text>
                                               </View>
                                               <View
