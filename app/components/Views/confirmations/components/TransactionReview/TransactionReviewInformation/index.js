@@ -48,15 +48,9 @@ import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import AppConstants from '../../../../../../core/AppConstants';
 import WarningMessage from '../../../SendFlow/WarningMessage';
 import {
-  selectChainId,
-  selectNetworkClientId,
-  selectTicker,
-} from '../../../../../../selectors/networkController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
-import { selectContractExchangeRates } from '../../../../../../selectors/tokenRatesController';
 import { createBrowserNavDetails } from '../../../../Browser';
 import { isNetworkRampNativeTokenSupported } from '../../../../../../components/UI/Ramp/utils';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
@@ -64,6 +58,8 @@ import { createBuyNavigationDetails } from '../../../../../UI/Ramp/routes/utils'
 import { withMetricsAwareness } from '../../../../../../components/hooks/useMetrics';
 import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
 import { getNetworkNonce } from '../../../../../../util/transaction-controller';
+import { selectNativeCurrencyByChainId } from '../../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -566,6 +562,7 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       ready,
+      chainId,
     } = this.props;
     let host;
     if (origin) {
@@ -597,6 +594,7 @@ class TransactionReviewInformation extends PureComponent {
         animateOnChange={animateOnChange}
         isAnimating={isAnimating}
         gasEstimationReady={ready}
+        chainId={chainId}
       />
     );
   };
@@ -615,6 +613,7 @@ class TransactionReviewInformation extends PureComponent {
       animateOnChange,
       isAnimating,
       multiLayerL1FeeTotal,
+      chainId,
     } = this.props;
 
     let totalGas =
@@ -644,6 +643,7 @@ class TransactionReviewInformation extends PureComponent {
         isAnimating={isAnimating}
         gasEstimationReady={ready}
         legacy
+        chainId={chainId}
       />
     );
   };
@@ -742,22 +742,28 @@ class TransactionReviewInformation extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  transaction: getNormalizedTxState(state),
-  ticker: selectTicker(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  showCustomNonce: state.settings.showCustomNonce,
-  isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    chainId,
+    networkClientId,
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    transaction,
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    showCustomNonce: state.settings.showCustomNonce,
+    isNativeTokenBuySupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   setNonce: (nonce) => dispatch(setNonce(nonce)),
