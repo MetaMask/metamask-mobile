@@ -41,7 +41,7 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
   const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
-  const [hasResults, setHasResults] = useState(false);
+  const hasResults = resultsByCategory.length > 0;
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
@@ -75,7 +75,6 @@ const UrlAutocomplete = forwardRef<
     });
 
     setResultsByCategory(newResultsByCategory);
-    setHasResults(results.length > 0);
   }, []);
 
   const latestSearchTerm = useRef<string | null>(null);
@@ -109,8 +108,7 @@ const UrlAutocomplete = forwardRef<
     debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
     setResultsByCategory([]);
-    setHasResults(false);
-  }, [debouncedSearch, setResultsByCategory, setHasResults]);
+  }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
     hide();
