@@ -23,10 +23,12 @@ const SwitchChainApproval = () => {
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
 
   const onConfirm = useCallback(() => {
+    console.log('ON CONFIRM');
     defaultOnConfirm();
 
     // If portfolio view is enabled should set network filter
     if (isPortfolioViewEnabled()) {
+      console.log('SWITCH TO NETWORK', approvalRequest?.requestData?.chainId);
       const { PreferencesController } = Engine.context;
       PreferencesController.setTokenNetworkFilter({
         ...(isAllNetworks ? tokenNetworkFilter : {}),

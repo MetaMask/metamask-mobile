@@ -181,12 +181,9 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           ]}
         >
           <Icon
-            // style={styles.privacyIcon}
-            // style={{ height: '100%', width: '100%', backgroundColor: 'blue' }}
             name={privacyMode ? IconName.EyeSlash : IconName.Eye}
             size={IconSize.Md}
             color={colors.text.muted}
-            // testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
           />
         </View>
       );
@@ -253,6 +250,9 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     styles.tinyImage,
     styles.smallImage,
     styles.bigImage,
+    styles.imageHidden,
+    colors.text.muted,
+    privacyMode,
     cover,
     style,
     tiny,
