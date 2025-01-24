@@ -33,7 +33,7 @@ function NftGridItem({
 }: {
   nft: Nft;
   navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
-  privacyMode: boolean;
+  privacyMode?: boolean;
 }) {
   const actionSheetRef = useRef<ActionSheetType>(null);
   const longPressedCollectible = useRef<LongPressedCollectibleType | null>(
