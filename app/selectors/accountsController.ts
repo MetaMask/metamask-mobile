@@ -124,7 +124,7 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
 /**
  * A selector that returns whether the user has already created a Solana mainnet account
  */
-export function hasCreatedSolanaMainnetAccount(state: RootState): boolean {
+export function hasCreatedSolanaAccount(state: RootState): boolean {
   const accounts = selectInternalAccounts(state);
   return accounts.some((account) => isSolanaAccount(account));
 }

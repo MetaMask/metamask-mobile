@@ -28,7 +28,6 @@ import { useSelector } from 'react-redux';
 import {
   hasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
-  hasCreatedSolanaMainnetAccount,
 } from '../../../selectors/accountsController';
 import {
   selectIsBitcoinSupportEnabled,
@@ -99,10 +98,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     hasCreatedBtcTestnetAccount,
   );
 
-  const isSolanaMainnetAccountAlreadyCreated = useSelector(
-    hasCreatedSolanaMainnetAccount,
-  );
-
   const createBitcoinAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
@@ -160,14 +155,12 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           }
           {isSolanaSupportEnabled && (
             <AccountAction
-              actionTitle={strings(
-                'account_actions.add_solana_account_mainnet',
-              )}
+              actionTitle={strings('account_actions.add_solana_account')}
               iconName={IconName.Add}
               onPress={async () => {
                 await createSolanaAccount(MultichainNetworks.SOLANA);
               }}
-              disabled={isLoading || isSolanaMainnetAccountAlreadyCreated}
+              disabled={isLoading}
               testID={
                 AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON
               }

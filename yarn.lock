@@ -7259,51 +7259,51 @@
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.0.tgz#96116f2a912e0c02817345b3c10751069920d553"
   integrity sha512-+9jVqKhRSpsc591z5vX+X5Yyw+he/HCB4iQ/RYxw35CEPaY1gnsNE43nf9n9AaYjAQrTiI/mOwKUKdUs9vf7Xg==
 
-"@solana/addresses@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0-rc.4.tgz#13ca6dce9bf131d4990ea72f66624b041ac15166"
-  integrity sha512-AR9g6pZMqCZeH/dShmaqyTQRCgWtZpYPQZYMazA6I5EsrKq1A40Cfxqgb/iMNl/g3vfVunT25UASH3YwBQyL/A==
+"@solana/addresses@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/addresses/-/addresses-2.0.0.tgz#d1b01a38e0b48d7e4fea223821655a0c2b903c28"
+  integrity sha512-8n3c/mUlH1/z+pM8e7OJ6uDSXw26Be0dgYiokiqblO66DGQ0d+7pqFUFZ5pEGjJ9PU2lDTSfY8rHf4cemOqwzQ==
   dependencies:
-    "@solana/assertions" "2.0.0-rc.4"
-    "@solana/codecs-core" "2.0.0-rc.4"
-    "@solana/codecs-strings" "2.0.0-rc.4"
-    "@solana/errors" "2.0.0-rc.4"
+    "@solana/assertions" "2.0.0"
+    "@solana/codecs-core" "2.0.0"
+    "@solana/codecs-strings" "2.0.0"
+    "@solana/errors" "2.0.0"
 
-"@solana/assertions@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0-rc.4.tgz#0c6e921aa9b560c269a76a4a00bf15dbdbc1c0f8"
-  integrity sha512-CkTwoysagNAOjWynNzvrS5842/uDhEBjRbmgYRFurbWNLjo62j3eTYJKgTcMml7nc564Y4gObC5lUwWShGMZ/A==
+"@solana/assertions@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/assertions/-/assertions-2.0.0.tgz#b02fc874a890f252c4595a0e35deeb1719d5f02b"
+  integrity sha512-NyPPqZRNGXs/GAjfgsw7YS6vCTXWt4ibXveS+ciy5sdmp/0v3pA6DlzYjleF9Sljrew0IiON15rjaXamhDxYfQ==
   dependencies:
-    "@solana/errors" "2.0.0-rc.4"
+    "@solana/errors" "2.0.0"
 
-"@solana/codecs-core@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0-rc.4.tgz#c4280d68877a078df4b430871db159f95534fcd3"
-  integrity sha512-JIrTSps032mSE3wBxW3bXOqWfoy4CMy1CX/XeVCijyh5kLVxZTSDIdRTYdePdL1yzaOZF1Xysvt1DhOUgBdM+A==
+"@solana/codecs-core@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-core/-/codecs-core-2.0.0.tgz#31d4a6acce9ac49f786939c4e564adf9a68c56ef"
+  integrity sha512-qCG+3hDU5Pm8V6joJjR4j4Zv9md1z0RaecniNDIkEglnxmOUODnmPLWbtOjnDylfItyuZeDihK8hkewdj8cUtw==
   dependencies:
-    "@solana/errors" "2.0.0-rc.4"
+    "@solana/errors" "2.0.0"
 
-"@solana/codecs-numbers@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0-rc.4.tgz#ad95848d64dbaab4f6f0935d042df00802c84bba"
-  integrity sha512-ZJR7TaUO65+3Hzo3YOOUCS0wlzh17IW+j0MZC2LCk1R0woaypRpHKj4iSMYeQOZkMxsd9QT3WNvjFrPC2qA6Sw==
+"@solana/codecs-numbers@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-numbers/-/codecs-numbers-2.0.0.tgz#c08250968fa1cbfab076367b650269271061c646"
+  integrity sha512-r66i7VzJO1MZkQWZIAI6jjJOFVpnq0+FIabo2Z2ZDtrArFus/SbSEv543yCLeD2tdR/G/p+1+P5On10qF50Y1Q==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.4"
-    "@solana/errors" "2.0.0-rc.4"
+    "@solana/codecs-core" "2.0.0"
+    "@solana/errors" "2.0.0"
 
-"@solana/codecs-strings@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0-rc.4.tgz#6a9223c074ab2422a7da3a8fc60cd398c6b8e167"
-  integrity sha512-LGfK2RL0BKjYYUfzu2FG/gTgCsYOMz9FKVs2ntji6WneZygPxJTV5W98K3J8Rl0JewpCSCFQH3xjLSHBJUS0fA==
+"@solana/codecs-strings@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/codecs-strings/-/codecs-strings-2.0.0.tgz#46e728adee9a4737c3ee811af452948aab31cbd4"
+  integrity sha512-dNqeCypsvaHcjW86H0gYgAZGGkKVBeKVeh7WXlOZ9kno7PeQ2wNkpccyzDfuzaIsKv+HZUD3v/eo86GCvnKazQ==
   dependencies:
-    "@solana/codecs-core" "2.0.0-rc.4"
-    "@solana/codecs-numbers" "2.0.0-rc.4"
-    "@solana/errors" "2.0.0-rc.4"
+    "@solana/codecs-core" "2.0.0"
+    "@solana/codecs-numbers" "2.0.0"
+    "@solana/errors" "2.0.0"
 
-"@solana/errors@2.0.0-rc.4":
-  version "2.0.0-rc.4"
-  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0-rc.4.tgz#4a5aa0d82206b07f31e729262f47def34397ac61"
-  integrity sha512-0PPaMyB81keEHG/1pnyEuiBVKctbXO641M2w3CIOrYT/wzjunfF0FTxsqq9wYJeYo0AyiefCKGgSPs6wiY2PpQ==
+"@solana/errors@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@solana/errors/-/errors-2.0.0.tgz#31c87baaf4b19aaa2a1d8bbc4dfa6efd449d7bbe"
+  integrity sha512-IHlaPFSy4lvYco1oHJ3X8DbchWwAwJaL/4wZKnF1ugwZ0g0re8wbABrqNOe/jyZ84VU9Z14PYM8W9oDAebdJbw==
   dependencies:
     chalk "^5.3.0"
     commander "^12.1.0"

@@ -175,7 +175,7 @@ describe('AddAccountActions', () => {
       BtcAccountType.P2wpkh,
     );
 
-    it('disables Solana account creation when account already exists', () => {
+    it('does not Solana account creation when account already exists', () => {
       const stateWithSolAccount = {
         ...mockInitialState,
         engine: {
@@ -212,7 +212,7 @@ describe('AddAccountActions', () => {
       expect(solButton.findByType(Text).props.children).toBe(
         'Add a new Solana Account (Beta)',
       );
-      expect(solButton.props.disabled).toBe(true);
+      expect(solButton.props.disabled).toBe(false);
     });
 
     it('disables Bitcoin account creation when account already exists', () => {

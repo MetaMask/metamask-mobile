@@ -10,7 +10,6 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   hasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
-  hasCreatedSolanaMainnetAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -258,20 +257,6 @@ describe('Bitcoin Account Selectors', () => {
     it('returns false when no BTC testnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
-    });
-  });
-});
-
-describe('Solana Account Selectors', () => {
-  describe('hasCreatedSolanaMainnetAccount', () => {
-    it('returns true when a Solana account exists', () => {
-      const state = getStateWithAccount(solAccount);
-      expect(hasCreatedSolanaMainnetAccount(state)).toBe(true);
-    });
-
-    it('returns false when no Solana account exists', () => {
-      const state = getStateWithAccount(btcMainnetAccount);
-      expect(hasCreatedSolanaMainnetAccount(state)).toBe(false);
     });
   });
 });

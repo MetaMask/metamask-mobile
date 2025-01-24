@@ -29,7 +29,7 @@ const MOCK_BTC_MAINNET_ADDRESS_2 = '1P5ZEDWTKTFGxQjZphgWPQUpe554WKDfHQ';
 const MOCK_BTC_TESTNET_ADDRESS = 'tb1q63st8zfndjh00gf9hmhsdg7l8umuxudrj4lucp';
 const MOCK_ETH_ADDRESS = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 
-const SOL_ADDRESSES = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const SOL_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 
 const mockEthEOAAccount: InternalAccount = {
   address: MOCK_ETH_ADDRESS,
@@ -83,7 +83,12 @@ const mockBTCAccount: InternalAccount = {
     name: 'Bitcoin Account',
     importTime: 1684232000456,
     keyring: {
-      type: KeyringTypes.hd,
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: 'npm:"@metamask/bitcoin-wallet-snap',
+      name: 'Bitcoin Wallet Snap',
+      enabled: true,
     },
   },
   options: {},
@@ -92,7 +97,7 @@ const mockBTCAccount: InternalAccount = {
 };
 
 const mockSolAccount: InternalAccount = {
-  address: SOL_ADDRESSES,
+  address: SOL_ADDRESS,
   id: '1',
   type: SolAccountType.DataAccount,
   methods: [SolMethod.SendAndConfirmTransaction],
@@ -101,10 +106,15 @@ const mockSolAccount: InternalAccount = {
     name: 'Solana Account',
     importTime: 1684232000456,
     keyring: {
-      type: KeyringTypes.hd,
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: 'npm:"@metamask/solana-wallet-snap',
+      name: 'Solana Wallet Snap',
+      enabled: true,
     },
   },
-  scopes: [SolScopes.Namespace],
+  scopes: [SolScopes.Mainnet, SolScopes.Testnet, SolScopes.Devnet],
 };
 
 describe('MultiChain utils', () => {
@@ -149,7 +159,7 @@ describe('MultiChain utils', () => {
       expect(isBtcMainnetAddress(MOCK_ETH_ADDRESS)).toBe(false);
     });
     it('returns false for SOL addresses', () => {
-      expect(isBtcMainnetAddress(SOL_ADDRESSES)).toBe(false);
+      expect(isBtcMainnetAddress(SOL_ADDRESS)).toBe(false);
     });
   });
 
@@ -167,7 +177,7 @@ describe('MultiChain utils', () => {
       expect(isBtcTestnetAddress(MOCK_ETH_ADDRESS)).toBe(false);
     });
     it('returns false for SOL addresses', () => {
-      expect(isBtcTestnetAddress(SOL_ADDRESSES)).toBe(false);
+      expect(isBtcTestnetAddress(SOL_ADDRESS)).toBe(false);
     });
   });
 
