@@ -426,6 +426,7 @@ class ApproveTransactionReview extends PureComponent {
           tokenBalance = renderFromTokenMinimalUnit(
             erc20TokenBalance,
             decimals,
+            decimals
           );
         }
       } catch (e) {
