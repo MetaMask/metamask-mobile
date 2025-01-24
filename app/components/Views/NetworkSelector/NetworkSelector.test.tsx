@@ -15,6 +15,9 @@ import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
 
+// eslint-disable-next-line import/no-namespace
+import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
+
 const mockEngine = Engine;
 
 const setShowTestNetworksSpy = jest.spyOn(
@@ -85,6 +88,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     CurrencyRateController: { updateExchangeRate: jest.fn() },
     AccountTrackerController: { refresh: jest.fn() },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
+    },
   },
 }));
 
@@ -272,6 +278,30 @@ describe('Network Selector', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const { toJSON } = renderComponent(initialState);
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {
+    const testMock = {
+      networkName: '',
+      networkImageSource: '',
+      domainNetworkClientId: '',
+      chainId: CHAIN_IDS.MAINNET,
+      rpcUrl: '',
+      domainIsConnectedDapp: true,
+    };
+    jest
+      .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
+      .mockImplementation(() => testMock);
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+    const mainnetCell = getByText('Ethereum Mainnet');
+    fireEvent.press(mainnetCell);
+    await waitFor(() => {
+      expect(
+        mockEngine.context.SelectedNetworkController
+          .setNetworkClientIdForDomain,
+      ).toBeCalled();
+    });
   });
 
   it('shows popular networks when UI redesign is enabled', () => {
