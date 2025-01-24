@@ -1,5 +1,5 @@
 import messaging, {
-  FirebaseMessagingTypes,
+  type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
 import {
   type INotification,
@@ -8,9 +8,6 @@ import {
   processNotification,
 } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../util/Logger';
-import { mmStorage } from '../settings';
-
-type UnsubscribeFunc = () => void;
 
 /**
  * Utility to check if devices have enabled push notifications
@@ -20,10 +17,8 @@ async function isPushNotificationsEnabled() {
   try {
     const permissionStatus = await messaging().hasPermission();
     return (
-      permissionStatus ===
-        FirebaseMessagingTypes.AuthorizationStatus.AUTHORIZED ||
-      permissionStatus ===
-        FirebaseMessagingTypes.AuthorizationStatus.PROVISIONAL
+      permissionStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      permissionStatus === messaging.AuthorizationStatus.PROVISIONAL
     );
   } catch {
     return false;
@@ -125,11 +120,10 @@ class FCMService {
     handler: (notification: INotification) => void | Promise<void>,
   ): Promise<(() => void) | null> => {
     try {
-      await messaging().setBackgroundMessageHandler((payload) =>
+      messaging().setBackgroundMessageHandler((payload) =>
         notificationHandler(payload, handler),
       );
-      // TODO - determine if there is value with foreground messages
-      const unsubscribe = await messaging().onMessage((payload) =>
+      const unsubscribe = messaging().onMessage((payload) =>
         notificationHandler(payload, handler),
       );
       return unsubscribe;
@@ -139,68 +133,5 @@ class FCMService {
   };
 
   isPushNotificationsEnabled = () => isPushNotificationsEnabled();
-
-  /**
-   * @todo - delete this, it is not used anymore
-   */
-  getFCMToken = async (): Promise<string | undefined> => {
-    const fcmTokenLocal = await mmStorage.getLocal('metaMaskFcmToken');
-    const token = fcmTokenLocal?.data || undefined;
-    if (!token) {
-      Logger.log('getFCMToken: No FCM token found');
-    }
-    return token;
-  };
-
-  /**
-   * @todo - delete this, it is not used anymore
-   */
-  saveFCMToken = async () => {
-    try {
-      const permissionStatus = await messaging().hasPermission();
-      if (permissionStatus === 1 || permissionStatus === 2) {
-        const fcmToken = await messaging().getToken();
-        if (fcmToken) {
-          mmStorage.saveLocal('metaMaskFcmToken', { data: fcmToken });
-        }
-      }
-    } catch (error) {
-      Logger.log(error as Error, 'FCMService:: error saving');
-    }
-  };
-
-  /**
-   * @todo - delete this, it is not used anymore
-   */
-  listenForMessagesForeground = (): UnsubscribeFunc => () => {
-    /* NO-OP */
-  };
-
-  /**
-   * @todo - delete this, it is not used anymore
-   */
-  listenForMessagesBackground = (): void => {
-    // No-Op
-  };
-
-  /**
-   * @todo - delete this, it is not used anymore
-   */
-  registerAppWithFCM = async () => {
-    Logger.log(
-      'registerAppWithFCM status',
-      messaging().isDeviceRegisteredForRemoteMessages,
-    );
-    if (!messaging().isDeviceRegisteredForRemoteMessages) {
-      await messaging()
-        .registerDeviceForRemoteMessages()
-        .then((status: unknown) => {
-          Logger.log('registerDeviceForRemoteMessages status', status);
-        })
-        .catch((error: Error) => {
-          Logger.error(error);
-        });
-    }
-  };
 }
 export default new FCMService();
