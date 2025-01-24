@@ -450,6 +450,15 @@ exports[`QuotesView should render quote screen 1`] = `
                             <View
                               style={
                                 {
+                                  "marginBottom": -8,
+                                  "paddingHorizontal": 20,
+                                  "width": "100%",
+                                }
+                              }
+                            />
+                            <View
+                              style={
+                                {
                                   "marginVertical": 10,
                                   "paddingHorizontal": 20,
                                   "width": "100%",

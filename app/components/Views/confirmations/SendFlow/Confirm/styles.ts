@@ -153,6 +153,10 @@ const createStyles = (colors: any) =>
       marginRight: 24,
       marginBottom: 24,
     },
+    smartTransactionsMigrationBanner: {
+      marginBottom: -8,
+      marginHorizontal: 16,
+    },
   });
 
 export default createStyles;
