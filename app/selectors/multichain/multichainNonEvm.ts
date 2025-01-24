@@ -42,6 +42,16 @@ export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
   return state.multichainSettings.bitcoinTestnetSupportEnabled;
 }
 
+/**
+ * Get the state of the `solanaSupportEnabled` flag.
+ *
+ * @param {*} state
+ * @returns The state of the `solanaSupportEnabled` flag.
+ */
+export function selectIsSolanaSupportEnabled(state: RootState) {
+  return state.multichainSettings.solanaSupportEnabled;
+}
+
 export const selectMultichainIsEvm = createDeepEqualSelector(
   selectSelectedInternalAccount,
   (selectedAccount) => {

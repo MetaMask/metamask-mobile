@@ -2,6 +2,7 @@ import { RootState } from '../../reducers';
 import {
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
+  selectIsSolanaSupportEnabled,
 } from './multichainNonEvm';
 
 describe('MultichainNonEvm Selectors', () => {
@@ -23,16 +24,20 @@ describe('MultichainNonEvm Selectors', () => {
     multichainSettings: {
       bitcoinSupportEnabled: true,
       bitcoinTestnetSupportEnabled: false,
+      solanaSupportEnabled: true,
     },
   } as unknown as RootState;
 
-  describe('Bitcoin Support Flags', () => {
+  describe('Multichain Support Flags', () => {
     it('should return bitcoin support enabled state', () => {
       expect(selectIsBitcoinSupportEnabled(mockState)).toBe(true);
     });
 
     it('should return bitcoin testnet support enabled state', () => {
       expect(selectIsBitcoinTestnetSupportEnabled(mockState)).toBe(false);
+    });
+    it('should return Solana support enabled state', () => {
+      expect(selectIsSolanaSupportEnabled(mockState)).toBe(true);
     });
   });
 });
