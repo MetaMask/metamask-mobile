@@ -243,7 +243,7 @@ function SwapsAmountView({
     useModalHandler(false);
   const [isSlippageModalVisible, toggleSlippageModal] = useModalHandler(false);
   const [
-    isTokenVerificationModalVisisble,
+    isTokenVerificationModalVisible,
     toggleTokenVerificationModal,
     ,
     hideTokenVerificationModal,
@@ -929,7 +929,7 @@ function SwapsAmountView({
         </View>
       </View>
       <InfoModal
-        isVisible={isTokenVerificationModalVisisble}
+        isVisible={isTokenVerificationModalVisible}
         toggleModal={toggleTokenVerificationModal}
         title={strings('swaps.token_verification')}
         body={
