@@ -4,7 +4,7 @@ import {
   colors as importedColors,
 } from '../../../../styles/common';
 import Device from '../../../../util/device';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens';
 
 const margin = 15;
 const width = Dimensions.get('window').width - margin * 2;

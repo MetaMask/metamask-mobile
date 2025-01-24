@@ -6,7 +6,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -85,7 +85,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "backgroundColor": "#1c82341a",
+              "backgroundColor": "#1C82341A",
               "borderColor": "#1c8234",
               "borderRadius": 999,
               "borderWidth": 0,
@@ -130,7 +130,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "#f2f4f6",
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 999,
               "borderWidth": 0,
               "color": "#6a737d",

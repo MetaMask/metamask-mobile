@@ -537,7 +537,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#1c82341a",
+              "backgroundColor": "#1C82341A",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -781,7 +781,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,

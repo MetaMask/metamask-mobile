@@ -1,4 +1,4 @@
-import { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import { ThemeColors } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Device from '../../../util/device';
