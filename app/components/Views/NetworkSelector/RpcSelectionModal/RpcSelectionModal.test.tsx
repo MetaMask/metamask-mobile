@@ -15,7 +15,7 @@ import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
-const { PreferencesController } = Engine.context;
+const { PreferencesController, NetworkController } = Engine.context;
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -95,6 +95,29 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../core/Engine/Engine', () => ({
   context: {
+    NetworkController: {
+      setActiveNetwork: jest.fn(),
+      setProviderType: jest.fn(),
+      updateNetwork: jest.fn(),
+      getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockReturnValue({ chainId: '0x1' }),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Mainnet',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'infura',
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+      }),
+    },
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
     },
@@ -151,7 +174,6 @@ describe('RpcSelectionModal', () => {
       networkName: 'Mainnet',
     },
     closeRpcModal: jest.fn(),
-    onRpcSelect: jest.fn(),
     rpcMenuSheetRef: mockRpcMenuSheetRef,
     networkConfigurations: MOCK_STORE_STATE.engine.backgroundState
       .NetworkController.networkConfigurations as unknown as Record<
@@ -229,11 +251,7 @@ describe('RpcSelectionModal', () => {
     const rpcUrlElement = getByText('mainnet.infura.io/v3');
 
     fireEvent.press(rpcUrlElement);
-
-    expect(defaultProps.onRpcSelect).toHaveBeenCalledWith(
-      'mainnet',
-      CHAIN_IDS.MAINNET,
-    );
+    expect(NetworkController.updateNetwork).toHaveBeenCalled();
     expect(defaultProps.closeRpcModal).toHaveBeenCalled();
   });
 

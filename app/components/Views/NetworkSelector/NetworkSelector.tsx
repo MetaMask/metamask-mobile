@@ -87,7 +87,6 @@ import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { NetworkConfiguration } from '@metamask/network-controller';
-import Logger from '../../../util/Logger';
 import RpcSelectionModal from './RpcSelectionModal/RpcSelectionModal';
 import {
   TraceName,
@@ -203,52 +202,6 @@ const NetworkSelector = () => {
     },
     [isAllNetwork],
   );
-
-  const onRpcSelect = useCallback(
-    async (clientId: string, chainId: `0x${string}`) => {
-      console.log('IM HERE ...............');
-      const { NetworkController } = Engine.context;
-
-      const existingNetwork = networkConfigurations[chainId];
-      if (!existingNetwork) {
-        Logger.error(
-          new Error(`No existing network found for chainId: ${chainId}`),
-        );
-        return;
-      }
-
-      const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
-        ({ networkClientId }) => clientId === networkClientId,
-      );
-
-      if (indexOfRpc === -1) {
-        Logger.error(
-          new Error(
-            `RPC endpoint with clientId: ${clientId} not found for chainId: ${chainId}`,
-          ),
-        );
-        return;
-      }
-
-      // Proceed to update the network with the correct index
-      await NetworkController.updateNetwork(existingNetwork.chainId, {
-        ...existingNetwork,
-        defaultRpcEndpointIndex: indexOfRpc,
-      });
-
-      // Set the active network
-      NetworkController.setActiveNetwork(clientId);
-      // Redirect to wallet page
-      navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    },
-    [networkConfigurations, navigate],
-  );
-
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
     isVisible: boolean;
     chainId: string;
@@ -403,7 +356,6 @@ const NetworkSelector = () => {
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
-
     if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
@@ -1037,7 +989,6 @@ const NetworkSelector = () => {
         <RpcSelectionModal
           showMultiRpcSelectModal={showMultiRpcSelectModal}
           closeRpcModal={closeRpcModal}
-          onRpcSelect={onRpcSelect}
           rpcMenuSheetRef={rpcMenuSheetRef}
           networkConfigurations={networkConfigurations}
           styles={styles}

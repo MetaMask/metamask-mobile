@@ -493,28 +493,6 @@ describe('Network Selector', () => {
     });
   });
 
-  it('switches RPC URL when a different RPC URL is selected 2', async () => {
-    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { getByText } = renderComponent(initialState);
-
-    // Wait for the initial RPC URL to render
-    const ethereumRpcUrl = await waitFor(() =>
-      getByText('mainnet-rpc.publicnode.com'),
-    );
-    expect(ethereumRpcUrl).toBeTruthy();
-    fireEvent.press(ethereumRpcUrl);
-
-    // Wait for the "Select RPC URL" text and new RPC URL option to render
-    const selectRpcText = await waitFor(() => getByText('Select RPC URL'));
-    expect(selectRpcText).toBeTruthy();
-
-    const newEthereumRpcUrl = getByText('mainnet.infura.io/v3');
-    expect(newEthereumRpcUrl).toBeTruthy();
-    fireEvent.press(newEthereumRpcUrl);
-
-    // expect(mockedNavigate).toBeCalled();
-  });
-
   it('filters networks correctly when searching', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     const { getByPlaceholderText, queryByText } = renderComponent(initialState);
