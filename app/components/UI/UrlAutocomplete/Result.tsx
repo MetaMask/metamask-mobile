@@ -8,7 +8,7 @@ import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/Br
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useDispatch } from 'react-redux';
 import { removeBookmark } from '../../../actions/bookmarks';
-import { createStyles } from './index.styles';
+import stylesheet from './styles';
 
 interface ResultProps {
     result: {
@@ -21,7 +21,7 @@ interface ResultProps {
 
 export const Result: React.FC<ResultProps> = memo(({ result, onPress }) => {
     const theme = useTheme();
-    const styles = createStyles(theme);
+    const styles = stylesheet({theme});
 
     const name = typeof result.name === 'string' ? result.name : getHost(result.url);
 
