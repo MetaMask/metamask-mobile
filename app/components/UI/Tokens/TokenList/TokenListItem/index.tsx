@@ -355,7 +355,7 @@ export const TokenListItem = React.memo(
               <StakeButton asset={asset} />
             )}
           </View>
-          {!isTestNet(chainId) ? (
+          {!isTestNet(chainId) && showPercentageChange ? (
             <PercentageChange value={pricePercentChange1d} />
           ) : null}
         </View>
