@@ -5,21 +5,23 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip';
 import styleSheet from './InfoRow.styles';
 
-interface InfoRowProps {
+export interface InfoRowProps {
   label: string;
   children: ReactNode | string;
   tooltip?: string;
   style?: Record<string, unknown>;
+  labelChildren?: React.ReactNode;
 }
 
-const InfoRow = ({ label, children, tooltip, style = {} }: InfoRowProps) => {
+const InfoRow = ({ label, children, tooltip, style, labelChildren = {} }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View style={{ ...styles.container, ...style }}>
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label}</Text>
-        {tooltip && <Tooltip content={tooltip} />}
+        {labelChildren}
+        {!labelChildren && tooltip && <Tooltip content={tooltip} />}
       </View>
       {typeof children === 'string' ? (
         <Text style={styles.value}>{children}</Text>

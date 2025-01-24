@@ -13,6 +13,7 @@ const useGasFeeAlert = (): Alert | undefined => {
   return {
     alertDetails: ['Alert details - 1', 'Alert details - 2'],
     key: 'gasFee',
+    field: 'gasFee',
     isBlocking: true,
     title: 'gas fee alert',
     message: 'there is an alert for gas fee in transaction',
