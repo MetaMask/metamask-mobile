@@ -17,6 +17,8 @@ import { mockNetworkState } from '../../../util/test/network';
 
 // eslint-disable-next-line import/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 const mockEngine = Engine;
 
@@ -289,6 +291,7 @@ describe('Network Selector', () => {
       rpcUrl: '',
       domainIsConnectedDapp: true,
     };
+    jest.spyOn(networks, 'isMultichainV1Enabled').mockReturnValue(true);
     jest
       .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
       .mockImplementation(() => testMock);

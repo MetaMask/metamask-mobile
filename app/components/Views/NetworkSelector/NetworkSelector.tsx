@@ -41,6 +41,7 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
+  isMultichainV1Enabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -238,7 +239,7 @@ const NetworkSelector = () => {
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
@@ -362,7 +363,7 @@ const NetworkSelector = () => {
       AccountTrackerController,
       SelectedNetworkController,
     } = Engine.context;
-    if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
+    if (domainIsConnectedDapp && isMultichainV1Enabled()) {
       SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
     } else {
       const networkConfiguration =
