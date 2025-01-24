@@ -10,6 +10,7 @@ import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
 
 export const MOCK_STAKED_ETH_ASSET = {
+  address: '0x0000000000000000000000000000000000000000',
   chainId: '0x1',
   balance: '4.9999 ETH',
   balanceFiat: '$13,292.20',

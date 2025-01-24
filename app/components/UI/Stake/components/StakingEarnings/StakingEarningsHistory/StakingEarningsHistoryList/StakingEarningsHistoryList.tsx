@@ -9,21 +9,20 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 interface StakingEarningsHistoryListProps {
   earnings: StakingEarningsHistoryListData[];
-  ticker: string;
   filterByGroupLabel?: string;
 }
 
 export interface StakingEarningsHistoryListData {
   label: string;
   amount: string;
-  amountUsd: string;
+  amountSecondaryText: string;
   groupLabel: string;
   groupHeader: string;
+  ticker: string;
 }
 
 const StakingEarningsHistoryList = ({
   earnings,
-  ticker,
   filterByGroupLabel,
 }: StakingEarningsHistoryListProps) => {
   const { colors } = useTheme();
@@ -73,7 +72,7 @@ const StakingEarningsHistoryList = ({
                           variant={TextVariant.BodyMDMedium}
                           color={colors.success.default}
                         >
-                          + {earning.amount} {ticker}
+                          + {earning.amount} {earning.ticker}
                         </Label>
                       </View>
                       <View>
@@ -81,7 +80,7 @@ const StakingEarningsHistoryList = ({
                           variant={TextVariant.BodySM}
                           color={colors.text.alternative}
                         >
-                          {earning.amountUsd} USD
+                          {earning.amountSecondaryText}
                         </Text>
                       </View>
                     </View>

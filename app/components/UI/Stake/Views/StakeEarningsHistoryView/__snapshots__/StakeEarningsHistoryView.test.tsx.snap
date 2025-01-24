@@ -176,7 +176,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                   }
                 }
               >
-                0.00002
+                2
                  
                 ETH
               </Text>
@@ -899,7 +899,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                     testID="label"
                   >
                     + 
-                    0.00002
+                    2
                      
                     ETH
                   </Text>
@@ -918,8 +918,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                       }
                     }
                   >
-                    9000.00
-                     USD
+                    $6727.58
                   </Text>
                 </View>
               </View>

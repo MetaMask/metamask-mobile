@@ -1,10 +1,12 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
 import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 import useStakingEarningsHistory from '../../hooks/useStakingEarningsHistory';
 import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
 import { getStakingNavbar } from '../../../Navbar';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { Hex } from '@metamask/utils';
 jest.mock('../../../Navbar');
 jest.mock('../../hooks/useStakingEarningsHistory');
 
@@ -32,20 +34,50 @@ jest.mock('react-native-svg-charts', () => {
   earningsHistory: [
     {
       dateStr: '2023-01-01',
-      dailyRewards: '10000000000000',
-      dailyRewardsUsd: '3000',
-      sumRewards: '10000000000000',
+      dailyRewards: '1000000000000000000',
+      sumRewards: '1000000000000000000',
     },
     {
       dateStr: '2023-01-02',
-      dailyRewards: '10000000000000',
-      dailyRewardsUsd: '6000',
-      sumRewards: '20000000000000',
+      dailyRewards: '1000000000000000000',
+      sumRewards: '2000000000000000000',
     },
   ],
   isLoading: false,
   error: null,
 });
+
+const mockInitialState = {
+  settings: {},
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionRate: 3363.79,
+          },
+        },
+      },
+      NetworkController: {
+        selectedNetworkClientId: 'selectedNetworkClientId',
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+            chainId: '0x1' as Hex,
+            rpcEndpoints: [
+              {
+                networkClientId: 'selectedNetworkClientId',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      },
+    },
+  },
+};
 
 const earningsHistoryView = (
   <StakeEarningsHistoryView
@@ -59,13 +91,17 @@ const earningsHistoryView = (
 
 describe('StakeEarningsHistoryView', () => {
   it('renders correctly and matches snapshot', () => {
-    const renderedView = render(earningsHistoryView);
+    const renderedView = renderWithProvider(earningsHistoryView, {
+      state: mockInitialState,
+    });
     fireLayoutEvent(renderedView.root);
     expect(renderedView.toJSON()).toMatchSnapshot();
   });
 
   it('calls navigation setOptions to get staking navigation bar', () => {
-    const renderedView = render(earningsHistoryView);
+    const renderedView = renderWithProvider(earningsHistoryView, {
+      state: mockInitialState,
+    });
     fireLayoutEvent(renderedView.root);
     expect(mockNavigation.setOptions).toHaveBeenCalled();
     expect(getStakingNavbar).toHaveBeenCalled();
