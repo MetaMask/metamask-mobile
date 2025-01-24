@@ -37,7 +37,7 @@ const SIGNATURE_LIST = [
     requestType: RequestTypes.TypedSignRequest,
   },
   {
-    specName: 'Typed V3 Sign',
+    specName: 'Typed V4 Sign',
     testDappBtn: TestDApp.tapTypedV4SignButton.bind(TestDApp),
     requestType: RequestTypes.TypedSignRequest,
   },
