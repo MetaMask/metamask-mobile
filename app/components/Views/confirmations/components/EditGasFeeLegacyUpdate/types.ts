@@ -57,6 +57,7 @@ export interface EditGasFeeLegacyUpdateProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   selectedGasObject: any;
   hasDappSuggestedGas?: boolean;
+  chainId: string;
 }
 
 export interface EditLegacyGasTransaction {
