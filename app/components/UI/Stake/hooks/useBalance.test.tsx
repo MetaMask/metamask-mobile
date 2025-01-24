@@ -153,7 +153,7 @@ describe('useBalance', () => {
     expect(result.current.formattedStakedBalanceFiat).toBe('$319999999.96'); // should round to floor
   });
 
-  it('returns correct stake amounts and fiat values when chainId is overriden', async () => {
+  it('returns correct stake amounts and fiat values when chainId is overridden', async () => {
     const { result } = renderHookWithProvider(() => useBalance('0x4268'), {
       state: initialState,
     });
