@@ -160,7 +160,7 @@ exports[`AccountOverview should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "backgroundColor": "#0376c91a",
+              "backgroundColor": "#0376C91A",
               "borderRadius": 40,
               "marginBottom": 20,
               "marginTop": 20,

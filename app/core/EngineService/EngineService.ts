@@ -13,6 +13,7 @@ import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import { MetaMetrics } from '../Analytics';
 
 const LOG_TAG = 'EngineService';
 
@@ -43,7 +44,7 @@ export class EngineService {
    * - TypeError: undefined is not an object (evaluating 'TokenListController.tokenList')
    * - V8: SES_UNHANDLED_REJECTION
    */
-  start = () => {
+  start = async () => {
     const reduxState = ReduxService.store.getState();
     trace({
       name: TraceName.EngineInitialization,
@@ -57,7 +58,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      Engine.init(state);
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      Engine.init(state, null, metaMetricsId);
       this.updateControllers(Engine);
     } catch (error) {
       Logger.error(
@@ -261,7 +263,8 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const instance = Engine.init(state, newKeyringState);
+      const metaMetricsId = await MetaMetrics.getInstance().getMetaMetricsId();
+      const instance = Engine.init(state, newKeyringState, metaMetricsId);
       if (instance) {
         this.updateControllers(instance);
         // this is a hack to give the engine time to reinitialize
