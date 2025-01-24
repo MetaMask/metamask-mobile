@@ -514,7 +514,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
           onRefresh={onRefresh}
           showRemoveMenu={showRemoveMenu}
           goToAddToken={goToAddToken}
-          setIsAddTokenEnabled={setIsAddTokenEnabled}
         />
       )}
       <ActionSheet
