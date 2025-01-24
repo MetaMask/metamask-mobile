@@ -347,9 +347,7 @@ export const TokenListItem = React.memo(
               {asset.name || asset.symbol}
             </Text>
             {/** Add button link to Portfolio Stake if token is supported ETH chain and not a staked asset */}
-            {asset.isETH && isStakingSupportedChain && !asset.isStaked && (
-              <StakeButton asset={asset} />
-            )}
+            {asset.isETH && !asset.isStaked && <StakeButton asset={asset} />}
           </View>
           {!isTestNet(chainId) ? (
             <PercentageChange value={pricePercentChange1d} />
