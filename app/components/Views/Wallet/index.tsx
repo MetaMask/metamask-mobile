@@ -43,6 +43,9 @@ import {
 } from '../../../util/networks';
 import {
   selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
@@ -52,10 +55,11 @@ import {
   selectNetworkImageSource,
 } from '../../../selectors/networkInfos';
 import {
+  selectAllDetectedTokensFlat,
+  selectDetectedTokens,
   selectTokens,
-  selectTokensByChainIdAndAddress,
+  selectTransformedTokens,
 } from '../../../selectors/tokensController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import {
   NavigationProp,
   ParamListBase,
@@ -93,6 +97,13 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import {
+  selectTokenNetworkFilter,
+  selectUseTokenDetection,
+} from '../../../selectors/preferencesController';
+import { TokenI } from '../../UI/Tokens/types';
+import { Hex } from '@metamask/utils';
+import { Token } from '@metamask/assets-controllers';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -189,9 +200,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -310,6 +319,22 @@ const Wallet = ({
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+
+  const isAllNetworks = useSelector(selectIsAllNetworks);
+  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
+  const isPopularNetworks = useSelector(selectIsPopularNetwork);
+  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
+
+  const allDetectedTokens = useSelector(
+    selectAllDetectedTokensFlat,
+  ) as TokenI[];
+  const currentDetectedTokens =
+    isPortfolioViewEnabled() && isAllNetworks && isPopularNetworks
+      ? allDetectedTokens
+      : detectedTokens;
+  const allNetworks = useSelector(selectNetworkConfigurations);
+  const selectedNetworkClientId = useSelector(selectNetworkClientId);
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -443,6 +468,73 @@ const Wallet = ({
     readNotificationCount,
   ]);
 
+  useEffect(() => {
+    const importAllDetectedTokens = async () => {
+      // If autodetect tokens toggle is OFF, return
+      if (!isTokenDetectionEnabled) {
+        return;
+      }
+      const { TokensController } = Engine.context;
+      if (currentDetectedTokens.length > 0) {
+        if (isPortfolioViewEnabled()) {
+          // Group tokens by their `chainId` using a plain object
+          const tokensByChainId: Record<Hex, Token[]> = {};
+
+          for (const token of currentDetectedTokens) {
+            const tokenChainId: Hex =
+              (token as TokenI & { chainId: Hex }).chainId ?? chainId;
+
+            if (!tokensByChainId[tokenChainId]) {
+              tokensByChainId[tokenChainId] = [];
+            }
+
+            tokensByChainId[tokenChainId].push(token);
+          }
+
+          // Process grouped tokens in parallel
+          const importPromises = Object.entries(tokensByChainId).map(
+            async ([networkId, allTokens]) => {
+              const chainConfig = allNetworks[networkId as Hex];
+              const { defaultRpcEndpointIndex } = chainConfig;
+              const { networkClientId: networkInstanceId } =
+                chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
+
+              await TokensController.addTokens(allTokens, networkInstanceId);
+            },
+          );
+
+          await Promise.all(importPromises);
+        } else {
+          await TokensController.addTokens(
+            currentDetectedTokens,
+            selectedNetworkClientId,
+          );
+        }
+
+        currentDetectedTokens.forEach(({ address, symbol }) =>
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+              .addProperties({
+                token_address: address,
+                token_symbol: symbol,
+                chain_id: getDecimalChainId(chainId),
+                source: 'detected',
+              })
+              .build(),
+          ),
+        );
+      }
+    };
+    importAllDetectedTokens();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isTokenDetectionEnabled,
+    allNetworks,
+    chainId,
+    currentDetectedTokens,
+    selectedNetworkClientId,
+  ]);
+
   const renderTabBar = useCallback(
     (props) => (
       <View style={styles.base}>
@@ -501,7 +593,7 @@ const Wallet = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let stakedBalance: any = 0;
 
-    const assets = isPortfolioViewEnabled
+    const assets = isPortfolioViewEnabled()
       ? [...(tokensByChainIdAndAddress || [])]
       : [...(tokens || [])];
 

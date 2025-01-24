@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Hex } from '@metamask/utils';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -35,7 +36,7 @@ import {
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import StakingCta from './StakingCta/StakingCta';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
-import useStakingChain from '../../hooks/useStakingChain';
+import { useStakingChainByChainId } from '../../hooks/useStakingChain';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import useVaultData from '../../hooks/useVaultData';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
@@ -44,6 +45,8 @@ import useBalance from '../../hooks/useBalance';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import { selectChainId } from '../../../../../selectors/networkController';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -51,12 +54,22 @@ export interface StakingBalanceProps {
 
 const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const [
+    hasSentViewingStakingRewardsMetric,
+    setHasSentViewingStakingRewardsMetric,
+  ] = useState(false);
+
   const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
-  const { isStakingSupportedChain } = useStakingChain();
+  const { isStakingSupportedChain } = useStakingChainByChainId(
+    asset.chainId as Hex,
+  );
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const {
     pooledStakesData,
@@ -71,7 +84,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
     formattedStakedBalanceFiat: stakedBalanceFiat,
-  } = useBalance();
+  } = useBalance(asset.chainId as Hex);
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -92,11 +105,36 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
   const hasClaimableEth = !!Number(claimableEth);
 
+  useEffect(() => {
+    if (hasStakedPositions && !hasSentViewingStakingRewardsMetric) {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.VISITED_ETH_OVERVIEW_WITH_STAKED_POSITIONS,
+        )
+          .addProperties({
+            selected_provider: EVENT_PROVIDERS.CONSENSYS,
+            location: EVENT_LOCATIONS.STAKING_BALANCE,
+          })
+          .build(),
+      );
+
+      setHasSentViewingStakingRewardsMetric(true);
+    }
+  }, [
+    createEventBuilder,
+    hasSentViewingStakingRewardsMetric,
+    hasStakedPositions,
+    trackEvent,
+  ]);
+
   if (!isStakingSupportedChain) {
     return <></>;
   }
 
   const renderStakingContent = () => {
+    if (chainId !== asset.chainId) {
+      return <></>;
+    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
@@ -165,8 +203,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   };
 
   return (
-    <View>
-      {hasEthToUnstake && (
+    <View testID="staking-balance-container">
+      {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
           mainBalance={stakedBalanceETH}
@@ -177,7 +215,10 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(chainId, asset.symbol)}
+                imageSource={NetworkBadgeSource(
+                  asset.chainId as Hex,
+                  asset.ticker || asset.symbol,
+                )}
                 name={networkName}
               />
             }

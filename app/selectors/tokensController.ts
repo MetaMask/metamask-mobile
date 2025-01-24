@@ -1,25 +1,38 @@
+import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { TokensControllerState, Token } from '@metamask/assets-controllers';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
-import { Hex } from '@metamask/utils';
-import {
-  isPortfolioViewEnabledFunction,
-  TESTNET_CHAIN_IDS,
-} from '../util/networks';
+import { isPortfolioViewEnabled } from '../util/networks';
 import {
   selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from './networkController';
+import { PopularList } from '../util/networks/customNetworks';
 
 const selectTokensControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.TokensController;
 
 export const selectTokens = createDeepEqualSelector(
   selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.tokens,
+  selectChainId,
+  selectSelectedInternalAccountAddress,
+  (
+    tokensControllerState: TokensControllerState,
+    chainId: Hex,
+    selectedAddress: string | undefined,
+  ) => {
+    if (isPortfolioViewEnabled()) {
+      return (
+        tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] ||
+        []
+      );
+    }
+    return tokensControllerState?.tokens || [];
+  },
 );
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
@@ -36,7 +49,7 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
 export const selectTokensByAddress = createSelector(
   selectTokens,
   (tokens: Token[]) =>
-    tokens.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
+    tokens?.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
       tokensMap[token.address] = token;
       return tokensMap;
     }, {}),
@@ -69,31 +82,35 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   selectNetworkConfigurations,
   selectChainId,
   (networkConfigurations, currentChainId) => {
-    if (!isPortfolioViewEnabledFunction()) {
+    if (!isPortfolioViewEnabled()) {
       return [currentChainId];
     }
 
+    const popularNetworksChainIds = PopularList.map(
+      (popular) => popular.chainId,
+    );
     return Object.keys(networkConfigurations).filter(
       (chainId) =>
         chainId === currentChainId ||
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        !TESTNET_CHAIN_IDS.includes(chainId as any),
+        popularNetworksChainIds.includes(chainId as Hex),
     );
   },
 );
 
 export const selectAllTokensFlat = createSelector(
   selectAllTokens,
-  (tokensByAccountByChain) => {
+  (tokensByAccountByChain: {
+    [account: string]: { [chainId: string]: Token[] };
+  }): Token[] => {
     if (Object.values(tokensByAccountByChain).length === 0) {
       return [];
     }
     const tokensByAccountArray = Object.values(tokensByAccountByChain);
 
-    return tokensByAccountArray.reduce((acc, tokensByAccount) => {
-      const tokensArray = Object.values(tokensByAccount);
+    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
+      const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
-    }, [] as Token[]);
+    }, []);
   },
 );
 
@@ -123,9 +140,6 @@ export const selectAllDetectedTokensForSelectedAddress = createSelector(
   },
 );
 
-// TODO: This isn't working fully, once a network has been selected then it
-// can detect all tokens in that network. But by default it only shows
-// detected tokens if the user has chosen it in the past
 export const selectAllDetectedTokensFlat = createSelector(
   selectAllDetectedTokensForSelectedAddress,
   (detectedTokensByChain: { [chainId: string]: Token[] }) => {
@@ -147,5 +161,41 @@ export const selectAllDetectedTokensFlat = createSelector(
     }
 
     return flattenedTokens;
+  },
+);
+
+// Full selector implementation with selected address filtering
+export const selectTransformedTokens = createSelector(
+  selectAllTokens,
+  selectSelectedInternalAccountAddress,
+  selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  (
+    allTokens: TokensControllerState['allTokens'],
+    selectedAddress: string | undefined,
+    networkId: Hex,
+    isAllNetworks: boolean,
+    isPopularNetwork: boolean,
+  ) => {
+    if (!isAllNetworks || !isPopularNetwork) {
+      return allTokens[networkId]?.[selectedAddress as Hex];
+    }
+
+    // Filter for the selected address and transform
+    const flatList = Object.entries(allTokens).flatMap(
+      ([chainId, addresses]) => {
+        if (selectedAddress && addresses[selectedAddress]) {
+          return addresses[selectedAddress].map((token) => ({
+            ...token,
+            chainId, // Add chainId to the token property
+            address: selectedAddress, // Add the selected address as a property
+          }));
+        }
+        return [];
+      },
+    );
+
+    return flatList;
   },
 );

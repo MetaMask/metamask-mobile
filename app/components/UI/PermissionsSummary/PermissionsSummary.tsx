@@ -291,7 +291,13 @@ const PermissionsSummary = ({
             </TextComponent>
             <View style={styles.permissionRequestAccountInfo}>
               <View style={styles.permissionRequestAccountName}>
-                <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                <TextComponent
+                  testID={
+                    PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+                  }
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   <TextComponent variant={TextVariant.BodySM}>
                     {getAccountLabel()}
                   </TextComponent>
@@ -505,6 +511,9 @@ const PermissionsSummary = ({
                 <Button
                   variant={ButtonVariants.Secondary}
                   label={strings('permissions.choose_from_permitted_networks')}
+                  testID={
+                    NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
+                  }
                   onPress={onChooseFromPermittedNetworks}
                   size={ButtonSize.Lg}
                   style={{

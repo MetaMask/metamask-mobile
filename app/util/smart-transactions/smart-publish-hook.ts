@@ -53,6 +53,7 @@ export interface SubmitSmartTransactionRequest {
           expectedDeadline: number;
           maxDeadline: number;
           mobileReturnTxHashAsap: boolean;
+          batchStatusPollingInterval: number;
         }
       | Record<string, never>;
   };
@@ -75,6 +76,7 @@ class SmartTransactionHook {
       expectedDeadline?: number;
       maxDeadline?: number;
       mobileReturnTxHashAsap?: boolean;
+      batchStatusPollingInterval?: number;
     };
   };
   #shouldUseSmartTransaction: boolean;
@@ -94,6 +96,7 @@ class SmartTransactionHook {
 
   #shouldStartApprovalRequest: boolean;
   #shouldUpdateApprovalRequest: boolean;
+  #mobileReturnTxHashAsap: boolean;
 
   constructor(request: SubmitSmartTransactionRequest) {
     const {
@@ -116,6 +119,8 @@ class SmartTransactionHook {
     this.#chainId = transactionMeta.chainId;
     this.#txParams = transactionMeta.txParams;
     this.#controllerMessenger = controllerMessenger;
+    this.#mobileReturnTxHashAsap =
+      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap ?? false;
 
     const {
       isDapp,
@@ -143,11 +148,13 @@ class SmartTransactionHook {
       this.#isSend,
       this.#isSwapApproveTx,
       Boolean(approvalIdForPendingSwapApproveTx),
+      this.#mobileReturnTxHashAsap,
     );
     this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
       this.#isDapp,
       this.#isSend,
       this.#isSwapTransaction,
+      this.#mobileReturnTxHashAsap,
     );
   }
 
@@ -179,6 +186,11 @@ class SmartTransactionHook {
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
       if (!getFeesResponse) {
         return useRegularTransactionSubmit;
+      }
+
+      const batchStatusPollingInterval = this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      if (batchStatusPollingInterval) {
+        this.#smartTransactionsController.setStatusRefreshInterval(batchStatusPollingInterval);
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
@@ -221,9 +233,7 @@ class SmartTransactionHook {
       );
       throw error;
     } finally {
-      const mobileReturnTxHashAsap =
-        this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
-      if (!mobileReturnTxHashAsap) {
+      if (!this.#mobileReturnTxHashAsap) {
         this.#cleanup();
       }
     }
@@ -266,10 +276,8 @@ class SmartTransactionHook {
     uuid: string,
   ) => {
     let transactionHash: string | undefined | null;
-    const mobileReturnTxHashAsap =
-      this.#featureFlags?.smartTransactions?.mobileReturnTxHashAsap;
 
-    if (mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
+    if (this.#mobileReturnTxHashAsap && submitTransactionResponse?.txHash) {
       transactionHash = submitTransactionResponse.txHash;
     } else {
       transactionHash = await this.#waitForTransactionHash({

@@ -7,6 +7,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../util/test/network';
 import Engine from '../../../core/Engine';
+import { TokenI } from '../../UI/Tokens/types';
 
 jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
@@ -62,8 +63,8 @@ const initialState = {
       TokenBalancesController: {
         tokenBalances: {
           [MOCK_ADDRESS_1]: {
-            '0x1': {
-              '0xAddress': '0xde0b6B3A7640000',
+            [CHAIN_IDS.MAINNET]: {
+              '0xAddress': '0xde0b6b3a7640000',
             },
           },
         },
@@ -77,6 +78,28 @@ const initialState = {
             aggregators: ['Metamask', 'CMC'],
           },
         ],
+        tokensByChainId: {
+          [CHAIN_IDS.MAINNET]: [
+            {
+              address: '0xAddress',
+              symbol: 'TKN',
+              decimals: 18,
+              aggregators: ['Metamask', 'CMC'],
+            },
+          ],
+        },
+        allTokens: {
+          [CHAIN_IDS.MAINNET]: {
+            [MOCK_ADDRESS_1]: [
+              {
+                address: '0xAddress',
+                symbol: 'TKN',
+                decimals: 18,
+                aggregators: ['Metamask', 'CMC'],
+              },
+            ],
+          },
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -109,6 +132,17 @@ const initialState = {
 
 const store = mockStore(initialState);
 
+const mockAsset = {
+  address: '0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed',
+  balanceFiat: '$11.89',
+  chainId: '0x89',
+  decimals: 6,
+  image:
+    'https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png',
+  isETH: false,
+  isNative: false,
+};
+
 describe('AssetDetails', () => {
   const renderComponent = () =>
     render(
@@ -117,6 +151,8 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
@@ -146,6 +182,8 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
@@ -195,6 +233,8 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />
@@ -224,6 +264,8 @@ describe('AssetDetails', () => {
           route={{
             params: {
               address: '0xAddress',
+              chainId: CHAIN_IDS.MAINNET,
+              asset: mockAsset as unknown as TokenI,
             },
           }}
         />

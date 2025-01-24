@@ -23,6 +23,7 @@ app/store/migrations/                                       @MetaMask/mobile-pla
 bitrise.yml                                                 @MetaMask/mobile-platform
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
+app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
@@ -47,7 +48,7 @@ app/util/walletconnect.js   @MetaMask/sdk-devs
 
 # Accounts Team
 app/core/Encryptor/   @MetaMask/accounts-engineers
-app/core/Engine/controllers/accounts   @MetaMask/accounts-engineers
+app/core/Engine/controllers/AccountsController   @MetaMask/accounts-engineers
 
 # Swaps Team
 app/components/UI/Swaps              @MetaMask/swaps-engineers
@@ -75,6 +76,9 @@ patches/react-native+0.*.patch       @MetaMask/supply-chain
 # Snaps Team
 **/snaps/**                          @MetaMask/snaps-devs
 **/Snaps/**                          @MetaMask/snaps-devs
+
+# Wallet API Platform Team
+ app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
 
 # Staking Team
 app/components/UI/Stake              @MetaMask/metamask-staking

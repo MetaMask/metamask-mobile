@@ -1,27 +1,29 @@
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { isHardwareAccount } from '../../../../util/address';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import useApprovalRequest from './useApprovalRequest';
 
-const useConfirmationRedesignEnabled = () => {
+export const useConfirmationRedesignEnabled = () => {
   const { approvalRequest } = useApprovalRequest();
+  const { confirmation_redesign } = useSelector(selectRemoteFeatureFlags);
 
-  const { type: approvalRequestType, requestData } = approvalRequest ?? {
-    requestData: {},
-  };
-  const approvalRequestVersion = requestData?.version;
+  const approvalRequestType = approvalRequest?.type;
+  const fromAddress = approvalRequest?.requestData?.from;
 
   const isRedesignedEnabled = useMemo(
     () =>
+      (confirmation_redesign as Record<string, string>)?.signatures &&
+      // following condition will ensure that user is redirected to old designs for hardware wallets
+      !isHardwareAccount(fromAddress) &&
       approvalRequestType &&
-      process.env.REDESIGNED_SIGNATURE_REQUEST === 'true' &&
-      (approvalRequestType === ApprovalTypes.PERSONAL_SIGN ||
-        (approvalRequestType === ApprovalTypes.ETH_SIGN_TYPED_DATA &&
-          approvalRequestVersion === 'V1')),
-    [approvalRequestType, approvalRequestVersion],
+      [ApprovalTypes.PERSONAL_SIGN, ApprovalTypes.ETH_SIGN_TYPED_DATA].includes(
+        approvalRequestType as ApprovalTypes,
+      ),
+    [approvalRequestType, confirmation_redesign, fromAddress],
   );
 
   return { isRedesignedEnabled };
 };
-
-export default useConfirmationRedesignEnabled;

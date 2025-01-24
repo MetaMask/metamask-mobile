@@ -21,7 +21,6 @@
   "AddressBookController": {
     "addressBook": {}
   },
-  "AssetsContractController": {},
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -40,8 +39,6 @@
     "tokensChainsCache": {},
     "preventPollingOnNetworkRestart": false
   },
-  "TokenDetectionController": {},
-  "NftDetectionController": {},
   "PPOMController": {
     "storageMetadata": [],
     "versionInfo": []
@@ -74,20 +71,6 @@
           }
         ]
       },
-      "0x5": {
-        "blockExplorerUrls": [],
-        "chainId": "0x5",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Goerli",
-        "nativeCurrency": "GoerliETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "goerli",
-            "type": "infura",
-            "url": "https://goerli.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
       "0xaa36a7": {
         "blockExplorerUrls": [],
         "chainId": "0xaa36a7",
@@ -99,20 +82,6 @@
             "networkClientId": "sepolia",
             "type": "infura",
             "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0xe704": {
-        "blockExplorerUrls": [],
-        "chainId": "0xe704",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Linea Goerli",
-        "nativeCurrency": "LineaETH",
-        "rpcEndpoints": [
-          {
-            "networkClientId": "linea-goerli",
-            "type": "infura",
-            "url": "https://linea-goerli.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -273,7 +242,8 @@
         "decimals": 0,
         "address": "",
         "symbol": ""
-      }
+      },
+      "networkClientId": "mainnet"
     },
     "topAggSavings": null,
     "aggregatorMetadata": null,

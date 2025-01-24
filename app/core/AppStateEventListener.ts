@@ -1,34 +1,31 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { Store } from 'redux';
-import { RootState } from '../reducers';
 import Logger from '../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
 import { processAttribution } from './processAttribution';
 import DevLogger from './SDKConnect/utils/DevLogger';
+import ReduxService from './redux';
 
 export class AppStateEventListener {
-  private appStateSubscription: ReturnType<typeof AppState.addEventListener>;
+  private appStateSubscription:
+    | ReturnType<typeof AppState.addEventListener>
+    | undefined = undefined;
   private currentDeeplink: string | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private store: Store<RootState, any> | undefined;
-
   constructor() {
     this.lastAppState = AppState.currentState;
+  }
+
+  start() {
+    if (this.appStateSubscription) {
+      // Already started
+      return;
+    }
     this.appStateSubscription = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
     );
-  }
-
-  init(store: Store) {
-    if (this.store) {
-      Logger.error(new Error('store is already initialized'));
-      throw new Error('store is already initialized');
-    }
-    this.store = store;
   }
 
   public setCurrentDeeplink(deeplink: string | null) {
@@ -46,28 +43,21 @@ export class AppStateEventListener {
   };
 
   private processAppStateChange = () => {
-    if (!this.store) {
-      Logger.error(new Error('store is not initialized'));
-      return;
-    }
-
     try {
       const attribution = processAttribution({
         currentDeeplink: this.currentDeeplink,
-        store: this.store,
+        store: ReduxService.store,
       });
+      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED);
       if (attribution) {
         const { attributionId, utm, ...utmParams } = attribution;
         DevLogger.log(
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
           utmParams,
         );
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-            .addSensitiveProperties({ attributionId, ...utmParams })
-            .build(),
-        );
+        appOpenedEventBuilder.addProperties({ attributionId, ...utmParams });
       }
+      MetaMetrics.getInstance().trackEvent(appOpenedEventBuilder.build());
     } catch (error) {
       Logger.error(
         error as Error,
@@ -77,7 +67,8 @@ export class AppStateEventListener {
   };
 
   public cleanup() {
-    this.appStateSubscription.remove();
+    this.appStateSubscription?.remove();
+    this.appStateSubscription = undefined;
   }
 }
 

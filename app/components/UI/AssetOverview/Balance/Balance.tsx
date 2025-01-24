@@ -14,7 +14,7 @@ import {
   isLineaMainnetByChainId,
   isMainnetByChainId,
   isTestNet,
-  isPortfolioViewEnabledFunction,
+  isPortfolioViewEnabled,
 } from '../../../../util/networks';
 import images from '../../../../images/image-icons';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -29,7 +29,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
-import { isPooledStakingFeatureEnabled } from '../../Stake/constants';
 import StakingBalance from '../../Stake/components/StakingBalance/StakingBalance';
 import {
   PopularList,
@@ -46,7 +45,7 @@ interface BalanceProps {
 export const NetworkBadgeSource = (chainId: Hex, ticker: string) => {
   const isMainnet = isMainnetByChainId(chainId);
   const isLineaMainnet = isLineaMainnetByChainId(chainId);
-  if (!isPortfolioViewEnabledFunction()) {
+  if (!isPortfolioViewEnabled()) {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
     if (isMainnet) return images.ETHEREUM;
 
@@ -95,14 +94,16 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const networkName = useSelector(selectNetworkName);
   const chainId = useSelector(selectChainId);
 
+  const tokenChainId = isPortfolioViewEnabled() ? asset.chainId : chainId;
+
   const ticker = asset.symbol;
 
   const renderNetworkAvatar = useCallback(() => {
-    if (!isPortfolioViewEnabledFunction() && asset.isETH) {
+    if (!isPortfolioViewEnabled() && asset.isETH) {
       return <NetworkMainAssetLogo style={styles.ethLogo} />;
     }
 
-    if (isPortfolioViewEnabledFunction() && asset.isNative) {
+    if (isPortfolioViewEnabled() && asset.isNative) {
       return (
         <NetworkAssetLogo
           chainId={asset.chainId as Hex}
@@ -142,6 +143,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         balance={secondaryBalance}
         onPress={() =>
           !asset.isETH &&
+          !asset.isNative &&
           navigation.navigate('AssetDetails', {
             chainId: asset.chainId,
             address: asset.address,
@@ -153,8 +155,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(chainId, ticker)}
-              name={networkName}
+              imageSource={NetworkBadgeSource(tokenChainId as Hex, ticker)}
+              name={networkName || ''}
             />
           }
         >
@@ -164,9 +166,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           {asset.name || asset.symbol}
         </Text>
       </AssetElement>
-      {isPooledStakingFeatureEnabled() && asset?.isETH && (
-        <StakingBalance asset={asset} />
-      )}
+      {asset?.isETH && <StakingBalance asset={asset} />}
     </View>
   );
 };

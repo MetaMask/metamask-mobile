@@ -1,23 +1,12 @@
 import { AppState, AppStateStatus } from 'react-native';
-import { store } from '../store';
 import Logger from '../util/Logger';
 import { MetaMetrics, MetaMetricsEvents } from './Analytics';
 import { AppStateEventListener } from './AppStateEventListener';
 import { processAttribution } from './processAttribution';
 import { MetricsEventBuilder } from './Analytics/MetricsEventBuilder';
+import ReduxService, { ReduxStore } from './redux';
 
-jest.mock('react-native', () => ({
-  AppState: {
-    addEventListener: jest.fn(),
-    currentState: 'active',
-  },
-}));
-
-jest.mock('../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-}));
+jest.mock('./DeeplinkManager/ParseManager/extractURLParams', () => jest.fn());
 
 jest.mock('../util/Logger', () => ({
   error: jest.fn(),
@@ -44,6 +33,7 @@ describe('AppStateEventListener', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetModules();
     jest.useFakeTimers();
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
@@ -52,7 +42,7 @@ describe('AppStateEventListener', () => {
       },
     );
     appStateManager = new AppStateEventListener();
-    appStateManager.init(store);
+    appStateManager.start();
   });
 
   afterEach(() => {
@@ -66,16 +56,14 @@ describe('AppStateEventListener', () => {
     );
   });
 
-  it('throws error if store is initialized more than once', () => {
-    expect(() => appStateManager.init(store)).toThrow(
-      'store is already initialized',
-    );
-    expect(Logger.error).toHaveBeenCalledWith(
-      new Error('store is already initialized'),
-    );
+  it('does not initialize event listener more than once', () => {
+    expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
   });
 
   it('tracks event when app becomes active and attribution data is available', () => {
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
     const mockAttribution = {
       attributionId: 'test123',
       utm: 'test_utm',
@@ -91,28 +79,36 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-        .addSensitiveProperties({
-          attributionId: 'test123',
-          utm_source: 'source',
-          utm_medium: 'medium',
-          utm_campaign: 'campaign',
-        })
-        .build(),
-    );
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
+            .addProperties({
+              attributionId: 'test123',
+              utm_source: 'source',
+              utm_medium: 'medium',
+              utm_campaign: 'campaign',
+            })
+            .build();
+
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(expectedEvent);
   });
 
-  it('does not track event when processAttribution returns undefined', () => {
+  it('tracks event when app becomes active without attribution data', () => {
+    jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue({} as unknown as ReduxStore);
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+    expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
+        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build()
+    );
   });
 
   it('handles errors gracefully', () => {
+    jest
+      .spyOn(ReduxService, 'store', 'get')
+      .mockReturnValue({} as unknown as ReduxStore);
     const testError = new Error('Test error');
     (processAttribution as jest.Mock).mockImplementation(() => {
       throw testError;
@@ -135,7 +131,7 @@ describe('AppStateEventListener', () => {
     });
 
     appStateManager = new AppStateEventListener();
-    appStateManager.init(store);
+    appStateManager.start();
     appStateManager.cleanup();
 
     expect(mockRemove).toHaveBeenCalled();
@@ -160,13 +156,22 @@ describe('AppStateEventListener', () => {
   });
 
   it('should handle undefined store gracefully', () => {
-    appStateManager = new AppStateEventListener();
+    const { processAttribution: realProcessAttribution } = jest.requireActual(
+      './processAttribution',
+    );
+    (processAttribution as jest.Mock).mockImplementation(
+      realProcessAttribution,
+    );
+
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
-    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
+    const missingReduxStoreError = new Error('Redux store does not exist!');
+    const appStateManagerErrorMessage =
+      'AppStateManager: Error processing app state change';
     expect(Logger.error).toHaveBeenCalledWith(
-      new Error('store is not initialized'),
+      missingReduxStoreError,
+      appStateManagerErrorMessage,
     );
   });
 });

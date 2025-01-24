@@ -133,7 +133,7 @@ const Main = (props) => {
     stopIncomingTransactionPolling();
 
     if (showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling([networkClientId]);
+      startIncomingTransactionPolling([chainId]);
     }
   }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
 
@@ -178,11 +178,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.networkClientId]);
+          await updateIncomingTransactions([props.chainId]);
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.networkClientId],
+    [backgroundMode, removeNotVisibleNotifications, props.chainId],
   );
 
   const initForceReload = () => {
@@ -270,15 +270,25 @@ const Main = (props) => {
       const newNetwork = currentNetworkValues.find(
         (network) => !previousNetworkValues.includes(network),
       );
+      const deletedNetwork = previousNetworkValues.find(
+        (network) => !currentNetworkValues.includes(network),
+      );
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [
           {
-            label: `${newNetwork?.name ?? strings('asset_details.network')} `,
+            label: `${
+              (newNetwork?.name || deletedNetwork?.name) ??
+              strings('asset_details.network')
+            } `,
             isBold: true,
           },
-          { label: strings('toast.network_added') },
+          {
+            label: deletedNetwork
+              ? strings('toast.network_removed')
+              : strings('toast.network_added'),
+          },
         ],
         networkImageSource: networkImage,
       });

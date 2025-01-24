@@ -234,20 +234,34 @@ const RootRPCMethodsUI = (props) => {
           );
 
         const parameters = {
-          ...analyticsParams,
           time_to_mine: timeToMine,
           estimated_vs_used_gasRatio: estimatedVsUsedGasRatio,
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
           is_smart_transaction: props.shouldUseSmartTransaction,
           ...smartTransactionMetricsProperties,
+          available_quotes: analyticsParams.available_quotes,
+          best_quote_source: analyticsParams.best_quote_source,
+          chain_id: analyticsParams.chain_id,
+          custom_slippage: analyticsParams.custom_slippage,
+          network_fees_USD: analyticsParams.network_fees_USD,
+          other_quote_selected: analyticsParams.other_quote_selected,
+          request_type: analyticsParams.request_type,
+          token_from: analyticsParams.token_from,
+          token_to: analyticsParams.token_to,
+        };
+        const sensitiveParameters = {
+          token_from_amount: analyticsParams.token_from_amount,
+          token_to_amount: analyticsParams.token_to_amount,
+          network_fees_ETH: analyticsParams.network_fees_ETH,
         };
 
         Logger.log('Swaps', 'Sending metrics event', event);
 
         trackEvent(
           createEventBuilder(event)
-            .addSensitiveProperties({ ...parameters })
+            .addProperties({ ...parameters })
+            .addSensitiveProperties({ ...sensitiveParameters })
             .build(),
         );
       } catch (e) {
@@ -378,6 +392,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          chainId,
           networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
@@ -434,6 +449,7 @@ const RootRPCMethodsUI = (props) => {
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
             networkClientId,
+            chainId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -446,6 +462,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            chainId,
             networkClientId,
             ...transactionMeta.txParams,
           });

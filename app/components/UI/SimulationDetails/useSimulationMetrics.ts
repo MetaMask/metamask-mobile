@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   SimulationData,
   SimulationErrorCode,
@@ -17,7 +17,6 @@ import { NameType } from '../../UI/Name/Name.types';
 import useLoadingTime from './useLoadingTime';
 import { calculateTotalFiat } from './FiatDisplay/FiatDisplay';
 import { BalanceChange } from './types';
-import { selectChainId } from '../../../selectors/networkController';
 
 export interface UseSimulationMetricsProps {
   balanceChanges: BalanceChange[];
@@ -50,9 +49,6 @@ export function useSimulationMetrics({
   const { loadingTime, setLoadingComplete } = useLoadingTime();
   const dispatch = useDispatch();
 
-  // TODO: Remove global network selector usage once simulations refactored.
-  const chainId = useSelector(selectChainId);
-
   if (!loading) {
     setLoadingComplete();
   }
@@ -62,7 +58,7 @@ export function useSimulationMetrics({
       value: asset.address ?? '',
       type: NameType.EthereumAddress,
       preferContractSymbol: true,
-      variation: chainId,
+      variation: asset.chainId,
     }),
   );
 
