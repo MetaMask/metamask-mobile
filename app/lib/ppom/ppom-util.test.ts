@@ -480,4 +480,14 @@ describe('PPOM Utils', () => {
       },
     );
   });
+
+  describe('clearSignatureSecurityAlertResponse', () => {
+    it('set call action to set securityAlertResponse for signature in redux state to undefined', async () => {
+      const spy = jest.spyOn(SignatureRequestActions, 'default');
+      PPOMUtil.clearSignatureSecurityAlertResponse();
+      expect(spy).toHaveBeenCalledTimes(1);
+      // function call with no arguments
+      expect(spy).toHaveBeenCalledWith();
+    });
+  });
 });

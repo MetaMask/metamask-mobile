@@ -251,4 +251,12 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest, isChainSupported };
+function clearSignatureSecurityAlertResponse() {
+  store.dispatch(setSignatureRequestSecurityAlertResponse());
+}
+
+export default {
+  validateRequest,
+  isChainSupported,
+  clearSignatureSecurityAlertResponse,
+};

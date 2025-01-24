@@ -43,6 +43,7 @@ const sharedProps = {
   hasDappSuggestedGas: false,
   warning: 'test',
   onlyGas: true,
+  chainId: '0x1',
 };
 
 const editGasFeeLegacyForFeeMarket = {

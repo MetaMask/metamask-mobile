@@ -134,6 +134,7 @@ class Contacts extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance;
     const styles = createStyles(colors);
+    const { chainId } = this.props;
 
     return (
       <SafeAreaView
@@ -141,6 +142,7 @@ class Contacts extends PureComponent {
         testID={ContactsViewSelectorIDs.CONTAINER}
       >
         <AddressList
+          chainId={chainId}
           onlyRenderAddressBook
           reloadAddressList={reloadAddressList}
           onAccountPress={this.onAddressPress}

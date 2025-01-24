@@ -22,10 +22,11 @@ import {
 } from './types';
 import { getTokenDetails } from '../../../util/address';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
+import { RootState } from '../../../reducers';
 
 const NATIVE_DECIMALS = 18;
 
@@ -186,7 +187,7 @@ export default function useBalanceChanges({
   chainId: Hex;
   simulationData?: SimulationData;
 }): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate = useSelector(selectConversionRate) as number;
+  const nativeFiatRate = useSelector((state: RootState) => selectConversionRateByChainId(state, chainId)) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =

@@ -104,7 +104,6 @@ describe('CurrencyRateController Selectors', () => {
     it('returns the current currency from the state', () => {
       const result = selectCurrentCurrency.resultFunc(
         mockCurrencyRateState as unknown as CurrencyRateState,
-        '',
       );
       expect(result).toBe('USD');
     });
@@ -112,7 +111,6 @@ describe('CurrencyRateController Selectors', () => {
     it('returns undefined if current currency is not set', () => {
       const result = selectCurrentCurrency.resultFunc(
         {} as unknown as CurrencyRateState,
-        '',
       );
       expect(result).toBeUndefined();
     });

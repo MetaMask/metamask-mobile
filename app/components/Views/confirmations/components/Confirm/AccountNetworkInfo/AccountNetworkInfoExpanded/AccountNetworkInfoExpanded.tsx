@@ -1,20 +1,20 @@
 import React from 'react';
 import { View } from 'react-native';
-import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import { renderShortAddress } from '../../../../../../../util/address';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../UI/InfoRow';
 import Network from '../../../UI/InfoRow/InfoValue/Network';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { Hex } from '@metamask/utils';
+import { renderShortAddress } from '../../../../../../../util/address';
 
 const AccountNetworkInfoExpanded = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
-  const fromAddress = approvalRequest?.requestData?.from;
+  const signatureRequest = useSignatureRequest();
+  const chainId = signatureRequest?.chainId as Hex;
+
+  const fromAddress = signatureRequest?.messageParams?.from as string;
   const { accountAddress, accountFiatBalance } = useAccountInfo(fromAddress);
 
   return (
