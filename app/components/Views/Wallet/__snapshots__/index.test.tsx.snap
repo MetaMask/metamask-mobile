@@ -754,10 +754,12 @@ exports[`Wallet should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
                       style={
                         {
+                          "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingHorizontal": 8,
                         }
                       }
                     >
@@ -766,96 +768,380 @@ exports[`Wallet should render correctly 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingHorizontal": 8,
                           }
                         }
-                        testID="wallet-screen"
                       >
                         <View
                           style={
                             {
-                              "marginTop": 20,
-                              "paddingHorizontal": 16,
-                              "widht": "80%",
+                              "alignItems": "center",
+                              "paddingTop": 20,
                             }
                           }
+                        >
+                          <Image
+                            source={1}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                          />
+                          <Text
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 24,
+                                "fontWeight": "600",
+                                "lineHeight": 34,
+                                "paddingBottom": 20,
+                                "paddingTop": 10,
+                              }
+                            }
+                          >
+                            An error occurred
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#0376C91A",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginBottom": 20,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
                         >
                           <View
                             style={
                               {
-                                "backgroundColor": "#D738471A",
-                                "borderColor": "#d73847",
-                                "borderLeftWidth": 4,
-                                "borderRadius": 4,
-                                "flexDirection": "row",
-                                "padding": 12,
-                                "paddingLeft": 8,
+                                "marginRight": 8,
                               }
                             }
-                            testID="banneralert"
                           >
-                            <View
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
                               style={
                                 {
-                                  "marginRight": 8,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#d73847"
-                                height={24}
-                                name="Danger"
-                                style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
-                                }
-                                width={24}
-                              />
-                            </View>
-                            <View
+                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#BF52081A",
+                              "borderColor": "#bf5208",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#bf5208"
+                              height={24}
+                              name="Danger"
                               style={
                                 {
-                                  "flex": 1,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "lineHeight": 20,
                                 }
                               }
                             >
+                              If you keep getting this error,
+                               
                               <Text
-                                accessibilityRole="text"
-                                style={
-                                  {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 16,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
-                                }
-                              >
-                                Basic functionality is off
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
                                 onPress={[Function]}
                                 style={
                                   {
                                     "color": "#0376c9",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
                                   }
                                 }
                               >
-                                Turn on basic functionality
+                                save your Secret Recovery Phrase
                               </Text>
-                            </View>
+                               
+                              and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                            </Text>
                           </View>
                         </View>
+                        <Text
+                          style={
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "lineHeight": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            onPress={[Function]}
+                            style={
+                              {
+                                "color": "#0376c9",
+                              }
+                            }
+                          >
+                            save your Secret Recovery Phrase
+                          </Text>
+                        </Text>
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "marginTop": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            style={
+                              {
+                                "fontWeight": "600",
+                              }
+                            }
+                          >
+                            Error message:
+                          </Text>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#0376c9"
+                              height={16}
+                              name="Copy"
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                            <Text
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "paddingLeft": 5,
+                                }
+                              }
+                            >
+                              Copy
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#D738471A",
+                              "borderRadius": 8,
+                              "flexShrink": 1,
+                              "marginTop": 10,
+                              "padding": 10,
+                            }
+                          }
+                        >
+                          <RCTScrollView
+                            collapsable={false}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                          >
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "color": "#d73847",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "lineHeight": 20,
+                                    "padding": 8,
+                                  }
+                                }
+                              >
+                                View: Wallet
+TypeError: Cannot read properties of undefined (reading 'tabs')
+                              </Text>
+                            </View>
+                          </RCTScrollView>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "bottom": 10,
+                              "flexGrow": 1,
+                              "justifyContent": "flex-end",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "backgroundColor": "#0376c9",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#ffffff",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Describe what happened
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#0376c9",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Contact support
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#0376c9",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Try again
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Modal
+                          animationType="slide"
+                          hardwareAccelerated={false}
+                          onRequestClose={[Function]}
+                          visible={false}
+                        />
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>

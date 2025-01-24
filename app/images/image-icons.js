@@ -14,6 +14,9 @@ import LINEA_MAINNET from './linea-mainnet-logo.png';
 import APE_TOKEN from './ape-token.png';
 import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import BTC from './bitcoin-logo.png';
+///: END:ONLY_INCLUDE_IF
 
 export default {
   PALM,
@@ -34,4 +37,7 @@ export default {
   G: GRAVITY,
   'KAIA-MAINNET': KAIA_MAINNET,
   'KAIA-KAIROS-TESTNET': KAIA_MAINNET,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  BTC,
+  ///: END:ONLY_INCLUDE_IF
 };
