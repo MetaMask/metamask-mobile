@@ -368,36 +368,35 @@ class OptinMetrics extends PureComponent {
       setDataCollectionForMarketing(false);
     }
 
-    InteractionManager.runAfterInteractions(async () => {
-      // consolidate device and user settings traits
-      const consolidatedTraits = {
-        ...dataCollectionForMarketingTraits,
-        is_metrics_opted_in: true,
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
+    // consolidate device and user settings traits
+    const consolidatedTraits = {
+      ...dataCollectionForMarketingTraits,
+      is_metrics_opted_in: true,
+      ...generateDeviceAnalyticsMetaData(),
+      ...generateUserSettingsAnalyticsMetaData(),
+    };
+    await metrics.addTraitsToUser(consolidatedTraits);
 
-      // track onboarding events that were stored before user opted in
-      // only if the user eventually opts in.
-      if (events && events.length) {
-        let delay = 0; // Initialize delay
-        const eventTrackingDelay = 200; // ms delay between each event
-        events.forEach((eventArgs) => {
-          // delay each event to prevent them from
-          // being tracked with the same timestamp
-          // which would cause them to be grouped together
-          // by sentAt time in the Segment dashboard
-          // as precision is only to the milisecond
-          // and loop seems to runs faster than that
-          setTimeout(() => {
-            metrics.trackEvent(...eventArgs);
-          }, delay);
-          delay += eventTrackingDelay;
-        });
-      }
-      this.props.clearOnboardingEvents();
-    });
+    // track onboarding events that were stored before user opted in
+    // only if the user eventually opts in.
+    if (events && events.length) {
+      let delay = 0; // Initialize delay
+      const eventTrackingDelay = 200; // ms delay between each event
+      events.forEach((eventArgs) => {
+        // delay each event to prevent them from
+        // being tracked with the same timestamp
+        // which would cause them to be grouped together
+        // by sentAt time in the Segment dashboard
+        // as precision is only to the milisecond
+        // and loop seems to runs faster than that
+        setTimeout(() => {
+          metrics.trackEvent(...eventArgs);
+        }, delay);
+        delay += eventTrackingDelay;
+      });
+    }
+    this.props.clearOnboardingEvents();
+
     this.continue();
   };
 
