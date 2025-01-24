@@ -179,11 +179,10 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
       let transactionId: string | undefined;
 
       if (isStaking) {
-        const txRes = await attemptDepositTransaction(
-          valueWei,
-          activeAccount.address,
-        );
+        console.log('we are here confirming this');
+        const txRes = await attemptDepositTransaction(valueWei);
         transactionId = txRes?.transactionMeta?.id;
+        console.log('txRes: ', txRes);
       }
       // Unstaking
       else {
