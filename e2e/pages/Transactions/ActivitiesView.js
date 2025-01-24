@@ -66,7 +66,9 @@ class ActivitiesView {
     const element = this.swapActivityTitle(sourceToken, destinationToken);
     await Gestures.waitAndTap(element);
   }
-
+  async tapConfirmedTransaction() {
+    await Gestures.waitAndTap(this.confirmedLabel);
+  }
   async swipeDown() {
     await Gestures.swipe(this.container, 'down', 'slow', 0.5);
   }

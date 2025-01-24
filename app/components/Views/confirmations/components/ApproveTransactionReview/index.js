@@ -348,8 +348,7 @@ class ApproveTransactionReview extends PureComponent {
   componentDidMount = async () => {
     const { chainId } = this.props;
     const {
-      transaction: { origin, to, data, from },
-      transaction,
+      transaction: { origin, to, data, from, transaction },
       setTransactionObject,
       tokenList,
       tokenAllowanceState,

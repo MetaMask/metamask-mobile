@@ -160,6 +160,7 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_swaps_ios: {}
       - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
@@ -180,6 +181,7 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
@@ -649,6 +651,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_confirmations_redesigned_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -1795,13 +1803,13 @@ app:
       VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1520
+      VERSION_NUMBER: 1534
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.37.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1520
+      FLASK_VERSION_NUMBER: 1534
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

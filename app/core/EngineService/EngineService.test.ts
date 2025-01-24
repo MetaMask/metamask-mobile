@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react-native';
 import { EngineService } from './EngineService';
 import ReduxService, { type ReduxStore } from '../redux';
 import Engine from '../Engine';
@@ -119,37 +120,44 @@ describe('EngineService', () => {
     engineService = new EngineService();
   });
 
-  it('should have Engine initialized', () => {
+  it('should have Engine initialized', async () => {
     engineService.start();
-    expect(Engine.context).toBeDefined();
+    await waitFor(() => {
+      expect(Engine.context).toBeDefined();
+    });
   });
 
-  it('should log Engine initialization with state info', () => {
+  it('should log Engine initialization with state info', async () => {
     engineService.start();
-    expect(Logger.log).toHaveBeenCalledWith(
-      'EngineService: Initializing Engine:',
-      {
-        hasState: true,
-      },
-    );
+    await waitFor(() => {
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Initializing Engine:',
+        {
+          hasState: true,
+        },
+      );
+    });
+
   });
 
-  it('should log Engine initialization with empty state', () => {
+  it('should log Engine initialization with empty state', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ engine: { backgroundState: {} } }),
     } as unknown as ReduxStore);
 
     engineService.start();
-    expect(Logger.log).toHaveBeenCalledWith(
-      'EngineService: Initializing Engine:',
-      {
-        hasState: false,
-      },
-    );
+    await waitFor(() => {
+      expect(Logger.log).toHaveBeenCalledWith(
+        'EngineService: Initializing Engine:',
+        {
+          hasState: false,
+        },
+      );
+    });
   });
 
   it('should have recovered vault on redux store and log initialization', async () => {
-    engineService.start();
+    await engineService.start();
     const { success } = await engineService.initializeVaultFromBackup();
     expect(success).toBeTruthy();
     expect(Engine.context.KeyringController.state.vault).toBeDefined();
@@ -161,19 +169,21 @@ describe('EngineService', () => {
     );
   });
 
-  it('should navigate to vault recovery if Engine fails to initialize', () => {
+  it('should navigate to vault recovery if Engine fails to initialize', async () => {
     jest.spyOn(Engine, 'init').mockImplementation(() => {
       throw new Error('Failed to initialize Engine');
     });
     engineService.start();
-    // Logs error to Sentry
-    expect(Logger.error).toHaveBeenCalledWith(
-      new Error('Failed to initialize Engine'),
-      'Failed to initialize Engine! Falling back to vault recovery.',
-    );
-    // Navigates to vault recovery
-    expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
-      routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+    await waitFor(() => {
+      // Logs error to Sentry
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error('Failed to initialize Engine'),
+        'Failed to initialize Engine! Falling back to vault recovery.',
+      );
+      // Navigates to vault recovery
+      expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
     });
   });
 });

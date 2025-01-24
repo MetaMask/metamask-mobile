@@ -40,8 +40,8 @@ const handleNetworkSwitch = (switchToChainId: string): string | undefined => {
     const [, { name: nickname, rpcEndpoints, defaultRpcEndpointIndex }] = entry;
 
     const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-
     networkController.setActiveNetwork(networkClientId);
+
     return nickname;
   }
 };

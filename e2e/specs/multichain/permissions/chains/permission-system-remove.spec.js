@@ -17,6 +17,9 @@ import TestDApp from '../../../../pages/Browser/TestDApp';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
+import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
+import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -34,17 +37,20 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         restartDevice: true,
       },
       async () => {
-        //should navigate to browser
+        // Setup: Navigate to browser and login
         await loginToApp();
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(Browser.browserScreenID);
 
-        //TODO: should re add connecting to an external swap step after detox has been updated
-
+        // Connect to DApp and configure network permissions
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        await NetworkConnectMultiSelector.tapUpdateButton();
         await ConnectBottomSheet.tapConnectButton();
 
+        // Remove network from settings
         await TabBarComponent.tapSettings();
         await SettingsView.tapNetworks();
         await NetworksView.longPressToRemoveNetwork(
@@ -52,6 +58,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
         );
         await NetworkEducationModal.tapGotItButton();
 
+        // Verify permission cleanup
         await TabBarComponent.tapBrowser();
         await Assertions.checkIfVisible(
           PermissionSummaryBottomSheet.addNetworkPermissionContainer,

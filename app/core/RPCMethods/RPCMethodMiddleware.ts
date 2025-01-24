@@ -1,4 +1,5 @@
-import { Alert } from 'react-native';
+import { MutableRefObject } from 'react';
+import { Alert, ImageSourcePropType } from 'react-native';
 import { getVersion } from 'react-native-device-info';
 import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
@@ -86,9 +87,9 @@ export interface RPCMethodsMiddleParameters {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   // Bookmarks
   isHomepage: () => boolean;
   // Show autocomplete
@@ -102,13 +103,6 @@ export interface RPCMethodsMiddleParameters {
   isWalletConnect: boolean;
   // For MM SDK
   isMMSDK: boolean;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getApprovedHosts: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  setApprovedHosts: (approvedHosts: any) => void;
-  approveHost: (fullHostname: string) => void;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
 }
@@ -230,9 +224,9 @@ const generateRawSignature = async ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any;
   hostname: string;
-  url: { current: string };
-  title: { current: string };
-  icon: { current: string | undefined };
+  url: MutableRefObject<string>;
+  title: MutableRefObject<string>;
+  icon: MutableRefObject<ImageSourcePropType | undefined>;
   analytics: { [key: string]: string | boolean };
   chainId: number;
   isMMSDK: boolean;
