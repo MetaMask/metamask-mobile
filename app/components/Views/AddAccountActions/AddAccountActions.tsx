@@ -211,6 +211,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Hardware}
             onPress={openConnectHardwareWallet}
             disabled={isLoading}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
+            }
           />
         </View>
       </Fragment>

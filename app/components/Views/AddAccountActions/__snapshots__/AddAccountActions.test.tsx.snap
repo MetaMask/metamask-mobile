@@ -606,6 +606,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               "width": "100%",
                             }
                           }
+                          testID="add-account-add-hardware-wallet"
                         >
                           <SvgMock
                             color="#141618"

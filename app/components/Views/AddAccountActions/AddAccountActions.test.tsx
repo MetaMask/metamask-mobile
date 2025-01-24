@@ -12,6 +12,8 @@ import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/testUtils';
 import { Text } from 'react-native';
+import Routes from '../../../constants/navigation/Routes';
+import Logger from '../../../util/Logger';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -41,6 +43,11 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
   setSelectedAddress: jest.fn(),
+}));
+
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockInitialState = {
@@ -136,6 +143,36 @@ describe('AddAccountActions', () => {
     });
   });
 
+  it('handles error when creating new ETH account fails', async () => {
+    const mockError = new Error('Failed to create account');
+    (
+      Engine.context.KeyringController.addNewAccount as jest.Mock
+    ).mockRejectedValueOnce(mockError);
+
+    renderScreen(
+      () => <AddAccountActions {...mockProps} />,
+      {
+        name: 'AddAccountActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const addButton = screen.getByTestId(
+      AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+    );
+    fireEvent.press(addButton);
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        mockError,
+        'error while trying to add a new account',
+      );
+      expect(mockProps.onBack).toHaveBeenCalled();
+    });
+  });
+
   it('navigates to import screen when clicking import account', () => {
     renderScreen(
       () => <AddAccountActions {...mockProps} />,
@@ -153,6 +190,30 @@ describe('AddAccountActions', () => {
     fireEvent.press(importButton);
 
     expect(mockedNavigate).toHaveBeenCalledWith('ImportPrivateKeyView');
+    expect(mockProps.onBack).toHaveBeenCalled();
+  });
+
+  it('navigates to hardware wallet connection when clicking connect hardware wallet', () => {
+    renderScreen(
+      () => <AddAccountActions {...mockProps} />,
+      {
+        name: 'AddAccountActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const hardwareWalletButton = screen.getByTestId(
+      AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
+    );
+
+    expect(hardwareWalletButton.findByType(Text).props.children).toBe(
+      'Add hardware wallet',
+    );
+    fireEvent.press(hardwareWalletButton);
+
+    expect(mockedNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT);
     expect(mockProps.onBack).toHaveBeenCalled();
   });
 
@@ -175,7 +236,7 @@ describe('AddAccountActions', () => {
       BtcAccountType.P2wpkh,
     );
 
-    it('does not Solana account creation when account already exists', () => {
+    it('does not disable Solana account creation when account already exists', () => {
       const stateWithSolAccount = {
         ...mockInitialState,
         engine: {
@@ -253,6 +314,94 @@ describe('AddAccountActions', () => {
         'Add a new Bitcoin Account (Beta)',
       );
       expect(btcButton.props.disabled).toBe(true);
+    });
+
+    it('handles error when creating Bitcoin account fails', async () => {
+      renderScreen(
+        () => <AddAccountActions {...mockProps} />,
+        {
+          name: 'AddAccountActions',
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const btcButton = screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
+      );
+      fireEvent.press(btcButton);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'Bitcoin account creation failed',
+        );
+        expect(mockProps.onBack).toHaveBeenCalled();
+      });
+    });
+
+    it('handles error when creating Solana account fails', async () => {
+      renderScreen(
+        () => <AddAccountActions {...mockProps} />,
+        {
+          name: 'AddAccountActions',
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const solButton = screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
+      );
+      fireEvent.press(solButton);
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.any(Error),
+          'Solana account creation failed',
+        );
+        expect(mockProps.onBack).toHaveBeenCalled();
+      });
+    });
+
+    it('disables all buttons while loading', async () => {
+      renderScreen(
+        () => <AddAccountActions {...mockProps} />,
+        {
+          name: 'AddAccountActions',
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const addButton = screen.getByTestId(
+        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      );
+      fireEvent.press(addButton);
+
+      // Check that all buttons are disabled while loading
+      expect(
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON)
+          .props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        ).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
+        ).props.disabled,
+      ).toBe(true);
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
+        ).props.disabled,
+      ).toBe(true);
     });
   });
 });
