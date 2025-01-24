@@ -80,6 +80,26 @@ describe('MetricsEventBuilder', () => {
     expect(rebuiltEvent.sensitiveProperties).toEqual(newSensitiveProps);
   });
 
+  // test fix for https://github.com/MetaMask/metamask-mobile/issues/12728
+  it('adds properties with legacy sensitive properties objects', () => {
+    const newProps: JsonMap = {
+      newProp: 'newValue',
+      newSensitiveLegacyProp: { value: 'newSensitiveLegacyValue', anonymous: true}
+    };
+
+    const event = MetricsEventBuilder.createEventBuilder(mockEvent)
+        .addProperties(newProps)
+        .build();
+    expect(event.properties).toEqual({newProp: 'newValue'});
+    expect(event.sensitiveProperties).toEqual({newSensitiveLegacyProp: 'newSensitiveLegacyValue'});
+
+    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
+        .addProperties(newProps)
+        .build();
+    expect(rebuiltEvent.properties).toEqual({newProp: 'newValue'});
+    expect(rebuiltEvent.sensitiveProperties).toEqual({newSensitiveLegacyProp: 'newSensitiveLegacyValue'});
+  });
+
   it('removes properties', () => {
     const event = MetricsEventBuilder.createEventBuilder(mockEvent)
       .addProperties({ newProp: 'newValue' })
