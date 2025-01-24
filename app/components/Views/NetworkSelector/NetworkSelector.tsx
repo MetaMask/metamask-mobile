@@ -206,6 +206,7 @@ const NetworkSelector = () => {
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
+      console.log('IM HERE ...............');
       const { NetworkController } = Engine.context;
 
       const existingNetwork = networkConfigurations[chainId];

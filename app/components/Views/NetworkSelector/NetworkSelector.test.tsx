@@ -31,12 +31,27 @@ jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
 }));
 
+const mockedNavigate = jest.fn();
+const mockedGoBack = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockedNavigate,
+      goBack: mockedGoBack,
+    }),
+  };
+});
+
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
+      updateNetwork: jest.fn(),
       getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
       findNetworkClientIdByChainId: jest
         .fn()
@@ -476,6 +491,28 @@ describe('Network Selector', () => {
       const rpcOption = getByText('polygon-mainnet.infura.io/v3');
       fireEvent.press(rpcOption);
     });
+  });
+
+  it('switches RPC URL when a different RPC URL is selected 2', async () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByText } = renderComponent(initialState);
+
+    // Wait for the initial RPC URL to render
+    const ethereumRpcUrl = await waitFor(() =>
+      getByText('mainnet-rpc.publicnode.com'),
+    );
+    expect(ethereumRpcUrl).toBeTruthy();
+    fireEvent.press(ethereumRpcUrl);
+
+    // Wait for the "Select RPC URL" text and new RPC URL option to render
+    const selectRpcText = await waitFor(() => getByText('Select RPC URL'));
+    expect(selectRpcText).toBeTruthy();
+
+    const newEthereumRpcUrl = getByText('mainnet.infura.io/v3');
+    expect(newEthereumRpcUrl).toBeTruthy();
+    fireEvent.press(newEthereumRpcUrl);
+
+    // expect(mockedNavigate).toBeCalled();
   });
 
   it('filters networks correctly when searching', () => {
