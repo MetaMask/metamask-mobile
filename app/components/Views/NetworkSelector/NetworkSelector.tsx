@@ -202,6 +202,7 @@ const NetworkSelector = () => {
     },
     [isAllNetwork],
   );
+
   const [showMultiRpcSelectModal, setShowMultiRpcSelectModal] = useState<{
     isVisible: boolean;
     chainId: string;
@@ -243,8 +244,12 @@ const NetworkSelector = () => {
         );
       } else {
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
-
-        await NetworkController.setActiveNetwork(networkClientId);
+        try {
+          await NetworkController.setActiveNetwork(networkClientId);
+        } catch (error) {
+          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+        }
+        sheetRef.current?.dismissModal();
       }
 
       setTokenNetworkFilter(chainId);
@@ -345,7 +350,7 @@ const NetworkSelector = () => {
   };
 
   // The only possible value types are mainnet, linea-mainnet, sepolia and linea-sepolia
-  const onNetworkChange = (type: InfuraNetworkType) => {
+  const onNetworkChange = async (type: InfuraNetworkType) => {
     trace({
       name: TraceName.SwitchBuiltInNetwork,
       parentContext: parentSpan,
@@ -368,7 +373,8 @@ const NetworkSelector = () => {
         ].networkClientId ?? type;
 
       setTokenNetworkFilter(networkConfiguration.chainId);
-      NetworkController.setActiveNetwork(clientId);
+      await NetworkController.setActiveNetwork(clientId);
+
       closeRpcModal();
       AccountTrackerController.refresh();
 

@@ -74,9 +74,7 @@ interface OnboardingWizardProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  coachmarkRef: React.RefObject<any> | null;
+  coachmarkRef?: React.RefObject<unknown> | null;
 }
 
 interface DrawerRef {
