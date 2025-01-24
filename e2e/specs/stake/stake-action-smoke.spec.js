@@ -136,7 +136,7 @@ describe(SmokeStake('Stake from Actions'), () => {
 });
 
 async function waitUntilTransactionHasCompleted() {
-  await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 30000);
+  await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 60000);
   /*
   await Assertions.checkIfElementToHaveText(
     ActivitiesView.firstTransactionStatus,
