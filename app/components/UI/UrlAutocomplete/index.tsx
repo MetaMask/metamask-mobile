@@ -180,6 +180,7 @@ const UrlAutocomplete = forwardRef<
         keyExtractor={(item) => `${item.type}-${item.url}`}
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
+        keyboardShouldPersistTaps="handled"
     />
     </View>
   );
