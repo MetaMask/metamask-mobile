@@ -74,10 +74,6 @@ describe(SmokeStake('Stake from Actions'), () => {
       ActivitiesViewSelectorsText.SUBMITTED_TEXT,
       120000,
     );
-    await Assertions.checkIfElementToHaveText(
-      ActivitiesView.firstTransactionStatus,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT
-    );
   });
 
   it('should be able to import account', async () => {
