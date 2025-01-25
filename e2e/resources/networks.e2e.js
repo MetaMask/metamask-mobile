@@ -150,5 +150,16 @@ const CustomNetworks = {
       BlockExplorerUrl: 'https://gnosisscan.io',
     },
   },
+  Holesky: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: toHex(17000),
+      rpcUrl: 'https://ethereum-holesky.publicnode.com',
+      nickname: 'Holesky',
+      ticker: 'ETH',
+      walletName: 'Ethereum',
+      BlockExplorerUrl: 'https://holesky.etherscan.io/',
+    },
+  },
 };
 export { CustomNetworks, PopularNetworksList };
