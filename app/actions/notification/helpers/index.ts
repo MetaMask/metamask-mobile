@@ -2,12 +2,7 @@ import { getErrorMessage } from '@metamask/utils';
 
 import { notificationsErrors } from '../constants';
 import Engine from '../../../core/Engine';
-import {
-  Notification,
-  mmStorage,
-  getAllUUIDs,
-} from '../../../util/notifications';
-import type { UserStorage } from '@metamask/notification-services-controller/notification-services';
+import { Notification, mmStorage } from '../../../util/notifications';
 
 export type MarkAsReadNotificationsParam = Pick<
   Notification,
@@ -151,45 +146,6 @@ export const performDeleteStorage = async (): Promise<string | undefined> => {
     await Engine.context.NotificationServicesController.createOnChainTriggers({
       resetNotifications: true,
     });
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const enablePushNotifications = async (
-  userStorage: UserStorage,
-  fcmToken?: string,
-) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.enablePushNotifications(
-      uuids,
-      fcmToken,
-    );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const disablePushNotifications = async (userStorage: UserStorage) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.disablePushNotifications(
-      uuids,
-    );
-  } catch (error) {
-    return getErrorMessage(error);
-  }
-};
-
-export const updateTriggerPushNotifications = async (
-  userStorage: UserStorage,
-) => {
-  try {
-    const uuids = getAllUUIDs(userStorage);
-    await Engine.context.NotificationServicesPushController.updateTriggerPushNotifications(
-      uuids,
-    );
   } catch (error) {
     return getErrorMessage(error);
   }

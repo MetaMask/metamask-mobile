@@ -120,10 +120,18 @@ import {
   AuthenticationController,
   UserStorageController,
 } from '@metamask/profile-sync-controller';
+import NotificationServicesController, {
+  type NotificationServicesControllerMessenger,
+} from '@metamask/notification-services-controller/notification-services';
+import NotificationServicesPushController, {
+  type NotificationServicesPushControllerMessenger,
+} from '@metamask/notification-services-controller/push-services';
 import {
-  NotificationServicesController,
-  NotificationServicesPushController,
-} from '@metamask/notification-services-controller';
+  createRegToken,
+  deleteRegToken,
+  createSubscribeToPushNotifications,
+  isPushNotificationsEnabled,
+} from './controllers/PushNotificationController/utils';
 ///: END:ONLY_INCLUDE_IF
 import {
   getCaveatSpecifications,
@@ -1061,54 +1069,17 @@ export class Engine {
       nativeScryptCrypto: scrypt,
     });
 
-    const notificationServicesController =
-      new NotificationServicesController.Controller({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'NotificationServicesController',
-          allowedActions: [
-            'KeyringController:getState',
-            'KeyringController:getAccounts',
-            'AuthenticationController:getBearerToken',
-            'AuthenticationController:isSignedIn',
-            'UserStorageController:enableProfileSyncing',
-            'UserStorageController:getStorageKey',
-            'UserStorageController:performGetStorage',
-            'UserStorageController:performSetStorage',
-            'NotificationServicesPushController:enablePushNotifications',
-            'NotificationServicesPushController:disablePushNotifications',
-            'NotificationServicesPushController:updateTriggerPushNotifications',
-          ],
-          allowedEvents: [
-            'KeyringController:unlock',
-            'KeyringController:lock',
-            'KeyringController:stateChange',
-          ],
-        }),
-        state: initialState.NotificationServicesController,
-        env: {
-          isPushIntegrated: false,
-          featureAnnouncements: {
-            platform: 'mobile',
-            accessToken: process.env
-              .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
-            spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
-          },
-        },
-      });
-
     const notificationServicesPushControllerMessenger =
       this.controllerMessenger.getRestricted({
         name: 'NotificationServicesPushController',
         allowedActions: ['AuthenticationController:getBearerToken'],
         allowedEvents: [],
-      });
+      }) as unknown as NotificationServicesPushControllerMessenger;
 
     const notificationServicesPushController =
-      new NotificationServicesPushController.Controller({
+      new NotificationServicesPushController({
         messenger: notificationServicesPushControllerMessenger,
-        state: initialState.NotificationServicesPushController || {
-          fcmToken: '',
-        },
+        state: initialState.NotificationServicesPushController,
         env: {
           apiKey: process.env.FIREBASE_API_KEY ?? '',
           authDomain: process.env.FIREBASE_AUTH_DOMAIN ?? '',
@@ -1120,13 +1091,96 @@ export class Engine {
           vapidKey: process.env.VAPID_KEY ?? '',
         },
         config: {
-          isPushEnabled: true,
+          isPushFeatureEnabled: true,
           platform: 'mobile',
-          // TODO: Implement optionability for push notification handlers (depending of the platform) on the NotificationServicesPushController.
-          onPushNotificationReceived: () => Promise.resolve(undefined),
-          onPushNotificationClicked: () => Promise.resolve(undefined),
+          pushService: {
+            createRegToken,
+            deleteRegToken,
+            subscribeToPushNotifications: createSubscribeToPushNotifications({
+              messenger: notificationServicesPushControllerMessenger,
+            }),
+          },
         },
       });
+
+    notificationServicesPushControllerMessenger.subscribe(
+      'NotificationServicesPushController:onNewNotifications',
+      (notification) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PUSH_NOTIFICATIONS_RECEIVED,
+          )
+            .addProperties({
+              notification_id: notification.id,
+              notification_type: notification.type,
+              chain_id:
+                'chain_id' in notification ? notification.chain_id : undefined,
+            })
+            .build(),
+        );
+      },
+    );
+    notificationServicesPushControllerMessenger.subscribe(
+      'NotificationServicesPushController:pushNotificationClicked',
+      (notification) => {
+        MetaMetrics.getInstance().trackEvent(
+          MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.PUSH_NOTIFICATIONS_CLICKED,
+          )
+            .addProperties({
+              notification_id: notification.id,
+              notification_type: notification.type,
+              chain_id:
+                'chain_id' in notification ? notification.chain_id : undefined,
+            })
+            .build(),
+        );
+      },
+    );
+
+    // Push Notification Side Effect - ensure permissions have been set
+    // We only need to switch push notifications off if it is enabled, but the system/device has it off
+    if (notificationServicesPushController.state.isPushEnabled) {
+      isPushNotificationsEnabled().then((isEnabled) => {
+        if (isEnabled === false)
+          notificationServicesPushController.setIsPushNotificationsEnabled(
+            false,
+          );
+      });
+    }
+
+    const notificationServicesController = new NotificationServicesController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'NotificationServicesController',
+        allowedActions: [
+          'KeyringController:getState',
+          'KeyringController:getAccounts',
+          'AuthenticationController:getBearerToken',
+          'AuthenticationController:isSignedIn',
+          'UserStorageController:enableProfileSyncing',
+          'UserStorageController:getStorageKey',
+          'UserStorageController:performGetStorage',
+          'UserStorageController:performSetStorage',
+          'NotificationServicesPushController:enablePushNotifications',
+          'NotificationServicesPushController:disablePushNotifications',
+          'NotificationServicesPushController:updateTriggerPushNotifications',
+        ],
+        allowedEvents: [
+          'KeyringController:unlock',
+          'KeyringController:lock',
+          'KeyringController:stateChange',
+        ],
+      }) as unknown as NotificationServicesControllerMessenger,
+      state: initialState.NotificationServicesController,
+      env: {
+        featureAnnouncements: {
+          platform: 'mobile',
+          accessToken: process.env
+            .FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
+          spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
+        },
+      },
+    });
     ///: END:ONLY_INCLUDE_IF
 
     this.transactionController = new TransactionController({

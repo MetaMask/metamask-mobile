@@ -5,7 +5,6 @@ describe('constants', () => {
     expect(STORAGE_IDS).toEqual({
       NOTIFICATIONS: 'notifications',
       GLOBAL_PUSH_NOTIFICATION_SETTINGS: 'globalNotificationSettings',
-      MM_FCM_TOKEN: 'metaMaskFcmToken',
       PUSH_NOTIFICATIONS_PROMPT_COUNT: 'pushNotificationsPromptCount',
       PUSH_NOTIFICATIONS_PROMPT_TIME: 'pushNotificationsPromptTime',
       DEVICE_ID_STORAGE_KEY: 'pns:deviceId',
@@ -37,9 +36,6 @@ describe('constants', () => {
     expect(
       mapStorageTypeToIds(STORAGE_IDS.GLOBAL_PUSH_NOTIFICATION_SETTINGS),
     ).toEqual(STORAGE_TYPES.OBJECT);
-    expect(mapStorageTypeToIds(STORAGE_IDS.MM_FCM_TOKEN)).toEqual(
-      STORAGE_TYPES.OBJECT,
-    );
     expect(
       mapStorageTypeToIds(STORAGE_IDS.PUSH_NOTIFICATIONS_PROMPT_COUNT),
     ).toEqual(STORAGE_TYPES.NUMBER);

@@ -75,7 +75,6 @@ const OptIn = () => {
       });
     } else {
       const { permission } = await NotificationsService.getAllPermissions();
-
       if (permission !== 'authorized') {
         return;
       }

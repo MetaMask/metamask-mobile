@@ -69,7 +69,6 @@ import {
 } from '../../../selectors/networkInfos';
 import { selectShowIncomingTransactionNetworks } from '../../../selectors/preferencesController';
 
-import useNotificationHandler from '../../../util/notifications/hooks';
 import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
@@ -85,6 +84,7 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
+import { useRegisterPushNotificationsEffect } from '../../../util/notifications/hooks/useRegisterPushNotificationsEffect';
 
 const Stack = createStackNavigator();
 
@@ -114,8 +114,9 @@ const Main = (props) => {
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
 
+  useRegisterPushNotificationsEffect();
+
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
-  useNotificationHandler(props.navigation);
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
