@@ -745,15 +745,7 @@ const App = (props) => {
 
   useEffect(() => {
     const initMetrics = async () => {
-      const metrics = MetaMetrics.getInstance();
-      await metrics.configure();
-      // identify user with the latest traits
-      // run only after the MetaMetrics is configured
-      const consolidatedTraits = {
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
-      };
-      await metrics.addTraitsToUser(consolidatedTraits);
+      await MetaMetrics.getInstance().configure();
     };
 
     initMetrics().catch((err) => {
