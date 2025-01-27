@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /* eslint-disable arrow-body-style */
 import {
+  MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET,
   MULTICHAIN_PROVIDER_CONFIGS,
   MultichainProviderConfig,
 } from '../../core/Multichain/constants';
@@ -8,7 +9,7 @@ import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
 import { RootState } from '../../reducers';
 import {
   selectNetworkConfigurations,
-  selectChainId,
+  selectChainId as selectEvmChainId,
   selectProviderConfig,
   ProviderConfig,
 } from '../networkController';
@@ -16,7 +17,6 @@ import { selectSelectedInternalAccount } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
-import { isBtcMainnetAddress } from '../../core/Multichain/utils';
 import { isMainNet } from '../../util/networks';
 import { NETWORK_ASSETS_MAP } from '@metamask/assets-controllers';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -77,7 +77,7 @@ function selectMultichainNetworkProviders(): MultichainProviderConfig[] {
 export const selectMultichainCurrentNetwork = createDeepEqualSelector(
   [
     selectMultichainIsEvm,
-    selectChainId,
+    selectEvmChainId,
     selectProviderConfig,
     selectNetworkConfigurations,
     selectSelectedInternalAccount,
@@ -174,18 +174,22 @@ export const selectMultichainIsBitcoin = createDeepEqualSelector(
 export const selectMultichainIsMainnet = createDeepEqualSelector(
   selectMultichainIsEvm,
   selectSelectedInternalAccount,
-  selectChainId,
-  selectMultichainIsBitcoin,
-  (isEvm, selectedAccount, chainId, isBitcoin) => {
+  selectEvmChainId,
+  selectMultichainProviderConfig,
+  (isEvm, selectedAccount, evmChainId, multichainProviderConfig) => {
     if (isEvm) {
-      return isMainNet(chainId);
+      return isMainNet(evmChainId);
     }
 
-    // Non-EVM: Currently only Bitcoin
-    if (isBitcoin && selectedAccount) {
-      return isBtcMainnetAddress(selectedAccount.address);
+    if (!selectedAccount) {
+      console.warn('Could not find selected internal account');
+      return false;
     }
-    return false;
+
+    const mainnet = (
+      MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET as Record<string, string>
+    )[selectedAccount.type];
+    return multichainProviderConfig.chainId === mainnet ?? false;
   },
 );
 

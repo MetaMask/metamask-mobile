@@ -5,6 +5,7 @@ import {
   isSolanaAddress,
 } from './utils';
 import { MultichainNetworks } from '@metamask/assets-controllers';
+import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
 
 export interface ProviderConfigWithImageUrl {
   rpcUrl?: string;
@@ -29,6 +30,11 @@ export const SOLANA_TOKEN_IMAGE_URL = './app/images/solana-logo.png';
 export const MULTICHAIN_TOKEN_IMAGE_MAP = {
   [MultichainNetworks.Bitcoin]: BITCOIN_TOKEN_IMAGE_URL,
   [MultichainNetworks.Solana]: SOLANA_TOKEN_IMAGE_URL,
+} as const;
+
+export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
+  [BtcAccountType.P2wpkh]: MultichainNetworks.Bitcoin,
+  [SolAccountType.DataAccount]: MultichainNetworks.Solana,
 } as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_URL_MAP = {
