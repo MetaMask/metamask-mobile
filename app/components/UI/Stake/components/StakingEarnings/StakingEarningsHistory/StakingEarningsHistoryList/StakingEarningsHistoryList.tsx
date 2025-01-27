@@ -33,7 +33,7 @@ const StakingEarningsHistoryList = ({
       {earnings ? (
         <>
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
-            Payout history
+            {strings("stake.payout_history")}
           </Label>
           {earnings.map((earning, index) => {
             const isFirstEarningInGroup =
