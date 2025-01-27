@@ -33,11 +33,13 @@ export const createRemoteFeatureFlagController = ({
   state,
   messenger,
   disabled,
+  getMetaMetricsId,
 }: RemoteFeatureFlagInitParamTypes) => {
   const remoteFeatureFlagController = new RemoteFeatureFlagController({
     messenger,
     state,
     disabled,
+    getMetaMetricsId,
     clientConfigApiService: new ClientConfigApiService({
       fetch,
       config: {
