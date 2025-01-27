@@ -2,7 +2,7 @@
 
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -19,19 +19,22 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from './TextField.constants';
 
-const TextField: React.FC<TextFieldProps> = ({
-  style,
-  size = DEFAULT_TEXTFIELD_SIZE,
-  startAccessory,
-  endAccessory,
-  isError = false,
-  inputElement,
-  isDisabled = false,
-  autoFocus = false,
-  onBlur,
-  onFocus,
-  ...props
-}) => {
+const TextField = React.forwardRef<TextInput, TextFieldProps>((
+  {
+    style,
+    size = DEFAULT_TEXTFIELD_SIZE,
+    startAccessory,
+    endAccessory,
+    isError = false,
+    inputElement,
+    isDisabled = false,
+    autoFocus = false,
+    onBlur,
+    onFocus,
+    ...props
+  },
+  ref
+) => {
   const [isFocused, setIsFocused] = useState(autoFocus);
 
   const { styles } = useStyles(styleSheet, {
@@ -87,6 +90,7 @@ const TextField: React.FC<TextFieldProps> = ({
             onBlur={onBlurHandler}
             onFocus={onFocusHandler}
             {...props}
+            ref={ref}
             isStateStylesDisabled
           />
         )}
@@ -101,6 +105,6 @@ const TextField: React.FC<TextFieldProps> = ({
       )}
     </View>
   );
-};
+});
 
 export default TextField;
