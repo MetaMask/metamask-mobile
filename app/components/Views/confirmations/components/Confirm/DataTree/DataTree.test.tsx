@@ -66,7 +66,7 @@ describe('NoChangeSimulation', () => {
     expect(queryByText('15 March 2022, 15:57')).toBeNull();
   });
 
-  it('should display types sign v3/v4 message correctly', async () => {
+  it('displays types sign v3/v4 message', async () => {
     const { getByText, getAllByText } = renderWithProvider(
       <DataTree
         data={mockSanitizedTypedSignV3Message as unknown as DataTreeInput}
