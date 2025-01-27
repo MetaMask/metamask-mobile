@@ -39,7 +39,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
     style={
       [
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 8,
           "borderWidth": 1,
           "flex": 1,
@@ -50,7 +50,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
           "padding": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }

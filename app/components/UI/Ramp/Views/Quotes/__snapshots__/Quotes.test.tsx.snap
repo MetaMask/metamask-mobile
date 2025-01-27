@@ -24,7 +24,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -265,7 +265,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -403,7 +403,7 @@ exports[`LoadingQuotes component renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 1.5,
               "padding": 16,
@@ -1012,14 +1012,14 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -1049,7 +1049,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1095,7 +1095,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               <View
                                 style={
                                   {
-                                    "backgroundColor": "#0376c91a",
+                                    "backgroundColor": "#0376C91A",
                                     "borderRadius": 3,
                                     "height": 3,
                                     "marginVertical": 15,
@@ -3235,14 +3235,14 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -3272,7 +3272,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -3530,7 +3530,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -3804,7 +3804,7 @@ exports[`Quotes renders correctly after animation with quotes 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -4589,7 +4589,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -4597,7 +4597,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -4946,7 +4946,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                   style={
                                     [
                                       {
-                                        "backgroundColor": "#bbc0c5",
+                                        "backgroundColor": "#848c96",
                                         "height": 1,
                                         "width": "100%",
                                       },
@@ -5005,7 +5005,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#bbc0c5",
+                                                    "borderColor": "#848c96",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
@@ -5279,7 +5279,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#bbc0c5",
+                                                    "borderColor": "#848c96",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
@@ -5578,7 +5578,7 @@ exports[`Quotes renders correctly after animation with quotes and expanded 2`] =
                                               style={
                                                 [
                                                   {
-                                                    "borderColor": "#bbc0c5",
+                                                    "borderColor": "#848c96",
                                                     "borderRadius": 8,
                                                     "borderWidth": 1.5,
                                                     "padding": 16,
@@ -6327,14 +6327,14 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -6364,7 +6364,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -7069,14 +7069,14 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -7106,7 +7106,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -7811,14 +7811,14 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -7848,7 +7848,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -8553,14 +8553,14 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c566",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1314,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -8590,7 +8590,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#bbc0c566",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,

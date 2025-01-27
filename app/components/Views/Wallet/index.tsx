@@ -58,7 +58,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
   selectTokens,
-  selectTokensByChainIdAndAddress,
+  selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -200,9 +200,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */

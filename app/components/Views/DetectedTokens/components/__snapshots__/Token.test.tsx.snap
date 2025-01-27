@@ -67,7 +67,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -261,7 +261,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       }
       tintColors={
         {
-          "false": "#bbc0c5",
+          "false": "#848c96",
           "true": "#0376c9",
         }
       }
@@ -338,7 +338,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -532,7 +532,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       }
       tintColors={
         {
-          "false": "#bbc0c5",
+          "false": "#848c96",
           "true": "#0376c9",
         }
       }
@@ -609,7 +609,7 @@ exports[`Token Component renders correctly 1`] = `
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
-              "shadowColor": "#0000001a",
+              "shadowColor": "#0000001A",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -803,7 +803,7 @@ exports[`Token Component renders correctly 1`] = `
       }
       tintColors={
         {
-          "false": "#bbc0c5",
+          "false": "#848c96",
           "true": "#0376c9",
         }
       }

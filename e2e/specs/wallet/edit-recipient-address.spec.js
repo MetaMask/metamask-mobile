@@ -16,12 +16,8 @@ import {
 } from '../../fixtures/fixture-helper';
 import FixtureServer from '../../fixtures/fixture-server';
 import FixtureBuilder from '../../fixtures/fixture-builder';
-import Gestures from '../../utils/Gestures';
-import {
-  ActivitiesViewSelectorsText,
-  sentMessageTokenIDs,
-} from '../../selectors/Transactions/ActivitiesView.selectors';
-import { contractConfiguration } from '../../../app/util/test/smart-contracts';
+
+import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
@@ -35,11 +31,6 @@ describe(
       jest.setTimeout(2500000);
       await TestHelpers.reverseServerPort();
     });
-
-    afterAll(async () => {
-      await stopFixtureServer(fixtureServer);
-    });
-
     it('should display correct send address after edit', async () => {
       await withFixtures(
         {
@@ -90,9 +81,7 @@ describe(
             // Transactions view to assert address remains consistent
             await TabBarComponent.tapActivity();
             await TestHelpers.delay(3000);
-            await TestHelpers.tapByText(
-              ActivitiesViewSelectorsText.CONFIRM_TEXT,
-            );
+            await ActivitiesView.tapConfirmedTransaction();
             await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
           }
         },

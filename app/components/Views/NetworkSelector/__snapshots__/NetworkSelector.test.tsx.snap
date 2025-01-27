@@ -389,7 +389,7 @@ exports[`Network Selector renders correctly 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#bbc0c5",
+                                "backgroundColor": "#848c96",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -428,7 +428,7 @@ exports[`Network Selector renders correctly 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
                                   "color": "#141618",
@@ -594,7 +594,7 @@ exports[`Network Selector renders correctly 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#0376c91a",
+                                        "backgroundColor": "#0376C91A",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -1144,14 +1144,14 @@ exports[`Network Selector renders correctly 1`] = `
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#bbc0c566",
+                                          "backgroundColor": "#BBC0C566",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#bbc0c566"
+                                    tintColor="#BBC0C566"
                                     value={false}
                                   />
                                 </View>
@@ -1603,7 +1603,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             style={
                               {
                                 "alignSelf": "center",
-                                "backgroundColor": "#bbc0c5",
+                                "backgroundColor": "#848c96",
                                 "borderRadius": 4,
                                 "height": 5,
                                 "marginTop": 8,
@@ -1642,7 +1642,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 5,
                                   "borderWidth": 1,
                                   "color": "#141618",
@@ -1680,7 +1680,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                 placeholderTextColor="#141618"
                                 style={
                                   {
-                                    "borderColor": "#bbc0c5",
+                                    "borderColor": "#848c96",
                                     "color": "#141618",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
@@ -1741,7 +1741,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#0376c91a",
+                                      "backgroundColor": "#0376C91A",
                                       "flexDirection": "row",
                                     }
                                   }
@@ -1917,7 +1917,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       accessible={true}
                                       style={
                                         {
-                                          "backgroundColor": "#0376c91a",
+                                          "backgroundColor": "#0376C91A",
                                           "bottom": 0,
                                           "flexDirection": "row",
                                           "left": 0,
@@ -3927,14 +3927,14 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           "width": 51,
                                         },
                                         {
-                                          "backgroundColor": "#bbc0c566",
+                                          "backgroundColor": "#BBC0C566",
                                           "borderRadius": 16,
                                         },
                                       ]
                                     }
                                     testID="test-network-switch-id"
                                     thumbTintColor="#ffffff"
-                                    tintColor="#bbc0c566"
+                                    tintColor="#BBC0C566"
                                     value={false}
                                   />
                                 </View>
