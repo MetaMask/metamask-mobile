@@ -25,12 +25,15 @@ export function buildControllerMessengerMock(
 /**
  * Build a mock for the ControllerInitRequest.
  *
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns A mocked ControllerInitRequest.
  */
-export function buildControllerInitRequestMock() {
+export function buildControllerInitRequestMock(
+  baseControllerMessenger: BaseControllerMessenger,
+): jest.Mocked<ControllerInitRequest> {
   return {
-    baseControllerMessenger: buildControllerMessengerMock(),
+    baseControllerMessenger,
     getController: jest.fn(),
-    persistedState: jest.fn().mockReturnValue({}),
-  } as unknown as jest.Mocked<ControllerInitRequest>;
+    persistedState: {},
+  };
 }

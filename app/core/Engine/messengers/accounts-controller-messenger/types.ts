@@ -10,7 +10,7 @@ import { SnapControllerStateChangeEvent } from '@metamask/snaps-controllers';
 /**
  * The actions that the AccountsControllerMessenger can use.
  */
-export type MessengerActions =
+export type AccountsControllerMessengerActions =
   | KeyringControllerGetAccountsAction
   | KeyringControllerGetKeyringsByTypeAction
   | KeyringControllerGetKeyringForAccountAction;
@@ -18,7 +18,7 @@ export type MessengerActions =
 /**
  * The events that the AccountsControllerMessenger can handle.
  */
-export type MessengerEvents =
+export type AccountsControllerMessengerEvents =
   | SnapControllerStateChangeEvent
   | KeyringControllerAccountRemovedEvent
   | KeyringControllerStateChangeEvent;

@@ -6,6 +6,7 @@ import {
 } from './utils';
 import { logAccountsControllerCreation } from './logger';
 import { ControllerInitRequest } from '../../modular-controller.types';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 
 jest.mock('./logger', () => ({
   logAccountsControllerCreation: jest.fn(),
@@ -23,8 +24,9 @@ describe('accounts controller init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    const baseControllerMessenger = new ExtendedControllerMessenger();
     // Create controller init request mock
-    initRequestMock = buildControllerInitRequestMock();
+    initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 
   describe('logs are registered during controller creation', () => {

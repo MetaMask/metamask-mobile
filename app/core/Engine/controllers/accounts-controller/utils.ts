@@ -25,8 +25,8 @@ export const accountsControllerInit: ControllerInitFunction<
 > = (request) => {
   const { baseControllerMessenger, persistedState } = request;
 
-  const accountControllerState =
-    persistedState.AccountsController ?? defaultAccountsControllerState;
+  const accountControllerState = (persistedState.AccountsController ??
+    defaultAccountsControllerState) as AccountsControllerState;
 
   const controllerMessenger = getAccountsControllerMessenger(
     baseControllerMessenger,

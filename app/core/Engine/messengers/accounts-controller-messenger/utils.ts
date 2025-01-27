@@ -1,5 +1,9 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { BaseControllerMessenger } from '../../types';
+import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
+import {
+  AccountsControllerMessengerActions,
+  AccountsControllerMessengerEvents,
+} from './types';
 
 /**
  * Get the AccountsControllerMessenger for the AccountsController.
@@ -8,7 +12,10 @@ import { BaseControllerMessenger } from '../../types';
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  baseControllerMessenger: BaseControllerMessenger,
+  baseControllerMessenger: ExtendedControllerMessenger<
+    AccountsControllerMessengerActions,
+    AccountsControllerMessengerEvents
+  >,
 ): AccountsControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'AccountsController',

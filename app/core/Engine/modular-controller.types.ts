@@ -55,13 +55,12 @@ export type ControllerInitRequest = {
 /**
  * Result of initializing a controller instance.
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type ControllerInitResult<ControllerType extends Controller> = {
+export interface ControllerInitResult<ControllerType extends Controller> {
   /**
    * The initialized controller instance.
    */
   controller: ControllerType;
-};
+}
 
 /**
  * Function to initialize a controller instance and return associated data.
