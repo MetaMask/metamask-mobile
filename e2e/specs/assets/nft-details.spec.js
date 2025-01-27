@@ -19,6 +19,9 @@ import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetect
 describe(SmokeAssets('NFT Details page'), () => {
   // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   const testNftOnMainnet = "Life's A Joke #2875";
+  const testNftOnMainnetAddress = '0x6cb26df0c825fece867a84658f87b0ecbcea72f6';
+  const testNftOnMainnetID = '2875';
+  const badNftId = '1234';
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -39,20 +42,30 @@ describe(SmokeAssets('NFT Details page'), () => {
         await loginToApp();
 
         await Assertions.checkIfVisible(NftDetectionModal.container);
-        await NftDetectionModal.tapAllowButton();
+        await NftDetectionModal.tapCancelButton();
         // Check that we are on the wallet screen
         await Assertions.checkIfVisible(WalletView.container);
 
-        // Go to NFTs tab and check that the banner is NOT visible
+        // Go to NFTs tab
         await WalletView.tapNftTab();
-        await Assertions.checkIfTextIsNotDisplayed(
-          NftDetectionModalSelectorsText.NFT_AUTO_DETECTION_BANNER,
-        );
 
+        // Go to Import NFT flow
+        await WalletView.tapImportNFTButton();
+        await Assertions.checkIfVisible(ImportNFTView.container);
+
+        // Import bad NFT address
+        await ImportNFTView.typeInNFTAddress(badNftId);
+        await ImportNFTView.typeInNFTIdentifier('');
+        await Assertions.checkIfVisible(ImportNFTView.addressWarningMessage);
+
+        // Import Mainnet NFT address
+        await ImportNFTView.typeInNFTAddress(testNftOnMainnetAddress);
+        await ImportNFTView.typeInNFTIdentifier(testNftOnMainnetID);
+
+        // Ensure that NFT gets imported, and data propogates to detail page
         await Assertions.checkIfVisible(
           WalletView.nftIDInWallet(testNftOnMainnet),
         );
-
         await WalletView.tapOnNftName();
         await Assertions.checkIfTextIsDisplayed(enContent.nft_details.token_id);
         await Assertions.checkIfTextIsDisplayed(
