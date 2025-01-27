@@ -13,7 +13,7 @@ app/core/Engine/Engine.ts                                   @MetaMask/mobile-pla
 app/core/Engine/Engine.test.ts                              @MetaMask/mobile-platform
 app/core/Engine/index.ts                                    @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
-app/core/Engine/controllers/RemoteFeatureFlagController/    @MetaMask/mobile-platform
+app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 app/core/Analytics/                                         @MetaMask/mobile-platform
 app/util/metrics/                                           @MetaMask/mobile-platform
 app/components/hooks/useMetrics/                            @MetaMask/mobile-platform
@@ -24,6 +24,7 @@ bitrise.yml                                                 @MetaMask/mobile-pla
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
+app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
