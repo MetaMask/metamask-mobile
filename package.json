@@ -140,7 +140,8 @@
     "bech32": "2.0.0",
     "sha256-uint8array": "0.10.3",
     "express": "4.21.2",
-    "nanoid": "^3.3.8"
+    "nanoid": "^3.3.8",
+    "undici": "5.28.5"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -254,7 +255,7 @@
     "compare-versions": "^3.6.0",
     "content-hash": "2.5.2",
     "contentful": "^10.8.7",
-    "cross-spawn": "7.0.5",
+    "cross-spawn": "7.0.6",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
