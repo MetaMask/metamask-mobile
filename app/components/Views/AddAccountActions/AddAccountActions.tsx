@@ -22,6 +22,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import { MultichainNetworks } from '../../../core/Multichain/constants';
 import { useSelector } from 'react-redux';
 import {
@@ -31,6 +32,7 @@ import {
 import {
   selectIsBitcoinSupportEnabled,
   selectIsBitcoinTestnetSupportEnabled,
+  selectIsSolanaSupportEnabled,
 } from '../../../selectors/multichain';
 ///: END:ONLY_INCLUDE_IF
 
@@ -87,12 +89,15 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     selectIsBitcoinTestnetSupportEnabled,
   );
 
+  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
+
   const isBtcMainnetAccountAlreadyCreated = useSelector(
     hasCreatedBtcMainnetAccount,
   );
   const isBtcTestnetAccountAlreadyCreated = useSelector(
     hasCreatedBtcTestnetAccount,
   );
+
   const createBitcoinAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
@@ -105,6 +110,24 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       });
     } catch (error) {
       Logger.error(error as Error, 'Bitcoin account creation failed');
+    } finally {
+      onBack();
+      setIsLoading(false);
+    }
+  };
+
+  const createSolanaAccount = async (scope: CaipChainId) => {
+    try {
+      setIsLoading(true);
+      // Client to create the account using the Solana Snap
+      const client = new KeyringClient(new SolanaWalletSnapSender());
+
+      // This will trigger the Snap account creation flow (+ account renaming)
+      await client.createAccount({
+        scope,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'Solana account creation failed');
     } finally {
       onBack();
       setIsLoading(false);
@@ -130,6 +153,19 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           }
+          {isSolanaSupportEnabled && (
+            <AccountAction
+              actionTitle={strings('account_actions.add_solana_account')}
+              iconName={IconName.Add}
+              onPress={async () => {
+                await createSolanaAccount(MultichainNetworks.SOLANA);
+              }}
+              disabled={isLoading}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON
+              }
+            />
+          )}
           {isBitcoinSupportEnabled && (
             <AccountAction
               actionTitle={strings(
@@ -140,6 +176,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
                 await createBitcoinAccount(MultichainNetworks.BITCOIN);
               }}
               disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
+              }
             />
           )}
           {isBitcoinTestnetSupportEnabled && (
@@ -152,6 +191,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
                 await createBitcoinAccount(MultichainNetworks.BITCOIN_TESTNET);
               }}
               disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+              testID={
+                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
+              }
             />
           )}
           {
@@ -169,6 +211,9 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Hardware}
             onPress={openConnectHardwareWallet}
             disabled={isLoading}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
+            }
           />
         </View>
       </Fragment>

@@ -442,7 +442,7 @@ exports[`NftDetails should render correctly 1`] = `
                                                   "height": 16,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001a",
+                                                  "shadowColor": "#0000001A",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -574,7 +574,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -642,7 +642,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -743,7 +743,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -811,7 +811,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -1277,7 +1277,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,

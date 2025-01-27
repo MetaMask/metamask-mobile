@@ -36,7 +36,7 @@ exports[`Options should render homepage options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,
@@ -48,7 +48,7 @@ exports[`Options should render homepage options correctly 1`] = `
         {
           "bottom": 90,
           "right": 5,
-          "shadowColor": "#0000001a",
+          "shadowColor": "#0000001A",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -93,7 +93,7 @@ exports[`Options should render homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -178,7 +178,7 @@ exports[`Options should render homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -270,7 +270,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,
@@ -282,7 +282,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         {
           "bottom": 90,
           "right": 5,
-          "shadowColor": "#0000001a",
+          "shadowColor": "#0000001A",
           "shadowOffset": {
             "height": 2,
             "width": 0,
@@ -327,7 +327,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -412,7 +412,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -497,7 +497,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -582,7 +582,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -667,7 +667,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,
@@ -752,7 +752,7 @@ exports[`Options should render non-homepage options correctly 1`] = `
         style={
           {
             "alignSelf": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "borderRadius": 5,
             "flex": 0,
             "marginRight": 10,

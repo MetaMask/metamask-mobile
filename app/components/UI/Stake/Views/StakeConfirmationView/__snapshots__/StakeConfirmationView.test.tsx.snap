@@ -148,7 +148,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -237,7 +237,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 "backgroundColor": "#ffffff",
                 "borderBottomLeftRadius": 0,
                 "borderBottomRightRadius": 0,
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 8,
                 "borderWidth": 0,
                 "gap": 16,
@@ -336,7 +336,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "alignSelf": "flex-start",
-                          "backgroundColor": "#0376c91a",
+                          "backgroundColor": "#0376C91A",
                           "borderColor": "#0376c9",
                           "borderRadius": 999,
                           "borderWidth": 0,
@@ -619,7 +619,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         {
                           "alignSelf": "flex-start",
                           "backgroundColor": "#f2f4f6",
-                          "borderColor": "#bbc0c5",
+                          "borderColor": "#848c96",
                           "borderRadius": 999,
                           "borderWidth": 0,
                           "color": "#6a737d",
@@ -817,7 +817,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 "borderBottomLeftRadius": 8,
                 "borderBottomRightRadius": 8,
                 "borderBottomWidth": 0,
-                "borderColor": "#bbc0c566",
+                "borderColor": "#BBC0C566",
                 "borderLeftWidth": 0,
                 "borderRadius": 4,
                 "borderRightWidth": 0,
@@ -974,7 +974,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
@@ -1389,7 +1389,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,

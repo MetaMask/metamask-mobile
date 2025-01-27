@@ -55,7 +55,7 @@ exports[`Login should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -114,7 +114,7 @@ exports[`Login should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#bf52081a",
+          "backgroundColor": "#BF52081A",
           "borderColor": "#bf5208",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -257,7 +257,7 @@ exports[`Login should render correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#d738471a",
+          "backgroundColor": "#D738471A",
           "borderRadius": 8,
           "flexShrink": 1,
           "marginTop": 10,

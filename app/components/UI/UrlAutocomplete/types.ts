@@ -41,4 +41,5 @@ export type UrlAutocompleteRef = {
 export type FuseSearchResult = {
   url: string;
   name: string;
+  type: string;
 };

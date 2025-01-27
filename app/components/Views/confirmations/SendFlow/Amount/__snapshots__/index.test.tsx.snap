@@ -6059,7 +6059,7 @@ exports[`Amount should render correctly 1`] = `
                                   "paddingVertical": 8,
                                 },
                                 {
-                                  "backgroundColor": "#bf52081a",
+                                  "backgroundColor": "#BF52081A",
                                   "borderColor": "#bf5208",
                                 },
                                 {
@@ -6769,7 +6769,7 @@ exports[`Amount should show a warning when conversion rate is not available 1`] 
                                   "paddingVertical": 8,
                                 },
                                 {
-                                  "backgroundColor": "#bf52081a",
+                                  "backgroundColor": "#BF52081A",
                                   "borderColor": "#bf5208",
                                 },
                                 {
@@ -7737,7 +7737,7 @@ exports[`Amount should show an error message if balance is insufficient 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#d738471a",
+                                      "backgroundColor": "#D738471A",
                                       "borderColor": "#d73847",
                                       "borderRadius": 8,
                                       "borderWidth": 1,

@@ -515,7 +515,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         <View
           style={
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 5,
               "borderWidth": 2,
               "height": 45,

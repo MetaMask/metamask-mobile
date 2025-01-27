@@ -61,7 +61,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "flexDirection": "row",
           }
         }
@@ -385,7 +385,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376c91a",
+                "backgroundColor": "#0376C91A",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -1617,7 +1617,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "flexDirection": "row",
           }
         }
@@ -1941,7 +1941,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376c91a",
+                "backgroundColor": "#0376C91A",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -2442,7 +2442,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376c91a",
+            "backgroundColor": "#0376C91A",
             "flexDirection": "row",
           }
         }
@@ -2650,7 +2650,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376c91a",
+                "backgroundColor": "#0376C91A",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,

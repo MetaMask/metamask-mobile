@@ -4,7 +4,7 @@ exports[`BannerAlert should render BannerAlert 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#0376c91a",
+      "backgroundColor": "#0376C91A",
       "borderColor": "#0376c9",
       "borderLeftWidth": 4,
       "borderRadius": 4,

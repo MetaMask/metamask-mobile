@@ -3,20 +3,19 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import {
   TouchableWithoutFeedback,
   View,
-  TouchableOpacity,
   Text,
+  SectionList,
 } from 'react-native';
 import dappUrlList from '../../../util/dapp-url-list';
 import Fuse from 'fuse.js';
 import { useSelector } from 'react-redux';
-import WebsiteIcon from '../WebsiteIcon';
-import { getHost } from '../../../util/browser';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
 import {
@@ -24,10 +23,15 @@ import {
   FuseSearchResult,
   UrlAutocompleteRef,
 } from './types';
-import { selectBrowserHistory } from '../../../reducers/browser/selectors';
 import { debounce } from 'lodash';
+import { strings } from '../../../../locales/i18n';
+import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
+import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
+import { Result } from './Result';
 
 export * from './types';
+
+const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -36,9 +40,11 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [results, setResults] = useState<FuseSearchResult[]>([]);
-  // TODO: Browser history hasn't been working for a while. Need to either fix or remove.
-  const browserHistory = useSelector(selectBrowserHistory);
+  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
+  const hasResults = resultsByCategory.length > 0;
+
+  const browserHistory = useSelector(selectBrowserHistoryWithType);
+  const bookmarks = useSelector(selectBrowserBookmarksWithType);
   const fuseRef = useRef<Fuse<FuseSearchResult> | null>(null);
   const resultsRef = useRef<View | null>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -50,29 +56,59 @@ const UrlAutocomplete = forwardRef<
     resultsRef.current?.setNativeProps({ style: { display: 'flex' } });
   };
 
-  const search = (text: string) => {
+  const updateResults = useCallback((results: FuseSearchResult[]) => {
+    const newResultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
+      let data = results.filter((result, index, self) =>
+        result.type === category &&
+        index === self.findIndex(r => r.url === result.url && r.type === result.type)
+      );
+      if (data.length === 0) {
+        return [];
+      }
+      if (category === 'recents') {
+        data = data.slice(0, MAX_RECENTS);
+      }
+      return {
+        category,
+        data,
+      };
+    });
+
+    setResultsByCategory(newResultsByCategory);
+  }, []);
+
+  const latestSearchTerm = useRef<string | null>(null);
+  const search = useCallback((text: string) => {
+    latestSearchTerm.current = text;
+    if (!text) {
+      updateResults([
+        ...browserHistory,
+        ...bookmarks,
+      ]);
+      return;
+    }
     const fuseSearchResult = fuseRef.current?.search(text);
     if (Array.isArray(fuseSearchResult)) {
-      setResults([...fuseSearchResult]);
+      updateResults([...fuseSearchResult]);
     } else {
-      setResults([]);
+      updateResults([]);
     }
-  };
+  }, [updateResults, browserHistory, bookmarks]);
 
   /**
    * Debounce the search function
    */
-  const debouncedSearchRef = useRef(debounce(search, 500));
+  const debouncedSearch = useMemo(() => debounce(search, 100), [search]);
 
   /**
    * Hide the results view
    */
   const hide = useCallback(() => {
     // Cancel the search
-    debouncedSearchRef.current.cancel();
+    debouncedSearch.cancel();
     resultsRef.current?.setNativeProps({ style: { display: 'none' } });
-    setResults([]);
-  }, [setResults]);
+    setResultsByCategory([]);
+  }, [debouncedSearch]);
 
   const dismissAutocomplete = () => {
     hide();
@@ -81,26 +117,22 @@ const UrlAutocomplete = forwardRef<
   };
 
   useImperativeHandle(ref, () => ({
-    search: debouncedSearchRef.current,
+    search: debouncedSearch,
     hide,
     show,
   }));
 
   useEffect(() => {
-    const allUrls: FuseSearchResult[] = [browserHistory, ...dappUrlList];
-    const singleUrlList: string[] = [];
-    const singleUrls: FuseSearchResult[] = [];
-    for (const el of allUrls) {
-      if (!singleUrlList.includes(el.url)) {
-        singleUrlList.push(el.url);
-        singleUrls.push(el);
-      }
-    }
+    const allUrls: FuseSearchResult[] = [
+      ...dappsWithType,
+      ...browserHistory,
+      ...bookmarks,
+    ];
 
     // Create the fuse search
-    fuseRef.current = new Fuse(singleUrls, {
+    fuseRef.current = new Fuse(allUrls, {
       shouldSort: true,
-      threshold: 0.45,
+      threshold: 0.4,
       location: 0,
       distance: 100,
       maxPatternLength: 32,
@@ -110,56 +142,46 @@ const UrlAutocomplete = forwardRef<
         { name: 'url', weight: 0.5 },
       ],
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  const renderResult = useCallback(
-    (url: string, name: string, onPress: () => void) => {
-      name = typeof name === 'string' ? name : getHost(url);
+    if (latestSearchTerm.current !== null) {
+      search(latestSearchTerm.current);
+    }
+  }, [browserHistory, bookmarks, search]);
 
-      return (
-        <TouchableOpacity style={styles.item} onPress={onPress} key={url}>
-          <View style={styles.itemWrapper}>
-            <WebsiteIcon
-              style={styles.bookmarkIco}
-              url={url}
-              title={name}
-              textStyle={styles.fallbackTextStyle}
-            />
-            <View style={styles.textContent}>
-              <Text style={styles.name} numberOfLines={1}>
-                {name}
-              </Text>
-              <Text style={styles.url} numberOfLines={1}>
-                {url}
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    },
-    [styles],
-  );
+  const renderSectionHeader = useCallback(({section: {category}}) => (
+    <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+  ), [styles]);
 
-  const renderResults = useCallback(
-    () =>
-      results.slice(0, 3).map((result) => {
-        const { url, name } = result;
-        const onPress = () => {
-          hide();
-          onSelect(url);
-        };
-        return renderResult(url, name, onPress);
-      }),
-    [results, onSelect, hide, renderResult],
-  );
+  const renderItem = useCallback(({item}) => (
+    <Result
+      result={item}
+      onPress={() => {
+        hide();
+        onSelect(item.url);
+      }}
+    />
+  ), [hide, onSelect]);
+
+  if (!hasResults) {
+    return (
+      <View ref={resultsRef} style={styles.wrapper}>
+        <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
+          <View style={styles.bg} />
+        </TouchableWithoutFeedback>
+      </View>
+    );
+  }
 
   return (
     <View ref={resultsRef} style={styles.wrapper}>
-      {renderResults()}
-      <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
-        <View style={styles.bg} />
-      </TouchableWithoutFeedback>
+      <SectionList
+        contentContainerStyle={styles.contentContainer}
+        sections={resultsByCategory}
+        keyExtractor={(item) => `${item.type}-${item.url}`}
+        renderSectionHeader={renderSectionHeader}
+        renderItem={renderItem}
+        keyboardShouldPersistTaps="handled"
+    />
     </View>
   );
 });

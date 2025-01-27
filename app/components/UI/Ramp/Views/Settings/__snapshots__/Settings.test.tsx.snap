@@ -689,13 +689,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={true}
                                         />
                                       </View>
@@ -908,13 +908,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={false}
                                         />
                                       </View>
@@ -4269,13 +4269,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={true}
                                         />
                                       </View>
@@ -4488,13 +4488,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                 "width": 51,
                                               },
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 16,
                                               },
                                             ]
                                           }
                                           thumbTintColor="#ffffff"
-                                          tintColor="#bbc0c566"
+                                          tintColor="#BBC0C566"
                                           value={false}
                                         />
                                       </View>

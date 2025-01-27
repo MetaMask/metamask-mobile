@@ -139,7 +139,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -210,7 +210,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -270,7 +270,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#1c82341a",
+          "backgroundColor": "#1C82341A",
           "borderColor": "#1c8234",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -603,7 +603,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -674,7 +674,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -734,7 +734,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#1c82341a",
+          "backgroundColor": "#1C82341A",
           "borderColor": "#1c8234",
           "borderLeftWidth": 4,
           "borderRadius": 4,

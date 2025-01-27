@@ -482,7 +482,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -649,7 +649,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -769,7 +769,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -949,7 +949,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -1071,7 +1071,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -1251,7 +1251,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -1929,7 +1929,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -2096,7 +2096,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2216,7 +2216,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -2396,7 +2396,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -2518,7 +2518,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -2698,7 +2698,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -3374,7 +3374,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3623,7 +3623,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3874,7 +3874,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6571,7 +6571,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6820,7 +6820,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -7071,7 +7071,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -7800,7 +7800,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -7965,7 +7965,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -8083,7 +8083,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -8265,7 +8265,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -8387,7 +8387,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -8567,7 +8567,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -9936,7 +9936,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -10103,7 +10103,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -10223,7 +10223,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -10403,7 +10403,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },
@@ -10525,7 +10525,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                       style={
                                         [
                                           {
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 8,
                                             "borderWidth": 1.5,
                                             "padding": 16,
@@ -10705,7 +10705,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               [
                                                 {
-                                                  "backgroundColor": "#bbc0c566",
+                                                  "backgroundColor": "#BBC0C566",
                                                   "height": 1,
                                                   "marginVertical": 12,
                                                 },

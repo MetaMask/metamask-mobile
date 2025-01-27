@@ -21,7 +21,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -216,7 +216,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -411,7 +411,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -606,7 +606,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -771,7 +771,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -936,7 +936,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1101,7 +1101,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1266,7 +1266,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1431,7 +1431,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",
@@ -1596,7 +1596,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
       activeOpacity={0.8}
       style={
         {
-          "backgroundColor": "#000000cc",
+          "backgroundColor": "#000000CC",
           "borderRadius": 8,
           "flex": 1,
           "flexDirection": "row",

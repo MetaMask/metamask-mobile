@@ -320,7 +320,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
             style={
               [
                 {
-                  "borderTopColor": "#bbc0c566",
+                  "borderTopColor": "#BBC0C566",
                   "borderTopWidth": 1,
                   "flexDirection": "row",
                   "padding": 16,

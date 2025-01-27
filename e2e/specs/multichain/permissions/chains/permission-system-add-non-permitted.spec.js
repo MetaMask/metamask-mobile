@@ -60,7 +60,6 @@ describe(
           await TabBarComponent.tapBrowser();
           await TestHelpers.delay(3000);
           await Browser.navigateToTestDApp();
-          await TestHelpers.delay(3000);
           await Assertions.checkIfVisible(
             NetworkNonPemittedBottomSheet.addThisNetworkTitle,
           );

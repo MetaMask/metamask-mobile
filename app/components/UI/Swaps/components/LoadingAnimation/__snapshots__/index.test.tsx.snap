@@ -83,7 +83,7 @@ exports[`LoadingAnimation renders 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderRadius": 3,
           "height": 3,
           "marginVertical": 15,

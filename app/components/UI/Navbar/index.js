@@ -60,7 +60,11 @@ import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/R
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { isBtcAccount } from '../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  getFormattedAddressFromInternalAccount,
+} from '../../../core/Multichain/utils';
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
 
@@ -600,9 +604,10 @@ export function getSendFlowTitle(
       canGoBack ? (
         // eslint-disable-next-line react/jsx-no-bind
         <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
-          <Text style={innerStyles.headerButtonText}
-          testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
-        >
+          <Text
+            style={innerStyles.headerButtonText}
+            testID={SendViewSelectorsIDs.SEND_BACK_BUTTON}
+          >
             {strings('transaction.back')}
           </Text>
         </TouchableOpacity>
@@ -660,7 +665,6 @@ export function getOnboardingNavbarOptions(
           source={metamask_name}
           style={innerStyles.metamaskName}
           resizeMethod={'auto'}
-
         />
       </View>
     ),
@@ -917,10 +921,9 @@ export function getWalletNavbarOptions(
   let formattedAddress = toChecksumHexAddress(selectedInternalAccount.address);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (isBtcAccount(selectedInternalAccount)) {
-    // BTC addresses are not checksummed
-    formattedAddress = selectedInternalAccount.address;
-  }
+  formattedAddress = getFormattedAddressFromInternalAccount(
+    selectedInternalAccount,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   const onScanSuccess = (data, content) => {
@@ -1018,6 +1021,18 @@ export function getWalletNavbarOptions(
     );
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (isSolanaAccount(selectedInternalAccount)) {
+      networkPicker = (
+        <PickerNetwork
+          label={'Solana'}
+          imageSource={require('../../../images/solana-logo.png')}
+          testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+          hideNetworkName
+          isDisabled
+        />
+      );
+    }
+
     if (isBtcAccount(selectedInternalAccount)) {
       networkPicker = (
         <PickerNetwork
@@ -1029,6 +1044,7 @@ export function getWalletNavbarOptions(
         />
       );
     }
+
     ///: END:ONLY_INCLUDE_IF
 
     return <View style={styles.leftElementContainer}>{networkPicker}</View>;

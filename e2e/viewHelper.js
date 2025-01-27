@@ -28,6 +28,7 @@ import { getGanachePort } from './fixtures/utils';
 import Assertions from './utils/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
+import TestDApp from './pages/Browser/TestDApp';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -220,4 +221,10 @@ export const loginToApp = async () => {
   const PASSWORD = '123123123';
   await Assertions.checkIfVisible(LoginView.container);
   await LoginView.enterPassword(PASSWORD);
+};
+
+export const waitForTestDappToLoad = async () => {
+  await TestHelpers.delay(3000);
+  await Assertions.webViewElementExists(TestDApp.testDappFoxLogo);
+  await Assertions.webViewElementExists(TestDApp.testDappPageTitle);
 };

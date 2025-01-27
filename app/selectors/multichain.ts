@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { Hex } from '@metamask/utils';
 import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
-import { RootState } from '../reducers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
@@ -16,6 +15,10 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from './currencyRateController';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { RootState } from '../reducers';
+///: END:ONLY_INCLUDE_IF
 
 interface NativeTokenBalance {
   balance: string;
@@ -220,6 +223,7 @@ export const selectAccountTokensAcrossChains = createSelector(
   },
 );
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 /**
  * Get the state of the `bitcoinSupportEnabled` flag.
  *
@@ -239,3 +243,14 @@ export function selectIsBitcoinSupportEnabled(state: RootState) {
 export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
   return state.multichainSettings.bitcoinTestnetSupportEnabled;
 }
+
+/**
+ * Get the state of the `solanaSupportEnabled` flag.
+ *
+ * @param {*} state
+ * @returns The state of the `solanaSupportEnabled` flag.
+ */
+export function selectIsSolanaSupportEnabled(state: RootState) {
+  return state.multichainSettings.solanaSupportEnabled;
+}
+///: END:ONLY_INCLUDE_IF

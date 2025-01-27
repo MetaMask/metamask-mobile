@@ -93,7 +93,7 @@ exports[`HintModal should render correctly 1`] = `
         placeholderTextColor="#9fa6ae"
         style={
           {
-            "borderColor": "#bbc0c5",
+            "borderColor": "#848c96",
             "borderRadius": 6,
             "borderWidth": 1,
             "color": "#141618",

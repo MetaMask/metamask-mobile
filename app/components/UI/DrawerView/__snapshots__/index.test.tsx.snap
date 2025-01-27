@@ -75,7 +75,7 @@ exports[`DrawerView should render correctly 1`] = `
         <View
           style={
             {
-              "borderBottomColor": "#bbc0c566",
+              "borderBottomColor": "#BBC0C566",
               "borderBottomWidth": 1,
               "padding": 17,
             }
@@ -249,7 +249,7 @@ exports[`DrawerView should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "borderBottomColor": "#bbc0c566",
+            "borderBottomColor": "#BBC0C566",
             "borderBottomWidth": 1,
             "flexDirection": "row",
             "justifyContent": "center",
@@ -444,7 +444,7 @@ exports[`DrawerView should render correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#bbc0c566",
+                "borderColor": "#BBC0C566",
                 "borderTopWidth": 1,
                 "paddingVertical": 10,
               },
@@ -569,7 +569,7 @@ exports[`DrawerView should render correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#bbc0c566",
+                "borderColor": "#BBC0C566",
                 "borderTopWidth": 1,
                 "paddingVertical": 10,
               },

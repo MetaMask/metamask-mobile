@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';

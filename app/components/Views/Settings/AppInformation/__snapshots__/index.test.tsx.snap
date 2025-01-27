@@ -494,7 +494,7 @@ exports[`AppInformation should render correctly 1`] = `
                           <View
                             style={
                               {
-                                "borderBottomColor": "#bbc0c566",
+                                "borderBottomColor": "#BBC0C566",
                                 "borderBottomWidth": 1,
                                 "marginBottom": 20,
                                 "width": "30%",

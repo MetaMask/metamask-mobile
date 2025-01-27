@@ -384,7 +384,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 6,
                               "borderWidth": 1,
                               "flexDirection": "row",
@@ -760,7 +760,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 6,
                               "borderWidth": 1,
                               "flexDirection": "row",

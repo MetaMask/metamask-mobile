@@ -358,7 +358,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#bbc0c566",
+                                    "backgroundColor": "#BBC0C566",
                                     "borderRadius": 16,
                                   },
                                 ],
@@ -366,7 +366,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             }
                             testID="metametrics-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#bbc0c566"
+                            tintColor="#BBC0C566"
                             value={false}
                           />
                         </View>
@@ -480,7 +480,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#bbc0c566",
+                                    "backgroundColor": "#BBC0C566",
                                     "borderRadius": 16,
                                   },
                                 ],
@@ -488,7 +488,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             }
                             testID="data-collection-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#bbc0c566"
+                            tintColor="#BBC0C566"
                             value={false}
                           />
                         </View>

@@ -33,8 +33,8 @@ exports[`SlippageSlider should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#0376c91a",
-          "borderColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
+          "borderColor": "#0376C91A",
           "borderRadius": 9,
           "borderWidth": 2,
           "flexDirection": "row",
@@ -232,7 +232,7 @@ exports[`SlippageSlider should render correctly 1`] = `
         "height": 30,
         "left": -30,
         "position": "absolute",
-        "shadowColor": "#0000001a",
+        "shadowColor": "#0000001A",
         "shadowOffset": {
           "height": 2,
           "width": 0,
