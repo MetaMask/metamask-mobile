@@ -106,6 +106,8 @@
     ]
   },
   "resolutions": {
+    "@ledgerhq/domain-service": "1.2.16",
+    "@ledgerhq/hw-app-eth": "6.42.3",
     "**/json-schema": "^0.4.0",
     "react-native-svg/**/nth-check": "^2.0.1",
     "**/node-fetch": "^2.6.7",
