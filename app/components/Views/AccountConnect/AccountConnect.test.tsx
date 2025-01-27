@@ -5,6 +5,8 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
+import { fireEvent } from '@testing-library/react-native';
+import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 
 const mockedNavigate = jest.fn();
 const mockedTrackEvent = jest.fn();
@@ -154,6 +156,47 @@ describe('AccountConnect', () => {
         { state: mockInitialState },
       );
 
+      expect(getByTestId('permission-summary-container')).toBeDefined();
+    });
+  });
+
+  describe('AccountConnectMultiSelector handlers', () => {
+    it('should handle onPrimaryActionButtonPress correctly', () => {
+      // Render the container component with necessary props
+      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  // Using a valid URL format to ensure PermissionsSummary renders first
+                  origin: 'https://example.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      // First find and click the edit button on PermissionsSummary to show MultiSelector
+      const editButton = getByTestId('permission-summary-container');
+      fireEvent.press(editButton);
+
+      // Using UNSAFE_getByType to access onPrimaryActionButtonPress prop directly for coverage
+      const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
+
+      // Now we can access the component's props
+      multiSelector.props.onPrimaryActionButtonPress();
+
+      // Verify that the screen changed back to PermissionsSummary
       expect(getByTestId('permission-summary-container')).toBeDefined();
     });
   });
