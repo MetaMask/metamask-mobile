@@ -41,7 +41,7 @@ const mockSanitizedTypedSignV3Message = {
 };
 
 describe('NoChangeSimulation', () => {
-  it('should display types sign v1 message correctly', async () => {
+  it('displays types sign v1 message', async () => {
     const { getByText, queryByText } = renderWithProvider(
       <DataTree
         data={{
