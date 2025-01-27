@@ -112,11 +112,11 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   const tokenExchangeRates = tokenExchangeRatesAllChains[token.chainId];
   const tokenBalancesAllChains = useSelector(selectTokensBalances);
   const balanceAllChainsForAccount =
-    tokenBalancesAllChains[accountAddress as Hex];
-  const tokenBalances =
-    balanceAllChainsForAccount[(token.chainId as Hex) ?? currentChainId];
-  const conversionRateByChainId = useSelector(selectCurrencyRates);
+    tokenBalancesAllChains?.[accountAddress as Hex] ?? {};
+  console.log('token .......', token);
   const chainIdToUse = token.chainId ?? currentChainId;
+  const tokenBalances = balanceAllChainsForAccount?.[chainIdToUse];
+  const conversionRateByChainId = useSelector(selectCurrencyRates);
 
   const conversionRate =
     conversionRateByChainId[CURRENCY_SYMBOL_BY_CHAIN_ID[token.chainId]]
