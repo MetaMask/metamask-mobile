@@ -16,9 +16,6 @@ export const handleCustomError = (error: Error, isFatal: boolean) => {
       // dont pass the error to react native error handler to prevent app crash
       console.error('Ledger error: ', error.message);
       // Handle the error
-    } else if ( error.message === 'Internal JSON-RPC error.'){
-      // avoid passing RPC error to the error handler to prevent app crash
-      console.error('RPC error: ', error);
     } else {
       // Pass the error to react native error handler
       reactNativeDefaultHandler(error, isFatal);
