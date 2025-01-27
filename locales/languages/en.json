@@ -3629,7 +3629,8 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
