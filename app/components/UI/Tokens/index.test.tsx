@@ -16,6 +16,11 @@ import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
 import * as multichain from '../../../selectors/multichain/';
 
+jest.mock('../../../selectors/multichain/', () => ({
+  ...jest.requireActual('../../../selectors/multichain/'),
+  selectAccountTokensAcrossChains: jest.fn(),
+}));
+
 jest.mock('../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(() => Promise.resolve()),
 }));
@@ -273,11 +278,6 @@ const renderComponent = (state: any = {}) =>
     { state },
   );
 
-jest.mock('../../../selectors/multichain/', () => ({
-  ...jest.requireActual('../../../selectors/multichain/'),
-  selectAccountTokensAcrossChains: jest.fn(),
-}));
-
 describe('Tokens', () => {
   beforeEach(() => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
@@ -511,43 +511,18 @@ describe('Tokens', () => {
   });
 
   describe('Portfolio View', () => {
-    let selectAccountTokensAcrossChainsSpy: jest.SpyInstance<
-      ReturnType<typeof multichain.selectAccountTokensAcrossChains>
-    >;
+    let selectAccountTokensAcrossChainsSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      selectAccountTokensAcrossChainsSpy = jest
-        .spyOn(multichain, 'selectAccountTokensAcrossChains')
-        .mockReturnValue({
-          '0x1': [
-            {
-              address: '0x123',
-              symbol: 'ETH',
-              decimals: 18,
-              balance: '1000000000000000000',
-              balanceFiat: '$100',
-              isNative: true,
-              chainId: '0x1',
-            },
-          ],
-          '0x89': [
-            {
-              address: '0x456',
-              symbol: 'MATIC',
-              decimals: 18,
-              balance: '2000000000000000000',
-              balanceFiat: '$200',
-              isNative: true,
-              chainId: '0x89',
-            },
-          ],
-        });
+      selectAccountTokensAcrossChainsSpy = jest.spyOn(
+        multichain,
+        'selectAccountTokensAcrossChains',
+      );
       jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     });
 
     afterEach(() => {
       selectAccountTokensAcrossChainsSpy.mockRestore();
-      jest.restoreAllMocks();
     });
 
     it('should match the snapshot when portfolio view is enabled', () => {
