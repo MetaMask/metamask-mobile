@@ -73,6 +73,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const multichainConversionRate = useSelector(selectMultichainConversionRate);
+  console.log(
+    'multichainSelectedAccountCachedBalance',
+    multichainSelectedAccountCachedBalance,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   // Production balance calculation (EVM)

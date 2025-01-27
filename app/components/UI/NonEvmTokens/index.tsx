@@ -4,7 +4,7 @@ import {
   selectMultichainDefaultToken,
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainConversionRate,
-  selectMultichainNetwork,
+  selectMultichainCurrentNetwork,
   selectMultichainShouldShowFiat,
 } from '../../../selectors/multichain/multichainNonEvm';
 import { TokenList } from '../Tokens/TokenList';
@@ -31,7 +31,7 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const conversionRate = useSelector(selectMultichainConversionRate);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
-  const network = useSelector(selectMultichainNetwork);
+  const network = useSelector(selectMultichainCurrentNetwork);
 
   function getMultiChainFiatBalance(): string {
     if (conversionRate) {

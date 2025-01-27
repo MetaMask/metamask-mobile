@@ -18,7 +18,10 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isBtcMainnetAddress } from '../../core/Multichain/utils';
 import { isMainNet } from '../../util/networks';
-import { MultichainNativeAssets } from '@metamask/assets-controllers';
+import {
+  MultichainNativeAssets,
+  MultichainNetworks,
+} from '@metamask/assets-controllers';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 
@@ -74,7 +77,7 @@ function selectMultichainNetworkProviders(): MultichainProviderConfig[] {
   return Object.values(MULTICHAIN_PROVIDER_CONFIGS);
 }
 
-export const selectMultichainNetwork = createDeepEqualSelector(
+export const selectMultichainCurrentNetwork = createDeepEqualSelector(
   [
     selectMultichainIsEvm,
     selectChainId,
@@ -149,8 +152,8 @@ export const selectMultichainNetwork = createDeepEqualSelector(
  * @returns The current multichain provider configuration.
  */
 export const selectMultichainProviderConfig = createDeepEqualSelector(
-  selectMultichainNetwork,
-  (multichainNetwork) => multichainNetwork.network,
+  selectMultichainCurrentNetwork,
+  (multichainCurrerntNetwork) => multichainCurrerntNetwork.network,
 );
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
@@ -203,20 +206,6 @@ export const selectMultichainBalances = createDeepEqualSelector(
     multichainBalancesControllerState.balances,
 );
 
-const selectBtcCachedBalance = createDeepEqualSelector(
-  selectMultichainBalances,
-  selectSelectedInternalAccount,
-  selectMultichainIsMainnet,
-  (multichainBalances, selectedInternalAccount, multichainIsMainnet) => {
-    const asset = multichainIsMainnet
-      ? MultichainNativeAssets.Bitcoin
-      : MultichainNativeAssets.BitcoinTestnet;
-
-    if (!selectedInternalAccount) return undefined;
-    return multichainBalances?.[selectedInternalAccount.id]?.[asset]?.amount;
-  },
-);
-
 export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   selectMultichainIsMainnet,
   selectMultichainIsEvm,
@@ -232,13 +221,53 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   },
 );
 
+const selectNonEvmCachedBalance = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectMultichainBalances,
+  selectMultichainCurrentNetwork,
+  (selectedInternalAccount, multichainBalances, multichainCurrentNetwork) => {
+    if (!selectedInternalAccount) {
+      console.warn('Could not find selected internal account');
+      return 0;
+    }
+    // We assume that there's at least one asset type in and that is the native
+    // token for that network.
+    const asset =
+      MultichainNativeAssets[
+        multichainCurrentNetwork.chainId as keyof typeof MultichainNativeAssets
+      ]?.[0];
+
+    if (!asset) {
+      console.warn(
+        'Could not find asset type for network:',
+        multichainCurrentNetwork,
+      );
+    }
+
+    const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
+    if (!balancesForAccount) {
+      console.warn(
+        'Could not find balances for account:',
+        selectedInternalAccount,
+      );
+    }
+
+    const balanceOfAsset = balancesForAccount?.[asset];
+    if (!balanceOfAsset) {
+      console.warn('Could not find balance for asset:', asset);
+    }
+
+    return balanceOfAsset?.amount ?? 0;
+  },
+);
+
 export const selectMultichainSelectedAccountCachedBalance =
   createDeepEqualSelector(
     selectMultichainIsEvm,
     selectAccountBalanceByChainId,
-    selectBtcCachedBalance,
-    (isEvm, accountBalanceByChainId, btcCachedBalance) =>
-      isEvm ? accountBalanceByChainId?.balance ?? '0x0' : btcCachedBalance,
+    selectNonEvmCachedBalance,
+    (isEvm, accountBalanceByChainId, nonEvmCachedBalance) =>
+      isEvm ? accountBalanceByChainId?.balance ?? '0x0' : nonEvmCachedBalance,
   );
 
 export const selectMultichainSelectedAccountCachedBalanceIsZero =
@@ -270,7 +299,10 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     if (isEvm) {
       return evmConversionRate;
     }
+    console.log('multichainProviderConfig', multichainProviderConfig);
     const ticker = multichainProviderConfig?.ticker?.toLowerCase();
+    console.log('ticker', ticker);
+    console.log('multichaincCoinRates', multichaincCoinRates);
     return ticker ? multichaincCoinRates?.[ticker]?.conversionRate : undefined;
   },
 );
