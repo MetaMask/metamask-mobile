@@ -25,7 +25,7 @@ const SHORTHAND_ADDRESS = '0x37Cc...FACE';
 const fixtureServer = new FixtureServer();
 
 describe(
-  SmokeCore('Send ETH to the correct address after editing the recipient'),
+  ('Send ETH to the correct address after editing the recipient'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);
