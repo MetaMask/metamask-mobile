@@ -3,8 +3,13 @@ import {
   SignatureRequest,
   SignatureRequestType,
 } from '@metamask/signature-controller';
-import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
+
+import {
+  PRIMARY_TYPES_ORDER,
+  PRIMARY_TYPES_PERMIT,
+  PrimaryType,
+} from '../constants/signatures';
 
 /**
  * The contents of this file have been taken verbatim from
@@ -72,12 +77,10 @@ export const isTypedSignV3V4Request = (signatureRequest: SignatureRequest) => {
   );
 };
 
-/**
- * Returns true if the request is a recognized Permit Typed Sign signature request
- *
- * @param request - The signature request to check
- */
-export const isRecognizedPermit = (request: SignatureRequest) => {
+const isRecognizedOfType = (
+  request: SignatureRequest | undefined,
+  types: PrimaryType[],
+) => {
   if (
     !request ||
     request.type !== SignatureRequestType.TypedSign ||
@@ -89,8 +92,24 @@ export const isRecognizedPermit = (request: SignatureRequest) => {
   const data = (request as SignatureRequest).messageParams?.data as string;
 
   const { primaryType } = parseTypedDataMessage(data);
-  return PRIMARY_TYPES_PERMIT.includes(primaryType);
+  return types.includes(primaryType);
 };
+
+/**
+ * Returns true if the request is a recognized Permit Typed Sign signature request
+ *
+ * @param request - The signature request to check
+ */
+export const isRecognizedPermit = (request?: SignatureRequest) =>
+  isRecognizedOfType(request, PRIMARY_TYPES_PERMIT);
+
+/**
+ * Returns true if the request is a recognized Order Typed Sign signature request
+ *
+ * @param request - The signature request to check
+ */
+export const isRecognizedOrder = (request?: SignatureRequest) =>
+  isRecognizedOfType(request, PRIMARY_TYPES_ORDER);
 
 /**
  * Returns primary type of typed signature request
