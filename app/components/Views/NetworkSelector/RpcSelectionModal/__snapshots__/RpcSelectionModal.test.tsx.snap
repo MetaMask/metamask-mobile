@@ -70,14 +70,14 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#bbc0c566",
+            "borderColor": "#BBC0C566",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1333,
             "overflow": "hidden",
             "paddingBottom": 3,
-            "shadowColor": "#0000001a",
+            "shadowColor": "#0000001A",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#bbc0c566",
+              "backgroundColor": "#BBC0C566",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -176,7 +176,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 4,
                 "borderWidth": 1,
                 "padding": 16,
@@ -342,7 +342,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376c91a",
+                "backgroundColor": "#0376C91A",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,

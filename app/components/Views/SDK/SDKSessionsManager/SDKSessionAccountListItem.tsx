@@ -1,5 +1,4 @@
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
-import type { ThemeTypography } from '@metamask/design-tokens/dist/types/js/typography';
+import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
