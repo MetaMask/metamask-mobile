@@ -6,6 +6,7 @@ import { TextVariant } from '../../../../../../../component-library/components/T
 import { useTheme } from '../../../../../../../util/theme';
 import styleSheet from './StakingEarningsHistoryList.styles';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { strings } from '../../../../../../../../locales/i18n';
 
 interface StakingEarningsHistoryListProps {
   earnings: StakingEarningsHistoryListData[];
@@ -33,7 +34,7 @@ const StakingEarningsHistoryList = ({
       {earnings ? (
         <>
           <Label variant={TextVariant.BodyMDBold} color={colors.text.default}>
-            {strings("stake.payout_history")}
+            {strings('stake.earnings_history_list_title')}
           </Label>
           {earnings.map((earning, index) => {
             const isFirstEarningInGroup =

@@ -5,6 +5,7 @@ const styleSheet = () =>
     stakingEarningsHistoryListContainer: {
       flex: 1,
       paddingTop: 24,
+      paddingBottom: 35,
     },
     lineItemContainer: {
       flex: 1,
