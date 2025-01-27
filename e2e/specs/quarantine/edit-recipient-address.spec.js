@@ -25,7 +25,7 @@ const SHORTHAND_ADDRESS = '0x37Cc...FACE';
 const fixtureServer = new FixtureServer();
 
 describe(
-  ('Send ETH to the correct address after editing the recipient'),
+  SmokeCore('Send ETH to the correct address after editing the recipient'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(2500000);
@@ -74,16 +74,16 @@ describe(
           );
           //TODO: Currently flakey, requires more work
           //Assert transactions send screen on IOS only due to android limitations
-          // if (device.getPlatform() === 'ios') {
-          //   // Tap Send
-          //   await TransactionConfirmationView.tapConfirmButton();
+          if (device.getPlatform() === 'ios') {
+            // Tap Send
+            await TransactionConfirmationView.tapConfirmButton();
 
-          //   // Transactions view to assert address remains consistent
-          //   await TabBarComponent.tapActivity();
-          //   await TestHelpers.delay(3000);
-          //   await ActivitiesView.tapConfirmedTransaction();
-          //   await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
-          // }
+            // Transactions view to assert address remains consistent
+            await TabBarComponent.tapActivity();
+            await TestHelpers.delay(3000);
+            await ActivitiesView.tapConfirmedTransaction();
+            await Assertions.checkIfTextIsDisplayed(`${SHORTHAND_ADDRESS}`);
+          }
         },
       );
     });
