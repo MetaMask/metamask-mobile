@@ -145,6 +145,18 @@ class TestDApp {
       TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
     );
   }
+  get testDappFoxLogo() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO,
+    );
+  }
+  get testDappPageTitle() {
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
+    );
+  }
 
   async connect() {
     await this.tapButton(this.DappConnectButton);
