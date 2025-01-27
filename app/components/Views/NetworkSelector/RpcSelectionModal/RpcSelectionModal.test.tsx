@@ -12,10 +12,13 @@ import {
 } from '@metamask/network-controller';
 import Engine from '../../../../core/Engine/Engine';
 import { useSelector } from 'react-redux';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import {
+  selectIsAllNetworks,
+  selectNetworkConfigurations,
+} from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
-const { PreferencesController } = Engine.context;
+const { PreferencesController, NetworkController } = Engine.context;
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -50,6 +53,23 @@ const MOCK_STORE_STATE = {
             blockExplorerUrls: ['https://lineascan.io'],
             chainId: CHAIN_IDS.LINEA_MAINNET,
             name: 'Linea Mainnet',
+            nativeCurrency: {
+              name: 'Linea Ether',
+              symbol: 'ETH',
+              decimals: 18,
+            },
+          },
+          '0xtest': {
+            rpcEndpoints: [
+              {
+                url: 'https://test.infura.io/v3/{infuraProjectId}',
+                networkClientId: 'testMainnet',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.io'],
+            chainId: '0xtest',
+            name: 'Test Mainnet',
             nativeCurrency: {
               name: 'Linea Ether',
               symbol: 'ETH',
@@ -95,6 +115,29 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../core/Engine/Engine', () => ({
   context: {
+    NetworkController: {
+      setActiveNetwork: jest.fn(),
+      setProviderType: jest.fn(),
+      updateNetwork: jest.fn(),
+      getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockReturnValue({ chainId: '0x1' }),
+      getNetworkConfigurationByChainId: jest.fn().mockReturnValue({
+        blockExplorerUrls: [],
+        chainId: '0x1',
+        defaultRpcEndpointIndex: 0,
+        name: 'Mainnet',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId: 'mainnet',
+            type: 'infura',
+            url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+          },
+        ],
+      }),
+    },
     PreferencesController: {
       setTokenNetworkFilter: jest.fn(),
     },
@@ -151,7 +194,6 @@ describe('RpcSelectionModal', () => {
       networkName: 'Mainnet',
     },
     closeRpcModal: jest.fn(),
-    onRpcSelect: jest.fn(),
     rpcMenuSheetRef: mockRpcMenuSheetRef,
     networkConfigurations: MOCK_STORE_STATE.engine.backgroundState
       .NetworkController.networkConfigurations as unknown as Record<
@@ -229,11 +271,7 @@ describe('RpcSelectionModal', () => {
     const rpcUrlElement = getByText('mainnet.infura.io/v3');
 
     fireEvent.press(rpcUrlElement);
-
-    expect(defaultProps.onRpcSelect).toHaveBeenCalledWith(
-      'mainnet',
-      CHAIN_IDS.MAINNET,
-    );
+    expect(NetworkController.updateNetwork).toHaveBeenCalled();
     expect(defaultProps.closeRpcModal).toHaveBeenCalled();
   });
 
@@ -259,6 +297,47 @@ describe('RpcSelectionModal', () => {
     fireEvent.press(rpcUrlElement);
     expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
       1,
+    );
+  });
+
+  it('should not call preferences controller setTokenNetworkFilter when a popular networks filter is selected', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectIsAllNetworks) {
+        return true; // to show all networks
+      }
+      return null;
+    });
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+    fireEvent.press(rpcUrlElement);
+    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
+      0,
+    );
+  });
+
+  it('should not call preferences controller setTokenNetworkFilter when the network is not part of PopularList', () => {
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectIsAllNetworks) {
+        return false; // to show current network
+      }
+      return null;
+    });
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        showMultiRpcSelectModal={{
+          isVisible: true,
+          chainId: '0xtest',
+          networkName: 'Test Mainnet',
+        }}
+      />,
+    );
+    const rpcUrlElement = getByText('test.infura.io/v3');
+    fireEvent.press(rpcUrlElement);
+    expect(PreferencesController.setTokenNetworkFilter).toHaveBeenCalledTimes(
+      0,
     );
   });
 });
