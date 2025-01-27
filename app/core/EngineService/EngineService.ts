@@ -203,6 +203,10 @@ export class EngineService {
         name: 'SignatureController',
         key: `${engine.context.SignatureController.name}:stateChange`,
       },
+      {
+        name: 'TokenSearchDiscoveryController',
+        key: `${engine.context.TokenSearchDiscoveryController.name}:stateChange`,
+      },
     ];
 
     engine.controllerMessenger.subscribeOnceIf(
