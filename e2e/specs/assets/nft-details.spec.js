@@ -8,13 +8,11 @@ import {
   withFixtures,
   defaultGanacheOptions,
 } from '../../fixtures/fixture-helper';
-import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
-import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
 
 describe(SmokeAssets('NFT Details page'), () => {
   // eslint-disable-next-line @metamask/design-tokens/color-no-hex
