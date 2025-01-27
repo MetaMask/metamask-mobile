@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import {
   View,
   StyleSheet,
-  Image,
   TouchableOpacity,
-  ImageStyle,
   Pressable,
+  Dimensions,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Text, {
@@ -15,63 +14,125 @@ import { useTheme } from '../../../util/theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CarouselProps } from './carousel.types';
 import { Theme } from '../../../util/theme/models';
+import BannerImage0 from '../../../images/banners/banner_image_0.svg';
+import BannerImage1 from '../../../images/banners/banner_image_1.svg';
+import BannerImage2 from '../../../images/banners/banner_image_2.svg';
+import BannerImage3 from '../../../images/banners/banner_image_3.svg';
+import { strings } from '../../../../locales/i18n';
 
-const CAROUSEL_HEIGHT = 100;
-const CAROUSEL_HEIGHT_SINGLE = 70;
-const ACCESSORY_WIDTH = 60;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const BANNER_WIDTH = SCREEN_WIDTH - 32;
+const CAROUSEL_HEIGHT = 59;
+const DOTS_HEIGHT = 28;
+const IMAGE_WIDTH = 60;
+const IMAGE_HEIGHT = 59;
+const PEEK_WIDTH = 5;
+
+const PREDEFINED_SLIDES = [
+  {
+    id: 'bridge',
+    title: strings('banner.bridge.title'),
+    description: strings('banner.bridge.subtitle'),
+    undismissable: false,
+    href: undefined,
+  },
+  {
+    id: 'card',
+    title: strings('banner.card.title'),
+    description: strings('banner.card.subtitle'),
+    undismissable: false,
+    href: undefined,
+  },
+  {
+    id: 'fund',
+    title: strings('banner.fund.title'),
+    description: strings('banner.fund.subtitle'),
+    undismissable: false,
+    href: undefined,
+  },
+  {
+    id: 'cashout',
+    title: strings('banner.cashout.title'),
+    description: strings('banner.cashout.subtitle'),
+    undismissable: false,
+    href: undefined,
+  },
+];
+
+const BannerImages = [BannerImage0, BannerImage1, BannerImage2, BannerImage3];
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
+      width: BANNER_WIDTH + PEEK_WIDTH * 2,
+      alignSelf: 'center',
+      height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
+      overflow: 'visible',
+    },
+    bannerContainer: {
       height: CAROUSEL_HEIGHT,
+      overflow: 'visible',
     },
     containerSingleSlide: {
-      height: CAROUSEL_HEIGHT_SINGLE,
+      height: CAROUSEL_HEIGHT,
     },
     slideContainer: {
-      position: 'relative',
       backgroundColor: colors.background.alternative,
+      borderRadius: 8,
+      height: CAROUSEL_HEIGHT,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      width: BANNER_WIDTH,
+      marginHorizontal: PEEK_WIDTH,
+      position: 'relative',
     },
     slideContainerPressed: {
       backgroundColor: colors.background.alternativePressed,
     },
     slideContent: {
+      width: '100%',
+      height: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 0,
+      padding: 16,
     },
     imageContainer: {
-      width: ACCESSORY_WIDTH,
-      height: '100%',
+      width: IMAGE_WIDTH,
+      height: IMAGE_HEIGHT,
+      marginRight: 16,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background.default,
     },
-    image: {
-      width: ACCESSORY_WIDTH,
-      height: '100%',
-      resizeMode: 'cover',
-    } as ImageStyle,
     textContainer: {
       flex: 1,
-      marginLeft: 16,
-      marginRight: 40,
+      justifyContent: 'center',
+    },
+    textWrapper: {
+      width: BANNER_WIDTH - (IMAGE_WIDTH + 16 + 32), // image width + margin + container padding
     },
     title: {
+      color: colors.text.default,
       marginBottom: 4,
     },
     description: {
-      marginBottom: 4,
+      color: colors.text.alternative,
     },
     closeButton: {
       position: 'absolute',
       top: 8,
-      right: 6,
-      padding: 8,
-      zIndex: 1,
+      right: 8,
+      width: 24,
+      height: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     progressContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      height: 40,
+      height: DOTS_HEIGHT,
       gap: 8,
     },
     progressDot: {
@@ -93,7 +154,6 @@ const createStyles = (colors: Theme['colors']) =>
   });
 
 export const Carousel: React.FC<CarouselProps> = ({
-  slides = [],
   isLoading = false,
   onClose,
   onClick,
@@ -104,15 +164,8 @@ export const Carousel: React.FC<CarouselProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const visibleSlides = slides
-    .filter((slide) => !slide.dismissed || slide.undismissable)
-    .sort((a, b) => {
-      if (a.undismissable && !b.undismissable) return -1;
-      if (!a.undismissable && b.undismissable) return 1;
-      return 0;
-    });
-
-  const isSingleSlide = visibleSlides.length === 1;
+  const visibleSlides = PREDEFINED_SLIDES;
+  const isSingleSlide = false;
 
   if (isLoading) {
     return (
@@ -142,73 +195,79 @@ export const Carousel: React.FC<CarouselProps> = ({
     }
   };
 
-  const renderTabBar = () => {
-    if (isSingleSlide) return <View />;
-    return (
-      <View style={styles.progressContainer}>
-        {visibleSlides.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.progressDot,
-              selectedIndex === index && styles.progressDotActive,
-            ]}
-          />
-        ))}
-      </View>
-    );
-  };
-
   return (
-    <View
-      style={[
-        styles.container,
-        isSingleSlide && styles.containerSingleSlide,
-        style,
-      ]}
-    >
-      <ScrollableTabView
-        renderTabBar={renderTabBar}
-        onChangeTab={({ i }) => setSelectedIndex(i)}
-        locked={isSingleSlide}
-      >
-        {visibleSlides.map((slide) => (
-          <Pressable
-            key={slide.id}
-            style={[
-              styles.slideContainer,
-              pressedSlideId === slide.id && styles.slideContainerPressed,
-            ]}
-            onPress={() => handleSlideClick(slide.id, slide.href)}
-            onPressIn={() => setPressedSlideId(slide.id)}
-            onPressOut={() => setPressedSlideId(null)}
-          >
-            <View style={styles.slideContent}>
-              {slide.image && (
-                <View style={styles.imageContainer}>
-                  <Image source={{ uri: slide.image }} style={styles.image} />
+    <View style={[styles.container, style]}>
+      <View style={styles.bannerContainer}>
+        <ScrollableTabView
+          renderTabBar={() => <View />}
+          onChangeTab={({ i }) => setSelectedIndex(i)}
+          locked={isSingleSlide}
+          initialPage={0}
+          contentProps={{
+            style: {
+              overflow: 'visible',
+            },
+          }}
+        >
+          {visibleSlides.map((slide, index) => (
+            <Pressable
+              key={slide.id}
+              style={[
+                styles.slideContainer,
+                pressedSlideId === slide.id && styles.slideContainerPressed,
+              ]}
+              onPress={() => handleSlideClick(slide.id, slide.href)}
+              onPressIn={() => setPressedSlideId(slide.id)}
+              onPressOut={() => setPressedSlideId(null)}
+            >
+              <View style={styles.slideContent}>
+                {React.createElement(BannerImages[index % 4], {
+                  name: `banner_image_${index % 4}`,
+                  width: IMAGE_WIDTH,
+                  height: IMAGE_HEIGHT,
+                  preserveAspectRatio: 'xMidYMid meet',
+                })}
+                <View style={styles.textContainer}>
+                  <View style={styles.textWrapper}>
+                    <Text variant={TextVariant.BodyMD} style={styles.title}>
+                      {slide.title}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.description}
+                    >
+                      {slide.description}
+                    </Text>
+                  </View>
                 </View>
-              )}
-              <View style={styles.textContainer}>
-                <Text variant={TextVariant.BodyMD} style={styles.title}>
-                  {slide.title}
-                </Text>
-                <Text variant={TextVariant.BodySM} style={styles.description}>
-                  {slide.description}
-                </Text>
+                {!slide.undismissable && onClose && (
+                  <TouchableOpacity
+                    style={styles.closeButton}
+                    onPress={() => handleClose(slide.id)}
+                  >
+                    <Icon name="close" size={16} color={colors.icon.default} />
+                  </TouchableOpacity>
+                )}
               </View>
-            </View>
-            {!slide.undismissable && onClose && (
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => handleClose(slide.id)}
-              >
-                <Icon name="close" size={24} color={colors.icon.default} />
-              </TouchableOpacity>
-            )}
-          </Pressable>
-        ))}
-      </ScrollableTabView>
+            </Pressable>
+          ))}
+        </ScrollableTabView>
+      </View>
+      {!isSingleSlide && (
+        <View style={styles.progressContainer}>
+          {visibleSlides.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.progressDot,
+                selectedIndex === index && styles.progressDotActive,
+              ]}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
+
+export default Carousel;

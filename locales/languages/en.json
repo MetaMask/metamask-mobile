@@ -406,6 +406,24 @@
     "scanner_tab": "Scan QR code",
     "receive_tab": "Your QR code"
   },
+  "banner": {
+    "bridge": {
+      "title": "Ready to bridge?",
+      "subtitle": "Move across 9 chains, all within your wallet"
+    },
+    "card": {
+      "title": "MetaMask Card",
+      "subtitle": "Available in select regions"
+    },
+    "fund": {
+      "title": "Fund your wallet", 
+      "subtitle": "Add or transfer tokens to get started"
+    },
+    "cashout": {
+      "title": "Cash out with MetaMask",
+      "subtitle": "Sell your crypto for cash"
+    }
+  },
   "wallet": {
     "title": "Wallet",
     "tokens": "Tokens",

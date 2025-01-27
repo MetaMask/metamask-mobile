@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useCallback, useContext } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -104,6 +110,7 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
+import { Carousel } from '../../UI/Carousel';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -141,6 +148,16 @@ const createStyles = ({ colors, typography }: Theme) =>
       widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
+    },
+    tabViewContainer: {
+      flex: 1,
+      flexDirection: 'column',
+    },
+    carouselContainer: {
+      marginVertical: 8,
+    },
+    contentContainer: {
+      flex: 1,
     },
   });
 
@@ -242,6 +259,47 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
+
+  const [carouselSlides, setCarouselSlides] = useState([
+    {
+      id: '1',
+      title: 'Welcome to MetaMask',
+      description: 'Your gateway to web3',
+      dismissed: false,
+    },
+    {
+      id: '2',
+      title: 'Secure Your Wallet',
+      description: 'Keep your recovery phrase safe and never share it',
+      dismissed: false,
+    },
+    {
+      id: '3',
+      title: 'Explore DApps',
+      description: 'Discover the world of decentralized applications',
+      dismissed: false,
+    },
+    {
+      id: '4',
+      title: 'Manage Your Assets',
+      description: 'Track and manage your tokens and NFTs in one place',
+      dismissed: false,
+    },
+    {
+      id: '5',
+      title: 'Stay Updated',
+      description: 'Get the latest news and updates from the crypto world',
+      dismissed: false,
+    },
+  ]);
+
+  const handleBannerClose = useCallback((slideId: string) => {
+    setCarouselSlides((prev) =>
+      prev.map((slide) =>
+        slide.id === slideId ? { ...slide, dismissed: true } : slide,
+      ),
+    );
+  }, []);
 
   useEffect(() => {
     if (
@@ -666,24 +724,20 @@ const Wallet = ({
         ) : null}
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
+          <View style={styles.carouselContainer}>
+            <Carousel slides={carouselSlides} onClose={handleBannerClose} />
+          </View>
           <ScrollableTabView
             renderTabBar={renderTabBar}
-            // eslint-disable-next-line react/jsx-no-bind
             onChangeTab={onChangeTab}
           >
             <Tokens
               tabLabel={strings('wallet.tokens')}
               key={'tokens-tab'}
               navigation={navigation}
-              // TODO - Consolidate into the correct type.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
               tokens={assets}
             />
             <CollectibleContracts
-              // TODO - Extend component to support injected tabLabel prop.
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
               tabLabel={strings('wallet.collectibles')}
               key={'nfts-tab'}
               navigation={navigation}
@@ -696,17 +750,17 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    styles.wrapper,
-    styles.banner,
+    styles,
+    colors,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    renderTabBar,
     onChangeTab,
     navigation,
     ticker,
     conversionRate,
     currentCurrency,
     contractBalances,
+    carouselSlides,
   ]);
   const renderLoader = useCallback(
     () => (
