@@ -1,6 +1,7 @@
 import Engine from '../../core/Engine';
 import { convertHexToDecimal } from '@metamask/controller-utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import { NetworkClientId } from '@metamask/network-controller';
+import { TransactionParams } from '@metamask/transaction-controller';
 import { isStrictHexString } from '@metamask/utils';
 
 /**
@@ -42,14 +43,15 @@ export function toggleUseSafeChainsListValidation(value: boolean): void {
  */
 export const fetchEstimatedMultiLayerL1Fee = async (
   _: unknown,
-  txMeta: TransactionMeta,
+  { txParams, networkClientId }: {
+    txParams: TransactionParams,
+    networkClientId: NetworkClientId,
+  }
 ) => {
-  const chainId = txMeta.chainId;
-
   const layer1GasFee =
     await Engine.context.TransactionController.getLayer1GasFee({
-      transactionParams: txMeta.txParams,
-      chainId,
+      transactionParams: txParams,
+      networkClientId,
     });
 
   const layer1GasFeeNoPrefix = layer1GasFee?.startsWith('0x')

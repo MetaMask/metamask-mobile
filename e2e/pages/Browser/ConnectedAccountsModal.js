@@ -89,7 +89,7 @@ class ConnectedAccountsModal {
   }
 
   async tapManagePermissionsButton() {
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(4000);
     await Gestures.waitAndTap(this.managePermissionsButton);
   }
 

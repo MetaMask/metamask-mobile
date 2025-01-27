@@ -1,4 +1,4 @@
-import React, { useRef, useState, LegacyRef, useMemo, useEffect } from 'react';
+import React, { useRef, useState, LegacyRef, useMemo, memo } from 'react';
 import { Hex } from '@metamask/utils';
 import { View, Text } from 'react-native';
 import ActionSheet from '@metamask/react-native-actionsheet';
@@ -15,6 +15,7 @@ import Logger from '../../../util/Logger';
 import {
   selectChainId,
   selectIsAllNetworks,
+  selectIsPopularNetwork,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import {
@@ -31,7 +32,6 @@ import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
   selectIsTokenNetworkFilterEqualCurrentNetwork,
-  selectTokenNetworkFilter,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
 import { deriveBalanceFromAssetMarketDetails, sortAssets } from './util';
@@ -55,7 +55,10 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
-import { filterAssets } from './util/filterAssets';
+import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { TraceName, endTrace, trace } from '../../../util/trace';
+import { getTraceTags } from '../../../util/sentry/tags';
+import { store } from '../../../store';
 
 // this will be imported from TokenRatesController when it is exported from there
 // PR: https://github.com/MetaMask/core/pull/4622
@@ -88,7 +91,9 @@ interface TokenListNavigationParamList {
   [key: string]: undefined | object;
 }
 
-const Tokens: React.FC<TokensI> = ({ tokens }) => {
+const DEBOUNCE_DELAY = 300;
+
+const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
   const navigation =
     useNavigation<
       StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
@@ -97,8 +102,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { data: tokenBalances } = useTokenBalancesController();
   const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
-  const selectedChainId = useSelector(selectChainId);
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
@@ -121,8 +124,9 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       ),
     ),
   ];
-  const selectedAccountTokensChains = useSelector(
-    selectAccountTokensAcrossChains,
+
+  const selectedAccountTokensChains = useSelector((state: RootState) =>
+    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
   const actionSheet = useRef<typeof ActionSheet>();
@@ -136,13 +140,137 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     selectSelectedInternalAccountAddress,
   );
   const multiChainMarketData = useSelector(selectTokenMarketData);
+  const debouncedMultiChainMarketData = useDebouncedValue(
+    multiChainMarketData,
+    DEBOUNCE_DELAY,
+  );
+
   const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const debouncedMultiChainTokenBalance = useDebouncedValue(
+    multiChainTokenBalance,
+    DEBOUNCE_DELAY,
+  );
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+  const debouncedMultiChainCurrencyRates = useDebouncedValue(
+    multiChainCurrencyRates,
+    DEBOUNCE_DELAY,
+  );
+  const isPopularNetwork = useSelector(selectIsPopularNetwork);
 
   const styles = createStyles(colors);
 
+  const getTokensToDisplay = (allTokens: TokenI[]): TokenI[] => {
+    if (hideZeroBalanceTokens) {
+      const tokensToDisplay: TokenI[] = [];
+      for (const curToken of allTokens) {
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            curToken.chainId as Hex
+          ];
+        const balance =
+          multiChainTokenBalances?.[curToken.address as Hex] ||
+          curToken.balance;
+
+        if (
+          !isZero(balance) ||
+          (isUserOnCurrentNetwork && (curToken.isNative || curToken.isStaked))
+        ) {
+          tokensToDisplay.push(curToken);
+        }
+      }
+
+      return tokensToDisplay;
+    }
+    return allTokens;
+  };
+
+  const categorizeTokens = (filteredTokens: TokenI[]) => {
+    const nativeTokens: TokenI[] = [];
+    const nonNativeTokens: TokenI[] = [];
+
+    for (const currToken of filteredTokens) {
+      const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
+
+      // Categorize tokens as native or non-native
+      if (token.isNative) {
+        nativeTokens.push(token);
+      } else {
+        nonNativeTokens.push(token);
+      }
+    }
+
+    return [...nativeTokens, ...nonNativeTokens];
+  };
+
+  const calculateTokenFiatBalances = (assets: TokenI[]) => {
+    const tokenFiatBalances: number[] = [];
+
+    for (const token of assets) {
+      const chainId = token.chainId as Hex;
+      const multiChainExchangeRates = debouncedMultiChainMarketData?.[chainId];
+      const multiChainTokenBalances =
+        debouncedMultiChainTokenBalance?.[
+          selectedInternalAccountAddress as Hex
+        ]?.[chainId];
+      const nativeCurrency =
+        networkConfigurationsByChainId[chainId].nativeCurrency;
+      const multiChainConversionRate =
+        debouncedMultiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+
+      // Calculate fiat balance for the token
+      const fiatBalance =
+        token.isETH || token.isNative
+          ? parseFloat(token.balance) * multiChainConversionRate
+          : deriveBalanceFromAssetMarketDetails(
+              token,
+              multiChainTokenBalances || {},
+              multiChainExchangeRates || {},
+              multiChainConversionRate || 0,
+              currentCurrency || '',
+            ).balanceFiatCalculation;
+
+      // Add the calculated balance to the array
+      tokenFiatBalances.push(fiatBalance || 0);
+    }
+
+    const tokensWithBalances: typeof assets = [];
+
+    for (let i = 0; i < assets.length; i++) {
+      const token = assets[i];
+      const tokenWithBalance = {
+        ...token,
+        tokenFiatAmount: tokenFiatBalances[i],
+      };
+
+      tokensWithBalances.push(tokenWithBalance);
+    }
+
+    return tokensWithBalances;
+  };
+
+  const filterTokensByNetwork = (tokensToDisplay: TokenI[]): TokenI[] => {
+    if (isAllNetworks && isPopularNetwork) {
+      return tokensToDisplay;
+    }
+    return tokensToDisplay.filter((token) => token.chainId === currentChainId);
+  };
+
   const tokensList = useMemo((): TokenI[] => {
+    trace({
+      name: TraceName.Tokens,
+      tags: getTraceTags(store.getState()),
+    });
     if (isPortfolioViewEnabled()) {
+      trace({
+        name: TraceName.Tokens,
+        tags: getTraceTags(store.getState()),
+      });
+
       // MultiChain implementation
       const allTokens = Object.values(
         selectedAccountTokensChains,
@@ -152,98 +280,19 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         If hideZeroBalanceTokens is ON and user is on "all Networks" we respect the setting and filter native and ERC20 tokens when zero
         If user is on "current Network" we want to show native tokens, even with zero balance
       */
-      let tokensToDisplay = [];
-      if (hideZeroBalanceTokens) {
-        if (isUserOnCurrentNetwork) {
-          tokensToDisplay = allTokens.filter((curToken) => {
-            const multiChainTokenBalances =
-              multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-                curToken.chainId as Hex
-              ];
-            const balance = multiChainTokenBalances?.[curToken.address as Hex];
-            return !isZero(balance) || curToken.isNative || curToken.isStaked;
-          });
-        } else {
-          tokensToDisplay = allTokens.filter((curToken) => {
-            const multiChainTokenBalances =
-              multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-                curToken.chainId as Hex
-              ];
-            const balance =
-              multiChainTokenBalances?.[curToken.address as Hex] ||
-              curToken.balance;
-            return !isZero(balance) || curToken.isStaked;
-          });
-        }
-      } else {
-        tokensToDisplay = allTokens;
-      }
+      const tokensToDisplay = getTokensToDisplay(allTokens);
 
-      // Then apply network filters
-      const filteredAssets = filterAssets(tokensToDisplay, [
-        {
-          key: 'chainId',
-          opts: tokenNetworkFilter,
-          filterCallback: 'inclusive',
-        },
-      ]);
+      const filteredTokens: TokenI[] = filterTokensByNetwork(tokensToDisplay);
 
-      const { nativeTokens, nonNativeTokens } = filteredAssets.reduce<{
-        nativeTokens: TokenI[];
-        nonNativeTokens: TokenI[];
-      }>(
-        (
-          acc: { nativeTokens: TokenI[]; nonNativeTokens: TokenI[] },
-          currToken: unknown,
-        ) => {
-          if (
-            isTestNet((currToken as TokenI & { chainId: string }).chainId) &&
-            !isTestNet(currentChainId)
-          ) {
-            return acc;
-          }
-          if ((currToken as TokenI).isNative) {
-            acc.nativeTokens.push(currToken as TokenI);
-          } else {
-            acc.nonNativeTokens.push(currToken as TokenI);
-          }
-          return acc;
-        },
-        { nativeTokens: [], nonNativeTokens: [] },
-      );
+      const assets = categorizeTokens(filteredTokens);
 
-      const assets = [...nativeTokens, ...nonNativeTokens];
+      const tokensWithBalances = calculateTokenFiatBalances(assets);
 
-      // Calculate fiat balances for tokens
-      const tokenFiatBalances = assets.map((token) => {
-        const chainId = token.chainId as Hex;
-        const multiChainExchangeRates = multiChainMarketData?.[chainId];
-        const multiChainTokenBalances =
-          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-            chainId
-          ];
-        const nativeCurrency =
-          networkConfigurationsByChainId[chainId].nativeCurrency;
-        const multiChainConversionRate =
-          multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
-
-        return token.isETH || token.isNative
-          ? parseFloat(token.balance) * multiChainConversionRate
-          : deriveBalanceFromAssetMarketDetails(
-              token,
-              multiChainExchangeRates || {},
-              multiChainTokenBalances || {},
-              multiChainConversionRate || 0,
-              currentCurrency || '',
-            ).balanceFiatCalculation;
+      const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
+      endTrace({
+        name: TraceName.Tokens,
       });
-
-      const tokensWithBalances = assets.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: tokenFiatBalances[i],
-      }));
-
-      return sortAssets(tokensWithBalances, tokenSortConfig);
+      return tokensSorted;
     }
     // Previous implementation
     // Filter tokens based on hideZeroBalanceTokens flag
@@ -277,24 +326,20 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       tokenFiatAmount: tokenFiatBalances[i],
     }));
 
-    // Sort the tokens based on tokenSortConfig
-    return sortAssets(tokensWithBalances, tokenSortConfig);
+    const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
+    endTrace({
+      name: TraceName.Tokens,
+    });
+    return tokensSorted;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    conversionRate,
-    currentCurrency,
     hideZeroBalanceTokens,
-    tokenBalances,
-    tokenExchangeRates,
     tokenSortConfig,
-    tokens,
     // Dependencies for multichain implementation
+    debouncedMultiChainTokenBalance,
+    debouncedMultiChainMarketData,
+    debouncedMultiChainCurrencyRates,
     selectedAccountTokensChains,
-    tokenNetworkFilter,
-    currentChainId,
-    multiChainCurrencyRates,
-    multiChainMarketData,
-    multiChainTokenBalance,
-    networkConfigurationsByChainId,
     selectedInternalAccountAddress,
     isUserOnCurrentNetwork,
   ]);
@@ -329,13 +374,13 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
         TokenDetectionController.detectTokens({
           chainIds: isPortfolioViewEnabled()
             ? (Object.keys(networkConfigurationsByChainId) as Hex[])
-            : [selectedChainId],
+            : [currentChainId],
         }),
         AccountTrackerController.refresh(),
         CurrencyRateController.updateExchangeRate(nativeCurrencies),
         ...(isPortfolioViewEnabled()
           ? Object.values(networkConfigurationsByChainId)
-          : [networkConfigurationsByChainId[selectedChainId]]
+          : [networkConfigurationsByChainId[currentChainId]]
         ).map((network) =>
           TokenRatesController.updateExchangeRatesByChainId({
             chainId: network.chainId,
@@ -354,7 +399,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
     const { TokensController, NetworkController } = Engine.context;
     const chainId = isPortfolioViewEnabled()
       ? tokenToRemove?.chainId
-      : selectedChainId;
+      : currentChainId;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       chainId as Hex,
     );
@@ -378,7 +423,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
             token_standard: 'ERC20',
             asset_type: 'token',
             tokens: [`${symbol} - ${tokenAddress}`],
-            chain_id: getDecimalChainId(selectedChainId),
+            chain_id: getDecimalChainId(currentChainId),
           })
           .build(),
       );
@@ -394,7 +439,7 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       createEventBuilder(MetaMetricsEvents.TOKEN_IMPORT_CLICKED)
         .addProperties({
           source: 'manual',
-          chain_id: getDecimalChainId(selectedChainId),
+          chain_id: getDecimalChainId(currentChainId),
         })
         .build(),
     );
@@ -403,15 +448,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
 
   const onActionSheetPress = (index: number) =>
     index === 0 ? removeToken() : null;
-
-  useEffect(() => {
-    const { PreferencesController } = Engine.context;
-    if (isTestNet(currentChainId)) {
-      PreferencesController.setTokenNetworkFilter({
-        [currentChainId]: true,
-      });
-    }
-  }, [currentChainId]);
 
   return (
     <View
@@ -425,20 +461,22 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
               testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
               label={
                 <Text style={styles.controlButtonText} numberOfLines={1}>
-                  {isAllNetworks
-                    ? strings('wallet.all_networks')
+                  {isAllNetworks && isPopularNetwork
+                    ? `${strings('app_settings.popular')} ${strings(
+                        'app_settings.networks',
+                      )}`
                     : networkName ?? strings('wallet.current_network')}
                 </Text>
               }
-              isDisabled={isTestNet(currentChainId)}
+              isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
               onPress={showFilterControls}
               endIconName={IconName.ArrowDown}
               style={
-                isTestNet(currentChainId)
+                isTestNet(currentChainId) || !isPopularNetwork
                   ? styles.controlButtonDisabled
                   : styles.controlButton
               }
-              disabled={isTestNet(currentChainId)}
+              disabled={isTestNet(currentChainId) || !isPopularNetwork}
             />
             <View style={styles.controlButtonInnerWrapper}>
               <ButtonIcon
@@ -482,7 +520,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
           onRefresh={onRefresh}
           showRemoveMenu={showRemoveMenu}
           goToAddToken={goToAddToken}
-          setIsAddTokenEnabled={setIsAddTokenEnabled}
         />
       )}
       <ActionSheet
@@ -495,6 +532,6 @@ const Tokens: React.FC<TokensI> = ({ tokens }) => {
       />
     </View>
   );
-};
+});
 
-export default Tokens;
+export default React.memo(Tokens);

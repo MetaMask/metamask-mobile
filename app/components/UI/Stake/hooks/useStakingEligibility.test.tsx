@@ -27,10 +27,13 @@ const mockStakingApiService: Partial<StakingApiService> = {
   getPooledStakingEligibility: jest.fn(),
 };
 
-const mockSdkContext: Stake = {
+const createMockStakeContext = (overrides?: Partial<Stake>) => ({
   setSdkType: jest.fn(),
   stakingApiService: mockStakingApiService as StakingApiService,
-};
+  ...overrides,
+});
+
+let mockSdkContext = createMockStakeContext();
 
 // Mock the context
 jest.mock('./useStakeContext', () => ({
@@ -38,6 +41,10 @@ jest.mock('./useStakeContext', () => ({
 }));
 
 describe('useStakingEligibility', () => {
+  beforeEach(() => {
+    mockSdkContext = createMockStakeContext();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -122,6 +129,24 @@ describe('useStakingEligibility', () => {
         expect(
           mockStakingApiService.getPooledStakingEligibility,
         ).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('when stakingApiService is undefined', () => {
+    it('handles undefined stakingApiService gracefully', async () => {
+      // Override the mock context with undefined stakingApiService
+      mockSdkContext = createMockStakeContext({
+        stakingApiService: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() => useStakingEligibility(), {
+        state: mockInitialState,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoadingEligibility).toBe(false);
+        expect(result.current.isEligible).toBe(false);
       });
     });
   });

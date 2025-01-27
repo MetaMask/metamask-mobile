@@ -17,6 +17,7 @@ import {
   prepareTransaction,
   setTransactionObject,
   resetTransaction,
+  setMaxValueMode,
 } from '../../../../../actions/transaction';
 import { getSendFlowTitle } from '../../../../UI/Navbar';
 import StyledButton from '../../../../UI/StyledButton';
@@ -77,13 +78,7 @@ import { ThemeContext, mockTheme } from '../../../../../util/theme';
 import Alert, { AlertType } from '../../../../Base/Alert';
 
 import {
-  selectChainId,
-  selectProviderType,
-  selectTicker,
-} from '../../../../../selectors/networkController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
-import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectTokens } from '../../../../../selectors/tokensController';
@@ -103,6 +98,8 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
+import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -485,6 +482,14 @@ class Amount extends PureComponent {
      * Type of gas fee estimate provided by the gas fee controller.
      */
     gasEstimateType: PropTypes.string,
+    /**
+     * Function that sets the max value mode
+     */
+    setMaxValueMode: PropTypes.func,
+    /**
+     * Network client id
+     */
+    networkClientId: PropTypes.string,
   };
 
   state = {
@@ -597,6 +602,7 @@ class Amount extends PureComponent {
 
   hasExchangeRate = () => {
     const { selectedAsset, conversionRate, contractExchangeRates } = this.props;
+
     if (selectedAsset.isETH) {
       return !!conversionRate;
     }
@@ -872,10 +878,15 @@ class Amount extends PureComponent {
       transaction: { from },
       transactionTo,
     } = this.props.transactionState;
-    const { gas } = await getGasLimit({
-      from,
-      to: transactionTo,
-    });
+    const { networkClientId } = this.props;
+    const { gas } = await getGasLimit(
+      {
+        from,
+        to: transactionTo,
+      },
+      false,
+      networkClientId,
+    );
 
     return gas;
   };
@@ -926,9 +937,17 @@ class Amount extends PureComponent {
   };
 
   onInputChange = (inputValue, selectedAsset, useMax) => {
-    const { contractExchangeRates, conversionRate, currentCurrency, ticker } =
-      this.props;
+    const {
+      contractExchangeRates,
+      conversionRate,
+      currentCurrency,
+      ticker,
+      setMaxValueMode,
+    } = this.props;
     const { internalPrimaryCurrencyIsCrypto } = this.state;
+
+    setMaxValueMode(useMax ?? false);
+
     let inputValueConversion,
       renderableInputValueConversion,
       hasExchangeRate,
@@ -1165,21 +1184,24 @@ class Amount extends PureComponent {
   processCollectibles = () => {
     const { collectibleContracts } = this.props;
     const collectibles = [];
-    this.props.collectibles
-      .sort((a, b) => a.address < b.address)
-      .forEach((collectible) => {
-        const address = collectible.address.toLowerCase();
-        const isTradable =
-          !collectiblesTransferInformation[address] ||
-          collectiblesTransferInformation[address].tradable;
-        if (!isTradable) return;
-        const collectibleContract = collectibleContracts.find(
-          (contract) => contract.address.toLowerCase() === address,
-        );
-        if (!collectible.name) collectible.name = collectibleContract.name;
-        if (!collectible.image) collectible.image = collectibleContract.logo;
-        collectibles.push(collectible);
-      });
+    const sortedCollectibles = [...this.props.collectibles].sort((a, b) => {
+      if (a.address < b.address) return -1;
+      if (a.address > b.address) return 1;
+      return 0;
+    });
+    sortedCollectibles.forEach((collectible) => {
+      const address = collectible.address.toLowerCase();
+      const isTradable =
+        !collectiblesTransferInformation[address] ||
+        collectiblesTransferInformation[address].tradable;
+      if (!isTradable) return;
+      const collectibleContract = collectibleContracts.find(
+        (contract) => contract.address.toLowerCase() === address,
+      );
+      if (!collectible.name) collectible.name = collectibleContract.name;
+      if (!collectible.image) collectible.image = collectibleContract.logo;
+      collectibles.push(collectible);
+    });
     return collectibles;
   };
 
@@ -1533,31 +1555,38 @@ class Amount extends PureComponent {
 
 Amount.contextType = ThemeContext;
 
-const mapStateToProps = (state, ownProps) => ({
-  accounts: selectAccounts(state),
-  contractExchangeRates: selectContractExchangeRates(state),
-  contractBalances: selectContractBalances(state),
-  collectibles: collectiblesSelector(state),
-  collectibleContracts: collectibleContractsSelector(state),
-  conversionRate: selectConversionRate(state),
-  currentCurrency: selectCurrentCurrency(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  providerType: selectProviderType(state),
-  primaryCurrency: state.settings.primaryCurrency,
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  ticker: selectTicker(state),
-  tokens: selectTokens(state),
-  transactionState: ownProps.transaction || state.transaction,
-  selectedAsset: state.transaction.selectedAsset,
-  isPaymentRequest: state.transaction.paymentRequest,
-  isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
-    selectChainId(state),
-    getRampNetworks(state),
-  ),
-  swapsIsLive: swapsLivenessSelector(state),
-  chainId: selectChainId(state),
-});
+const mapStateToProps = (state, ownProps) => {
+  const transaction = ownProps.transaction || state.transaction;
+  const chainId = transaction?.chainId;
+  const networkClientId = transaction?.networkClientId;
+
+  return {
+    accounts: selectAccounts(state),
+    contractExchangeRates: selectContractExchangeRatesByChainId(state, chainId),
+    contractBalances: selectContractBalances(state),
+    collectibles: collectiblesSelector(state),
+    collectibleContracts: collectibleContractsSelector(state),
+    conversionRate: selectConversionRateByChainId(state, chainId),
+    currentCurrency: selectCurrentCurrency(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    providerType: selectProviderTypeByChainId(state, chainId),
+    primaryCurrency: state.settings.primaryCurrency,
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    ticker: selectNativeCurrencyByChainId(state, chainId),
+    tokens: selectTokens(state),
+    transactionState: transaction,
+    selectedAsset: state.transaction.selectedAsset,
+    isPaymentRequest: state.transaction.paymentRequest,
+    isNetworkBuyNativeTokenSupported: isNetworkRampNativeTokenSupported(
+      chainId,
+      getRampNetworks(state),
+    ),
+    swapsIsLive: swapsLivenessSelector(state),
+    chainId,
+    networkClientId,
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
@@ -1567,6 +1596,7 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   resetTransaction: () => dispatch(resetTransaction()),
+  setMaxValueMode: (maxValueMode) => dispatch(setMaxValueMode(maxValueMode)),
 });
 
 export default connect(
