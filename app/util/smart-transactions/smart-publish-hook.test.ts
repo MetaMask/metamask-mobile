@@ -11,7 +11,10 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
-import { type SmartTransaction, ClientId } from '@metamask/smart-transactions-controller/dist/types';
+import {
+  type SmartTransaction,
+  ClientId,
+} from '@metamask/smart-transactions-controller/dist/types';
 
 import {
   AllowedActions,
@@ -392,7 +395,7 @@ describe('submitSmartTransactionHook', () => {
         const result = await submitSmartTransactionHook(request);
 
         expect(result).toEqual({ transactionHash });
-        const { txParams, chainId } = request.transactionMeta;        
+        const { txParams, chainId } = request.transactionMeta;
 
         expect(
           request.transactionController.approveTransactionsWithSameNonce,
