@@ -72,7 +72,7 @@ describe(
             correctAddress[0],
             CORRECT_SEND_ADDRESS,
           );
-
+          //TODO: Currently flakey, requires more work
           //Assert transactions send screen on IOS only due to android limitations
           if (device.getPlatform() === 'ios') {
             // Tap Send
