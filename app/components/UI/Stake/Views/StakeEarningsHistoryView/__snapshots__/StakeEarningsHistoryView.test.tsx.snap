@@ -143,7 +143,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                 }
               }
             >
-              Y 
+              Y
             </Text>
           </TouchableOpacity>
         </View>
@@ -781,6 +781,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
           style={
             {
               "flex": 1,
+              "paddingBottom": 35,
               "paddingTop": 24,
             }
           }

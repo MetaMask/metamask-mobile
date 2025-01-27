@@ -3520,7 +3520,8 @@
     "gas_cost_impact": "Gas cost impact",
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than 30% of your deposit.",
     "view_earnings_history": "View earnings history",
-    "earnings_history_title": "{{ticker}} earnings"
+    "earnings_history_title": "{{ticker}} earnings",
+    "earnings_history_list_title": "Payout history"
   },
   "default_settings": {
     "title": "Your Wallet is ready",
