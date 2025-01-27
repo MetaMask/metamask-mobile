@@ -1,5 +1,5 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { ControllerMessenger } from '../../types';
+import { BaseControllerMessenger } from '../../types';
 
 /**
  * Get the AccountsControllerMessenger for the AccountsController.
@@ -8,7 +8,7 @@ import { ControllerMessenger } from '../../types';
  * @returns The AccountsControllerMessenger.
  */
 export function getAccountsControllerMessenger(
-  baseControllerMessenger: ControllerMessenger,
+  baseControllerMessenger: BaseControllerMessenger,
 ): AccountsControllerMessenger {
   return baseControllerMessenger.getRestricted({
     name: 'AccountsController',

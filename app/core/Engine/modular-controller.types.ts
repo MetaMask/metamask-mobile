@@ -1,9 +1,4 @@
-import {
-  ActionConstraint,
-  EventConstraint,
-  RestrictedControllerMessenger,
-} from '@metamask/base-controller';
-import { ControllerMessenger, Controllers } from './types';
+import { BaseControllerMessenger, Controllers } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 
 export type Controller = Controllers[keyof Controllers];
@@ -20,24 +15,12 @@ export type ControllerByName = {
  * Persisted state for all controllers.
  * e.g. `{ TransactionController: { transactions: [] } }`.
  */
-export type ControllerPersistedState = {
+export type ControllerPersistedState = Partial<{
   [Name in Exclude<
     ControllerName,
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
-  >]: ControllerByName[Name]['state'];
-};
-
-/** Generic controller messenger using base template types. */
-export type BaseControllerMessenger = ControllerMessenger;
-
-/** Generic restricted controller messenger using base template types. */
-export type BaseRestrictedControllerMessenger = RestrictedControllerMessenger<
-  string,
-  ActionConstraint,
-  EventConstraint,
-  string,
-  string
->;
+  >]: Partial<ControllerByName[Name]['state']>;
+}>;
 
 /**
  * Request to initialize and return a controller instance.
@@ -49,7 +32,7 @@ export type ControllerInitRequest = {
    * Base controller messenger for the client.
    * Used to generate controller and init messengers for each controller.
    */
-  baseControllerMessenger: ControllerMessenger;
+  baseControllerMessenger: BaseControllerMessenger;
 
   /**
    * Retrieve a controller instance by name.

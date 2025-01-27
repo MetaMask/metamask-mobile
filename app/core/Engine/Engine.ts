@@ -198,7 +198,7 @@ import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
 import {
-  ControllerMessenger,
+  BaseControllerMessenger,
   EngineState,
   EngineContext,
   TransactionEventPayload,
@@ -242,7 +242,7 @@ export class Engine {
   /**
    * The global controller messenger.
    */
-  controllerMessenger: ControllerMessenger;
+  controllerMessenger: BaseControllerMessenger;
   /**
    * ComposableController reference containing all child controllers
    */
@@ -2178,7 +2178,8 @@ export default {
     keyringState: KeyringControllerState | null = null,
     metaMetricsId?: string,
   ) {
-    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance =
+      Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },

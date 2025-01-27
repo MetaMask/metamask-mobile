@@ -1,7 +1,5 @@
-import {
-  BaseControllerMessenger,
-  ControllerInitRequest,
-} from '../modular-controller.types';
+import { ControllerInitRequest } from '../modular-controller.types';
+import { BaseControllerMessenger } from '../types';
 
 /**
  * Build a mock for the BaseControllerMessenger.
