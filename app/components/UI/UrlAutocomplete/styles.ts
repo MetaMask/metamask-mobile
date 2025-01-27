@@ -1,8 +1,7 @@
 import { Theme } from '@metamask/design-tokens';
-import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { StyleSheet, TextStyle } from 'react-native';
 
-const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
+const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       ...StyleSheet.absoluteFillObject,
@@ -11,6 +10,15 @@ const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
       display: 'none',
       paddingTop: 8,
     },
+    contentContainer: {
+      paddingVertical: 15,
+    },
+    category: {
+      color: colors.text.default,
+      padding: 10,
+      backgroundColor: colors.background.default,
+      ...typography.lHeadingSM,
+    } as TextStyle,
     bookmarkIco: {
       width: 26,
       height: 26,
@@ -21,15 +29,13 @@ const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
       fontSize: 12,
     },
     name: {
-      fontSize: 14,
       color: colors.text.default,
-      ...fontStyles.normal,
-    },
+      ...typography.lBodyMDMedium,
+    } as TextStyle,
     url: {
-      fontSize: 12,
       color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
+      ...typography.lBodySM,
+    } as TextStyle,
     item: {
       paddingVertical: 8,
       marginBottom: 8,
@@ -44,6 +50,9 @@ const styleSheet = ({ theme: { colors } }: { theme: Theme }) =>
     },
     bg: {
       flex: 1,
+    },
+    deleteFavorite: {
+      marginLeft: 10,
     },
   });
 

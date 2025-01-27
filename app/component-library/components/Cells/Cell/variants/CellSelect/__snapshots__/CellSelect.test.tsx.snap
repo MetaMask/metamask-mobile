@@ -240,7 +240,7 @@ exports[`CellSelect should render default settings correctly 1`] = `
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderColor": "#bbc0c5",
+                "borderColor": "#848c96",
                 "borderRadius": 10,
                 "borderWidth": 1,
                 "height": 24,

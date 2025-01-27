@@ -522,7 +522,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -557,7 +557,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(187, 192, 197, 1)",
+                                        "borderColor": "rgba(132, 140, 150, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -587,7 +587,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(187, 192, 197, 1)",
+                                        "borderColor": "rgba(132, 140, 150, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -622,7 +622,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(187, 192, 197, 1)",
+                                        "borderColor": "rgba(132, 140, 150, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -880,7 +880,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         collapsable={false}
                                         style={
                                           {
-                                            "borderColor": "rgba(187, 192, 197, 1)",
+                                            "borderColor": "rgba(132, 140, 150, 1)",
                                             "borderRadius": 4,
                                             "borderStyle": "solid",
                                             "borderWidth": 1,
@@ -915,7 +915,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -945,7 +945,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -980,7 +980,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1165,7 +1165,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         collapsable={false}
                                         style={
                                           {
-                                            "borderColor": "rgba(187, 192, 197, 1)",
+                                            "borderColor": "rgba(132, 140, 150, 1)",
                                             "borderRadius": 4,
                                             "borderStyle": "solid",
                                             "borderWidth": 1,
@@ -1200,7 +1200,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1230,7 +1230,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1265,7 +1265,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(187, 192, 197, 1)",
+                                          "borderColor": "rgba(132, 140, 150, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,

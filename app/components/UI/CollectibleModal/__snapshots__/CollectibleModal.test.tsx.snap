@@ -276,7 +276,7 @@ exports[`CollectibleModal should render correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#bbc0c5",
+                "backgroundColor": "#848c96",
                 "borderRadius": 4,
                 "height": 5,
                 "width": 48,
