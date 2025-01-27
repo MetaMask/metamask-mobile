@@ -13,7 +13,7 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 export enum DateRange {
   DAILY = '7D',
   MONTHLY = 'M',
-  YEARLY = 'Y ',
+  YEARLY = 'Y',
 }
 
 interface TimePeriodButtonGroupProps {
