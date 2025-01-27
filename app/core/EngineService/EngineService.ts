@@ -163,6 +163,10 @@ export class EngineService {
         key: `${engine.context.SnapController.name}:stateChange`,
       },
       {
+        name: 'SnapInterfaceController',
+        key: `${engine.context.SnapInterfaceController.name}:stateChange`,
+      },
+      {
         name: 'SubjectMetadataController',
         key: `${engine.context.SubjectMetadataController.name}:stateChange`,
       },
