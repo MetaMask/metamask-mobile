@@ -129,8 +129,6 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
     isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
-  console.log('selectedAccountTokensChains', selectedAccountTokensChains);
-
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
