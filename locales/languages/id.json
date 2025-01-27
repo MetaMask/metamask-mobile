@@ -3580,7 +3580,6 @@
     "network": "Jaringan",
     "simulation": {
       "title": "Estimasi perubahan",
-      "personal_sign_info": "Anda masuk ke sebuah situs dan tidak ada perkiraan perubahan pada akun Anda.",
       "tooltip": "Estimasi perubahan merupakan hal yang mungkin terjadi jika Anda melakukan transaksi ini. Ini hanyalah prediksi, bukan jaminan."
     }
   },

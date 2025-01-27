@@ -3580,7 +3580,6 @@
     "network": "Red",
     "simulation": {
       "title": "Cambios estimados",
-      "personal_sign_info": "Está iniciando sesión en un sitio y no se prevén cambios en su cuenta.",
       "tooltip": "Los cambios estimados son lo que podría ocurrir si se lleva a cabo esta transacción. Esto es solo una predicción, no una garantía."
     }
   },

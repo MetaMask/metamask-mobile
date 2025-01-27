@@ -3580,7 +3580,6 @@
     "network": "Netzwerk",
     "simulation": {
       "title": "Geschätzte Änderungen",
-      "personal_sign_info": "Sie melden sich bei einer Website an und es sind keine Änderungen an Ihrem Konto vorgesehen.",
       "tooltip": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie."
     }
   },

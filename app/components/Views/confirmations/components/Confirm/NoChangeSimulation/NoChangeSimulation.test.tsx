@@ -11,9 +11,7 @@ describe('NoChangeSimulation', () => {
     });
     expect(getByText('Estimated changes')).toBeDefined();
     expect(
-      getByText(
-        "You're signing into a site and there are no predicted changes to your account."
-      ),
+      getByText('No changes'),
     ).toBeDefined();
   });
 

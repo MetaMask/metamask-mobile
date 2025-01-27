@@ -3580,7 +3580,6 @@
     "network": "Ağ",
     "simulation": {
       "title": "Tahmini değişiklikler",
-      "personal_sign_info": "Bir siteye giriş yapıyorsunuz ve hesabınızda öngörülen herhangi bir değişiklik yok.",
       "tooltip": "Tahmini değişiklikler bu işlemi gerçekleştirirseniz meydana gelebilecek değişikliklerdir. Bu bir garanti değil, sadece bir tahmindir."
     }
   },

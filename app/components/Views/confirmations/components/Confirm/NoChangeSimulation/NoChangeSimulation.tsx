@@ -22,7 +22,7 @@ const NoChangeSimulation = () => {
         label={strings('confirm.simulation.title')}
         tooltip={strings('confirm.simulation.tooltip')}
       >
-        {strings('confirm.simulation.personal_sign_info')}
+        {strings('confirm.simulation.info_no_changes')}
       </InfoRow>
     </InfoSection>
   );

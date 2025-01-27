@@ -3580,7 +3580,6 @@
     "network": "Mạng",
     "simulation": {
       "title": "Thay đổi ước tính",
-      "personal_sign_info": "Bạn đang đăng nhập vào một trang web và dự kiến không có thay đổi nào đối với tài khoản của bạn.",
       "tooltip": "Thay đổi ước tính là những gì có thể xảy ra nếu bạn thực hiện giao dịch này. Đây chỉ là dự đoán, không phải là đảm bảo."
     }
   },

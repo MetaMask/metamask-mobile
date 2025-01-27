@@ -3615,6 +3615,7 @@
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",
+      "info_no_changes": "No changes",
       "info_permit": "You're giving the spender permission to spend this many tokens from your account.",
       "label_change_type_bidding": "You bid",
       "label_change_type_listing": "You list",
@@ -3624,7 +3625,6 @@
       "label_change_type_receive": "You receive",
       "label_change_type_revoke": "Revoke",
       "label_change_type_transfer": "You send",
-      "personal_sign_info": "You're signing into a site and there are no predicted changes to your account.",
       "title": "Estimated changes",
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
