@@ -536,7 +536,12 @@ describe('NftGridItem', () => {
 
   it('renders correctly with a valid nft', () => {
     const { getByText, getByTestId } = renderWithProvider(
-      <NftGridItem nft={mockNft} navigation={mockNavigation} />,
+      <NftGridItem
+        nft={mockNft}
+        navigation={mockNavigation}
+        actionSheetRef={{ current: { show: jest.fn() } }}
+        longPressedCollectible={{ current: { address: '', tokenId: '' } }}
+      />,
       { state: mockState },
     );
 
