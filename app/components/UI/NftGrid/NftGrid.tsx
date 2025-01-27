@@ -144,11 +144,14 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     );
   };
 
+  const FIRST_MENU_ACTION = 0;
+  const SECOND_MENU_ACTION = 1;
+
   const handleMenuAction = (index: number) => {
-    if (index === 1) {
-      removeNft();
-    } else if (index === 0) {
+    if (index === FIRST_MENU_ACTION) {
       refreshMetadata();
+    } else if (index === SECOND_MENU_ACTION) {
+      removeNft();
     }
   };
 
