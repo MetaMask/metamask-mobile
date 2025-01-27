@@ -94,29 +94,19 @@ const NetworkVerificationInfo = ({
 
   const isDappRequest = useMemo(() => {
     // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
-    const isDapp = Boolean(customNetworkInformation.pageMeta?.url);
-    console.log('>>> isDappRequest:', isDapp);
-    return isDapp;
+    return Boolean(customNetworkInformation.pageMeta?.url);
   }, [customNetworkInformation]);
 
   const matchingPopularNetwork = useMemo(() => {
     if (!isDappRequest) return null;
-    const match = PopularList.find(
+    return PopularList.find(
       (network) => network.chainId === customNetworkInformation.chainId,
     );
-    console.log('>>> matchingPopularNetwork:', match);
-    return match;
   }, [isDappRequest, customNetworkInformation.chainId]);
 
   const hasRpcMismatch = useMemo(() => {
     if (!matchingPopularNetwork) return false;
-    const match =
-      matchingPopularNetwork.rpcUrl === customNetworkInformation.rpcUrl;
-    console.log('>>> RPC URLs match?:', match, {
-      provided: customNetworkInformation.rpcUrl,
-      expected: matchingPopularNetwork.rpcUrl,
-    });
-    return !match;
+    return matchingPopularNetwork.rpcUrl !== customNetworkInformation.rpcUrl;
   }, [matchingPopularNetwork, customNetworkInformation.rpcUrl]);
 
   const goToLearnMore = () => {
