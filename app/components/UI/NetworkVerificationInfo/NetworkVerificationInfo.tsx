@@ -60,13 +60,11 @@ const NetworkVerificationInfo = ({
   onReject,
   onConfirm,
   isCustomNetwork = false,
-  isMissmatchingRPCUrl = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
   onConfirm: () => void;
   isCustomNetwork?: boolean;
-  isMissmatchingRPCUrl?: boolean;
 }) => {
   if (
     isMultichainVersion1Enabled &&
