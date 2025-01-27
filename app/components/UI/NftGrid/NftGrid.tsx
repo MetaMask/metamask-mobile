@@ -99,7 +99,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     const { NftController } = Engine.context;
 
     if (
-      !longPressedCollectible?.current?.address &&
+      !longPressedCollectible?.current?.address ||
       !longPressedCollectible?.current?.tokenId
     ) {
       return null;
@@ -132,7 +132,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     const { NftController } = Engine.context;
 
     if (
-      !longPressedCollectible?.current?.address &&
+      !longPressedCollectible?.current?.address ||
       !longPressedCollectible?.current?.tokenId
     ) {
       return null;
