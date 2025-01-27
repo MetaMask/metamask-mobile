@@ -44,6 +44,7 @@ import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selector
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 interface Alert {
   alertError: string;
@@ -67,6 +68,13 @@ const NetworkVerificationInfo = ({
   isCustomNetwork?: boolean;
   isMissmatchingRPCUrl?: boolean;
 }) => {
+  if (
+    isMultichainVersion1Enabled &&
+    (isCustomNetwork || customNetworkInformation)
+  ) {
+    // console.log('>>> Network Add:', customNetworkInformation);
+  }
+
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
   >(null);
@@ -85,6 +93,33 @@ const NetworkVerificationInfo = ({
     setShowReviewDefaultRpcUrlChanges(!showReviewDefaultRpcUrlChanges);
 
   const customRpcUrl = customNetworkInformation.rpcUrl;
+
+  const isDappRequest = useMemo(() => {
+    // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
+    const isDapp = Boolean(customNetworkInformation.pageMeta?.url);
+    console.log('>>> isDappRequest:', isDapp);
+    return isDapp;
+  }, [customNetworkInformation]);
+
+  const matchingPopularNetwork = useMemo(() => {
+    if (!isDappRequest) return null;
+    const match = PopularList.find(
+      (network) => network.chainId === customNetworkInformation.chainId,
+    );
+    console.log('>>> matchingPopularNetwork:', match);
+    return match;
+  }, [isDappRequest, customNetworkInformation.chainId]);
+
+  const hasRpcMismatch = useMemo(() => {
+    if (!matchingPopularNetwork) return false;
+    const match =
+      matchingPopularNetwork.rpcUrl === customNetworkInformation.rpcUrl;
+    console.log('>>> RPC URLs match?:', match, {
+      provided: customNetworkInformation.rpcUrl,
+      expected: matchingPopularNetwork.rpcUrl,
+    });
+    return !match;
+  }, [matchingPopularNetwork, customNetworkInformation.rpcUrl]);
 
   const goToLearnMore = () => {
     Linking.openURL(
@@ -169,12 +204,12 @@ const NetworkVerificationInfo = ({
   const renderNetworkRpcUrlLabel = () => (
     <View style={styles.networkUrlLabelRow}>
       <Text
-        color={isMissmatchingRPCUrl ? TextColor.Primary : TextColor.Default}
+        color={hasRpcMismatch ? TextColor.Primary : TextColor.Default}
         variant={TextVariant.BodyMDMedium}
       >
         {strings('networks.network_rpc_url_label')}
       </Text>
-      {isMissmatchingRPCUrl && (
+      {hasRpcMismatch && (
         <TouchableOpacity
           onPress={() => {
             showReviewDefaultRpcUrlChangesModal();
@@ -353,13 +388,13 @@ const NetworkVerificationInfo = ({
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.current_label')}
           </Text>
-          <Text style={styles.textSection}>{customRpcUrl}</Text>
+          <Text style={styles.textSection}>
+            {hideKeyFromUrl(matchingPopularNetwork?.rpcUrl)}
+          </Text>
           <Text variant={TextVariant.BodyMDBold}>
             {strings('networks.new_label')}
           </Text>
-          <Text style={styles.textSection}>
-            {'https://flashbots.polygon-mainnet.com'}
-          </Text>
+          <Text style={styles.textSection}>{hideKeyFromUrl(customRpcUrl)}</Text>
         </View>
       </View>
     </View>
