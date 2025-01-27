@@ -98,7 +98,10 @@ import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics
 import { selectGasFeeEstimates } from '../../../../../selectors/confirmTransaction';
 import { selectGasFeeControllerEstimateType } from '../../../../../selectors/gasFeeController';
 import { createBuyNavigationDetails } from '../../../../UI/Ramp/routes/utils';
-import { selectNativeCurrencyByChainId, selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderTypeByChainId,
+} from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
@@ -1037,14 +1040,14 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (
-    { address, decimals, symbol, isETH },
+    { address, decimals, symbol, isETH, isNative },
     renderableBalance,
   ) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${symbol}`;
-    } else if (isETH) {
+    } else if (isETH || isNative) {
       currentBalance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${symbol}`;
@@ -1586,7 +1589,7 @@ const mapStateToProps = (state, ownProps) => {
     chainId,
     networkClientId,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>
