@@ -201,7 +201,10 @@ const AssetOptions = (props: Props) => {
                 duration: 5000,
                 title: strings('wallet.token_toast.token_hidden_title'),
                 description: strings('wallet.token_toast.token_hidden_desc', {
-                  tokenSymbol: tokenList[address.toLowerCase()]?.symbol || null,
+                  tokenSymbol:
+                    tokenList[address.toLowerCase()]?.symbol ||
+                    asset.symbol ||
+                    null,
                 }),
               });
               trackEvent(
@@ -212,7 +215,7 @@ const AssetOptions = (props: Props) => {
                     asset_type: 'token',
                     tokens: [
                       `${
-                        tokenList[address.toLowerCase()]?.symbol
+                        asset.symbol || tokenList[address.toLowerCase()]?.symbol
                       } - ${address}`,
                     ],
                     chain_id: getDecimalChainId(chainId),
