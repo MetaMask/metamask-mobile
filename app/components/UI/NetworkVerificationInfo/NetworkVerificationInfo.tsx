@@ -66,13 +66,6 @@ const NetworkVerificationInfo = ({
   onConfirm: () => void;
   isCustomNetwork?: boolean;
 }) => {
-  if (
-    isMultichainVersion1Enabled &&
-    (isCustomNetwork || customNetworkInformation)
-  ) {
-    // console.log('>>> Network Add:', customNetworkInformation);
-  }
-
   const [networkInfoMaxHeight, setNetworkInfoMaxHeight] = useState<
     number | null
   >(null);
@@ -92,10 +85,11 @@ const NetworkVerificationInfo = ({
 
   const customRpcUrl = customNetworkInformation.rpcUrl;
 
-  const isDappRequest = useMemo(() => {
+  const isDappRequest = useMemo(
     // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
-    return Boolean(customNetworkInformation.pageMeta?.url);
-  }, [customNetworkInformation]);
+    () => Boolean(customNetworkInformation.pageMeta?.url),
+    [customNetworkInformation],
+  );
 
   const matchingPopularNetwork = useMemo(() => {
     if (!isDappRequest) return null;
