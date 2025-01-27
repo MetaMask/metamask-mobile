@@ -43,7 +43,7 @@ interface ActionSheetType {
   show: () => void;
 }
 
-interface LongPressedCollectibleType {
+export interface LongPressedCollectibleType {
   address: string;
   tokenId: string;
 }
@@ -99,7 +99,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     const { NftController } = Engine.context;
 
     if (
-      !longPressedCollectible?.current?.address ||
+      !longPressedCollectible?.current?.address &&
       !longPressedCollectible?.current?.tokenId
     ) {
       return null;
@@ -132,7 +132,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     const { NftController } = Engine.context;
 
     if (
-      !longPressedCollectible?.current?.address ||
+      !longPressedCollectible?.current?.address &&
       !longPressedCollectible?.current?.tokenId
     ) {
       return null;
@@ -250,6 +250,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
               nft={item}
               navigation={navigation}
               privacyMode={privacyMode}
+              actionSheetRef={actionSheetRef}
+              longPressedCollectible={longPressedCollectible}
             />
           )}
           keyExtractor={(_, index) => index.toString()}
