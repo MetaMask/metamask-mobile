@@ -18,10 +18,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isBtcMainnetAddress } from '../../core/Multichain/utils';
 import { isMainNet } from '../../util/networks';
-import {
-  MultichainNativeAssets,
-  MultichainNetworks,
-} from '@metamask/assets-controllers';
+import { NETWORK_ASSETS_MAP } from '@metamask/assets-controllers';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
 
@@ -232,10 +229,7 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
     }
     // We assume that there's at least one asset type in and that is the native
     // token for that network.
-    const asset =
-      MultichainNativeAssets[
-        multichainCurrentNetwork.chainId as keyof typeof MultichainNativeAssets
-      ]?.[0];
+    const asset = NETWORK_ASSETS_MAP[multichainCurrentNetwork.chainId]?.[0];
 
     if (!asset) {
       console.warn(
@@ -299,10 +293,7 @@ export const selectMultichainConversionRate = createDeepEqualSelector(
     if (isEvm) {
       return evmConversionRate;
     }
-    console.log('multichainProviderConfig', multichainProviderConfig);
     const ticker = multichainProviderConfig?.ticker?.toLowerCase();
-    console.log('ticker', ticker);
-    console.log('multichaincCoinRates', multichaincCoinRates);
     return ticker ? multichaincCoinRates?.[ticker]?.conversionRate : undefined;
   },
 );
