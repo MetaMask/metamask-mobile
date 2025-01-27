@@ -193,12 +193,6 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         removeFavoriteCollectible(selectedAddress, chainId, elm);
       });
 
-      filteredcollectibles.forEach((collectible: Nft) => {
-        if (String(collectible.tokenId).includes('e+')) {
-          removeFavoriteCollectible(selectedAddress, chainId, collectible);
-        }
-      });
-
       if (updatable.length !== 0) {
         await NftController.updateNftMetadata({
           nfts: updatable,
