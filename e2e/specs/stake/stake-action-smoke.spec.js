@@ -29,7 +29,7 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import axios from 'axios';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+
 import {
   startMockServer,
   stopMockServer,
@@ -151,7 +151,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(3000);
   })
 
-  it('should relaunch the app and log in', async () => {
+  it('Stake Claim ETH', async () => {
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
