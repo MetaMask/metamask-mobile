@@ -84,6 +84,7 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
+import useApprovalRequest from '../confirmations/hooks/useApprovalRequest';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -98,6 +99,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const { approvalRequest } = useApprovalRequest();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
@@ -135,6 +137,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   // origin is set to the last active tab url in the browser which can conflict with sdk
   const inappBrowserOrigin: string = useSelector(getActiveTabUrl, isEqual);
+  const origin = approvalRequest?.origin;
   const accountsLength = useSelector(selectAccountsLength);
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
@@ -163,7 +166,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const { domainTitle, hostname } = useMemo(() => {
     let title = '';
-    let dappHostname = dappUrl || channelIdOrHostname;
+    let dappHostname = origin || dappUrl || channelIdOrHostname;
 
     if (
       isOriginMMSDKRemoteConn &&
@@ -186,6 +189,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     return { domainTitle: title, hostname: dappHostname };
   }, [
     isOriginWalletConnect,
+    origin,
     inappBrowserOrigin,
     isOriginMMSDKRemoteConn,
     isChannelId,
@@ -275,7 +279,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
+  const isAllowedOrigin = useCallback((originToCheck: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -283,7 +287,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(origin);
+    const phishingControllerTestResult = PhishingController.test(originToCheck);
 
     return !phishingControllerTestResult.result;
   }, []);
