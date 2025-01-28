@@ -19,7 +19,7 @@ jest.mock('./processAttribution', () => ({
 jest.mock('./Analytics/MetaMetrics');
 
 const mockMetrics = {
-  trackEvent: jest.fn().mockImplementation(() => Promise.resolve()),
+  trackEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
   addTraitsToUser: jest.fn(() => Promise.resolve()),
   isEnabled: jest.fn(() => true),
@@ -103,6 +103,49 @@ describe('AppStateEventListener', () => {
     expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
         MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED).build()
     );
+  });
+
+  it('identifies user when app becomes active', () => {
+    jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue({} as unknown as ReduxStore);
+
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
+    expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
+      'Batch account balance requests': 'OFF',
+      'Enable OpenSea API': 'OFF',
+      'NFT Autodetection': 'OFF',
+      'Theme': undefined,
+      'applicationVersion': expect.any(Promise),
+      'currentBuildNumber': expect.any(Promise),
+      'deviceBrand': 'Apple',
+      'operatingSystemVersion': 'ios',
+      'platform': 'ios',
+      'security_providers': '',
+      'token_detection_enable': 'OFF',
+    });
+  });
+
+  it('logs error when identifying user fails', () => {
+    jest
+        .spyOn(ReduxService, 'store', 'get')
+        .mockReturnValue({} as unknown as ReduxStore);
+    const testError = new Error('Test error');
+    mockMetrics.addTraitsToUser.mockImplementation(() => {
+      throw testError;
+    });
+
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(Logger.error).toHaveBeenCalledWith(
+        testError,
+        'AppStateManager: Error processing app state change'
+    );
+    expect(mockMetrics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('handles errors gracefully', () => {
