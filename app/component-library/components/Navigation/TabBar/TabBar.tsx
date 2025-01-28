@@ -5,6 +5,7 @@ import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+
 // External dependencies.
 import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
@@ -14,6 +15,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { isSettingsRedesignEnabled } from '../../../../components/Views/Profile/index.constants';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
@@ -92,8 +94,11 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
-              screen: 'Settings',
+              screen: isSettingsRedesignEnabled
+                ? Routes.SETTINGS.PROFILE_SETTINGS
+                : Routes.SETTINGS.SETTINGS,
             });
+            break;
         }
       };
 
