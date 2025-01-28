@@ -13,6 +13,8 @@ import { renderFiat } from '../../../util/number';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import images from '../../../images/image-icons';
 import { Image } from 'react-native';
+import Engine from '../../../core/Engine/Engine';
+import Logger from '../../../util/Logger';
 
 // We need this type to match ScrollableTabView's requirements
 interface NonEvmTokensProps {
@@ -64,10 +66,17 @@ const NonEvmTokens: React.FC<NonEvmTokensProps> = () => {
   ];
 
   const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => {
+    requestAnimationFrame(async () => {
+      setRefreshing(true);
+
+      const { MultichainBalancesController } = Engine.context;
+
+      const actions = [MultichainBalancesController.updateBalances()];
+      await Promise.all(actions).catch((error) => {
+        Logger.error(error, 'Error while refreshing NonEvm tokens');
+      });
       setRefreshing(false);
-    }, 1000);
+    });
   };
 
   const showRemoveMenu = useCallback(() => {
