@@ -10,7 +10,7 @@ import MaxInputModal from '../components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
-import EarnTokenList from '../components/EarnTokenList/EarnTokenList';
+import EarnTokenList from '../components/EarnTokenList';
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
 

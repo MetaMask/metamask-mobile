@@ -1304,7 +1304,6 @@
       "swap": "Swapping not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
-      "earn": "Earning not supported for this account",
       "action": "This action is not supported for this account"
     },
     "description": "Description",
@@ -3518,6 +3517,10 @@
     "estimated_unstaking_time": "1 to 11 days",
     "proceed_anyway": "Proceed anyway",
     "gas_cost_impact": "Gas cost impact",
+    "select_a_token": "Select a token",
+    "you_could_earn": "You could earn",
+    "per_year_on_your_tokens": "per year on your tokens",
+    "deposit": "Deposit"
     "gas_cost_impact_warning": "Warning: the transaction gas cost will account for more than {{percentOverDeposit}}% of your deposit.",
     "view_earnings_history": "View earnings history",
     "earnings_history_title": "{{ticker}} earnings",

@@ -14,14 +14,18 @@ import { selectChainId } from '../../../../../../selectors/networkController';
 import { EVENT_LOCATIONS } from '../../../constants/events';
 import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { TokenI } from '../../../../Tokens/types';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
+  asset: TokenI;
   hasStakedPositions: boolean;
   hasEthToUnstake: boolean;
 }
 
 const StakingButtons = ({
   style,
+  asset,
   hasStakedPositions,
   hasEthToUnstake,
 }: StakingButtonsProps) => {
@@ -57,7 +61,13 @@ const StakingButtons = ({
 
   const onStakePress = async () => {
     await handleIsStakingSupportedChain();
-    navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+    navigate('StakeScreens', {
+      screen: Routes.STAKING.STAKE,
+      params: {
+        token: asset,
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+      },
+    });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.STAKE_BUTTON_CLICKED)
         .addProperties({

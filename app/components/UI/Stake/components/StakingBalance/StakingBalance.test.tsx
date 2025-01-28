@@ -6,6 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Image } from 'react-native';
 import {
+  MOCK_ETH_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_ASSET,
@@ -16,6 +17,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -145,7 +147,7 @@ describe('StakingBalance', () => {
 
   it('redirects to StakeInputView on stake button click', async () => {
     const { getByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_ASSET} />,
+      <StakingBalance asset={MOCK_ETH_ASSET} />,
       { state: mockInitialState },
     );
 
@@ -156,6 +158,10 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
+      params: {
+        token: MOCK_ETH_ASSET,
+        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+      },
     });
   });
 

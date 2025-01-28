@@ -2,7 +2,7 @@ import { TextProps } from '../../../../../component-library/components/Texts/Tex
 import { TokenI } from '../../../Tokens/types';
 
 interface Text extends Omit<TextProps, 'children'> {
-  value: string;
+  value?: string;
 }
 
 export interface EarnTokenListItemProps {

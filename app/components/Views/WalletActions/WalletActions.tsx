@@ -96,7 +96,7 @@ const WalletActions = () => {
   const onEarn = useCallback(async () => {
     if (isStablecoinLendingFeatureEnabled()) {
       closeBottomSheetAndNavigate(() => {
-        navigate('StakeScreens', {
+        navigate('StakeModals', {
           screen: Routes.STAKING.MODALS.EARN_TOKEN_LIST,
         });
       });
