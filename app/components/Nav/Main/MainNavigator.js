@@ -24,7 +24,6 @@ import Wallet from '../../Views/Wallet';
 import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
-import Collectible from '../../Views/Collectible';
 import Send from '../../Views/confirmations/Send';
 import SendTo from '../../Views/confirmations/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -60,7 +59,6 @@ import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Views/OrderDetails';
 import SendTransaction from '../../UI/Ramp/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
-import BrowserUrlModal from '../../Views/BrowserUrlModal';
 ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import { SnapSettings } from '../../Views/Snaps/SnapSettings';
@@ -168,11 +166,6 @@ const WalletTabStackFlow = () => (
       options={AddAsset.navigationOptions}
     />
     <Stack.Screen
-      name="Collectible"
-      component={Collectible}
-      options={Collectible.navigationOptions}
-    />
-    <Stack.Screen
       name="ConfirmAddAsset"
       component={ConfirmAddAsset}
       options={ConfirmAddAsset.navigationOptions}
@@ -212,11 +205,10 @@ const BrowserFlow = () => (
       cardStyle: { backgroundColor: importedColors.transparent },
     }}
   >
-    <Stack.Screen name={Routes.BROWSER.VIEW} component={Browser} />
     <Stack.Screen
-      name={Routes.BROWSER.URL_MODAL}
-      component={BrowserUrlModal}
-      options={{ animationEnabled: false, headerShown: false }}
+      name={Routes.BROWSER.VIEW}
+      component={Browser}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

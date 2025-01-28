@@ -122,7 +122,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 4,
                                 "borderWidth": 1,
                                 "flexDirection": "row",
@@ -352,7 +352,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                             "height": 32,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
-                                            "shadowColor": "#0000001a",
+                                            "shadowColor": "#0000001A",
                                             "shadowOffset": {
                                               "height": 2,
                                               "width": 0,
@@ -514,7 +514,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   "paddingHorizontal": 10,
                                 },
                                 {
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                 },
                               ]
                             }
@@ -739,7 +739,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                           style={
                             {
                               "alignItems": "center",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 12,
                               "borderWidth": 1,
                               "color": "#141618",
@@ -781,7 +781,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                         style={
                           [
                             {
-                              "borderColor": "#bbc0c566",
+                              "borderColor": "#BBC0C566",
                               "borderRadius": 8,
                               "borderWidth": 1,
                               "padding": 16,
@@ -1429,7 +1429,7 @@ exports[`TransactionReview should match snapshot 1`] = `
       <View
         style={
           {
-            "borderColor": "#bbc0c5",
+            "borderColor": "#848c96",
             "borderRadius": 8,
             "borderWidth": 1,
             "flex": 1,

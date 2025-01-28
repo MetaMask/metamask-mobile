@@ -48,18 +48,16 @@ export class AppStateEventListener {
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,
       });
+      const appOpenedEventBuilder = MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED);
       if (attribution) {
         const { attributionId, utm, ...utmParams } = attribution;
         DevLogger.log(
           `AppStateManager:: processAppStateChange:: sending event 'APP_OPENED' attributionId=${attribution.attributionId} utm=${attribution.utm}`,
           utmParams,
         );
-        MetaMetrics.getInstance().trackEvent(
-          MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.APP_OPENED)
-            .addSensitiveProperties({ attributionId, ...utmParams })
-            .build(),
-        );
+        appOpenedEventBuilder.addProperties({ attributionId, ...utmParams });
       }
+      MetaMetrics.getInstance().trackEvent(appOpenedEventBuilder.build());
     } catch (error) {
       Logger.error(
         error as Error,

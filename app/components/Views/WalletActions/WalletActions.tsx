@@ -40,6 +40,9 @@ import {
 } from '../../UI/Ramp/routes/utils';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
+import Engine from '../../../core/Engine';
+import useStakingChain from '../../UI/Stake/hooks/useStakingChain';
+import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -51,7 +54,7 @@ const WalletActions = () => {
   const ticker = useSelector(selectTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
   const dispatch = useDispatch();
-
+  const { isStakingSupportedChain } = useStakingChain();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
 
@@ -87,6 +90,32 @@ const WalletActions = () => {
     trackEvent,
     chainId,
     createEventBuilder,
+  ]);
+
+  const onEarn = useCallback(async () => {
+    if (!isStakingSupportedChain) {
+      await Engine.context.NetworkController.setActiveNetwork('mainnet');
+    }
+
+    closeBottomSheetAndNavigate(() => {
+      navigate('StakeScreens', { screen: Routes.STAKING.STAKE });
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.EARN_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Earn',
+          location: 'TabBar',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  }, [
+    closeBottomSheetAndNavigate,
+    navigate,
+    chainId,
+    createEventBuilder,
+    trackEvent,
+    isStakingSupportedChain,
   ]);
 
   const onBuy = useCallback(() => {
@@ -263,6 +292,17 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
+        {isStablecoinLendingFeatureEnabled() && (
+          <WalletAction
+            actionType={WalletActionType.Earn}
+            iconName={IconName.Plant}
+            onPress={onEarn}
+            actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
       </View>
     </BottomSheet>
   );

@@ -140,7 +140,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       "alignItems": "center",
                       "alignSelf": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -203,7 +203,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -317,7 +317,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                                   "height": 32,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
+                                  "shadowColor": "#0000001A",
                                   "shadowOffset": {
                                     "height": 2,
                                     "width": 0,
@@ -434,7 +434,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
               style={
                 {
                   "alignSelf": "center",
-                  "borderColor": "#bbc0c5",
+                  "borderColor": "#848c96",
                   "borderRadius": 10,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -805,7 +805,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       "alignItems": "center",
                       "alignSelf": "center",
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 99,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -868,7 +868,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderColor": "#bbc0c5",
+                      "borderColor": "#848c96",
                       "borderRadius": 4,
                       "borderWidth": 1,
                       "flexDirection": "row",
@@ -982,7 +982,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                                   "height": 32,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
-                                  "shadowColor": "#0000001a",
+                                  "shadowColor": "#0000001A",
                                   "shadowOffset": {
                                     "height": 2,
                                     "width": 0,
@@ -1099,7 +1099,7 @@ exports[`TypedSign onReject rejects message 1`] = `
               style={
                 {
                   "alignSelf": "center",
-                  "borderColor": "#bbc0c5",
+                  "borderColor": "#848c96",
                   "borderRadius": 10,
                   "borderWidth": 1,
                   "flexDirection": "row",

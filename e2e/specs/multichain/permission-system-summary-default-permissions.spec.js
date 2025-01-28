@@ -35,7 +35,6 @@ describe(
           await loginToApp();
           await TabBarComponent.tapBrowser();
           await Browser.navigateToTestDApp();
-
           // Step 2: Navigate to permissions management
           await Browser.tapNetworkAvatarButtonOnBrowser();
           await ConnectedAccountsModal.tapManagePermissionsButton();
