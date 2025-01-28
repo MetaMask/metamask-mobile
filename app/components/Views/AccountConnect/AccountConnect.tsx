@@ -279,7 +279,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => {
+  const isAllowedOrigin = useCallback((originToCheck: string) => {
     const { PhishingController } = Engine.context;
 
     // Update phishing configuration if it is out-of-date
@@ -287,7 +287,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     // down network requests. The configuration is updated for the next request.
     PhishingController.maybeUpdateState();
 
-    const phishingControllerTestResult = PhishingController.test(origin);
+    const phishingControllerTestResult = PhishingController.test(originToCheck);
 
     return !phishingControllerTestResult.result;
   }, []);
