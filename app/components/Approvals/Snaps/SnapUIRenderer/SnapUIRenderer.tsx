@@ -16,6 +16,7 @@ interface SnapUIRendererProps {
   isLoading: boolean;
   interfaceId: string;
   onCancel: () => void;
+  onConfirm: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -31,6 +32,7 @@ const SnapUIRendererComponent = ({
   isLoading = false,
   interfaceId,
   onCancel,
+  onConfirm,
 }: SnapUIRendererProps) => {
   const interfaceState = useSelector(
     (state) => getMemoizedInterface(state, interfaceId),
@@ -57,9 +59,10 @@ const SnapUIRendererComponent = ({
         element: content,
         useFooter,
         onCancel,
+        onConfirm,
         t: strings,
       }),
-    [content, useFooter, onCancel],
+    [content, useFooter, onCancel, onConfirm],
   );
 
   if (isLoading || !content) {

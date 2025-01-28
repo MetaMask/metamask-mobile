@@ -50,14 +50,14 @@ const ButtonBase = ({
       accessible
       {...props}
     >
-      {/* {startIconName && (
+      {startIconName && (
         <Icon
           color={labelColor.toString()}
           name={startIconName}
           size={DEFAULT_BUTTONBASE_ICON_SIZE}
           style={styles.startIcon}
         />
-      )} */}
+      )}
       {typeof label === 'string' ? (
         <Text
           variant={labelTextVariant}

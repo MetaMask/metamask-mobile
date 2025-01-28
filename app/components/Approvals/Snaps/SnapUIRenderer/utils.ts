@@ -12,6 +12,7 @@ export interface MapToTemplateParams {
   form?: string;
   useFooter?: boolean;
   onCancel?: () => void;
+  onConfirm?: () => void;
   t?: (key: string) => string;
 }
 

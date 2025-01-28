@@ -19,6 +19,7 @@ export const DEFAULT_FOOTER = {
       bottom: 0,
       width: '100%',
       justifyContent: JustifyContent.spaceEvenly,
+      paddingVertical: 20,
     },
   },
 };
@@ -51,6 +52,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
   element: e,
   t,
   onCancel,
+  onConfirm,
   ...params
 }) => {
   const defaultButtons = getDefaultButtons(e, t, onCancel);
@@ -76,6 +78,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
             : ButtonVariant.Primary,
         isSnapAction: true,
         onCancel,
+        onConfirm,
       },
       children: buttonMapped.children,
     };

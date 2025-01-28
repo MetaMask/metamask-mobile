@@ -7,6 +7,7 @@ export interface UIComponentParams<T extends JSXElement> {
   form?: string;
   useFooter?: boolean;
   onCancel?: () => void;
+  onConfirm?: () => void;
   promptLegacyProps?: {
     onInputChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
     inputValue: string;

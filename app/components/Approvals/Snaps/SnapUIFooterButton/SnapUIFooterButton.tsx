@@ -13,24 +13,20 @@ import {
 import { ActivityIndicator } from 'react-native';
 import { DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.constants';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
-import Text from '../../../../component-library/components/Texts/Text';
-
-import {
-  DEFAULT_BUTTONBASE_LABEL_COLOR,
-  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
-} from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase/ButtonBase.constants';
 
 type SnapUIFooterButtonProps = {
   name?: string;
   variant?: ButtonVariants;
   isSnapAction?: boolean;
   onCancel?: () => void;
+  onConfirm?: () => void;
 };
 
 export const SnapUIFooterButton: FunctionComponent<
   SnapUIFooterButtonProps & ButtonProps
 > = ({
   onCancel,
+  onConfirm,
   name,
   children,
   disabled = false,
@@ -51,6 +47,9 @@ export const SnapUIFooterButton: FunctionComponent<
     });
     if (name === 'cancel' && onCancel) {
       onCancel();
+    }
+    if (name === 'confirm' && onConfirm) {
+      onConfirm();
     }
   };
 

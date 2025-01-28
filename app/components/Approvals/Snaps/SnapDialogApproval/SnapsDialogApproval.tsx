@@ -139,6 +139,7 @@ const SnapDialogApproval = () => {
           interfaceId={interfaceId}
           isLoading={isLoading}
           onCancel={onCancel}
+          onConfirm={onConfirmInput}
         />
         {approvalRequest?.type !== SnapDialogTypes.CUSTOM && (
           <View style={styles.actionContainer}>
