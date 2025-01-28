@@ -499,3 +499,5 @@ export const isPermissionsSettingsV1Enabled =
 
 export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
+
+export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
