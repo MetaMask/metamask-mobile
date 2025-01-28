@@ -84,10 +84,16 @@ const wallet_switchEthereumChain = async ({
     return;
   }
 
-  throw providerErrors.custom({
-    code: 4902, // To-be-standardized "unrecognized chain ID" error
-    message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`,
-  });
+  MetaMetrics.getInstance().trackEvent(
+    MetricsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.NETWORK_UNRECOGNIZED,
+    )
+      .addProperties({
+        code: 4902, // To-be-standardized "unrecognized chain ID" error
+        message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.`,
+      })
+      .build(),
+  );
 };
 
 export default wallet_switchEthereumChain;
