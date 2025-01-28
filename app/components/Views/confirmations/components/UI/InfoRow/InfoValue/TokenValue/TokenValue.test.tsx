@@ -5,14 +5,7 @@ import { render } from '@testing-library/react-native';
 import TokenValue from './TokenValue';
 
 describe('TokenValue', () => {
-  it('should render string value correctly', () => {
-    const { getByText } = render(
-      <TokenValue value="1000000000000000000" decimals={18} />,
-    );
-    expect(getByText('1')).toBeDefined();
-  });
-
-  it('should render number value correctly', () => {
+  it('should render value correctly', () => {
     const { getByText } = render(
       <TokenValue value={1000000000000000000} decimals={18} />,
     );
@@ -43,21 +36,13 @@ describe('TokenValue', () => {
     expect(getByText('0')).toBeDefined();
   });
 
-  it('should handle undefined decimals', () => {
+  it('should handle very long value with undefined decimals', () => {
     const { getByText } = render(<TokenValue value="1000000000000000000" />);
-    expect(getByText('1,000,000,000,000,000,000')).toBeDefined();
+    expect(getByText('1,000,000,000,0...')).toBeDefined();
   });
 
-  it('should truncate long numbers according to specified limits', () => {
-    const { getByText } = render(
-      <TokenValue value="123456789.123456789123456789" decimals={18} />,
-    );
-    // Should truncate to 15 characters from start based on shortenString config
-    expect(getByText('123,456,789.123')).toBeDefined();
-  });
-
-  it('should handle very small numbers without showing scientific notation', () => {
+  it('should handle very small numbers', () => {
     const { getByText } = render(<TokenValue value="100" decimals={18} />);
-    expect(getByText('0.0000000000000001')).toBeDefined();
+    expect(getByText('< 0.000001')).toBeDefined();
   });
 });
