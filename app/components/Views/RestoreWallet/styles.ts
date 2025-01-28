@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import type { ThemeColors } from '@metamask/design-tokens/dist/types/js/themes/types';
+import type { ThemeColors } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
 export const createStyles = (colors: ThemeColors) =>

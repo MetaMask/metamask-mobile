@@ -356,7 +356,7 @@ enum EVENT_NAME {
   RECEIVE_BUTTON_CLICKED = 'Receive Button Clicked',
   SWAP_BUTTON_CLICKED = 'Swaps Button Clicked',
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
-
+  EARN_BUTTON_CLICKED = 'Earn Button Clicked',
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
@@ -820,6 +820,7 @@ const events = {
   RECEIVE_BUTTON_CLICKED: generateOpt(EVENT_NAME.RECEIVE_BUTTON_CLICKED),
   SWAP_BUTTON_CLICKED: generateOpt(EVENT_NAME.SWAP_BUTTON_CLICKED),
   SEND_BUTTON_CLICKED: generateOpt(EVENT_NAME.SEND_BUTTON_CLICKED),
+  EARN_BUTTON_CLICKED: generateOpt(EVENT_NAME.EARN_BUTTON_CLICKED),
   NETWORK_SELECTOR_PRESSED: generateOpt(EVENT_NAME.NETWORK_SELECTOR),
 
   // Edit account name
@@ -1134,6 +1135,11 @@ const legacyMetaMetricsEvents = {
     EVENT_NAME.DAPP_VIEW,
     ACTIONS.DAPP_VIEW,
     DESCRIPTION.DAPP_OPEN_IN_BROWSER,
+  ),
+  DAPP_GO_TO_FAVORITES: generateOpt(
+    EVENT_NAME.DAPP_VIEW,
+    ACTIONS.DAPP_VIEW,
+    DESCRIPTION.DAPP_GO_TO_FAVORITES,
   ),
   // Wallet
   WALLET_TOKENS: generateOpt(
