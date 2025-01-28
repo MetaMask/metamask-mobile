@@ -162,7 +162,7 @@
     "@metamask/eth-hd-keyring": "^9.0.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^15.0.0",
-    "@metamask/eth-ledger-bridge-keyring": "^8.0.0",
+    "@metamask/eth-ledger-bridge-keyring": "8.0.3",
     "@metamask/eth-query": "^4.0.0",
     "@metamask/eth-sig-util": "^8.0.0",
     "@metamask/eth-snap-keyring": "^7.1.0",
