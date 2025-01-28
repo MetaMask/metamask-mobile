@@ -30,6 +30,11 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
+  get stackingClaimLabel() {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
+  }
+
+
   get firstTransactionStatus() {
     return Matchers.getElementByID(
       CommonSelectorsIDs.TRANSACTION_STATUS,

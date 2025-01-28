@@ -169,7 +169,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
       }
 
-      // TODO: The following hack is needed to update the token balance until bug is fixed
+      // TODO: The following hack is needed to update the token balance until bug 13187 is fixed
       await TabBarComponent.tapWallet();
       await WalletView.tapNetworksButtonOnNavBar();
       await NetworkListModal.changeNetworkTo('Localhost', false);

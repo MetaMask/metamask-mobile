@@ -9,6 +9,7 @@ export const TokenOverviewSelectorsIDs = {
   SWAP_BUTTON: 'token-swap-button',
   BRIDGE_BUTTON: 'token-bridge-button',
   ADD_BUTTON: 'token-add-button',
+  CLAIM_BUTTON: 'claim-banner-claim-eth-button',
 };
 
 export const TokenOverviewSelectorsText = {

@@ -6,6 +6,7 @@ import {
 } from '../../selectors/wallet/TokenOverview.selectors';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../selectors/wallet/WalletActionsBottomSheet.selectors.js';
 import { WalletViewSelectorsIDs } from '../../selectors/wallet/WalletView.selectors';
+import { CommonSelectorsIDs } from '../../selectors/Common.selectors.js';
 
 class TokenOverview {
   get container() {
@@ -36,6 +37,10 @@ class TokenOverview {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
+  get claimButton() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
+  }
+
   get receiveButton() {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
   }
@@ -43,6 +48,11 @@ class TokenOverview {
   get noChartData() {
     return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
   }
+
+  get closeButton() {
+    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  }
+
 
   get chartPeriod1d() {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
@@ -86,6 +96,14 @@ class TokenOverview {
 
   async tapUnstakeButton() {
     await Gestures.waitAndTap(this.unstakeButton);
+  }
+
+  async tapBackButton() {
+      await Gestures.waitAndTap(this.closeButton);
+  }
+
+  async tapClaimButton() {
+    await Gestures.waitAndTap(this.claimButton);
   }
 
   async scrollOnScreen() {

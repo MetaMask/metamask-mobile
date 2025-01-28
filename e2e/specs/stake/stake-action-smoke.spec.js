@@ -15,7 +15,7 @@ import {
 import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { SmokeStake } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
@@ -28,14 +28,23 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import axios from 'axios';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+import {
+  startMockServer,
+  stopMockServer,
+} from '../../api-mocking/mock-server.js';
 
 const fixtureServer = new FixtureServer();
 
 describe(SmokeStake('Stake from Actions'), () => {
   const AMOUNT_TO_SEND = '.01'
   let nonceCount = 0;
+  let mockServer;
   const wallet = ethers.Wallet.createRandom();
+
   beforeAll(async () => {
+
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
       .withNetworkController(PopularNetworksList.Avalanche)
@@ -51,6 +60,8 @@ describe(SmokeStake('Stake from Actions'), () => {
   });
 
   afterAll(async () => {
+    if (mockServer)
+    await stopMockServer(mockServer)
     await stopFixtureServer(fixtureServer);
   });
 
@@ -139,4 +150,63 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
     await TestHelpers.delay(3000);
   })
+
+  it('should relaunch the app and log in', async () => {
+    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
+    const response = await axios.get(stakeAPIUrl);
+
+    if (response.status !== 200) {
+      throw new Error('Error calling Staking API');
+    }
+
+    const account =  response.data.accounts[0]
+    const stakeAPIMock  = {
+      GET: [ {
+          urlEndpoint: stakeAPIUrl,
+          response: {
+            accounts: [
+              {
+                account: account.account,
+                lifetimeRewards: account.lifetimeRewards,
+                assets: account.lifetimeRewards,
+                exitRequests: [
+                  {
+
+                    positionTicket: account.exitRequests[0].positionTicket,
+                    timestamp: "1737657204000",
+                    totalShares: account.exitRequests[0].totalShares,
+                    withdrawalTimestamp: "0",
+                    exitQueueIndex: "157",
+                    claimedAssets: "36968822284547795",
+                    leftShares: "0"
+                  },
+                ]
+              }
+            ]
+          },
+          responseCode: 200,
+        },
+      ],
+    };
+
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(stakeAPIMock);
+    await TestHelpers.launchApp({
+       newInstance: true,
+       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}` },
+     });
+    await loginToApp();
+    await WalletView.tapOnStakedEthereum()
+    await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(2000);
+    await TokenOverview.tapClaimButton();
+    await StakeConfirmView.tapConfirmButton();
+    await TokenOverview.tapBackButton();
+    await TabBarComponent.tapActivity();
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
+    await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
+    await TestHelpers.delay(3000);
+  });
 });
+

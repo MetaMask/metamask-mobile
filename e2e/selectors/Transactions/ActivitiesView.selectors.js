@@ -21,7 +21,8 @@ export const ActivitiesViewSelectorsText = {
   APPROVE: enContent.swaps.transaction_label.approve,
   TITLE: enContent.transactions_view.title,
   STAKE_DEPOSIT: enContent.transactions.tx_review_staking_deposit,
-  UNSTAKE: enContent.transactions.tx_review_staking_unstake
+  UNSTAKE: enContent.transactions.tx_review_staking_unstake,
+  STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
 
 };
 
