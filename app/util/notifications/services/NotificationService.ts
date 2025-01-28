@@ -249,7 +249,8 @@ class NotificationsService {
     await notifee.displayNotification({
       title,
       body,
-      data: data as Notification['data'],
+      // Notifee can only store and handle data strings
+      data: { dataStr: JSON.stringify(data) },
       android: {
         smallIcon: 'ic_notification_small',
         largeIcon: 'ic_notification',

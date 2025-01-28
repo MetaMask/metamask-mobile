@@ -67,13 +67,23 @@ async function onAppOpenNotification(
   }
 
   const { notification, pressAction } = initialNotification;
-  const notificationData = notification.data;
+  const notificationDataStr = notification?.data?.dataStr;
 
-  if (
-    pressAction.id === PressActionId.OPEN_NOTIFICATIONS_VIEW &&
-    isINotification(notificationData)
-  ) {
-    clickPushNotification(notificationData, navigation);
+  if (!notificationDataStr) {
+    return;
+  }
+
+  try {
+    // Notify can only store strings
+    const notificationData = JSON.parse(notificationDataStr as string);
+    if (
+      pressAction?.id === PressActionId.OPEN_NOTIFICATIONS_VIEW &&
+      isINotification(notificationData)
+    ) {
+      clickPushNotification(notificationData, navigation);
+    }
+  } catch {
+    // Do Nothing
   }
 }
 
@@ -87,14 +97,24 @@ async function onBackgroundEvent(navigation: NavigationProp<NavigationParams>) {
     NotificationsService.handleNotificationEvent({
       ...event,
       callback: (notification) => {
-        const pressAction = event.detail.pressAction;
-        const notificationData = notification?.data;
+        const pressAction = event?.detail?.pressAction;
+        const notificationDataStr = notification?.data?.dataStr;
 
-        if (
-          pressAction?.id === PressActionId.OPEN_NOTIFICATIONS_VIEW &&
-          isINotification(notificationData)
-        ) {
-          clickPushNotification(notificationData, navigation);
+        if (!notificationDataStr) {
+          return;
+        }
+
+        try {
+          // Notify can only store strings
+          const notificationData = JSON.parse(notificationDataStr as string);
+          if (
+            pressAction?.id === PressActionId.OPEN_NOTIFICATIONS_VIEW &&
+            isINotification(notificationData)
+          ) {
+            clickPushNotification(notificationData, navigation);
+          }
+        } catch {
+          // Do Nothing
         }
       },
     }),
