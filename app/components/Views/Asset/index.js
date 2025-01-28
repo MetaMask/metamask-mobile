@@ -539,6 +539,7 @@ class Asset extends PureComponent {
                   asset={asset}
                   displayBuyButton={displayBuyButton}
                   displaySwapsButton={displaySwapsButton}
+                  swapsIsLive={isSwapsFeatureLive}
                 />
                 <ActivityHeader asset={asset} />
               </>
