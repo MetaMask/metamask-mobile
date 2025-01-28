@@ -647,9 +647,9 @@ class PaymentRequest extends PureComponent {
       res = this.handleETHPrimaryCurrency(amount?.replace(',', '.'));
     }
     const { cryptoAmount, symbol } = res;
-    if (amount && amount[0] === currencySymbol) amount = amount.substr(1);
+    if (amount && amount[0] === currencySymbol) amount = amount.substring(1);
     if (res.secondaryAmount && res.secondaryAmount[0] === currencySymbol)
-      res.secondaryAmount = res.secondaryAmount.substr(1);
+      res.secondaryAmount = res.secondaryAmount.substring(1);
     if (amount && amount === '0') amount = undefined;
     this.setState({
       amount,
