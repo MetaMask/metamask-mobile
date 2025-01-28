@@ -231,4 +231,11 @@ function normalizeRequest(request: PPOMRequest): PPOMRequest {
   };
 }
 
-export default { validateRequest };
+function clearSignatureSecurityAlertResponse() {
+  store.dispatch(setSignatureRequestSecurityAlertResponse());
+}
+
+export default {
+  validateRequest,
+  clearSignatureSecurityAlertResponse,
+};

@@ -1,9 +1,10 @@
-import Engine from '../../core/Engine';
-import {
-  ResultType,
+import type {
   SecurityAlertResponse,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+  TransactionMeta,
+} from '@metamask/transaction-controller';
+
+import Engine from '../../core/Engine';
+import { ResultType } from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
 
 interface TransactionSecurityAlertResponseType {
   securityAlertResponses: Record<string, SecurityAlertResponse>;
@@ -27,7 +28,7 @@ export const getBlockaidMetricsParams = (
 
   if (securityAlertResponse) {
     const { result_type, reason, providerRequestsCount, source } =
-      securityAlertResponse;
+      securityAlertResponse as SecurityAlertResponse & { source: string };
 
     additionalParams.security_alert_response = result_type;
     additionalParams.security_alert_reason = reason;
