@@ -124,11 +124,6 @@ describe('PPOM Utils', () => {
 
   const mockIsBlockaidFeatureEnabled = jest.mocked(isBlockaidFeatureEnabled);
 
-  const getSupportedChainIdsMock = jest.spyOn(
-    securityAlertAPI,
-    'getSecurityAlertsAPISupportedChainIds',
-  );
-
   const normalizeTransactionParamsMock = jest.mocked(
     normalizeTransactionParams,
   );
@@ -372,7 +367,6 @@ describe('PPOM Utils', () => {
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
-      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
 
@@ -387,7 +381,6 @@ describe('PPOM Utils', () => {
 
     it('uses controller if security alerts API throws', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
-      getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
       validateWithSecurityAlertsAPIMock.mockRejectedValue(
         new Error('Test Error'),
@@ -411,9 +404,6 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      jest
-        .spyOn(securityAlertAPI, 'getSecurityAlertsAPISupportedChainIds')
-        .mockRejectedValue(new Error('Test Error'));
       await PPOMUtil.validateRequest(mockRequest, CHAIN_ID_MOCK);
       expect(spy).toHaveBeenCalledTimes(2);
     });
@@ -451,7 +441,6 @@ describe('PPOM Utils', () => {
       'sanitizes request params if method is %s',
       async (method: string) => {
         isSecurityAlertsEnabledMock.mockReturnValue(true);
-        getSupportedChainIdsMock.mockResolvedValue([CHAIN_ID_MOCK]);
 
         const firstTwoParams = [
           SIGN_TYPED_DATA_PARAMS_MOCK_1,

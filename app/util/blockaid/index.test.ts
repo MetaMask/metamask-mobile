@@ -203,12 +203,6 @@ describe('Blockaid util', () => {
       expect(result).toEqual(true);
     });
 
-    it('return false if blockaid is not supported on current network', async () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('0x9');
-      const result = await isBlockaidFeatureEnabled();
-      expect(result).toEqual(false);
-    });
-
     it('return false if blockaid is not enabled by the user', async () => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
