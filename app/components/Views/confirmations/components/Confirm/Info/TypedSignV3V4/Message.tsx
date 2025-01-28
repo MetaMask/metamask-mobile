@@ -54,6 +54,7 @@ const Message = () => {
           <DataTree
             data={sanitizedMessage.value as unknown as DataTreeInput}
             chainId={chainId}
+            primaryType={primaryType}
           />
         </View>
       }
