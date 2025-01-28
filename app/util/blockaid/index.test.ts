@@ -12,11 +12,9 @@ import {
 import * as NetworkControllerMock from '../../selectors/networkController';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import Engine from '../../core/Engine';
-import ppomUtil from '../../lib/ppom/ppom-util';
 
 import {
   getBlockaidMetricsParams,
-  isBlockaidSupportedOnCurrentChain,
   getBlockaidTransactionMetricsParams,
   isBlockaidFeatureEnabled,
   TransactionType,
@@ -33,18 +31,12 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-const mockIsChainSupported = jest.fn().mockResolvedValue(true);
-
 describe('Blockaid util', () => {
   describe('getBlockaidTransactionMetricsParams', () => {
     beforeEach(() => {
       jest
         .spyOn(NetworkControllerMock, 'selectChainId')
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
-
-      jest
-        .spyOn(ppomUtil, 'isChainSupported')
-        .mockImplementation(mockIsChainSupported);
     });
 
     afterEach(() => {
@@ -198,28 +190,6 @@ describe('Blockaid util', () => {
     });
   });
 
-  describe('isBlockaidSupportedOnCurrentChain', () => {
-    afterEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('return true if blockaid is supported on current network', async () => {
-      jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
-      const result = await isBlockaidSupportedOnCurrentChain();
-      expect(result).toEqual(true);
-    });
-
-    it('return false if blockaid is not on current network', async () => {
-      jest
-        .spyOn(NetworkControllerMock, 'selectChainId')
-        .mockReturnValue(NETWORKS_CHAIN_ID.GOERLI);
-      const result = await isBlockaidSupportedOnCurrentChain();
-      expect(result).toEqual(false);
-    });
-  });
-
   describe('isBlockaidFeatureEnabled', () => {
     afterEach(() => {
       jest.clearAllMocks();
@@ -231,12 +201,6 @@ describe('Blockaid util', () => {
         .mockReturnValue(NETWORKS_CHAIN_ID.MAINNET);
       const result = await isBlockaidFeatureEnabled();
       expect(result).toEqual(true);
-    });
-
-    it('return false if blockaid is not supported on current network', async () => {
-      jest.spyOn(NetworkControllerMock, 'selectChainId').mockReturnValue('0x9');
-      const result = await isBlockaidFeatureEnabled();
-      expect(result).toEqual(false);
     });
 
     it('return false if blockaid is not enabled by the user', async () => {
