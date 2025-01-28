@@ -1,13 +1,11 @@
 import {
   formatMenuItemDate,
-  parseNotification,
   shortenString,
   getLeadingZeroCount,
   formatAmount,
   getUsdAmount,
 } from './common';
 import { strings } from '../../../../locales/i18n';
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 
 describe('formatMenuItemDate', () => {
   beforeAll(() => {
@@ -198,25 +196,6 @@ describe('getUsdAmount', () => {
 
     const result = getUsdAmount(amount, decimals, usdRate);
     expect(result).toBe('5M'); // Since 5000 Ether * $1000 = $5,000,000, formatted as '5M'
-  });
-});
-
-describe('parseNotification', () => {
-  it('parses notification', () => {
-    const notification = {
-      data: {
-        data: {
-          type: 'eth_received',
-          data: { kind: 'eth_received' },
-        },
-      },
-    } as unknown as FirebaseMessagingTypes.RemoteMessage;
-
-    expect(parseNotification(notification)).toEqual({
-      type: 'eth_received',
-      transaction: { kind: 'eth_received' },
-      duration: 5000,
-    });
   });
 });
 

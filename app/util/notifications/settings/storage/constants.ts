@@ -1,7 +1,6 @@
 export const STORAGE_IDS = {
   NOTIFICATIONS: 'notifications',
   GLOBAL_PUSH_NOTIFICATION_SETTINGS: 'globalNotificationSettings',
-  MM_FCM_TOKEN: 'metaMaskFcmToken',
   PUSH_NOTIFICATIONS_PROMPT_COUNT: 'pushNotificationsPromptCount',
   PUSH_NOTIFICATIONS_PROMPT_TIME: 'pushNotificationsPromptTime',
   DEVICE_ID_STORAGE_KEY: 'pns:deviceId',
@@ -27,7 +26,6 @@ export const mapStorageTypeToIds = (id: string) => {
   switch (id) {
     case STORAGE_IDS.NOTIFICATIONS:
     case STORAGE_IDS.GLOBAL_PUSH_NOTIFICATION_SETTINGS:
-    case STORAGE_IDS.MM_FCM_TOKEN:
     case STORAGE_IDS.NOTIFICATIONS_SETTINGS:
     case STORAGE_IDS.PN_USER_STORAGE:
       return STORAGE_TYPES.OBJECT;
