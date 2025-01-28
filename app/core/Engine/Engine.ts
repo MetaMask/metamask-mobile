@@ -1164,11 +1164,14 @@ export class Engine {
           'NotificationServicesPushController:enablePushNotifications',
           'NotificationServicesPushController:disablePushNotifications',
           'NotificationServicesPushController:updateTriggerPushNotifications',
+          'NotificationServicesPushController:getState',
         ],
         allowedEvents: [
           'KeyringController:unlock',
           'KeyringController:lock',
           'KeyringController:stateChange',
+          'NotificationServicesPushController:stateChange',
+          'NotificationServicesPushController:onNewNotifications',
         ],
       }) as unknown as NotificationServicesControllerMessenger,
       state: initialState.NotificationServicesController,
@@ -2224,7 +2227,8 @@ export default {
     keyringState: KeyringControllerState | null = null,
     metaMetricsId?: string,
   ) {
-    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
+    instance =
+      Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },
