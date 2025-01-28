@@ -1,18 +1,15 @@
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
+import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
-import { Minimizer } from '../../NativeModules';
+import AppConstants from '../../AppConstants';
 import SDKConnect from '../../SDKConnect/SDKConnect';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
-import extractURLParams from './extractURLParams';
 import parseOriginatorInfo from '../parseOriginatorInfo';
-import { Platform } from 'react-native';
-import Device from '../../../util/device';
-import Routes from '../../../constants/navigation/Routes';
-import AppConstants from '../../AppConstants';
+import extractURLParams from './extractURLParams';
 export function handleMetaMaskDeeplink({
   instance,
   handled,
