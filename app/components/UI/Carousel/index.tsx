@@ -19,6 +19,9 @@ import BannerImage1 from '../../../images/banners/banner_image_1.svg';
 import BannerImage2 from '../../../images/banners/banner_image_2.svg';
 import BannerImage3 from '../../../images/banners/banner_image_3.svg';
 import { strings } from '../../../../locales/i18n';
+import { useDispatch, useSelector } from 'react-redux';
+import { dismissBanner } from '../../../actions/banners';
+import { RootState } from '../../../reducers';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -155,7 +158,6 @@ const createStyles = (colors: Theme['colors']) =>
 
 export const Carousel: React.FC<CarouselProps> = ({
   isLoading = false,
-  onClose,
   onClick,
   style,
 }) => {
@@ -163,9 +165,15 @@ export const Carousel: React.FC<CarouselProps> = ({
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const dispatch = useDispatch();
+  const dismissedBanners = useSelector(
+    (state: RootState) => state.banners.dismissedBanners,
+  );
 
-  const visibleSlides = PREDEFINED_SLIDES;
-  const isSingleSlide = false;
+  const visibleSlides = PREDEFINED_SLIDES.filter(
+    (slide) => !dismissedBanners.includes(slide.id),
+  );
+  const isSingleSlide = visibleSlides.length === 1;
 
   if (isLoading) {
     return (
@@ -180,9 +188,7 @@ export const Carousel: React.FC<CarouselProps> = ({
   }
 
   const handleClose = (slideId: string) => {
-    if (onClose) {
-      onClose(slideId);
-    }
+    dispatch(dismissBanner(slideId));
   };
 
   const handleSlideClick = (slideId: string, href?: string) => {
@@ -240,7 +246,7 @@ export const Carousel: React.FC<CarouselProps> = ({
                     </Text>
                   </View>
                 </View>
-                {!slide.undismissable && onClose && (
+                {!slide.undismissable && (
                   <TouchableOpacity
                     style={styles.closeButton}
                     onPress={() => handleClose(slide.id)}

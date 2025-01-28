@@ -11,9 +11,16 @@ export interface CarouselSlide {
 }
 
 export interface CarouselProps {
-  slides: CarouselSlide[];
+  /**
+   * Whether the carousel is in a loading state
+   */
   isLoading?: boolean;
-  onClose?: (slideId: string) => void;
+  /**
+   * Callback when a slide is clicked
+   */
   onClick?: (slideId: string) => void;
+  /**
+   * Additional style for the container
+   */
   style?: ViewStyle;
 }
