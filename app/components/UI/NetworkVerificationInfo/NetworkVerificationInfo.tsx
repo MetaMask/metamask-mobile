@@ -45,6 +45,7 @@ import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
 import { PopularList } from '../../../util/networks/customNetworks';
+import { MISSMATCH_RPC_URL_TEST_ID } from './NetworkVerificationInfo.constants';
 
 interface Alert {
   alertError: string;
@@ -198,7 +199,7 @@ const NetworkVerificationInfo = ({
           }}
         >
           <TagColored style={styles.tag} color={TagColor.Info}>
-            <View style={styles.tagContent}>
+            <View style={styles.tagContent} testID={MISSMATCH_RPC_URL_TEST_ID}>
               <Icon
                 size={IconSize.Sm}
                 name={IconName.Info}
