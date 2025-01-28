@@ -19,7 +19,6 @@ import FixtureBuilder from '../../fixtures/fixture-builder';
 
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 
-
 const INCORRECT_SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const CORRECT_SEND_ADDRESS = '0x37cc5ef6bfe753aeaf81f945efe88134b238face';
 const SHORTHAND_ADDRESS = '0x37Cc...FACE';
@@ -32,11 +31,6 @@ describe(
       jest.setTimeout(2500000);
       await TestHelpers.reverseServerPort();
     });
-
-    afterAll(async () => {
-      await stopFixtureServer(fixtureServer);
-    });
-
     it('should display correct send address after edit', async () => {
       await withFixtures(
         {
@@ -78,7 +72,7 @@ describe(
             correctAddress[0],
             CORRECT_SEND_ADDRESS,
           );
-
+          //TODO: Currently flakey, requires more work
           //Assert transactions send screen on IOS only due to android limitations
           if (device.getPlatform() === 'ios') {
             // Tap Send
