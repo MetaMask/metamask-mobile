@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/default-param-last */
 import { REHYDRATE } from 'redux-persist';
-import { dismissBanner } from '../../actions/banners';
+import { dismissBanner } from '../../actions/banners/index';
 
 export interface BannersState {
   dismissedBanners: string[];

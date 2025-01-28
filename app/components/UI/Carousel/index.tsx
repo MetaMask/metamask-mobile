@@ -20,7 +20,7 @@ import BannerImage2 from '../../../images/banners/banner_image_2.svg';
 import BannerImage3 from '../../../images/banners/banner_image_3.svg';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
-import { dismissBanner } from '../../../actions/banners';
+import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
