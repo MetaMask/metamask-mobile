@@ -46,7 +46,7 @@ const Message = () => {
   const typedSignData = signatureRequest?.messageParams?.data as any;
 
   const {
-    domain: { verifyingContract } = {},
+    domain: { verifyingContract } = { verifyingContract: '' },
     sanitizedMessage,
     primaryType,
   } = useMemo(
