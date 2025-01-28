@@ -254,39 +254,6 @@ describe('handleSendMessage', () => {
         });
       });
     });
-
-    describe('When redirection is not allowed', () => {
-      beforeEach(() => {
-        mockRpcQueueManagerGetId.mockReturnValue('1');
-        mockCanRedirect.mockReturnValue(false);
-      });
-      it('should skip goBack if canRedirect is false', async () => {
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockMinimizer.goBack).not.toHaveBeenCalled();
-      });
-      it('should skip goBack if trigger is not deeplink', async () => {
-        mockConnection.trigger = 'resume';
-
-        await handleSendMessage({
-          msg: {
-            data: {
-              id: 1,
-            },
-          },
-          connection: mockConnection,
-        });
-
-        expect(mockMinimizer.goBack).not.toHaveBeenCalled();
-      });
-    });
   });
 
   describe('Final state update', () => {

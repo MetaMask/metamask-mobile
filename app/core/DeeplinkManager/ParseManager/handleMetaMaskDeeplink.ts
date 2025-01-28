@@ -43,13 +43,9 @@ export function handleMetaMaskDeeplink({
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
     if (params.redirect && origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK) {
-      if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-        SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-        });
-      }  else {
-        Minimizer.goBack();
-      }
+      SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+      });
     } else if (params.channelId) {
       // differentiate between  deeplink callback and socket connection
       if (params.comm === 'deeplinking') {

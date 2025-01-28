@@ -166,15 +166,9 @@ async function connectToChannel({
         // cleanup connection
         await wait(100); // Add delay for connect modal to be fully closed
         await instance.updateSDKLoadingState({ channelId: id, loading: false });
-        // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        } else {
-          DevLogger.log(`[handleSendMessage] goBack()`);
-          await Minimizer.goBack();
-        }
+        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
         return;
       }
     }
