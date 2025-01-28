@@ -239,14 +239,17 @@ class NotificationsService {
     title,
     body,
     data,
+    id,
   }: {
     channelId?: ChannelId;
     pressActionId?: PressActionId;
     title: string;
     body?: string;
     data?: unknown;
+    id?: string;
   }): Promise<void> => {
     await notifee.displayNotification({
+      id,
       title,
       body,
       // Notifee can only store and handle data strings

@@ -160,12 +160,9 @@ class FCMService {
       });
       this.#hasRegisteredBackground = true;
     } catch {
-      console.error('BACKGROUND FAILED');
       // Do nothing
     }
   };
-
-  #counter = 0;
 
   registerForegroundMessages = async (
     handler: (notification: INotification) => void | Promise<void>,
@@ -179,12 +176,10 @@ class FCMService {
     }
 
     try {
-      this.#counter = this.#counter + 1;
       this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
         notificationHandler(payload, handler);
       });
     } catch {
-      console.error('FOREGROUND FAILED');
       // Do nothing
     }
   };
