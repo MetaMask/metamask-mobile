@@ -1,5 +1,5 @@
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
-index bbca23c..c85cb18 100644
+index 24251b4..7f4980f 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/modules/EIP712/index.js
 @@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
@@ -38,26 +38,26 @@ index 8fdedf8..c10cea2 100644
  const asContractAddress = (addr) => {
      const a = addr.toLowerCase();
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
-index 8385537..6641b95 100644
+index 86db997..29e1fe5 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/services/ledger/index.js
 @@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
- // This implements the resolution of a Transaction using Ledger's own API
- const logs_1 = require("@ledgerhq/logs");
+ const transactions_1 = require("@ethersproject/transactions");
  const abi_1 = require("@ethersproject/abi");
+ const logs_1 = require("@ledgerhq/logs");
 -const index_1 = require("@ledgerhq/domain-service/signers/index");
 +const index_1 = require("@ledgerhq/domain-service/lib/signers/index");
+ const constants_1 = require("../../modules/Uniswap/constants");
  const erc20_1 = require("./erc20");
- const contracts_1 = require("./contracts");
- const nfts_1 = require("./nfts");
+ const Uniswap_1 = require("../../modules/Uniswap");
 diff --git a/node_modules/@ledgerhq/hw-app-eth/lib/utils.js b/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
-index 027089b..1c5da62 100644
+index 6c5f584..f960780 100644
 --- a/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
 +++ b/node_modules/@ledgerhq/hw-app-eth/lib/utils.js
-@@ -2,7 +2,7 @@
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.mergeResolutions = exports.nftSelectors = exports.tokenSelectors = exports.intAsHexBytes = exports.decodeTxInfo = exports.maybeHexBuffer = exports.hexBuffer = exports.splitPath = exports.padHexString = exports.ERC1155_CLEAR_SIGNED_SELECTORS = exports.ERC721_CLEAR_SIGNED_SELECTORS = exports.ERC20_CLEAR_SIGNED_SELECTORS = void 0;
+@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.safeChunkTransaction = exports.getV = exports.getChainIdAsUint32 = exports.getParity = exports.mergeResolutions = exports.nftSelectors = exports.tokenSelectors = exports.intAsHexBytes = exports.maybeHexBuffer = exports.hexBuffer = exports.splitPath = exports.padHexString = exports.ERC1155_CLEAR_SIGNED_SELECTORS = exports.ERC721_CLEAR_SIGNED_SELECTORS = exports.ERC20_CLEAR_SIGNED_SELECTORS = void 0;
  const bignumber_js_1 = require("bignumber.js");
+ const rlp = __importStar(require("@ethersproject/rlp"));
 -const index_1 = require("@ledgerhq/evm-tools/selectors/index");
 +const index_1 = require("@ledgerhq/evm-tools/lib/selectors/index");
  Object.defineProperty(exports, "ERC20_CLEAR_SIGNED_SELECTORS", { enumerable: true, get: function () { return index_1.ERC20_CLEAR_SIGNED_SELECTORS; } });
