@@ -1,10 +1,32 @@
 import {
   MessageParamsTyped,
+  SignatureRequest,
   SignatureRequestStatus,
-  SignatureRequestType
+  SignatureRequestType,
 } from '@metamask/signature-controller';
 import { backgroundState } from './initial-root-state';
 import { Hex } from '@metamask/utils';
+
+export const personalSignSignatureRequest = {
+  chainId: '0x1',
+  type: SignatureRequestType.PersonalSign,
+  id: 'aa2b3071-d946-11ef-9f90-a5603493ed8d',
+  messageParams: {
+    data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+    origin: 'metamask.github.io',
+    metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
+  },
+  networkClientId: '1',
+  status: SignatureRequestStatus.Unapproved,
+  time: 1733143817088,
+} as SignatureRequest;
 
 export const personalSignatureConfirmationState = {
   engine: {
@@ -15,7 +37,7 @@ export const personalSignatureConfirmationState = {
           '76b33b40-7b5c-11ef-bc0a-25bce29dbc09': {
             id: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
             origin: 'metamask.github.io',
-            type: 'personal_sign',
+            type: SignatureRequestType.PersonalSign,
             time: 1727282253048,
             requestData: {
               data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
@@ -43,9 +65,49 @@ export const personalSignatureConfirmationState = {
           },
         },
       },
+      SignatureController: {
+        signatureRequests: {
+          '76b33b40-7b5c-11ef-bc0a-25bce29dbc09': {
+            chainId: '0x1' as Hex,
+            messageParams: {
+              data: '0x4578616d706c652060706572736f6e616c5f7369676e60206d657373616765',
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+              origin: 'metamask.github.io',
+              metamaskId: '76b33b40-7b5c-11ef-bc0a-25bce29dbc09',
+            } as MessageParamsTyped,
+          },
+        },
+      },
     },
   },
 };
+
+export const typedSignV1SignatureRequest = {
+  chainId: '0x1' as Hex,
+  messageParams: {
+    data: [
+      { type: 'string', name: 'Message', value: 'Hi, Alice!' },
+      { type: 'uint32', name: 'A number', value: '1337' },
+    ],
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    requestId: 2453610887,
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+    origin: 'metamask.github.io',
+    metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
+    version: 'V1',
+  } as MessageParamsTyped,
+} as SignatureRequest;
 
 export const typedSignV1ConfirmationState = {
   engine: {
@@ -56,7 +118,7 @@ export const typedSignV1ConfirmationState = {
           '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
             id: '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998',
             origin: 'metamask.github.io',
-            type: 'eth_signTypedData',
+            type: SignatureRequestType.TypedSign,
             time: 1731850822653,
             requestData: {
               data: [
@@ -84,26 +146,7 @@ export const typedSignV1ConfirmationState = {
       },
       SignatureController: {
         signatureRequests: {
-          '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': {
-            chainId: '0x1' as Hex,
-            messageParams: {
-              data: [
-                { type: 'string', name: 'Message', value: 'Hi, Alice!' },
-                { type: 'uint32', name: 'A number', value: '1337' },
-              ],
-              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-              requestId: 2453610887,
-              meta: {
-                url: 'https://metamask.github.io/test-dapp/',
-                title: 'E2E Test Dapp',
-                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
-                analytics: { request_source: 'In-App-Browser' },
-              },
-              origin: 'metamask.github.io',
-              metamaskId: '7e62bcb0-a4e9-11ef-9b51-ddf21c91a998',
-              version: 'V1',
-            } as MessageParamsTyped,
-          },
+          '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998': typedSignV1SignatureRequest,
         },
       },
       RemoteFeatureFlagController: {
@@ -149,6 +192,25 @@ export const mockTypedSignV3Message = {
   },
 };
 
+export const typedSignV3SignatureRequest = {
+  chainId: '0x1' as Hex,
+  type: SignatureRequestType.TypedSign,
+  messageParams: {
+    data: JSON.stringify(mockTypedSignV3Message),
+    from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
+    requestId: 3298650200,
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+    origin: 'metamask.github.io',
+    metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
+    version: 'V3',
+  } as MessageParamsTyped,
+} as SignatureRequest;
+
 export const typedSignV3ConfirmationState = {
   engine: {
     backgroundState: {
@@ -158,7 +220,7 @@ export const typedSignV3ConfirmationState = {
           'fb2029e1-b0ab-11ef-9227-05a11087c334': {
             id: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
             origin: 'metamask.github.io',
-            type: 'eth_signTypedData',
+            type: SignatureRequestType.TypedSign,
             time: 1733143817088,
             requestData: {
               data: JSON.stringify(mockTypedSignV3Message),
@@ -183,23 +245,7 @@ export const typedSignV3ConfirmationState = {
       },
       SignatureController: {
         signatureRequests: {
-          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
-            chainId: '0x1' as Hex,
-            messageParams: {
-              data: JSON.stringify(mockTypedSignV3Message),
-              from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
-              requestId: 3298650200,
-              meta: {
-                url: 'https://metamask.github.io/test-dapp/',
-                title: 'E2E Test Dapp',
-                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
-                analytics: { request_source: 'In-App-Browser' },
-              },
-              origin: 'metamask.github.io',
-              metamaskId: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
-              version: 'V3',
-            } as MessageParamsTyped,
-          },
+          'fb2029e1-b0ab-11ef-9227-05a11087c334': typedSignV3SignatureRequest,
         },
       },
       RemoteFeatureFlagController: {
@@ -213,6 +259,30 @@ export const typedSignV3ConfirmationState = {
   },
 };
 
+export const typedSignV4SignatureRequest = {
+  id: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
+  chainId: '0x1' as Hex,
+  type: SignatureRequestType.TypedSign,
+  messageParams: {
+    data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"MyToken","version":"1","verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC","chainId":1},"message":{"owner":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","spender":"0x5B38Da6a701c568545dCfcB03FcB875f56beddC4","value":3000,"nonce":0,"deadline":50000000000}}',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    version: 'V4',
+    requestId: 14,
+    signatureMethod: 'eth_signTypedData_v4',
+    origin: 'https://metamask.github.io',
+    metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+  },
+  networkClientId: '1',
+  status: SignatureRequestStatus.Unapproved,
+  time: 1733143817088,
+} as SignatureRequest;
+
 export const typedSignV4ConfirmationState = {
   engine: {
     backgroundState: {
@@ -222,7 +292,7 @@ export const typedSignV4ConfirmationState = {
           'fb2029e1-b0ab-11ef-9227-05a11087c334': {
             id: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
             origin: 'metamask.github.io',
-            type: 'eth_signTypedData',
+            type: SignatureRequestType.TypedSign,
             time: 1733143817088,
             requestData: {
               data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"MyToken","version":"1","verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC","chainId":1},"message":{"owner":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","spender":"0x5B38Da6a701c568545dCfcB03FcB875f56beddC4","value":3000,"nonce":0,"deadline":50000000000}}',
@@ -248,29 +318,7 @@ export const typedSignV4ConfirmationState = {
       },
       SignatureController: {
         signatureRequests: {
-          'fb2029e1-b0ab-11ef-9227-05a11087c334': {
-            id: 'fb2029e1-b0ab-11ef-9227-05a11087c334',
-            chainId: '0x1' as Hex,
-            type: SignatureRequestType.TypedSign,
-            messageParams: {
-              data: '{"types":{"EIP712Domain":[{"name":"name","type":"string"},{"name":"version","type":"string"},{"name":"chainId","type":"uint256"},{"name":"verifyingContract","type":"address"}],"Permit":[{"name":"owner","type":"address"},{"name":"spender","type":"address"},{"name":"value","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","domain":{"name":"MyToken","version":"1","verifyingContract":"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC","chainId":1},"message":{"owner":"0x935e73edb9ff52e23bac7f7e043a1ecd06d05477","spender":"0x5B38Da6a701c568545dCfcB03FcB875f56beddC4","value":3000,"nonce":0,"deadline":50000000000}}',
-              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-              version: 'V4',
-              requestId: 14,
-              signatureMethod: 'eth_signTypedData_v4',
-              origin: 'https://metamask.github.io',
-              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
-              meta: {
-                url: 'https://metamask.github.io/test-dapp/',
-                title: 'E2E Test Dapp',
-                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
-                analytics: { request_source: 'In-App-Browser' },
-              },
-            },
-            networkClientId: '1',
-            status: SignatureRequestStatus.Unapproved,
-            time: 1733143817088
-          },
+          'fb2029e1-b0ab-11ef-9227-05a11087c334': typedSignV4SignatureRequest,
         },
       },
     },

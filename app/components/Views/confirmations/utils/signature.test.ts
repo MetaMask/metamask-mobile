@@ -1,20 +1,34 @@
-import { parseTypedDataMessage, isRecognizedPermit } from './signature';
+import {
+  parseTypedDataMessage,
+  isRecognizedPermit,
+  isTypedSignV3V4Request,
+  getSignatureRequestPrimaryType,
+} from './signature';
 import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
-import { SignatureRequest, SignatureRequestType } from '@metamask/signature-controller';
+import {
+  SignatureRequest,
+  SignatureRequestType,
+} from '@metamask/signature-controller';
+import {
+  personalSignSignatureRequest,
+  typedSignV1SignatureRequest,
+  typedSignV3SignatureRequest,
+  typedSignV4SignatureRequest,
+} from '../../../../util/test/confirm-data-helpers';
 
 describe('Signature Utils', () => {
   describe('parseTypedDataMessage', () => {
     it('should parse typed data message correctly', () => {
       const data = JSON.stringify({
         message: {
-          value: '123'
-        }
+          value: '123',
+        },
       });
       const result = parseTypedDataMessage(data);
       expect(result).toEqual({
         message: {
-          value: '123'
-        }
+          value: '123',
+        },
       });
     });
 
@@ -25,13 +39,12 @@ describe('Signature Utils', () => {
       expect(result.message.value).toBe('3000123');
     });
 
-
     it('should handle large message values. This prevents native JS number coercion when the value is greater than Number.MAX_SAFE_INTEGER.', () => {
       const largeValue = '123456789012345678901234567890';
       const data = JSON.stringify({
         message: {
-          value: largeValue
-        }
+          value: largeValue,
+        },
       });
       const result = parseTypedDataMessage(data);
       expect(result.message.value).toBe(largeValue);
@@ -49,10 +62,11 @@ describe('Signature Utils', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
-            primaryType: PRIMARY_TYPES_PERMIT[0]
-          })
+            primaryType: PRIMARY_TYPES_PERMIT[0],
+          }),
+          version: 'V3',
         },
-        type: SignatureRequestType.TypedSign
+        type: SignatureRequestType.TypedSign,
       } as SignatureRequest;
 
       expect(isRecognizedPermit(mockRequest)).toBe(true);
@@ -62,13 +76,53 @@ describe('Signature Utils', () => {
       const mockRequest: SignatureRequest = {
         messageParams: {
           data: JSON.stringify({
-            primaryType: 'UnrecognizedType'
-          })
+            primaryType: 'UnrecognizedType',
+          }),
+          version: 'V3',
         },
-        type: SignatureRequestType.TypedSign
+        type: SignatureRequestType.TypedSign,
       } as SignatureRequest;
 
       expect(isRecognizedPermit(mockRequest)).toBe(false);
+    });
+
+    it('should return false for typed sign V1 request', () => {
+      expect(isRecognizedPermit(typedSignV1SignatureRequest)).toBe(false);
+      expect(isRecognizedPermit(personalSignSignatureRequest)).toBe(false);
+    });
+  });
+
+  describe('isTypedSignV3V4Request', () => {
+    it('return true for typed sign V3, V4 messages', () => {
+      expect(isTypedSignV3V4Request(typedSignV3SignatureRequest)).toBe(true);
+      expect(isTypedSignV3V4Request(typedSignV4SignatureRequest)).toBe(true);
+    });
+    it('return false for typed sign V1 message', () => {
+      expect(isTypedSignV3V4Request(typedSignV1SignatureRequest)).toBe(false);
+    });
+    it('return false for personal sign message', () => {
+      expect(isTypedSignV3V4Request(personalSignSignatureRequest)).toBe(false);
+    });
+  });
+
+  describe('getSignatureRequestPrimaryType', () => {
+    it('return correct primary type', () => {
+      expect(getSignatureRequestPrimaryType(typedSignV3SignatureRequest)).toBe(
+        'Mail',
+      );
+      expect(getSignatureRequestPrimaryType(typedSignV4SignatureRequest)).toBe(
+        'Permit',
+      );
+    });
+    it('return undefined for for typed sign V1 message', () => {
+      expect(getSignatureRequestPrimaryType(typedSignV1SignatureRequest)).toBe(
+        undefined,
+      );
+    });
+    it('return undefined for personal sign message', () => {
+      expect(getSignatureRequestPrimaryType(personalSignSignatureRequest)).toBe(
+        undefined,
+      );
     });
   });
 });

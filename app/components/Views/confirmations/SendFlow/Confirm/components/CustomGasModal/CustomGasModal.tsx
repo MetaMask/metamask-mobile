@@ -5,7 +5,6 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 
-import { selectChainId } from '../../../../../../../selectors/networkController';
 import { useAppThemeFromContext } from '../../../../../../../util/theme';
 import EditGasFee1559 from '../../../../components/EditGasFee1559Update';
 import EditGasFeeLegacy from '../../../../components/EditGasFeeLegacyUpdate';
@@ -36,7 +35,7 @@ const CustomGasModal = ({
   const transaction = useSelector((state: RootState) => state.transaction);
   const gasFeeEstimate = useSelector(selectGasFeeEstimates);
   const primaryCurrency = useSelector(selectPrimaryCurrency);
-  const chainId = useSelector(selectChainId);
+  const chainId = transaction?.chainId;
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
   );
@@ -166,6 +165,7 @@ const CustomGasModal = ({
             error={error}
             onUpdatingValuesStart={onGasAnimationStart}
             onUpdatingValuesEnd={onGasAnimationEnd}
+            chainId={chainId}
           />
         ) : (
           <EditGasFee1559

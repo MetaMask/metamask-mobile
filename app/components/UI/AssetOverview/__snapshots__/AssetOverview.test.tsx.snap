@@ -1038,7 +1038,7 @@ exports[`AssetOverview should render correctly 1`] = `
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -2169,7 +2169,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001a",
+                    "shadowColor": "#0000001A",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
