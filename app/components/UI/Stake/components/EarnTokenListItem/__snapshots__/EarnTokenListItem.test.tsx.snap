@@ -1,0 +1,200 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EarnTokenListItem render matches snapshot 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 16,
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignSelf": "flex-start",
+          "position": "relative",
+        }
+      }
+      testID="badge-wrapper-badge"
+    >
+      <View>
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderRadius": 16,
+              "flexShrink": 0,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={
+              {
+                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png",
+              }
+            }
+            style={
+              {
+                "flex": 1,
+                "height": undefined,
+                "width": undefined,
+              }
+            }
+            testID="token-avatar-image"
+          />
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "aspectRatio": 1,
+            "height": 0,
+            "justifyContent": "center",
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+              {
+                "translateY": -0,
+              },
+            ],
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "aspectRatio": 1,
+              "height": "50%",
+              "justifyContent": "center",
+              "maxHeight": 24,
+              "minHeight": 8,
+              "opacity": 0,
+            }
+          }
+          testID="badgenetwork"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 16,
+                "borderWidth": 2,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "shadowColor": "#0000001A",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 1,
+                "shadowRadius": 4,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#141618",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Dai Stablecoin
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "flex-end",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c8234",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      3.0% [missing "en.stake.apr" translation]
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#6a737d",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 12,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      10,100.00 USDC
+    </Text>
+  </View>
+</TouchableOpacity>
+`;

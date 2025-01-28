@@ -36,10 +36,12 @@ export function addToHistory({ url, name }) {
 /**
  * Clears the entire browser history
  */
-export function clearHistory() {
+export function clearHistory(metricsEnabled, marketingEnabled) {
   return {
     type: 'CLEAR_BROWSER_HISTORY',
     id: Date.now(),
+    metricsEnabled,
+    marketingEnabled,
   };
 }
 

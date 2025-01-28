@@ -5,7 +5,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
   style={
     [
       {
-        "borderColor": "#bbc0c566",
+        "borderColor": "#BBC0C566",
         "borderRadius": 8,
         "borderWidth": 1,
         "padding": 16,
@@ -284,7 +284,7 @@ exports[`TransactionReviewEIP1559 should render correctly 1`] = `
       style={
         [
           {
-            "borderBottomColor": "#bbc0c566",
+            "borderBottomColor": "#BBC0C566",
             "borderBottomWidth": 1,
             "marginVertical": 6,
           },

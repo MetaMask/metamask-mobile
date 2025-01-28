@@ -12,6 +12,7 @@ import {
 import { SmokeConfirmations } from '../../../tags';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../utils/Assertions';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 
 describe(SmokeConfirmations('Ethereum Sign'), () => {
   beforeAll(async () => {
@@ -20,6 +21,10 @@ describe(SmokeConfirmations('Ethereum Sign'), () => {
   });
 
   it('Sign in with Ethereum', async () => {
+    const testSpecificMock = {
+      GET: [mockEvents.GET.remoteFeatureFlags],
+    };
+
     await withFixtures(
       {
         dapp: true,
@@ -29,6 +34,7 @@ describe(SmokeConfirmations('Ethereum Sign'), () => {
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();

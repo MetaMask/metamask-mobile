@@ -6,7 +6,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -424,7 +424,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -842,7 +842,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
