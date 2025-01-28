@@ -25,7 +25,6 @@ import {
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
 import { withIsHeadless } from './app/util/notifications/hooks/withIsHeadless';
-import './app/core/Engine/controllers/PushNotificationController/utils';
 
 Performance.setupPerformanceObservers();
 

@@ -9,6 +9,8 @@ import {
 } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../util/Logger';
 
+type Unsubscribe = () => void;
+
 /**
  * Utility to check if devices have enabled push notifications
  * @returns boolean
@@ -110,6 +112,16 @@ class FCMService {
   };
 
   /**
+   * Ensures we only register for background notifications once
+   */
+  #hasRegisteredBackground = false;
+
+  /**
+   * Ensures we only register for foreground notifications once
+   */
+  #hasRegisteredForeground: Unsubscribe | null = null;
+
+  /**
    * Listener for when push notifications are received.
    * Subscribed to both foreground and background messages
 
@@ -118,17 +130,62 @@ class FCMService {
    */
   listenToPushNotificationsReceived = async (
     handler: (notification: INotification) => void | Promise<void>,
-  ): Promise<(() => void) | null> => {
+  ): Promise<Unsubscribe | null> => {
     try {
-      messaging().setBackgroundMessageHandler((payload) =>
-        notificationHandler(payload, handler),
-      );
-      const unsubscribe = messaging().onMessage((payload) =>
-        notificationHandler(payload, handler),
-      );
-      return unsubscribe;
+      await this.registerBackgroundMessages(handler);
+      await this.registerForegroundMessages(handler);
+      return this.#hasRegisteredForeground;
     } catch {
       return null;
+    }
+  };
+
+  /**
+   * The `setBackgroundMessageHandler` must be called outside of our application as early as possible
+   */
+  registerBackgroundMessages = async (
+    handler: (notification: INotification) => void | Promise<void>,
+  ) => {
+    if (!(await isPushNotificationsEnabled())) {
+      return null;
+    }
+
+    if (this.#hasRegisteredBackground) {
+      return;
+    }
+
+    try {
+      messaging().setBackgroundMessageHandler(async (payload) => {
+        notificationHandler(payload, handler);
+      });
+      this.#hasRegisteredBackground = true;
+    } catch {
+      console.error('BACKGROUND FAILED');
+      // Do nothing
+    }
+  };
+
+  #counter = 0;
+
+  registerForegroundMessages = async (
+    handler: (notification: INotification) => void | Promise<void>,
+  ) => {
+    if (!(await isPushNotificationsEnabled())) {
+      return null;
+    }
+
+    if (this.#hasRegisteredForeground) {
+      return;
+    }
+
+    try {
+      this.#counter = this.#counter + 1;
+      this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
+        notificationHandler(payload, handler);
+      });
+    } catch {
+      console.error('FOREGROUND FAILED');
+      // Do nothing
     }
   };
 
