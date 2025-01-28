@@ -8,10 +8,10 @@ import { IconName } from '../../../../Icons/Icon';
 import { AvatarSize } from '../../Avatar.types';
 
 // Internal dependencies.
-import { AvatarFaviconProps } from './AvatarFavicon.types';
+import { AvatarFaviconProps, AvatarFaviconSize } from './AvatarFavicon.types';
 
 // Defaults
-export const DEFAULT_AVATARFAVICON_SIZE = AvatarSize.Md;
+export const DEFAULT_AVATARFAVICON_SIZE = AvatarFaviconSize.Md;
 export const DEFAULT_AVATARFAVICON_ERROR_ICON = IconName.Global;
 export const TEST_REMOTE_SVG_IMAGE_URL =
   'https://metamask.github.io/test-dapp/metamask-fox.svg';

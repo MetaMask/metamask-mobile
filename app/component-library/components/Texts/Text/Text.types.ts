@@ -23,6 +23,15 @@ export enum TextVariant {
 }
 
 /**
+ * Font weights
+ */
+export enum FontWeight {
+  Bold = 'bold',
+  Medium = 'medium',
+  Normal = 'normal',
+}
+
+/**
  * Text colors
  */
 export enum TextColor {

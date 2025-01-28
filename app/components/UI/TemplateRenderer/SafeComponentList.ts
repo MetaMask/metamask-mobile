@@ -14,6 +14,10 @@ import { Box } from '../../UI/Box';
 import { SnapUICard } from '../../Approvals/Snaps/SnapUICard';
 import { SnapUILink } from '../Snaps/SnapUILink';
 import { SnapUIInput } from '../Snaps/SnapUIInput/Index';
+import { SnapIcon } from '../../Approvals/Snaps/SnapIcon/SnapIcon';
+import { SnapUIFooterButton } from '../../Approvals/Snaps/SnapUIFooterButton/SnapUIFooterButton';
+import { ConfirmInfoRowValueDouble } from '../../../component-library/components/ConfirmInfoRowValueDouble/ConfirmInfoRowValueDouble';
+import { SnapUIIcon } from '../../Approvals/Snaps/SnapUIIcon/SnapUIIcon';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -31,6 +35,10 @@ export const safeComponentList = {
   AddressElement,
   Box,
   SnapUIInput,
+  SnapIcon,
+  SnapUIIcon,
+  SnapUIFooterButton,
+  ConfirmInfoRowValueDouble,
 };
 
 export type SafeComponentListValues = typeof safeComponentList;

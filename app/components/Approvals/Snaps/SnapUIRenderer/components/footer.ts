@@ -2,7 +2,9 @@ import { FooterElement, ButtonElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
 import { ButtonVariant } from '@metamask/snaps-sdk';
-import { Button as buttonFn } from './button';
+import { button as buttonFn } from './button';
+import { JustifyContent } from '../utils';
+import { TemplateConfirmation } from '../../SnapDialogApproval/SnapsDialogApproval';
 
 export const DEFAULT_FOOTER = {
   element: 'Box',
@@ -12,12 +14,11 @@ export const DEFAULT_FOOTER = {
     width: '100%',
     gap: 4,
     padding: 4,
-    className: 'snap-ui-renderer__footer',
     style: {
-      boxShadow: 'var(--shadow-size-md) var(--color-shadow-default)',
-      height: '80px',
-      position: 'fixed',
+      position: 'absolute',
       bottom: 0,
+      width: '100%',
+      justifyContent: JustifyContent.spaceEvenly,
     },
   },
 };
@@ -32,14 +33,14 @@ const getDefaultButtons = (
   // If onCancel is omitted by the caller we assume that it is safe to not display the default footer.
   if (children.length === 1 && onCancel) {
     return {
-      element: 'SnapUIFooterButton',
+      element: 'BottomSheetFooter',
       key: 'default-button',
       props: {
         onCancel,
         variant: ButtonVariant.Secondary,
         isSnapAction: false,
+        label: t(TemplateConfirmation.CANCEL),
       },
-      children: t('cancel'),
     };
   }
 
@@ -60,8 +61,10 @@ export const footer: UIComponentFactory<FooterElement> = ({
   ).map((children, index) => {
     const buttonMapped = buttonFn({
       ...params,
+      t,
       element: children,
     } as UIComponentParams<ButtonElement>);
+
     return {
       element: 'SnapUIFooterButton',
       key: `snap-footer-button-${buttonMapped.props?.name ?? index}`,
@@ -72,6 +75,7 @@ export const footer: UIComponentFactory<FooterElement> = ({
             ? ButtonVariant.Secondary
             : ButtonVariant.Primary,
         isSnapAction: true,
+        onCancel,
       },
       children: buttonMapped.children,
     };

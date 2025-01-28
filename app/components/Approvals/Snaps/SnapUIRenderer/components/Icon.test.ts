@@ -1,4 +1,4 @@
-import { heading } from '../components/icon';
+import { icon } from '../components/icon';
 
 describe('Icon UIComponentFactory', () => {
   const mockParams = {
@@ -16,7 +16,7 @@ describe('Icon UIComponentFactory', () => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = heading({ ...mockParams, element: mockElement as any });
+    const result = icon({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
       element: 'Icon',
@@ -36,7 +36,7 @@ describe('Icon UIComponentFactory', () => {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = heading({ ...mockParams, element: mockElement as any });
+    const result = icon({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
       element: 'Icon',

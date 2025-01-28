@@ -22,7 +22,7 @@ const onPress = (href: string) => {
   validateUrl(href);
   Linking.openURL(href);
 };
-
+// TODO: This component should show a modal for links when not using preinstalled Snaps
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
   <Text
     testID="snaps-ui-link"

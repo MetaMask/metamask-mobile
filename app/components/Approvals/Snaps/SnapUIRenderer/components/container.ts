@@ -19,6 +19,9 @@ export const container: UIComponentFactory<BoxElement> = ({
 
   const templateChildren = children.map((child) =>
     mapToTemplate({
+      useFooter,
+      onCancel,
+      t,
       ...params,
       element: child as JSXElement,
     }),
@@ -30,7 +33,6 @@ export const container: UIComponentFactory<BoxElement> = ({
       key: 'snap-prompt-input',
       props: {
         style: { marginHorizontal: 4 },
-        className: 'snap-prompt-input',
         value: promptLegacyProps.inputValue,
         onChangeText: promptLegacyProps.onInputChange,
         placeholder: promptLegacyProps.placeholder,
@@ -45,7 +47,7 @@ export const container: UIComponentFactory<BoxElement> = ({
         style: { alignItems: 'center' },
       },
       children: {
-        element: 'SnapFooterButton',
+        element: 'SnapUIFooterButton',
         key: 'default-button',
         props: {
           onCancel,
@@ -65,7 +67,6 @@ export const container: UIComponentFactory<BoxElement> = ({
         flex: 1,
         flexDirection: 'column',
       },
-      className: 'snap-ui-renderer__container',
     },
   };
 };

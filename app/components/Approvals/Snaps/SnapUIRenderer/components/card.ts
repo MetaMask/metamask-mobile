@@ -3,7 +3,7 @@ import { CardElement } from '@metamask/snaps-sdk/jsx';
 import { UIComponentFactory } from './types';
 
 export const card: UIComponentFactory<CardElement> = ({ element }) => ({
-  element: 'Card',
+  element: 'SnapUICard',
   props: {
     image: element.props.image,
     title: element.props.title,

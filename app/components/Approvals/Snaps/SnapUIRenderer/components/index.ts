@@ -2,7 +2,7 @@ import { box } from './box';
 import { text } from './text';
 import { row } from './row';
 import { address } from './address';
-import { Button } from './button';
+import { button } from './button';
 import { input } from './input';
 import { bold } from './bold';
 import { value } from './value';
@@ -17,7 +17,7 @@ export const COMPONENT_MAPPING = {
   Text: text,
   Row: row,
   Address: address,
-  Button,
+  Button: button,
   Input: input,
   Bold: bold,
   Value: value,

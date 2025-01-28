@@ -1,10 +1,16 @@
 // Third party dependencies.
-import { ColorValue, TouchableOpacityProps } from 'react-native';
+import {
+  ColorValue,
+  StyleProp,
+  TextStyle,
+  TouchableOpacityProps,
+} from 'react-native';
 
 // External dependencies.
 import { IconProps } from '../../../../Icons/Icon';
 import { ButtonSize, ButtonWidthTypes } from '../../Button.types';
 import { TextVariant } from '../../../../Texts/Text';
+import { ButtonType } from '@metamask/snaps-sdk';
 
 /**
  * ButtonBase component props.
@@ -13,7 +19,7 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
   /**
    * Button text.
    */
-  label: string | React.ReactNode;
+  label?: string | React.ReactNode;
   /**
    * Optional prop for the color of label. Applies to icon too.
    */
@@ -55,6 +61,14 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    * An optional loading state of Button.
    */
   loading?: boolean;
+  /**
+   * An optional type of Button.
+   */
+  type?: ButtonType;
+  /**
+   * An optional text props of Button.
+   */
+  textProps?: StyleProp<TextStyle>;
 }
 
 /**

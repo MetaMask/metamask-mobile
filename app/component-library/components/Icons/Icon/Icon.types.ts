@@ -33,6 +33,7 @@ export enum IconSize {
   Xl = '32',
   // TODO finalize Icon size in Design system
   XXL = '72',
+  Inherit = 'inherit',
 }
 
 /**

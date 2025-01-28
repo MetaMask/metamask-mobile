@@ -16,7 +16,6 @@ import {
 import Engine from '../../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 import { Json, SnapId } from '@metamask/snaps-sdk';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 
 enum SnapDialogTypes {
   ALERT = 'snap_dialog:alert',
@@ -25,7 +24,7 @@ enum SnapDialogTypes {
   CUSTOM = 'snap_dialog',
 }
 
-enum TemplateConfirmation {
+export enum TemplateConfirmation {
   Ok = 'template_confirmation.ok',
   CANCEL = 'template_confirmation.cancel',
 }
@@ -115,24 +114,6 @@ const SnapDialogApproval = () => {
             onPress: onConfirm,
           },
         ];
-      case SnapDialogTypes.CUSTOM:
-        return [
-          {
-            variant: ButtonVariants.Secondary,
-            label: strings(TemplateConfirmation.CANCEL),
-            size: ButtonSize.Lg,
-            onPress: onCancel,
-            startIconName: IconName.Close,
-          },
-          {
-            variant: ButtonVariants.Primary,
-            label: strings(TemplateConfirmation.Ok),
-            size: ButtonSize.Lg,
-            onPress: onConfirmInput,
-            endIconName: IconName.Check,
-          },
-        ];
-
       default:
         return [];
     }
@@ -157,13 +138,16 @@ const SnapDialogApproval = () => {
           snapId={snapId}
           interfaceId={interfaceId}
           isLoading={isLoading}
+          onCancel={onCancel}
         />
-        <View style={styles.actionContainer}>
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            buttonPropsArray={buttons}
-          />
-        </View>
+        {approvalRequest?.type !== SnapDialogTypes.CUSTOM && (
+          <View style={styles.actionContainer}>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              buttonPropsArray={buttons}
+            />
+          </View>
+        )}
       </View>
     </ApprovalModal>
   );

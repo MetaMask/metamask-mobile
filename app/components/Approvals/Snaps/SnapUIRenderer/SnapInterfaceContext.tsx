@@ -1,5 +1,4 @@
 import {
-  File as FileObject,
   FormState,
   InterfaceState,
   SnapId,
@@ -16,7 +15,7 @@ import React, {
 } from 'react';
 import { mergeValue } from './utils';
 import Engine from '../../../../core/Engine/Engine';
-import { encodeBase64, HandlerType } from '@metamask/snaps-utils';
+import { HandlerType } from '@metamask/snaps-utils';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 
 export type HandleEvent = <Type extends State>(args: {
@@ -33,19 +32,12 @@ export type HandleInputChange = <Type extends State>(
 
 export type GetValue = (name: string, form?: string) => State | undefined;
 
-export type HandleFileChange = (
-  name: string,
-  file: File | null,
-  form?: string,
-) => void;
-
 export type SetCurrentInputFocus = (name: string | null) => void;
 
 export interface SnapInterfaceContextType {
   handleEvent: HandleEvent;
   getValue: GetValue;
   handleInputChange: HandleInputChange;
-  handleFileChange: HandleFileChange;
   setCurrentFocusedInput: SetCurrentInputFocus;
   focusedInput: string | null;
   snapId: string;
@@ -155,60 +147,13 @@ export const SnapInterfaceContextProvider: FunctionComponent<
     submitInputChange(name, value);
   };
 
-  const uploadFile = (name: string, file: FileObject | null) => {
-    rawSnapRequestFunction(UserInputEventType.FileUploadEvent, name, file);
-  };
-
-  /**
-   * Handle the file change of an input.
-   *
-   * @param name - The name of the input.
-   * @param file - The file to upload.
-   * @param form - The name of the form containing the input.
-   */
-  const handleFileChange: HandleFileChange = (name, file, form) => {
-    if (file) {
-      file
-        .arrayBuffer()
-        .then((arrayBuffer) => new Uint8Array(arrayBuffer))
-        .then((uint8Array) => encodeBase64(uint8Array))
-        .then((base64) => {
-          const fileObject: FileObject = {
-            name: file.name,
-            size: file.size,
-            contentType: file.type,
-            contents: base64 as string,
-          };
-
-          const state = mergeValue(
-            internalState.current,
-            name,
-            fileObject,
-            form,
-          );
-
-          internalState.current = state;
-          updateState(state);
-          uploadFile(name, fileObject);
-        });
-
-      return;
-    }
-
-    const state = mergeValue(internalState.current, name, null, form);
-
-    internalState.current = state;
-    updateState(state);
-    uploadFile(name, null);
-  };
-
   /**
    * Get the value of an input from the interface state.
    *
    * @param name - The name of the input.
    * @param form - The name of the form containing the input.
    * Optional if the input is not contained in a form.
-   * @returns The value of the input or undefinded if the input has no value.
+   * @returns The value of the input or undefined if the input has no value.
    */
   const getValue: GetValue = (name, form) => {
     const value = form
@@ -231,7 +176,6 @@ export const SnapInterfaceContextProvider: FunctionComponent<
         handleEvent,
         getValue,
         handleInputChange,
-        handleFileChange,
         setCurrentFocusedInput,
         focusedInput: focusedInput.current,
         snapId,

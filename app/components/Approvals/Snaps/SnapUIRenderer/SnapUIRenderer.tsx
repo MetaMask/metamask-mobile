@@ -8,11 +8,14 @@ import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../../UI/TemplateRenderer';
 import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Container } from '@metamask/snaps-sdk/dist/jsx/components/Container.cjs';
+import { strings } from '../../../../../locales/i18n';
 
 interface SnapUIRendererProps {
   snapId: string;
   isLoading: boolean;
   interfaceId: string;
+  onCancel: () => void;
 }
 
 const styles = StyleSheet.create({
@@ -27,6 +30,7 @@ const SnapUIRendererComponent = ({
   snapId,
   isLoading = false,
   interfaceId,
+  onCancel,
 }: SnapUIRendererProps) => {
   const interfaceState = useSelector(
     (state) => getMemoizedInterface(state, interfaceId),
@@ -36,7 +40,13 @@ const SnapUIRendererComponent = ({
       isEqual(oldState?.content ?? null, newState?.content ?? null),
   );
 
-  const content = interfaceState?.content;
+  const rawContent = interfaceState?.content;
+  const content =
+    rawContent?.type === 'Container' || !rawContent
+      ? rawContent
+      : Container({ children: rawContent });
+
+  const useFooter = content?.props?.children?.[1]?.type === 'Footer';
 
   // sections are memoized to avoid useless re-renders if one of the parents element re-renders.
   const sections = useMemo(
@@ -45,8 +55,11 @@ const SnapUIRendererComponent = ({
       mapToTemplate({
         map: {},
         element: content,
+        useFooter,
+        onCancel,
+        t: strings,
       }),
-    [content],
+    [content, useFooter, onCancel],
   );
 
   if (isLoading || !content) {

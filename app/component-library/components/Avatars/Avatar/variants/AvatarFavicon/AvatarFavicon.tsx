@@ -21,6 +21,7 @@ import {
 } from './AvatarFavicon.constants';
 import stylesheet from './AvatarFavicon.styles';
 import { AvatarFaviconProps } from './AvatarFavicon.types';
+import { AvatarSize } from '../../Avatar.types';
 
 const AvatarFavicon = ({
   imageSource,
@@ -48,7 +49,7 @@ const AvatarFavicon = ({
   //  requires that the domain is passed in as a prop from the parent
   const renderFallbackFavicon = () => (
     <Icon
-      size={ICONSIZE_BY_AVATARSIZE[size]}
+      size={ICONSIZE_BY_AVATARSIZE[size.toLowerCase() as AvatarSize]}
       name={DEFAULT_AVATARFAVICON_ERROR_ICON}
     />
   );
@@ -105,7 +106,11 @@ const AvatarFavicon = ({
   const renderFavicon = () => (svgSource ? renderSvg() : renderImage());
 
   return (
-    <AvatarBase size={size} style={styles.base} {...props}>
+    <AvatarBase
+      size={size.toLowerCase() as AvatarSize}
+      style={styles.base}
+      {...props}
+    >
       {error ? renderFallbackFavicon() : renderFavicon()}
     </AvatarBase>
   );

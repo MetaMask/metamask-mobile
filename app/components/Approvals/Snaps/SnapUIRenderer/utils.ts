@@ -6,11 +6,13 @@ import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { decode } from 'html-entities';
 
-
 export interface MapToTemplateParams {
   map: Record<string, number>;
   element: JSXElement;
   form?: string;
+  useFooter?: boolean;
+  onCancel?: () => void;
+  t?: (key: string) => string;
 }
 
 /**
@@ -85,34 +87,38 @@ function generateKey(
   return `${hash}_${count}`;
 }
 
+/**
+ * Extract and return first character (letter or number) of a provided string.
+ * If not possible, return question mark.
+ * Note: This function is used for generating fallback avatars for different entities (websites, Snaps, etc.)
+ * Note: Only letters and numbers will be returned if possible (special characters are ignored).
+ *
+ * @param {string} subjectName - Name of a subject.
+ * @returns Single character, chosen from the first character or number, question mark otherwise.
+ */
+export const getAvatarFallbackLetter = (subjectName: string) => {
+  return subjectName?.match(/[a-z0-9]/iu)?.[0] ?? '?';
+};
+
 export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
-
-  if (!hasProperty(COMPONENT_MAPPING, type)) {
-    throw new Error(`Unknown component type: ${type}`);
-  }
-
-  const mappingFunction =
-    COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING];
-  if (typeof mappingFunction !== 'function') {
-    throw new Error(`Component mapping for ${type} is not a function`);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapped = mappingFunction(params as any);
+  const mapped = COMPONENT_MAPPING[
+    type as Exclude<JSXElement['type'], 'Option' | 'Radio' | 'SelectorOption'>
+    // TODO: Replace `any` with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ](params as any);
   return { ...mapped, key: elementKey } as UIComponent;
 };
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<MapToTemplateParams, 'map'>,
+  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel'>,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
-    // With the introduction of JSX elements here can be strings.
     if (typeof e === 'string') {
       return decode(e);
     }
-
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
 
@@ -146,14 +152,6 @@ export const mergeValue = <Type extends State>(
   }
   return { ...state, [name]: value };
 };
-
-export enum TextWrap {
-  BreakWord = 'break-word',
-  Clip = 'clip',
-  TailEllipsis = 'tail',
-  MiddleEllipsis = 'middle',
-  HeadEllipsis = 'head',
-}
 
 export enum AlignItems {
   flexStart = 'flex-start',
