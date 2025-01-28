@@ -419,7 +419,7 @@ class Login extends PureComponent {
         password: '',
         hasBiometricCredentials: false,
       });
-      field.setValue('');
+      field?.clear();
     } catch (e) {
       const error = e.toString();
       if (
@@ -490,7 +490,7 @@ class Login extends PureComponent {
         password: '',
         hasBiometricCredentials: false,
       });
-      field.setValue('');
+      field?.clear();
     } catch (error) {
       this.setState({ hasBiometricCredentials: true });
       Logger.log(error);
