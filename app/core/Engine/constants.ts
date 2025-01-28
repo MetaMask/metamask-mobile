@@ -42,4 +42,8 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesController:stateChange',
   'NotificationServicesPushController:stateChange',
   ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  'MultichainBalancesController:stateChange',
+  'RatesController:stateChange',
+  ///: END:ONLY_INCLUDE_IF
 ] as const;

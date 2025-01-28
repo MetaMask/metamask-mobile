@@ -8,7 +8,7 @@ import {
 } from '@metamask/keyring-api';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { validate, Network } from 'bitcoin-address-validation';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { isAddress as isSolAddress } from '@solana/addresses';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -80,7 +80,7 @@ export function isBtcTestnetAddress(address: string): boolean {
 }
 
 /**
- * Returns whether an address is a valid Solana address, specifically an account's.
+ * Returns whether an account is a Solana account.
  * Derived addresses (like Program's) will return false.
  * See: https://stackoverflow.com/questions/71200948/how-can-i-validate-a-solana-wallet-address-with-web3js
  *
@@ -89,5 +89,17 @@ export function isBtcTestnetAddress(address: string): boolean {
  */
 export function isSolanaAccount(account: InternalAccount): boolean {
   return isSolanaAddress(account.address);
+}
+
+/**
+ * Returns whether an address is a valid Solana address, specifically an account's.
+ * Derived addresses (like Program's) will return false.
+ * See: https://stackoverflow.com/questions/71200948/how-can-i-validate-a-solana-wallet-address-with-web3js
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a valid Solana address, `false` otherwise.
+ */
+export function isSolanaAddress(address: string): boolean {
+  return isSolAddress(address);
 }
 ///: END:ONLY_INCLUDE_IF
