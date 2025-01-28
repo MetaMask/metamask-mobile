@@ -190,6 +190,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [
     isOriginWalletConnect,
     origin,
+    inappBrowserOrigin,
     isOriginMMSDKRemoteConn,
     isChannelId,
     dappUrl,
