@@ -28,14 +28,21 @@ const mockParsedSignV3Message = {
   type: 'Mail',
 };
 
+const mockV3MessageDomain = {
+  chainId: 1,
+  name: 'Ether Mail',
+  verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+  version: '1',
+};
+
 describe('Signature utils', () => {
   describe('parseSanitizeTypedDataMessage', () => {
     it('should return parsed and sanitized types signature message', async () => {
-      const { sanitizedMessage, primaryType } = parseSanitizeTypedDataMessage(
-        JSON.stringify(mockTypedSignV3Message),
-      );
+      const { sanitizedMessage, primaryType, domain } =
+        parseSanitizeTypedDataMessage(JSON.stringify(mockTypedSignV3Message));
       expect(primaryType).toBe('Mail');
       expect(sanitizedMessage).toEqual(mockParsedSignV3Message);
+      expect(domain).toEqual(mockV3MessageDomain);
     });
   });
 });

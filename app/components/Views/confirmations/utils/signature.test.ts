@@ -3,8 +3,12 @@ import {
   isRecognizedPermit,
   isTypedSignV3V4Request,
   getSignatureRequestPrimaryType,
+  isRecognizedOrder,
 } from './signature';
-import { PRIMARY_TYPES_PERMIT } from '../constants/signatures';
+import {
+  PRIMARY_TYPES_ORDER,
+  PRIMARY_TYPES_PERMIT,
+} from '../constants/signatures';
 import {
   SignatureRequest,
   SignatureRequestType,
@@ -89,6 +93,41 @@ describe('Signature Utils', () => {
     it('should return false for typed sign V1 request', () => {
       expect(isRecognizedPermit(typedSignV1SignatureRequest)).toBe(false);
       expect(isRecognizedPermit(personalSignSignatureRequest)).toBe(false);
+    });
+  });
+
+  describe('isRecognizedOrder', () => {
+    it('should return true for recognized order types', () => {
+      const mockRequest: SignatureRequest = {
+        messageParams: {
+          data: JSON.stringify({
+            primaryType: PRIMARY_TYPES_ORDER[0],
+          }),
+          version: 'V3',
+        },
+        type: SignatureRequestType.TypedSign,
+      } as SignatureRequest;
+
+      expect(isRecognizedOrder(mockRequest)).toBe(true);
+    });
+
+    it('should return false for unrecognized order types', () => {
+      const mockRequest: SignatureRequest = {
+        messageParams: {
+          data: JSON.stringify({
+            primaryType: 'UnrecognizedType',
+          }),
+          version: 'V3',
+        },
+        type: SignatureRequestType.TypedSign,
+      } as SignatureRequest;
+
+      expect(isRecognizedOrder(mockRequest)).toBe(false);
+    });
+
+    it('should return false for typed sign V1 request', () => {
+      expect(isRecognizedOrder(typedSignV1SignatureRequest)).toBe(false);
+      expect(isRecognizedOrder(personalSignSignatureRequest)).toBe(false);
     });
   });
 
