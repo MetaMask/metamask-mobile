@@ -1,21 +1,18 @@
 import { MessageType, SendAnalytics, TrackingEvents } from '@metamask/sdk-communication-layer';
-import { Platform } from 'react-native';
 import { resetConnections } from '../../../../app/actions/sdk';
 import { store } from '../../../../app/store';
 import Routes from '../../../constants/navigation/Routes';
 import { selectChainId } from '../../../selectors/networkController';
-import Device from '../../../util/device';
+import Logger from '../../../util/Logger';
+import AppConstants from '../../AppConstants';
 import Engine from '../../Engine';
-import { Minimizer } from '../../NativeModules';
 import { getPermittedAccounts } from '../../Permissions';
 import { Connection, ConnectionProps } from '../Connection';
 import checkPermissions from '../handlers/checkPermissions';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
-import { SDKConnect } from './../SDKConnect';
 import { wait, waitForCondition } from '../utils/wait.util';
-import Logger from '../../../util/Logger';
-import AppConstants from '../../AppConstants';
+import { SDKConnect } from './../SDKConnect';
 
 import packageJSON from '../../../../package.json';
 const { version: walletVersion } = packageJSON;
@@ -233,14 +230,10 @@ async function connectToChannel({
         connected.trigger === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK &&
         connected.origin === AppConstants.DEEPLINKS.ORIGIN_DEEPLINK
       ) {
-        if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-          DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
-          connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
-        } else {
-          await Minimizer.goBack();
-        }
+        DevLogger.log(`[handleSendMessage] display RETURN_TO_DAPP_MODAL`);
+        connected.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+        });
       }
     }
   } catch (error) {
