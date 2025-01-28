@@ -6,5 +6,5 @@ const selectTokenSearchDiscoveryControllerState = (state: RootState) =>
 
 export const selectRecentTokenSearches = createSelector(
   selectTokenSearchDiscoveryControllerState,
-  (state) => state.recentSearches,
+  (state) => state?.recentSearches ?? [],
 );
