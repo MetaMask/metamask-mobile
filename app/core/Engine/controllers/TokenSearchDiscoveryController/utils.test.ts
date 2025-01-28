@@ -17,7 +17,7 @@ describe('TokenSearchDiscoveryController utils', () => {
     it('creates controller with initial undefined state', () => {
       const controller = createTokenSearchDiscoveryController({
         state: undefined,
-        messenger: messenger,
+        messenger,
       });
 
       expect(controller).toBeDefined();
@@ -56,7 +56,7 @@ describe('TokenSearchDiscoveryController utils', () => {
 
       const controller = createTokenSearchDiscoveryController({
         state: initialState,
-        messenger: messenger,
+        messenger,
       });
 
       expect(controller.state).toStrictEqual(initialState);
@@ -70,7 +70,7 @@ describe('TokenSearchDiscoveryController utils', () => {
       const controller = createTokenSearchDiscoveryController({
         // @ts-expect-error giving a wrong initial state
         state: initialState,
-        messenger: messenger,
+        messenger,
       });
 
       expect(controller.state).toStrictEqual({
