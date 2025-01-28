@@ -3580,7 +3580,6 @@
     "network": "Réseau",
     "simulation": {
       "title": "Changements estimés",
-      "personal_sign_info": "Vous êtes en train de vous connecter à un site. Aucun changement ne devrait être apporté à votre compte.",
       "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information."
     }
   },

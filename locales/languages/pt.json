@@ -3580,7 +3580,6 @@
     "network": "Rede",
     "simulation": {
       "title": "Alterações estimadas",
-      "personal_sign_info": "Você está fazendo login em um site, e não há alterações previstas em sua conta.",
       "tooltip": "Alterações estimadas são o que pode acontecer se você prosseguir com essa transação. Isso é apenas uma previsão, não uma garantia."
     }
   },

@@ -3580,7 +3580,6 @@
     "network": "Network",
     "simulation": {
       "title": "Tinantyang mga pagbabago",
-      "personal_sign_info": "Nagsa-sign in ka sa isang site at walang mga inaasahang pagbabago sa iyong account.",
       "tooltip": "Ang tinantyang mga pagbabago ay ang maaaring mangyari kung magpapatuloy ka sa transaksyon ito. Ito ay isang hula lamang, hindi isang garantiya."
     }
   },
