@@ -9,7 +9,7 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import * as customNetworks from '../../../util/networks/customNetworks';
+import { PopularList } from '../../../util/networks/customNetworks';
 import { MISSMATCH_RPC_URL_TEST_ID } from './NetworkVerificationInfo.constants';
 
 jest.mock('react-redux', () => ({
@@ -42,7 +42,7 @@ const mockNetworkInfo = {
 
 describe('NetworkVerificationInfo with Feature Flag ON', () => {
   // Setup and cleanup for PopularList mock
-  const originalPopularList = [...customNetworks.PopularList];
+  const originalPopularList = [PopularList];
 
   beforeEach(() => {
     (useSelector as jest.Mock).mockClear();
@@ -50,8 +50,8 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
 
   afterEach(() => {
     // Restore original PopularList after each test
-    customNetworks.PopularList.length = 0;
-    customNetworks.PopularList.push(...originalPopularList);
+    PopularList.length = 0;
+    PopularList.push(...originalPopularList[0]);
   });
 
   describe('RPC URL Mismatch Detection', () => {
@@ -88,8 +88,8 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
       const mockPopularNetwork = createMockPopularNetwork(
         'https://different.rpc.url',
       );
-      customNetworks.PopularList.length = 0;
-      customNetworks.PopularList.push(mockPopularNetwork as any);
+      PopularList.length = 0;
+      PopularList.push(mockPopularNetwork as any);
 
       const networkInfoWithPageMeta = createNetworkWithPageMeta(
         'https://app.uniswap.org',
@@ -109,8 +109,8 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
 
     it('hides RPC mismatch UI when URLs match', () => {
       const mockPopularNetwork = createMockPopularNetwork('http://test.com');
-      customNetworks.PopularList.length = 0;
-      customNetworks.PopularList.push(mockPopularNetwork as any);
+      PopularList.length = 0;
+      PopularList.push(mockPopularNetwork as any);
 
       const networkInfoWithPageMeta = createNetworkWithPageMeta(
         'https://app.uniswap.org',
