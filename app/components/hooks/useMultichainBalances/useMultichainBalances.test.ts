@@ -84,7 +84,7 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.data).toEqual({
+    expect(result.current.multchainBalances).toEqual({
       displayBalance: '0 USD',
       tokenFiatBalancesCrossChains: [],
       totalFiatBalance: 0,
@@ -110,8 +110,8 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.data.displayBalance).toBe('150 USD');
-    expect(result.current.data.aggregatedBalance).toEqual({
+    expect(result.current.multchainBalances.displayBalance).toBe('150 USD');
+    expect(result.current.multchainBalances.aggregatedBalance).toEqual({
       ethFiat: 100,
       tokenFiat: 50,
       tokenFiat1dAgo: 45,
@@ -161,10 +161,14 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.data.isPortfolioEnabled).toBe(true);
-    expect(result.current.data.totalFiatBalance).toBe(mockTotalFiatBalance);
-    expect(result.current.data.totalTokenFiat).toBe(mockTokenFiatBalance);
-    expect(result.current.data.displayBalance).toBe('1000 USD');
+    expect(result.current.multchainBalances.isPortfolioEnabled).toBe(true);
+    expect(result.current.multchainBalances.totalFiatBalance).toBe(
+      mockTotalFiatBalance,
+    );
+    expect(result.current.multchainBalances.totalTokenFiat).toBe(
+      mockTokenFiatBalance,
+    );
+    expect(result.current.multchainBalances.displayBalance).toBe('1000 USD');
   });
 
   it('does not show aggregated percentage on test networks', () => {
@@ -172,6 +176,8 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
-    expect(result.current.data.shouldShowAggregatedPercentage).toBe(false);
+    expect(
+      result.current.multchainBalances.shouldShowAggregatedPercentage,
+    ).toBe(false);
   });
 });

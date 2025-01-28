@@ -39,13 +39,13 @@ export const PortfolioBalance = React.memo(() => {
   const styles = createStyles(colors);
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
   const privacyMode = useSelector(selectPrivacyMode);
-  const isDataCollectionForMarketingEnabled = useSelector(
+  const ismultchainBalancesCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
   const navigation = useNavigation();
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
-  const { data } = useMultichainBalances();
+  const { multchainBalances } = useMultichainBalances();
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
@@ -69,7 +69,7 @@ export const PortfolioBalance = React.memo(() => {
       );
       portfolioUrl.searchParams.append(
         'marketingEnabled',
-        String(!!isDataCollectionForMarketingEnabled),
+        String(!!ismultchainBalancesCollectionForMarketingEnabled),
       );
 
       newTabUrl = portfolioUrl.href;
@@ -95,21 +95,23 @@ export const PortfolioBalance = React.memo(() => {
     trackEvent,
     createEventBuilder,
     isEnabled,
-    isDataCollectionForMarketingEnabled,
+    ismultchainBalancesCollectionForMarketingEnabled,
     browserTabs,
   ]);
 
   const renderAggregatedPercentage = () => {
-    if (!data.shouldShowAggregatedPercentage) {
+    if (!multchainBalances.shouldShowAggregatedPercentage) {
       return null;
     }
 
-    if (data.isPortfolioEnabled) {
+    if (multchainBalances.isPortfolioEnabled) {
       return (
         <AggregatedPercentageCrossChains
           privacyMode={privacyMode}
-          totalFiatCrossChains={data.totalFiatBalance}
-          tokenFiatBalancesCrossChains={data.tokenFiatBalancesCrossChains}
+          totalFiatCrossChains={multchainBalances.totalFiatBalance}
+          tokenFiatBalancesCrossChains={
+            multchainBalances.tokenFiatBalancesCrossChains
+          }
         />
       );
     }
@@ -117,10 +119,10 @@ export const PortfolioBalance = React.memo(() => {
     return (
       <AggregatedPercentage
         privacyMode={privacyMode}
-        ethFiat={data.aggregatedBalance.ethFiat}
-        tokenFiat={data.aggregatedBalance.tokenFiat}
-        tokenFiat1dAgo={data.aggregatedBalance.tokenFiat1dAgo}
-        ethFiat1dAgo={data.aggregatedBalance.ethFiat1dAgo}
+        ethFiat={multchainBalances.aggregatedBalance.ethFiat}
+        tokenFiat={multchainBalances.aggregatedBalance.tokenFiat}
+        tokenFiat1dAgo={multchainBalances.aggregatedBalance.tokenFiat1dAgo}
+        ethFiat1dAgo={multchainBalances.aggregatedBalance.ethFiat1dAgo}
       />
     );
   };
@@ -143,7 +145,7 @@ export const PortfolioBalance = React.memo(() => {
               testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
               variant={TextVariant.DisplayMD}
             >
-              {data.displayBalance}
+              {multchainBalances.displayBalance}
             </SensitiveText>
             <TouchableOpacity
               onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}

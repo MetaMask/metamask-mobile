@@ -12,5 +12,5 @@ export interface MultichainBalancesData {
 }
 
 export interface UseMultichainBalancesHook {
-  data: MultichainBalancesData;
+  multchainBalances: MultichainBalancesData;
 }
