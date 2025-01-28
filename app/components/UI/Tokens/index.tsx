@@ -368,10 +368,17 @@ const Tokens: React.FC<TokensI> = memo(({ tokens }) => {
         AccountTrackerController,
         CurrencyRateController,
         TokenRatesController,
+        TokenBalancesController,
       } = Engine.context;
 
       const actions = [
         TokenDetectionController.detectTokens({
+          chainIds: isPortfolioViewEnabled()
+            ? (Object.keys(networkConfigurationsByChainId) as Hex[])
+            : [currentChainId],
+        }),
+
+        TokenBalancesController.updateBalances({
           chainIds: isPortfolioViewEnabled()
             ? (Object.keys(networkConfigurationsByChainId) as Hex[])
             : [currentChainId],

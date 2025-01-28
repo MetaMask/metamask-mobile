@@ -45,6 +45,9 @@ jest.mock('../../../core/Engine', () => ({
     TokenRatesController: {
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
     },
+    TokenBalancesController: {
+      updateBalances: jest.fn(() => Promise.resolve()),
+    },
     NetworkController: {
       getNetworkClientById: () => ({
         configuration: {
@@ -437,6 +440,9 @@ describe('Tokens', () => {
       () => {
         expect(
           Engine.context.TokenDetectionController.detectTokens,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenBalancesController.updateBalances,
         ).toHaveBeenCalled();
         expect(
           Engine.context.AccountTrackerController.refresh,
