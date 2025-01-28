@@ -19,8 +19,8 @@ jest.mock('@metamask/token-search-discovery-controller', () => ({
   TokenSearchDiscoveryController: jest
     .fn()
     .mockImplementation(function (
-      this: { state: any },
-      params: { state?: any },
+      this: { state: TokenSearchDiscoveryControllerState },
+      params: { state?: TokenSearchDiscoveryControllerState },
     ) {
       this.state = {
         lastSearchTimestamp: null,
@@ -141,50 +141,54 @@ describe('TokenSearchDiscoveryController utils', () => {
 
     it('returns dev URL when environment is local', () => {
       process.env.METAMASK_ENVIRONMENT = 'local';
-      const {
-        createTokenSearchDiscoveryController: freshCreate,
-      } = require('./utils');
-      const controller = freshCreate({
-        state: undefined,
-        messenger,
+      jest.isolateModules(() => {
+        const { createTokenSearchDiscoveryController: freshCreate } =
+          jest.requireActual('./utils');
+        const controller = freshCreate({
+          state: undefined,
+          messenger,
+        });
+        expect(controller.state).toBeDefined();
       });
-      expect(controller.state).toBeDefined();
     });
 
     it('returns prod URL when environment is pre-release', () => {
       process.env.METAMASK_ENVIRONMENT = 'pre-release';
-      const {
-        createTokenSearchDiscoveryController: freshCreate,
-      } = require('./utils');
-      const controller = freshCreate({
-        state: undefined,
-        messenger,
+      jest.isolateModules(() => {
+        const { createTokenSearchDiscoveryController: freshCreate } =
+          jest.requireActual('./utils');
+        const controller = freshCreate({
+          state: undefined,
+          messenger,
+        });
+        expect(controller.state).toBeDefined();
       });
-      expect(controller.state).toBeDefined();
     });
 
     it('returns prod URL when environment is production', () => {
       process.env.METAMASK_ENVIRONMENT = 'production';
-      const {
-        createTokenSearchDiscoveryController: freshCreate,
-      } = require('./utils');
-      const controller = freshCreate({
-        state: undefined,
-        messenger,
+      jest.isolateModules(() => {
+        const { createTokenSearchDiscoveryController: freshCreate } =
+          jest.requireActual('./utils');
+        const controller = freshCreate({
+          state: undefined,
+          messenger,
+        });
+        expect(controller.state).toBeDefined();
       });
-      expect(controller.state).toBeDefined();
     });
 
     it('returns dev URL when environment is not recognized', () => {
       process.env.METAMASK_ENVIRONMENT = 'unknown';
-      const {
-        createTokenSearchDiscoveryController: freshCreate,
-      } = require('./utils');
-      const controller = freshCreate({
-        state: undefined,
-        messenger,
+      jest.isolateModules(() => {
+        const { createTokenSearchDiscoveryController: freshCreate } =
+          jest.requireActual('./utils');
+        const controller = freshCreate({
+          state: undefined,
+          messenger,
+        });
+        expect(controller.state).toBeDefined();
       });
-      expect(controller.state).toBeDefined();
     });
   });
 });
