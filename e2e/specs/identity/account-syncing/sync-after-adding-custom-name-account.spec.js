@@ -52,7 +52,7 @@ describe(SmokeIdentity('Account syncing'), () => {
       }),
     );
 
-    await TestHelpers.launchApp({
+    await device.launchApp({
       newInstance: true,
       delete: true,
     });
@@ -94,7 +94,7 @@ describe(SmokeIdentity('Account syncing'), () => {
   });
 
   it('retrieves same accounts after importing the same SRP', async () => {
-    await TestHelpers.launchApp({
+    await device.launchApp({
       newInstance: true,
       delete: true,
     });

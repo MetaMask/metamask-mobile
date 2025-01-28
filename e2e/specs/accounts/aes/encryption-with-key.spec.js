@@ -34,7 +34,7 @@ describe(
       const fixture = new FixtureBuilder().build();
       await startFixtureServer(fixtureServer);
       await loadFixture(fixtureServer, { fixture });
-      await TestHelpers.launchApp({
+      await device.launchApp({
         launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
       });
       await loginToApp();

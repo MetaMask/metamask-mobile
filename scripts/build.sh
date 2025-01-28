@@ -164,7 +164,6 @@ loadJSEnv(){
 	fi
 	# Disable auto Sentry file upload by default
 	export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
-	export EXPO_NO_TYPESCRIPT_SETUP=1
 }
 
 
@@ -225,80 +224,41 @@ prebuild_android(){
 buildAndroidRun(){
 	remapEnvVariableLocal
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
-}
-
-buildAndroidDevBuild(){
-	prebuild_android
-	if [ -e $ANDROID_ENV_FILE ]
-	then
-		source $ANDROID_ENV_FILE
-	fi
-	cd android && ./gradlew assembleProdDebug -DtestBuildType=debug --build-cache --parallel && cd ..
+	react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
 }
 
 buildAndroidRunQA(){
 	remapEnvVariableLocal
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
+	react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
 }
 
 buildAndroidRunFlask(){
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
-}
-
-buildIosDevBuild(){
-	remapEnvVariableLocal
-	prebuild_ios
-	
-	
-	echo "Setting up env vars...";
-	echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-	echo "Build started..."
-	brew install watchman
-	cd ios
-
-	exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskDevelopment.plist"
-	scheme="MetaMask"
-
-	echo "exportOptionsPlist: $exportOptionsPlist"
-  	echo "Generating archive packages for $scheme"
-	xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration Debug COMIPLER_INDEX_STORE_ENABLE=NO archive -archivePath build/$scheme.xcarchive -destination generic/platform=ios
-	echo "Generating ipa for $scheme"
-	xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
-	cd ..
+	react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
 }
 
 buildIosSimulator(){
 	remapEnvVariableLocal
 	prebuild_ios
 	if [ -n "$IOS_SIMULATOR" ]; then
-		SIM_OPTION="--device \"$IOS_SIMULATOR\""
+		SIM_OPTION="--simulator \"$IOS_SIMULATOR\""
 	else
 		SIM_OPTION=""
 	fi
-	#react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT $SIM_OPTION
+	react-native run-ios --port=$WATCHER_PORT $SIM_OPTION
 }
 
 buildIosSimulatorQA(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
-
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
 }
 
 buildIosSimulatorFlask(){
 	prebuild_ios
 	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-
-	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+	react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-Flask"
 }
 
 buildIosSimulatorE2E(){
@@ -318,21 +278,17 @@ runIosE2E(){
 buildIosDevice(){
 	remapEnvVariableLocal
 	prebuild_ios
-	#react-native run-ios --port=$WATCHER_PORT --device
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
+	react-native run-ios --port=$WATCHER_PORT --device
 }
 
 buildIosDeviceQA(){
 	prebuild_ios
-	#react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
-
-	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
+	react-native run-ios --port=$WATCHER_PORT --device --scheme "MetaMask-QA"
 }
 
 buildIosDeviceFlask(){
 	prebuild_ios
-	#react-native run-ios --device --scheme "MetaMask-Flask"
-	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
+	react-native run-ios --device --scheme "MetaMask-Flask"
 }
 
 generateArchivePackages() {
@@ -558,8 +514,6 @@ buildAndroid() {
 		buildAndroidRunQA
 	elif [ "$MODE" == "flaskDebug" ] ; then
 		buildAndroidRunFlask
-	elif [ "$MODE" == "devBuild" ] ; then
-		buildAndroidDevBuild
 	else
 		buildAndroidRun
 	fi
@@ -600,8 +554,6 @@ buildIos() {
 		else
 			buildIosSimulatorFlask
 		fi
-	elif [ "$MODE" == "devbuild" ] ; then
-		buildIosDevBuild
 	else
 		if [ "$RUN_DEVICE" = true ] ; then
 			buildIosDevice
@@ -618,11 +570,9 @@ startWatcher() {
 	if [ "$MODE" == "clean" ]; then
 		watchman watch-del-all
 		rm -rf $TMPDIR/metro-cache
-		#react-native start --port=$WATCHER_PORT -- --reset-cache
-		npx expo start --port $WATCHER_PORT --clear
+		react-native start --port=$WATCHER_PORT -- --reset-cache
 	else
-		#react-native start --port=$WATCHER_PORT
-		npx expo start --port $WATCHER_PORT
+		react-native start --port=$WATCHER_PORT
 	fi
 }
 

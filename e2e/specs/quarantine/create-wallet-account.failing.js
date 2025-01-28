@@ -12,7 +12,7 @@ const AccountTwoText = 'Account 2';
 describe(SmokeAccounts('Create wallet account'), () => {
   beforeAll(async () => {
     jest.setTimeout(200000);
-    await TestHelpers.launchApp();
+    await device.launchApp();
   });
 
   it('should import wallet and go to the wallet view', async () => {

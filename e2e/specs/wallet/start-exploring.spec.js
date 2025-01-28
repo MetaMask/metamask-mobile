@@ -19,7 +19,7 @@ const PASSWORD = '12345678';
 describe(SmokeCore('Start Exploring'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
-    await TestHelpers.launchApp();
+    await device.launchApp();
   });
 
   it('should show the onboarding screen', async () => {

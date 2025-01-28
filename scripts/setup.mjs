@@ -9,7 +9,6 @@ const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
 let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
-let BUILD_ANDROID = true
 let INSTALL_PODS;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
@@ -28,9 +27,6 @@ for (const arg of args) {
       continue;
     case '--node':
       IS_NODE = true;
-      continue;
-    case '--no-build-android':
-      BUILD_ANDROID = false
       continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
@@ -225,9 +221,6 @@ const nodeifyTask = {
 const jetifyTask = {
   title: 'Jetify npm packages for Android',
   task: async (_, task) => {
-    if (!BUILD_ANDROID) {
-      return task.skip('Skipping jetifying npm packages.');
-    }
     if (IS_NODE) {
       return task.skip('Skipping jetifying npm packages.');
     }

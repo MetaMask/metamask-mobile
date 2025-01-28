@@ -16,7 +16,7 @@ setupSentry();
 
 import { AppRegistry, LogBox, ErrorUtils } from 'react-native';
 import Root from './app/components/Views/Root';
-import { name } from './app.config.js';
+import { name } from './app.json';
 import { isE2E } from './app/util/test/utils.js';
 
 import { Performance } from './app/core/Performance';

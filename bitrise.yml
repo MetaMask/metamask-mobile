@@ -62,10 +62,11 @@ pipelines:
       - run_regression_e2e_ios_android_stage: {}
       - notify: {}
   #App launch times pipeline. Runs on browserstack
-  app_launch_times_and_expo_pipeline:
+  app_launch_times_pipeline:
     stages:
-      - create_build_qa_and_expo: {}
+      - create_build_qa: {}
       - app_launch_times_test_stage: {}
+
   #App Upgrade pipeline. Runs on browserstack
   app_upgrade_pipeline:
     stages:
@@ -113,12 +114,6 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
-  create_build_qa_and_expo:
-      workflows:
-      - build_android_devbuild: {}
-      - build_android_qa: {}
-      - build_ios_devbuild: {}
-      - build_ios_qa: {}
   create_build_qa:
     workflows:
       - build_android_qa: {}
@@ -1204,56 +1199,6 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_android_release
-  build_android_devbuild:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - change-android-versioncode-and-versionname@1:
-          inputs:
-            - new_version_name: $VERSION_NAME
-            - new_version_code: $VERSION_NUMBER
-            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:android:devbuild
-          title: Build Android Dev Build
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - script:
-          title: Copy and Rename APK
-          inputs:
-            - content: |-
-                # Define the source path of the generated APK
-                SOURCE_APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/prod/debug/app-prod-debug.apk"
-                
-                # Define the destination path with the new name
-                DEST_APK_PATH="$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-                
-                # Copy and rename the APK
-                cp "$SOURCE_APK_PATH" "$DEST_APK_PATH"
-                
-                # Optionally, print the new path for verification
-                echo "APK has been copied and renamed to: $DEST_APK_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: "$BITRISE_DEPLOY_DIR/android-expo-dev-build.apk"
-          title: Bitrise Deploy APK
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
   build_android_qa:
     before_run:
       - code_setup
@@ -1499,48 +1444,6 @@ workflows:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
     after_run:
       - build_ios_release
-  build_ios_devbuild:
-    before_run:
-      - code_setup
-    after_run:
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='debug' yarn build:ios:devbuild
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - script:
-          title: Copy and Rename IPA
-          inputs:
-            - content: |-
-                # Define the source path of the generated IPA
-                SOURCE_IPA_PATH="ios/build/output/MetaMask.ipa"
-                
-                # Define the destination path with the new name
-                DEST_IPA_PATH="$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-                
-                # Copy and rename the IPA
-                cp "$SOURCE_IPA_PATH" "$DEST_IPA_PATH"
-                
-                # Optionally, print the new path for verification
-                echo "IPA has been copied and renamed to: $DEST_IPA_PATH"
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: "$BITRISE_DEPLOY_DIR/ios-expo-dev-build.ipa"
-          title: Deploy iOS IPA
   build_ios_qa:
     envs:
       - NO_FLIPPER: '1'
@@ -1823,7 +1726,7 @@ trigger_map:
   - push_branch: release/*
     pipeline: pr_regression_e2e_pipeline
   - push_branch: main
-    pipeline: app_launch_times_and_expo_pipeline
+    pipeline: app_launch_times_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
   - tag: 'dev-e2e-*'
