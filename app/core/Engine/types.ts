@@ -286,7 +286,7 @@ export interface TransactionEventPayload {
  * Type definition for the controller messenger used in the Engine.
  * It extends the base ControllerMessenger with global actions and events.
  */
-export type ControllerMessenger = ExtendedControllerMessenger<
+export type BaseControllerMessenger = ExtendedControllerMessenger<
   GlobalActions,
   GlobalEvents
 >;

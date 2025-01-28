@@ -3,7 +3,7 @@ import Logger from '../../../../util/Logger';
 import { defaultAccountsControllerState } from './utils';
 
 export function logAccountsControllerCreation(
-  initialState?: AccountsControllerState,
+  initialState?: Partial<AccountsControllerState>,
 ) {
   if (!initialState) {
     Logger.log('Creating AccountsController with default state', {
