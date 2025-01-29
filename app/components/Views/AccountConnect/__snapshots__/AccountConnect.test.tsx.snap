@@ -271,7 +271,7 @@ exports[`AccountConnect renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#0000001a",
+                      "backgroundColor": "#0000001A",
                       "borderRadius": 16,
                       "height": 32,
                       "justifyContent": "center",
@@ -426,7 +426,7 @@ exports[`AccountConnect renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#0000001a",
+                      "backgroundColor": "#0000001A",
                       "borderRadius": 16,
                       "height": 32,
                       "justifyContent": "center",
@@ -515,7 +515,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                         >
-                          Requesting for Ethereum Mainnet
+                          Requesting for 4 networks
                         </Text>
                       </Text>
                     </View>
@@ -543,6 +543,120 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                           testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-2"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-3"
                         >
                           <View
                             style={
