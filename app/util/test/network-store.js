@@ -21,7 +21,8 @@ const fetchWithTimeout = (url) =>
     }, FETCH_TIMEOUT);
   });
 
-const FIXTURE_SERVER_HOST = 'bs-local.com';
+const FIXTURE_SERVER_HOST = 'localhost';
+const BROWSERSTACK_LOCAL_HOST = 'bs-local.com';
 const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPortInApp()}/state.json`;
 
 class ReadOnlyNetworkStore {
@@ -74,15 +75,26 @@ class ReadOnlyNetworkStore {
   }
 
   async _init() {
+    const urls = [
+      FIXTURE_SERVER_URL,
+      FIXTURE_SERVER_URL.replace(FIXTURE_SERVER_HOST, BROWSERSTACK_LOCAL_HOST)
+    ];
+
     try {
-      const response = await fetchWithTimeout(FIXTURE_SERVER_URL);
-      if (response.status === 200) {
-        this._state = response.data?.state;
-        this._asyncState = response.data?.asyncState;
+      for (const url of urls) {
+        try {
+          const response = await fetchWithTimeout(url);
+          if (response.status === 200) {
+            this._state = response.data?.state;
+            this._asyncState = response.data?.asyncState;
+            return;
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.debug(`Error loading network state from ${url}: '${error}'`);
+          // Continue to next URL if this one failed
+        }
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.debug(`Error loading network state: '${error}'`);
     } finally {
       this._initialized = true;
     }
