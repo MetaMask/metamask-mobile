@@ -33,36 +33,44 @@ const PEEK_WIDTH = 5;
 
 type SlideId = 'bridge' | 'card' | 'fund' | 'cashout';
 
-const PREDEFINED_SLIDES = [
+interface Slide {
+  id: SlideId;
+  title: string;
+  description: string;
+  undismissable: boolean;
+  href?: string;
+}
+
+const PREDEFINED_SLIDES: Slide[] = [
   {
-    id: 'bridge' as SlideId,
+    id: 'bridge',
     title: strings('banner.bridge.title'),
     description: strings('banner.bridge.subtitle'),
     undismissable: false,
     href: undefined,
   },
   {
-    id: 'card' as SlideId,
+    id: 'card',
     title: strings('banner.card.title'),
     description: strings('banner.card.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/card',
   },
   {
-    id: 'fund' as SlideId,
+    id: 'fund',
     title: strings('banner.fund.title'),
     description: strings('banner.fund.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/buy/build-quote',
   },
   {
-    id: 'cashout' as SlideId,
+    id: 'cashout',
     title: strings('banner.cashout.title'),
     description: strings('banner.cashout.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/sell',
   },
-] as const;
+];
 
 const BannerImages: Record<SlideId, any> = {
   bridge: require('../../../images/banners/banner_image_bridge.png'),
