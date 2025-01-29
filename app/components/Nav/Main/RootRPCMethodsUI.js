@@ -393,6 +393,7 @@ const RootRPCMethodsUI = (props) => {
         autoSign(transactionMeta);
       } else {
         const {
+          chainId,
           networkClientId,
           txParams: { value, gas, gasPrice, data },
         } = transactionMeta;
@@ -449,6 +450,7 @@ const RootRPCMethodsUI = (props) => {
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
             networkClientId,
+            chainId,
             ...transactionMeta.txParams,
           });
         } else {
@@ -461,6 +463,7 @@ const RootRPCMethodsUI = (props) => {
             id: transactionMeta.id,
             origin: transactionMeta.origin,
             securityAlertResponse: transactionMeta.securityAlertResponse,
+            chainId,
             networkClientId,
             ...transactionMeta.txParams,
           });

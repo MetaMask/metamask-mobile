@@ -4,7 +4,7 @@ exports[`WalletAccount renders correctly 1`] = `
 <View
   style={
     {
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 8,
       "borderWidth": 1,
       "marginHorizontal": 16,
@@ -25,7 +25,7 @@ exports[`WalletAccount renders correctly 1`] = `
         {
           "alignItems": "center",
           "backgroundColor": "#ffffff",
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
           "borderRadius": 8,
           "borderWidth": 0,
           "flexDirection": "row",
@@ -237,7 +237,7 @@ exports[`WalletAccount renders correctly 1`] = `
   <View
     style={
       {
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderTopWidth": 1,
         "marginHorizontal": 16,
       }
@@ -248,7 +248,7 @@ exports[`WalletAccount renders correctly 1`] = `
       {
         "alignItems": "center",
         "backgroundColor": "#ffffff",
-        "borderColor": "#bbc0c5",
+        "borderColor": "#848c96",
         "borderRadius": 8,
         "borderWidth": 0,
         "flexDirection": "row",

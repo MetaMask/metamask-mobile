@@ -28,7 +28,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
   }
   style={
     {
-      "backgroundColor": "#bf52081a",
+      "backgroundColor": "#BF52081A",
       "borderColor": "#bf5208",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -181,7 +181,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
   }
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -334,7 +334,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
   }
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,
@@ -496,7 +496,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
   <View
     style={
       {
-        "backgroundColor": "#bf52081a",
+        "backgroundColor": "#BF52081A",
         "borderColor": "#bf5208",
         "borderLeftWidth": 4,
         "borderRadius": 4,
@@ -589,7 +589,7 @@ exports[`BlockaidBanner should render something does not look right with contact
   }
   style={
     {
-      "backgroundColor": "#d738471a",
+      "backgroundColor": "#D738471A",
       "borderColor": "#d73847",
       "borderLeftWidth": 4,
       "borderRadius": 4,

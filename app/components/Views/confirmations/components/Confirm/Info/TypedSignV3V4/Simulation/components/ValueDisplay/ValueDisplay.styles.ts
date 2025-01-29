@@ -12,7 +12,9 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-
+    fiatDisplay: {
+      paddingEnd: 8,
+    },
     flexRowTokenValueAndAddress: {
       display: 'flex',
       flexDirection: 'row',
@@ -22,7 +24,11 @@ const styleSheet = (colors: Theme['colors']) =>
       borderWidth: 0,
       padding: 0,
     },
-    tokenAddress: {
+    loaderButtonPillEmptyContent: {
+      height: 22,
+      width: 22,
+    },
+    marginStart4: {
       marginStart: 4,
     },
     tokenValueTooltipContent: {
@@ -35,7 +41,6 @@ const styleSheet = (colors: Theme['colors']) =>
     valueAndAddress: {
       paddingVertical: 4,
       paddingLeft: 8,
-      paddingRight: 8,
       gap: 5,
       flexDirection: 'row',
       alignItems: 'center',

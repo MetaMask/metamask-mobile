@@ -555,7 +555,7 @@ exports[`Regions View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -565,7 +565,6 @@ exports[`Regions View renders correctly 1`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -1337,12 +1336,11 @@ exports[`Regions View renders correctly while loading 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
-                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -2566,12 +2564,11 @@ exports[`Regions View renders correctly with no data 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#bbc0c5",
+                                      "borderColor": "#848c96",
                                       "borderRadius": 8,
                                       "borderWidth": 1.5,
                                       "padding": 16,
                                     },
-                                    undefined,
                                     undefined,
                                     undefined,
                                     undefined,
@@ -3814,7 +3811,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -3824,7 +3821,6 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -4613,7 +4609,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -4623,7 +4619,6 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -4941,12 +4936,11 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
-                                      undefined,
                                       undefined,
                                       undefined,
                                       undefined,
@@ -5788,7 +5782,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -5798,7 +5792,6 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -6116,12 +6109,11 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
                                       },
-                                      undefined,
                                       undefined,
                                       undefined,
                                       undefined,
@@ -6963,7 +6955,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                   style={
                                     [
                                       {
-                                        "borderColor": "#bbc0c5",
+                                        "borderColor": "#848c96",
                                         "borderRadius": 8,
                                         "borderWidth": 1.5,
                                         "padding": 16,
@@ -6973,7 +6965,6 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       {
                                         "padding": 0,
                                       },
-                                      undefined,
                                       undefined,
                                     ]
                                   }
@@ -7329,7 +7320,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                       {
                                         "alignItems": "center",
                                         "borderBottomWidth": 0.5,
-                                        "borderColor": "#bbc0c566",
+                                        "borderColor": "#BBC0C566",
                                         "height": 33,
                                         "justifyContent": "center",
                                         "width": "100%",
@@ -7341,7 +7332,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                   <View
                                     style={
                                       {
-                                        "backgroundColor": "#bbc0c5",
+                                        "backgroundColor": "#848c96",
                                         "borderRadius": 4,
                                         "height": 5,
                                         "width": 48,
@@ -7500,7 +7491,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "borderColor": "#bbc0c5",
+                                            "borderColor": "#848c96",
                                             "borderRadius": 5,
                                             "borderWidth": 1,
                                             "flexDirection": "row",
@@ -7750,7 +7741,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                 <View
                                                   style={
                                                     {
-                                                      "backgroundColor": "#bbc0c566",
+                                                      "backgroundColor": "#BBC0C566",
                                                       "height": 1,
                                                       "width": "100%",
                                                     }
@@ -7868,7 +7859,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                               <View
                                                 style={
                                                   {
-                                                    "backgroundColor": "#bbc0c566",
+                                                    "backgroundColor": "#BBC0C566",
                                                     "height": 1,
                                                     "width": "100%",
                                                   }
