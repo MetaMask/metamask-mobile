@@ -215,6 +215,7 @@ describe(SmokeStake('Stake from Actions'), () => {
        newInstance: true,
        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}` },
      });
+    await TestHelpers.delay(20000);
     await loginToApp();
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
