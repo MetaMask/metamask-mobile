@@ -3616,6 +3616,8 @@
     "account": "Account",
     "balance": "Balance",
     "network": "Network",
+    "qr_get_sign": "Get Signature",
+    "qr_scan_text": "Scan with your hardware wallet",
     "simulation": {
       "decoded_tooltip_bid_nft": "The NFT will be reflected in your wallet, when the bid is accepted.",
       "decoded_tooltip_list_nft":  "Expect changes only if someone buys your NFTs.",

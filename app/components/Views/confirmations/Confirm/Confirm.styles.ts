@@ -11,11 +11,17 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.alternative,
       paddingHorizontal: 16,
       paddingVertical: 24,
-      minHeight: '70%',
       borderTopLeftRadius: 20,
       borderTopRightRadius: 20,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       justifyContent: 'space-between',
+    },
+    scrollableSection: {
+      flex: 1,
+    },
+    scrollWrapper: {
+      minHeight: '68%',
+      maxHeight: '68%',
     },
   });
 };
