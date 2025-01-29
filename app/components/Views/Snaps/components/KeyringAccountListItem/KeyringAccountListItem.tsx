@@ -1,6 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import React, { useCallback } from 'react';
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import ButtonIcon, {
   ButtonIconSizes,

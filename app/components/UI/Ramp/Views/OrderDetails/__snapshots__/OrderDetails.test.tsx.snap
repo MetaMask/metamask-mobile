@@ -572,7 +572,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -584,7 +584,6 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -1302,7 +1301,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -2070,7 +2069,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -2082,7 +2081,6 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -2800,7 +2798,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -3582,7 +3580,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -3594,7 +3592,6 @@ exports[`OrderDetails renders a created order 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -4312,7 +4309,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -5010,7 +5007,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -5022,7 +5019,6 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -5740,7 +5736,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -6522,7 +6518,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -6534,7 +6530,6 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -7252,7 +7247,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -9057,7 +9052,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -9069,7 +9064,6 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -9787,7 +9781,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -10596,7 +10590,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -10608,7 +10602,6 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -11346,7 +11339,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -12128,7 +12121,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -12140,7 +12133,6 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -12858,7 +12850,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -13603,7 +13595,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           [
                                             {
-                                              "borderColor": "#bbc0c5",
+                                              "borderColor": "#848c96",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -13615,7 +13607,6 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             {
                                               "padding": 0,
                                             },
-                                            undefined,
                                             undefined,
                                           ]
                                         }
@@ -14333,7 +14324,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#bbc0c566",
+                                              "backgroundColor": "#BBC0C566",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }

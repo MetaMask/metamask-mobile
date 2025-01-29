@@ -134,6 +134,7 @@ exports[`Confirm should render correctly 1`] = `
                       "fontWeight": "400",
                     }
                   }
+                  testID="send-back-button"
                 >
                   Back
                 </Text>
@@ -468,7 +469,7 @@ exports[`Confirm should render correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 4,
                                 "borderWidth": 1,
                                 "flexDirection": "row",
@@ -698,7 +699,7 @@ exports[`Confirm should render correctly 1`] = `
                                             "height": 32,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
-                                            "shadowColor": "#0000001a",
+                                            "shadowColor": "#0000001A",
                                             "shadowOffset": {
                                               "height": 2,
                                               "width": 0,
@@ -862,7 +863,7 @@ exports[`Confirm should render correctly 1`] = `
                                   "paddingHorizontal": 10,
                                 },
                                 {
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                 },
                               ]
                             }
@@ -1206,7 +1207,7 @@ exports[`Confirm should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "borderColor": "#bbc0c566",
+                                  "borderColor": "#BBC0C566",
                                   "borderRadius": 8,
                                   "borderWidth": 1,
                                   "padding": 16,
@@ -1485,7 +1486,7 @@ exports[`Confirm should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderBottomColor": "#bbc0c566",
+                                      "borderBottomColor": "#BBC0C566",
                                       "borderBottomWidth": 1,
                                       "marginVertical": 6,
                                     },

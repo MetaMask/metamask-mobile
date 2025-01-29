@@ -277,6 +277,7 @@ export class Engine {
   constructor(
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
+    metaMetricsId?: string,
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
@@ -514,6 +515,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
+      getMetaMetricsId: () => metaMetricsId ?? '',
     });
 
     const phishingController = new PhishingController({
@@ -858,9 +860,6 @@ export class Engine {
             hostname,
             getProviderState,
             navigation: null,
-            getApprovedHosts: () => null,
-            setApprovedHosts: () => null,
-            approveHost: () => null,
             title: { current: 'Snap' },
             icon: { current: undefined },
             isHomepage: () => false,
@@ -1441,6 +1440,10 @@ export class Engine {
         }),
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
+        decodingApiUrl: AppConstants.DECODING_API_URL,
+        // TODO: check preferences useExternalServices
+        isDecodeSignatureRequestEnabled: () =>
+          preferencesController.state.useTransactionSimulations,
       }),
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -2165,8 +2168,9 @@ export default {
   init(
     state: Partial<EngineState> | undefined,
     keyringState: KeyringControllerState | null = null,
+    metaMetricsId?: string,
   ) {
-    instance = Engine.instance || new Engine(state, keyringState);
+    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },

@@ -40,6 +40,7 @@ import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../../e2e/selector
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { convertHexToDecimal } from '@metamask/controller-utils';
 import { isValidASCIIURL, toPunycodeURL } from '../../../util/url';
+import { ADD_CUSTOM_NETWORK_ARTCILE } from '../../../constants/urls';
 
 interface Alert {
   alertError: string;
@@ -55,7 +56,7 @@ const NetworkVerificationInfo = ({
   onReject,
   onConfirm,
   isCustomNetwork = false,
-  isMissmatchingRPCUrl = true,
+  isMissmatchingRPCUrl = false,
 }: {
   customNetworkInformation: CustomNetworkInformation;
   onReject: () => void;
@@ -110,7 +111,7 @@ const NetworkVerificationInfo = ({
         console.error('Invalid URL:', error);
       }
     }
-    return 'Undefined dapp origin';
+    return undefined;
   }, [customNetworkInformation]);
 
   const renderCurrencySymbol = () => (
@@ -215,6 +216,10 @@ const NetworkVerificationInfo = ({
       </Accordion>
     </ScrollView>
   );
+
+  const openHowToUseCustomNetworks = () => {
+    Linking.openURL(ADD_CUSTOM_NETWORK_ARTCILE);
+  };
 
   const renderBanner = () => {
     if (!safeChainsListValidationEnabled) {
@@ -410,14 +415,23 @@ const NetworkVerificationInfo = ({
         {renderBannerNetworkUrlNonAsciiDetected()}
         {isCustomNetwork && renderCustomNetworkBanner()}
         <Text style={styles.textCentred}>
-          <Text>
-            {strings(
-              'switch_custom_network.add_network_and_give_dapp_permission_warning',
-              {
-                dapp_origin: dappOrigin,
-              },
-            )}
-          </Text>
+          {dappOrigin !== undefined ? (
+            <Text>
+              {strings(
+                'switch_custom_network.add_network_and_give_dapp_permission_warning',
+                {
+                  dapp_origin: dappOrigin,
+                },
+              )}
+            </Text>
+          ) : (
+            <>
+              {strings('add_custom_network.warning_subtext_new.1')}{' '}
+              <Text onPress={openHowToUseCustomNetworks}>
+                {strings('add_custom_network.warning_subtext_new.2')}
+              </Text>
+            </>
+          )}
         </Text>
         {renderNetworkInfo()}
       </ScrollView>
