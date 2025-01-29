@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -22,6 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -165,9 +166,11 @@ const createStyles = (colors: Theme['colors']) =>
 export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
+  const [hasRendered, setHasRendered] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const dispatch = useDispatch();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const dismissedBanners = useSelector(
     (state: RootState) => state.banners.dismissedBanners,
   );
@@ -176,6 +179,31 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
     (slide) => !dismissedBanners.includes(slide.id),
   );
   const isSingleSlide = visibleSlides.length === 1;
+
+  const handleRenderSlides = useCallback(
+    (renderedSlides: typeof PREDEFINED_SLIDES) => {
+      if (!hasRendered) {
+        renderedSlides.forEach((slide) => {
+          trackEvent(
+            createEventBuilder({
+              category: 'Banner Display',
+              properties: {
+                name: slide.id,
+              },
+            }).build(),
+          );
+        });
+        setHasRendered(true);
+      }
+    },
+    [hasRendered, trackEvent, createEventBuilder],
+  );
+
+  React.useEffect(() => {
+    if (visibleSlides.length > 0) {
+      handleRenderSlides(visibleSlides);
+    }
+  }, [visibleSlides, handleRenderSlides]);
 
   if (visibleSlides.length === 0) {
     return null;
@@ -186,6 +214,15 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   };
 
   const handleSlideClick = (slideId: string, href?: string) => {
+    trackEvent(
+      createEventBuilder({
+        category: 'Banner Select',
+        properties: {
+          name: slideId,
+        },
+      }).build(),
+    );
+
     if (href) {
       // @ts-expect-error global.platform is injected by the app
       global.platform.openTab({ url: href });
