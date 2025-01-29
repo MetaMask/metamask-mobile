@@ -49,7 +49,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#bbc0c5",
+          "borderColor": "#848c96",
         },
       ]
     }

@@ -1,4 +1,4 @@
-import { InternalAccount } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 import { BigNumber } from 'ethers';
 import {

@@ -29,7 +29,6 @@ import {
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
-import CollectibleContracts from '../../UI/CollectibleContracts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getTicker } from '../../../util/transactions';
 import OnboardingWizard from '../../UI/OnboardingWizard';
@@ -58,7 +57,7 @@ import {
   selectAllDetectedTokensFlat,
   selectDetectedTokens,
   selectTokens,
-  selectTokensByChainIdAndAddress,
+  selectTransformedTokens,
 } from '../../../selectors/tokensController';
 import {
   NavigationProp,
@@ -97,6 +96,7 @@ import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
+import NftGrid from '../../UI/NftGrid';
 import {
   selectTokenNetworkFilter,
   selectUseTokenDetection,
@@ -211,9 +211,7 @@ const Wallet = ({
   /**
    * An array that represents the user tokens by chainId and address
    */
-  const tokensByChainIdAndAddress = useSelector(
-    selectTokensByChainIdAndAddress,
-  );
+  const tokensByChainIdAndAddress = useSelector(selectTransformedTokens);
   /**
    * Current provider ticker
    */
@@ -690,10 +688,12 @@ const Wallet = ({
               navigation={navigation}
               tokens={assets}
             />
-            <CollectibleContracts
+            <NftGrid
+              // TODO - Extend component to support injected tabLabel prop.
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
               tabLabel={strings('wallet.collectibles')}
               key={'nfts-tab'}
-              navigation={navigation}
             />
           </ScrollableTabView>
         </>

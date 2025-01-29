@@ -2,6 +2,7 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
   selectCurrencyRates,
+  selectConversionRateByChainId,
 } from './currencyRateController';
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
@@ -64,11 +65,45 @@ describe('CurrencyRateController Selectors', () => {
     });
   });
 
+  describe('selectConversionRateByChainId', () => {
+    const mockChainId = '1';
+    const mockNativeCurrency = 'ETH';
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns undefined if on a testnet and fiat is disabled', () => {
+      (isTestNet as jest.Mock).mockReturnValue(true);
+
+      const result = selectConversionRateByChainId.resultFunc(
+        mockCurrencyRateState.currencyRates as unknown as CurrencyRateState['currencyRates'],
+        mockChainId as `0x${string}`,
+        false,
+        mockNativeCurrency,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the conversion rate for the native currency of the chain id', () => {
+      (isTestNet as jest.Mock).mockReturnValue(false);
+
+      const result = selectConversionRateByChainId.resultFunc(
+        mockCurrencyRateState.currencyRates as unknown as CurrencyRateState['currencyRates'],
+        mockChainId as `0x${string}`,
+        true,
+        mockNativeCurrency,
+      );
+
+      expect(result).toBe(3000);
+    });
+  });
+
   describe('selectCurrentCurrency', () => {
     it('returns the current currency from the state', () => {
       const result = selectCurrentCurrency.resultFunc(
         mockCurrencyRateState as unknown as CurrencyRateState,
-        '',
       );
       expect(result).toBe('USD');
     });
@@ -76,7 +111,6 @@ describe('CurrencyRateController Selectors', () => {
     it('returns undefined if current currency is not set', () => {
       const result = selectCurrentCurrency.resultFunc(
         {} as unknown as CurrencyRateState,
-        '',
       );
       expect(result).toBeUndefined();
     });

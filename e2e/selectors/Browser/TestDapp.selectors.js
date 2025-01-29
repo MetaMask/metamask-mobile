@@ -1,4 +1,6 @@
 export const TestDappSelectorsWebIDs = {
+  TEST_DAPP_FOX_LOGO: 'mm-logo',
+  TEST_DAPP_HEADING_TITLE: 'logo-text',
   APPROVE_ERC_20_TOKENS_BUTTON_ID: 'approveTokens',
   APPROVE_ERC_721_TOKEN_BUTTON_ID: 'approveButton',
   CONNECT_BUTTON: 'connectButton',

@@ -13,6 +13,33 @@ import { setMaxValueMode } from '../../../../../actions/transaction';
 
 const mockTransactionTypes = TransactionTypes;
 
+const MOCK_NFTS = [
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/113',
+    isCurrentlyOwned: true,
+    name: 'My Nft #113',
+    standard: 'ERC721',
+    tokenId: '113',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/113',
+  },
+  {
+    address: '0x72b1FDb6443338A158DeC2FbF411B71123456789',
+    description: 'Description of NFT 1',
+    favorite: false,
+    image: 'https://image.com/114',
+    isCurrentlyOwned: true,
+    name: 'My Nft #114',
+    standard: 'ERC721',
+    tokenId: '114',
+    tokenURI:
+      'https://opensea.io/assets/0x72b1FDb6443338A158DeC2FbF411B71123456789/114',
+  },
+];
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     GasFeeController: {
@@ -125,8 +152,16 @@ const initialState = {
         },
       },
       NftController: {
-        allNfts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
-        allNftContracts: { [CURRENT_ACCOUNT]: { '0x1': [] } },
+        allNfts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
+        allNftContracts: {
+          [CURRENT_ACCOUNT]: {
+            '0x1': [...MOCK_NFTS],
+          },
+        },
       },
       TokensController: {
         allTokens: {
@@ -144,6 +179,7 @@ const initialState = {
     },
   },
   settings: {
+    showFiatOnTestnets: true,
     primaryCurrency: 'ETH',
   },
 };
@@ -183,10 +219,18 @@ describe('Amount', () => {
 
   it('should display correct balance', () => {
     const { getByText, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
+          TokenRatesController: {
+            marketData: {
+              '0xaa36a7': {
+                '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
+              },
+            },
+          },
           CurrencyRateController: {
             currentCurrency: 'usd',
             currencyRates: {
@@ -230,6 +274,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -255,6 +300,7 @@ describe('Amount', () => {
 
   it('should proceed if balance is sufficient while on Native primary currency', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -302,6 +348,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -336,6 +383,7 @@ describe('Amount', () => {
 
   it('should show an error message if balance is insufficient', async () => {
     const { getByText, getByTestId, queryByText, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -383,6 +431,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -466,6 +515,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -490,13 +540,14 @@ describe('Amount', () => {
 
   it('should convert ERC-20 token value to USD', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -543,6 +594,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -567,6 +619,7 @@ describe('Amount', () => {
 
   it('should convert USD to ETH', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -601,6 +654,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -612,6 +666,7 @@ describe('Amount', () => {
           name: 'Ether',
           symbol: 'ETH',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -636,13 +691,14 @@ describe('Amount', () => {
 
   it('should convert USD to ERC-20 token value', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -681,9 +737,6 @@ describe('Amount', () => {
           },
         },
       },
-      settings: {
-        primaryCurrency: 'Fiat',
-      },
       transaction: {
         assetType: 'ERC20',
         selectedAsset: {
@@ -692,6 +745,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -699,6 +753,10 @@ describe('Amount', () => {
         transactionTo: RECEIVER_ACCOUNT,
         transactionToName: 'Account 2',
       },
+      settings: {
+        ...initialState.settings,
+        primaryCurrency: 'Fiat'
+      }
     });
 
     const textInput = getByTestId(
@@ -716,6 +774,7 @@ describe('Amount', () => {
 
   it('should show a warning when conversion rate is not available', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -750,6 +809,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -760,6 +820,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -780,13 +841,14 @@ describe('Amount', () => {
 
   it('should not show a warning when conversion rate is available', async () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -822,6 +884,7 @@ describe('Amount', () => {
         },
       },
       settings: {
+        ...initialState.settings,
         primaryCurrency: 'Fiat',
       },
       transaction: {
@@ -832,6 +895,7 @@ describe('Amount', () => {
           isERC721: false,
           symbol: 'LINK',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },
@@ -855,6 +919,7 @@ describe('Amount', () => {
 
   it('should not show a warning when transfering collectibles', () => {
     const { getByTestId, toJSON } = renderComponent({
+      ...initialState,
       engine: {
         ...initialState.engine,
         backgroundState: {
@@ -879,7 +944,7 @@ describe('Amount', () => {
           },
           TokenRatesController: {
             marketData: {
-              '0x1': {
+              '0xaa36a7': {
                 '0x514910771AF9Ca656af840dff83E8264EcF986CA': { price: 0.005 },
               },
             },
@@ -896,6 +961,7 @@ describe('Amount', () => {
           standard: 'ERC721',
           tokenId: '1850',
         },
+        chainId: '0xaa36a7',
         transaction: {
           from: CURRENT_ACCOUNT,
         },

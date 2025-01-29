@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
@@ -24,6 +25,7 @@ export const useConfirmActions = () => {
     });
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [captureSignatureMetrics, onRequestConfirm, signatureRequest]);
 
@@ -31,6 +33,7 @@ export const useConfirmActions = () => {
     onRequestReject();
     if (signatureRequest) {
       captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
+      PPOMUtil.clearSignatureSecurityAlertResponse();
     }
   }, [captureSignatureMetrics, onRequestReject, signatureRequest]);
 

@@ -110,13 +110,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 16,
@@ -150,7 +144,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#bf52081a",
+            "backgroundColor": "#BF52081A",
             "borderColor": "#bf5208",
             "borderLeftWidth": 4,
             "borderRadius": 4,
@@ -289,7 +283,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#bbc0c5",
+              "borderColor": "#848c96",
               "borderRadius": 10,
               "borderWidth": 1,
               "marginVertical": 16,

@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`StakingBalance render matches snapshot 1`] = `
-<View>
+<View
+  testID="staking-balance-container"
+>
   <TouchableOpacity
     onLongPress={[Function]}
     onPress={[Function]}
@@ -137,7 +139,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -156,13 +158,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -214,7 +210,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -274,7 +270,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#1c82341a",
+          "backgroundColor": "#1C82341A",
           "borderColor": "#1c8234",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -469,7 +465,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
 `;
 
 exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
-<View>
+<View
+  testID="staking-balance-container"
+>
   <TouchableOpacity
     onLongPress={[Function]}
     onPress={[Function]}
@@ -605,7 +603,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001a",
+                "shadowColor": "#0000001A",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -624,13 +622,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={
-                {
-                  "default": {
-                    "uri": "MockImage",
-                  },
-                }
-              }
+              source={1}
               style={
                 {
                   "height": 32,
@@ -682,7 +674,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#0376c91a",
+          "backgroundColor": "#0376C91A",
           "borderColor": "#0376c9",
           "borderLeftWidth": 4,
           "borderRadius": 4,
@@ -742,7 +734,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#1c82341a",
+          "backgroundColor": "#1C82341A",
           "borderColor": "#1c8234",
           "borderLeftWidth": 4,
           "borderRadius": 4,

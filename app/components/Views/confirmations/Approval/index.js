@@ -34,10 +34,6 @@ import {
   TX_SUBMITTED,
   TX_REJECTED,
 } from '../../../../constants/transaction';
-import {
-  selectChainId,
-  selectProviderType,
-} from '../../../../selectors/networkController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { providerErrors } from '@metamask/rpc-errors';
 import { getDeviceId } from '../../../../core/Ledger/Ledger';
@@ -62,6 +58,7 @@ import { buildTransactionParams } from '../../../../util/confirmation/transactio
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../core/WalletConnect/WalletConnectV2';
+import { selectProviderTypeByChainId } from '../../../../selectors/networkController';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -382,8 +379,8 @@ class Approval extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-        ? AppConstants.REQUEST_SOURCES.WC
-        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+          ? AppConstants.REQUEST_SOURCES.WC
+          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
     };
 
     try {
@@ -563,7 +560,10 @@ class Approval extends PureComponent {
                 assetType: transaction.assetType,
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approval)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -750,19 +750,24 @@ class Approval extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  transaction: getNormalizedTxState(state),
-  transactions: selectTransactions(state),
-  simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  networkType: selectProviderType(state),
-  showCustomNonce: selectShowCustomNonce(state),
-  chainId: selectChainId(state),
-  activeTabUrl: getActiveTabUrl(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-  transactionMetricsById: selectTransactionMetrics(state),
-  securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-});
+const mapStateToProps = (state) => {
+  const transaction = getNormalizedTxState(state);
+  const chainId = transaction?.chainId;
+
+  return {
+    transaction,
+    transactions: selectTransactions(state),
+    simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    networkType: selectProviderTypeByChainId(state, chainId),
+    showCustomNonce: selectShowCustomNonce(state),
+    chainId,
+    activeTabUrl: getActiveTabUrl(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    transactionMetricsById: selectTransactionMetrics(state),
+    securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
+  };
+}
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),

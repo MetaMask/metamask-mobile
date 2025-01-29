@@ -32,12 +32,7 @@ import {
   CONTACT_ALREADY_SAVED,
   SYMBOL_ERROR,
 } from '../../../../../../constants/error';
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-  selectProviderType,
-  selectRpcUrl,
-} from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import { useMetrics } from '../../../../../../components/hooks/useMetrics';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';

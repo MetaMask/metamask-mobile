@@ -56,7 +56,81 @@ exports[`AssetDetails renders correctly 1`] = `
             },
           ]
         }
-      />
+      >
+        <View
+          placeholderStyle={
+            {
+              "backgroundColor": "#f2f4f6",
+            }
+          }
+          useNativeDriver={true}
+        >
+          <Image
+            address="0x750e4C4984a9e0f12978eA6742Bc1c5D248f40ed"
+            fadeIn={true}
+            onError={[Function]}
+            onLoadEnd={[Function]}
+            placeholderStyle={
+              {
+                "backgroundColor": "#f2f4f6",
+              }
+            }
+            source={
+              {
+                "uri": "https://static.cx.metamask.io/api/v1/tokenIcons/137/0x750e4c4984a9e0f12978ea6742bc1c5d248f40ed.png",
+              }
+            }
+            style={
+              [
+                {
+                  "borderRadius": 25,
+                  "height": 50,
+                  "overflow": "hidden",
+                  "width": 50,
+                },
+                {
+                  "height": 36,
+                  "marginRight": 8,
+                  "width": 36,
+                },
+              ]
+            }
+          />
+          <View
+            collapsable={false}
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 25,
+                    "height": 36,
+                    "marginRight": 8,
+                    "overflow": "hidden",
+                    "width": 36,
+                  },
+                  {
+                    "backgroundColor": "#eee",
+                  },
+                  {
+                    "backgroundColor": "#f2f4f6",
+                  },
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
       <Text
         style={
           {
