@@ -1096,9 +1096,7 @@ export class Engine {
           pushService: {
             createRegToken,
             deleteRegToken,
-            subscribeToPushNotifications: createSubscribeToPushNotifications({
-              messenger: notificationServicesPushControllerMessenger,
-            }),
+            subscribeToPushNotifications: createSubscribeToPushNotifications(),
           },
         },
       });

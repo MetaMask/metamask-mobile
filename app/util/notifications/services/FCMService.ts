@@ -58,6 +58,11 @@ async function notificationHandler(
       return;
     }
 
+    // If we are able to handle push notification
+    // Then we do not want to render the original server notification but custom content
+    // Prevents duplicate notifications
+    delete payload.notification;
+
     const notificationData = toRawOnChainNotification(data);
     const notification = processNotification(notificationData);
     await handler(notification);
