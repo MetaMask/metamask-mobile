@@ -251,7 +251,6 @@ const WalletActions = () => {
           />
         )}
         {AppConstants.SWAPS.ACTIVE &&
-          swapsIsLive &&
           isSwapsAllowed(chainId) && (
             <WalletAction
               actionType={WalletActionType.Swap}
@@ -260,7 +259,7 @@ const WalletActions = () => {
               actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
               iconStyle={styles.icon}
               iconSize={AvatarSize.Md}
-              disabled={!canSignTransactions}
+              disabled={!canSignTransactions || !swapsIsLive}
             />
           )}
         {isBridgeAllowed(chainId) && (
