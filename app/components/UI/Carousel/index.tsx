@@ -6,6 +6,7 @@ import {
   Pressable,
   Dimensions,
   Linking,
+  Image,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Text, {
@@ -15,10 +16,6 @@ import { useTheme } from '../../../util/theme';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CarouselProps } from './carousel.types';
 import { Theme } from '../../../util/theme/models';
-import BannerImage0 from '../../../images/banners/banner_image_0.svg';
-import BannerImage1 from '../../../images/banners/banner_image_1.svg';
-import BannerImage2 from '../../../images/banners/banner_image_2.svg';
-import BannerImage3 from '../../../images/banners/banner_image_3.svg';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
 import { dismissBanner } from '../../../actions/banners/index';
@@ -34,38 +31,45 @@ const IMAGE_WIDTH = 60;
 const IMAGE_HEIGHT = 59;
 const PEEK_WIDTH = 5;
 
+type SlideId = 'bridge' | 'card' | 'fund' | 'cashout';
+
 const PREDEFINED_SLIDES = [
   {
-    id: 'bridge',
+    id: 'bridge' as SlideId,
     title: strings('banner.bridge.title'),
     description: strings('banner.bridge.subtitle'),
     undismissable: false,
     href: undefined,
   },
   {
-    id: 'fund',
-    title: strings('banner.fund.title'),
-    description: strings('banner.fund.subtitle'),
-    undismissable: false,
-    href: 'https://portfolio.metamask.io/buy/build-quote',
-  },
-  {
-    id: 'card',
+    id: 'card' as SlideId,
     title: strings('banner.card.title'),
     description: strings('banner.card.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/card',
   },
   {
-    id: 'cashout',
+    id: 'fund' as SlideId,
+    title: strings('banner.fund.title'),
+    description: strings('banner.fund.subtitle'),
+    undismissable: false,
+    href: 'https://portfolio.metamask.io/buy/build-quote',
+  },
+  {
+    id: 'cashout' as SlideId,
     title: strings('banner.cashout.title'),
     description: strings('banner.cashout.subtitle'),
     undismissable: false,
     href: 'https://portfolio.metamask.io/sell',
   },
-];
+] as const;
 
-const BannerImages = [BannerImage0, BannerImage1, BannerImage2, BannerImage3];
+const BannerImages: Record<SlideId, any> = {
+  bridge: require('../../../images/banners/banner_image_bridge.png'),
+  card: require('../../../images/banners/banner_image_card.png'),
+  fund: require('../../../images/banners/banner_image_fund.png'),
+  cashout: require('../../../images/banners/banner_image_cashout.png'),
+};
 
 const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
@@ -107,7 +111,6 @@ const createStyles = (colors: Theme['colors']) =>
       overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: colors.background.default,
     },
     textContainer: {
       flex: 1,
@@ -266,11 +269,16 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
               onPressOut={() => setPressedSlideId(null)}
             >
               <View style={styles.slideContent}>
-                {React.createElement(BannerImages[index % 4], {
-                  name: `banner_image_${index % 4}`,
-                  width: IMAGE_WIDTH,
-                  height: IMAGE_HEIGHT,
-                })}
+                <View style={styles.imageContainer}>
+                  <Image
+                    source={BannerImages[slide.id]}
+                    style={{
+                      width: IMAGE_WIDTH,
+                      height: IMAGE_HEIGHT,
+                    }}
+                    resizeMode="contain"
+                  />
+                </View>
                 <View style={styles.textContainer}>
                   <View style={styles.textWrapper}>
                     <Text variant={TextVariant.BodyMD} style={styles.title}>
