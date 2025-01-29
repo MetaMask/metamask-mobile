@@ -1,4 +1,4 @@
-import { MetricsEventBuilder } from './MetricsEventBuilder';
+import {MetricsEventBuilder} from './MetricsEventBuilder';
 import { IMetaMetricsEvent, JsonMap } from './MetaMetrics.types';
 
 describe('MetricsEventBuilder', () => {
@@ -80,24 +80,24 @@ describe('MetricsEventBuilder', () => {
     expect(rebuiltEvent.sensitiveProperties).toEqual(newSensitiveProps);
   });
 
-  // test fix for https://github.com/MetaMask/metamask-mobile/issues/12728
-  it('adds properties with legacy sensitive properties objects', () => {
+  it('compares events', () => {
     const newProps: JsonMap = {
       newProp: 'newValue',
-      newSensitiveLegacyProp: { value: 'newSensitiveLegacyValue', anonymous: true}
     };
 
-    const event = MetricsEventBuilder.createEventBuilder(mockEvent)
-        .addProperties(newProps)
+    const event = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+        .addSensitiveProperties(newProps)
         .build();
-    expect(event.properties).toEqual({newProp: 'newValue'});
-    expect(event.sensitiveProperties).toEqual({newSensitiveLegacyProp: 'newSensitiveLegacyValue'});
 
-    const rebuiltEvent = MetricsEventBuilder.createEventBuilder(event)
+    const similarEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
+        .addSensitiveProperties(newProps)
+        .build();
+    expect(similarEvent).toEqual(event);
+
+    const differentEvent = MetricsEventBuilder.createEventBuilder(mockLegacyEvent)
         .addProperties(newProps)
         .build();
-    expect(rebuiltEvent.properties).toEqual({newProp: 'newValue'});
-    expect(rebuiltEvent.sensitiveProperties).toEqual({newSensitiveLegacyProp: 'newSensitiveLegacyValue'});
+    expect(differentEvent).not.toEqual(event);
   });
 
   it('removes properties', () => {

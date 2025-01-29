@@ -99,10 +99,7 @@ describe(Regression('Swap from Token view'), () => {
     //Wait for Swap to complete
     try {
       await Assertions.checkIfTextIsDisplayed(
-        SwapView.generateSwapCompleteLabel(
-          sourceTokenSymbol,
-          destTokenSymbol,
-        ),
+        SwapView.generateSwapCompleteLabel(sourceTokenSymbol, destTokenSymbol),
         30000,
       );
     } catch (e) {
@@ -111,6 +108,9 @@ describe(Regression('Swap from Token view'), () => {
     }
     await device.enableSynchronization();
     await TestHelpers.delay(10000);
+
+    // After the swap is complete, the DAI balance shouldn't be 0
+    await Assertions.checkIfTextIsNotDisplayed('0 DAI', 60000);
 
     // Check the swap activity completed
     await TabBarComponent.tapActivity();
