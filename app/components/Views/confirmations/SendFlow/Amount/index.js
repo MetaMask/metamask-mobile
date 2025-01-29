@@ -1041,14 +1041,14 @@ class Amount extends PureComponent {
   };
 
   handleSelectedAssetBalance = (
-    { address, decimals, symbol, isETH },
+    { address, decimals, symbol, isETH, isNative },
     renderableBalance,
   ) => {
     const { accounts, selectedAddress, contractBalances } = this.props;
     let currentBalance;
     if (renderableBalance) {
       currentBalance = `${renderableBalance} ${symbol}`;
-    } else if (isETH) {
+    } else if (isETH || isNative) {
       currentBalance = `${renderFromWei(
         accounts[selectedAddress].balance,
       )} ${symbol}`;
