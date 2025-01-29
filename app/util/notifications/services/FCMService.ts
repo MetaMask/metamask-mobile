@@ -137,35 +137,15 @@ class FCMService {
     handler: (notification: INotification) => void | Promise<void>,
   ): Promise<Unsubscribe | null> => {
     try {
-      await this.registerBackgroundMessages(handler);
+      // We only subscribe to foreground messages, as subscribing to background messages that contain `notification` + `data` payloads have issues
+      // IOS - requires payload editing (https://notifee.app/react-native/docs/ios/remote-notification-support)
+      // IOS - requires isHeadless injection and app modification to ship a minimal app when headless (https://rnfirebase.io/messaging/usage#background-application-state).
+      // Android - will cause double notifications if a remote message contains both `notification` + `data` payloads
+      // Firebase will still send push notifications in background + app kill as there is a `notification` payload in the remote message
       await this.registerForegroundMessages(handler);
       return this.#hasRegisteredForeground;
     } catch {
       return null;
-    }
-  };
-
-  /**
-   * The `setBackgroundMessageHandler` must be called outside of our application as early as possible
-   */
-  registerBackgroundMessages = async (
-    handler: (notification: INotification) => void | Promise<void>,
-  ) => {
-    if (!(await isPushNotificationsEnabled())) {
-      return null;
-    }
-
-    if (this.#hasRegisteredBackground) {
-      return;
-    }
-
-    try {
-      messaging().setBackgroundMessageHandler(async (payload) => {
-        notificationHandler(payload, handler);
-      });
-      this.#hasRegisteredBackground = true;
-    } catch {
-      // Do nothing
     }
   };
 
