@@ -262,6 +262,7 @@ class NotificationsService {
           id: pressActionId,
           launchActivity: LAUNCH_ACTIVITY,
         },
+        tag: id,
       },
       ios: {
         launchImageName: 'Default',
