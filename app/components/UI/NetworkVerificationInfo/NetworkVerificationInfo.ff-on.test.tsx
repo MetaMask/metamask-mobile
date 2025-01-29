@@ -112,7 +112,7 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
     it('hides RPC mismatch UI when URLs match', () => {
       const mockPopularNetwork = createMockPopularNetwork('http://test.com');
       PopularList.length = 0;
-      PopularList.push(mockPopularNetwork as any);
+      PopularList.push(mockPopularNetwork);
 
       const networkInfoWithPageMeta = createNetworkWithPageMeta(
         'https://app.uniswap.org',
