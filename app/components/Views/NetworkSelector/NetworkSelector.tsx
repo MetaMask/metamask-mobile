@@ -251,11 +251,11 @@ const NetworkSelector = () => {
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
-        sheetRef.current?.dismissModal();
       }
 
       setTokenNetworkFilter(chainId);
-      sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
