@@ -241,6 +241,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
                 </View>
                 {!slide.undismissable && (
                   <TouchableOpacity
+                    testID="close-button"
                     style={styles.closeButton}
                     onPress={() => handleClose(slide.id)}
                   >
@@ -253,7 +254,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
         </ScrollableTabView>
       </View>
       {!isSingleSlide && (
-        <View style={styles.progressContainer}>
+        <View testID="progress-dots" style={styles.progressContainer}>
           {visibleSlides.map((_, index) => (
             <View
               key={index}
