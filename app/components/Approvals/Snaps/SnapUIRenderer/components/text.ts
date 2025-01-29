@@ -55,7 +55,6 @@ export const text: UIComponentFactory<TextElement> = ({
         element.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
       fontWeight: getFontWeight(element.props.fontWeight),
       color: getTextColor(element.props.color),
-      className: 'snap-ui-renderer__text',
       textAlign: element.props.alignment || 'left',
     },
   };

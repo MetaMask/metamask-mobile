@@ -55,7 +55,6 @@ describe('container', () => {
           flex: 1,
           flexDirection: 'column',
         },
-        className: 'snap-ui-renderer__container',
       },
     });
   });
@@ -80,7 +79,7 @@ describe('container', () => {
         style: { alignItems: 'center' },
       },
       children: {
-        element: 'SnapFooterButton',
+        element: 'SnapUIFooterButton',
         key: 'default-button',
         props: {
           onCancel: mockOnCancel,

@@ -1,3 +1,8 @@
+import {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '../utils';
 import { icon } from '../components/icon';
 
 describe('Icon UIComponentFactory', () => {
@@ -6,12 +11,12 @@ describe('Icon UIComponentFactory', () => {
     t: jest.fn(),
   };
 
-  it('should create correct element configuration with all props', () => {
+  it('should create correct element configuration with valid props', () => {
     const mockElement = {
       props: {
-        name: 'test-icon',
-        color: 'blue',
-        size: 24,
+        name: IconName.Danger,
+        color: 'primary',
+        size: 'md',
       },
     };
 
@@ -19,19 +24,19 @@ describe('Icon UIComponentFactory', () => {
     const result = icon({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
-      element: 'Icon',
+      element: 'SnapUIIcon',
       props: {
-        name: 'test-icon',
-        color: 'blue',
-        size: 24,
+        name: IconName.Danger,
+        color: IconColor.primaryDefault,
+        size: IconSize.Md,
       },
     });
   });
 
-  it('should handle minimal props', () => {
+  it('should handle minimal props with defaults', () => {
     const mockElement = {
       props: {
-        name: 'test-icon',
+        name: 'invalid-icon',
       },
     };
 
@@ -39,11 +44,32 @@ describe('Icon UIComponentFactory', () => {
     const result = icon({ ...mockParams, element: mockElement as any });
 
     expect(result).toEqual({
-      element: 'Icon',
+      element: 'SnapUIIcon',
       props: {
-        name: 'test-icon',
-        color: undefined,
-        size: undefined,
+        name: IconName.Danger, // Invalid names default to Danger
+        color: IconColor.iconDefault, // Default color
+        size: IconSize.Inherit, // Default size
+      },
+    });
+  });
+
+  it('should map color values correctly', () => {
+    const mockElement = {
+      props: {
+        name: IconName.Danger,
+        color: 'muted',
+      },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = icon({ ...mockParams, element: mockElement as any });
+
+    expect(result).toEqual({
+      element: 'SnapUIIcon',
+      props: {
+        name: IconName.Danger,
+        color: IconColor.iconMuted,
+        size: IconSize.Inherit,
       },
     });
   });

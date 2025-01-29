@@ -1,8 +1,14 @@
+import { renderHook, act } from '@testing-library/react-hooks';
+import React from 'react';
 import { SnapId, UserInputEventType } from '@metamask/snaps-sdk';
 import Engine from '../../../../../core/Engine/Engine';
 import { handleSnapRequest } from '../../../../../core/Snaps/utils';
 import { mergeValue } from '../utils';
 import { HandlerType } from '@metamask/snaps-utils';
+import {
+  SnapInterfaceContextProvider,
+  useSnapInterfaceContext,
+} from '../SnapInterfaceContext';
 
 // Mock setup
 jest.mock('../../../../../core/Engine/Engine', () => ({
@@ -16,7 +22,7 @@ jest.mock('../../../../../core/Engine/Engine', () => ({
 jest.mock('../../../../../core/Snaps/utils');
 jest.mock('../utils');
 
-describe('Snap Interface Functions', () => {
+describe('SnapInterfaceContext', () => {
   const mockInitialState = {
     testInput: 'initial value',
     testForm: {
@@ -27,6 +33,17 @@ describe('Snap Interface Functions', () => {
   const mockContext = {};
   const mockInterfaceId = 'test-interface';
   const mockSnapId = 'test-snap';
+
+  const wrapper = ({ children }: { children: React.ReactNode }) => (
+    <SnapInterfaceContextProvider
+      interfaceId={mockInterfaceId}
+      snapId={mockSnapId}
+      initialState={mockInitialState}
+      context={mockContext}
+    >
+      {children}
+    </SnapInterfaceContextProvider>
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,186 +64,149 @@ describe('Snap Interface Functions', () => {
     });
   });
 
-  describe('handleEvent', () => {
-    it('handles button click events', () => {
-      handleSnapRequest(Engine.controllerMessenger, {
-        snapId: mockSnapId as SnapId,
-        origin: mockSnapId as SnapId,
-        handler: HandlerType.OnUserInput,
-        request: {
-          jsonrpc: '2.0',
-          method: ' ',
-          params: {
-            event: {
-              type: UserInputEventType.ButtonClickEvent,
-              name: 'testButton',
-            },
-            id: mockInterfaceId,
-            context: mockContext,
-          },
-        },
+  describe('useSnapInterfaceContext', () => {
+    it('provides context with all required methods and values', () => {
+      const { result } = renderHook(() => useSnapInterfaceContext(), {
+        wrapper,
       });
 
-      expect(handleSnapRequest).toHaveBeenCalledWith(
-        expect.anything(),
+      expect(result.current).toEqual(
         expect.objectContaining({
+          handleEvent: expect.any(Function),
+          getValue: expect.any(Function),
+          handleInputChange: expect.any(Function),
+          setCurrentFocusedInput: expect.any(Function),
+          focusedInput: null,
           snapId: mockSnapId,
-          handler: HandlerType.OnUserInput,
-          request: expect.objectContaining({
-            params: expect.objectContaining({
-              event: {
-                type: UserInputEventType.ButtonClickEvent,
-                name: 'testButton',
-              },
-            }),
-          }),
         }),
       );
     });
 
-    it('handles form submission events', () => {
-      const formData = { field1: 'value1' };
-      handleSnapRequest(Engine.controllerMessenger, {
-        snapId: mockSnapId as SnapId,
-        origin: mockSnapId as SnapId,
-        handler: HandlerType.OnUserInput,
-        request: {
-          jsonrpc: '2.0',
-          method: ' ',
-          params: {
-            event: {
-              type: UserInputEventType.FormSubmitEvent,
-              name: 'testForm',
-              value: formData,
-            },
-            id: mockInterfaceId,
-            context: mockContext,
-          },
-        },
+    it('handles input focus state', () => {
+      const { result } = renderHook(() => useSnapInterfaceContext(), {
+        wrapper,
       });
 
-      expect(handleSnapRequest).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          request: expect.objectContaining({
-            params: expect.objectContaining({
-              event: {
-                type: UserInputEventType.FormSubmitEvent,
-                name: 'testForm',
-                value: formData,
-              },
+      act(() => {
+        result.current.setCurrentFocusedInput('testInput');
+      });
+
+      expect(result.current.focusedInput).toBe('testInput');
+    });
+
+    it('handles getValue correctly', () => {
+      const { result } = renderHook(() => useSnapInterfaceContext(), {
+        wrapper,
+      });
+
+      expect(result.current.getValue('testInput')).toBe('initial value');
+      expect(result.current.getValue('formField', 'testForm')).toBe(
+        'form value',
+      );
+      expect(result.current.getValue('nonexistent')).toBeUndefined();
+    });
+
+    describe('handleEvent', () => {
+      it('handles button click events', () => {
+        const { result } = renderHook(() => useSnapInterfaceContext(), {
+          wrapper,
+        });
+
+        act(() => {
+          result.current.handleEvent({
+            event: UserInputEventType.ButtonClickEvent,
+            name: 'testButton',
+          });
+        });
+
+        expect(handleSnapRequest).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            snapId: mockSnapId,
+            handler: HandlerType.OnUserInput,
+            request: expect.objectContaining({
+              params: expect.objectContaining({
+                event: {
+                  type: UserInputEventType.ButtonClickEvent,
+                  name: 'testButton',
+                },
+              }),
             }),
           }),
-        }),
-      );
-    });
-  });
+        );
+      });
 
-  describe('handleInputChange', () => {
-    it('updates form field state correctly', () => {
-      const formName = 'testForm';
-      const fieldName = 'newField';
-      const newValue = 'new form value';
+      it('handles input change events', () => {
+        const { result } = renderHook(() => useSnapInterfaceContext(), {
+          wrapper,
+        });
 
-      const state = mergeValue(mockInitialState, fieldName, newValue, formName);
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
+        act(() => {
+          result.current.handleInputChange('testInput', 'new value');
+        });
 
-      expect(
-        Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalledWith(
-        mockInterfaceId,
-        expect.objectContaining({
-          [formName]: expect.objectContaining({
-            [fieldName]: newValue,
+        expect(
+          Engine.context.SnapInterfaceController.updateInterfaceState,
+        ).toHaveBeenCalled();
+        expect(handleSnapRequest).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            snapId: mockSnapId,
+            handler: HandlerType.OnUserInput,
+            request: expect.objectContaining({
+              params: expect.objectContaining({
+                event: {
+                  type: UserInputEventType.InputChangeEvent,
+                  name: 'testInput',
+                  value: 'new value',
+                },
+              }),
+            }),
           }),
-        }),
-      );
+        );
+      });
     });
 
-    it('handles null values', () => {
-      const name = 'testInput';
-      const state = mergeValue(mockInitialState, name, null);
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
+    describe('handleInputChange', () => {
+      it('updates form field state correctly', () => {
+        const { result } = renderHook(() => useSnapInterfaceContext(), {
+          wrapper,
+        });
 
-      expect(
-        Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalledWith(
-        mockInterfaceId,
-        expect.objectContaining({
-          [name]: null,
-        }),
-      );
-    });
-  });
+        act(() => {
+          result.current.handleInputChange('newField', 'new value', 'testForm');
+        });
 
-  describe('getValue', () => {
-    it('retrieves form field values correctly', () => {
-      expect(mockInitialState.testForm.formField).toBe('form value');
-    });
-
-    it('returns undefined for non-existent form fields', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((mockInitialState.testForm as any).nonexistent).toBeUndefined();
-    });
-
-    it('returns undefined for non-existent forms', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((mockInitialState as any).nonexistentForm).toBeUndefined();
-    });
-  });
-
-  describe('handleFileChange', () => {
-    it('handles null file upload', () => {
-      const name = 'testFile';
-      const state = mergeValue(mockInitialState, name, null);
-
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
-
-      expect(
-        Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalledWith(
-        mockInterfaceId,
-        expect.objectContaining({
-          [name]: null,
-        }),
-      );
-    });
-
-    it('handles file upload in forms', () => {
-      const formName = 'uploadForm';
-      const fieldName = 'testFile';
-      const mockFileData = null;
-
-      const state = mergeValue(
-        mockInitialState,
-        fieldName,
-        mockFileData,
-        formName,
-      );
-      Engine.context.SnapInterfaceController.updateInterfaceState(
-        mockInterfaceId,
-        state,
-      );
-
-      expect(
-        Engine.context.SnapInterfaceController.updateInterfaceState,
-      ).toHaveBeenCalledWith(
-        mockInterfaceId,
-        expect.objectContaining({
-          [formName]: expect.objectContaining({
-            [fieldName]: mockFileData,
+        expect(
+          Engine.context.SnapInterfaceController.updateInterfaceState,
+        ).toHaveBeenCalledWith(
+          mockInterfaceId,
+          expect.objectContaining({
+            testForm: expect.objectContaining({
+              newField: 'new value',
+            }),
           }),
-        }),
-      );
+        );
+      });
+
+      it('handles null values', () => {
+        const { result } = renderHook(() => useSnapInterfaceContext(), {
+          wrapper,
+        });
+
+        act(() => {
+          result.current.handleInputChange('testInput', null);
+        });
+
+        expect(
+          Engine.context.SnapInterfaceController.updateInterfaceState,
+        ).toHaveBeenCalledWith(
+          mockInterfaceId,
+          expect.objectContaining({
+            testInput: null,
+          }),
+        );
+      });
     });
   });
 });

@@ -37,15 +37,19 @@ describe('box UIComponentFactory', () => {
           key: 'mock-key',
           children: ['Test content'],
           props: {
-            children: 'Test content',
+            className: 'snap-ui-renderer__text',
+            color: 'Default',
+            fontWeight: 'normal',
+            textAlign: 'left',
+            variant: 'sBodyMD',
           },
         },
       ],
       props: {
-        children: [createTextElement('Test content')],
         flexDirection: FlexDirection.Column,
         justifyContent: 'flex-start',
         color: TextColor.Default,
+        alignItems: 'flex-start',
       },
     });
   });

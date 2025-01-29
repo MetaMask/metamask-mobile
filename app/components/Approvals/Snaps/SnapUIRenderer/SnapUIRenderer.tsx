@@ -8,7 +8,7 @@ import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../../UI/TemplateRenderer';
 import { ActivityIndicator, Dimensions, StyleSheet } from 'react-native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { Container } from '@metamask/snaps-sdk/dist/jsx/components/Container.cjs';
+import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../../locales/i18n';
 
 interface SnapUIRendererProps {

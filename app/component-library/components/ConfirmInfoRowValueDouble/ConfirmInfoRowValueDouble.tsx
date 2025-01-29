@@ -2,7 +2,6 @@ import React, { ReactNode } from 'react';
 import { AlignItems } from '../../../components/Approvals/Snaps/SnapUIRenderer/utils';
 import { FlexDirection } from '../../../components/Approvals/Snaps/SnapUIRenderer/utils';
 import { TextColor } from '../Texts/Text/Text.types';
-import { Color } from '../../../components/Approvals/Snaps/SnapUIRenderer/utils';
 import Text from '../Texts/Text';
 import { Box } from '../../../components/UI/Box';
 import { RowVariant } from '../../../components/Approvals/Snaps/SnapUIRenderer/components/row';
@@ -15,8 +14,8 @@ export type ConfirmInfoRowValueDoubleProps = {
 
 const LEFT_TEXT_COLORS = {
   [RowVariant.Default]: TextColor.Muted,
-  [RowVariant.Critical]: Color.errorAlternative,
-  [RowVariant.Warning]: Color.warningDefault,
+  [RowVariant.Critical]: TextColor.ErrorAlternative,
+  [RowVariant.Warning]: TextColor.Warning,
 };
 
 export const ConfirmInfoRowValueDouble = ({

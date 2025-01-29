@@ -1,8 +1,9 @@
 import { HeadingElement } from '@metamask/snaps-sdk/jsx';
 import { heading } from '../components/heading';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 
 describe('heading UIComponentFactory', () => {
-  it('should transform HeadingElement into SheetHeader format', () => {
+  it('should transform HeadingElement into Text format with default size', () => {
     const mockHeadingElement: HeadingElement = {
       type: 'Heading',
       key: 'mock-key',
@@ -18,9 +19,11 @@ describe('heading UIComponentFactory', () => {
     });
 
     expect(result).toEqual({
-      element: 'SheetHeader',
+      element: 'Text',
+      children: 'Test Heading',
       props: {
-        title: 'Test Heading',
+        variant: TextVariant.HeadingSM,
+        numberOfLines: 0,
       },
     });
   });
@@ -40,9 +43,11 @@ describe('heading UIComponentFactory', () => {
     });
 
     expect(result).toEqual({
-      element: 'SheetHeader',
+      element: 'Text',
+      children: '',
       props: {
-        title: '',
+        variant: TextVariant.HeadingSM,
+        numberOfLines: 0,
       },
     });
   });
@@ -62,10 +67,46 @@ describe('heading UIComponentFactory', () => {
     });
 
     expect(result).toEqual({
-      element: 'SheetHeader',
+      element: 'Text',
+      children: ['Multiple ', 'Text ', 'Nodes'],
       props: {
-        title: ['Multiple ', 'Text ', 'Nodes'],
+        variant: TextVariant.HeadingSM,
+        numberOfLines: 0,
       },
+    });
+  });
+
+  it('should handle different heading sizes', () => {
+    const sizes = ['sm', 'md', 'lg'] as const;
+    const expectedVariants = {
+      sm: TextVariant.HeadingSM,
+      md: TextVariant.HeadingMD,
+      lg: TextVariant.HeadingLG,
+    };
+
+    sizes.forEach((size) => {
+      const mockHeadingElement = {
+        type: 'Heading',
+        props: {
+          children: 'Test',
+          size,
+        },
+      };
+
+      const result = heading({
+        element: mockHeadingElement as HeadingElement,
+        map: {},
+        t: (key: string) => key,
+      });
+
+      expect(result).toEqual({
+        element: 'Text',
+        children: 'Test',
+        props: {
+          variant: expectedVariants[size],
+          numberOfLines: 0,
+        },
+      });
     });
   });
 });

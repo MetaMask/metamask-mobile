@@ -3,7 +3,6 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { UIComponent, UIComponentFactory, UIComponentParams } from './types';
 import { ButtonVariant } from '@metamask/snaps-sdk';
 import { button as buttonFn } from './button';
-import { JustifyContent } from '../utils';
 import { TemplateConfirmation } from '../../SnapDialogApproval/SnapsDialogApproval';
 
 export const DEFAULT_FOOTER = {
@@ -18,7 +17,7 @@ export const DEFAULT_FOOTER = {
       position: 'absolute',
       bottom: 0,
       width: '100%',
-      justifyContent: JustifyContent.spaceEvenly,
+      justifyContent: 'space-evenly',
       paddingVertical: 20,
     },
   },
