@@ -48,7 +48,10 @@
     "connector": ":"
   },
   "autocomplete": {
-    "placeholder": "URL 검색 또는 입력"
+    "placeholder": "사이트 또는 주소로 검색",
+    "recents": "최근",
+    "favorites": "즐겨찾기",
+    "sites": "사이트"
   },
   "navigation": {
     "back": "뒤로",
@@ -449,6 +452,7 @@
     "next": "다음",
     "buy_asset": "{{asset}} 구매",
     "no_tokens": "토큰이 없습니다!",
+    "show_tokens_without_balance": "잔액 없는 토큰 표시",
     "no_nfts_yet": "아직 NFT가 없습니다",
     "nfts_autodetection_title": "NFT 감지",
     "nfts_autodetection_desc": "MetaMask를 통해 자동으로 NFT를 감지하여 지갑에 표시할 수 있습니다.",
@@ -470,7 +474,7 @@
     "learn_more": "더 알아보기",
     "add_collectibles": "NFT 가져오기",
     "no_transactions": "트랜잭션이 없습니다!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "트랜잭션을 보려면 네트워크를 전환하세요",
     "send_button": "보내기",
     "deposit_button": "예금",
     "copy_address": "복사",
@@ -566,7 +570,7 @@
     "description_content_1": "MetaMask를 개선하기 위해 기본적인 데이터 사용 데이터를 수집하고자 합니다. MetaMask는 제공받은 데이터를 절대 판매하지 않습니다.",
     "description_content_2": "메트릭을 수집할 때는 항상...",
     "description_content_3": "프로필 사용 데이터를 수집하는 동안 개인정보 보호 방법을 알아보세요.",
-    "checkbox": "당사는 이 데이터를 사용하여 사용자가 마케팅 커뮤니케이션과 어떻게 상호 작용하는지 파악합니다. 관련 뉴스(예: 제품 기능)를 공유할 수 있습니다.",
+    "checkbox": "당사는 사용자가 마케팅 커뮤니케이션과 상호작용하는 방식을 파악하기 위해 이 데이터를 사용합니다. 관련 소식(제품 기능 등)을 공유할 수 있습니다.",
     "action_description_1_prefix": "개인 정보:",
     "action_description_2_prefix": "일반:",
     "action_description_3_prefix": "선택 사항:",
@@ -722,6 +726,7 @@
     "connected_and_active": "연결되어 활성화됨.",
     "now_active": "지금 활성화됨.",
     "network_added": "(을)를 성공적으로 추가했습니다",
+    "network_removed": "제거되었습니다",
     "network_deleted": "이(가) 삭제되었습니다",
     "network_permissions_updated": "네트워크 권한 업데이트됨",
     "revoked": "취소됨.",
@@ -1264,16 +1269,19 @@
     "sell_button": "매도",
     "receive_button": "받기",
     "portfolio_button": "포트폴리오",
+    "earn_button": "수익",
     "add_collectible_button": "추가",
     "info": "정보",
     "swap": "스와프",
     "bridge": "브릿지",
+    "earn": "수익",
     "disabled_button": {
       "buy": "이 계정에서는 매수가 지원되지 않음",
       "sell": "이 계정에서는 매도가 지원되지 않음",
       "swap": "이 계정에서는 스왑이 지원되지 않음",
       "bridge": "이 계정에서는 브릿징이 지원되지 않음",
       "send": "이 계정에서는 전송이 지원되지 않음",
+      "earn": "이 계정은 수익 기능을 지원하지 않습니다",
       "action": "이 계정에서는 이 작업이 지원되지 않습니다"
     },
     "description": "설명",
@@ -1290,6 +1298,7 @@
     "bridge_description": "네트워크간 토큰 전송",
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
+    "earn_description": "토큰으로 보상을 획득하세요",
     "chart_time_period": {
       "1d": "오늘",
       "7d": "지난 7일",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "체인 ID",
     "network_rpc_url": "네트워크 URL",
     "network_rpc_url_label": "네트워크 RPC URL",
+    "network_rpc_url_warning_punycode": "공격자는 종종 사이트 주소를 약간 변경하여 사이트를 모방합니다. 계속하기 전에 정상적인 네트워크 URL과 상호작용하고 있는지 확인하세요. 퓨니코드 버전:",
     "new_default_network_url": "새 기본 네트워크 URL",
     "current_label": "현재",
     "new_label": "신규",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "하드웨어 지갑 추가",
     "import_account": "계정 가져오기",
     "add_bitcoin_account_testnet": "새 비트코인 계정(테스트넷) 추가",
-    "add_bitcoin_account_mainnet": "새 비트코인 계정(베타) 추가"
+    "add_bitcoin_account_mainnet": "새 비트코인 계정(베타) 추가",
+    "add_solana_account": "새 Solana 계정 추가(베타)"
   },
   "show_nft": {
     "show_nft_title": "NFT 표시",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "서명 요청"
     },
+    "sub_title": {
+      "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요."
+    },
     "request_from": "요청자:",
     "message": "메시지",
+    "primary_type": "기본 유형",
     "personal_sign_tooltip": "서명이 필요한 사이트입니다",
     "details": "세부 정보",
     "account": "계정",
     "balance": "잔액",
     "network": "네트워크",
     "simulation": {
-      "title": "예상 변동 사항",
+      "decoded_tooltip_bid_nft": "입찰이 수락되면 NFT가 지갑에 반영됩니다.",
+      "decoded_tooltip_list_nft": "누군가 NFT를 구매할 경우에만 변경이 예상됩니다.",
+      "info_permit": "지출자에게 내 계정에서 이 정도의 토큰을 지출할 수 있는 권한을 부여합니다.",
+      "label_change_type_bidding": "내 입찰",
+      "label_change_type_listing": "내 리스트",
+      "label_change_type_nft_listing": "리스팅 가격",
+      "label_change_type_permit": "지출 한도",
+      "label_change_type_permit_nft": "출금",
+      "label_change_type_receive": "받음:",
+      "label_change_type_revoke": "취소",
+      "label_change_type_transfer": "보냄:",
       "personal_sign_info": "사이트에 로그인 중이며 계정에 예상되는 변동 사항이 없습니다.",
-      "tooltip": "예상 변동 사항은 이 트랜잭션을 진행할 경우 발생하는 결과를 예측한 것입니다. 이는 예측일 뿐 결과를 보장하지는 않습니다."
-    }
+      "title": "예상 변동 사항",
+      "tooltip": "예상 변동 사항은 이 트랜잭션을 진행할 경우 발생하는 결과를 예측한 것입니다. 이는 예측일 뿐 결과를 보장하지는 않습니다.",
+      "unavailable": "사용 불가"
+    },
+    "unlimited": "무제한",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",
