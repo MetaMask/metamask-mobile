@@ -168,9 +168,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                           [
                             {},
                             {
-                              "height": 912.5615763546798,
+                              "height": 940.64039408867,
                               "marginTop": 30,
-                              "width": 650,
+                              "width": 670,
                             },
                           ]
                         }
@@ -518,9 +518,9 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                           [
                             {},
                             {
-                              "height": 912.5615763546798,
+                              "height": 940.64039408867,
                               "marginTop": 30,
-                              "width": 650,
+                              "width": 670,
                             },
                           ]
                         }

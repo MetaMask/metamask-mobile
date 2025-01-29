@@ -142,9 +142,9 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                   source={1}
                   style={
                     {
-                      "height": 15,
+                      "height": 35,
                       "tintColor": "#141618",
-                      "width": 122,
+                      "width": 70,
                     }
                   }
                 />
