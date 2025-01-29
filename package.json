@@ -46,7 +46,7 @@
     "build:ios:devbuild": "./scripts/build.sh ios devbuild",
     "build:ios:pre-flask": "export METAMASK_BUILD_TYPE='flask' && ./scripts/build.sh ios flask --pre",
     "build:ios:pre-release": "./scripts/build.sh ios release --pre",
-    "build:ios:pre-qa": "./scripts/build.sh ios QA --pre",
+    "build:ios:pre-qa": "IS_TEST='true' ./scripts/build.sh ios QA --pre",
     "build:android:qa": "NO_FLIPPER='1' ./scripts/build.sh android QA",
     "build:ios:qa": "NO_FLIPPER='1' ./scripts/build.sh ios QA",
     "build:attribution": "./scripts/generate-attributions.sh",
