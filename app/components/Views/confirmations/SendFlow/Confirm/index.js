@@ -360,8 +360,8 @@ class Confirm extends PureComponent {
       request_source: this.originIsMMSDKRemoteConn
         ? AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN
         : this.originIsWalletConnect
-          ? AppConstants.REQUEST_SOURCES.WC
-          : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+        ? AppConstants.REQUEST_SOURCES.WC
+        : AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
       is_smart_transaction: shouldUseSmartTransaction || false,
     };
 
@@ -595,9 +595,9 @@ class Confirm extends PureComponent {
       this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
     const haveGasFeeMaxNativeChanged = isEIP1559Transaction
       ? EIP1559GasTransaction.gasFeeMaxNative !==
-      prevState.EIP1559GasTransaction.gasFeeMaxNative
+        prevState.EIP1559GasTransaction.gasFeeMaxNative
       : legacyGasTransaction.gasFeeMaxNative !==
-      prevState.legacyGasTransaction.gasFeeMaxNative;
+        prevState.legacyGasTransaction.gasFeeMaxNative;
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -1274,15 +1274,15 @@ class Confirm extends PureComponent {
       closeModal: true,
       ...(txnType
         ? {
-          legacyGasTransaction: gasTxn,
-          legacyGasObject: gasObj,
-          advancedGasInserted: !gasSelect,
-          stopUpdateGas: false,
-        }
+            legacyGasTransaction: gasTxn,
+            legacyGasObject: gasObj,
+            advancedGasInserted: !gasSelect,
+            stopUpdateGas: false,
+          }
         : {
-          EIP1559GasTransaction: gasTxn,
-          EIP1559GasObject: gasObj,
-        }),
+            EIP1559GasTransaction: gasTxn,
+            EIP1559GasObject: gasObj,
+          }),
     });
   };
 
