@@ -54,18 +54,23 @@ export const startMockServer = async (events, port) => {
       }
     }
   }
-
-  await mockServer.forUnmatchedRequest().thenPassThrough({
-    beforeRequest: async ({ url, method }) => {
-      const returnUrl = new URL(url).searchParams.get('url') || url;
-      const updatedUrl =
-        device.getPlatform() === 'android'
-          ? returnUrl.replace('localhost', '127.0.0.1')
-          : returnUrl;
-      console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
-      return { url: updatedUrl };
-    },
-  });
+  console.log('Forwarding started')
+  try {
+    await mockServer.forUnmatchedRequest().thenPassThrough({
+      beforeRequest: async ({ url, method }) => {
+        const returnUrl = new URL(url).searchParams.get('url') || url;
+        const updatedUrl =
+          device.getPlatform() === 'android'
+            ? returnUrl.replace('localhost', '127.0.0.1')
+            : returnUrl;
+        console.log(`Mock proxy forwarding request to: ${updatedUrl}`);
+        return { url: updatedUrl };
+      }
+    });
+  } catch (e) {
+    console.log(`Mock proxy forwarding failed: ${e}`);
+  }
+   console.log('Forwarding ended')
 
   return mockServer;
 };
