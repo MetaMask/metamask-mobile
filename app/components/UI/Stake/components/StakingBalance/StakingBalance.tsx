@@ -43,10 +43,11 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import type { TokenI } from '../../../Tokens/types';
 import useBalance from '../../hooks/useBalance';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { selectChainId } from '../../../../../selectors/networkController';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import { isPortfolioViewEnabled } from '../../../../../util/networks';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -60,7 +61,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     setHasSentViewingStakingRewardsMetric,
   ] = useState(false);
 
-  const chainId = useSelector(selectChainId);
   const networkName = useSelector(selectNetworkName);
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
@@ -132,9 +132,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   }
 
   const renderStakingContent = () => {
-    if (chainId !== asset.chainId) {
-      return <></>;
-    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
@@ -217,13 +214,24 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
                 variant={BadgeVariant.Network}
                 imageSource={NetworkBadgeSource(
                   asset.chainId as Hex,
-                  asset.ticker || asset.symbol,
+                  asset.ticker ?? asset.symbol,
                 )}
                 name={networkName}
               />
             }
           >
-            <NetworkMainAssetLogo style={styles.ethLogo} />
+            {isPortfolioViewEnabled() ? (
+              <NetworkAssetLogo
+                chainId={asset.chainId as Hex}
+                style={styles.ethLogo}
+                ticker={asset.symbol}
+                big={false}
+                biggest={false}
+                testID={'staking-balance-asset-logo'}
+              />
+            ) : (
+              <NetworkMainAssetLogo style={styles.ethLogo} />
+            )}
           </BadgeWrapper>
           <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
             {strings('stake.staked_ethereum')}
