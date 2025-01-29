@@ -21,6 +21,7 @@ describe('AssetDetailsActions', () => {
   const defaultProps = {
     displayBuyButton: true,
     displaySwapsButton: true,
+    swapsIsLive: true,
     onBuy: mockOnBuy,
     goToSwaps: mockGoToSwaps,
     goToBridge: mockGoToBridge,

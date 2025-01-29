@@ -9,6 +9,7 @@ export enum WalletActionType {
   Bridge = 'Bridge',
   Send = 'Send',
   Receive = 'Receive',
+  Earn = 'Earn',
 }
 
 export interface WalletActionDetail {

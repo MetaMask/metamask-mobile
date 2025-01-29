@@ -63,6 +63,11 @@ const WalletAction = ({
       description: strings('asset_overview.receive_description'),
       disabledDescription: strings('asset_overview.disabled_button.receive'),
     },
+    [WalletActionType.Earn]: {
+      title: strings('asset_overview.earn_button'),
+      description: strings('asset_overview.earn_description'),
+      disabledDescription: strings('asset_overview.disabled_button.earn'),
+    },
   };
 
   const actionStrings = actionType ? walletActionDetails[actionType] : null;

@@ -52,6 +52,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
                 "eth_signTypedData_v4",
               ],
               "options": {},
+              "scopes": [
+                "eip155",
+              ],
               "type": "eip155:eoa",
             },
             "2be55f5b-eba9-41a7-a9ed-a6a8274aca28": {
@@ -70,6 +73,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
                 "eth_signTransaction",
               ],
               "options": {},
+              "scopes": [
+                "eip155",
+              ],
               "type": "eip155:eoa",
             },
           },

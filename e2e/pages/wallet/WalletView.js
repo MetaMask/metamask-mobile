@@ -141,14 +141,12 @@ class WalletView {
     await Gestures.waitAndTap(this.importNFTButton);
   }
 
-  get testCollectible() {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE);
+  get mainnetCollectible() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.MAINNET_COLLECTIBLE);
   }
 
   async tapOnNftName() {
-    await Gestures.waitAndTap(this.testCollectible);
+    await Gestures.waitAndTap(this.mainnetCollectible);
   }
 
   async tapImportTokensButton() {
@@ -172,6 +170,10 @@ class WalletView {
 
   async tokenInWallet(tokenName) {
     return Matchers.getElementByText(tokenName);
+  }
+
+  async nftIDInWallet(nftId) {
+    return Matchers.getElementByID(nftId);
   }
 
   async nftInWallet(nftName) {

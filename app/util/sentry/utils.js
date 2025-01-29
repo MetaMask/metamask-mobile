@@ -39,6 +39,7 @@ export const sentryStateMask = {
               type: true,
               options: true,
               methods: true,
+              scopes: true,
               metadata: {
                 name: true,
                 importTime: true,

@@ -226,14 +226,16 @@ class NotificationManager {
         // Detect assets and tokens for ERC20 txs
         // Detect assets for ERC721 txs
         // right after a transaction was confirmed
-        const pollPromises = [AccountTrackerController.refresh()];
+        const pollPromises = [
+          AccountTrackerController.refresh(),
+          TokenBalancesController.updateBalancesByChainId({
+            chainId: transactionMeta.chainId,
+          }),
+        ];
         switch (originalTransaction.assetType) {
           case 'ERC20': {
             pollPromises.push(
               ...[
-                TokenBalancesController.updateBalancesByChainId({
-                  chainId: transactionMeta.chainId,
-                }),
                 TokenDetectionController.detectTokens({
                   chainIds: [transactionMeta.chainId],
                 }),
