@@ -10,6 +10,7 @@ import { RowVariant } from '../../../components/Approvals/Snaps/SnapUIRenderer/c
 export type ConfirmInfoRowValueDoubleProps = {
   left: ReactNode;
   right: ReactNode;
+  variant?: RowVariant;
 };
 
 const LEFT_TEXT_COLORS = {
@@ -21,9 +22,8 @@ const LEFT_TEXT_COLORS = {
 export const ConfirmInfoRowValueDouble = ({
   left,
   right,
+  variant = RowVariant.Default,
 }: ConfirmInfoRowValueDoubleProps) => {
-  // TODO: Not sure where this variant is coming from on mobile
-  // const { variant } = useRowContext();
   return (
     <Box
       flexDirection={FlexDirection.Row}

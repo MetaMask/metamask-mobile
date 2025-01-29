@@ -2,7 +2,12 @@ import { JSXElement, GenericSnapElement } from '@metamask/snaps-sdk/jsx';
 import { hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
-import { NonEmptyArray, bytesToHex, remove0x } from '@metamask/utils';
+import {
+  NonEmptyArray,
+  bytesToHex,
+  hasProperty,
+  remove0x,
+} from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { decode } from 'html-entities';
 
@@ -104,11 +109,13 @@ export const getAvatarFallbackLetter = (subjectName: string) => {
 export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
   const { type, key } = params.element;
   const elementKey = key ?? generateKey(params.map, params.element);
-  const mapped = COMPONENT_MAPPING[
-    type as Exclude<JSXElement['type'], 'Option' | 'Radio' | 'SelectorOption'>
-    // TODO: Replace `any` with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ](params as any);
+
+  if (!hasProperty(COMPONENT_MAPPING, type)) {
+    throw new Error(`Unknown component type: ${type}`);
+  }
+
+  const mapped =
+    COMPONENT_MAPPING[type as keyof typeof COMPONENT_MAPPING](params);
   return { ...mapped, key: elementKey } as UIComponent;
 };
 

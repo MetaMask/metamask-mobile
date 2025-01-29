@@ -69,14 +69,14 @@ const ButtonBase = ({
       ) : (
         label
       )}
-      {/* {endIconName && (
+      {endIconName && (
         <Icon
           color={labelColor.toString()}
           name={endIconName}
           size={DEFAULT_BUTTONBASE_ICON_SIZE}
           style={styles.endIcon}
         />
-      )} */}
+      )}
     </TouchableOpacity>
   );
 };

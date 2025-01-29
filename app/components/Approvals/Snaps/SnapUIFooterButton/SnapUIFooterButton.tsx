@@ -13,6 +13,7 @@ import {
 import { ActivityIndicator } from 'react-native';
 import { DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT } from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary/ButtonSecondary.constants';
 import { SnapIcon } from '../SnapIcon/SnapIcon';
+import Text from '../../../../component-library/components/Texts/Text';
 
 type SnapUIFooterButtonProps = {
   name?: string;
@@ -37,7 +38,7 @@ export const SnapUIFooterButton: FunctionComponent<
   variant = ButtonVariants.Primary,
 }) => {
   const { handleEvent, snapId } = useSnapInterfaceContext();
-  // TODO: Not sure where this is coming from on mobile
+  // TODO: Not sure where this is coming from on mobile. Needs updating so it's not hardcoded
   const hideSnapBranding = true;
 
   const handleSnapAction = () => {
@@ -67,10 +68,37 @@ export const SnapUIFooterButton: FunctionComponent<
 
   const buttonVariant = hideSnapBranding ? variant : brandedButtonVariant;
 
+  const renderLabel = () => {
+    if (loading) {
+      return (
+        <ActivityIndicator
+          size="small"
+          color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
+        />
+      );
+    }
+    if (isSnapAction && !hideSnapBranding && !loading) {
+      return (
+        <>
+          <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
+          <Text>{label}</Text>
+        </>
+      );
+    }
+
+    if (!loading) {
+      return label;
+    }
+
+    if (!label) {
+      return children;
+    }
+  };
+
   return (
     <Button
       type={type}
-      label={label}
+      label={renderLabel()}
       size={ButtonSize.Lg}
       disabled={disabled}
       variant={buttonVariant}
@@ -84,18 +112,6 @@ export const SnapUIFooterButton: FunctionComponent<
         flex: 1,
         marginHorizontal: 4,
       }}
-    >
-      {isSnapAction && !hideSnapBranding && !loading && (
-        <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
-      )}
-      {loading ? (
-        <ActivityIndicator
-          size="small"
-          color={DEFAULT_BUTTONSECONDARY_LABEL_TEXTVARIANT}
-        />
-      ) : (
-        children
-      )}
-    </Button>
+    ></Button>
   );
 };
