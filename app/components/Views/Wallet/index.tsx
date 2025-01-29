@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-  useState,
-} from 'react';
+import React, { useEffect, useRef, useCallback, useContext } from 'react';
 import {
   ActivityIndicator,
   StyleSheet,
@@ -154,7 +148,7 @@ const createStyles = ({ colors, typography }: Theme) =>
       flexDirection: 'column',
     },
     carouselContainer: {
-      marginVertical: 8,
+      marginTop: 12,
     },
     contentContainer: {
       flex: 1,
@@ -259,47 +253,6 @@ const Wallet = ({
       ? AvatarAccountType.Blockies
       : AvatarAccountType.JazzIcon,
   );
-
-  const [carouselSlides, setCarouselSlides] = useState([
-    {
-      id: '1',
-      title: 'Welcome to MetaMask',
-      description: 'Your gateway to web3',
-      dismissed: false,
-    },
-    {
-      id: '2',
-      title: 'Secure Your Wallet',
-      description: 'Keep your recovery phrase safe and never share it',
-      dismissed: false,
-    },
-    {
-      id: '3',
-      title: 'Explore DApps',
-      description: 'Discover the world of decentralized applications',
-      dismissed: false,
-    },
-    {
-      id: '4',
-      title: 'Manage Your Assets',
-      description: 'Track and manage your tokens and NFTs in one place',
-      dismissed: false,
-    },
-    {
-      id: '5',
-      title: 'Stay Updated',
-      description: 'Get the latest news and updates from the crypto world',
-      dismissed: false,
-    },
-  ]);
-
-  const handleBannerClose = useCallback((slideId: string) => {
-    setCarouselSlides((prev) =>
-      prev.map((slide) =>
-        slide.id === slideId ? { ...slide, dismissed: true } : slide,
-      ),
-    );
-  }, []);
 
   useEffect(() => {
     if (
@@ -725,7 +678,7 @@ const Wallet = ({
         <>
           {accountBalanceByChainId && <PortfolioBalance />}
           <View style={styles.carouselContainer}>
-            <Carousel slides={carouselSlides} onClose={handleBannerClose} />
+            <Carousel />
           </View>
           <ScrollableTabView
             renderTabBar={renderTabBar}
@@ -760,7 +713,6 @@ const Wallet = ({
     conversionRate,
     currentCurrency,
     contractBalances,
-    carouselSlides,
   ]);
   const renderLoader = useCallback(
     () => (

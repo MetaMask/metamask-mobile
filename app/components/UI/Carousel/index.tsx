@@ -26,7 +26,7 @@ import { RootState } from '../../../reducers';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
 const CAROUSEL_HEIGHT = 59;
-const DOTS_HEIGHT = 28;
+const DOTS_HEIGHT = 18;
 const IMAGE_WIDTH = 60;
 const IMAGE_HEIGHT = 59;
 const PEEK_WIDTH = 5;
@@ -97,12 +97,10 @@ const createStyles = (colors: Theme['colors']) =>
       height: '100%',
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 16,
     },
     imageContainer: {
       width: IMAGE_WIDTH,
       height: IMAGE_HEIGHT,
-      marginRight: 16,
       overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
@@ -113,35 +111,43 @@ const createStyles = (colors: Theme['colors']) =>
       justifyContent: 'center',
     },
     textWrapper: {
-      width: BANNER_WIDTH - (IMAGE_WIDTH + 16 + 32), // image width + margin + container padding
+      width: BANNER_WIDTH - IMAGE_WIDTH,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 0,
     },
     title: {
       color: colors.text.default,
-      marginBottom: 4,
+      fontSize: 12,
+      fontWeight: '500',
+      marginLeft: 14,
     },
     description: {
-      color: colors.text.alternative,
+      color: colors.text.default,
+      fontSize: 10.4,
+      marginLeft: 14,
+      marginTop: -4,
     },
     closeButton: {
       position: 'absolute',
-      top: 8,
-      right: 8,
-      width: 24,
-      height: 24,
+      top: 4,
+      right: 6,
+      width: 26,
+      height: 26,
       justifyContent: 'center',
       alignItems: 'center',
     },
     progressContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       height: DOTS_HEIGHT,
       gap: 8,
     },
     progressDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
+      width: 6,
+      height: 6,
+      borderRadius: 3,
       backgroundColor: colors.icon.muted,
       margin: 0,
     },
@@ -156,11 +162,7 @@ const createStyles = (colors: Theme['colors']) =>
     },
   });
 
-export const Carousel: React.FC<CarouselProps> = ({
-  isLoading = false,
-  onClick,
-  style,
-}) => {
+export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { colors } = useTheme();
@@ -174,14 +176,6 @@ export const Carousel: React.FC<CarouselProps> = ({
     (slide) => !dismissedBanners.includes(slide.id),
   );
   const isSingleSlide = visibleSlides.length === 1;
-
-  if (isLoading) {
-    return (
-      <View style={[styles.container, styles.loadingContainer, style]}>
-        {/* Add your loading component here */}
-      </View>
-    );
-  }
 
   if (visibleSlides.length === 0) {
     return null;
@@ -231,7 +225,6 @@ export const Carousel: React.FC<CarouselProps> = ({
                   name: `banner_image_${index % 4}`,
                   width: IMAGE_WIDTH,
                   height: IMAGE_HEIGHT,
-                  preserveAspectRatio: 'xMidYMid meet',
                 })}
                 <View style={styles.textContainer}>
                   <View style={styles.textWrapper}>
@@ -251,7 +244,7 @@ export const Carousel: React.FC<CarouselProps> = ({
                     style={styles.closeButton}
                     onPress={() => handleClose(slide.id)}
                   >
-                    <Icon name="close" size={16} color={colors.icon.default} />
+                    <Icon name="close" size={18} color={colors.icon.default} />
                   </TouchableOpacity>
                 )}
               </View>
