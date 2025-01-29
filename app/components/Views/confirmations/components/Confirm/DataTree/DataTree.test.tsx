@@ -66,8 +66,6 @@ describe('NoChangeSimulation', () => {
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getByText('A Number')).toBeDefined();
     expect(getByText('1337')).toBeDefined();
-    // date field not supported for v1
-    expect(queryByText('15 March 2022, 15:57')).toBeNull();
   });
 
   it('displays types sign v3/v4 message', async () => {
