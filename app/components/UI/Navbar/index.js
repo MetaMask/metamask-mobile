@@ -74,8 +74,8 @@ const trackEvent = (event, params = {}) => {
 
 const styles = StyleSheet.create({
   metamaskName: {
-    width: 122,
-    height: 15,
+    width: 70,
+    height: 35,
   },
   metamaskFox: {
     width: 40,
@@ -651,8 +651,8 @@ export function getOnboardingNavbarOptions(
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -688,8 +688,8 @@ export function getTransparentOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -722,8 +722,8 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
       elevation: 0,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -759,8 +759,8 @@ export function getOptinMetricsNavbarOptions(themeColors) {
       height: 100,
     },
     metamaskName: {
-      width: 122,
-      height: 15,
+      width: 70,
+      height: 35,
       tintColor: themeColors.text.default,
     },
   });
@@ -768,22 +768,14 @@ export function getOptinMetricsNavbarOptions(themeColors) {
   return {
     headerStyle: innerStyles.headerStyle,
     title: null,
-    headerLeft: () => (
-      <View style={styles.optinHeaderLeft}>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_fox}
-            style={styles.metamaskFox}
-            resizeMethod={'auto'}
-          />
-        </View>
-        <View style={styles.metamaskNameWrapper}>
-          <Image
-            source={metamask_name}
-            style={innerStyles.metamaskName}
-            resizeMethod={'auto'}
-          />
-        </View>
+    headerLeft: () => <View />, // Empty view on left
+    headerTitle: () => (
+      <View style={innerStyles.centerContainer}>
+        <Image
+          source={metamask_name}
+          style={innerStyles.metamaskName}
+          resizeMethod={'auto'}
+        />
       </View>
     ),
     headerTintColor: themeColors.primary.default,

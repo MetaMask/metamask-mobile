@@ -21,7 +21,6 @@ import {
   baseStyles,
   colors as importedColors,
 } from '../../../styles/common';
-import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import { strings } from '../../../../locales/i18n';
 import Button from '@metamask/react-native-button';
 import { connect } from 'react-redux';
@@ -68,6 +67,16 @@ const createStyles = (colors) =>
       alignSelf: 'center',
       width: Device.isIos() ? 90 : 45,
       height: Device.isIos() ? 90 : 45,
+    },
+    largeFoxWrapper: {
+      flex: 1,
+      // justifyContent: 'center',
+      alignItems: 'center',
+    },
+    foxImage: {
+      width: 200,
+      height: 200,
+      resizeMode: 'contain',
     },
     title: {
       textAlign: 'center',
@@ -370,6 +379,13 @@ class Onboarding extends PureComponent {
             {strings('onboarding.import')}
           </Text>
         </View>
+        <View style={styles.largeFoxWrapper}>
+          <Image
+            source={require('../../../images/fox.png')}
+            style={styles.foxImage}
+            resizeMethod={'auto'}
+          />
+        </View>
         <View style={styles.createWrapper}>
           <View style={styles.buttonWrapper}>
             <StyledButton
@@ -431,32 +447,31 @@ class Onboarding extends PureComponent {
         style={baseStyles.flexGrow}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        <OnboardingScreenWithBg screen={'c'}>
-          <ScrollView
-            style={baseStyles.flexGrow}
-            contentContainerStyle={styles.scroll}
-          >
-            <View style={styles.wrapper}>
-              {loading && (
-                <View style={styles.foxWrapper}>
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                </View>
-              )}
-              {loading ? this.renderLoader() : this.renderContent()}
-            </View>
-            {existingUser && !loading && (
-              <View style={styles.footer}>
-                <Button style={styles.login} onPress={this.onLogin}>
-                  {strings('onboarding.unlock')}
-                </Button>
+        <ScrollView
+          style={baseStyles.flexGrow}
+          contentContainerStyle={styles.scroll}
+        >
+          <View style={styles.wrapper}>
+            {loading && (
+              <View style={styles.foxWrapper}>
+                <Image
+                  source={require('../../../images/fox.png')}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
               </View>
             )}
-          </ScrollView>
-        </OnboardingScreenWithBg>
+            {loading ? this.renderLoader() : this.renderContent()}
+          </View>
+          {existingUser && !loading && (
+            <View style={styles.footer}>
+              <Button style={styles.login} onPress={this.onLogin}>
+                {strings('onboarding.unlock')}
+              </Button>
+            </View>
+          )}
+        </ScrollView>
+
         <FadeOutOverlay />
 
         <View>{this.handleSimpleNotification()}</View>

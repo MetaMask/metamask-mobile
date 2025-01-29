@@ -16,9 +16,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 import Text from '../../../../Base/Text';
 import Title from '../../../../Base/Title';
-import Fox from '../../../Fox';
-import backgroundShapes from './backgroundShapes';
+// import Fox from '../../../Fox';
+// import backgroundShapes from './backgroundShapes';
 import { useTheme } from '../../../../../util/theme';
+import foxImage from '../../../../../images/fox.png';
 
 const ANIM_MULTIPLIER = 0.67;
 const INITIAL_DELAY = 1000 * ANIM_MULTIPLIER;
@@ -81,37 +82,44 @@ const createStyles = (colors, shadows) =>
     foxContainer: {
       width: STAGE_SIZE,
       height: STAGE_SIZE,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     text: {
       color: colors.text.default,
     },
+    foxImage: {
+      width: 100,
+      height: 100,
+    },
   });
 
-const customStyle = (colors) => `
-  body {
-    background-color: ${colors.background.default};
-  }
-  #head {
-    height: 35%;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-  #bgShapes {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 70%;
-    height: 70%;
-    transform: translateX(-50%) translateY(-50%) rotate(0deg);
-    animation: rotate 50s linear infinite;
-  }
+// const customStyle = (colors) => `
+//   body {
+//     background-color: ${colors.background.default};
+//   }
+//   #head {
+//     height: 35%;
+//     top: 50%;
+//     transform: translateY(-50%);
+//   }
+//   #bgShapes {
+//     position: absolute;
+//     left: 50%;
+//     top: 50%;
+//     width: 70%;
+//     height: 70%;
+//     transform: translateX(-50%) translateY(-50%) rotate(0deg);
+//     animation: rotate 50s linear infinite;
+//   }
 
-  @keyframes rotate {
-    to {
-      transform: translateX(-50%) translateY(-50%) rotate(360deg);
-    }
-  }
-`;
+//   @keyframes rotate {
+//     to {
+//       transform: translateX(-50%) translateY(-50%) rotate(360deg);
+//     }
+//   }
+// `;
 
 function round(value, decimals) {
   return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
@@ -460,11 +468,10 @@ function LoadingAnimation({
         </View>
       </View>
       <View style={styles.foxContainer} pointerEvents="none">
-        <Fox
-          ref={foxRef}
-          customContent={backgroundShapes}
-          customStyle={customStyle(colors)}
-          renderLoading={() => null}
+        <Image
+          source={foxImage}
+          style={styles.foxImage}
+          resizeMethod={'auto'}
         />
         {renderLogos &&
           headPan &&
