@@ -41,7 +41,6 @@ import Networks, {
   getNetworkImageSource,
   isMainNet,
   isPortfolioViewEnabled,
-  isMultichainV1Enabled,
 } from '../../../util/networks';
 import { LINEA_MAINNET, MAINNET } from '../../../constants/network';
 import Button from '../../../component-library/components/Buttons/Button/Button';
@@ -239,7 +238,7 @@ const NetworkSelector = () => {
       const networkConfigurationId =
         rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
 
-      if (domainIsConnectedDapp && isMultichainV1Enabled()) {
+      if (domainIsConnectedDapp && process.env.MULTICHAIN_V1) {
         SelectedNetworkController.setNetworkClientIdForDomain(
           origin,
           networkConfigurationId,
@@ -254,7 +253,7 @@ const NetworkSelector = () => {
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled())) sheetRef.current?.dismissModal();
+      if (!(domainIsConnectedDapp && process.env.MULTICHAIN_V1)) sheetRef.current?.dismissModal();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
