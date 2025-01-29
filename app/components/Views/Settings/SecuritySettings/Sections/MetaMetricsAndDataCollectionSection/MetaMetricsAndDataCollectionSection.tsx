@@ -26,6 +26,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../../hooks/useMetrics';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import {
+  UserProfileProperty
+} from '../../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const MetaMetricsAndDataCollectionSection: React.FC = () => {
   const theme = useTheme();
@@ -51,7 +54,6 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
       const consolidatedTraits = {
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
-        is_metrics_opted_in: true,
       };
       await enable();
       setAnalyticsEnabled(true);
@@ -82,14 +84,13 @@ const MetaMetricsAndDataCollectionSection: React.FC = () => {
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     InteractionManager.runAfterInteractions(async () => {
-      const traits = {
-        has_marketing_consent: marketingOptIn,
-      };
-      await addTraitsToUser(traits);
+      await addTraitsToUser({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn ? UserProfileProperty.ON : UserProfileProperty.OFF,
+      });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
           .addProperties({
-            ...traits,
+            [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
             location: 'settings',
           })
           .build(),

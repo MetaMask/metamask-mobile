@@ -10,6 +10,8 @@ export enum UserProfileProperty {
   SECURITY_PROVIDERS = 'security_providers',
   PRIMARY_CURRENCY = 'primary_currency',
   CURRENT_CURRENCY = 'current_currency',
+  HAS_MARKETING_CONSENT = 'has_marketing_consent',
+  IS_METRICS_OPTED_IN = 'is_metrics_opted_in',
 }
 
 export interface UserProfileMetaData {
@@ -22,4 +24,6 @@ export interface UserProfileMetaData {
   [UserProfileProperty.SECURITY_PROVIDERS]: string;
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
+  [UserProfileProperty.HAS_MARKETING_CONSENT]: string;
+  [UserProfileProperty.IS_METRICS_OPTED_IN]: string;
 }
