@@ -56,14 +56,16 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
 
   describe('RPC URL Mismatch Detection', () => {
     const createMockPopularNetwork = (rpcUrl: string) => ({
-      chainId: '0xa',
+      chainId: '0xa' as `0x${string}`,
       rpcUrl,
       rpcPrefs: {
         imageSource: 'test-image',
+        blockExplorerUrl: 'https://test-explorer.com',
+        imageUrl: 'https://test-image.com',
       },
       nickname: 'Test Network',
       ticker: 'TEST',
-      warning: '',
+      warning: false,
     });
 
     const createNetworkWithPageMeta = (url: string) => ({
@@ -89,7 +91,7 @@ describe('NetworkVerificationInfo with Feature Flag ON', () => {
         'https://different.rpc.url',
       );
       PopularList.length = 0;
-      PopularList.push(mockPopularNetwork as any);
+      PopularList.push(mockPopularNetwork);
 
       const networkInfoWithPageMeta = createNetworkWithPageMeta(
         'https://app.uniswap.org',
