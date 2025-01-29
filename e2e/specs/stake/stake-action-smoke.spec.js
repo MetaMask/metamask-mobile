@@ -15,6 +15,7 @@ import {
 import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
+import { withFixtures } from '../../fixtures/fixture-helper';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { SmokeStake } from '../../tags';
 import Assertions from '../../utils/Assertions';
@@ -58,6 +59,7 @@ describe(SmokeStake('Stake from Actions'), () => {
       permissions: { notifications: 'YES' },
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
     });
+    await TestHelpers.delay(3000);
     await loginToApp();
   });
 
@@ -105,14 +107,14 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnEarnButton()
     await Assertions.checkIfVisible(StakeView.stakeContainer);
-    await StakeView.selectAmount('25%')
+    await StakeView.enterAmount('.004')
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(5000);
   })
 
   it('should Stake more ETH', async () => {
@@ -130,7 +132,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(5000);
   })
 
   it('should Unstake ETH', async () => {
@@ -148,7 +150,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
-    await TestHelpers.delay(3000);
+    await TestHelpers.delay(5000);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
@@ -157,7 +159,6 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
     await TokenOverview.tapBackButton();
   })
-
 
   it('should make sure staking actions are hidden for ETH assets that are not on main', async () => {
     await TabBarComponent.tapWallet();
@@ -175,11 +176,15 @@ describe(SmokeStake('Stake from Actions'), () => {
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
+    console.log(JSON.stringify(response.data))
     if (response.status !== 200) {
       throw new Error('Error calling Staking API');
     }
-
     const account =  response.data.accounts[0]
+    if (account.exitRequests.lenght === 0) {
+      throw new Error('No claim entries found for this account');
+    }
+
     const stakeAPIMock  = {
       GET: [ {
           urlEndpoint: stakeAPIUrl,
@@ -208,14 +213,24 @@ describe(SmokeStake('Stake from Actions'), () => {
         },
       ],
     };
-
-    const mockServerPort = getMockServerPort();
+    /*
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Holesky)
+          .build(),
+        restartDevice: false,
+        testSpecificMock: stakeAPIMock,
+      },
+      async () => {
+*/
     mockServer = await startMockServer(stakeAPIMock);
     await TestHelpers.launchApp({
-       newInstance: true,
-       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}` },
+       newInstance: false,
+       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${getMockServerPort()}` },
      });
-    await TestHelpers.delay(20000);
+
+
     await loginToApp();
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
@@ -228,6 +243,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
     await TestHelpers.delay(3000);
+      //});
   });
 
 });
