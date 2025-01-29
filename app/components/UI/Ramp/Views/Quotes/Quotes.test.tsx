@@ -1,8 +1,8 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
 import {
+  AllQuotesResponse,
   ProviderBuyFeatureBrowserEnum,
-  QuoteError,
   QuoteResponse,
 } from '@consensys/on-ramp-sdk';
 import {
@@ -15,15 +15,12 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-
 import Quotes, { QuotesParams } from './Quotes';
 import { mockQuotesData } from './Quotes.constants';
 import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
-
 import { RampSDK } from '../../sdk';
 import useQuotes from '../../hooks/useQuotes';
-
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType } from '../../types';
@@ -121,7 +118,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 const mockQueryGetQuotes = jest.fn();
 
 const mockUseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
-  data: mockQuotesData as (QuoteResponse | QuoteError)[],
+  data: { quotes: mockQuotesData } as AllQuotesResponse,
   isFetching: false,
   error: null,
   query: mockQueryGetQuotes,
@@ -211,7 +208,7 @@ describe('Quotes', () => {
   it('renders correctly after animation without quotes', async () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: [],
+      data: { quotes: [], sorted: [] } as AllQuotesResponse,
     };
     render(Quotes);
     act(() => {
@@ -240,10 +237,12 @@ describe('Quotes', () => {
   it('renders correctly after animation with quotes and expanded', async () => {
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: [
-        ...mockQuotesData.slice(0, 2),
-        { ...mockQuotesData[2], error: false },
-      ] as (QuoteResponse | QuoteError)[],
+      data: {
+        quotes: [
+          ...mockQuotesData.slice(0, 2),
+          { ...mockQuotesData[2], error: false },
+        ],
+      } as AllQuotesResponse,
     };
     render(Quotes);
     fireEvent.press(
@@ -302,7 +301,7 @@ describe('Quotes', () => {
 
     mockUseQuotesValues = {
       ...mockUseQuotesInitialValues,
-      data: mockData as (QuoteResponse | QuoteError)[],
+      data: { quotes: mockData } as AllQuotesResponse,
     };
     render(Quotes);
     act(() => {
