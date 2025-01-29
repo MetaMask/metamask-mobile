@@ -48,7 +48,10 @@
     "connector": "bei"
   },
   "autocomplete": {
-    "placeholder": "Suchen oder URL eingeben"
+    "placeholder": "",
+    "recents": "Aktuelle",
+    "favorites": "Favoriten",
+    "sites": "Websites"
   },
   "navigation": {
     "back": "Zurück",
@@ -449,6 +452,7 @@
     "next": "Weiter",
     "buy_asset": "{{asset}} kaufen",
     "no_tokens": "Sie haben keine Tokens!",
+    "show_tokens_without_balance": "Tokens ohne Guthaben anzeigen",
     "no_nfts_yet": "Noch keine NFTs",
     "nfts_autodetection_title": "NFT-Erkennung",
     "nfts_autodetection_desc": "Lassen Sie zu, dass MetaMask NFTs automatisch in Ihrer Wallet erkennt und anzeigt.",
@@ -470,7 +474,7 @@
     "learn_more": "Mehr erfahren",
     "add_collectibles": "NFTs importieren",
     "no_transactions": "Sie haben keine Transaktionen!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Wechseln Sie bitte das Netzwerk, um Transaktionen anzuzeigen",
     "send_button": "Senden",
     "deposit_button": "Einzahlen",
     "copy_address": "Kopieren",
@@ -566,7 +570,7 @@
     "description_content_1": "Wir würden gerne grundlegende Nutzungsdaten sammeln, um MetaMask zu verbessern. Sie sollten wissen, dass wir die Daten, die Sie uns hier zur Verfügung stellen, niemals verkaufen.",
     "description_content_2": "Wenn wir Metriken sammeln, wird es immer wie folgt sein ...",
     "description_content_3": "Erfahren Sie, wie wir Ihre Privatsphäre schützen, während wir Nutzungsdaten für Ihr Profil sammeln.",
-    "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation umgehen. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
+    "checkbox": "Wir verwenden diese Daten, um zu erfahren, wie Sie mit unserer Marketingkommunikation interagieren. Wir können relevante Neuigkeiten (wie Produktmerkmale) teilen.",
     "action_description_1_prefix": "Privat:",
     "action_description_2_prefix": "Allgemein:",
     "action_description_3_prefix": "Optional:",
@@ -722,6 +726,7 @@
     "connected_and_active": "verbunden und aktiv.",
     "now_active": "jetzt aktiv.",
     "network_added": "wurde erfolgreich hinzugefügt",
+    "network_removed": "wurde erfolgreich entfernt",
     "network_deleted": "wurde erfolgreich gelöscht",
     "network_permissions_updated": "Netzwerkgenehmigungen aktualisiert",
     "revoked": "widerrufen.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Verkaufen",
     "receive_button": "Empfangen",
     "portfolio_button": "Portfolio",
+    "earn_button": "Verdienen",
     "add_collectible_button": "Hinzufügen",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "earn": "Verdienen",
     "disabled_button": {
       "buy": "Kaufen wird für dieses Konto nicht unterstützt",
       "sell": "Verkaufen wird für dieses Konto nicht unterstützt",
       "swap": "Swapping wird für dieses Konto nicht unterstützt",
       "bridge": "Bridging wird für dieses Konto nicht unterstützt",
       "send": "Senden wird für dieses Konto nicht unterstützt",
+      "earn": "Verdienen wird für dieses Konto nicht unterstützt",
       "action": "Diese Aktion wird für dieses Konto nicht unterstützt"
     },
     "description": "Beschreibung",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Tokens zwischen Netzwerken übertragen",
     "send_description": "Krypto an ein beliebiges Konto senden",
     "receive_description": "Krypto empfangen",
+    "earn_description": "Verdienen Sie Belohnungen für Ihre Tokens",
     "chart_time_period": {
       "1d": "Heute",
       "7d": "Die letzten 7 Tage",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "Chain-ID",
     "network_rpc_url": "Netzwerk-URL",
     "network_rpc_url_label": "Netzwerk-RPC-URL",
+    "network_rpc_url_warning_punycode": "Angreifer imitieren gelegentlich Websites, indem sie kleine Änderungen an der Adresse der Website vornehmen. Vergewissern Sie sich, dass Sie mit der angestrebten Netzwerk-URL interagieren, bevor Sie fortfahren. Punycode-Version:",
     "new_default_network_url": "Neue Standard-Netzwerk-URL",
     "current_label": "Aktuell",
     "new_label": "Neu",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Hardware-Wallet hinzufügen",
     "import_account": "Konto importieren",
     "add_bitcoin_account_testnet": "Ein neues Bitcoin-Konto hinzufügen (Testnet)",
-    "add_bitcoin_account_mainnet": "Ein neues Bitcoin-Konto hinzufügen (Beta)"
+    "add_bitcoin_account_mainnet": "Ein neues Bitcoin-Konto hinzufügen (Beta)",
+    "add_solana_account": "Ein neues Solana-Konto hinzufügen (Beta)"
   },
   "show_nft": {
     "show_nft_title": "NFT anzeigen",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Signaturanfrage"
     },
+    "sub_title": {
+      "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage."
+    },
     "request_from": "Anfrage von",
     "message": "Nachricht",
+    "primary_type": "Primäre Art",
     "personal_sign_tooltip": "Diese Website ersucht um Ihre Signatur",
     "details": "Details",
     "account": "Konto",
     "balance": "Kontostand",
     "network": "Netzwerk",
     "simulation": {
-      "title": "Geschätzte Änderungen",
+      "decoded_tooltip_bid_nft": "Der NFT wird in Ihrer Wallet angezeigt, sobald das Gebot akzeptiert wird.",
+      "decoded_tooltip_list_nft": "Änderungen sind nur zu erwarten, wenn jemand Ihre NFTs kauft.",
+      "info_permit": "Sie erteilen dem Spender die Genehmigung, diese Menge an Tokens von Ihrem Konto auszugeben.",
+      "label_change_type_bidding": "Sie bieten",
+      "label_change_type_listing": "Sie listen auf",
+      "label_change_type_nft_listing": "Listenpreis",
+      "label_change_type_permit": "Ausgabenobergrenze",
+      "label_change_type_permit_nft": "Auszahlen",
+      "label_change_type_receive": "Sie empfangen",
+      "label_change_type_revoke": "Widerrufen",
+      "label_change_type_transfer": "Sie senden",
       "personal_sign_info": "Sie melden sich bei einer Website an und es sind keine Änderungen an Ihrem Konto vorgesehen.",
-      "tooltip": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie."
-    }
+      "title": "Geschätzte Änderungen",
+      "tooltip": "Die geschätzten Änderungen beziehen sich auf das, was passieren könnte, wenn Sie diese Transaktion durchführen. Es handelt sich hierbei lediglich um eine Prognose, nicht um eine Garantie.",
+      "unavailable": "Nicht verfügbar"
+    },
+    "unlimited": "Unbegrenzt",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",
