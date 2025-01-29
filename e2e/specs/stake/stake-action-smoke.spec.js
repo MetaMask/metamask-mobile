@@ -57,7 +57,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await loadFixture(fixtureServer, { fixture });
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${getMockServerPort()}` },
     });
     await TestHelpers.delay(3000);
     await loginToApp();
@@ -213,23 +213,12 @@ describe(SmokeStake('Stake from Actions'), () => {
         },
       ],
     };
-    /*
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Holesky)
-          .build(),
-        restartDevice: false,
-        testSpecificMock: stakeAPIMock,
-      },
-      async () => {
-*/
+
     mockServer = await startMockServer(stakeAPIMock);
     await TestHelpers.launchApp({
        newInstance: false,
        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${getMockServerPort()}` },
      });
-
 
     await loginToApp();
     await WalletView.tapOnStakedEthereum()
