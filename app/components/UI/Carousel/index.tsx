@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Pressable,
   Dimensions,
+  Linking,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import Text, {
@@ -23,6 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { dismissBanner } from '../../../actions/banners/index';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import useGoToBridge from '../Bridge/utils/useGoToBridge';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -41,25 +43,25 @@ const PREDEFINED_SLIDES = [
     href: undefined,
   },
   {
-    id: 'card',
-    title: strings('banner.card.title'),
-    description: strings('banner.card.subtitle'),
-    undismissable: false,
-    href: undefined,
-  },
-  {
     id: 'fund',
     title: strings('banner.fund.title'),
     description: strings('banner.fund.subtitle'),
     undismissable: false,
-    href: undefined,
+    href: 'https://portfolio.metamask.io/buy/build-quote',
+  },
+  {
+    id: 'card',
+    title: strings('banner.card.title'),
+    description: strings('banner.card.subtitle'),
+    undismissable: false,
+    href: 'https://portfolio.metamask.io/card',
   },
   {
     id: 'cashout',
     title: strings('banner.cashout.title'),
     description: strings('banner.cashout.subtitle'),
     undismissable: false,
-    href: undefined,
+    href: 'https://portfolio.metamask.io/sell',
   },
 ];
 
@@ -171,6 +173,7 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
   const styles = createStyles(colors);
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
+  const goToBridge = useGoToBridge('Carousel');
   const dismissedBanners = useSelector(
     (state: RootState) => state.banners.dismissedBanners,
   );
@@ -223,11 +226,16 @@ export const Carousel: React.FC<CarouselProps> = ({ onClick, style }) => {
       }).build(),
     );
 
-    if (href) {
-      // @ts-expect-error global.platform is injected by the app
-      global.platform.openTab({ url: href });
+    if (slideId === 'bridge') {
+      goToBridge();
+      return;
     }
-    if (onClick) {
+
+    if (href) {
+      Linking.openURL(href).catch((error) => {
+        console.log('Error opening URL:', error);
+      });
+    } else if (onClick) {
       onClick(slideId);
     }
   };
