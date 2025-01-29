@@ -75,7 +75,7 @@ const Price = ({
     : priceDiff;
 
   const { styles } = useStyles(styleSheet, { priceDiff: diff });
-
+  const ticker = asset.ticker || asset.symbol;
   return (
     <>
       <View style={styles.wrapper}>
@@ -84,10 +84,10 @@ const Price = ({
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Alternative}
           >
-            {asset.name} ({asset.symbol})
+            {asset.name} ({ticker})
           </Text>
         ) : (
-          <Text variant={TextVariant.BodyMDMedium}>{asset.symbol}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
         )}
         {!isNaN(price) && (
           <Text
@@ -111,7 +111,7 @@ const Price = ({
         )}
         <Text>
           {isLoading ? (
-            <View style={styles.loadingPriceDiff}>
+            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
               <SkeletonPlaceholder>
                 <SkeletonPlaceholder.Item
                   width={150}
