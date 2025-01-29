@@ -10,6 +10,7 @@ export const TokenOverviewSelectorsIDs = {
   BRIDGE_BUTTON: 'token-bridge-button',
   ADD_BUTTON: 'token-add-button',
   CLAIM_BUTTON: 'claim-banner-claim-eth-button',
+  UNSTAKING_BANNER: 'unstaking-banner',
 };
 
 export const TokenOverviewSelectorsText = {

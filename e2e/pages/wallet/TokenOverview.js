@@ -53,6 +53,9 @@ class TokenOverview {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
+  get unstakingBanner() {
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
+  }
 
   get chartPeriod1d() {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);

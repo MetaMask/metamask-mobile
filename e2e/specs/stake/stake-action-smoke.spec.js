@@ -28,6 +28,8 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
+import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import axios from 'axios';
 
 import {
@@ -47,7 +49,7 @@ describe(SmokeStake('Stake from Actions'), () => {
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
-      .withNetworkController(PopularNetworksList.Avalanche)
+      .withNetworkController(PopularNetworksList.zkSync)
       .withNetworkController(CustomNetworks.Holesky)
       .build();
     await startFixtureServer(fixtureServer);
@@ -69,14 +71,11 @@ describe(SmokeStake('Stake from Actions'), () => {
     jest.setTimeout(150000);
   });
 
-  it('should send ETH to a contact from inside the wallet', async () => {
+  it('should send ETH to new account', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSendButton();
-
     await SendView.inputAddress(wallet.address);
-
     await SendView.tapNextButton();
-
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
     await AmountView.tapNextButton();
     await TransactionConfirmationView.tapConfirmButton();
@@ -87,7 +86,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     );
   });
 
-  it('should be able to import account', async () => {
+  it('should be able to import the funded account', async () => {
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -98,10 +97,11 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(SuccessImportAccountView.container);
     await SuccessImportAccountView.tapCloseButton();
     await AccountListBottomSheet.swipeToDismissAccountsModal();
+    //await AccountListBottomSheet.tapAccountIndex(1)
     await Assertions.checkIfVisible(WalletView.container);
   });
 
-  it('Stake ETH', async () => {
+  it('should Stake ETH', async () => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnEarnButton()
     await Assertions.checkIfVisible(StakeView.stakeContainer);
@@ -115,7 +115,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(3000);
   })
 
-  it('Stake more ETH', async () => {
+  it('should Stake more ETH', async () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
@@ -133,7 +133,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(3000);
   })
 
-  it('Unstake ETH', async () => {
+  it('should Unstake ETH', async () => {
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapOnStakedEthereum()
@@ -149,9 +149,29 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
     await TestHelpers.delay(3000);
+    await TabBarComponent.tapWallet();
+    await Assertions.checkIfVisible(WalletView.container);
+    await WalletView.tapOnStakedEthereum()
+    await TokenOverview.scrollOnScreen();
+    await TestHelpers.delay(2000);
+    await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
+    await TokenOverview.tapBackButton();
   })
 
-  it('Stake Claim ETH', async () => {
+
+  it('should make sure staking actions are hidden for ETH assets that are not on main', async () => {
+    await TabBarComponent.tapWallet();
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.changeNetworkTo(PopularNetworksList.zkSync.providerConfig.nickname, false);
+    await NetworkEducationModal.tapGotItButton();
+    await Assertions.checkIfNotVisible(WalletView.earnButton)
+    await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel)
+    await WalletView.tapNetworksButtonOnNavBar();
+    await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
+    await NetworkEducationModal.tapGotItButton();
+  });
+
+  it('should Stake Claim ETH', async () => {
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
@@ -208,5 +228,6 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
     await TestHelpers.delay(3000);
   });
+
 });
 
