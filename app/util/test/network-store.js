@@ -21,7 +21,7 @@ const fetchWithTimeout = (url) =>
     }, FETCH_TIMEOUT);
   });
 
-const FIXTURE_SERVER_HOST = 'localhost';
+const FIXTURE_SERVER_HOST = 'bs-local.com';
 const FIXTURE_SERVER_URL = `http://${FIXTURE_SERVER_HOST}:${getFixturesServerPortInApp()}/state.json`;
 
 class ReadOnlyNetworkStore {
