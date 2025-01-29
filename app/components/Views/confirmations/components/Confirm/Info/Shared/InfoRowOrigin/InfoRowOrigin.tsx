@@ -6,6 +6,7 @@ import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import InfoSection from '../../../../UI/InfoRow/InfoSection';
 import InfoRow from '../../../../UI/InfoRow';
 import DisplayURL from '../../../../UI/InfoRow/InfoValue/DisplayURL';
+import AlertRow from '../../../../UI/InfoRow/AlertRow';
 
 const InfoRowOrigin = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -18,12 +19,14 @@ const InfoRowOrigin = () => {
     <InfoSection
       testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
     >
-      <InfoRow
+      <AlertRow
+        alertKey={'origin'}
+        ownerId={approvalRequest.id}
         label={strings('confirm.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         <DisplayURL url={approvalRequest.origin} />
-      </InfoRow>
+      </AlertRow>
     </InfoSection>
   );
 };

@@ -6,11 +6,14 @@ import BottomModal from '../components/UI/BottomModal';
 import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
-import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
+// import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import styleSheet from './Confirm.styles';
+import AlertModal from '../components/Confirm/AlertModal';
+import { AlertsContextProvider } from '../context/Alerts';
+import AlertBanner from '../components/Confirm/AlertBanner';
 
 const Confirm = () => {
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
@@ -22,18 +25,22 @@ const Confirm = () => {
   }
 
   return (
+    <AlertsContextProvider>
     <BottomModal canCloseOnBackdropClick={false}>
       <View style={styles.container} testID={approvalRequest?.type}>
         <View>
           <Title />
           {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
-          <SignatureBlockaidBanner />
+          {/* <SignatureBlockaidBanner /> */}
+          <AlertBanner />
           <AccountNetworkInfo />
           <Info />
         </View>
         <Footer />
+        <AlertModal />
       </View>
     </BottomModal>
+    </AlertsContextProvider>
   );
 };
 
