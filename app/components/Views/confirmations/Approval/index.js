@@ -502,7 +502,7 @@ class Approval extends PureComponent {
       transactions,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     let { transaction } = this.props;
