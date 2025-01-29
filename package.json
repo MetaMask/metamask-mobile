@@ -40,7 +40,7 @@
     "build:android:checksum:verify": "shasum -a 512 -c sha512sums.txt",
     "build:android:pre-release": "./scripts/build.sh android release --pre",
     "build:android:pre-release:bundle": "GENERATE_BUNDLE=true ./scripts/build.sh android release --pre",
-    "build:android:pre-release:bundle:qa": "GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
+    "build:android:pre-release:bundle:qa": "IS_TEST='true' GENERATE_BUNDLE=true ./scripts/build.sh android QA --pre",
     "build:android:pre-release:bundle:flask": "export METAMASK_BUILD_TYPE='flask' && GENERATE_BUNDLE=true ./scripts/build.sh android flask --pre",
     "build:ios:release": "./scripts/build.sh ios release",
     "build:ios:devbuild": "./scripts/build.sh ios devbuild",
