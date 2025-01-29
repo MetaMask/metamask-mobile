@@ -81,7 +81,7 @@ describe(SmokeStake('Stake from Actions'), () => {
       ],
     };
 
-    mockServer = await startMockServer(stakeAPIMock);
+    mockServer = await startMockServer();
     const fixture = new FixtureBuilder()
       .withNetworkController(PopularNetworksList.zkSync)
       .withNetworkController(CustomNetworks.Holesky)
@@ -105,7 +105,7 @@ describe(SmokeStake('Stake from Actions'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-/*
+
   it('should send ETH to new account', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSendButton();
@@ -203,9 +203,9 @@ describe(SmokeStake('Stake from Actions'), () => {
     await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
     await NetworkEducationModal.tapGotItButton();
   });
-*/
+
   it('should Stake Claim ETH', async () => {
-    /*
+
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
@@ -217,7 +217,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     if (account.exitRequests.lenght === 0) {
       throw new Error('No claim entries found for this account');
     }
-
+/*
     const stakeAPIMock  = {
       GET: [ {
           urlEndpoint: stakeAPIUrl,
@@ -245,20 +245,38 @@ describe(SmokeStake('Stake from Actions'), () => {
           responseCode: 200,
         },
       ],
-    };
+    }
+*/
 
-    mockServer = await startMockServer(stakeAPIMock);
-    await TestHelpers.launchApp({
-       newInstance: false,
-       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${getMockServerPort()}` },
-     });
+    const mockedResponse = {
+      accounts: [
+        {
+          account: account.account,
+          lifetimeRewards: account.lifetimeRewards,
+          assets: account.lifetimeRewards,
+          exitRequests: [
+            {
 
-    await loginToApp();
-    */
+              positionTicket: account.exitRequests[0].positionTicket,
+              timestamp: "1737657204000",
+              totalShares: account.exitRequests[0].totalShares,
+              withdrawalTimestamp: "0",
+              exitQueueIndex: "157",
+              claimedAssets: "36968822284547795",
+              leftShares: "0"
+            },
+          ]
+        }
+      ]
+    }
+    await mockServer
+    .forGet('/proxy')
+    .withQuery({ url: stakeAPIUrl })
+    .thenReply(200, JSON.stringify(mockedResponse));
+
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(2000);
-    /*
     await TokenOverview.tapClaimButton();
     await StakeConfirmView.tapConfirmButton();
     await TokenOverview.tapBackButton();
@@ -267,7 +285,6 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
     await TestHelpers.delay(3000);
-    */
   });
 
 });
