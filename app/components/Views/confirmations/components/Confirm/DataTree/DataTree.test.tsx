@@ -37,12 +37,16 @@ const mockSanitizedTypedSignV3Message = {
     value: NONE_DATE_VALUE,
     type: 'uint256',
   },
+  buyAmount: {
+    value: 10000,
+    type: 'uint256',
+  },
   contents: { value: 'Hello, Bob!', type: 'string' },
 };
 
 describe('NoChangeSimulation', () => {
-  it('displays types sign v1 message', async () => {
-    const { getByText, queryByText } = renderWithProvider(
+  it('should display types sign v1 message correctly', async () => {
+    const { getByText } = renderWithProvider(
       <DataTree
         data={{
           Message: { type: 'string', value: 'Hi, Alice!' },
@@ -72,6 +76,7 @@ describe('NoChangeSimulation', () => {
         data={mockSanitizedTypedSignV3Message as unknown as DataTreeInput}
         chainId="0x1"
         primaryType={PrimaryTypeOrder.Order}
+        tokenDecimals={2}
       />,
       {
         state: {
@@ -88,7 +93,12 @@ describe('NoChangeSimulation', () => {
     expect(getByText('To')).toBeDefined();
     expect(getByText('Bob')).toBeDefined();
     // date field displayed for permit types
+    expect(getByText('End Time')).toBeDefined();
     expect(getByText('15 March 2022, 15:57')).toBeDefined();
+    expect(getByText('Start Time')).toBeDefined();
     expect(getByText('None')).toBeDefined();
+    // token value field
+    expect(getByText('Buy Amount')).toBeDefined();
+    expect(getByText('100')).toBeDefined();
   });
 });
