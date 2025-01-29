@@ -181,7 +181,6 @@ describe(SmokeStake('Stake from Actions'), () => {
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
-    console.log(JSON.stringify(response.data))
     if (response.status !== 200) {
       throw new Error('Error calling Staking API');
     }
