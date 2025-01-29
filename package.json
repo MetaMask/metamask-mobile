@@ -215,7 +215,6 @@
     "@react-native-clipboard/clipboard": "1.8.4",
     "@react-native-community/blur": "^4.4.0",
     "@react-native-community/checkbox": "^0.5.17",
-    "@react-native-community/datetimepicker": "^8.0.0",
     "@react-native-community/netinfo": "11.1.0",
     "@react-native-community/slider": "^4.4.3",
     "@react-native-cookies/cookies": "^6.2.1",
@@ -335,7 +334,7 @@
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "^3.16.7",
     "react-native-render-html": "^6.3.4",
-    "react-native-safe-area-context": "4.8.2",
+    "react-native-safe-area-context": "^5.1.0",
     "react-native-screens": "^4.5.0",
     "react-native-scrollable-tab-view": "^1.0.0",
     "react-native-sensors": "5.3.0",
@@ -603,7 +602,8 @@
       "@react-native-firebase/app>firebase>@firebase/firestore>@grpc/proto-loader>protobufjs": false,
       "appium": false,
       "appium>@appium/support>sharp": false,
-      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false
+      "@metamask/eth-ledger-bridge-keyring>@ledgerhq/hw-app-eth>@ledgerhq/domain-service>eip55>keccak": false,
+      "$root$": false
     }
   },
   "packageManager": "yarn@1.22.22"

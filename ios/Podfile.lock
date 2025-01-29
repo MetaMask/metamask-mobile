@@ -1819,7 +1819,7 @@ PODS:
     - React-Core
   - react-native-render-html (6.3.4):
     - React-Core
-  - react-native-safe-area-context (4.8.2):
+  - react-native-safe-area-context (5.1.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -1832,8 +1832,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 4.8.2)
-    - react-native-safe-area-context/fabric (= 4.8.2)
+    - react-native-safe-area-context/common (= 5.1.0)
+    - react-native-safe-area-context/fabric (= 5.1.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-rendererdebug
@@ -1842,7 +1842,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/common (4.8.2):
+  - react-native-safe-area-context/common (5.1.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -1863,7 +1863,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-safe-area-context/fabric (4.8.2):
+  - react-native-safe-area-context/fabric (5.1.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -2229,27 +2229,6 @@ PODS:
   - RNCClipboard (1.8.4):
     - React-Core
   - RNCMaskedView (0.3.2):
-    - DoubleConversion
-    - glog
-    - RCT-Folly (= 2024.01.01.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
-  - RNDateTimePicker (8.2.0):
     - DoubleConversion
     - glog
     - RCT-Folly (= 2024.01.01.00)
@@ -2676,7 +2655,6 @@ DEPENDENCIES:
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
-  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDefaultPreference (from `../node_modules/react-native-default-preference`)
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - "RNFBApp (from `../node_modules/@react-native-firebase/app`)"
@@ -2954,8 +2932,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCMaskedView:
     :path: "../node_modules/@react-native-masked-view/masked-view"
-  RNDateTimePicker:
-    :path: "../node_modules/@react-native-community/datetimepicker"
   RNDefaultPreference:
     :path: "../node_modules/react-native-default-preference"
   RNDeviceInfo:
@@ -3102,7 +3078,7 @@ SPEC CHECKSUMS:
   react-native-quick-crypto: 7041f19bef8430c60127df7b703e709f6d24213f
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
-  react-native-safe-area-context: 123c21a9348fd4f83fe664a63d9ffc6fecf080a2
+  react-native-safe-area-context: b05e627d1ab80b9c22ab628ce6b9986ab9e90947
   react-native-slider: b133c0ca0414af140b57359eac0fcf7473678162
   react-native-video: 2aad0d963bf3952bd9ebb2f53fab799338e8e202
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
@@ -3139,7 +3115,6 @@ SPEC CHECKSUMS:
   RNCCheckbox: 450ce156f3e29e25efa0315c96cfbabe5a39ded1
   RNCClipboard: ba13782f62310ffd4377332497241a1051f6870b
   RNCMaskedView: 3ba1daa87b4eabf96e84dfc15c0c76a3b27e6b27
-  RNDateTimePicker: 32b56bd881bf89fefd075363f15453d2c2e7ba42
   RNDefaultPreference: 36fe31684af1f2d14e0664aa9a816d0ec6149cc1
   RNDeviceInfo: e5219d380b51ddb7f97e650ab99a518476b90203
   RNFBApp: 0e66b9f844efdf2ac3fa2b30e64c9db41a263b3d
@@ -3166,6 +3141,6 @@ SPEC CHECKSUMS:
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
   Yoga: be6f55a028e86c83ae066f018e9b5d24ffc45436
 
-PODFILE CHECKSUM: 033808919dd752c40fc3611590e62c09313aebef
+PODFILE CHECKSUM: 20632d9b56e8d8b1ec7a6bf641f3f258589efc31
 
 COCOAPODS: 1.16.2

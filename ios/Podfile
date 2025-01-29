@@ -62,6 +62,7 @@ def common_target_logic
     :hermes_enabled => false,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/..",
+    :fabric_enabled => false,
   )
 
   # Pods for MetaMask
