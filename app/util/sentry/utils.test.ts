@@ -11,6 +11,7 @@ import {
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
+import { EthScopes } from '@metamask/keyring-api';
 
 jest.mock('@sentry/react-native', () => ({
   ...jest.requireActual('@sentry/react-native'),
@@ -177,6 +178,7 @@ describe('captureSentryFeedback', () => {
                     'eth_signTypedData_v3',
                     'eth_signTypedData_v4',
                   ],
+                  scopes: [EthScopes.Namespace],
                   options: {},
                   type: 'eip155:eoa',
                 },
@@ -191,6 +193,7 @@ describe('captureSentryFeedback', () => {
                     lastSelected: 1720023898237,
                     name: 'Account 2',
                   },
+                  scopes: [EthScopes.Namespace],
                   methods: ['personal_sign', 'eth_signTransaction'],
                   options: {},
                   type: 'eip155:eoa',
@@ -630,6 +633,7 @@ describe('captureSentryFeedback', () => {
         'eth_signTypedData_v3',
         'eth_signTypedData_v4',
       ]);
+      expect(maskedAccount1.scopes).toEqual([EthScopes.Namespace]);
       expect(maskedAccount1.metadata).toEqual({
         importTime: 1720023898234,
         keyring: { type: 'HD Key Tree' },
@@ -645,6 +649,7 @@ describe('captureSentryFeedback', () => {
         'personal_sign',
         'eth_signTransaction',
       ]);
+      expect(maskedAccount2.scopes).toEqual([EthScopes.Namespace]);
       expect(maskedAccount2.metadata).toEqual({
         importTime: 1720023898235,
         keyring: { type: 'HD Key Tree' },

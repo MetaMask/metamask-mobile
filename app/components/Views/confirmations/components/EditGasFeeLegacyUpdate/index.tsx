@@ -22,7 +22,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useGasTransaction } from '../../../../../core/GasPolling/GasPolling';
-import { selectChainId } from '../../../../../selectors/networkController';
 import {
   getDecimalChainId,
   isMainnetByChainId,
@@ -61,6 +60,7 @@ const EditGasFeeLegacy = ({
   onlyGas,
   selectedGasObject,
   hasDappSuggestedGas,
+  chainId,
 }: EditGasFeeLegacyUpdateProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [showRangeInfoModal, setShowRangeInfoModal] = useState<boolean>(false);
@@ -85,8 +85,6 @@ const EditGasFeeLegacy = ({
   const primaryCurrency = useSelector(selectPrimaryCurrency);
 
   const gasEstimateType = useSelector(selectGasFeeControllerEstimateType);
-
-  const chainId = useSelector(selectChainId);
 
   const gasTransaction = useGasTransaction({
     onlyGas,

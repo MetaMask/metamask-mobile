@@ -25,6 +25,9 @@ import { useSelector } from 'react-redux';
 import { selectIsAllNetworks } from '../../../../selectors/networkController';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import Engine from '../../../../core/Engine/Engine';
+import Logger from '../../../../util/Logger';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -33,7 +36,6 @@ interface RpcSelectionModalProps {
     networkName: string;
   };
   closeRpcModal: () => void;
-  onRpcSelect: (networkClientId: string, chainId: `0x${string}`) => void;
   rpcMenuSheetRef: React.RefObject<BottomSheetRef>;
   networkConfigurations: Record<string, NetworkConfiguration>;
   styles: StyleSheet.NamedStyles<{
@@ -49,12 +51,50 @@ interface RpcSelectionModalProps {
 const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   showMultiRpcSelectModal,
   closeRpcModal,
-  onRpcSelect,
   rpcMenuSheetRef,
   networkConfigurations,
   styles,
 }) => {
   const isAllNetwork = useSelector(selectIsAllNetworks);
+
+  const { navigate } = useNavigation();
+
+  const onRpcSelect = useCallback(
+    async (clientId: string, chainId: `0x${string}`) => {
+      const { NetworkController } = Engine.context;
+      const existingNetwork = networkConfigurations[chainId];
+
+      const indexOfRpc = existingNetwork.rpcEndpoints.findIndex(
+        ({ networkClientId }) => clientId === networkClientId,
+      );
+
+      if (indexOfRpc === -1) {
+        Logger.error(
+          new Error(
+            `RPC endpoint with clientId: ${clientId} not found for chainId: ${chainId}`,
+          ),
+        );
+        return;
+      }
+
+      // Proceed to update the network with the correct index
+      await NetworkController.updateNetwork(existingNetwork.chainId, {
+        ...existingNetwork,
+        defaultRpcEndpointIndex: indexOfRpc,
+      });
+
+      // Set the active network
+      NetworkController.setActiveNetwork(clientId);
+      // Redirect to wallet page
+      navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    },
+    [networkConfigurations, navigate],
+  );
 
   const setTokenNetworkFilter = useCallback(
     (chainId: string) => {
