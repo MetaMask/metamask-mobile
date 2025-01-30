@@ -17,7 +17,7 @@ import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
-
+const MEMO = 'Address for testing 123123123';
 describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -49,10 +49,10 @@ describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
     await AddContactView.typeInName('Curtis');
 
     await AddContactView.typeInAddress('curtis.eth');
+        await AddContactView.typeInMemo(MEMO);
     await AddContactView.tapAddContactButton();
     // await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible('Curtis'); // Check that Ibrahim address is saved in the address book
-    await TestHelpers.delay(3500)
     await device.terminateApp();
     await TestHelpers.launchApp({
       launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
