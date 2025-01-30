@@ -32,6 +32,7 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import NetworkListModal from '../../pages/Network/NetworkListModal';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import axios from 'axios';
+import Utilities from '../../../e2e/utils/Utilities';
 
 import {
   startMockServer,
@@ -61,6 +62,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     });
     await TestHelpers.delay(3000);
     await loginToApp();
+
   });
 
   afterAll(async () => {
@@ -226,10 +228,10 @@ describe(SmokeStake('Stake from Actions'), () => {
     console.log(JSON.stringify(stakeAPIMock))
 
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(stakeAPIMock);
+    mockServer = await startMockServer(stakeAPIMock,mockServerPort);
     await TestHelpers.launchApp({
-      newInstance: true,
-      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}` },
+      delete: true,
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`, mockServerPort: `${mockServerPort}`,  detoxURLBlacklistRegex: `${Utilities.BlacklistURLs}`, },
     });
 
     await loginToApp();
