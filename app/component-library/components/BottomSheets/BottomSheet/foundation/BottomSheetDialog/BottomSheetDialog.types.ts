@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewProps } from 'react-native';
+import { ViewProps, ViewStyle } from 'react-native';
 
 /**
  * BottomSheetDialog component props.
@@ -27,6 +27,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
+  /**
+   * Optional styles for the animated view.
+   */
+  styleAnimatedView?: ViewStyle;
 }
 
 export interface BottomSheetDialogRef {

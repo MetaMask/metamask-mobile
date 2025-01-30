@@ -1,13 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { ResultType } from '../../../constants/signatures';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
@@ -20,29 +20,30 @@ const Footer = () => {
 
   const { styles } = useStyles(styleSheet, {});
 
+  const buttons = [
+    {
+      variant: ButtonVariants.Secondary,
+      label: strings('confirm.reject'),
+      size: ButtonSize.Lg,
+      onPress: onReject,
+      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+    },
+    {
+      variant: ButtonVariants.Primary,
+      isDanger: securityAlertResponse?.result_type === ResultType.Malicious,
+      label: strings('confirm.confirm'),
+      size: ButtonSize.Lg,
+      onPress: onConfirm,
+      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+    },
+  ];
+
   return (
-    <View style={styles.buttonsContainer}>
-      <Button
-        onPress={onReject}
-        label={strings('confirm.reject')}
-        style={styles.footerButton}
-        size={ButtonSize.Lg}
-        testID={ConfirmationFooterSelectorIDs.CANCEL_BUTTON}
-        variant={ButtonVariants.Secondary}
-        width={ButtonWidthTypes.Full}
-      />
-      <View style={styles.buttonDivider} />
-      <Button
-        onPress={onConfirm}
-        label={strings('confirm.confirm')}
-        style={styles.footerButton}
-        size={ButtonSize.Lg}
-        testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-        variant={ButtonVariants.Primary}
-        width={ButtonWidthTypes.Full}
-        isDanger={securityAlertResponse?.result_type === ResultType.Malicious}
-      />
-    </View>
+    <BottomSheetFooter
+      buttonsAlignment={ButtonsAlignment.Horizontal}
+      buttonPropsArray={buttons}
+      style={styles.base}
+    />
   );
 };
 

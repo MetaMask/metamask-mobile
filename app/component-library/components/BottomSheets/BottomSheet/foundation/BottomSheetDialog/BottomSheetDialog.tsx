@@ -59,6 +59,7 @@ const BottomSheetDialog = forwardRef<
       isInteractable = true,
       onClose,
       onOpen,
+      styleAnimatedView,
       ...props
     },
     ref,
@@ -239,7 +240,7 @@ const BottomSheetDialog = forwardRef<
         >
           <Animated.View
             onLayout={updateSheetHeight}
-            style={combinedSheetStyle}
+            style={[combinedSheetStyle, styleAnimatedView]}
           >
             {isInteractable && (
               <View style={styles.notchWrapper}>

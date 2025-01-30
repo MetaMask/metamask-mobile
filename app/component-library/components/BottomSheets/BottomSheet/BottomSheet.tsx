@@ -39,6 +39,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       isInteractable = true,
       shouldNavigateBack = true,
       isFullscreen = false,
+      styleAnimatedView,
       ...props
     },
     ref,
@@ -107,6 +108,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           onOpen={onOpenCB}
           ref={bottomSheetDialogRef}
           isFullscreen={isFullscreen}
+          styleAnimatedView={styleAnimatedView}
         >
           {children}
         </BottomSheetDialog>

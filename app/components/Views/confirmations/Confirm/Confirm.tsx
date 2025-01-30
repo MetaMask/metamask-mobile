@@ -1,8 +1,8 @@
 import React from 'react';
-import { View } from 'react-native';
+import { ScrollView } from 'react-native';
 
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
-import BottomModal from '../components/UI/BottomModal';
 import AccountNetworkInfo from '../components/Confirm/AccountNetworkInfo';
 import Footer from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
@@ -22,18 +22,20 @@ const Confirm = () => {
   }
 
   return (
-    <BottomModal canCloseOnBackdropClick={false}>
-      <View style={styles.container} testID={approvalRequest?.type}>
-        <View>
-          <Title />
+    <BottomSheet 
+      isInteractable={false} 
+      styleAnimatedView={styles.bottomSheetDialogAnimatedView}
+      testID={approvalRequest?.type}
+      >
+        <Title />
+        <ScrollView style={styles.scrollView}>
           {/* TODO: component SignatureBlockaidBanner to be removed once we implement alert system in mobile */}
           <SignatureBlockaidBanner />
           <AccountNetworkInfo />
           <Info />
-        </View>
+        </ScrollView>
         <Footer />
-      </View>
-    </BottomModal>
+    </BottomSheet>
   );
 };
 
