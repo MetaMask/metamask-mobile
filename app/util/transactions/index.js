@@ -432,7 +432,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, undefined, networkClientId);
+      : await isSmartContractAddress(to, chainId, networkClientId);
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
