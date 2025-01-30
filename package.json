@@ -140,8 +140,7 @@
     "bech32": "2.0.0",
     "sha256-uint8array": "0.10.3",
     "express": "4.21.2",
-    "nanoid": "^3.3.8",
-    "undici": "5.28.5"
+    "nanoid": "^3.3.8"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -181,7 +180,7 @@
     "@metamask/logging-controller": "^6.0.1",
     "@metamask/message-signing-snap": "^0.3.3",
     "@metamask/network-controller": "^22.1.0",
-    "@metamask/notification-services-controller": "^0.15.0",
+    "@metamask/notification-services-controller": "^0.17.0",
     "@metamask/permission-controller": "^11.0.0",
     "@metamask/phishing-controller": "^12.0.3",
     "@metamask/post-message-stream": "^8.0.0",
