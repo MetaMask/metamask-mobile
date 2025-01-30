@@ -32,7 +32,7 @@ import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 const createStyles = (colors) =>
   StyleSheet.create({
