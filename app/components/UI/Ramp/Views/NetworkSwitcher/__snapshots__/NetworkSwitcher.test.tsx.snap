@@ -994,7 +994,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     }
                                                   }
                                                 >
-                                                  Add Network
+                                                  Add Cronos Mainnet
                                                 </Text>
                                               </View>
                                               <View
@@ -1092,109 +1092,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     Cronos Mainnet
                                                   </Text>
                                                 </TouchableOpacity>
-                                                <View
-                                                  style={
-                                                    {
-                                                      "marginBottom": 15,
-                                                      "width": "100%",
-                                                    }
-                                                  }
-                                                >
-                                                  <View
-                                                    style={
-                                                      {
-                                                        "backgroundColor": "#bf52081a",
-                                                        "borderColor": "#bf5208",
-                                                        "borderLeftWidth": 4,
-                                                        "borderRadius": 4,
-                                                        "flexDirection": "row",
-                                                        "padding": 12,
-                                                        "paddingLeft": 8,
-                                                      }
-                                                    }
-                                                    testID="banneralert"
-                                                    variant="Alert"
-                                                  >
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "marginRight": 8,
-                                                        }
-                                                      }
-                                                    >
-                                                      <SvgMock
-                                                        color="#bf5208"
-                                                        height={24}
-                                                        name="Danger"
-                                                        style={
-                                                          {
-                                                            "height": 24,
-                                                            "width": 24,
-                                                          }
-                                                        }
-                                                        width={24}
-                                                      />
-                                                    </View>
-                                                    <View
-                                                      style={
-                                                        {
-                                                          "flex": 1,
-                                                        }
-                                                      }
-                                                    >
-                                                      <Text
-                                                        accessibilityRole="text"
-                                                        style={
-                                                          {
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 14,
-                                                            "fontWeight": "400",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 22,
-                                                          }
-                                                        }
-                                                      >
-                                                        We can’t verify custom networks. To avoid malicious providers from recording your network activity, only add networks you trust.
-                                                      </Text>
-                                                      <Text
-                                                        accessibilityRole="link"
-                                                        accessible={true}
-                                                        onPress={[Function]}
-                                                        onPressIn={[Function]}
-                                                        onPressOut={[Function]}
-                                                        style={
-                                                          {
-                                                            "backgroundColor": "transparent",
-                                                            "color": "#141618",
-                                                            "fontFamily": "EuclidCircularB-Regular",
-                                                            "fontSize": 14,
-                                                            "fontWeight": "400",
-                                                            "letterSpacing": 0,
-                                                            "lineHeight": 22,
-                                                          }
-                                                        }
-                                                        suppressHighlighting={true}
-                                                      >
-                                                        <Text
-                                                          accessibilityRole="text"
-                                                          style={
-                                                            {
-                                                              "color": "#0376c9",
-                                                              "fontFamily": "EuclidCircularB-Medium",
-                                                              "fontSize": 14,
-                                                              "fontWeight": "500",
-                                                              "letterSpacing": 0,
-                                                              "lineHeight": 22,
-                                                            }
-                                                          }
-                                                        >
-                                                          Learn more
-                                                        </Text>
-                                                      </Text>
-                                                    </View>
-                                                  </View>
-                                                </View>
                                                 <Text
                                                   accessibilityRole="text"
                                                   style={
@@ -1209,8 +1106,11 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     }
                                                   }
                                                 >
+                                                  MetaMask doesn’t verify custom networks, so only approve networks you trust.
+                                                   
                                                   <Text
                                                     accessibilityRole="text"
+                                                    onPress={[Function]}
                                                     style={
                                                       {
                                                         "color": "#141618",
@@ -1222,7 +1122,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       }
                                                     }
                                                   >
-                                                    You're adding this network to MetaMask and giving Undefined dapp origin permission to use it.
+                                                    Learn more about network security risks and scams.
                                                   </Text>
                                                 </Text>
                                                 <RCTScrollView
@@ -1289,7 +1189,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#0376c9",
+                                                            "color": "#141618",
                                                             "fontFamily": "EuclidCircularB-Medium",
                                                             "fontSize": 14,
                                                             "fontWeight": "500",
@@ -1300,74 +1200,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       >
                                                         Network RPC URL
                                                       </Text>
-                                                      <TouchableOpacity
-                                                        onPress={[Function]}
-                                                      >
-                                                        <View
-                                                          style={
-                                                            {
-                                                              "alignItems": "center",
-                                                              "alignSelf": "flex-start",
-                                                              "backgroundColor": "#0376c91a",
-                                                              "borderRadius": 4,
-                                                              "height": 20,
-                                                              "justifyContent": "center",
-                                                              "paddingHorizontal": 8,
-                                                            }
-                                                          }
-                                                          testID="tagcolored"
-                                                        >
-                                                          <View
-                                                            style={
-                                                              {
-                                                                "alignItems": "center",
-                                                                "flexDirection": "row",
-                                                                "gap": 4,
-                                                              }
-                                                            }
-                                                          >
-                                                            <SvgMock
-                                                              color="#0376c9"
-                                                              height={16}
-                                                              name="Info"
-                                                              style={
-                                                                {
-                                                                  "height": 16,
-                                                                  "width": 16,
-                                                                }
-                                                              }
-                                                              width={16}
-                                                            />
-                                                            <Text
-                                                              accessibilityRole="text"
-                                                              style={
-                                                                {
-                                                                  "color": "#0376c9",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
-                                                                  "fontSize": 12,
-                                                                  "fontWeight": "400",
-                                                                  "letterSpacing": 0,
-                                                                  "lineHeight": 20,
-                                                                }
-                                                              }
-                                                            >
-                                                              Review
-                                                            </Text>
-                                                            <SvgMock
-                                                              color="#0376c9"
-                                                              height={12}
-                                                              name="ArrowRight"
-                                                              style={
-                                                                {
-                                                                  "height": 12,
-                                                                  "width": 12,
-                                                                }
-                                                              }
-                                                              width={12}
-                                                            />
-                                                          </View>
-                                                        </View>
-                                                      </TouchableOpacity>
                                                     </View>
                                                     <Text
                                                       accessibilityRole="text"
