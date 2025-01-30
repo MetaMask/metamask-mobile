@@ -22,8 +22,9 @@ const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
   style,
   buttonsAlignment = DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
   buttonPropsArray,
+  isBackgroundAlternative = false,
 }) => {
-  const { styles } = useStyles(styleSheet, { style, buttonsAlignment });
+  const { styles } = useStyles(styleSheet, { style, isBackgroundAlternative, buttonsAlignment });
 
   return (
     <View style={styles.base} testID={TESTID_BOTTOMSHEETFOOTER}>

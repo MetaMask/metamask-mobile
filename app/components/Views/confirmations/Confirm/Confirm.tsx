@@ -22,9 +22,9 @@ const Confirm = () => {
   }
 
   return (
-    <BottomSheet 
-      isInteractable={false} 
-      styleAnimatedView={styles.bottomSheetDialogAnimatedView}
+    <BottomSheet
+      isInteractable={false}
+      isBackgroundAlternative
       testID={approvalRequest?.type}
       >
         <Title />

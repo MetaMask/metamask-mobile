@@ -21,7 +21,12 @@ const styleSheet = (params: {
 }) => {
   const { vars, theme } = params;
   const { colors, shadows } = theme;
-  const { maxSheetHeight, screenBottomPadding, isFullscreen } = vars;
+  const {
+    isBackgroundAlternative,
+    isFullscreen,
+    maxSheetHeight,
+    screenBottomPadding,
+  } = vars;
 
   return StyleSheet.create({
     base: Object.assign({
@@ -31,7 +36,7 @@ const styleSheet = (params: {
       right: 0,
     } as ViewStyle) as ViewStyle,
     sheet: {
-      backgroundColor: colors.background.default,
+      backgroundColor: isBackgroundAlternative ? colors.background.alternative : colors.background.default,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
       maxHeight: maxSheetHeight,

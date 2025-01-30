@@ -55,11 +55,11 @@ const BottomSheetDialog = forwardRef<
   (
     {
       children,
+      isBackgroundAlternative = false,
       isFullscreen = false,
       isInteractable = true,
       onClose,
       onOpen,
-      styleAnimatedView,
       ...props
     },
     ref,
@@ -70,6 +70,7 @@ const BottomSheetDialog = forwardRef<
     const { height: screenHeight } = useWindowDimensions();
     const maxSheetHeight = screenHeight - screenTopPadding;
     const { styles } = useStyles(styleSheet, {
+      isBackgroundAlternative,
       maxSheetHeight,
       screenBottomPadding,
       isFullscreen,
@@ -240,7 +241,7 @@ const BottomSheetDialog = forwardRef<
         >
           <Animated.View
             onLayout={updateSheetHeight}
-            style={styleAnimatedView ? [combinedSheetStyle, styleAnimatedView] : combinedSheetStyle}
+            style={combinedSheetStyle}
           >
             {isInteractable && (
               <View style={styles.notchWrapper}>

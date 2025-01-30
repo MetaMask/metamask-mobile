@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { ViewProps, ViewStyle } from 'react-native';
+import { ViewProps } from 'react-native';
 
 /**
  * BottomSheetDialog component props.
@@ -9,6 +9,10 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional content to wrap to display.
    */
   children?: React.ReactNode;
+  /**
+   * Optional styles for the animated view.
+   */
+  isBackgroundAlternative?: boolean;
   /**
    * Optional prop to toggle full screen state of BottomSheetDialog.
    * @default false
@@ -27,10 +31,6 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
-  /**
-   * Optional styles for the animated view.
-   */
-  styleAnimatedView?: ViewStyle;
 }
 
 export interface BottomSheetDialogRef {
@@ -44,5 +44,6 @@ export interface BottomSheetDialogRef {
 export interface BottomSheetDialogStyleSheetVars {
   maxSheetHeight: number;
   screenBottomPadding: number;
+  isBackgroundAlternative: boolean;
   isFullscreen: boolean;
 }
