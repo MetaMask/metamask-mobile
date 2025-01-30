@@ -117,7 +117,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 d="M0,133.66666666666669L155.17241379310346,133.66666666666669L155.17241379310346,200L0,200Z"
                 fill={
                   {
-                    "brushRef": "gradient",
+                    "brushRef": "bar-gradient",
                     "type": 1,
                   }
                 }
@@ -132,7 +132,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 d="M172.41379310344828,1L327.58620689655174,1L327.58620689655174,200L172.41379310344828,200Z"
                 fill={
                   {
-                    "brushRef": "gradient",
+                    "brushRef": "bar-gradient",
                     "type": 1,
                   }
                 }
@@ -147,7 +147,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 d="M344.82758620689657,67.33333333333334L500,67.33333333333334L500,200L344.82758620689657,200Z"
                 fill={
                   {
-                    "brushRef": "gradient",
+                    "brushRef": "bar-gradient",
                     "type": 1,
                   }
                 }
@@ -163,14 +163,14 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                   gradient={
                     [
                       0,
-                      -1,
+                      1868340,
                       1,
-                      -1773337,
+                      438075956,
                     ]
                   }
                   gradientTransform={null}
                   gradientUnits={0}
-                  name="gradient"
+                  name="bar-gradient"
                   x1="0%"
                   x2="0%"
                   y1="100%"

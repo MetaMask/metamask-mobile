@@ -7,6 +7,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/utils';
+
 jest.mock('../../../Navbar');
 jest.mock('../../hooks/useStakingEarningsHistory');
 
@@ -20,6 +21,11 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualNav,
     useNavigation: () => mockNavigation,
+    useRoute: () => ({
+      key: '1',
+      name: 'params',
+      params: { asset: MOCK_STAKED_ETH_ASSET },
+    }),
   };
 });
 jest.mock('react-native-svg-charts', () => {
@@ -79,15 +85,7 @@ const mockInitialState = {
   },
 };
 
-const earningsHistoryView = (
-  <StakeEarningsHistoryView
-    route={{
-      key: '1',
-      name: 'params',
-      params: { asset: MOCK_STAKED_ETH_ASSET },
-    }}
-  />
-);
+const earningsHistoryView = <StakeEarningsHistoryView />;
 
 describe('StakeEarningsHistoryView', () => {
   it('renders correctly and matches snapshot', () => {

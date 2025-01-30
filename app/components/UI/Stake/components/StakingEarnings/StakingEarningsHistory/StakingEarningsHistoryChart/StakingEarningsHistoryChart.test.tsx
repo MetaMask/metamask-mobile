@@ -188,9 +188,9 @@ describe('StakingEarningsHistoryChart', () => {
       },
     );
     // expect bar 3 to be unselected and not highlighted
-    expect(chart.data[0].svg.fill).toBe('url(#gradient)');
-    expect(chart.data[1].svg.fill).toBe('url(#gradient)');
-    expect(chart.data[2].svg.fill).toBe('url(#gradient)');
+    expect(chart.data[0].svg.fill).toBe('url(#bar-gradient)');
+    expect(chart.data[1].svg.fill).toBe('url(#bar-gradient)');
+    expect(chart.data[2].svg.fill).toBe('url(#bar-gradient)');
     // expect chart to be in initial state
     expect(chartContainer.getByText('Lifetime earnings')).toBeTruthy();
     expect(chartContainer.getByText('6.00000 ETH')).toBeTruthy();

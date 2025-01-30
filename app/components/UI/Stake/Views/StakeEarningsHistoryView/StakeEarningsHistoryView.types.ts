@@ -1,10 +1,9 @@
-import { RouteProp } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
 
-interface StakeEarningsHistoryViewRouteParams {
-    asset: TokenI
-}
-
-export interface StakeEarningsHistoryViewProps {
-  route: RouteProp<{ params: StakeEarningsHistoryViewRouteParams }, 'params'>;
+export interface StakeEarningsHistoryViewRouteParams {
+  key: string;
+  name: string;
+  params: {
+    asset: TokenI;
+  };
 }

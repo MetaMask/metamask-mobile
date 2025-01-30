@@ -10,6 +10,7 @@ import { Contract } from 'ethers';
 import { Stake } from '../sdk/stakeSdkProvider';
 
 export const MOCK_STAKED_ETH_ASSET = {
+  decimals: 18,
   address: '0x0000000000000000000000000000000000000000',
   chainId: '0x1',
   balance: '4.9999 ETH',
@@ -18,6 +19,18 @@ export const MOCK_STAKED_ETH_ASSET = {
   symbol: 'Ethereum',
   ticker: 'ETH',
   isETH: true,
+} as TokenI;
+
+export const MOCK_USDC_ASSET = {
+  decimals: 6,
+  address: '0xUSDC000000000000000000000000000000000000',
+  chainId: '0x1',
+  balance: '200.9999 USDC',
+  balanceFiat: '$200.98',
+  name: 'USD Coin',
+  symbol: 'USD Coin',
+  ticker: 'USDC',
+  isETH: false,
 } as TokenI;
 
 export const MOCK_GET_POOLED_STAKES_API_RESPONSE: PooledStakes = {

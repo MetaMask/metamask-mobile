@@ -28,124 +28,171 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
             }
           }
         >
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+          <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
-                "borderRadius": 8,
-                "borderWidth": 0,
-                "flexDirection": "row",
-                "height": 40,
-                "justifyContent": "center",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "paddingHorizontal": 16,
+                "width": 50,
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
-                  "color": "#9fa6ae",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
                 }
               }
             >
-              7D
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  7D
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "#0376c9",
-                "borderRadius": 8,
-                "flexDirection": "row",
-                "height": 40,
-                "justifyContent": "center",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "paddingHorizontal": 16,
+                "width": 45,
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
-                  "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "backgroundColor": "#f2f4f6",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
                 }
               }
             >
-              M
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
-            accessible={true}
-            activeOpacity={1}
-            onPress={[Function]}
-            onPressIn={[Function]}
-            onPressOut={[Function]}
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  M
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "flex-start",
-                "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
-                "borderRadius": 8,
-                "borderWidth": 0,
-                "flexDirection": "row",
-                "height": 40,
-                "justifyContent": "center",
                 "marginLeft": 8,
                 "marginRight": 8,
-                "paddingHorizontal": 16,
+                "width": 42,
               }
             }
           >
-            <Text
-              accessibilityRole="text"
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
               style={
                 {
-                  "color": "#9fa6ae",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
                 }
               }
             >
-              Y
-            </Text>
-          </TouchableOpacity>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#6a737d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Y
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         <View
           onLayout={[Function]}
@@ -263,7 +310,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M0,100L22.689075630252102,100L22.689075630252102,100L0,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -278,7 +325,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M25.210084033613445,100L47.89915966386555,100L47.89915966386555,100L25.210084033613445,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -293,7 +340,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M50.42016806722689,100L73.10924369747899,100L73.10924369747899,100L50.42016806722689,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -308,7 +355,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M75.63025210084034,100L98.31932773109244,100L98.31932773109244,100L75.63025210084034,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -323,7 +370,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M100.84033613445378,100L123.52941176470588,100L123.52941176470588,100L100.84033613445378,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -338,7 +385,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M126.05042016806722,100L148.73949579831933,100L148.73949579831933,100L126.05042016806722,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -353,7 +400,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M151.26050420168067,100L173.94957983193277,100L173.94957983193277,100L151.26050420168067,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -368,7 +415,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M176.47058823529412,100L199.1596638655462,100L199.1596638655462,100L176.47058823529412,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -383,7 +430,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M201.68067226890756,100L224.36974789915965,100L224.36974789915965,100L201.68067226890756,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -398,7 +445,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M226.890756302521,100L249.5798319327731,100L249.5798319327731,100L226.890756302521,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -413,7 +460,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M252.10084033613444,100L274.78991596638656,100L274.78991596638656,100L252.10084033613444,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -428,7 +475,7 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                         d="M277.3109243697479,1L300,1L300,100L277.3109243697479,100Z"
                         fill={
                           {
-                            "brushRef": "gradient",
+                            "brushRef": "bar-gradient",
                             "type": 1,
                           }
                         }
@@ -444,14 +491,14 @@ exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              -1,
+                              1868340,
                               1,
-                              -1773337,
+                              438075956,
                             ]
                           }
                           gradientTransform={null}
                           gradientUnits={0}
-                          name="gradient"
+                          name="bar-gradient"
                           x1="0%"
                           x2="0%"
                           y1="100%"

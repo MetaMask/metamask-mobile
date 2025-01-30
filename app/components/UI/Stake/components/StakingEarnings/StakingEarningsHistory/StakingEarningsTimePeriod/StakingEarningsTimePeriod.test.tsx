@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import TimePeriodButtonGroup, { DateRange } from './StakingEarningsTimePeriod';
-
+import TimePeriodButtonGroup from './StakingEarningsTimePeriod';
+import { DateRange } from './StakingEarningsTimePeriod.types';
 describe('TimePeriodButtonGroup', () => {
   const mockOnTimePeriodChange = jest.fn();
 

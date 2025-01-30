@@ -9,33 +9,10 @@ import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-
-export interface StakingEarningsHistoryChartData {
-  value: number;
-  label: string;
-}
-
-interface StakingEarningsHistoryChartProps {
-  earnings: StakingEarningsHistoryChartData[];
-  ticker: string;
-  earningsTotal: string;
-  // callback to handle selected earning
-  onSelectedEarning?: (earning?: { value: number; label: string }) => void;
-  // format the graph value from parent
-  formatValue?: (value: number) => string;
-}
-
-interface HorizontalLinesProps {
-  // sends bandwidth to parent
-  onBandWidthChange?: (bandWidth: number) => void;
-  strokeColor: string;
-  // BarChart component props are passed into all children
-  x?: (number: number) => number;
-  y?: (number: number) => number;
-  height?: number;
-  bandwidth?: number;
-  data?: StakingEarningsHistoryChartProps['earnings'];
-}
+import {
+  HorizontalLinesProps,
+  StakingEarningsHistoryChartProps,
+} from './StakingEarningsHistoryChart.types';
 
 const HorizontalLines = ({
   x,
@@ -49,23 +26,25 @@ const HorizontalLines = ({
   useEffect(() => {
     onBandWidthChange && onBandWidthChange(bandWidth ?? 0);
   }, [bandWidth, onBandWidthChange]);
-  if (!x || !y || !height || !data || !bandWidth) return null;
-  return (
-    <>
-      {data.map((item, index) => (
-        <Line
-          testID={`earning-history-chart-line-${index}`}
-          key={`earning-history-chart-line-${index}`}
-          x1={x(index)}
-          x2={x(index) + bandWidth}
-          y1={y(item.value) - 0.5}
-          y2={y(item.value) - 0.5}
-          stroke={strokeColor}
-          strokeWidth={1}
-        />
-      ))}
-    </>
-  );
+
+  const renderBarTopLines = useCallback(() => {
+    if (!x || !y || !height || !data || !bandWidth) return null;
+
+    return data.map((item, index) => (
+      <Line
+        testID={`earning-history-chart-line-${index}`}
+        key={`earning-history-chart-line-${index}`}
+        x1={x(index)}
+        x2={x(index) + bandWidth}
+        y1={y(item.value) - 0.5}
+        y2={y(item.value) - 0.5}
+        stroke={strokeColor}
+        strokeWidth={1}
+      />
+    ));
+  }, [data, x, y, height, bandWidth, strokeColor]);
+
+  return <>{renderBarTopLines()}</>;
 };
 
 export function StakingEarningsHistoryChart({
@@ -81,7 +60,17 @@ export function StakingEarningsHistoryChart({
 
   // constants
   const animate = false;
-  const stopColorGreen = 'rgb(228, 240, 231)';
+  const barGradientId = 'bar-gradient';
+  const barGradientStop1 = {
+    offset: '0%',
+    stopColor: colors.success.muted,
+    stopOpacity: 0,
+  };
+  const barGradientStop2 = {
+    offset: '100%',
+    stopColor: colors.success.muted,
+    stopOpacity: 0.1,
+  };
   const spacingDefault = 0;
 
   //states
@@ -156,7 +145,7 @@ export function StakingEarningsHistoryChart({
         if (index === selectedBarIndex) {
           data.svg.fill = colors.success.default;
         } else {
-          data.svg.fill = 'url(#gradient)';
+          data.svg.fill = `url(#${barGradientId})`;
         }
       });
       return newTransformedData;
@@ -174,7 +163,7 @@ export function StakingEarningsHistoryChart({
         value: value.value,
         label: value.label,
         svg: {
-          fill: 'url(#gradient)',
+          fill: `url(#${barGradientId})`,
           testID: `earning-history-chart-bar-${index}`,
         },
       }));
@@ -263,17 +252,15 @@ export function StakingEarningsHistoryChart({
               svg={{ stroke: 'transparent' }} // remove grid lines
             />
             <Defs testID="earning-history-chart-gradient">
-              <LinearGradient id="gradient" x1="0%" y1="100%" x2="0%" y2="0%">
-                <Stop
-                  offset="0%"
-                  stopColor={colors.background.default}
-                  stopOpacity={1}
-                />
-                <Stop
-                  offset="100%"
-                  stopColor={stopColorGreen}
-                  stopOpacity={1}
-                />
+              <LinearGradient
+                id={barGradientId}
+                x1="0%"
+                y1="100%"
+                x2="0%"
+                y2="0%"
+              >
+                <Stop {...barGradientStop1} />
+                <Stop {...barGradientStop2} />
               </LinearGradient>
             </Defs>
             <HorizontalLines

@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -7,10 +7,11 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { getStakingNavbar } from '../../../Navbar';
 import StakingEarningsHistory from '../../components/StakingEarnings/StakingEarningsHistory/StakingEarningsHistory';
 import styleSheet from './StakeEarningsHistoryView.styles';
-import { StakeEarningsHistoryViewProps } from './StakeEarningsHistoryView.types';
+import { StakeEarningsHistoryViewRouteParams } from './StakeEarningsHistoryView.types';
 
-const StakeEarningsHistoryView = ({ route }: StakeEarningsHistoryViewProps) => {
+const StakeEarningsHistoryView = () => {
   const navigation = useNavigation();
+  const route = useRoute<StakeEarningsHistoryViewRouteParams>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { asset } = route.params;
   const ticker = asset.ticker ?? asset.symbol;
