@@ -1,5 +1,5 @@
 import type { Theme } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -13,7 +13,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
     disclaimer: {
       paddingTop: 16,
-    } as TextStyle,
+    },
   });
 };
 

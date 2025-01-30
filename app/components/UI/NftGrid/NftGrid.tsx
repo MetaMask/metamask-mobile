@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   View,
   Alert,
@@ -63,8 +69,13 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     useNavigation<
       StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>
     >();
-  const collectibles = useSelector(collectiblesSelector).filter(
-    (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
+  const allCollectibles = useSelector(collectiblesSelector);
+  const collectibles = useMemo(
+    () =>
+      allCollectibles.filter(
+        (singleCollectible: Nft) => singleCollectible.isCurrentlyOwned === true,
+      ),
+    [allCollectibles],
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
@@ -222,6 +233,11 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     useNftDetection,
   ]);
 
+  const refreshColors = useMemo(
+    () => [colors.primary.default],
+    [colors.primary.default],
+  );
+
   return (
     <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
@@ -241,7 +257,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         </>
       )}
       {/* nft grid */}
-      {!isNftFetchingProgress && collectibles.length > 0 && (
+      {collectibles.length > 0 && (
         <FlatList
           numColumns={3}
           data={collectibles}
@@ -259,7 +275,7 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
           refreshControl={
             <RefreshControl
               testID={RefreshTestId}
-              colors={[colors.primary.default]}
+              colors={refreshColors}
               tintColor={colors.icon.default}
               refreshing={refreshing}
               onRefresh={onRefresh}
