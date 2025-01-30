@@ -16,7 +16,7 @@ import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsM
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
+describe(('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

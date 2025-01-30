@@ -15,7 +15,7 @@ import { SmokeMultiChainPermissions } from '../../../../tags';
 
 const AccountTwoText = 'Account 2';
 
-describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
+describe(('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

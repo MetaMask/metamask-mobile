@@ -16,7 +16,7 @@ import NetworkEducationModal from '../../../../pages/Network/NetworkEducationMod
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 
-describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
+describe(('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
