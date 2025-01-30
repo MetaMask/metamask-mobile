@@ -31,23 +31,30 @@ const mockQRState = {
 
 describe('QRInfo', () => {
   it('should contained required text', () => {
-    jest
-      .spyOn(QRHardwareHook, 'useQRHardwareContext')
-      .mockReturnValue({
-        QRState: mockQRState,
-      } as unknown as QRHardwareHook.QRHardwareContextType);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      QRState: mockQRState,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
     expect(getByText('Scan with your hardware wallet')).toBeDefined();
   });
 
+  it('should display camera error if present', () => {
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      QRState: mockQRState,
+      cameraError: 'some camera error text',
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+    expect(getByText('some camera error text')).toBeDefined();
+  });
+
   it('should contain correct text is scanner is visible', () => {
-    jest
-      .spyOn(QRHardwareHook, 'useQRHardwareContext')
-      .mockReturnValue({
-        scannerVisible: true,
-      } as unknown as QRHardwareHook.QRHardwareContextType);
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      scannerVisible: true,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<QRInfo />, {
       state: typedSignV3ConfirmationState,
     });
