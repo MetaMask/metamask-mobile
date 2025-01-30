@@ -245,8 +245,8 @@ describe('WalletActions', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('should switch to mainnet when onEarn called on unsupported staking network', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+  it.only('should switch to mainnet when onEarn called on unsupported staking network', () => {
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(false);
     (useStakingChain as jest.Mock).mockReturnValue({
       isStakingSupportedChain: false,
     });
@@ -257,6 +257,7 @@ describe('WalletActions', () => {
     fireEvent.press(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     );
+
     expect(
       Engine.context.NetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');

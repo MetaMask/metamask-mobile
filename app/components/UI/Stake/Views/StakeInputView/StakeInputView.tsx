@@ -28,6 +28,7 @@ import { selectConfirmationRedesignFlags } from '../../../../../selectors/featur
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { StakeInputViewProps } from './StakeInputView.types';
 import { getStakeInputViewTitle } from './utils';
+import { isStablecoinLendingFeatureEnabled } from '../../constants';
 
 const StakeInputView = ({ route }: StakeInputViewProps) => {
   const navigation = useNavigation();
@@ -170,9 +171,13 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     : strings('stake.review');
 
   useEffect(() => {
-    const { action, token } = route.params;
-
-    const title = getStakeInputViewTitle(action, token.symbol, token.isETH);
+    const title = isStablecoinLendingFeatureEnabled()
+      ? getStakeInputViewTitle(
+          route?.params?.action,
+          route?.params?.token.symbol,
+          route?.params?.token.isETH,
+        )
+      : strings('stake.stake_eth');
 
     navigation.setOptions(
       getStakingNavbar(
