@@ -1,4 +1,7 @@
 import React from 'react';
+import { Button, Text, View } from 'react-native';
+import { fireEvent } from '@testing-library/react-native';
+import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { typedSignV3ConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
@@ -12,6 +15,32 @@ jest.mock('../../../../../../../core/Engine', () => ({
       submitQRSignature: jest.fn(),
     },
   },
+}));
+
+const MockView = View;
+const MockText = Text;
+const MockButton = Button;
+jest.mock('../../../../../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({
+    hideModal,
+    onScanError,
+    onScanSuccess,
+  }: {
+    hideModal: () => void;
+    onScanError: () => void;
+    onScanSuccess: ({ cbor }: { cbor: string }) => void;
+  }) => (
+    <MockView>
+      <MockText>Scan your hardware wallet to confirm the transaction</MockText>
+      <MockButton onPress={hideModal} title="hideModal" />
+      <MockButton onPress={onScanError} title="onScanError" />
+      <MockButton
+        onPress={() => onScanSuccess({ cbor: 'dummy' })}
+        title="onScanSuccess"
+      />
+    </MockView>
+  ),
 }));
 
 const mockQRState = {
@@ -61,5 +90,52 @@ describe('QRInfo', () => {
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
     ).toBeDefined();
+  });
+
+  it('invoke setScannerVisible when hideModal is called on scanner', () => {
+    const mockSetScannerVisible = jest.fn();
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+    fireEvent.press(getByText('hideModal'));
+    expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+  });
+
+  it('invoke setScannerVisible when onScanError is called by scanner', () => {
+    const mockSetScannerVisible = jest.fn();
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+    fireEvent.press(getByText('onScanError'));
+    expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
+  });
+
+  it('submits request when onScanSuccess is called by scanner', () => {
+    jest
+      .spyOn(ETHSignature, 'fromCBOR')
+      .mockReturnValue({
+        getRequestId: () => undefined,
+      } as unknown as ETHSignature);
+    const mockSetScannerVisible = jest.fn();
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      scannerVisible: true,
+      setScannerVisible: mockSetScannerVisible,
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+    const { getByText } = renderWithProvider(<QRInfo />, {
+      state: typedSignV3ConfirmationState,
+    });
+    fireEvent.press(getByText('onScanSuccess'));
+    expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
+    expect(mockSetScannerVisible).toHaveBeenCalledWith(false);
   });
 });
