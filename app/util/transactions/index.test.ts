@@ -73,6 +73,11 @@ ENGINE_MOCK.context = {
       provider: {} as Provider,
     }),
   },
+  TokenListController: {
+    state: {
+      tokenList: {},
+    },
+  },
 };
 
 const spyOnQueryMethod = (returnValue: string | undefined) =>
