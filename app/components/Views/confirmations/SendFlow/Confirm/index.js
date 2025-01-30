@@ -1418,11 +1418,12 @@ class Confirm extends PureComponent {
         />
         <ScrollView style={baseStyles.flexGrow} ref={this.setScrollViewRef}>
           {this.state.transactionMeta?.id && (
-            <TransactionBlockaidBanner
-              transactionId={this.state.transactionMeta.id}
-              style={styles.blockaidBanner}
-              onContactUsClicked={this.onContactUsClicked}
-            />
+            <View style={styles.blockaidBannerContainer}>
+              <TransactionBlockaidBanner
+                transactionId={this.state.transactionMeta.id}
+                onContactUsClicked={this.onContactUsClicked}
+              />
+            </View>
           )}
           {!selectedAsset.tokenId ? (
             <View style={styles.amountWrapper}>
