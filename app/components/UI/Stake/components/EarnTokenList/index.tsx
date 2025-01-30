@@ -45,6 +45,7 @@ import Engine from '../../../../../core/Engine';
 import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
 import { getNetworkClientIdByChainId } from '../../utils/network';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 const isEmptyBalance = (token: { tokenBalanceFormatted: string }) =>
   parseFloat(token?.tokenBalanceFormatted) === 0;
@@ -59,6 +60,28 @@ export const MOCK_STABLECOIN_API_RESPONSE: { [key: string]: string } = {
 
 // Temporary: Will be replaced by actual API call in near future.
 const MOCK_ESTIMATE_REWARDS = '$454';
+
+const EarnTokenListSkeletonPlaceholder = () => (
+  <SkeletonPlaceholder>
+    <SkeletonPlaceholder.Item
+      width={'auto'}
+      height={150}
+      borderRadius={8}
+      marginBottom={12}
+    />
+    <>
+      {[1, 2, 3, 4, 5].map((value) => (
+        <SkeletonPlaceholder.Item
+          key={value}
+          width={'auto'}
+          height={42}
+          borderRadius={8}
+          margin={16}
+        />
+      ))}
+    </>
+  </SkeletonPlaceholder>
+);
 
 const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
@@ -195,41 +218,47 @@ const EarnTokenList = () => {
         </Text>
       </BottomSheetHeader>
       <View style={styles.container}>
-        <UpsellBanner
-          primaryText={strings('stake.you_could_earn')}
-          secondaryText={MOCK_ESTIMATE_REWARDS}
-          tertiaryText={strings('stake.per_year_on_your_tokens')}
-          variant={UPSELL_BANNER_VARIANTS.HEADER}
-        />
-        <ScrollView>
-          {supportedStablecoins?.map(
-            (token, index) =>
-              token?.chainId && (
-                <View
-                  style={styles.listItemContainer}
-                  key={`${token.name}-${token.symbol}-${index}`}
-                >
-                  <EarnTokenListItem
-                    token={token}
-                    onPress={handleRedirectToInputScreen}
-                    primaryText={{
-                      value: `${new BigNumber(
-                        MOCK_STABLECOIN_API_RESPONSE[token.symbol],
-                      ).toFixed(1, BigNumber.ROUND_DOWN)}% ${strings(
-                        'stake.apr',
-                      )}`,
-                      color: TextColor.Success,
-                    }}
-                    {...(!isEmptyBalance(token) && {
-                      secondaryText: {
-                        value: token.tokenBalanceFormatted,
-                      },
-                    })}
-                  />
-                </View>
-              ),
-          )}
-        </ScrollView>
+        {supportedStablecoins?.length ? (
+          <>
+            <UpsellBanner
+              primaryText={strings('stake.you_could_earn')}
+              secondaryText={MOCK_ESTIMATE_REWARDS}
+              tertiaryText={strings('stake.per_year_on_your_tokens')}
+              variant={UPSELL_BANNER_VARIANTS.HEADER}
+            />
+            <ScrollView>
+              {supportedStablecoins?.map(
+                (token, index) =>
+                  token?.chainId && (
+                    <View
+                      style={styles.listItemContainer}
+                      key={`${token.name}-${token.symbol}-${index}`}
+                    >
+                      <EarnTokenListItem
+                        token={token}
+                        onPress={handleRedirectToInputScreen}
+                        primaryText={{
+                          value: `${new BigNumber(
+                            MOCK_STABLECOIN_API_RESPONSE[token.symbol],
+                          ).toFixed(1, BigNumber.ROUND_DOWN)}% ${strings(
+                            'stake.apr',
+                          )}`,
+                          color: TextColor.Success,
+                        }}
+                        {...(!isEmptyBalance(token) && {
+                          secondaryText: {
+                            value: token.tokenBalanceFormatted,
+                          },
+                        })}
+                      />
+                    </View>
+                  ),
+              )}
+            </ScrollView>
+          </>
+        ) : (
+          <EarnTokenListSkeletonPlaceholder />
+        )}
       </View>
     </BottomSheet>
   );
