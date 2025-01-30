@@ -60,7 +60,7 @@ const Message = () => {
     verifyingContract,
   );
 
-  if (!signatureRequest || !typedSignData) {
+  if (!signatureRequest) {
     return null;
   }
 

@@ -44,5 +44,9 @@ describe('Signature utils', () => {
       expect(sanitizedMessage).toEqual(mockParsedSignV3Message);
       expect(domain).toEqual(mockV3MessageDomain);
     });
+    it('return empty object if no data is passed', async () => {
+      const result = parseSanitizeTypedDataMessage('');
+      expect(result).toMatchObject({});
+    });
   });
 });
