@@ -738,7 +738,8 @@ class Confirm extends PureComponent {
 
     let transactionValue, transactionValueFiat;
     const valueBN = hexToBN(value);
-    const parsedTicker = getTicker(ticker);
+    const symbol = ticker ?? selectedAsset?.symbol;
+    const parsedTicker = getTicker(symbol);
 
     if (selectedAsset.isETH) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
