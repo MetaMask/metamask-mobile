@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import useTokenSearchDiscovery from './useTokenSearchDiscovery';
+import { TokenSearchParams } from '@metamask/token-search-discovery-controller/dist/types.cjs';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -32,9 +33,9 @@ describe('useTokenSearchDiscovery', () => {
   });
 
   it('should call TokenSearchDiscoveryController.searchTokens with correct params', async () => {
-    const mockSearchParams = {
-      chainId: '0x1',
-      query: 'DAI',
+    const mockSearchParams: TokenSearchParams = {
+      chains: ['0x1'],
+      name: 'DAI',
       limit: '10',
     };
     const mockSearchResult = { tokens: [] };
