@@ -232,7 +232,7 @@
     "cockatiel": "^3.1.2",
     "compare-versions": "^6.1.1",
     "content-hash": "2.5.2",
-    "contentful": "^10.8.7",
+    "contentful": "^11.4.4",
     "crypto-js": "^4.2.0",
     "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
