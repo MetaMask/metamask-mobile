@@ -2,23 +2,16 @@
 
 ## Current Main Branch
 
-## release/7.40.0 - <Date>
-
+## 7.40.0 - Jan 30, 2024
 ### Added
-- [#13245](https://github.com/MetaMask/metamask-mobile/pull/13245): chore(runway): cherry-pick fix: swaps button missing when no feature flags (#13245)
 - [#12983](https://github.com/MetaMask/metamask-mobile/pull/12983): feat: `NftGrid` view (#12983)
-- [#13058](https://github.com/MetaMask/metamask-mobile/pull/13058): chore: Remove device constraint from isPortfolioViewEnabled feature flag (#13058)
-- [#13039](https://github.com/MetaMask/metamask-mobile/pull/13039): chore: Scope PortfolioView feature flag to iOS devices only (#13039)
 - [#13198](https://github.com/MetaMask/metamask-mobile/pull/13198): feat(network): validate RPC URL for popular networks on add network from dapp connection (#13198)
 - [#13099](https://github.com/MetaMask/metamask-mobile/pull/13099): feat: add the ability for all networks to be pre-selected in the checkbox list on initial connect to a dapp. (#13099)
 - [#13247](https://github.com/MetaMask/metamask-mobile/pull/13247): feat: Adding text with tooltip component (#13247)
 - [#13195](https://github.com/MetaMask/metamask-mobile/pull/13195): feat: Adding date field type in typed sign data tree (#13195)
 - [#13135](https://github.com/MetaMask/metamask-mobile/pull/13135): feat: hide primary type displayed in collapsed message section if simulation is enabled (#13135)
-- [#13172](https://github.com/MetaMask/metamask-mobile/pull/13172): cherry-pick 7.39.0 feat: Decoding Simulation Metrics (#13167) (#13172)
-- [#13170](https://github.com/MetaMask/metamask-mobile/pull/13170): "Revert ""cherry-pick 7.39.0 feat: Decoding Simulation Metrics (#13167)"" (#13170)"
-- [#13167](https://github.com/MetaMask/metamask-mobile/pull/13167): cherry-pick 7.39.0 feat: Decoding Simulation Metrics (#13167)
 - [#13041](https://github.com/MetaMask/metamask-mobile/pull/13041): feat: Decoding Simulation Metrics (#13041)
-- [#12627](https://github.com/MetaMask/metamask-mobile/pull/12627): "feat: Enable feature Flag Values with Scope Based on ""threshold""  (#12627)"
+- [#12627](https://github.com/MetaMask/metamask-mobile/pull/12627): feat: Enable feature Flag Values with Scope Based on ""threshold""  (#12627)
 - [#13018](https://github.com/MetaMask/metamask-mobile/pull/13018): feat: add earn button to wallet actions (#13018)
 - [#13154](https://github.com/MetaMask/metamask-mobile/pull/13154): feat: STAKE-929 build token list item component (#13154)
 - [#13108](https://github.com/MetaMask/metamask-mobile/pull/13108): feat: STAKE-927 build upsell banner component (#13108)
@@ -29,20 +22,17 @@
 
 ### Changed
 - [#13272](https://github.com/MetaMask/metamask-mobile/pull/13272): test: Added back ramps smoke tests to Bitrise (#13272)
+- [#13058](https://github.com/MetaMask/metamask-mobile/pull/13058): chore: Remove device constraint from isPortfolioViewEnabled feature flag (#13058)
+- [#13039](https://github.com/MetaMask/metamask-mobile/pull/13039): chore: Scope PortfolioView feature flag to iOS devices only (#13039)
 - [#13217](https://github.com/MetaMask/metamask-mobile/pull/13217): test: Delete suggested-gas-api.mock.spec.js due to duplication (#13217)
 - [#13214](https://github.com/MetaMask/metamask-mobile/pull/13214): test: Disable flakey e2e wallet edit-recipient-address.spec (#13214)
 - [#13181](https://github.com/MetaMask/metamask-mobile/pull/13181): test: fix flakiness while browser loads test dapp (#13181)
 - [#13183](https://github.com/MetaMask/metamask-mobile/pull/13183): test: remove AfterAll hook in e2e (#13183)
 - [#13129](https://github.com/MetaMask/metamask-mobile/pull/13129): test: Reverse TCP port for edit address test (#13129)
-- [#12926](https://github.com/MetaMask/metamask-mobile/pull/12926): fix: ensure marketing consent is explicitly tracked as boolean (#12926)
-- [#13166](https://github.com/MetaMask/metamask-mobile/pull/13166): fix: Blockaid banner momentarily visible on benign request opened after malicious one (#13166)
 - [#12955](https://github.com/MetaMask/metamask-mobile/pull/12955): refactor: remove global network usage from transaction confirmations (#12955)
 - [#13075](https://github.com/MetaMask/metamask-mobile/pull/13075): chore: Add e2e tests for blockaid validations on re-designed signature request pages (#13075)
 - [#13053](https://github.com/MetaMask/metamask-mobile/pull/13053): chore: Adding e2e test cases for signature pages (#13053)
-- [#13128](https://github.com/MetaMask/metamask-mobile/pull/13128): chore: Cherry pick `13126` (#13128)
-- [#13126](https://github.com/MetaMask/metamask-mobile/pull/13126): fix: Fix assert e2e test for `Address advanced gas fees` test (#13126)
 - [#13243](https://github.com/MetaMask/metamask-mobile/pull/13243): chore: stable sync with main v7.38.1 (#13243)
-- [#13131](https://github.com/MetaMask/metamask-mobile/pull/13131): chore: 7.38.0 stable main sync (#13131)
 - [#13059](https://github.com/MetaMask/metamask-mobile/pull/13059): test: deprecate gestures in helpers.js file (#13059)
 - [#12740](https://github.com/MetaMask/metamask-mobile/pull/12740): chore: Convert browser tab to typescript (#12740)
 - [#13084](https://github.com/MetaMask/metamask-mobile/pull/13084): chore: Token list performance measurement (#13084)
@@ -56,6 +46,9 @@
 - [#13157](https://github.com/MetaMask/metamask-mobile/pull/13157): chore: upgrading to  design tokens v5.0.0 (#13157)
 
 ### Fixed
+- [#13126](https://github.com/MetaMask/metamask-mobile/pull/13126): fix: Fix assert e2e test for `Address advanced gas fees` test (#13126)
+- [#12926](https://github.com/MetaMask/metamask-mobile/pull/12926): fix: ensure marketing consent is explicitly tracked as boolean (#12926)
+- [#13166](https://github.com/MetaMask/metamask-mobile/pull/13166): fix: Blockaid banner momentarily visible on benign request opened after malicious one (#13166)
 - [#13208](https://github.com/MetaMask/metamask-mobile/pull/13208): fix: update token balances on pull tokenlist pull down (#13208)
 - [#13218](https://github.com/MetaMask/metamask-mobile/pull/13218): fix: fix send flow on token detail page (#13218)
 - [#13200](https://github.com/MetaMask/metamask-mobile/pull/13200): fix: fix edit network and delete network with tokenNetworkFilter (#13… (#13200)
@@ -89,35 +82,7 @@
 - [#13158](https://github.com/MetaMask/metamask-mobile/pull/13158): fix: move migration validation out of onPersistComplete (#13158)
 - [#13066](https://github.com/MetaMask/metamask-mobile/pull/13066): fix: apply migration 66 (#13066)
 - [#13077](https://github.com/MetaMask/metamask-mobile/pull/13077): fix: only send length of available_quotes (#13077)
-
-### Other
-- [#13284](https://github.com/MetaMask/metamask-mobile/pull/13284): chore(runway): cherry-pick fix: metrics call during onboarding (#13284)
-- [#13256](https://github.com/MetaMask/metamask-mobile/pull/13256): chore(runway): cherry-pick fix: failure to  convert undefined value to hex object (#13256)
-- [#13250](https://github.com/MetaMask/metamask-mobile/pull/13250): chore(runway): cherry-pick fix: fix send flow on token detail page (#13250)
-- [#13248](https://github.com/MetaMask/metamask-mobile/pull/13248): chore(runway): cherry-pick fix: mobile crash issue during swap with low gas (#13248)
-- [#13246](https://github.com/MetaMask/metamask-mobile/pull/13246): chore(runway): cherry-pick fix: move migration validation out of onPersistComplete (#13246)
-- [#13230](https://github.com/MetaMask/metamask-mobile/pull/13230): chore(runway): cherry-pick fix: Prevent extra dismissModal call after network selection (#13230)
-- [#13229](https://github.com/MetaMask/metamask-mobile/pull/13229): chore(runway): cherry-pick fix: fix balance after swap (#13229)
-- [#13179](https://github.com/MetaMask/metamask-mobile/pull/13179): chore(runway): cherry-pick fix: improve assets perfs + fix blurred balances and prices (#13179)
-- [#13175](https://github.com/MetaMask/metamask-mobile/pull/13175): chore(runway): cherry-pick fix: app opened event (#13175)
-- [#13093](https://github.com/MetaMask/metamask-mobile/pull/13093): chore(runway): cherry-pick fix: ensure marketing consent is explicitly tracked as boolean (#13093)
-- [#13127](https://github.com/MetaMask/metamask-mobile/pull/13127): chore(runway): cherry-pick fix: Fix Samsung freeze by reverting reanimated version and bump expo-dev-client (#13127)
-- [#13264](https://github.com/MetaMask/metamask-mobile/pull/13264): chore: cherry-pick `13262` (#13264)
-- [#13171](https://github.com/MetaMask/metamask-mobile/pull/13171): cherry-pick 7.39.0 fix: setApprovalForAll nonce too low (#13142) (#13171)
-- [#13168](https://github.com/MetaMask/metamask-mobile/pull/13168): cherrypick: User should be re-directed to old designs when signing using QR wallet (#13168)
-- [#13153](https://github.com/MetaMask/metamask-mobile/pull/13153): cherry-pick 7.39.0 fix: Flickering permit and decoding simulation values (#13153)
-- [#13147](https://github.com/MetaMask/metamask-mobile/pull/13147): cherrypick: Hide simulation section in typed sign v1 pages (#13147)
-- [#13132](https://github.com/MetaMask/metamask-mobile/pull/13132): Add primaryType field in signature metrics (#13132)
-- [#13115](https://github.com/MetaMask/metamask-mobile/pull/13115): cherrypick: blockaid validations are not being flagged in re-designed signature request pages  (#13115)
-- [#13113](https://github.com/MetaMask/metamask-mobile/pull/13113): chore: cherry-pick `13072` (#13113)
-- [#12690](https://github.com/MetaMask/metamask-mobile/pull/12690): New Crowdin translations by Github Action (#12690)
-- [#13197](https://github.com/MetaMask/metamask-mobile/pull/13197): chore: bump undici (#13197)
-- [#12867](https://github.com/MetaMask/metamask-mobile/pull/12867): build(deps): bump cross-spawn from 7.0.5 to 7.0.6 in the npm_and_yarn group (#12867)
 - [#13119](https://github.com/MetaMask/metamask-mobile/pull/13119): fix: Fix Samsung freeze by reverting reanimated version and bump expo-dev-client (#13119)
-- [#13222](https://github.com/MetaMask/metamask-mobile/pull/13222): chore: cherry-pick #13221 (#13222)
-- [#13081](https://github.com/MetaMask/metamask-mobile/pull/13081): chore: cherry-pick #13066 (#13081)
-- [#Jongsun Suh](Jongsun Suh): "fix: Type fixes and optimizations for `EngineService`
-
 
 ## 7.38.1 - Jan 21, 2024
 ### Fixed
