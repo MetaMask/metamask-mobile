@@ -134,18 +134,12 @@ function Quotes() {
     return { opacity: value };
   });
 
-  let quotes = null;
-
   const {
-    data,
+    quotes,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
   } = useQuotes(params.amount);
-
-  if (data) {
-    quotes = data.quotes;
-  }
 
   const [filteredQuotes, highlightedQuotes] = useMemo(() => {
     if (quotes) {

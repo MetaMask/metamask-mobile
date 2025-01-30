@@ -1,5 +1,6 @@
 import { useRampSDK } from '../sdk';
 import useSDKMethod from './useSDKMethod';
+import { useMemo } from 'react';
 
 function useQuotes(amount: number | string) {
   const {
@@ -20,8 +21,10 @@ function useQuotes(amount: number | string) {
     selectedAddress,
   );
 
+  const quotes = useMemo(() => data?.quotes || null, [data]);
+
   return {
-    data,
+    quotes,
     isFetching,
     error,
     query,
