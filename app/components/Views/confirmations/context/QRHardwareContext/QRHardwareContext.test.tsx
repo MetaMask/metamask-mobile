@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, renderHook } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Engine from '../../../../../core/Engine';
@@ -11,7 +11,10 @@ import QRInfo from '../../components/Confirm/Info/QRInfo';
 import * as Camera from './useCamera';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
-import { QRHardwareContextProvider } from './QRHardwareContext';
+import {
+  QRHardwareContextProvider,
+  useQRHardwareContext,
+} from './QRHardwareContext';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -73,6 +76,29 @@ describe('QRHardwareContext', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
     ).toBe(true);
+  });
+
+  it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', () => {
+    jest
+      .spyOn(Camera, 'useCamera')
+      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
+    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      isQRSigningInProgress: false,
+      isSigningQRObject: true,
+      QRState: mockQRState,
+    });
+    const { getByText } = renderWithProvider(
+      <QRHardwareContextProvider>
+        <Footer />
+      </QRHardwareContextProvider>,
+      {
+        state: personalSignatureConfirmationState,
+      },
+    );
+    fireEvent.press(getByText('Reject'));
+    expect(
+      Engine.context.KeyringController.cancelQRSignRequest,
+    ).toHaveBeenCalledTimes(0);
   });
 
   it('invokes KeyringController.cancelQRSignRequest when request is cancelled', () => {
@@ -142,5 +168,13 @@ describe('QRHardwareContext', () => {
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
     ).toBeDefined();
+  });
+});
+
+describe('useQRHardwareContext', () => {
+  it('should throw error is not wrapped in QRHardwareContext', () => {
+    expect(() => {
+      renderHook(() => useQRHardwareContext());
+    }).toThrow();
   });
 });
