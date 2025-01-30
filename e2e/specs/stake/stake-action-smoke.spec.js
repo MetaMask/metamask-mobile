@@ -251,7 +251,7 @@ describe(SmokeStake('Stake from Actions'), () => {
 
   it('Test mocking', async () => {
     await stopMockServer(mockServer)
-    await stopFixtureServer(fixtureServer);
+    //await stopFixtureServer(fixtureServer);
 
     const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3&resetCache=true`
 
@@ -288,11 +288,12 @@ describe(SmokeStake('Stake from Actions'), () => {
         fixture: new FixtureBuilder()
           .withNetworkController(CustomNetworks.Holesky)
           .build(),
-        restartDevice: true,
+        restartDevice: false,
         testSpecificMock: stakeAPIMock,
       },
       async () => {
-        await loginToApp();
+        //await loginToApp();
+        await TokenOverview.tapBackButton();
         await Assertions.checkIfVisible(WalletView.container);
         await WalletView.tapOnStakedEthereum()
         await TokenOverview.scrollOnScreen();
