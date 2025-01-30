@@ -199,7 +199,6 @@ import { getSmartTransactionMetricsProperties } from '../../util/smart-transacti
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { JsonMap } from '../Analytics/MetaMetrics.types';
-import { isPooledStakingFeatureEnabled } from '../../components/UI/Stake/constants';
 import {
   ControllerMessenger,
   EngineState,
@@ -278,6 +277,7 @@ export class Engine {
   constructor(
     initialState: Partial<EngineState> = {},
     initialKeyringState?: KeyringControllerState | null,
+    metaMetricsId?: string,
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
@@ -515,6 +515,7 @@ export class Engine {
         allowedEvents: [],
       }),
       disabled: !isBasicFunctionalityToggleEnabled(),
+      getMetaMetricsId: () => metaMetricsId ?? '',
     });
 
     const phishingController = new PhishingController({
@@ -740,7 +741,7 @@ export class Engine {
         assetsContractController.getStakedBalanceForChain.bind(
           assetsContractController,
         ),
-      includeStakedAssets: isPooledStakingFeatureEnabled(),
+      includeStakedAssets: true,
     });
     const permissionController = new PermissionController({
       messenger: this.controllerMessenger.getRestricted({
@@ -859,9 +860,6 @@ export class Engine {
             hostname,
             getProviderState,
             navigation: null,
-            getApprovedHosts: () => null,
-            setApprovedHosts: () => null,
-            approveHost: () => null,
             title: { current: 'Snap' },
             icon: { current: undefined },
             isHomepage: () => false,
@@ -1442,6 +1440,10 @@ export class Engine {
         }),
         // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
         trace: trace as unknown as SignatureControllerOptions['trace'],
+        decodingApiUrl: AppConstants.DECODING_API_URL,
+        // TODO: check preferences useExternalServices
+        isDecodeSignatureRequestEnabled: () =>
+          preferencesController.state.useTransactionSimulations,
       }),
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -2099,6 +2101,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     } = instance.datamodel.state;
 
     return {
@@ -2133,6 +2136,7 @@ export default {
       ApprovalController,
       LoggingController,
       AccountsController,
+      SignatureController,
     };
   },
 
@@ -2164,8 +2168,9 @@ export default {
   init(
     state: Partial<EngineState> | undefined,
     keyringState: KeyringControllerState | null = null,
+    metaMetricsId?: string,
   ) {
-    instance = Engine.instance || new Engine(state, keyringState);
+    instance = Engine.instance || new Engine(state, keyringState, metaMetricsId);
     Object.freeze(instance);
     return instance;
   },

@@ -343,7 +343,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 "alignItems": "center",
                                 "alignSelf": "flex-start",
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#bbc0c5",
+                                "borderColor": "#848c96",
                                 "borderRadius": 20,
                                 "borderStyle": "solid",
                                 "borderWidth": 1,
@@ -400,7 +400,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 50,
                                   "borderStyle": "solid",
                                   "borderWidth": 1,
@@ -438,7 +438,7 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#bbc0c5",
+                                  "borderColor": "#848c96",
                                   "borderRadius": 50,
                                   "borderStyle": "solid",
                                   "borderWidth": 1,
@@ -468,32 +468,765 @@ exports[`Tokens Portfolio View should match the snapshot when portfolio view is 
                           </View>
                         </View>
                       </View>
-                      <View
-                        style={
-                          {
-                            "alignItems": "center",
-                            "backgroundColor": "#ffffff",
-                            "justifyContent": "center",
-                            "marginTop": 50,
-                          }
-                        }
-                      >
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 20,
-                              "fontWeight": "400",
-                              "letterSpacing": 0,
-                              "lineHeight": 22,
+                      <RCTScrollView
+                        ListFooterComponent={
+                          <TokenListFooter
+                            goToAddToken={[Function]}
+                            isAddTokenEnabled={true}
+                            tokens={
+                              [
+                                {
+                                  "address": "0x0",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "name": "Ethereum",
+                                  "symbol": "ETH",
+                                  "token": "Ethereum",
+                                  "tokenFiatAmount": 0,
+                                },
+                                {
+                                  "address": "0x01",
+                                  "balanceFiat": "",
+                                  "chainId": "0x1",
+                                  "decimals": 18,
+                                  "iconUrl": "",
+                                  "isETH": false,
+                                  "isNative": false,
+                                  "isStaked": false,
+                                  "name": "Bat",
+                                  "symbol": "BAT",
+                                  "token": "Bat",
+                                  "tokenFiatAmount": 0,
+                                },
+                              ]
                             }
-                          }
-                        >
-                          You don't have any tokens!
-                        </Text>
-                      </View>
+                          />
+                        }
+                        data={
+                          [
+                            {
+                              "address": "0x0",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "name": "Ethereum",
+                              "symbol": "ETH",
+                              "token": "Ethereum",
+                              "tokenFiatAmount": 0,
+                            },
+                            {
+                              "address": "0x01",
+                              "balanceFiat": "",
+                              "chainId": "0x1",
+                              "decimals": 18,
+                              "iconUrl": "",
+                              "isETH": false,
+                              "isNative": false,
+                              "isStaked": false,
+                              "name": "Bat",
+                              "symbol": "BAT",
+                              "token": "Bat",
+                              "tokenFiatAmount": 0,
+                            },
+                          ]
+                        }
+                        getItem={[Function]}
+                        getItemCount={[Function]}
+                        keyExtractor={[Function]}
+                        onContentSizeChange={[Function]}
+                        onLayout={[Function]}
+                        onMomentumScrollBegin={[Function]}
+                        onMomentumScrollEnd={[Function]}
+                        onScroll={[Function]}
+                        onScrollBeginDrag={[Function]}
+                        onScrollEndDrag={[Function]}
+                        refreshControl={
+                          <RefreshControlMock
+                            colors={
+                              [
+                                "#0376c9",
+                              ]
+                            }
+                            onRefresh={[Function]}
+                            refreshing={false}
+                            tintColor="#141618"
+                          />
+                        }
+                        removeClippedSubviews={false}
+                        renderItem={[Function]}
+                        scrollEventThrottle={50}
+                        stickyHeaderIndices={[]}
+                        testID="token-list"
+                        viewabilityConfigCallbackPairs={[]}
+                      >
+                        <RCTRefreshControl />
+                        <View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-ETH"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Ethereum
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#f2f4f6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  <View
+                                    style={
+                                      [
+                                        {
+                                          "backgroundColor": "#f2f4f6",
+                                          "borderRadius": 30,
+                                          "padding": 14,
+                                        },
+                                        {
+                                          "padding": 8,
+                                        },
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        undefined,
+                                        {
+                                          "width": 50,
+                                        },
+                                      ]
+                                    }
+                                  />
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onFocusCapture={[Function]}
+                            onLayout={[Function]}
+                            style={null}
+                          >
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "flex-start",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "paddingHorizontal": 15,
+                                  "paddingVertical": 10,
+                                }
+                              }
+                              testID="asset-BAT"
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  {
+                                    "alignSelf": "flex-start",
+                                    "position": "relative",
+                                  }
+                                }
+                                testID="badge-wrapper-badge"
+                              >
+                                <View>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 16,
+                                        "height": 32,
+                                        "overflow": "hidden",
+                                        "width": 32,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": undefined,
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "aspectRatio": 1,
+                                      "height": 0,
+                                      "justifyContent": "center",
+                                      "position": "absolute",
+                                      "right": 0,
+                                      "top": 0,
+                                      "transform": [
+                                        {
+                                          "translateX": 0,
+                                        },
+                                        {
+                                          "translateY": -0,
+                                        },
+                                      ],
+                                    }
+                                  }
+                                >
+                                  <View
+                                    onLayout={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "aspectRatio": 1,
+                                        "height": "50%",
+                                        "justifyContent": "center",
+                                        "maxHeight": 24,
+                                        "minHeight": 8,
+                                        "opacity": 0,
+                                      }
+                                    }
+                                    testID="badgenetwork"
+                                  >
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderColor": "#ffffff",
+                                          "borderRadius": 16,
+                                          "borderWidth": 2,
+                                          "height": 32,
+                                          "justifyContent": "center",
+                                          "overflow": "hidden",
+                                          "shadowColor": "#0000001A",
+                                          "shadowOffset": {
+                                            "height": 2,
+                                            "width": 0,
+                                          },
+                                          "shadowOpacity": 1,
+                                          "shadowRadius": 4,
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                          "width": 32,
+                                        }
+                                      }
+                                    >
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
+                                        style={
+                                          {
+                                            "height": 32,
+                                            "width": 32,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                    "justifyContent": "center",
+                                    "marginLeft": 20,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flexDirection": "row",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#141618",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Bat
+                                  </Text>
+                                </View>
+                                <View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#d73847",
+                                        "fontFamily": "EuclidCircularB-Medium",
+                                        "fontSize": 14,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  />
+                                </View>
+                              </View>
+                              <Modal
+                                animationType="none"
+                                deviceHeight={null}
+                                deviceWidth={null}
+                                hardwareAccelerated={false}
+                                hideModalContentWhileAnimating={false}
+                                onBackdropPress={[Function]}
+                                onModalHide={[Function]}
+                                onModalWillHide={[Function]}
+                                onModalWillShow={[Function]}
+                                onRequestClose={[Function]}
+                                onSwipeComplete={[Function]}
+                                panResponderThreshold={4}
+                                scrollHorizontal={false}
+                                scrollOffset={0}
+                                scrollOffsetMax={0}
+                                scrollTo={null}
+                                statusBarTranslucent={false}
+                                supportedOrientations={
+                                  [
+                                    "portrait",
+                                    "landscape",
+                                  ]
+                                }
+                                swipeDirection="down"
+                                swipeThreshold={100}
+                                transparent={true}
+                                visible={false}
+                              />
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-end",
+                                    "alignSelf": "flex-end",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="fiat-balance-test-id"
+                                >
+                                  &lt; 0.00001 BAT
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "paddingHorizontal": 0,
+                                      "textTransform": "uppercase",
+                                    }
+                                  }
+                                  testID="main-balance-test-id"
+                                >
+                                  $0
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View
+                            onLayout={[Function]}
+                          >
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "marginTop": 9,
+                                  "paddingBottom": 30,
+                                }
+                              }
+                            >
+                              <TouchableOpacity
+                                disabled={false}
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "center",
+                                  }
+                                }
+                                testID="import-token-footer-link"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#6a737d",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                        "marginBottom": 8,
+                                      }
+                                    }
+                                  >
+                                    Don't see your token?
+                                  </Text>
+                                   
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#0376c9",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      }
+                                    }
+                                  >
+                                    Import tokens
+                                  </Text>
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        </View>
+                      </RCTScrollView>
                     </View>
                   </View>
                 </View>
@@ -840,7 +1573,7 @@ exports[`Tokens render matches snapshot 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -894,7 +1627,7 @@ exports[`Tokens render matches snapshot 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -944,7 +1677,6 @@ exports[`Tokens render matches snapshot 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -1166,7 +1898,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -1185,11 +1917,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -1513,7 +2241,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -1532,11 +2260,7 @@ exports[`Tokens render matches snapshot 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -2095,7 +2819,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -2149,7 +2873,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -2199,7 +2923,6 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -2421,7 +3144,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -2440,11 +3163,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -2768,7 +3487,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -2787,11 +3506,7 @@ exports[`Tokens should hide zero balance tokens when setting is on 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -3350,7 +4065,7 @@ exports[`Tokens should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -3404,7 +4119,7 @@ exports[`Tokens should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -3454,7 +4169,6 @@ exports[`Tokens should render correctly 1`] = `
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -3676,7 +4390,7 @@ exports[`Tokens should render correctly 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -3695,11 +4409,7 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -4023,7 +4733,7 @@ exports[`Tokens should render correctly 1`] = `
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -4042,11 +4752,7 @@ exports[`Tokens should render correctly 1`] = `
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -4605,7 +5311,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -4659,7 +5365,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#bbc0c5",
+                              "borderColor": "#848c96",
                               "borderRadius": 20,
                               "borderStyle": "solid",
                               "borderWidth": 1,
@@ -4709,7 +5415,6 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                           <TokenListFooter
                             goToAddToken={[Function]}
                             isAddTokenEnabled={true}
-                            showDetectedTokens={[Function]}
                             tokens={
                               [
                                 {
@@ -4949,7 +5654,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -4968,11 +5673,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -5296,7 +5997,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -5315,11 +6016,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,
@@ -5562,7 +6259,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                           "height": 32,
                                           "justifyContent": "center",
                                           "overflow": "hidden",
-                                          "shadowColor": "#0000001a",
+                                          "shadowColor": "#0000001A",
                                           "shadowOffset": {
                                             "height": 2,
                                             "width": 0,
@@ -5581,11 +6278,7 @@ exports[`Tokens should show all balance tokens when hideZeroBalanceTokens settin
                                       <Image
                                         onError={[Function]}
                                         resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "MockImage",
-                                          }
-                                        }
+                                        source={1}
                                         style={
                                           {
                                             "height": 32,

@@ -554,11 +554,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -708,11 +704,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -938,7 +930,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           <View
                                             style={
                                               {
-                                                "backgroundColor": "#bbc0c566",
+                                                "backgroundColor": "#BBC0C566",
                                                 "borderRadius": 2,
                                                 "height": 4,
                                                 "width": 40,
@@ -1002,7 +994,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     }
                                                   }
                                                 >
-                                                  Add custom network
+                                                  Add Network
                                                 </Text>
                                               </View>
                                               <View
@@ -1142,7 +1134,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                   style={
                                                     [
                                                       {
-                                                        "borderColor": "#bbc0c5",
+                                                        "borderColor": "#848c96",
                                                         "borderRadius": 10,
                                                         "borderWidth": 1,
                                                         "marginVertical": 16,
@@ -1605,13 +1597,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -2285,11 +2271,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -2439,11 +2421,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -2744,13 +2722,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -3424,11 +3396,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -3578,11 +3546,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -3883,13 +3847,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -4563,11 +4521,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -4717,11 +4671,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "uri": "MockImage",
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,
@@ -5022,13 +4972,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                         <Image
                                           onError={[Function]}
                                           resizeMode="contain"
-                                          source={
-                                            {
-                                              "default": {
-                                                "uri": "MockImage",
-                                              },
-                                            }
-                                          }
+                                          source={1}
                                           style={
                                             {
                                               "height": 24,

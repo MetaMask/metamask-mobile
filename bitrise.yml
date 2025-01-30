@@ -160,9 +160,10 @@ stages:
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
+      - run_tag_smoke_swaps_ios: {}
+      - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
@@ -181,6 +182,7 @@ stages:
       - android_run_regression_tests: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
@@ -532,9 +534,9 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - PRODUCTION_APP_URL: 'bs://46f0542276828b691f56adec25ac81065b5abf73' # Last production's QA build
-      - PRODUCTION_BUILD_NAME: 7.30.0
-      - PRODUCTION_BUILD_NUMBER: 1410
+      - PRODUCTION_APP_URL: 'bs://6b59d556df4a5a0448ff161cbfcab16d92607b72' # Last production's QA build
+      - PRODUCTION_BUILD_NAME: 7.38.0
+      - PRODUCTION_BUILD_NUMBER: 1528
       - CUCUMBER_TAG_EXPRESSION: '@upgrade and @androidApp'
       - PRODUCTION_BUILD_STRING: 'MetaMask-QA v$PRODUCTION_BUILD_NAME ($PRODUCTION_BUILD_NUMBER)'
       - NEW_BUILD_STRING: 'MetaMask-QA v$VERSION_NAME ($VERSION_NUMBER)'
@@ -650,6 +652,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_confirmations_redesigned_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
+      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+    after_run:
+      - ios_e2e_test
   run_tag_smoke_swaps_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
@@ -1757,9 +1765,6 @@ app:
       MM_PERMISSIONS_SETTINGS_V1_ENABLED: false
     - opts:
         is_expand: false
-      MM_POOLED_STAKING_UI_ENABLED: true
-    - opts:
-        is_expand: false
       MM_SECURITY_ALERTS_API_ENABLED: true
     - opts:
         is_expand: false
@@ -1796,16 +1801,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.37.1
+      VERSION_NAME: 7.38.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1520
+      VERSION_NUMBER: 1533
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.37.1
+      FLASK_VERSION_NAME: 7.38.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1520
+      FLASK_VERSION_NUMBER: 1533
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

@@ -1,27 +1,27 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
+import { Text, View } from 'react-native';
 
-import { strings } from '../../../../../../../../locales/i18n';
-import { selectChainId } from '../../../../../../../selectors/networkController';
-import useApprovalRequest from '../../../../hooks/useApprovalRequest';
 import { parseSanitizeTypedDataMessage } from '../../../../utils/signatures';
+import { strings } from '../../../../../../../../locales/i18n';
+import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
+import { useStyles } from '../../../../../../../component-library/hooks';
+import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
 import InfoRow from '../../../UI/InfoRow';
 import DataTree from '../../DataTree';
 import SignatureMessageSection from '../../SignatureMessageSection';
 import { DataTreeInput } from '../../DataTree/DataTree';
-
-const styles = StyleSheet.create({
-  collpasedInfoRow: {
-    marginStart: -8,
-  },
-});
+import styleSheet from './Message.styles';
 
 const Message = () => {
-  const { approvalRequest } = useApprovalRequest();
-  const chainId = useSelector(selectChainId);
+  const signatureRequest = useSignatureRequest();
+  const isSimulationSupported = useTypedSignSimulationEnabled();
+  const chainId = signatureRequest?.chainId as Hex;
+  const { styles } = useStyles(styleSheet, {});
 
-  const typedSignData = approvalRequest?.requestData?.data;
+  // Pending alignment of controller types.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const typedSignData = signatureRequest?.messageParams?.data as any;
 
   if (!typedSignData) {
     return null;
@@ -33,18 +33,30 @@ const Message = () => {
   return (
     <SignatureMessageSection
       messageCollapsed={
-        <InfoRow
-          label={strings('confirm.primary_type')}
-          style={styles.collpasedInfoRow}
-        >
-          {primaryType}
-        </InfoRow>
+        isSimulationSupported ? undefined : (
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.collpasedInfoRow}
+          >
+            {primaryType}
+          </InfoRow>
+        )
       }
       messageExpanded={
-        <DataTree
-          data={sanitizedMessage.value as unknown as DataTreeInput}
-          chainId={chainId}
-        />
+        <View>
+          <Text style={styles.title}>{strings('confirm.message')}</Text>
+          <InfoRow
+            label={strings('confirm.primary_type')}
+            style={styles.dataRow}
+          >
+            {primaryType}
+          </InfoRow>
+          <DataTree
+            data={sanitizedMessage.value as unknown as DataTreeInput}
+            chainId={chainId}
+            primaryType={primaryType}
+          />
+        </View>
       }
       copyMessageText={typedSignData}
     />

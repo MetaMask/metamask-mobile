@@ -291,7 +291,13 @@ const PermissionsSummary = ({
             </TextComponent>
             <View style={styles.permissionRequestAccountInfo}>
               <View style={styles.permissionRequestAccountName}>
-                <TextComponent numberOfLines={1} ellipsizeMode="tail">
+                <TextComponent
+                  testID={
+                    PermissionSummaryBottomSheetSelectorsIDs.ACCOUNT_PERMISSION_CONTAINER
+                  }
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   <TextComponent variant={TextVariant.BodySM}>
                     {getAccountLabel()}
                   </TextComponent>

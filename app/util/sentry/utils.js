@@ -39,6 +39,7 @@ export const sentryStateMask = {
               type: true,
               options: true,
               methods: true,
+              scopes: true,
               metadata: {
                 name: true,
                 importTime: true,
@@ -555,8 +556,6 @@ export function setupSentry() {
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => excludeEvents(event),
       enabled: metricsOptIn === AGREED,
-      // We need to deactivate this to have the same output consistently on IOS and Android
-      enableAutoPerformanceTracing: false,
     });
   };
   init();

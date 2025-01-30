@@ -1,10 +1,15 @@
 import { v4 as uuidV4 } from 'uuid';
 import {
   EthAccountType,
+  BtcAccountType,
+  SolAccountType,
   EthMethod,
-  InternalAccount,
+  EthScopes,
+  BtcScopes,
+  SolScopes,
   KeyringAccountType,
 } from '@metamask/keyring-api';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
@@ -22,6 +27,33 @@ export function createMockUuidFromAddress(address: string): string {
   return uuidV4({
     random: fakeShaFromAddress,
   });
+}
+
+/**
+ * Maps account types to their corresponding scopes
+ * @param accountType - The type of account (ETH, BTC, or Solana)
+ * @returns Array of scopes corresponding to the account type
+ */
+function getAccountTypeScopes(accountType: KeyringAccountType): string[] {
+  // Define scope mappings
+  const scopeMappings = {
+    // Ethereum account types
+    [EthAccountType.Eoa]: [EthScopes.Namespace],
+    [EthAccountType.Erc4337]: [EthScopes.Namespace],
+
+    // Bitcoin account types
+    [BtcAccountType.P2wpkh]: [BtcScopes.Namespace],
+
+    // Solana account types
+    [SolAccountType.DataAccount]: [SolScopes.Namespace],
+  };
+
+  const scopes = scopeMappings[accountType];
+  if (!scopes) {
+    throw new Error(`Unsupported account type: ${accountType}`);
+  }
+
+  return scopes;
 }
 
 export function createMockInternalAccount(
@@ -62,6 +94,7 @@ export function createMockInternalAccount(
       EthMethod.SignTypedDataV4,
     ],
     type: accountType,
+    scopes: getAccountTypeScopes(accountType),
   };
 }
 
@@ -92,7 +125,8 @@ export function createMockSnapInternalAccount(
       EthMethod.SignTypedDataV3,
       EthMethod.SignTypedDataV4,
     ],
-    type: 'eip155:eoa',
+    type: EthAccountType.Eoa,
+    scopes: [EthScopes.Namespace],
   };
 }
 

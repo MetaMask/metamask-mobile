@@ -7,6 +7,7 @@ import { validateEngineInitialized } from './engineBackgroundState';
 
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('./accountsController');
@@ -21,6 +22,14 @@ describe('validatePostMigrationState', () => {
     (validateEngineInitialized as jest.Mock).mockReturnValue([]);
     (validateAccountsController as jest.Mock).mockReturnValue([]);
     (validateKeyringController as jest.Mock).mockReturnValue([]);
+  });
+
+  it('logs when validation starts', () => {
+    const mockState = {} as RootState;
+    validatePostMigrationState(mockState);
+
+    expect(Logger.log).toHaveBeenCalledWith('Migration validation started');
+    expect(Logger.log).toHaveBeenCalledTimes(1);
   });
 
   it('runs all validation checks', () => {
