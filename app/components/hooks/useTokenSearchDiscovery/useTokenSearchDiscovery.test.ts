@@ -1,5 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { act, renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../core/Engine';
 import useTokenSearchDiscovery from './useTokenSearchDiscovery';
 import { TokenSearchParams } from '@metamask/token-search-discovery-controller/dist/types.cjs';
@@ -18,42 +17,51 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 describe('useTokenSearchDiscovery', () => {
-  const mockRecentSearches = ['0x123', '0x456'];
-
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(mockRecentSearches);
+    jest.useFakeTimers();
   });
 
-  it('should return searchTokens function and recent searches', () => {
-    const { result } = renderHook(() => useTokenSearchDiscovery());
-
-    expect(result.current.searchTokens).toBeDefined();
-    expect(result.current.recentSearches).toEqual(mockRecentSearches);
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
-  it('should call TokenSearchDiscoveryController.searchTokens with correct params', async () => {
+  it('should update states correctly when searching tokens', async () => {
     const mockSearchParams: TokenSearchParams = {
       chains: ['0x1'],
       name: 'DAI',
       limit: '10',
     };
-    const mockSearchResult = { tokens: [] };
+    const mockSearchResult = [{ name: 'DAI', address: '0x123' }];
 
     (
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
     ).mockResolvedValueOnce(mockSearchResult);
 
     const { result } = renderHook(() => useTokenSearchDiscovery());
-    const response = await result.current.searchTokens(mockSearchParams);
 
+    // Initial state
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
+    expect(result.current.results).toEqual([]);
+
+    // Call search
+    await act(async () => {
+      result.current.searchTokens(mockSearchParams);
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    // Final state
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
+    expect(result.current.results).toEqual(mockSearchResult);
     expect(
       Engine.context.TokenSearchDiscoveryController.searchTokens,
     ).toHaveBeenCalledWith(mockSearchParams);
-    expect(response).toEqual(mockSearchResult);
   });
 
-  it('should handle search errors gracefully', async () => {
+  it('should handle search errors', async () => {
     const mockError = new Error('Search failed');
     (
       Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
@@ -61,8 +69,14 @@ describe('useTokenSearchDiscovery', () => {
 
     const { result } = renderHook(() => useTokenSearchDiscovery());
 
-    await expect(result.current.searchTokens({})).rejects.toThrow(
-      'Search failed',
-    );
+    await act(async () => {
+      result.current.searchTokens({});
+      jest.advanceTimersByTime(300);
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toEqual(mockError);
+    expect(result.current.results).toEqual([]);
   });
 });
