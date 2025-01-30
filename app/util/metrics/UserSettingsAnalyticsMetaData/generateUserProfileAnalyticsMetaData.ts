@@ -4,7 +4,6 @@ import {
   UserProfileMetaData,
   UserProfileProperty,
 } from './UserProfileAnalyticsMetaData.types';
-import { MetaMetrics } from '../../../core/Analytics';
 
 /**
  * Generate user profile analytics meta data
@@ -20,7 +19,6 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     appTheme === 'os' ? Appearance.getColorScheme() : appTheme;
   const isDataCollectionForMarketingEnabled =
       reduxState?.security?.dataCollectionForMarketing;
-  const isMetricsOptedIn = MetaMetrics.getInstance().isEnabled();
 
   return {
     [UserProfileProperty.ENABLE_OPENSEA_API]:
@@ -43,9 +41,6 @@ const generateUserProfileAnalyticsMetaData = (): UserProfileMetaData => {
     [UserProfileProperty.SECURITY_PROVIDERS]:
       preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
     [UserProfileProperty.HAS_MARKETING_CONSENT]: isDataCollectionForMarketingEnabled
-        ? UserProfileProperty.ON
-        : UserProfileProperty.OFF,
-    [UserProfileProperty.IS_METRICS_OPTED_IN]: isMetricsOptedIn
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
   };

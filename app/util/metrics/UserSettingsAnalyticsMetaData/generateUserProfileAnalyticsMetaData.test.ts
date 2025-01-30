@@ -48,7 +48,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
       [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: UserProfileProperty.OFF,
       [UserProfileProperty.SECURITY_PROVIDERS]: 'blockaid',
       [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
-      [UserProfileProperty.IS_METRICS_OPTED_IN]: UserProfileProperty.ON,
     });
   });
 
@@ -60,16 +59,6 @@ describe('generateUserProfileAnalyticsMetaData', () => {
 
     const metadata = generateUserProfileAnalyticsMetaData();
     expect(metadata[UserProfileProperty.HAS_MARKETING_CONSENT]).toEqual(expected);
-  });
-
-  it.each([
-    [UserProfileProperty.ON, true],
-    [UserProfileProperty.OFF, false],
-  ])('returns metrics consent "%s"', (expected, isMetricsEnabled) => {
-    mockIsMetricsEnabled.mockReturnValue(isMetricsEnabled);
-
-    const metadata = generateUserProfileAnalyticsMetaData();
-    expect(metadata[UserProfileProperty.IS_METRICS_OPTED_IN]).toEqual(expected);
   });
 
   it('returns default metadata when missing preferences controller', () => {

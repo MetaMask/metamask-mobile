@@ -50,6 +50,7 @@ const ExperienceEnhancerModal = () => {
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
           .addProperties({
             [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+            updated_after_onboarding: true,
             location: 'marketing_consent_modal',
           })
           .build(),
@@ -73,6 +74,7 @@ const ExperienceEnhancerModal = () => {
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
           .addProperties({
             [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+            updated_after_onboarding: true,
             location: 'marketing_consent_modal',
           })
           .build(),

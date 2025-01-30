@@ -357,7 +357,7 @@ class OptinMetrics extends PureComponent {
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
             [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean( isDataCollectionForMarketingEnabled ),
-            [UserProfileProperty.IS_METRICS_OPTED_IN]: true,
+            is_metrics_opted_in: true,
             location: 'onboarding_metametrics',
             updated_after_onboarding: false,
         })
