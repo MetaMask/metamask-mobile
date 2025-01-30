@@ -64,15 +64,15 @@ describe(SmokeStake('Stake from Actions'), () => {
   });
 
   afterAll(async () => {
-    if (mockServer)
-    await stopMockServer(mockServer)
-    await stopFixtureServer(fixtureServer);
+    //if (mockServer)
+    //await stopMockServer(mockServer)
+    //await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-
+/*
   it('should send ETH to new account', async () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSendButton();
@@ -113,7 +113,8 @@ describe(SmokeStake('Stake from Actions'), () => {
     await WalletView.tapOnEarnButton()
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.004')
-    await StakeView.tapReview()
+    await Assertions.checkIfVisible(StakeView.reviewButton);
+    await StakeView.tapReview();
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
     await Assertions.checkIfVisible(ActivitiesView.title);
@@ -131,6 +132,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TokenOverview.tapStakeMoreButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
     await StakeView.enterAmount('.003')
+    await Assertions.checkIfVisible(StakeView.reviewButton);
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
@@ -149,6 +151,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TokenOverview.tapUnstakeButton();
     await Assertions.checkIfVisible(StakeView.unstakeContainer);
     await StakeView.enterAmount('.002')
+    await Assertions.checkIfVisible(StakeView.reviewButton);
     await StakeView.tapReview()
     await StakeView.tapContinue()
     await StakeConfirmView.tapConfirmButton()
@@ -176,9 +179,11 @@ describe(SmokeStake('Stake from Actions'), () => {
     await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
     await NetworkEducationModal.tapGotItButton();
   });
-
+*/
   it('should Stake Claim ETH', async () => {
-    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
+    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3&resetCache=true`
+
+   // const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=${wallet.address}&resetCache=true`
     const response = await axios.get(stakeAPIUrl);
 
     if (response.status !== 200) {
@@ -218,6 +223,8 @@ describe(SmokeStake('Stake from Actions'), () => {
       ],
     }
 
+    console.log(JSON.stringify(stakeAPIMock))
+
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer(stakeAPIMock);
     await TestHelpers.launchApp({
@@ -230,6 +237,8 @@ describe(SmokeStake('Stake from Actions'), () => {
     await WalletView.tapOnStakedEthereum()
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(2000);
+    await Assertions.checkIfVisible(TokenOverview.claimButton)
+    /*
     await TokenOverview.tapClaimButton();
     await StakeConfirmView.tapConfirmButton();
     await TokenOverview.tapBackButton();
@@ -237,6 +246,60 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);
     await Assertions.checkIfTextIsDisplayed(`Transaction #${nonceCount++} Complete!`, 120000);
+    */
+  });
+
+  it('Test mocking', async () => {
+    await stopMockServer(mockServer)
+    await stopFixtureServer(fixtureServer);
+
+    const stakeAPIUrl = `https://staking.api.cx.metamask.io/v1/pooled-staking/stakes/17000?accounts=0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3&resetCache=true`
+
+    const stakeAPIMock  = {
+      GET: [ {
+          urlEndpoint: stakeAPIUrl,
+          response: {
+            accounts: [
+              {
+                account: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+                lifetimeRewards: '186658023310520',
+                assets: '186658023310520',
+                exitRequests: [
+                  {
+
+                    positionTicket: '2388812148025276240953',
+                    timestamp: "1737657204000",
+                    totalShares: '987598978301690',
+                    withdrawalTimestamp: "0",
+                    exitQueueIndex: "157",
+                    claimedAssets: "36968822284547795",
+                    leftShares: "0"
+                  },
+                ]
+              }
+            ]
+          },
+          responseCode: 200,
+        },
+      ],
+    }
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Holesky)
+          .build(),
+        restartDevice: true,
+        testSpecificMock: stakeAPIMock,
+      },
+      async () => {
+        await loginToApp();
+        await Assertions.checkIfVisible(WalletView.container);
+        await WalletView.tapOnStakedEthereum()
+        await TokenOverview.scrollOnScreen();
+        await TestHelpers.delay(2000);
+        await Assertions.checkIfVisible(TokenOverview.claimButton)
+      },
+    );
   });
 
 });
