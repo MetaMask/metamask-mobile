@@ -66,7 +66,7 @@ describe(SmokeStake('Stake from Actions'), () => {
   afterAll(async () => {
     //if (mockServer)
     //await stopMockServer(mockServer)
-    //await stopFixtureServer(fixtureServer);
+    await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {
