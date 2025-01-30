@@ -134,7 +134,7 @@ import {
   // Pending updated multichain UX to specify the send chain.
   // eslint-disable-next-line no-restricted-syntax
   selectNetworkClientId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
@@ -472,7 +472,7 @@ class Confirm extends PureComponent {
       navigation,
       providerType,
       isPaymentRequest,
-      setTransactionId
+      setTransactionId,
     } = this.props;
 
     const {
@@ -743,7 +743,8 @@ class Confirm extends PureComponent {
 
     let transactionValue, transactionValueFiat;
     const valueBN = hexToBN(value);
-    const parsedTicker = getTicker(ticker);
+    const symbol = ticker ?? selectedAsset?.symbol;
+    const parsedTicker = getTicker(symbol);
 
     if (selectedAsset.isETH) {
       transactionValue = `${renderFromWei(value)} ${parsedTicker}`;
@@ -1617,8 +1618,7 @@ const mapStateToProps = (state) => {
     ),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     transactionMetricsById: selectTransactionMetrics(state),
-    transactionMetadata:
-      selectCurrentTransactionMetadata(state),
+    transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };

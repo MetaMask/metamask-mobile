@@ -9,9 +9,9 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { ResultType } from '../../../constants/signatures';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
-import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
 const Footer = () => {

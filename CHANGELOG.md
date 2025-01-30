@@ -2,6 +2,10 @@
 
 ## Current Main Branch
 
+## 7.38.1 - Jan 21, 2024
+### Fixed
+- [#13067](https://github.com/MetaMask/metamask-mobile/pull/13067)fix: remove expo changes (#13067)
+
 ## 7.38.0 - Jan 16, 2024
 ### Added
 - [#12427](https://github.com/MetaMask/metamask-mobile/pull/12427): feat: implement remote feature flag controller (#12427)
