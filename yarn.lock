@@ -1431,7 +1431,7 @@
 
 "@consensys/on-ramp-sdk@^2.0.3":
   version "2.0.3"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.0.3.tgz#c4a9068c75e9a2e7bb8b33071900d6f1388bab69"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.0.3.tgz#c4a9068c75e9a2e7bb8b33071900d6f1388bab69"
   integrity sha512-zMNefDC6xGu8vuo/WRxQvsvaEmqRdOCs4afv8yaCRaDalnds4l9ph4lcs+NLrdJFUYjKMo8Y+pU8SidSUug0Wg==
   dependencies:
     async "^3.2.3"
