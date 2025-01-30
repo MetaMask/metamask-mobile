@@ -58,6 +58,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#12295](https://github.com/MetaMask/metamask-mobile/pull/12295): chore: use getShares contract method from stake-sdk for unstake all flow (#12295)
 - [#12551](https://github.com/MetaMask/metamask-mobile/pull/12551): chore: Bump Snaps packages (#12551)
 
+### Fixed
+- [#12650](https://github.com/MetaMask/metamask-mobile/pull/12650): fix: fix swaps button on asset overview page for multichain feature (#12650)
+- [#12659](https://github.com/MetaMask/metamask-mobile/pull/12659): fix: fix token details navigation (#12659)
+- [#12624](https://github.com/MetaMask/metamask-mobile/pull/12624): fix: add new translations (#12624)
+- [#12373](https://github.com/MetaMask/metamask-mobile/pull/12373): fix: circular dependencies engine-network-handleNetworkSwitch (#12373)
+- [#12663](https://github.com/MetaMask/metamask-mobile/pull/12663): fix: disable flaky tests on incoming-transactions.spec (#12663)
+- [#12598](https://github.com/MetaMask/metamask-mobile/pull/12598): fix: disable mock poc test (#12598)
+- [#12230](https://github.com/MetaMask/metamask-mobile/pull/12230): fix: Jest timer error in unit test (#12230)
+- [#12626](https://github.com/MetaMask/metamask-mobile/pull/12626): fix: fix flaky test (#12626)
+- [#12372](https://github.com/MetaMask/metamask-mobile/pull/12372): fix: abstract out circular dependencies between engine and networks util (#12372)
+- [#12641](https://github.com/MetaMask/metamask-mobile/pull/12641): fix: fix network selector (#12641)
+- [#12637](https://github.com/MetaMask/metamask-mobile/pull/12637): fix: fix native tokens filter when all networks is selected (#12637)
+- [#12529](https://github.com/MetaMask/metamask-mobile/pull/12529): fix: fix NFTs disappearing after killing app (#12529)
+- [#12562](https://github.com/MetaMask/metamask-mobile/pull/12562): fix: Move `AssetPollingProvider` from Root to Nav/Main/index.js (#12562)
+- [#12607](https://github.com/MetaMask/metamask-mobile/pull/12607): fix: e2e regression gas api (#12607)
+- [#12460](https://github.com/MetaMask/metamask-mobile/pull/12460): fix: add source when local PPOM fails (#12460)
+- [#12199](https://github.com/MetaMask/metamask-mobile/pull/12199): fix: 10967 User able to add Ledger account with existing account name (#12199)
+- [#12566](https://github.com/MetaMask/metamask-mobile/pull/12566): fix(12527): sdk connection with unknown url causes a bug (#12566)
+- [#12405](https://github.com/MetaMask/metamask-mobile/pull/12405): fix(431-2): active network icon has too much margin and adding optional prop (#12405)
+- [#12591](https://github.com/MetaMask/metamask-mobile/pull/12591): fix: add resolution for express to fix failing audit on path-to-regexp (#12591)
+- [#12567](https://github.com/MetaMask/metamask-mobile/pull/12567): fix: update input handling in useInputHandler to support BACK key functionality (#12567)
+- [#12630](https://github.com/MetaMask/metamask-mobile/pull/12630): fix: hide tokens without balance for multichain (#12630)
+
 ## [7.37.1]
 ### Fixed
 - [#12577](https://github.com/MetaMask/metamask-mobile/pull/12577): chore: bump {gas-fee,network,selected-network,notification-services,profile-sync,signature}-controller (#12577)
