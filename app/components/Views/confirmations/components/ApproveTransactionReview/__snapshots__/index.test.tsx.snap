@@ -408,6 +408,15 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                           }
                                         }
                                       >
+                                        <View
+                                          style={
+                                            {
+                                              "marginBottom": 10,
+                                              "marginHorizontal": 10,
+                                              "marginTop": 20,
+                                            }
+                                          }
+                                        />
                                         <Text
                                           accessibilityRole="text"
                                           style={
