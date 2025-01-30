@@ -48,7 +48,10 @@
     "connector": "at"
   },
   "autocomplete": {
-    "placeholder": "Search or Type URL"
+    "placeholder": "Search by site or address",
+    "recents": "Recents",
+    "favorites": "Favorites",
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Back",
@@ -449,6 +452,7 @@
     "next": "Next",
     "buy_asset": "Buy {{asset}}",
     "no_tokens": "You don't have any tokens!",
+    "show_tokens_without_balance": "Show tokens without balance",
     "no_nfts_yet": "No NFTs yet",
     "nfts_autodetection_title": "NFT detection",
     "nfts_autodetection_desc": "Let MetaMask automatically detect and display NFTs in your wallet.",
@@ -745,6 +749,7 @@
     "connected_and_active": "connected and active.",
     "now_active": "now active.",
     "network_added": "was successfully added",
+    "network_removed": "was successfully removed",
     "network_deleted": "was successfully deleted",
     "network_permissions_updated": "Network permissions updated",
     "revoked": "revoked.",
@@ -1287,16 +1292,19 @@
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "earn_button": "Earn",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
     "bridge": "Bridge",
+    "earn": "Earn",
     "disabled_button": {
       "buy": "Buying not supported for this account",
       "sell": "Selling not supported for this account",
       "swap": "Swapping not supported for this account",
       "bridge": "Bridging not supported for this account",
       "send": "Sending not supported for this account",
+      "earn": "Earning not supported for this account",
       "action": "This action is not supported for this account"
     },
     "description": "Description",
@@ -1313,6 +1321,7 @@
     "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
+    "earn_description": "Earn rewards on your tokens",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -3376,7 +3385,8 @@
     "add_hardware_wallet": "Add hardware wallet",
     "import_account": "Import account",
     "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)"
+    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)",
+    "add_solana_account": "Add a new Solana Account (Beta)"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3623,7 +3633,8 @@
       "tooltip": "Estimated changes are what might happen if you go through with this transaction. This is just a prediction, not a guarantee.",
       "unavailable": "Unavailable"
     },
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TextFieldSearch should render default settings correctly 1`] = `
-<TextField
+<ForwardRef
   endAccessory={false}
   startAccessory={
     <Icon

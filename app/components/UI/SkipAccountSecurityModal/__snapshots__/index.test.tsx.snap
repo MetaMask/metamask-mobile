@@ -108,7 +108,7 @@ exports[`HintModal should render correctly 1`] = `
         testID="skip-backup-check"
         tintColors={
           {
-            "false": "#bbc0c5",
+            "false": "#848c96",
             "true": "#0376c9",
           }
         }

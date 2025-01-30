@@ -1,4 +1,5 @@
 import { BannerAlertProps } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { ResultType as BlockaidResultType } from '../../constants/signatures';
 
 export enum Reason {
   approvalFarming = 'approval_farming',
@@ -20,15 +21,7 @@ export enum Reason {
   requestInProgress = 'request_in_progress',
 }
 
-export enum ResultType {
-  Benign = 'Benign',
-  Malicious = 'Malicious',
-  Warning = 'Warning',
-
-  // MetaMask defined result types
-  Failed = 'Failed',
-  RequestInProgress = 'RequestInProgress',
-}
+export const ResultType = BlockaidResultType;
 
 export interface SecurityAlertResponse {
   block?: number;
@@ -37,7 +30,7 @@ export interface SecurityAlertResponse {
   providerRequestsCount?: Record<string, number>;
   reason: Reason;
   req?: Record<string, unknown>;
-  result_type: ResultType;
+  result_type: BlockaidResultType;
   source?: SecurityAlertSource;
 }
 

@@ -48,7 +48,10 @@
     "connector": "em"
   },
   "autocomplete": {
-    "placeholder": "Pesquise ou digite um URL"
+    "placeholder": "Pesquisar por site ou por endereço",
+    "recents": "Recentes",
+    "favorites": "Favoritos",
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Voltar",
@@ -449,6 +452,7 @@
     "next": "Avançar",
     "buy_asset": "Comprar {{asset}}",
     "no_tokens": "Você não tem nenhum token!",
+    "show_tokens_without_balance": "Mostrar tokens sem saldo",
     "no_nfts_yet": "Nenhum NFT até agora",
     "nfts_autodetection_title": "Detecção de NFTs",
     "nfts_autodetection_desc": "Permita que a MetaMask detecte e exiba automaticamente os NFTs em sua carteira.",
@@ -470,7 +474,7 @@
     "learn_more": "Saiba mais",
     "add_collectibles": "Importar NFTs",
     "no_transactions": "Você não tem nenhuma transação!",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Mude de rede para ver as transações",
     "send_button": "Enviar",
     "deposit_button": "Depositar",
     "copy_address": "Copiar",
@@ -566,7 +570,7 @@
     "description_content_1": "Gostaríamos de coletar dados básicos de uso para melhorar a MetaMask. Saiba que nunca vendemos os dados que você fornece aqui.",
     "description_content_2": "Quando coletamos as métricas, elas sempre são...",
     "description_content_3": "Saiba como protegemos sua privacidade durante a coleta de dados de uso relacionados ao seu perfil.",
-    "checkbox": "Usaremos esses dados para saber como você interage com nossas comunicações de marketing. Podemos compartilhar novidades relevantes (como recursos de produtos).",
+    "checkbox": "Usaremos esses dados para saber como você interage com nossas comunicações de marketing. Poderemos compartilhar novidades relevantes (como recursos de produtos).",
     "action_description_1_prefix": "Privadas:",
     "action_description_2_prefix": "Gerais:",
     "action_description_3_prefix": "Opcionais:",
@@ -722,6 +726,7 @@
     "connected_and_active": "conectada e ativa.",
     "now_active": "agora ativa.",
     "network_added": "foi adicionada com sucesso",
+    "network_removed": "foi removido com sucesso",
     "network_deleted": "foi excluída com sucesso",
     "network_permissions_updated": "Permissões de rede atualizadas",
     "revoked": "revogada.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Vender",
     "receive_button": "Receber",
     "portfolio_button": "Portfólio",
+    "earn_button": "Ganhar",
     "add_collectible_button": "Adicionar",
     "info": "Informações",
     "swap": "Troca",
     "bridge": "Ponte",
+    "earn": "Ganhar",
     "disabled_button": {
       "buy": "Não há suporte para compras nesta conta",
       "sell": "Não há suporte para vendas nesta conta",
       "swap": "Não há suporte para swaps nesta conta",
       "bridge": "Não há suporte para pontes nesta conta",
       "send": "Não há suporte para envios nesta conta",
+      "earn": "Não há suporte para ganhos nesta conta",
       "action": "Não há suporte para esta ação nesta conta"
     },
     "description": "Descrição",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Transferir tokens entre redes",
     "send_description": "Envie criptomoedas para qualquer conta",
     "receive_description": "Receba criptomoedas",
+    "earn_description": "Ganhe recompensas sobre seus tokens",
     "chart_time_period": {
       "1d": "Hoje",
       "7d": "Últimos 7 dias",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "ID da cadeia",
     "network_rpc_url": "URL da rede",
     "network_rpc_url_label": "URL da RPC da rede",
+    "network_rpc_url_warning_punycode": "Invasores às vezes simulam sites alterando ligeiramente o endereço da web. Certifique-se de que está interagindo com o URL correto antes de continuar. Versão Punycode:",
     "new_default_network_url": "URL da nova rede padrão",
     "current_label": "Atual",
     "new_label": "Nova",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Adicionar carteira de hardware",
     "import_account": "Importar conta",
     "add_bitcoin_account_testnet": "Adicionar uma nova conta Bitcoin (testnet)",
-    "add_bitcoin_account_mainnet": "Adicionar uma nova conta Bitcoin (beta)"
+    "add_bitcoin_account_mainnet": "Adicionar uma nova conta Bitcoin (beta)",
+    "add_solana_account": "Adicionar uma nova conta Solana (beta)"
   },
   "show_nft": {
     "show_nft_title": "Exibir NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Solicitação de assinatura"
     },
+    "sub_title": {
+      "signature": "Revise os detalhes da solicitação antes de confirmar."
+    },
     "request_from": "Solicitação de",
     "message": "Mensagem",
+    "primary_type": "Tipo primário",
     "personal_sign_tooltip": "Este site está solicitando sua assinatura",
     "details": "Detalhes",
     "account": "Conta",
     "balance": "Saldo",
     "network": "Rede",
     "simulation": {
-      "title": "Alterações estimadas",
+      "decoded_tooltip_bid_nft": "O NFT será refletido em sua carteira quando o lance for aceito.",
+      "decoded_tooltip_list_nft": "Espere alterações somente se alguém comprar seus NFTs.",
+      "info_permit": "Você está autorizando um consumidor a gastar esta quantidade de tokens de sua conta.",
+      "label_change_type_bidding": "Seu lance",
+      "label_change_type_listing": "Sua lista",
+      "label_change_type_nft_listing": "Preço de listagem",
+      "label_change_type_permit": "Limite de gastos",
+      "label_change_type_permit_nft": "Sacar",
+      "label_change_type_receive": "Você recebe",
+      "label_change_type_revoke": "Revogar",
+      "label_change_type_transfer": "Você envia",
       "personal_sign_info": "Você está fazendo login em um site, e não há alterações previstas em sua conta.",
-      "tooltip": "Alterações estimadas são o que pode acontecer se você prosseguir com essa transação. Isso é apenas uma previsão, não uma garantia."
-    }
+      "title": "Alterações estimadas",
+      "tooltip": "Alterações estimadas são o que pode acontecer se você prosseguir com essa transação. Isso é apenas uma previsão, não uma garantia.",
+      "unavailable": "Indisponível"
+    },
+    "unlimited": "Ilimitado",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",

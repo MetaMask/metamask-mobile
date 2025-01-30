@@ -122,7 +122,7 @@ exports[`NetworkDetails renders correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#bbc0c566",
+                "backgroundColor": "#BBC0C566",
                 "borderRadius": 2,
                 "height": 4,
                 "width": 40,
@@ -186,7 +186,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     }
                   }
                 >
-                  Add custom network
+                  Add Network
                 </Text>
               </View>
               <View
@@ -322,7 +322,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     [
                       {
-                        "borderColor": "#bbc0c5",
+                        "borderColor": "#848c96",
                         "borderRadius": 10,
                         "borderWidth": 1,
                         "marginVertical": 16,

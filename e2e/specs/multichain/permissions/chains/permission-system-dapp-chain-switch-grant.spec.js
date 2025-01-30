@@ -14,6 +14,7 @@ import Assertions from '../../../../utils/Assertions';
 import { loginToApp } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
 describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
   beforeAll(async () => {
@@ -41,7 +42,11 @@ describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
 
           // Connect to test dApp
           await Browser.navigateToTestDApp();
+
           await TestDApp.connect();
+          await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+          await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
+          await NetworkConnectMultiSelector.tapUpdateButton();
           await ConnectBottomSheet.tapConnectButton();
 
           // Grant permission and switch to new chain
