@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
@@ -131,7 +131,7 @@ const RemoteImage = (props) => {
     );
   }, [uri]);
 
-  const NetworkBadgeSource = () => {
+  const NetworkBadgeSource = useMemo(() => {
     if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
 
     if (isMainNet(chainId)) return images.ETHEREUM;
@@ -139,7 +139,7 @@ const RemoteImage = (props) => {
     if (isLineaMainnet(chainId)) return images['LINEA-MAINNET'];
 
     return ticker ? images[ticker] : undefined;
-  };
+  }, [chainId, ticker]);
   const isSVG =
     source &&
     source.uri &&
@@ -199,7 +199,7 @@ const RemoteImage = (props) => {
                   badgeElement={
                     <Badge
                       variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource()}
+                      imageSource={NetworkBadgeSource}
                       name={networkName}
                       isScaled={false}
                       size={AvatarSize.Md}
@@ -222,7 +222,7 @@ const RemoteImage = (props) => {
                   badgeElement={
                     <Badge
                       variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource()}
+                      imageSource={NetworkBadgeSource}
                       name={networkName}
                       isScaled={false}
                       size={AvatarSize.Xs}

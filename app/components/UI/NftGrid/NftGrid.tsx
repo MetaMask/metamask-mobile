@@ -64,12 +64,69 @@ interface NftGridProps {
   selectedAddress: string;
 }
 
+function generateNfts(count: number): Nft[] {
+  const nfts: Nft[] = [];
+  const placeholderImageUrl = 'https://picsum.photos/200';
+
+  for (let i = 0; i < count; i++) {
+    const nft: Nft = {
+      tokenId: `token-${i}`,
+      address: `0x${Math.random().toString(16).substr(2, 40)}`,
+      isCurrentlyOwned: true,
+      name: `NFT ${i}`,
+      description: `Description for NFT ${i}`,
+      image: `${placeholderImageUrl}?text=NFT+${i}`,
+      standard: 'ERC721',
+      favorite: false,
+      numberOfSales: Math.floor(Math.random() * 100),
+      backgroundColor: '#FFFFFF',
+      imagePreview: `${placeholderImageUrl}?text=Preview+${i}`,
+      imageThumbnail: `${placeholderImageUrl}?text=Thumbnail+${i}`,
+      imageOriginal: `${placeholderImageUrl}?text=Original+${i}`,
+      externalLink: `https://example.com/nft/${i}`,
+      creator: `Creator ${i}`,
+      transactionId: `tx-${Math.random().toString(16).substr(2, 64)}`,
+      tokenURI: `https://example.com/nft/${i}.json`,
+      rarityRank: `${Math.floor(Math.random() * 1000)}`,
+    };
+
+    nfts.push(nft);
+  }
+
+  return nfts;
+}
+
+export const useNfts = () => {
+  const [nfts, setNfts] = useState<Nft[]>([]);
+
+  const appendNfts = useCallback(() => {
+    setNfts((prevNfts) => {
+      if (prevNfts.length >= 1000) {
+        return prevNfts;
+      }
+      const newNfts = generateNfts(5);
+      return [...prevNfts, ...newNfts];
+    });
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      appendNfts();
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [appendNfts]);
+
+  return nfts;
+};
+
 function NftGrid({ chainId, selectedAddress }: NftGridProps) {
   const navigation =
     useNavigation<
       StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>
     >();
-  const allCollectibles = useSelector(collectiblesSelector);
+  // const allCollectibles = useSelector(collectiblesSelector);
+  const allCollectibles = useNfts();
   const collectibles = useMemo(
     () =>
       allCollectibles.filter(
@@ -238,6 +295,24 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
     [colors.primary.default],
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: Nft }) => (
+      <NftGridItem
+        nft={item}
+        navigation={navigation}
+        privacyMode={privacyMode}
+        actionSheetRef={actionSheetRef}
+        longPressedCollectible={longPressedCollectible}
+      />
+    ),
+    [navigation, privacyMode],
+  );
+
+  const keyExtractor = useCallback(
+    (_: unknown, index: number) => index.toString(),
+    [],
+  );
+
   return (
     <View testID="collectible-contracts">
       {!isNftDetectionEnabled && <CollectibleDetectionModal />}
@@ -261,16 +336,8 @@ function NftGrid({ chainId, selectedAddress }: NftGridProps) {
         <FlatList
           numColumns={3}
           data={collectibles}
-          renderItem={({ item }: { item: Nft }) => (
-            <NftGridItem
-              nft={item}
-              navigation={navigation}
-              privacyMode={privacyMode}
-              actionSheetRef={actionSheetRef}
-              longPressedCollectible={longPressedCollectible}
-            />
-          )}
-          keyExtractor={(_, index) => index.toString()}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           testID={RefreshTestId}
           refreshControl={
             <RefreshControl

@@ -26,8 +26,10 @@ const enqueue = (notifications, notification) => [
 ];
 const dequeue = (notifications) => notifications.slice(1);
 
+const emptyObj = {};
+
 export const currentNotificationSelector = (state) =>
-  state?.notifications[0] || {};
+  state?.notifications[0] || emptyObj;
 
 const notificationReducer = (state = initialState, action) => {
   const { notifications } = state;

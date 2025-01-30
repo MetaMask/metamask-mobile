@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -17,22 +17,26 @@ interface NftGridFooterProps {
   navigation: StackNavigationProp<NftGridNavigationParamList, 'AddAsset'>;
 }
 
+const styles = StyleSheet.create({
+  footerContainer: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+});
+
 function NftGridFooter({ navigation }: NftGridFooterProps) {
+  const handlePress = useCallback(
+    () => navigation.push('AddAsset', { assetType: 'collectible' }),
+    [navigation],
+  );
+
   return (
-    <View
-      // eslint-disable-next-line react-native/no-inline-styles
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-      }}
-    >
+    <View style={styles.footerContainer}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {strings('wallet.no_collectibles')}
       </Text>
       <TouchableOpacity
-        onPress={() =>
-          navigation.push('AddAsset', { assetType: 'collectible' })
-        }
+        onPress={handlePress}
         disabled={false}
         testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
       >
