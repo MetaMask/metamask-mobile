@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
+import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import Footer from '../../components/Confirm/Footer';
@@ -16,12 +17,14 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     KeyringController: {
       getOrAddQRKeyring: jest.fn(),
+      cancelQRSignRequest: jest.fn().mockResolvedValue(undefined),
     },
   },
   controllerMessenger: {
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
+  rejectPendingApproval: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -54,13 +57,11 @@ describe('QRHardwareContext', () => {
     jest
       .spyOn(Camera, 'useCamera')
       .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest
-      .spyOn(QRHardwareAwareness, 'useQRHardwareAwareness')
-      .mockReturnValue({
-        isQRSigningInProgress: true,
-        isSigningQRObject: true,
-        QRState: mockQRState,
-      });
+    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      isQRSigningInProgress: true,
+      isSigningQRObject: true,
+      QRState: mockQRState,
+    });
     const { getByTestId } = renderWithProvider(
       <QRHardwareContextProvider>
         <Footer />
@@ -74,17 +75,38 @@ describe('QRHardwareContext', () => {
     ).toBe(true);
   });
 
+  it('invokes KeyringController.cancelQRSignRequest when request is cancelled', () => {
+    jest
+      .spyOn(Camera, 'useCamera')
+      .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
+    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      isQRSigningInProgress: true,
+      isSigningQRObject: true,
+      QRState: mockQRState,
+    });
+    const { getByText } = renderWithProvider(
+      <QRHardwareContextProvider>
+        <Footer />
+      </QRHardwareContextProvider>,
+      {
+        state: personalSignatureConfirmationState,
+      },
+    );
+    fireEvent.press(getByText('Reject'));
+    expect(
+      Engine.context.KeyringController.cancelQRSignRequest,
+    ).toHaveBeenCalledTimes(1);
+  });
+
   it('should pass correct value of QRState components', () => {
     jest
       .spyOn(Camera, 'useCamera')
       .mockReturnValue({ cameraError: undefined, hasCameraPermission: false });
-    jest
-      .spyOn(QRHardwareAwareness, 'useQRHardwareAwareness')
-      .mockReturnValue({
-        isQRSigningInProgress: true,
-        isSigningQRObject: true,
-        QRState: mockQRState,
-      });
+    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      isQRSigningInProgress: true,
+      isSigningQRObject: true,
+      QRState: mockQRState,
+    });
     const { getByText } = renderWithProvider(
       <QRHardwareContextProvider>
         <QRInfo />
@@ -100,13 +122,11 @@ describe('QRHardwareContext', () => {
     jest
       .spyOn(Camera, 'useCamera')
       .mockReturnValue({ cameraError: undefined, hasCameraPermission: true });
-    jest
-      .spyOn(QRHardwareAwareness, 'useQRHardwareAwareness')
-      .mockReturnValue({
-        isQRSigningInProgress: true,
-        isSigningQRObject: true,
-        QRState: mockQRState,
-      });
+    jest.spyOn(QRHardwareAwareness, 'useQRHardwareAwareness').mockReturnValue({
+      isQRSigningInProgress: true,
+      isSigningQRObject: true,
+      QRState: mockQRState,
+    });
     const { getByText } = renderWithProvider(
       <QRHardwareContextProvider>
         <>
