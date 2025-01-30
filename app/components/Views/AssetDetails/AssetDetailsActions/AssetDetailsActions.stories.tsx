@@ -39,6 +39,7 @@ export const Default = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: true,
+    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
     goToBridge: () => null,
@@ -52,6 +53,7 @@ export const NoBuyButton = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: true,
+    swapsIsLive: true,
     onBuy: () => null,
     goToSwaps: () => null,
     goToBridge: () => null,
@@ -65,6 +67,7 @@ export const NoSwapsButton = Template.bind(
   {
     displayBuyButton: true,
     displaySwapsButton: false,
+    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
     goToBridge: () => null,
@@ -78,6 +81,7 @@ export const NoButtons = Template.bind(
   {
     displayBuyButton: false,
     displaySwapsButton: false,
+    swapsIsLive: false,
     onBuy: () => null,
     goToSwaps: () => null,
     goToBridge: () => null,

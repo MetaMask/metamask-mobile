@@ -48,7 +48,10 @@
     "connector": "à"
   },
   "autocomplete": {
-    "placeholder": "Rechercher ou saisir l’URL"
+    "placeholder": "Rechercher par site ou par adresse",
+    "recents": "Récents",
+    "favorites": "Favoris",
+    "sites": "Sites"
   },
   "navigation": {
     "back": "Retour",
@@ -449,6 +452,7 @@
     "next": "Suivant",
     "buy_asset": "Acheter {{asset}}",
     "no_tokens": "Vous n’avez aucun jeton !",
+    "show_tokens_without_balance": "Afficher les jetons sans solde",
     "no_nfts_yet": "Aucun NFT pour le moment",
     "nfts_autodetection_title": "Détection de NFT",
     "nfts_autodetection_desc": "Laissez MetaMask détecter et afficher automatiquement les NFT dans votre portefeuille.",
@@ -470,7 +474,7 @@
     "learn_more": "En savoir plus",
     "add_collectibles": "Importer des NFT",
     "no_transactions": "Vous n’avez aucune transaction !",
-    "switch_network_to_view_transactions": "Please switch network to view transactions",
+    "switch_network_to_view_transactions": "Veuillez changer de réseau pour visualiser les transactions",
     "send_button": "Envoyer",
     "deposit_button": "Dépôt",
     "copy_address": "Copiez",
@@ -722,6 +726,7 @@
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
     "network_added": "a été ajouté avec succès",
+    "network_removed": "a été supprimé avec succès",
     "network_deleted": "a été supprimé",
     "network_permissions_updated": "Les autorisations réseau ont été mises à jour",
     "revoked": "révoqué.",
@@ -1264,16 +1269,19 @@
     "sell_button": "Vendre",
     "receive_button": "Recevoir",
     "portfolio_button": "Portefeuille",
+    "earn_button": "Gagner",
     "add_collectible_button": "Ajouter",
     "info": "Infos",
     "swap": "Échanger",
     "bridge": "Passerelle",
+    "earn": "Gagner",
     "disabled_button": {
       "buy": "Impossible d’effectuer un achat en utilisant ce compte",
       "sell": "Impossible d’effectuer une vente en utilisant ce compte",
       "swap": "Impossible d’effectuer un swap en utilisant ce compte",
       "bridge": "Impossible d’établir une passerelle en utilisant ce compte",
       "send": "Impossible d’effectuer un envoi en utilisant ce compte",
+      "earn": "Les gains ne sont pas pris en charge pour ce compte",
       "action": "Cette action ne peut pas être effectuée en utilisant ce compte"
     },
     "description": "Description",
@@ -1290,6 +1298,7 @@
     "bridge_description": "Transférer des jetons entre différents réseaux",
     "send_description": "Envoyer des crypto-actifs vers n’importe quel compte",
     "receive_description": "Recevoir des crypto-actifs",
+    "earn_description": "Gagnez des récompenses avec vos jetons",
     "chart_time_period": {
       "1d": "Aujourd’hui",
       "7d": "Les 7 derniers jours",
@@ -1791,6 +1800,7 @@
     "network_chain_id": "Identifiant de la chaîne",
     "network_rpc_url": "URL du réseau",
     "network_rpc_url_label": "URL de RPC du réseau",
+    "network_rpc_url_warning_punycode": "Les pirates informatiques reproduisent parfois des sites en modifiant légèrement l’adresse URL. Avant de continuer, vérifiez l’URL du réseau. Version Punycode :",
     "new_default_network_url": "Nouvelle URL par défaut du réseau",
     "current_label": "Actuel",
     "new_label": "Nouveau",
@@ -3352,7 +3362,8 @@
     "add_hardware_wallet": "Ajouter un portefeuille matériel",
     "import_account": "Importer le compte",
     "add_bitcoin_account_testnet": "Ajouter un nouveau compte Bitcoin (Testnet)",
-    "add_bitcoin_account_mainnet": "Ajouter un nouveau compte Bitcoin (Bêta)"
+    "add_bitcoin_account_mainnet": "Ajouter un nouveau compte Bitcoin (Bêta)",
+    "add_solana_account": "Ajouter un nouveau compte Solana (Bêta)"
   },
   "show_nft": {
     "show_nft_title": "Afficher le NFT",
@@ -3571,18 +3582,36 @@
     "title": {
       "signature": "Demande de signature"
     },
+    "sub_title": {
+      "signature": "Vérifiez les détails de la demande avant de la confirmer."
+    },
     "request_from": "Demande de",
     "message": "Message",
+    "primary_type": "Type primaire",
     "personal_sign_tooltip": "Ce site demande votre signature",
     "details": "Détails",
     "account": "Compte",
     "balance": "Solde",
     "network": "Réseau",
     "simulation": {
-      "title": "Changements estimés",
+      "decoded_tooltip_bid_nft": "Le NFT sera affiché dans votre portefeuille si l’offre est acceptée.",
+      "decoded_tooltip_list_nft": "Ne vous attendez à des changements que si quelqu’un achète vos NFT.",
+      "info_permit": "Vous donnez au dépenseur l’autorisation de retirer ce nombre de jetons de votre compte.",
+      "label_change_type_bidding": "Vous enchérissez",
+      "label_change_type_listing": "Vous mettez en vente",
+      "label_change_type_nft_listing": "Prix de vente",
+      "label_change_type_permit": "Plafond de dépenses",
+      "label_change_type_permit_nft": "Retirer",
+      "label_change_type_receive": "Vous recevez",
+      "label_change_type_revoke": "Révoquer",
+      "label_change_type_transfer": "Vous envoyez",
       "personal_sign_info": "Vous êtes en train de vous connecter à un site. Aucun changement ne devrait être apporté à votre compte.",
-      "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information."
-    }
+      "title": "Changements estimés",
+      "tooltip": "Les changements estimés représentent ce qui pourrait se produire si vous effectuez cette transaction. Il s’agit juste d’une estimation fournie à titre d’information.",
+      "unavailable": "Non disponible"
+    },
+    "unlimited": "Illimité",
+    "none": "None"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",
