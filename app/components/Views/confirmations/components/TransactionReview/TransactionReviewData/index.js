@@ -12,7 +12,7 @@ import ClipboardManager from '../../../../../../core/ClipboardManager';
 import { showAlert } from '../../../../../../actions/alert';
 import GlobalAlert from '../../../../../UI/GlobalAlert';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../../selectors/currencyRateController';
 
@@ -183,7 +183,7 @@ class TransactionReviewData extends PureComponent {
 }
 
 const mapStateToProps = (state) => ({
-  conversionRate: selectConversionRate(state),
+  conversionRate: selectConversionRateByChainId(state, state.transaction.chainId),
   currentCurrency: selectCurrentCurrency(state),
   transaction: state.transaction,
 });

@@ -9,7 +9,7 @@ exports[`TagBase should render TagBase 1`] = `
     {
       "alignSelf": "flex-start",
       "backgroundColor": "#ffffff",
-      "borderColor": "#bbc0c5",
+      "borderColor": "#848c96",
       "borderRadius": 999,
       "borderWidth": 0,
       "color": "#141618",
