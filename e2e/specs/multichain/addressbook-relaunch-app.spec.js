@@ -16,7 +16,6 @@ import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
 import Assertions from '../../utils/Assertions';
 
-
 const fixtureServer = new FixtureServer();
 
 describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
@@ -39,34 +38,29 @@ describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
     await stopFixtureServer(fixtureServer);
   });
 
-
   it('should go to settings then select contacts', async () => {
-    await device.disableSynchronization()
+    await device.disableSynchronization();
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
-    await device.enableSynchronization()
+    await device.enableSynchronization();
 
-        await ContactsView.tapAddContactButton();
+    await ContactsView.tapAddContactButton();
     // await Assertions.checkIfVisible(ContactsView.container);
-        await AddContactView.typeInName('Curtis');
-    
+    await AddContactView.typeInName('Curtis');
+
     await AddContactView.typeInAddress('curtis.eth');
     await AddContactView.tapAddContactButton();
     // await Assertions.checkIfVisible(ContactsView.container);
     await ContactsView.isContactAliasVisible('Curtis'); // Check that Ibrahim address is saved in the address book
-  
-
-    await device.terminateApp()
+    await TestHelpers.delay(3500)
+    await device.terminateApp();
     await TestHelpers.launchApp({
-        launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
-      });  
-      await loginToApp();
+      launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
+    });
+    await loginToApp();
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
-    await ContactsView.isContactAliasVisible('Curtis'); 
-
-});
-
- 
+    await ContactsView.isContactAliasVisible('Curtis');
+  });
 });
