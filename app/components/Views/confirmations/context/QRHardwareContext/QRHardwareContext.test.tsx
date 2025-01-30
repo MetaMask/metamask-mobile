@@ -173,6 +173,7 @@ describe('QRHardwareContext', () => {
 
 describe('useQRHardwareContext', () => {
   it('should throw error is not wrapped in QRHardwareContext', () => {
+    // below should throw
     expect(() => {
       useQRHardwareContext();
     }).toThrow();
