@@ -10,7 +10,7 @@ import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
 import Assertions from '../../../../utils/Assertions';
 
-describe(('Account Permission Management'), () => {
+describe(SmokeMultiChainPermissions('Account Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

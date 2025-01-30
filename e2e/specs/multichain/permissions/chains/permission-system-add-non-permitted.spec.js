@@ -22,7 +22,7 @@ const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  ('Chain Permission System, non-permitted chain, '),
+  SmokeMultiChainPermissions('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
