@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, renderHook } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Engine from '../../../../../core/Engine';
@@ -174,7 +174,7 @@ describe('QRHardwareContext', () => {
 describe('useQRHardwareContext', () => {
   it('should throw error is not wrapped in QRHardwareContext', () => {
     expect(() => {
-      renderHook(() => useQRHardwareContext());
+      useQRHardwareContext();
     }).toThrow();
   });
 });
