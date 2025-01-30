@@ -16,8 +16,10 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import QuotesView from '../../pages/Ramps/QuotesView';
 import Assertions from '../../utils/Assertions';
-
+import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
+import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeRamps('Buy Crypto'), () => {
@@ -46,7 +48,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
-    await SelectRegionView.tapSelectRegionDropdown();
+    await BuildQuoteView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption('United States of America');
     await SelectRegionView.tapRegionOption('California');
     await SelectRegionView.tapContinueButton();
@@ -62,5 +64,68 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await WalletActionsBottomSheet.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
   });
+
+  it('should select a different currency', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapCurrencySelector();
+    await SelectCurrencyView.tapCurrencyOption('Euro');
+    await Assertions.checkIfTextIsDisplayed('€0');
+    await Assertions.checkIfTextIsNotDisplayed('$0');
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a different token', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapTokenDropdown('Ethereum');
+    await TokenSelectBottomSheet.tapTokenByName('DAI');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
+    await Assertions.checkIfTextIsNotDisplayed('Ethereum');
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a different payment method', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
+    await SelectPaymentMethodView.tapPaymentMethodOption('Apple Pay');
+    await Assertions.checkIfTextIsDisplayed('Apple Pay');
+    await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
+    await BuildQuoteView.tapCancelButton();
+  });
+
+
+  it('should check order min and maxlimits', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.enterFiatAmount('1');
+    await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
+    await BuildQuoteView.enterFiatAmount('55555');
+    await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a different region', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapRegionSelector();
+    await SelectRegionView.tapRegionOption('France');
+    await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
+    await Assertions.checkIfTextIsDisplayed('🇫🇷');
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should select a quote', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.enterFiatAmount('100');
+    await BuildQuoteView.tapGetQuotesButton();
+    await Assertions.checkIfVisible(QuotesView.quotes);
+    await QuotesView.closeQuotesSection();
+    await BuildQuoteView.tapCancelButton();
+  });
+
 });

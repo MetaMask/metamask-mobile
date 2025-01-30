@@ -80,6 +80,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -754,6 +755,7 @@ const BuildQuote = () => {
                 accessibilityRole="button"
                 accessible
                 onPress={handleChangeRegion}
+                testID={BuildQuoteSelectors.REGION_DROPDOWN}
               >
                 <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
