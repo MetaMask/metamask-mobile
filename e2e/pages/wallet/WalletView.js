@@ -90,6 +90,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
+  get sortBy() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
+  }
+
   get tokenNetworkFilterAll() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
@@ -172,6 +176,12 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
+  async getTokensInWallet() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+  }
+
   async nftIDInWallet(nftId) {
     return Matchers.getElementByID(nftId);
   }
@@ -190,6 +200,10 @@ class WalletView {
 
   async tapTokenNetworkFilter() {
     await Gestures.waitAndTap(this.tokenNetworkFilter);
+  }
+
+  async tapSortBy() {
+    await Gestures.waitAndTap(this.sortBy);
   }
 
   async tapTokenNetworkFilterAll() {
