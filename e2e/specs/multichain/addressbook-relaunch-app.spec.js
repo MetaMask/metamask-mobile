@@ -48,16 +48,14 @@ describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
 
         await ContactsView.tapAddContactButton();
     // await Assertions.checkIfVisible(ContactsView.container);
-        await AddContactView.typeInName('Ibrahim');
+        await AddContactView.typeInName('Curtis');
     
-    await AddContactView.typeInAddress('ibrahim.team.mask.eth');
+    await AddContactView.typeInAddress('curtis.eth');
     await AddContactView.tapAddContactButton();
     // await Assertions.checkIfVisible(ContactsView.container);
-    await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
+    await ContactsView.isContactAliasVisible('Curtis'); // Check that Ibrahim address is saved in the address book
   
-  });
 
-  it('should add an address via the contacts view', async () => {   
     await device.terminateApp()
     await TestHelpers.launchApp({
         launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
@@ -66,7 +64,7 @@ describe(SmokeMultiChainPermissions('Addressbook Relaunch'), () => {
     await TabBarComponent.tapSettings();
     await SettingsView.tapContacts();
     await Assertions.checkIfVisible(ContactsView.container);
-    await ContactsView.isContactAliasVisible('Ibrahim'); // Check that Ibrahim address is saved in the address book
+    await ContactsView.isContactAliasVisible('Curtis'); 
 
 });
 
