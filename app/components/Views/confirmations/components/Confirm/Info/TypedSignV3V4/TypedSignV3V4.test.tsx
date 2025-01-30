@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import {
@@ -6,7 +7,6 @@ import {
   typedSignV4ConfirmationState,
 } from '../../../../../../../util/test/confirm-data-helpers';
 import TypedSignV3V4 from './TypedSignV3V4';
-import { fireEvent } from '@testing-library/react-native';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   resetState: jest.fn(),
@@ -18,7 +18,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 }));
 
 describe('TypedSignV3V4', () => {
-  it('should contained required text', async () => {
+  it('should contained required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });
@@ -29,7 +29,7 @@ describe('TypedSignV3V4', () => {
     expect(getByText('Mail')).toBeDefined();
   });
 
-  it('should not display primaty type if simulation section is displayed', async () => {
+  it('should not display primaty type if simulation section is displayed', () => {
     const { getByText, queryByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });
@@ -40,7 +40,7 @@ describe('TypedSignV3V4', () => {
     expect(queryByText('Mail')).toBeNull();
   });
 
-  it('should show detailed message when message section is clicked', async () => {
+  it('should show detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });

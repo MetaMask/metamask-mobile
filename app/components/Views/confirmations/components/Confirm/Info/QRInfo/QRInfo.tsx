@@ -45,7 +45,7 @@ const QRInfo = () => {
       const buffer = signature.getRequestId();
       if (buffer) {
         const requestId = uuidStringify(buffer);
-        if (QRState?.sign.request?.requestId === requestId) {
+        if (QRState?.sign?.request?.requestId === requestId) {
           KeyringController.submitQRSignature(
             QRState.sign.request?.requestId as string,
             ur.cbor.toString('hex'),
@@ -66,7 +66,7 @@ const QRInfo = () => {
     },
     [
       KeyringController,
-      QRState?.sign.request?.requestId,
+      QRState?.sign?.request?.requestId,
       createEventBuilder,
       setRequestCompleted,
       setScannerVisible,
@@ -84,7 +84,6 @@ const QRInfo = () => {
 
   return (
     <Fragment>
-      {/* check is QRState?.sign?.request condition can be removed */}
       {QRState?.sign?.request && (
         <View style={styles.container}>
           <TouchableOpacity>

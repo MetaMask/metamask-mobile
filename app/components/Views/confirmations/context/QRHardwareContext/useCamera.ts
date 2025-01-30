@@ -10,7 +10,7 @@ export const useCamera = (isSigningQRObject: boolean) => {
   const [cameraError, setCameraError] = useState<string | undefined>();
 
   // ios handled camera perfectly in this situation, we just need to check permission with android.
-  const [hasCameraPermission, setCameraPermission] = useState(Device.isIos);
+  const [hasCameraPermission, setCameraPermission] = useState(Device.isIos());
 
   const checkAndroidCamera = useCallback(() => {
     if (Device.isAndroid() && !hasCameraPermission) {

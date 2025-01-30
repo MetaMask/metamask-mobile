@@ -13,7 +13,7 @@ import { IQRState } from '../../../../UI/QRHardware/types';
 import { useCamera } from './useCamera';
 import { useQRHardwareAwareness } from './useQRHardwareAwareness';
 
-interface QRHardwareContextType {
+export interface QRHardwareContextType {
   QRState?: IQRState;
   cameraError: string | undefined;
   cancelQRScanRequestIfPresent: () => Promise<void>;
