@@ -27,8 +27,8 @@ export const useTokenSearchDiscovery = () => {
           params,
         );
         setResults(result);
-      } catch (error) {
-        setError(error as Error);
+      } catch (err) {
+        setError(err as Error);
       } finally {
         setIsLoading(false);
       }
