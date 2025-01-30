@@ -159,6 +159,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
   const submittedUrlRef = useRef('');
+  const
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
   const sessionENSNamesRef = useRef<SessionENSNames>({});
@@ -175,6 +176,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const searchEngine = useSelector(selectSearchEngine);
   const permittedAccountsList = useSelector((state: RootState) => {
     const permissionsControllerState = selectPermissionControllerState(state);
+    // TODO: this needs to be the same url as the background bridge
     const hostname = new URLParse(resolvedUrlRef.current).hostname;
     const permittedAcc = getPermittedAccountsByHostname(
       permissionsControllerState,
@@ -928,6 +930,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
       // Use URL to produce real url. This should be the actual website that the user is viewing.
+      // TODO: use this url on the permission system
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
       webStates.current[nativeEvent.url] = {
@@ -948,6 +951,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         injectHomePageScripts();
       }
 
+      // Q: do we really need to init backgroundbridge at onLoadStart ?
       initializeBackgroundBridge(urlOrigin, true);
     },
     [
